@@ -1,6 +1,7 @@
-import DreamSerializer from '../..'
-import { SerializableClassOrClasses } from '../../../dream/types'
-import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared'
+import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
+import { SerializableClassOrClasses } from '../../../dream/types.js'
+import DreamSerializer from '../../index.js'
+import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
 
 /**
  * Establishes a One to One relationship between
@@ -16,12 +17,12 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @User.HasOne('Settings')
+ *   @Deco.HasOne('Settings')
  *   public settings: Settings
  * }
  *
  * class Settings extends ApplicationModel {
- *   @Settings.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  * }
  *
@@ -46,32 +47,48 @@ export default function RendersOne(
   serializableClassOrClasses: SerializableClassOrClasses | RendersOneOpts | null = null,
   opts?: RendersOneOpts
 ): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, def: any) {
-    const serializerClass: typeof DreamSerializer = target.constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    if (isSerializable(serializableClassOrClasses)) {
-      opts ||= {} as RendersOneOpts
-    } else {
-      opts = (serializableClassOrClasses || {}) as RendersOneOpts
-      serializableClassOrClasses = null
-    }
+    context.addInitializer(function (this: DreamSerializer) {
+      const target = this
+      const serializerClass: typeof DreamSerializer = target.constructor as typeof DreamSerializer
+      if (!serializerClass['globallyInitializingDecorators']) {
+        /**
+         * Modern Javascript applies implicit accessors to instance properties
+         * that don't have an accessor explicitly defined in the class definition.
+         * The instance accessors shadow prototype accessors.
+         * `addInitializer` is called by Decorators after an instance has been fully
+         * constructed. We leverage this opportunity to delete the instance accessors
+         * so that the prototype accessors applied by this decorator can be reached.
+         */
+        delete (this as any)[key]
+        return
+      }
 
-    serializerClass.associationStatements = [
-      ...(serializerClass.associationStatements || []),
-      {
-        type: 'RendersOne',
-        field: key,
-        flatten: opts.flatten || false,
-        optional: opts.optional || false,
-        dreamOrSerializerClass: serializableClassOrClasses,
-        serializerKey: opts.serializerKey,
-        source: opts.source || key,
-        through: opts.through || null,
-        path: opts.path || null,
-        exportedAs: opts.exportedAs || null,
-      } as DreamSerializerAssociationStatement,
-    ]
+      if (isSerializable(serializableClassOrClasses)) {
+        opts ||= {} as RendersOneOpts
+      } else {
+        opts = (serializableClassOrClasses || {}) as RendersOneOpts
+        serializableClassOrClasses = null
+      }
+
+      serializerClass.associationStatements = [
+        ...(serializerClass.associationStatements || []),
+        {
+          type: 'RendersOne',
+          field: key,
+          flatten: opts.flatten || false,
+          optional: opts.optional || false,
+          dreamOrSerializerClass: serializableClassOrClasses,
+          serializerKey: opts.serializerKey,
+          source: opts.source || key,
+          through: opts.through || null,
+          path: opts.path || null,
+          exportedAs: opts.exportedAs || null,
+        } as DreamSerializerAssociationStatement,
+      ]
+    })
   }
 }
 

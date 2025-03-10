@@ -87,7 +87,7 @@ describe('pascalize', () => {
 
     context('when passed a key with a Dream value', () => {
       it('does not alter Dream models', () => {
-        const balloon = new Balloon()
+        const balloon = Balloon.new()
         expect(pascalize({ hello_world: balloon })).toEqual({ HelloWorld: balloon })
       })
     })

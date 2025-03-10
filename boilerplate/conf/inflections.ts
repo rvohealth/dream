@@ -1,5 +1,5 @@
-import pluralize from 'pluralize'
+import { addUncountableRule } from 'pluralize-esm'
 
 export default () => {
-  pluralize.addUncountableRule('paper')
+  addUncountableRule('paper')
 }

@@ -1,13 +1,12 @@
-import AfterDestroy from '../../../src/decorators/hooks/AfterDestroy'
-import AfterDestroyCommit from '../../../src/decorators/hooks/AfterDestroyCommit'
-import BeforeDestroy from '../../../src/decorators/hooks/BeforeDestroy'
-import BeforeSave from '../../../src/decorators/hooks/BeforeSave'
+import { Decorators } from '../../../src'
 import { DreamColumn, DreamConst } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAssetAudit from './CompositionAssetAudit'
 import LocalizedText from './LocalizedText'
 import User from './User'
+
+const Deco = new Decorators<InstanceType<typeof CompositionAsset>>()
 
 export default class CompositionAsset extends ApplicationModel {
   public get table() {
@@ -20,26 +19,26 @@ export default class CompositionAsset extends ApplicationModel {
   public primary: DreamColumn<CompositionAsset, 'primary'>
   public score: DreamColumn<CompositionAsset, 'score'>
 
-  @CompositionAsset.BelongsTo('Composition')
+  @Deco.BelongsTo('Composition')
   public composition: Composition
   public compositionId: DreamColumn<CompositionAsset, 'compositionId'>
 
-  @CompositionAsset.HasOne('User', {
+  @Deco.HasOne('User', {
     through: 'composition',
   })
   public user: User
 
-  @CompositionAsset.HasMany('CompositionAssetAudit')
+  @Deco.HasMany('CompositionAssetAudit')
   public compositionAssetAudits: CompositionAssetAudit[]
 
-  @BeforeSave()
+  @Deco.BeforeSave()
   public ensureDefaultSrc() {
     this.src ||= 'default src'
   }
 
   private compositionToUpdateDuringDestroy: Composition | undefined
 
-  @BeforeDestroy()
+  @Deco.BeforeDestroy()
   public async updateCompositionContentBeforeDestroy(this: CompositionAsset) {
     const reloaded = this.loaded('composition') ? this : await this.load('composition').execute()
     this.compositionToUpdateDuringDestroy = reloaded.composition
@@ -47,7 +46,7 @@ export default class CompositionAsset extends ApplicationModel {
       await reloaded.composition.update({ content: 'something was destroyed' })
   }
 
-  @AfterDestroy()
+  @Deco.AfterDestroy()
   public async updateCompositionContentAfterDestroy(this: CompositionAsset) {
     if (this.src === 'mark after destroy')
       await this.compositionToUpdateDuringDestroy?.update({
@@ -55,7 +54,7 @@ export default class CompositionAsset extends ApplicationModel {
       })
   }
 
-  @AfterDestroyCommit()
+  @Deco.AfterDestroyCommit()
   public async updateCompositionContentAfterDestroyCommit(this: CompositionAsset) {
     if (this.src === 'mark after destroy commit')
       await this.compositionToUpdateDuringDestroy?.update({
@@ -63,20 +62,20 @@ export default class CompositionAsset extends ApplicationModel {
       })
   }
 
-  @CompositionAsset.HasOne('LocalizedText', {
+  @Deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
-  @CompositionAsset.HasOne('LocalizedText', {
+  @Deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
     on: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 
-  @CompositionAsset.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
+  @Deco.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }

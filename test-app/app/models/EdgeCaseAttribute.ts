@@ -1,6 +1,8 @@
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 
+// const Deco = new Decorators<InstanceType<typeof EdgeCaseAttribute>>()
+
 export default class EdgeCaseAttribute extends ApplicationModel {
   public get table() {
     return 'edge_case_attributes' as const

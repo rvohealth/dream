@@ -1,31 +1,39 @@
-import Dream from '../Dream'
+import Dream from '../Dream.js'
+import { DecoratorContext } from './DecoratorContextType.js'
 
 export default function Scope(
   opts: {
     default?: boolean
   } = {}
 ): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
-    // target is already a typeof Dream here, because scopes
-    // can only be set on static methods
-    const t: typeof Dream = target
+  return function (_: any, context: DecoratorContext & { static: true }) {
+    const key = context.name
 
-    const branch = opts.default ? 'default' : 'named'
-    if (!Object.getOwnPropertyDescriptor(t, 'scopes'))
-      t['scopes'] = {
-        default: [...(t['scopes']?.default || [])] as ScopeStatement[],
-        named: [...(t['scopes']?.named || [])] as ScopeStatement[],
-      }
+    context.addInitializer(function (this: typeof Dream) {
+      // this is already a typeof Dream here, because scopes
+      // can only be set on static methods
+      const t: typeof Dream = this
 
-    const alreadyApplied = !!t['scopes'][branch].find(scope => scope.method === key)
+      scopeImplementation(t, key, opts)
+    })
+  }
+}
 
-    if (!alreadyApplied) {
-      t['scopes'][branch].push({
-        method: key,
-        default: opts.default || false,
-      })
+export function scopeImplementation(t: typeof Dream, key: string, opts: { default?: boolean } = {}) {
+  const branch = opts.default ? 'default' : 'named'
+  if (!Object.getOwnPropertyDescriptor(t, 'scopes'))
+    t['scopes'] = {
+      default: [...(t['scopes']?.default || [])] as ScopeStatement[],
+      named: [...(t['scopes']?.named || [])] as ScopeStatement[],
     }
+
+  const alreadyApplied = !!t['scopes'][branch].find(scope => scope.method === key)
+
+  if (!alreadyApplied) {
+    ;(t['scopes'][branch] as ScopeStatement[]).push({
+      method: key,
+      default: opts.default || false,
+    })
   }
 }
 

@@ -1,17 +1,17 @@
 import * as c from 'colorette'
 import * as fs from 'fs'
 
-import path from 'path'
-import DreamtsBuilder from '../file-builders/DreamtsBuilder'
-import EnvBuilder from '../file-builders/EnvBuilder'
-import PackagejsonBuilder from '../file-builders/PackagejsonBuilder'
-import copyRecursive from './copyRecursive'
-import filterObjectByKey from './filterObjectByKey'
-import log from './log'
-import { InitDreamAppCliOptions } from './primaryKeyTypes'
-import sleep from './sleep'
-import sspawn from './sspawn'
-import welcomeMessage from './welcomeMessage'
+import * as path from 'path'
+import DreamtsBuilder from '../file-builders/DreamtsBuilder.js'
+import EnvBuilder from '../file-builders/EnvBuilder.js'
+import PackagejsonBuilder from '../file-builders/PackagejsonBuilder.js'
+import copyRecursive from './copyRecursive.js'
+import filterObjectByKey from './filterObjectByKey.js'
+import log from './log.js'
+import { InitDreamAppCliOptions } from './primaryKeyTypes.js'
+import sleep from './sleep.js'
+import sspawn from './sspawn.js'
+import welcomeMessage from './welcomeMessage.js'
 
 export default async function initDreamAppIntoExistingProject(
   appName: string,
@@ -56,8 +56,8 @@ export default async function initDreamAppIntoExistingProject(
 
   const packageJsonPath = path.join(process.cwd(), options.projectPath, 'package.json')
   if (fs.existsSync(packageJsonPath)) {
-    const packagejson = (await import('../../../boilerplate/package.json')).default
-    const userPackagejson = (await import(packageJsonPath)).default
+    const packagejson = await import('../../../boilerplate/package.json')
+    const userPackagejson = await import(packageJsonPath)
 
     mergePackageJsonField('scripts', packagejson, userPackagejson)
     mergePackageJsonField('dependencies', packagejson, userPackagejson)

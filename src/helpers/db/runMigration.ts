@@ -1,9 +1,9 @@
-import fs from 'fs/promises'
+import * as fs from 'fs/promises'
 import { FileMigrationProvider, MigrationResult, Migrator } from 'kysely'
-import path from 'path'
-import db from '../../db'
-import DreamDbConnection from '../../db/DreamDbConnection'
-import DreamApplication from '../../dream-application'
+import * as path from 'path'
+import DreamDbConnection from '../../db/DreamDbConnection.js'
+import db from '../../db/index.js'
+import DreamApplication from '../../dream-application/index.js'
 
 type MigrationModes = 'migrate' | 'rollback'
 

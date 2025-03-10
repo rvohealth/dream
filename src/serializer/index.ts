@@ -1,26 +1,26 @@
 import { DateTime } from 'luxon'
-import Dream from '../Dream'
-import DreamApplication from '../dream-application'
+import Dream from '../Dream.js'
+import DreamApplication from '../dream-application/index.js'
 import {
   DreamConst,
   SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
-} from '../dream/types'
-import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet'
-import MissingSerializer from '../errors/MissingSerializersDefinition'
-import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer'
-import CalendarDate from '../helpers/CalendarDate'
-import camelize from '../helpers/camelize'
-import compact from '../helpers/compact'
+} from '../dream/types.js'
+import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet.js'
+import MissingSerializer from '../errors/MissingSerializersDefinition.js'
+import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
+import CalendarDate from '../helpers/CalendarDate.js'
+import camelize from '../helpers/camelize.js'
+import compact from '../helpers/compact.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
-} from '../helpers/inferSerializerFromDreamOrViewModel'
-import round from '../helpers/round'
-import snakeify from '../helpers/snakeify'
-import { DreamSerializerAssociationStatement } from './decorators/associations/shared'
-import { AttributeStatement, SerializableTypes } from './decorators/attribute'
-import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction'
+} from '../helpers/inferSerializerFromDreamOrViewModel.js'
+import round from '../helpers/round.js'
+import snakeify from '../helpers/snakeify.js'
+import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
+import { AttributeStatement, SerializableTypes } from './decorators/attribute.js'
+import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []
@@ -28,6 +28,17 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   public static readonly isDreamSerializer = true
 
   private static _globalName: string
+
+  /**
+   * @internal
+   *
+   * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
+   * need static access to things set up by decorators. Stage 3 Decorators change the context that is available
+   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
+   *
+   */
+  public static globallyInitializingDecorators: boolean = false
 
   public static get globalName(): string {
     if (!this._globalName) throw new GlobalNameNotSet(this)
@@ -98,12 +109,13 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   constructor(data: DataType) {
     this._data = data
 
+    const serializerPrototype = Object.getPrototypeOf(this)
     const attributeStatements = [...(this.constructor as typeof DreamSerializer).attributeStatements]
 
     attributeStatements.forEach(attributeStatement => {
       if (!attributeStatement.functional) {
-        if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), attributeStatement.field)?.get) {
-          Object.defineProperty(Object.getPrototypeOf(this), attributeStatement.field, {
+        if (!Object.getOwnPropertyDescriptor(serializerPrototype, attributeStatement.field)?.get) {
+          Object.defineProperty(serializerPrototype, attributeStatement.field, {
             get() {
               return this.$data[attributeStatement.field]
             },

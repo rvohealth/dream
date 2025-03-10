@@ -67,7 +67,7 @@ describe('Dream.findEach', () => {
 
   context('regarding connections', () => {
     beforeEach(() => {
-      jest.spyOn(DreamDbConnection, 'getConnection')
+      vi.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {

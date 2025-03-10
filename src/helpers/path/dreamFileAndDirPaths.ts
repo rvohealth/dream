@@ -1,5 +1,5 @@
-import path from 'path'
-import DreamApplication from '../../dream-application'
+import * as path from 'path'
+import DreamApplication from '../../dream-application/index.js'
 
 export default function (relDirPath: string, partialFilePath: string) {
   const dreamApp = DreamApplication.getOrFail()

@@ -1,7 +1,7 @@
-import Dream from '../../../Dream'
-import getColumnForSortableScope from './getColumnForSortableScope'
-import isSortedCorrectly from './isSortedCorrectly'
-import scopeArray from './scopeArray'
+import Dream from '../../../Dream.js'
+import getColumnForSortableScope from './getColumnForSortableScope.js'
+import isSortedCorrectly from './isSortedCorrectly.js'
+import scopeArray from './scopeArray.js'
 
 export default async function resortAllRecords(
   dreamClass: typeof Dream,

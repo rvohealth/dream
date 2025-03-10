@@ -31,7 +31,7 @@ describe('Dream.leftJoinPreload', () => {
     })
 
     await expect(
-      CompositionAssetAudit.leftJoinPreload('compositionAsset').findEach(dream => console.debug(dream))
+      CompositionAssetAudit.leftJoinPreload('compositionAsset').findEach(() => null as any)
     ).rejects.toThrow(LeftJoinPreloadIncompatibleWithFindEach)
   })
 

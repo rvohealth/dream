@@ -1,5 +1,5 @@
-import crypto from 'crypto'
-import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../..'
+import * as crypto from 'crypto'
+import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../../index.js'
 
 export default function decryptAESGCM<RetType>(
   algorithm: EncryptAESAlgorithm,
@@ -8,8 +8,12 @@ export default function decryptAESGCM<RetType>(
 ): RetType | null {
   const { ciphertext, tag, iv } = unpackPayloadOrFail(encrypted)
 
-  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key, 'base64'), Buffer.from(iv, 'base64'))
-  decipher.setAuthTag(Buffer.from(tag, 'base64'))
+  const decipher = crypto.createDecipheriv(
+    algorithm,
+    Buffer.from(key, 'base64') as any,
+    Buffer.from(iv, 'base64') as any
+  )
+  decipher.setAuthTag(Buffer.from(tag, 'base64') as any)
 
   let plaintext = decipher.update(ciphertext, 'base64', 'utf8')
   plaintext += decipher.final('utf8')

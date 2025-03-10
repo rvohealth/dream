@@ -1,23 +1,41 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2021",
-    "sourceMap": true,
-    "incremental": true,
-    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2022"],
+    "module": "ES2022",
+    "moduleResolution": "Node",
     "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictBindCallApply": true,
-    "useUnknownInCatchVariables": true,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+
+    /**
+     * Dream properties are initialized when a Dream model is
+     * loaded from the database, and custom setters and getters
+     * are applied during the initialization. The setters are
+     * intentionally disabled before the constructor of
+     * classes that extend Dream is run to prevent the ESNext
+     * behavior of setting properties to undefined (or even explicit
+     * setting in the constructor) from overriding data loaded from
+     * the database.
+     */
+    "strictPropertyInitialization": false,
+
+    "target": "ES2022",
+    "useUnknownInCatchVariables": true,
   },
-  "include": ["src", "noop"]
+  "include": ["src", "noop"],
+
+  /**
+   * this ts-node block is necessary to get node commands to leverage the ts-node esm loader
+   * removing this block will lead to ambiguous crashing in node with no stack traces.
+   */
+  "ts-node": {
+    "transpileOnly": true,
+    "esm": true
+  }
 }

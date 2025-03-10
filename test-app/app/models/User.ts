@@ -1,14 +1,14 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
+import { Decorators } from '../../../src'
 import Encrypted from '../../../src/decorators/Encrypted'
-import BeforeSave from '../../../src/decorators/hooks/BeforeSave'
 import Scope from '../../../src/decorators/Scope'
 import Validates from '../../../src/decorators/validations/Validates'
 import Virtual from '../../../src/decorators/Virtual'
 import Query from '../../../src/dream/Query'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import range from '../../../src/helpers/range'
-import ApplicationModel, { Decs } from './ApplicationModel'
+import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
 import BalloonLine from './BalloonLine'
 import Collar from './Collar'
@@ -22,6 +22,8 @@ import Post from './Post'
 import PostComment from './PostComment'
 import Rating from './Rating'
 import UserSettings from './UserSettings'
+
+const Deco = new Decorators<InstanceType<typeof User>>()
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -63,79 +65,79 @@ export default class User extends ApplicationModel {
   @Validates('length', { min: 4, max: 64 })
   public email: DreamColumn<User, 'email'>
 
-  @User.HasOne('UserSettings')
+  @Deco.HasOne('UserSettings')
   public userSettings: UserSettings
 
-  @Decs.HasMany('Post')
-  // @Decs.HasMany('Post', { dependent: 'destroy' })
+  @Deco.HasMany('Post')
+  // @Deco.HasMany('Post', { dependent: 'destroy' })
   public posts: Post[]
 
-  @User.HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @Deco.HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allPosts: Post[]
 
-  @User.HasMany('PostComment', { through: 'posts', source: 'comments' })
+  @Deco.HasMany('PostComment', { through: 'posts', source: 'comments' })
   public postComments: PostComment[]
 
-  @User.HasMany('PostComment', {
+  @Deco.HasMany('PostComment', {
     through: 'allPosts',
     source: 'allComments',
   })
   public allPostComments: PostComment[]
 
-  @User.HasMany('Rating')
+  @Deco.HasMany('Rating')
   public ratings: Rating[]
 
-  @User.HasMany('ExtraRating/HeartRating')
+  @Deco.HasMany('ExtraRating/HeartRating')
   public heartRatings: HeartRating[]
 
-  @User.HasMany('Rating', { through: 'posts', source: 'ratings' })
+  @Deco.HasMany('Rating', { through: 'posts', source: 'ratings' })
   public postRatings: Rating[]
 
-  @User.HasOne('Post', { selfOn: { position: 'featuredPostPosition' } })
+  @Deco.HasOne('Post', { selfOn: { position: 'featuredPostPosition' } })
   public featuredPost: Post
 
-  @User.HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
+  @Deco.HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
   public featuredRatings: Rating[]
 
-  @User.HasMany('Rating', {
+  @Deco.HasMany('Rating', {
     through: 'posts',
     source: 'ratings',
     selfOn: { rating: 'targetRating' },
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
-  @User.HasMany('Composition', { dependent: 'destroy' })
+  @Deco.HasMany('Composition', { dependent: 'destroy' })
   public compositions: Composition[]
 
-  @User.HasOne('Composition', {
+  @Deco.HasOne('Composition', {
     on: { primary: true },
   })
   public mainComposition: Composition
 
-  @User.HasMany('IncompatibleForeignKeyTypeExample')
+  @Deco.HasMany('IncompatibleForeignKeyTypeExample')
   public incompatibleForeignKeyTypeExamples: IncompatibleForeignKeyTypeExample[]
 
-  @User.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
 
-  @User.HasOne('CompositionAsset', {
+  @Deco.HasOne('CompositionAsset', {
     through: 'mainComposition',
   })
   public mainCompositionAsset: CompositionAsset
 
-  @User.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     order: { id: 'desc' },
   })
   public reverseOrderedCompositions: Composition[]
 
-  @User.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     order: { content: 'asc', id: 'desc' },
   })
   public sortedCompositions: Composition[]
 
-  @User.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     order: {
       content: 'asc',
       id: 'desc',
@@ -143,30 +145,30 @@ export default class User extends ApplicationModel {
   })
   public sortedCompositions2: Composition[]
 
-  @User.HasMany('CompositionAssetAudit', {
+  @Deco.HasMany('CompositionAssetAudit', {
     through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
   // recent associations
-  @User.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     on: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public recentCompositions: Composition[]
 
   // not recent associations (contrived so that we can test whereNot)
-  @User.HasMany('Composition', {
+  @Deco.HasMany('Composition', {
     notOn: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public notRecentCompositions: Composition[]
 
-  @User.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'recentCompositions',
     source: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]
 
-  @User.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'recentCompositions',
     source: 'mainCompositionAsset',
   })
@@ -175,46 +177,46 @@ export default class User extends ApplicationModel {
   // end:recent associations
 
   // missing through association
-  @User.HasMany('CompositionAsset', { through: 'nonExtantCompositions' as any })
+  @Deco.HasMany('CompositionAsset', { through: 'nonExtantCompositions' as any })
   public nonExtantCompositionAssets1: CompositionAsset[]
   // end: missing through association
 
   // missing through association source
-  @User.HasMany('CompositionAsset', { through: 'compositions' })
+  @Deco.HasMany('CompositionAsset', { through: 'compositions' })
   public nonExtantCompositionAssets2: CompositionAsset[]
   // end: missing through association source
 
-  @User.HasMany('Balloon')
+  @Deco.HasMany('Balloon')
   public balloons: Balloon[]
 
-  @User.HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
+  @Deco.HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
   public balloonLines: BalloonLine[]
 
-  @User.HasMany('Pet')
+  @Deco.HasMany('Pet')
   public pets: Pet[]
 
   // allows us to find hidden pets
-  @User.HasMany('Pet', {
+  @Deco.HasMany('Pet', {
     withoutDefaultScopes: ['dream:SoftDelete'],
   })
   public allPets: Pet[]
 
-  @User.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @Deco.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public petsFromUuid: Pet[]
 
-  @User.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @Deco.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public firstPetFromUuid: Pet
 
-  @User.HasOne('Pet', { on: { name: 'Aster' } })
+  @Deco.HasOne('Pet', { on: { name: 'Aster' } })
   public asterPet: Pet
 
-  @User.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
+  @Deco.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
   public collarsFromUuid: Collar[]
 
-  @User.HasOne('Collar', { through: 'firstPetFromUuid', source: 'collars' })
+  @Deco.HasOne('Collar', { through: 'firstPetFromUuid', source: 'collars' })
   public firstCollarFromUuid: Collar[]
 
-  @User.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
+  @Deco.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
   public balloonsFromUuid: Collar[]
 
   @Scope()
@@ -227,10 +229,11 @@ export default class User extends ApplicationModel {
     return query.where({ deletedAt: null })
   }
 
-  @BeforeSave()
+  @Deco.BeforeSave()
   public async hashPass() {
     if (this.password)
       this.passwordDigest = await insecurePasswordHashSinceBcryptBringsInTooMuchGarbage(this.password)
+
     this.password = undefined
   }
 

@@ -1,9 +1,11 @@
-import BeforeUpdate from '../../../src/decorators/hooks/BeforeUpdate'
+import { Decorators } from '../../../src'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Composition from './Composition'
 import CompositionAsset from './CompositionAsset'
 import User from './User'
+
+const Deco = new Decorators<InstanceType<typeof CompositionAssetAudit>>()
 
 export default class CompositionAssetAudit extends ApplicationModel {
   public get table() {
@@ -14,21 +16,21 @@ export default class CompositionAssetAudit extends ApplicationModel {
   public approval: DreamColumn<CompositionAssetAudit, 'approval'>
   public notes: DreamColumn<CompositionAssetAudit, 'notes'>
 
-  @CompositionAssetAudit.BelongsTo('CompositionAsset')
+  @Deco.BelongsTo('CompositionAsset')
   public compositionAsset: CompositionAsset
   public compositionAssetId: DreamColumn<CompositionAssetAudit, 'compositionAssetId'>
 
-  @CompositionAssetAudit.HasOne('Composition', {
+  @Deco.HasOne('Composition', {
     through: 'compositionAsset',
   })
   public composition: Composition
 
-  @CompositionAssetAudit.HasOne('User', {
+  @Deco.HasOne('User', {
     through: 'compositionAsset',
   })
   public user: User
 
-  @BeforeUpdate()
+  @Deco.BeforeUpdate()
   public ensureApprovalIsSet() {
     if (![true, false].includes(this.approval!)) this.approval = false
   }

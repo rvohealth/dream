@@ -1,22 +1,22 @@
 import { ColumnType, Updateable } from 'kysely'
 import { DateTime } from 'luxon'
-import { AssociationTableNames } from '../db/reflections'
-import { BelongsToStatement } from '../decorators/associations/BelongsTo'
-import { HasManyStatement } from '../decorators/associations/HasMany'
-import { HasOneStatement } from '../decorators/associations/HasOne'
+import { AssociationTableNames } from '../db/reflections.js'
+import { BelongsToStatement } from '../decorators/associations/BelongsTo.js'
+import { HasManyStatement } from '../decorators/associations/HasMany.js'
+import { HasOneStatement } from '../decorators/associations/HasOne.js'
 import {
   AssociatedModelParam,
   OnStatementForAssociation,
   WhereStatement,
-} from '../decorators/associations/shared'
-import { STI_SCOPE_NAME } from '../decorators/STI'
-import Dream from '../Dream'
-import CalendarDate from '../helpers/CalendarDate'
-import { Camelized } from '../helpers/stringCasing'
-import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils'
-import OpsStatement from '../ops/ops-statement'
-import DreamSerializer from '../serializer'
-import { FindEachOpts } from './Query'
+} from '../decorators/associations/shared.js'
+import { STI_SCOPE_NAME } from '../decorators/STI.js'
+import Dream from '../Dream.js'
+import CalendarDate from '../helpers/CalendarDate.js'
+import { Camelized } from '../helpers/stringCasing.js'
+import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils.js'
+import OpsStatement from '../ops/ops-statement.js'
+import DreamSerializer from '../serializer/index.js'
+import { FindEachOpts } from './Query.js'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
@@ -43,11 +43,11 @@ export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type OrderDir = 'asc' | 'desc'
 
-export interface SortableOptions<T extends typeof Dream> {
+export interface SortableOptions<T extends Dream> {
   scope?:
-    | keyof DreamBelongsToAssociationMetadata<InstanceType<T>>
-    | DreamColumnNames<InstanceType<T>>
-    | (keyof DreamBelongsToAssociationMetadata<InstanceType<T>> | DreamColumnNames<InstanceType<T>>)[]
+    | keyof DreamBelongsToAssociationMetadata<T>
+    | DreamColumnNames<T>
+    | (keyof DreamBelongsToAssociationMetadata<T> | DreamColumnNames<T>)[]
 }
 
 export type PrimaryKeyForFind<
@@ -165,17 +165,6 @@ export type DreamVirtualColumns<
   DreamInstance extends Dream,
   Schema = DreamInstance['schema'],
 > = VirtualColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
-
-type EncryptedColumnsForTable<
-  Schema,
-  TableName extends keyof Schema,
-  TableSchema = Schema[TableName],
-> = TableSchema['encryptedColumns' & keyof TableSchema]
-
-export type DreamEncryptedColumns<
-  DreamInstance extends Dream,
-  Schema = DreamInstance['schema'],
-> = EncryptedColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
 
 export type DreamBelongsToAssociationMetadata<
   DreamInstance extends Dream,
@@ -304,11 +293,9 @@ export type UpdateablePropertiesForClass<
   > &
     InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
   VirtualColumns = DreamVirtualColumns<InstanceType<DreamClass>>,
-  EncryptedColumns = DreamEncryptedColumns<InstanceType<DreamClass>>,
 > = Partial<
   Updateable<InstanceType<DreamClass>['DB'][TableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
-    (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<InstanceType<DreamClass>> extends never
       ? object
       : AssociatedModelParam<InstanceType<DreamClass>>)
@@ -338,23 +325,21 @@ export type UpdateableProperties<
   I extends Dream,
   TableName extends AssociationTableNames<I['DB'], I['schema']> & I['table'] = I['table'],
   VirtualColumns = DreamVirtualColumns<I>,
-  EncryptedColumns = DreamEncryptedColumns<I>,
 > = Partial<
   Updateable<I['DB'][TableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
-    (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
 // Model global names and tables
 export type TableNameForGlobalModelName<
   I extends Dream,
-  GMN extends GlobalModelNames<I>,
+  GMN extends keyof GlobalModelNameTableMap<I>,
 > = GlobalModelNameTableMap<I>[GMN]
 
 export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
 
-type GlobalModelNameTableMap<
+export type GlobalModelNameTableMap<
   I extends Dream,
   GlobalSchema = I['globalSchema'],
   GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],

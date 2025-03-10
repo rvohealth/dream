@@ -1,6 +1,5 @@
-import { describe as context } from '@jest/globals'
 import { DreamApplication } from '../../../src'
-import * as LoadModelsModule from '../../../src/dream-application/helpers/loadModels'
+import * as LoadModelsModule from '../../../src/dream-application/helpers/importers/importModels'
 import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
 import DreamApplicationInitMissingMissingProjectRoot from '../../../src/errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
 import InvalidTableName from '../../../src/errors/InvalidTableName'
@@ -19,7 +18,7 @@ describe('DreamApplication#init', () => {
   }
 
   beforeEach(() => {
-    jest.spyOn(LoadModelsModule, 'default').mockResolvedValue({} as any)
+    vi.spyOn(LoadModelsModule, 'default').mockResolvedValue({} as any)
   })
 
   context('with a valid config', () => {
@@ -28,7 +27,7 @@ describe('DreamApplication#init', () => {
         app.set('projectRoot', 'how/yadoin')
         app.set('db', dbCredentials)
 
-        await app.load('models', 'how/yadoin')
+        await app.load('models', 'how/yadoin', async path => (await import(path)).default)
       }
 
       await expect(DreamApplication.init(cb)).resolves.not.toThrow()
@@ -50,7 +49,7 @@ describe('DreamApplication#init', () => {
     context('projectRoot not set', () => {
       it('throws targeted exception', async () => {
         const cb = async (app: DreamApplication) => {
-          await app.load('models', 'how/yadoin')
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
           app.set('db', dbCredentials)
         }
 
@@ -71,10 +70,10 @@ describe('DreamApplication#init', () => {
           app.set('projectRoot', 'how/yadoin')
           app.set('db', dbCredentials)
 
-          await app.load('models', 'how/yadoin')
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
         }
 
-        jest.spyOn(DreamApplication.prototype, 'models', 'get').mockReturnValue({
+        vi.spyOn(DreamApplication.prototype, 'models', 'get').mockReturnValue({
           HelloWorld,
         })
 

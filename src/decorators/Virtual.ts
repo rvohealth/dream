@@ -1,18 +1,31 @@
-import Dream from '../Dream'
-import { SerializableTypes } from '../serializer/decorators/attribute'
+import Dream from '../Dream.js'
+import { SerializableTypes } from '../serializer/decorators/attribute.js'
+import { DecoratorContext } from './DecoratorContextType.js'
 
 export default function Virtual(type?: SerializableTypes): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
-    const t: typeof Dream = target.constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
-      t['virtualAttributes'] = [...(t['virtualAttributes'] || [])]
+    context.addInitializer(function (this: Dream) {
+      const t: typeof Dream = this.constructor as typeof Dream
+      if (!t['globallyInitializingDecorators']) return
 
-    t['virtualAttributes'].push({
-      property: key,
-      type,
-    } as VirtualAttributeStatement)
+      if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes')) {
+        // This pattern allows `virtualAttributes` on a base STI class and on
+        // child STI classes. The new `virtualAttributes` property will be created
+        // on the child STI class, but it will include all the `virtualAttributes`
+        // already declared on the base STI class.
+        t['virtualAttributes'] = [...t['virtualAttributes']]
+      }
+      ;(t['virtualAttributes'] as VirtualAttributeStatement[]).push({
+        property: key,
+        type,
+      } satisfies VirtualAttributeStatement)
+    })
+
+    return function (this: Dream) {
+      return (this as any)[key]
+    }
   }
 }
 

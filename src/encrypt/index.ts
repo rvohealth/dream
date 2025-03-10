@@ -1,9 +1,9 @@
-import crypto from 'crypto'
-import MissingEncryptionKey from '../errors/encrypt/MissingEncryptionKey'
-import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM'
-import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM'
-import generateKeyAESGCM from './algorithms/aes-gcm/generateKeyAESGCM'
-import validateKeyAESGCM from './algorithms/aes-gcm/validateKeyAESGCM'
+import * as crypto from 'crypto'
+import MissingEncryptionKey from '../errors/encrypt/MissingEncryptionKey.js'
+import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM.js'
+import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM.js'
+import generateKeyAESGCM from './algorithms/aes-gcm/generateKeyAESGCM.js'
+import validateKeyAESGCM from './algorithms/aes-gcm/validateKeyAESGCM.js'
 //
 export default class Encrypt {
   public static encrypt(data: any, { algorithm, key }: EncryptOptions): string {
@@ -104,7 +104,9 @@ export default class Encrypt {
       const [salt, key] = hash.split(':')
       crypto.scrypt(plaintext, salt, 64, (err, derivedKey) => {
         if (err) reject(err)
-        resolve(crypto.timingSafeEqual(Buffer.from(key), Buffer.from(derivedKey.toString('hex'))))
+        resolve(
+          crypto.timingSafeEqual(Buffer.from(key) as any, Buffer.from(derivedKey.toString('hex')) as any)
+        )
       })
     })
   }

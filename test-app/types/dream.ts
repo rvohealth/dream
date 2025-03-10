@@ -183,7 +183,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -261,7 +260,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -335,7 +333,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloonSpotterBalloons: {
         type: 'HasMany',
@@ -472,7 +469,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloonLine: {
         type: 'HasOne',
@@ -607,7 +603,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -692,7 +687,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       composition: {
         type: 'HasOne',
@@ -802,7 +796,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       composition: {
         type: 'BelongsTo',
@@ -942,7 +935,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       cascadeDeletableLocalizedText: {
         type: 'HasOne',
@@ -1083,7 +1075,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -1182,7 +1173,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       extraRateable: {
         type: 'BelongsTo',
@@ -1285,7 +1275,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       edge: {
         type: 'BelongsTo',
@@ -1410,7 +1399,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       edgeNodes: {
         type: 'HasMany',
@@ -1486,7 +1474,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       edgeNodes: {
         type: 'HasMany',
@@ -1602,7 +1589,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       user: {
         type: 'BelongsTo',
@@ -1611,6 +1597,118 @@ export const schema = {
         optional: false,
         requiredOnClauses: null,
       },
+    },
+  },
+  invalid_association_sortable_models: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
+    serializerKeys: [],
+    scopes: {
+      default: [],
+      named: [],
+    },
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      position: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      users: {
+        type: 'HasMany',
+        foreignKey: 'id',
+        tables: ['users'],
+        optional: null,
+        requiredOnClauses: null,
+      },
+    },
+  },
+  invalid_scope_sortable_models: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
+    serializerKeys: [],
+    scopes: {
+      default: [],
+      named: [],
+    },
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      position: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
     },
   },
   localized_texts: {
@@ -1707,7 +1805,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       localizable: {
         type: 'BelongsTo',
@@ -2217,7 +2314,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2262,7 +2358,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2316,7 +2411,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2361,7 +2455,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2415,7 +2508,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2478,7 +2570,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       pet: {
         type: 'BelongsTo',
@@ -2608,7 +2699,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       collars: {
         type: 'HasMany',
@@ -3155,7 +3245,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       post: {
         type: 'BelongsTo',
@@ -3231,7 +3320,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       post: {
         type: 'HasOne',
@@ -3327,7 +3415,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       allComments: {
         type: 'HasMany',
@@ -3479,7 +3566,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       rateable: {
         type: 'BelongsTo',
@@ -3580,7 +3666,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       mylar: {
         type: 'BelongsTo',
@@ -3589,6 +3674,59 @@ export const schema = {
         optional: false,
         requiredOnClauses: null,
       },
+    },
+  },
+  unscoped_sortable_models: {
+    primaryKey: 'id',
+    createdAtField: 'createdAt',
+    updatedAtField: 'updatedAt',
+    deletedAtField: 'deletedAt',
+    serializerKeys: [],
+    scopes: {
+      default: [],
+      named: [],
+    },
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as IdType,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      position: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      
     },
   },
   user_settings: {
@@ -3649,7 +3787,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       user: {
         type: 'BelongsTo',
@@ -3834,8 +3971,7 @@ export const schema = {
         isArray: false,
       },
     },
-    virtualColumns: ['password'],
-    encryptedColumns: ['otherSecret', 'secret'],
+    virtualColumns: ['otherSecret', 'password', 'secret'],
     associations: {
       allPets: {
         type: 'HasMany',
@@ -4124,6 +4260,8 @@ export const globalSchema = {
       'Graph/EdgeNode': 'graph_edge_nodes',
       'Graph/Node': 'graph_nodes',
       'IncompatibleForeignKeyTypeExample': 'incompatible_foreign_key_type_examples',
+      'InvalidAssociationSortableModel': 'invalid_association_sortable_models',
+      'InvalidScopeSortableModel': 'invalid_scope_sortable_models',
       'LocalizedText': 'localized_texts',
       'ModelForOpenapiTypeSpec': 'model_for_openapi_type_specs',
       'ModelWithSerialPrimaryKey': 'model_with_serial_primary_keys',
@@ -4138,6 +4276,7 @@ export const globalSchema = {
       'PostVisibility': 'post_visibilities',
       'Rating': 'ratings',
       'Sandbag': 'sandbags',
+      'UnscopedSortableModel': 'unscoped_sortable_models',
       'User': 'users',
       'UserSettings': 'user_settings'
     },

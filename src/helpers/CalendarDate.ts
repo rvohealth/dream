@@ -23,7 +23,7 @@ type CalendarDateDurationUnit = keyof Pick<
 type CalendarDateUnit = Extract<DateTimeUnit, 'year' | 'quarter' | 'month' | 'week' | 'day'>
 
 export default class CalendarDate {
-  private luxonDateTime: DateTime | null
+  private readonly luxonDateTime: DateTime | null
 
   constructor(source: DateTime | number | null, month: number = 1, day: number = 1) {
     if (source instanceof DateTime && source.isValid) {

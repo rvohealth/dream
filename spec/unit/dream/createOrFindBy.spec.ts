@@ -53,9 +53,9 @@ describe('Dream.createOrFindBy', () => {
 
   context('when a non-foreign-key-constraint related issue crops up', () => {
     beforeEach(() => {
-      jest
-        .spyOn(Dream.prototype, 'save')
-        .mockImplementation(() => new Promise((accept, reject) => reject(new Error('unexpected error!'))))
+      vi.spyOn(Dream.prototype, 'save').mockImplementation(
+        () => new Promise((accept, reject) => reject(new Error('unexpected error!')))
+      )
     })
 
     it('does not mask error', async () => {

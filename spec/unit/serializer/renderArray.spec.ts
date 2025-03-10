@@ -1,5 +1,6 @@
 import DreamSerializer from '../../../src/serializer'
 import Attribute from '../../../src/serializer/decorators/attribute'
+import processDynamicallyDefinedSerializers from '../../helpers/processDynamicallyDefinedSerializers'
 
 describe('DreamSerializer.renderArray', () => {
   it('renders an array of dream instances', () => {
@@ -7,6 +8,7 @@ describe('DreamSerializer.renderArray', () => {
       @Attribute()
       public name: string
     }
+    processDynamicallyDefinedSerializers(MySerializer)
 
     const results = MySerializer.renderArray([
       { email: 'abc', name: 'Frodo', password: '123' },
@@ -24,6 +26,7 @@ describe('DreamSerializer.renderArray', () => {
           return this.$passthroughData.name
         }
       }
+      processDynamicallyDefinedSerializers(MySerializer)
 
       const results = MySerializer.renderArray([{ email: 'abc' }, { email: 'def' }], {
         passthrough: { name: 'calvin coolidge' },

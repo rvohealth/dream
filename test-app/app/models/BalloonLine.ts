@@ -1,6 +1,9 @@
+import { Decorators } from '../../../src'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
+
+const Deco = new Decorators<InstanceType<typeof BalloonLine>>()
 
 export default class BalloonLine extends ApplicationModel {
   public get table() {
@@ -16,7 +19,7 @@ export default class BalloonLine extends ApplicationModel {
   public createdAt: DreamColumn<BalloonLine, 'createdAt'>
   public updatedAt: DreamColumn<BalloonLine, 'updatedAt'>
 
-  @BalloonLine.BelongsTo('Balloon', { foreignKey: 'balloonId' })
+  @Deco.BelongsTo('Balloon', { foreignKey: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonLine, 'balloonId'>
 }

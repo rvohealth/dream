@@ -14,11 +14,11 @@ describe('Dream#clone', () => {
     expect(user).toMatchDreamModel(user2)
   })
 
-  it('copies the attributes to a new instance', async () => {
+  it('copies the attributes to a new instance (immutable objects are copied by reference)', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = user['clone']()
     expect(user.getAttributes()).toEqual(user2.getAttributes())
-    expect(user.getAttributes().createdAt).not.toBe(user2.getAttributes().createdAt)
+    expect(user.getAttributes().createdAt).toBe(user2.getAttributes().createdAt)
   })
 
   it('copies by reference the loaded associations to a new instance', async () => {
@@ -32,7 +32,7 @@ describe('Dream#clone', () => {
   })
 
   context('miscellaneous attributes', () => {
-    it('copies miscellaneous deeply nested objects to the copy', async () => {
+    it('copies miscellaneous deeply nested objects to the clone', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const deeplyNestedAttributes = {
         how: {
@@ -53,7 +53,7 @@ describe('Dream#clone', () => {
       expect((user2 as any).howyadoin).not.toBe(deeplyNestedAttributes)
     })
 
-    it('copies miscellaneous numbers to the copy', async () => {
+    it('copies miscellaneous numbers to the clone', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       ;(user as any).howyadoin = 7.7
 
@@ -61,7 +61,7 @@ describe('Dream#clone', () => {
       expect((user2 as any).howyadoin).toEqual(7.7)
     })
 
-    it('copies miscellaneous strings to the copy', async () => {
+    it('copies miscellaneous strings to the clone', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       ;(user as any).howyadoin = 'howyadoin'
 
@@ -69,17 +69,16 @@ describe('Dream#clone', () => {
       expect((user2 as any).howyadoin).toEqual('howyadoin')
     })
 
-    it('copies miscellaneous DateTime instances to the copy', async () => {
+    it('copies miscellaneous DateTime instances by reference (since they are immutable) to the clone', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const now = DateTime.now()
       ;(user as any).howyadoin = now
 
       const user2 = user['clone']()
-      expect((user2 as any).howyadoin).toEqual(now)
-      expect((user2 as any).howyadoin).not.toBe(now)
+      expect((user2 as any).howyadoin).toBe(now)
     })
 
-    it('copies miscellaneous null values to the copy', async () => {
+    it('copies miscellaneous null values to the clone', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       ;(user as any).howyadoin = null
 

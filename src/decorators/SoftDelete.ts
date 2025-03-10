@@ -1,7 +1,7 @@
-import Dream from '../Dream'
-import Query from '../dream/Query'
-import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator'
-import Scope from './Scope'
+import Dream from '../Dream.js'
+import Query from '../dream/Query.js'
+import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
+import { scopeImplementation } from './Scope.js'
 
 export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
 
@@ -52,6 +52,6 @@ export default function SoftDelete(): ClassDecorator {
       return query.where({ [dreamClass.prototype.deletedAtField]: null } as any)
     }
 
-    Scope({ default: true })(target, SOFT_DELETE_SCOPE_NAME)
+    scopeImplementation(target, SOFT_DELETE_SCOPE_NAME, { default: true })
   }
 }

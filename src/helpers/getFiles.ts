@@ -1,5 +1,5 @@
-import fs from 'fs/promises'
-import path from 'path'
+import * as fs from 'fs/promises'
+import * as path from 'path'
 
 export default async function getFiles(dir: string): Promise<string[]> {
   try {
@@ -7,7 +7,7 @@ export default async function getFiles(dir: string): Promise<string[]> {
     const files = await Promise.all(
       dirents.map(dirent => {
         const res = path.resolve(dir, dirent.name)
-        return dirent.isDirectory() ? getFiles(res) : res
+        return dirent.isDirectory() ? getFiles(res) : res.replace(/\.ts$/, '.js')
       })
     )
     return Array.prototype.concat(...files)

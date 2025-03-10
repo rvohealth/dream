@@ -1,4 +1,4 @@
-import EnvInternal from './EnvInternal'
+import EnvInternal from './EnvInternal.js'
 
 export type DebugLogLevel = 'log' | 'warn' | 'error'
 

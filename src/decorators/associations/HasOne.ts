@@ -1,48 +1,43 @@
-import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
-import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames'
-import { GlobalModelNames } from '../../dream/types'
+import { AssociationTableNames } from '../../db/reflections.js'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import Dream from '../../Dream.js'
+import { GlobalModelNameTableMap } from '../../dream/types.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
 import {
-  HasOptions,
-  HasStatement,
-  HasThroughOptions,
-  PolymorphicHasOptions,
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
+  HasOptions,
+  HasStatement,
+  HasThroughOptions,
+  PolymorphicHasOptions,
   validateHasStatementArgs,
-} from './shared'
+} from './shared.js'
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: HasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationName: AssociationGlobalName,
+  opts?: HasOneOptions<BaseInstance, AssociationGlobalName>
 ): any
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationNameOrNames: AssociationGlobalName,
+  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalName>
 ): any
 
 export default function HasOne<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationNameOrNames: AssociationGlobalName,
+  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalName>
 ): any
 
 /**
@@ -52,12 +47,12 @@ export default function HasOne<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @User.HasOne('UserSettings')
+ *   @Deco.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  *
  * class UserSettings extends ApplicationModel {
- *   @UserSettings.BelongsTo('User')
+ *   @Deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
@@ -77,12 +72,10 @@ export default function HasOne<
  * @param opts.through - If passed, this association will travel through another association.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
-export default function HasOne<
-  BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
->(globalAssociationNameOrNames: AssociationGlobalNameOrNames, opts: unknown = {}): any {
+export default function HasOne<BaseInstance extends Dream, AssociationGlobalNameOrNames>(
+  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+  opts: unknown = {}
+): any {
   const {
     dependent,
     foreignKey,
@@ -99,54 +92,72 @@ export default function HasOne<
     withoutDefaultScopes,
   } = opts as any
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: BaseInstance, key: string, _: any) {
-    const dreamClass: typeof Dream = (target as any).constructor
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
-      dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+    context.addInitializer(function (this: BaseInstance) {
+      const target = this
+      const dreamClass: typeof Dream = target.constructor as typeof Dream
+      if (!dreamClass['globallyInitializingDecorators']) {
+        /**
+         * Modern Javascript applies implicit accessors to instance properties
+         * that don't have an accessor explicitly defined in the class definition.
+         * The instance accessors shadow prototype accessors.
+         * `addInitializer` is called by Decorators after an instance has been fully
+         * constructed. We leverage this opportunity to delete the instance accessors
+         * so that the prototype accessors applied by this decorator can be reached.
+         */
+        delete (this as any)[key]
+        return
+      }
 
-    validateHasStatementArgs({
-      dreamClass,
-      dependent: dependent ?? null,
-      methodName: key,
-      on: on ?? null,
+      validateHasStatementArgs({
+        dreamClass,
+        dependent: dependent ?? null,
+        methodName: key,
+        on: on ?? null,
+      })
+
+      const partialAssociation = associationPrimaryKeyAccessors(
+        {
+          modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
+          as: key,
+          dependent,
+          globalAssociationNameOrNames,
+          on,
+          notOn,
+          onAny,
+          polymorphic,
+          preloadThroughColumns,
+          primaryKeyOverride,
+          selfOn,
+          selfNotOn,
+          source: source || key,
+          through,
+          type: 'HasOne',
+          withoutDefaultScopes,
+        } as any,
+        dreamClass
+      )
+
+      const association = {
+        ...partialAssociation,
+        foreignKey() {
+          return finalForeignKey(foreignKey, dreamClass, partialAssociation)
+        },
+        foreignKeyTypeField() {
+          return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
+        },
+      } as HasOneStatement<any, any, any, any>
+
+      if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
+        dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+      ;(dreamClass['associationMetadataByType']['hasOne'] as HasOneStatement<any, any, any, any>[]).push(
+        association
+      )
+
+      applyGetterAndSetter(target, association)
     })
-
-    const partialAssociation = associationPrimaryKeyAccessors(
-      {
-        modelCB: () => lookupModelByGlobalNameOrNames(globalAssociationNameOrNames as string | string[]),
-        as: key,
-        dependent,
-        globalAssociationNameOrNames,
-        on,
-        notOn,
-        onAny,
-        polymorphic,
-        preloadThroughColumns,
-        primaryKeyOverride,
-        selfOn,
-        selfNotOn,
-        source: source || key,
-        through,
-        type: 'HasOne',
-        withoutDefaultScopes,
-      } as any,
-      dreamClass
-    )
-
-    const association = {
-      ...partialAssociation,
-      foreignKey() {
-        return finalForeignKey(foreignKey, dreamClass, partialAssociation)
-      },
-      foreignKeyTypeField() {
-        return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
-      },
-    } as HasOneStatement<any, any, any, any>
-
-    dreamClass['associationMetadataByType']['hasOne'].push(association)
-    applyGetterAndSetter(target, association)
   }
 }
 
@@ -159,21 +170,15 @@ export type HasOneStatement<
 
 export type HasOneOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-> = HasOptions<BaseInstance, AssociationGlobalNameOrNames>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = HasOptions<BaseInstance, AssociationGlobalName>
 
 export type PolymorphicHasOneOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalNameOrNames>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName>
 
 export type HasOneThroughOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-> = HasThroughOptions<BaseInstance, AssociationGlobalNameOrNames>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = HasThroughOptions<BaseInstance, AssociationGlobalName>

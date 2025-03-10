@@ -4,16 +4,16 @@ import {
   Updateable,
 } from 'kysely'
 import { DateTime } from 'luxon'
-import { singular } from 'pluralize'
-import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
+import pluralize from 'pluralize-esm'
+import { AssociationTableNames } from '../../db/reflections.js'
+import Dream from '../../Dream.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   DreamConst,
-  GlobalModelNames,
+  GlobalModelNameTableMap,
   IdType,
   JoinedAssociation,
   OrderDir,
@@ -22,21 +22,22 @@ import {
   TableColumnType,
   TableNameForGlobalModelName,
   TrigramOperator,
-} from '../../dream/types'
-import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey'
-import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation'
-import CannotDefineAssociationWithBothDependentAndPassthrough from '../../errors/CannotDefineAssociationWithBothDependentAndPassthrough'
-import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause'
-import CalendarDate from '../../helpers/CalendarDate'
-import camelize from '../../helpers/camelize'
-import { Range } from '../../helpers/range'
-import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils'
-import CurriedOpsStatement from '../../ops/curried-ops-statement'
-import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement'
-import associationToGetterSetterProp from './associationToGetterSetterProp'
-import { BelongsToStatement } from './BelongsTo'
-import { HasManyStatement } from './HasMany'
-import { HasOneStatement } from './HasOne'
+} from '../../dream/types.js'
+import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey.js'
+import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
+import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
+import CalendarDate from '../../helpers/CalendarDate.js'
+import camelize from '../../helpers/camelize.js'
+import { Range } from '../../helpers/range.js'
+import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils.js'
+import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
+import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
+import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js'
+import associationToGetterSetterProp from './associationToGetterSetterProp.js'
+import { BelongsToStatement } from './BelongsTo.js'
+import { HasManyStatement } from './HasMany.js'
+import { HasOneStatement } from './HasOne.js'
 
 type MAX_JOINED_TABLES_DEPTH = 25
 
@@ -333,15 +334,10 @@ export interface HasStatement<
 
 interface HasOptionsBase<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-  AssociationGlobalName = AssociationGlobalNameOrNames extends any[]
-    ? AssociationGlobalNameOrNames[0] & string
-    : AssociationGlobalNameOrNames & string,
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
   AssociationTableName = TableNameForGlobalModelName<
     BaseInstance,
-    AssociationGlobalName & GlobalModelNames<BaseInstance>
+    AssociationGlobalName & keyof GlobalModelNameTableMap<BaseInstance>
   >,
 > {
   dependent?: DependentOptions
@@ -415,40 +411,46 @@ type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 
 export type HasOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughOnlyOptions | PolymorphicOption>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughOnlyOptions | PolymorphicOption>
 
 export type PolymorphicHasOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-> = HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames> &
-  Required<
-    Pick<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, PolymorphicOption | ForeignKeyOption>
-  >
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = HasOptionsBase<BaseInstance, AssociationGlobalName> &
+  Required<Pick<HasOptionsBase<BaseInstance, AssociationGlobalName>, PolymorphicOption | ForeignKeyOption>>
 
 export type HasThroughOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[] =
-    | GlobalModelNames<BaseInstance>
-    | GlobalModelNames<BaseInstance>[],
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalNameOrNames>, ThroughIncompatibleOptions>
+  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughIncompatibleOptions>
 
-export function blankAssociationsFactory(dreamClass: typeof Dream): {
-  belongsTo: BelongsToStatement<any, any, any, any>[]
-  hasMany: HasManyStatement<any, any, any, any>[]
-  hasOne: HasOneStatement<any, any, any, any>[]
-} {
-  return {
+export interface AssociationStatementsMap {
+  belongsTo: readonly BelongsToStatement<any, any, any, any>[] | BelongsToStatement<any, any, any, any>[]
+  hasMany: readonly HasManyStatement<any, any, any, any>[] | HasManyStatement<any, any, any, any>[]
+  hasOne: readonly HasOneStatement<any, any, any, any>[] | HasOneStatement<any, any, any, any>[]
+}
+
+export function blankAssociationsFactory(
+  dreamClass: typeof Dream,
+  {
+    freeze = false,
+  }: {
+    freeze?: boolean
+  } = {}
+): AssociationStatementsMap {
+  // This pattern allows associations to be defined on a base STI class and on
+  // child STI classes. The new `associationsMap` property will be created
+  // on the child STI class, but it will include all the associations already
+  // declared on the base STI class.
+  const associationsMap = {
     belongsTo: [...(dreamClass['associationMetadataByType']?.belongsTo || [])],
     hasMany: [...(dreamClass['associationMetadataByType']?.hasMany || [])],
     hasOne: [...(dreamClass['associationMetadataByType']?.hasOne || [])],
   }
+
+  if (freeze) return freezeBaseClassArrayMap(associationsMap)
+  return associationsMap
 }
 
 type DependentOptions = 'destroy'
@@ -494,7 +496,7 @@ export function finalForeignKey(
         ? modelCBtoSingleDreamClass(dreamClass, partialAssociation).table
         : dreamClass.table
 
-    computedForeignKey = camelize(singular(table)) + 'Id'
+    computedForeignKey = camelize(pluralize.singular(table)) + 'Id'
   }
 
   if (partialAssociation.type === 'BelongsTo' || !partialAssociation.through)
@@ -534,32 +536,46 @@ export function applyGetterAndSetter(
     isBelongsTo?: boolean
   } = {}
 ) {
+  const dreamPrototype = Object.getPrototypeOf(target)
   const dreamClass: typeof Dream = target.constructor as typeof Dream
 
-  if (!Object.getOwnPropertyDescriptor(dreamClass.prototype, partialAssociation.as)?.get) {
-    Object.defineProperty(dreamClass.prototype, partialAssociation.as, {
-      configurable: true,
+  Object.defineProperty(dreamPrototype, partialAssociation.as, {
+    configurable: true,
 
-      get: function (this: any) {
-        const value = this[associationToGetterSetterProp(partialAssociation)]
-        if (value === undefined)
-          throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-        else return value
-      },
+    get: function (this: Dream) {
+      const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
+      if (value === undefined)
+        throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+      else return value
+    },
 
-      set: function (this: any, associatedModel: any) {
-        this[associationToGetterSetterProp(partialAssociation)] = associatedModel
+    set: function (this: Dream, associatedModel: any) {
+      /**
+       *
+       * Modern Javascript sets all properties that do not have an explicit
+       * assignment within the constructor to undefined in an implicit constructor.
+       * Since the Dream constructor sets the value of properties of instances of
+       * classes that extend Dream (e.g. when passing attributes to #new or #create
+       * or when loading a model via one of the #find methods or #all), we need to
+       * prevent those properties from being set back to undefined. Since all
+       * properties corresponding to a database column get a setter, we achieve this
+       * protection by including a guard in the setters that returns if this
+       * property is set.
+       *
+       */
 
-        if (isBelongsTo) {
-          this[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
-            partialAssociation.primaryKeyValue(associatedModel)
-          if (partialAssociation.polymorphic)
-            this[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
-              associatedModel?.constructor?.name
-        }
-      },
-    })
-  }
+      if (this['columnSetterGuardActivated']) return
+      ;(this as any)[associationToGetterSetterProp(partialAssociation)] = associatedModel
+
+      if (isBelongsTo) {
+        ;(this as any)[finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)] =
+          partialAssociation.primaryKeyValue(associatedModel)
+        if (partialAssociation.polymorphic)
+          (this as any)[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
+            associatedModel?.constructor?.name
+      }
+    },
+  })
 }
 
 export function associationPrimaryKeyAccessors(
@@ -574,14 +590,15 @@ export function associationPrimaryKeyAccessors(
       if (associationInstance) return associationInstance.primaryKey
 
       const associationClass = this.modelCB()
-      if (Array.isArray(associationClass) && this.type === 'BelongsTo')
+      if (Array.isArray(associationClass)) {
         throw new Error(`
 Cannot lookup primaryKey on polymorphic association:
 dream class: ${dreamClass.name}
 association: ${this.as}
           `)
+      }
 
-      return (associationClass as typeof Dream).primaryKey
+      return associationClass.primaryKey
     },
 
     primaryKeyValue(associationInstance: Dream | null) {

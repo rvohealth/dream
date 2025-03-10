@@ -1,8 +1,8 @@
 import { Updateable } from 'kysely'
-import { AssociationTableNames } from '../../db/reflections'
-import Dream from '../../Dream'
-import STIChildMissing from '../../errors/sti/STIChildMissing'
-import { UpdateablePropertiesForClass } from '../types'
+import { AssociationTableNames } from '../../db/reflections.js'
+import Dream from '../../Dream.js'
+import STIChildMissing from '../../errors/sti/STIChildMissing.js'
+import { UpdateablePropertiesForClass } from '../types.js'
 
 export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,
@@ -18,15 +18,25 @@ export default function sqlResultToDreamInstance<
     if (!extendingDreamClass)
       throw new STIChildMissing(dreamClass, sqlResult.type, sqlResult[dreamClass.primaryKey])
 
-    return new extendingDreamClass(sqlResult as Updateable<Table>, {
+    const dreamModel = new extendingDreamClass(sqlResult as Updateable<Table>, {
       bypassUserDefinedSetters: true,
       isPersisted: true,
+      _internalUseOnly: true,
     })
+
+    dreamModel['finalizeConstruction']()
+
+    return dreamModel
   } else {
-    return new dreamClass(sqlResult as UpdateablePropertiesForClass<Table>, {
+    const dreamModel = new dreamClass(sqlResult as UpdateablePropertiesForClass<Table>, {
       bypassUserDefinedSetters: true,
       isPersisted: true,
+      _internalUseOnly: true,
     })
+
+    dreamModel['finalizeConstruction']()
+
+    return dreamModel
   }
 }
 

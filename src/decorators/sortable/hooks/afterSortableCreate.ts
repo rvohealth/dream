@@ -1,9 +1,9 @@
-import Dream from '../../../Dream'
-import DreamTransaction from '../../../dream/DreamTransaction'
-import Query from '../../../dream/Query'
-import clearCachedSortableValues from '../helpers/clearCachedSortableValues'
-import setPosition from '../helpers/setPosition'
-import sortableCacheKeyName from '../helpers/sortableCacheKeyName'
+import Dream from '../../../Dream.js'
+import DreamTransaction from '../../../dream/DreamTransaction.js'
+import Query from '../../../dream/Query.js'
+import clearCachedSortableValues from '../helpers/clearCachedSortableValues.js'
+import setPosition from '../helpers/setPosition.js'
+import sortableCacheKeyName from '../helpers/sortableCacheKeyName.js'
 
 export default async function afterSortableCreate({
   positionField,

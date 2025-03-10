@@ -1,5 +1,5 @@
-import stringCase, { Hyphenized } from './stringCasing'
-import { snakeifyString } from './snakeify'
+import stringCase, { Hyphenized } from './stringCasing.js'
+import { snakeifyString } from './snakeify.js'
 
 export default function hyphenize<const T, RT extends Hyphenized<T>>(target: T): RT {
   return stringCase(target, hyphenizeString)

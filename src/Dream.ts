@@ -8,87 +8,61 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 
-import db from './db'
-import { pgErrorType } from './db/errors'
-import { AssociationTableNames } from './db/reflections'
-import { DbConnectionType } from './db/types'
-import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp'
-import BelongsTo, {
-  BelongsToStatement,
-  NonPolymorphicBelongsToOptions,
-  PolymorphicBelongsToOptions,
-} from './decorators/associations/BelongsTo'
-import HasMany, {
-  HasManyOptions,
-  HasManyStatement,
-  HasManyThroughOptions,
-  PolymorphicHasManyOptions,
-} from './decorators/associations/HasMany'
-import HasOne, {
-  HasOneOptions,
-  HasOneStatement,
-  HasOneThroughOptions,
-  PolymorphicHasOneOptions,
-} from './decorators/associations/HasOne'
+import { pgErrorType } from './db/errors.js'
+import db from './db/index.js'
+import { AssociationTableNames } from './db/reflections.js'
+import { DbConnectionType } from './db/types.js'
+import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp.js'
+import { BelongsToStatement } from './decorators/associations/BelongsTo.js'
+import { HasManyStatement } from './decorators/associations/HasMany.js'
+import { HasOneStatement } from './decorators/associations/HasOne.js'
 import {
+  AssociationStatementsMap,
   blankAssociationsFactory,
   PassthroughOnClause,
   WhereStatement,
-} from './decorators/associations/shared'
-import { EncryptedAttributeStatement } from './decorators/Encrypted'
-import AfterCreate from './decorators/hooks/AfterCreate'
-import AfterCreateCommit from './decorators/hooks/AfterCreateCommit'
-import AfterDestroy from './decorators/hooks/AfterDestroy'
-import AfterDestroyCommit from './decorators/hooks/AfterDestroyCommit'
-import AfterSave from './decorators/hooks/AfterSave'
-import AfterSaveCommit from './decorators/hooks/AfterSaveCommit'
-import AfterUpdate from './decorators/hooks/AfterUpdate'
-import AfterUpdateCommit from './decorators/hooks/AfterUpdateCommit'
-import BeforeCreate from './decorators/hooks/BeforeCreate'
-import BeforeDestroy from './decorators/hooks/BeforeDestroy'
-import BeforeSave from './decorators/hooks/BeforeSave'
-import BeforeUpdate from './decorators/hooks/BeforeUpdate'
-import { AfterHookOpts, BeforeHookOpts, blankHooksFactory, HookStatement } from './decorators/hooks/shared'
-import { ScopeStatement } from './decorators/Scope'
-import resortAllRecords from './decorators/sortable/helpers/resortAllRecords'
-import Sortable, { SortableFieldConfig } from './decorators/sortable/Sortable'
-import ValidationStatement, { ValidationType } from './decorators/validations/shared'
-import { VirtualAttributeStatement } from './decorators/Virtual'
-import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder'
-import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder'
-import DreamTransaction from './dream/DreamTransaction'
-import associationQuery from './dream/internal/associations/associationQuery'
-import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery'
-import createAssociation from './dream/internal/associations/createAssociation'
-import destroyAssociation from './dream/internal/associations/destroyAssociation'
-import undestroyAssociation from './dream/internal/associations/undestroyAssociation'
-import destroyDream from './dream/internal/destroyDream'
+} from './decorators/associations/shared.js'
+import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/hooks/shared.js'
+import { ScopeStatement } from './decorators/Scope.js'
+import resortAllRecords from './decorators/sortable/helpers/resortAllRecords.js'
+import { SortableFieldConfig } from './decorators/sortable/Sortable.js'
+import ValidationStatement, { ValidationType } from './decorators/validations/shared.js'
+import { VirtualAttributeStatement } from './decorators/Virtual.js'
+import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
+import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
+import DreamTransaction from './dream/DreamTransaction.js'
+import associationQuery from './dream/internal/associations/associationQuery.js'
+import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js'
+import createAssociation from './dream/internal/associations/createAssociation.js'
+import destroyAssociation from './dream/internal/associations/destroyAssociation.js'
+import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js'
+import destroyDream from './dream/internal/destroyDream.js'
 import {
   DestroyOptions,
   destroyOptions,
   reallyDestroyOptions,
   undestroyOptions,
-} from './dream/internal/destroyOptions'
-import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet'
-import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName'
-import reload from './dream/internal/reload'
-import runValidations from './dream/internal/runValidations'
-import saveDream from './dream/internal/saveDream'
+} from './dream/internal/destroyOptions.js'
+import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
+import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js'
+import reload from './dream/internal/reload.js'
+import runValidations from './dream/internal/runValidations.js'
+import saveDream from './dream/internal/saveDream.js'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './dream/internal/scopeHelpers'
-import undestroyDream from './dream/internal/undestroyDream'
-import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder'
-import LoadBuilder from './dream/LoadBuilder'
+} from './dream/internal/scopeHelpers.js'
+import undestroyDream from './dream/internal/undestroyDream.js'
+import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
+import LoadBuilder from './dream/LoadBuilder.js'
 import Query, {
   BaseModelColumnTypes,
   DefaultQueryTypeOptions,
   FindEachOpts,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './dream/Query'
+} from './dream/Query.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -101,7 +75,6 @@ import {
   DreamConstructorType,
   DreamParamSafeColumnNames,
   DreamSerializeOptions,
-  GlobalModelNames,
   IdType,
   JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
@@ -112,7 +85,6 @@ import {
   PluckEachArgs,
   PrimaryKeyForFind,
   RequiredOnClauseKeys,
-  SortableOptions,
   TableColumnNames,
   UpdateableAssociationProperties,
   UpdateableProperties,
@@ -120,24 +92,23 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './dream/types'
-import InternalEncrypt from './encrypt/InternalEncrypt'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo'
-import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam'
-import NonLoadedAssociation from './errors/associations/NonLoadedAssociation'
-import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel'
-import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind'
-import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly'
-import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet'
-import MissingSerializer from './errors/MissingSerializersDefinition'
-import MissingTable from './errors/MissingTable'
-import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort'
-import CalendarDate from './helpers/CalendarDate'
-import cloneDeepSafe from './helpers/cloneDeepSafe'
-import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute'
-import isJsonColumn from './helpers/db/types/isJsonColumn'
-import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel'
-import { isString } from './helpers/typechecks'
+} from './dream/types.js'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
+import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
+import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
+import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
+import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
+import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
+import MissingSerializer from './errors/MissingSerializersDefinition.js'
+import MissingTable from './errors/MissingTable.js'
+import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import CalendarDate from './helpers/CalendarDate.js'
+import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
+import isJsonColumn from './helpers/db/types/isJsonColumn.js'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { isString } from './helpers/typechecks.js'
 
 export default class Dream {
   public DB: any
@@ -165,6 +136,33 @@ export default class Dream {
         expect(balloons).toMatchDreamModels([balloon])
     `)
   }
+
+  /**
+   * @internal
+   *
+   * Modern Javascript sets all properties that do not have an explicit
+   * assignment within the constructor to undefined in an implicit constructor.
+   * Since the Dream constructor sets the value of properties of instances of
+   * classes that extend Dream (e.g. when passing attributes to #new or #create
+   * or when loading a model via one of the #find methods or #all), we need to
+   * prevent those properties from being set back to undefined. Since all
+   * properties corresponding to a database column get a setter, we achieve this
+   * protection by including a guard in the setters that returns if this
+   * property is set.
+   *
+   */
+  protected columnSetterGuardActivated: boolean = false
+
+  /**
+   * @internal
+   *
+   * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
+   * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
+   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+   *
+   */
+  private static globallyInitializingDecorators: boolean = false
 
   public get schema(): any {
     throw new Error('Must define schema getter in ApplicationModel')
@@ -243,49 +241,59 @@ export default class Dream {
    * @internal
    *
    * Model storage for association metadata, set when using the association decorators like:
-   *   @ModelName.HasOne
-   *   @ModelName.HasMany
-   *   @ModelName.BelongsTo
+   *   @Deco.HasOne
+   *   @Deco.HasMany
+   *   @Deco.BelongsTo
    */
-  protected static associationMetadataByType: {
-    belongsTo: BelongsToStatement<any, any, any, any>[]
-    hasMany: HasManyStatement<any, any, any, any>[]
-    hasOne: HasOneStatement<any, any, any, any>[]
-  } = blankAssociationsFactory(this)
+  protected static associationMetadataByType: AssociationStatementsMap = blankAssociationsFactory(this, {
+    freeze: true,
+  })
 
   /**
    * @internal
    *
    * Model storage for scope metadata, set when using the Scope decorator
+   * (this default assignment simply ensures that it is
+   * always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
   protected static scopes: {
-    default: ScopeStatement[]
-    named: ScopeStatement[]
-  } = {
-    default: [],
-    named: [],
-  }
+    default: readonly ScopeStatement[] | ScopeStatement[]
+    named: readonly ScopeStatement[] | ScopeStatement[]
+  } = Object.freeze({
+    default: Object.freeze([]),
+    named: Object.freeze([]),
+  })
 
   /**
    * @internal
    *
-   * Model storage for virtual attribute metadata, set when using the Virtual decorator
+   * Model storage for virtual attribute metadata, set on the inheriting class when
+   * using the Virtual decorator (this default assignment simply ensures that it is
+   * always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static virtualAttributes: VirtualAttributeStatement[] = []
+  protected static virtualAttributes: readonly VirtualAttributeStatement[] | VirtualAttributeStatement[] =
+    Object.freeze([])
 
   /**
    * @internal
    *
-   * Model storage for encrypted attribute metadata, set when using the Encrypted decorator
+   * Model storage for additional columns that may not be set via the new/create/update
+   * methods. Set on the inheriting class when using the Virtual decorator (this default
+   * assignment simply ensures that it is always an array rather than undefined)
    */
-  protected static encryptedAttributes: EncryptedAttributeStatement[] = []
+  protected static explicitUnsafeParamColumns: readonly string[] | string[] = Object.freeze([])
 
   /**
    * @internal
    *
    * Model storage for sortable metadata, set when using the Sortable decorator
+   *  (this default assignment simply ensures that it is always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
+   *
    */
-  protected static sortableFields: SortableFieldConfig[] = []
+  protected static sortableFields: readonly SortableFieldConfig[] | SortableFieldConfig[] = Object.freeze([])
 
   /**
    * @internal
@@ -298,16 +306,18 @@ export default class Dream {
    * @internal
    *
    * Model storage for STI metadata, set when using the STI decorator
+   *  (this default assignment simply ensures that it is always a valid object rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
   protected static sti: {
     active: boolean
     baseClass: typeof Dream | null
     value: string | null
-  } = {
+  } = Object.freeze({
     active: false,
     baseClass: null,
     value: null,
-  }
+  })
 
   /**
    * @internal
@@ -326,34 +336,26 @@ export default class Dream {
    *   AfterDestroy
    *   AfterDestroyCommit
    */
-  protected static hooks: {
-    beforeCreate: HookStatement[]
-    beforeUpdate: HookStatement[]
-    beforeSave: HookStatement[]
-    beforeDestroy: HookStatement[]
-    afterCreate: HookStatement[]
-    afterCreateCommit: HookStatement[]
-    afterUpdate: HookStatement[]
-    afterUpdateCommit: HookStatement[]
-    afterSave: HookStatement[]
-    afterSaveCommit: HookStatement[]
-    afterDestroy: HookStatement[]
-    afterDestroyCommit: HookStatement[]
-  } = blankHooksFactory(this)
+  protected static hooks: Readonly<HookStatementMap> = blankHooksFactory(this, { freeze: true })
 
   /**
    * @internal
    *
    * Model storage for validation metadata, set when using the Validates decorator
+   * (this default assignment simply ensures that it is always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static validations: ValidationStatement[] = []
+  protected static validations: readonly ValidationStatement[] | ValidationStatement[] = Object.freeze([])
 
   /**
    * @internal
    *
-   * model storage for custom validation metadata, set when using the Validate decorator
+   * Model storage for custom validation metadata, set when using the Validate decorator
+   * (this default assignment simply ensures that it is always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
+   *
    */
-  protected static customValidations: string[] = []
+  protected static customValidations: readonly string[] | string[] = Object.freeze([])
 
   /**
    * @internal
@@ -436,447 +438,7 @@ export default class Dream {
   protected static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
     const existingHook = this.hooks[hookType].find(hook => hook.method === statement.method)
     if (existingHook) return
-
-    this.hooks[hookType] = [...this.hooks[hookType], statement]
-  }
-
-  public static BelongsTo<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: NonPolymorphicBelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  public static BelongsTo<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: PolymorphicBelongsToOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  /**
-   * Establishes a "BelongsTo" association between the base dream
-   * and the child dream, where the base dream has a foreign key
-   * which points back to the child dream.
-   *
-   * ```ts
-   * class UserSettings extends ApplicationModel {
-   *   @UserSettings.BelongsTo('User')
-   *   public user: User
-   *   public userId: DreamColumn<UserSettings, 'userId'>
-   * }
-   *
-   * class User extends ApplicationModel {
-   *   @User.HasOne('UserSettings')
-   *   public userSettings: UserSettings
-   * }
-   * ```
-   *
-   *
-   *
-   * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
-   * @param options - the options you want to use to apply to this association
-   * @returns A BelongsTo decorator
-   */
-  public static BelongsTo<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
-    return BelongsTo<InstanceType<T>, AssociationGlobalNameOrNames>(
-      globalAssociationNameOrNames,
-      options as any
-    )
-  }
-
-  ///////////
-  // HasMany
-  ///////////
-  public static HasMany<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: HasManyOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  public static HasMany<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: HasManyThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  public static HasMany<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: PolymorphicHasManyOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  /**
-   *
-   * Establishes a "HasMany" association between the base dream
-   * and the child dream, where the child dream has a foreign key
-   * which points back to the base dream.
-   *
-   * ```ts
-   * class User extends ApplicationModel {
-   *   @User.HasMany('Post')
-   *   public posts: Post[]
-   * }
-   *
-   * class Post extends ApplicationModel {
-   *   @Post.BelongsTo('User')
-   *   public user: User
-   *   public userId: DreamColumn<Post, 'userId'>
-   * }
-   * ```
-   *
-   * @param modelCB - a function that immediately returns the dream class you are associating with this dream class
-   * @param options - the options you want to use to apply to this association
-   * @returns A HasMany decorator
-   */
-  public static HasMany<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
-    return HasMany<InstanceType<T>, AssociationGlobalNameOrNames>(
-      globalAssociationNameOrNames,
-      options as any
-    )
-  }
-  ///////////////
-  // end: HasMany
-  //////////////
-
-  ///////////
-  // HasOne
-  ///////////
-  public static HasOne<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: HasOneOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  public static HasOne<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: HasOneThroughOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  public static HasOne<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(
-    this: T,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: PolymorphicHasOneOptions<InstanceType<T>, AssociationGlobalNameOrNames>
-  ): any
-
-  /**
-   * Establishes a "HasOne" association between the base dream
-   * and the child dream, where the child dream has a foreign key
-   * which points back to the base dream.
-   *
-   * ```ts
-   * class User extends ApplicationModel {
-   *   @User.HasOne('UserSettings')
-   *   public userSettings: UserSettings
-   * }
-   *
-   * class UserSettings extends ApplicationModel {
-   *   @UserSettings.BelongsTo('User')
-   *   public user: User
-   *   public userId: DreamColumn<UserSettings, 'userId'>
-   * }
-   * ```
-   *
-   * @param modelCB - A function that immediately returns the dream class you are associating with this dream class
-   * @param options - The options you want to use to apply to this association
-   * @returns A HasOne decorator
-   */
-  public static HasOne<
-    T extends typeof Dream,
-    const AssociationGlobalNameOrNames extends
-      | GlobalModelNames<InstanceType<T>>
-      | readonly GlobalModelNames<InstanceType<T>>[],
-  >(this: T, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}): any {
-    return HasOne<InstanceType<T>, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options as any)
-  }
-  //////////////
-  // end: HasOne
-  //////////////
-
-  /**
-   * Shortcut to the Sortable decorator, which also provides extra type protection which cannot be provided
-   * with the Sortable decorator.
-   *
-   * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
-   * @returns A Sortable decorator
-   */
-  public static Sortable<T extends typeof Dream>(this: T, opts?: SortableOptions<T>) {
-    return Sortable(opts)
-  }
-
-  /**
-   * Shortcut to the BeforeCreate decorator
-   *
-   * ```ts
-   * class User {
-   *   User.BeforeCreate()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The BeforeCreate decorator
-   *
-   */
-  public static BeforeCreate<T extends typeof Dream>(this: T, opts?: BeforeHookOpts<InstanceType<T>>) {
-    return BeforeCreate<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the BeforeSave decorator
-   *
-   * ```ts
-   * class User {
-   *   User.BeforeSave()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The BeforeSave decorator
-   *
-   */
-  public static BeforeSave<T extends typeof Dream>(this: T, opts?: BeforeHookOpts<InstanceType<T>>) {
-    return BeforeSave<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the BeforeUpdate decorator
-   *
-   * ```ts
-   * class User {
-   *   User.BeforeUpdate()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The BeforeUpdate decorator
-   *
-   */
-  public static BeforeUpdate<T extends typeof Dream>(this: T, opts?: BeforeHookOpts<InstanceType<T>>) {
-    return BeforeUpdate<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the BeforeDestroy decorator
-   *
-   * ```ts
-   * class User {
-   *   User.BeforeDestroy()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The BeforeDestroy decorator
-   */
-  public static BeforeDestroy<T extends typeof Dream>(this: T) {
-    return BeforeDestroy()
-  }
-
-  /**
-   * Shortcut to the AfterCreate decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterCreate()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterCreate decorator
-   *
-   */
-  public static AfterCreate<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
-    return AfterCreate<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the AfterCreateCommit decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterCreateCommit()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterCreateCommit decorator
-   */
-  public static AfterCreateCommit<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
-    return AfterCreateCommit<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the AfterSave decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterSave()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterSave decorator
-   *
-   */
-  public static AfterSave<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
-    return AfterSave<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the AfterSaveCommit decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterSaveCommit()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterSaveCommit decorator
-   *
-   */
-  public static AfterSaveCommit<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
-    return AfterSaveCommit<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the AfterUpdate decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterUpdate()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterUpdate decorator
-   *
-   */
-  public static AfterUpdate<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
-    return AfterUpdate<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the AfterUpdateCommit decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterUpdateCommit()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterUpdateCommit decorator
-   *
-   */
-  public static AfterUpdateCommit<T extends typeof Dream>(this: T, opts?: AfterHookOpts<InstanceType<T>>) {
-    return AfterUpdateCommit<InstanceType<T>>(opts)
-  }
-
-  /**
-   * Shortcut to the AfterDestroy decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterDestroy()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterDestroy decorator
-   *
-   */
-  public static AfterDestroy<T extends typeof Dream>(this: T) {
-    return AfterDestroy()
-  }
-
-  /**
-   * Shortcut to the AfterDestroyCommit decorator
-   *
-   * ```ts
-   * class User {
-   *   User.AfterDestroyCommit()
-   *   public doSomething() {
-   *     console.log('hi!')
-   *   }
-   * }
-   * ```
-   *
-   * @returns The AfterDestroyCommit decorator
-   *
-   */
-  public static AfterDestroyCommit<T extends typeof Dream>(this: T) {
-    return AfterDestroyCommit()
+    ;(this.hooks as HookStatementMap)[hookType] = [...this.hooks[hookType], statement]
   }
 
   /**
@@ -968,14 +530,10 @@ export default class Dream {
   ): DreamParamSafeColumnNames<I>[] {
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
       if (this.prototype.primaryKey === column) return false
-      if (
-        [
-          this.prototype.createdAtField,
-          this.prototype.updatedAtField,
-          this.prototype.deletedAtField,
-        ].includes(column as any)
-      )
-        return false
+      if (this.prototype.createdAtField === column) return false
+      if (this.prototype.updatedAtField === column) return false
+      if (this.prototype.deletedAtField === column) return false
+      if (this.explicitUnsafeParamColumns.includes(column)) return false
       if (this.isBelongsToAssociationForeignKey(column)) return false
       if (this.isBelongsToAssociationPolymorphicTypeField(column)) return false
       if (this.sti.active && column === 'type') return false
@@ -1205,9 +763,9 @@ export default class Dream {
    * @returns A newly persisted dream instance
    */
   public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
-    const dreamModel = new (this as any)(attributes as any)
+    const dreamModel = this.new(attributes)
     await dreamModel.save()
-    return dreamModel as InstanceType<T>
+    return dreamModel
   }
 
   /**
@@ -1434,14 +992,14 @@ export default class Dream {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
 
-    const dreamModel = new (this as any)({
+    const dreamModel = this.new({
       ...attributes,
       ...(extraOpts?.createWith || {}),
     })
 
     await dreamModel.save()
 
-    return dreamModel as InstanceType<T>
+    return dreamModel
   }
 
   /**
@@ -2053,10 +1611,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -2648,15 +2206,22 @@ export default class Dream {
     opts?: UpdateablePropertiesForClass<T>,
     additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
   ) {
-    return new this(opts as any, additionalOpts) as InstanceType<T>
+    const dreamModel = new this(opts as any, {
+      ...additionalOpts,
+      _internalUseOnly: true,
+    }) as InstanceType<T>
+
+    dreamModel.finalizeConstruction()
+
+    return dreamModel
   }
 
   /**
    * @internal
    *
    * NOTE: avoid using the constructor function directly.
-   * Use the static `.new` method instead, which will provide
-   * type guarding for your attributes.
+   * Use the static `.new` or `.create` methods instead, which
+   * will provide type guarding for your attributes.
    *
    * Since typescript prevents constructor functions
    * from absorbing type generics, we provide the `new`
@@ -2669,13 +2234,14 @@ export default class Dream {
    * @returns A new (unpersisted) instance of the provided dream class
    */
   constructor(
-    opts?: any,
-    additionalOpts: { bypassUserDefinedSetters?: boolean; isPersisted?: boolean } = {}
-    // opts?: Updateable<
-    //   InstanceType<DreamModel & typeof Dream>['DB'][InstanceType<DreamModel>['table'] &
-    //     keyof InstanceType<DreamModel>['DB']]
-    // >
+    opts: any,
+    additionalOpts: {
+      bypassUserDefinedSetters?: boolean
+      isPersisted?: boolean
+      _internalUseOnly: true
+    }
   ) {
+    if (!additionalOpts._internalUseOnly) throw new ConstructorOnlyForInternalUse()
     this.isPersisted = additionalOpts?.isPersisted || false
 
     this.defineAttributeAccessors()
@@ -2697,6 +2263,21 @@ export default class Dream {
         })
       }
     }
+
+    /**
+     *
+     * Modern Javascript sets all properties that do not have an explicit
+     * assignment within the constructor to undefined in an implicit constructor.
+     * Since the Dream constructor sets the value of properties of instances of
+     * classes that extend Dream (e.g. when passing attributes to #new or #create
+     * or when loading a model via one of the #find methods or #all), we need to
+     * prevent those properties from being set back to undefined. Since all
+     * properties corresponding to a database column get a setter, we achieve this
+     * protection by including a guard in the setters that returns if this
+     * property is set.
+     *
+     */
+    this.columnSetterGuardActivated = true
   }
 
   /**
@@ -2742,15 +2323,18 @@ export default class Dream {
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         const foreignKeyValue = belongsToAssociationMetaData.primaryKeyValue(associatedObject)
+
         if (foreignKeyValue !== undefined) {
           returnValues[foreignKey] = foreignKeyValue
           setAttributeOnDreamInstance(foreignKey, returnValues[foreignKey])
+          // Set the belongs-to association
+          setAttributeOnDreamInstance(attr, (attributes as any)[attr])
         }
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
           returnValues[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
-          setAttributeOnDreamInstance(foreignKeyTypeField, associatedObject?.stiBaseClassOrOwnClass?.name)
+          setAttributeOnDreamInstance(foreignKeyTypeField, returnValues[foreignKeyTypeField])
         }
       } else {
         returnValues[attr] = (attributes as any)[attr]
@@ -2767,25 +2351,20 @@ export default class Dream {
    * defines attribute setters and getters for every column
    * set within your types/dream.ts file
    */
-  protected defineAttributeAccessors() {
+  private defineAttributeAccessors() {
     const dreamClass = this.constructor as typeof Dream
     const columns = dreamClass.columns()
-
-    const encryptedAttributes = [...dreamClass.encryptedAttributes]
-    const encryptedAttributeNames = encryptedAttributes.map(attr => attr.encryptedColumnName)
+    const dreamPrototype = Object.getPrototypeOf(this)
 
     columns.forEach(column => {
       // this ensures that the currentAttributes object will contain keys
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      if (
-        !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.get &&
-        !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), column)?.set
-      ) {
-        // handle JSON columns
+      if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
-          Object.defineProperty(Object.getPrototypeOf(this), column, {
+          // handle JSON columns
+          Object.defineProperty(dreamPrototype, column, {
             get() {
               if ([undefined, null].includes(this.currentAttributes[column]))
                 return this.currentAttributes[column]
@@ -2793,58 +2372,48 @@ export default class Dream {
             },
 
             set(val: any) {
+              /**
+               *
+               * Modern Javascript sets all properties that do not have an explicit
+               * assignment within the constructor to undefined in an implicit constructor.
+               * Since the Dream constructor sets the value of properties of instances of
+               * classes that extend Dream (e.g. when passing attributes to #new or #create
+               * or when loading a model via one of the #find methods or #all), we need to
+               * prevent those properties from being set back to undefined. Since all
+               * properties corresponding to a database column get a setter, we achieve this
+               * protection by including a guard in the setters that returns if this
+               * property is set.
+               *
+               */
+              if (this.columnSetterGuardActivated) return
               this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
             },
 
             configurable: true,
           })
-
-          // handle encrypted columns
-        } else if (encryptedAttributeNames.includes(column)) {
-          const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
-
-          if (
-            !Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), encryptedAttribute.property)?.get
-          ) {
-            Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.property, {
-              get() {
-                return InternalEncrypt.decryptColumn(
-                  this.getAttribute(encryptedAttribute.encryptedColumnName)
-                )
-              },
-
-              set(val: any) {
-                this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
-              },
-            })
-          }
-
-          Object.defineProperty(Object.getPrototypeOf(this), encryptedAttribute.encryptedColumnName, {
-            get() {
-              return this.currentAttributes[encryptedAttribute.encryptedColumnName]
-            },
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            set(_: any) {
-              throw new DoNotSetEncryptedFieldsDirectly(
-                dreamClass,
-                encryptedAttribute.encryptedColumnName,
-                encryptedAttribute.property
-              )
-            },
-
-            configurable: true,
-          })
-
-          // handle all other columns
         } else {
-          Object.defineProperty(Object.getPrototypeOf(this), column, {
+          // handle all other columns
+          Object.defineProperty(dreamPrototype, column, {
             get() {
               return this.currentAttributes[column]
             },
 
             set(val: any) {
-              return (this.currentAttributes[column] = val)
+              /**
+               *
+               * Modern Javascript sets all properties that do not have an explicit
+               * assignment within the constructor to undefined in an implicit constructor.
+               * Since the Dream constructor sets the value of properties of instances of
+               * classes that extend Dream (e.g. when passing attributes to #new or #create
+               * or when loading a model via one of the #find methods or #all), we need to
+               * prevent those properties from being set back to undefined. Since all
+               * properties corresponding to a database column get a setter, we achieve this
+               * protection by including a guard in the setters that returns if this
+               * property is set.
+               *
+               */
+              if (this.columnSetterGuardActivated) return
+              this.currentAttributes[column] = val
             },
 
             configurable: true,
@@ -2854,6 +2423,44 @@ export default class Dream {
     })
 
     ensureSTITypeFieldIsSet(this)
+  }
+
+  /**
+   * @internal
+   *
+   * Modern Javascript applies implicit accessors to instance properties that
+   * shadow prototype accessors applied by Dream. This method is called after
+   * every Dream model is initialized to delete the instance accessors so that
+   * the prototype accessors can be reached.
+   */
+  protected unshadowColumnPropertyPrototypeAccessors() {
+    ;(this.constructor as typeof Dream).columns().forEach(column => delete (this as any)[column])
+  }
+
+  protected finalizeConstruction() {
+    /**
+     *
+     * Modern Javascript sets all properties that do not have an explicit
+     * assignment within the constructor to undefined in an implicit constructor.
+     * Since the Dream constructor sets the value of properties of instances of
+     * classes that extend Dream (e.g. when passing attributes to #new or #create
+     * or when loading a model via one of the #find methods or #all), we need to
+     * prevent those properties from being set back to undefined. Since all
+     * properties corresponding to a database column get a setter, we achieve this
+     * protection by including a guard in the setters that returns if this
+     * property is set.
+     *
+     */
+    this.columnSetterGuardActivated = false
+
+    /**
+     * Modern Javascript applies implicit accessors to instance properties
+     * that don't have an accessor explicitly defined in the class definition.
+     * The instance accessors shadow prototype accessors applied by Dream.
+     * This method is called after every Dream model is initialized to delete the
+     * instance accessors so that the prototype accessors can be reached.
+     */
+    this.unshadowColumnPropertyPrototypeAccessors()
   }
 
   /**
@@ -3416,7 +3023,7 @@ export default class Dream {
     { includeAssociations = true }: { includeAssociations?: boolean } = {}
   ): I {
     const self: any = this
-    const clone: any = new self.constructor()
+    const clone: any = (self.constructor as typeof Dream).new({})
 
     const associationDataKeys = Object.values(
       (this.constructor as typeof Dream).associationMetadataMap()
@@ -3831,10 +3438,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Post.HasMany('LocalizedText')
+   *   @Deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Post.HasOne('LocalizedText', {
+   *   @Deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -4183,7 +3790,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
@@ -4205,13 +3812,13 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public async softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
    *   }
    *
-   *   @BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public async undoSoftDelete() {
    *     await this.update({ deletedAt: null })
    *     this.unpreventDeletion()

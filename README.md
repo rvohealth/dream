@@ -101,22 +101,22 @@ const user = await User.where({ email: ops.like('%fred@%') })
 
 class Composition {
   ...
-  @BeforeCreate()
+  @Deco.BeforeCreate()
   public setDefaultContent() {
     if (!this.content) this.content = 'default content'
   }
 
-  @AfterCreate()
+  @Deco.AfterCreate()
   public conditionallyChangeContentOnCreate() {
     if (this.content === 'change me after create') this.content = 'changed after create'
   }
 
-  @AfterUpdate()
+  @Deco.AfterUpdate()
   public conditionallyChangeContentOnUpdate() {
     if (this.content === 'change me after update') this.content = 'changed after update'
   }
 
-  @AfterSave()
+  @Deco.AfterSave()
   public conditionallyChangeContentOnSave() {
     if (this.content === 'change me after save') this.content = 'changed after save'
   }
@@ -156,13 +156,13 @@ export default class User extends Dream {
 // models/user.ts
 class User {
   ...
-  @User.HasMany('Composition')
+  @Deco.HasMany('Composition')
   public compositions: Composition[]
 
-  @User.HasOne('Composition')
+  @Deco.HasOne('Composition')
   public mainComposition: Composition
 
-  @User.HasMany('CompositionAsset', {
+  @Deco.HasMany('CompositionAsset', {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
@@ -171,14 +171,14 @@ class User {
 // models/composition.ts
 export default class Composition extends Dream {
   ...
-  @Composition.BelongsTo('User')
+  @Deco.BelongsTo('User')
   public user: User
 }
 
 // models/composition-asset.ts
 export default class CompositionAsset extends Dream {
   ...
-  @CompositionAsset.BelongsTo('Composition')
+  @Deco.BelongsTo('Composition')
   public composition: Composition
   ...
 }
@@ -449,18 +449,18 @@ yarn build:docs
 ```ts
 @STI(A)
 class B extends A {
-  @B.HasMany('X')
+  @Deco.HasMany('X')
   public xx: X[]
 }
 
 @STI(A)
 class C extends A {
-  @C.HasMany('X', { on: { something: true } })
+  @Deco.HasMany('X', { on: { something: true } })
   public xx: X[]
 }
 
 class Z extends Dream {
-  @Z.HasMany('A')
+  @Deco.HasMany('A')
   public aa: A[]
 }
 

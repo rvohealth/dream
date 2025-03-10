@@ -1,8 +1,8 @@
-import Dream from '../Dream'
-import StiChildCannotDefineNewAssociations from '../errors/sti/StiChildCannotDefineNewAssociations'
-import StiChildIncompatibleWithReplicaSafeDecorator from '../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator'
-import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator'
-import Scope from './Scope'
+import Dream from '../Dream.js'
+import StiChildCannotDefineNewAssociations from '../errors/sti/StiChildCannotDefineNewAssociations.js'
+import StiChildIncompatibleWithReplicaSafeDecorator from '../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
+import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
+import { scopeImplementation } from './Scope.js'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 
@@ -33,6 +33,6 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
       return query.where({ type: stiChildClass['sti'].value })
     }
 
-    Scope({ default: true })(stiChildClass, STI_SCOPE_NAME)
+    scopeImplementation(stiChildClass, STI_SCOPE_NAME, { default: true })
   }
 }

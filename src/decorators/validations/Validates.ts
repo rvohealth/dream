@@ -1,5 +1,6 @@
-import Dream from '../../Dream'
-import ValidationStatement, { ValidationType } from './shared'
+import Dream from '../../Dream.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import ValidationStatement, { ValidationType } from './shared.js'
 
 export default function Validates<
   VT extends ValidationType,
@@ -11,18 +12,41 @@ export default function Validates<
         ? string | RegExp
         : never,
 >(type: VT, args?: VTArgs): any {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return function (target: any, key: string, _: any) {
-    const t = target.constructor as typeof Dream
-    if (!Object.getOwnPropertyDescriptor(t, 'validations'))
-      t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
+  return function (_: undefined, context: DecoratorContext) {
+    const key = context.name
 
-    t['validations'].push({
-      type,
-      column: key,
-      options: extractValidationOptionsFromArgs(type, args),
-    } as ValidationStatement)
+    context.addInitializer(function (this: Dream) {
+      validatesImplementation(this, key, type, args)
+    })
   }
+}
+
+export function validatesImplementation<
+  VT extends ValidationType,
+  VTArgs extends VT extends 'numericality'
+    ? { min?: number; max?: number }
+    : VT extends 'length'
+      ? { min: number; max?: number }
+      : VT extends 'contains'
+        ? string | RegExp
+        : never,
+>(target: Dream, key: string, type: VT, args?: VTArgs) {
+  const t: typeof Dream = target.constructor as typeof Dream
+
+  if (!t['globallyInitializingDecorators']) return
+
+  if (!Object.getOwnPropertyDescriptor(t, 'validations')) {
+    // This pattern allows `validations` on a base STI class and on
+    // child STI classes. The new `validations` property will be created
+    // on the child STI class, but it will include all the `validations`
+    // already declared on the base STI class.
+    t['validations'] = [...t['validations']]
+  }
+  ;(t['validations'] as ValidationStatement[]).push({
+    type,
+    column: key,
+    options: extractValidationOptionsFromArgs(type, args),
+  } satisfies ValidationStatement)
 }
 
 function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
@@ -55,7 +79,7 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
         throw new ValidationInstantiationError(`
           When validating using "length", the second argument must be a number representing
           the min length, or else an object expressing both min and max length, like so:
-          
+
           @Validates('length', { min: 4, max: 32 })
         `)
       }

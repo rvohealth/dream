@@ -1,3 +1,4 @@
+import { Decorators } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
@@ -7,6 +8,8 @@ import PostComment from './PostComment'
 import PostVisibility from './PostVisibility'
 import Rating from './Rating'
 import User from './User'
+
+const Deco = new Decorators<InstanceType<typeof Post>>()
 
 @SoftDelete()
 export default class Post extends ApplicationModel {
@@ -22,36 +25,36 @@ export default class Post extends ApplicationModel {
   public createdAt: DreamColumn<Post, 'createdAt'>
   public deletedAt: DreamColumn<Post, 'deletedAt'>
 
-  @Post.Sortable({ scope: 'user' })
+  @Deco.Sortable({ scope: 'user' })
   public position: DreamColumn<Post, 'position'>
 
   public body: DreamColumn<Post, 'body'>
 
-  @Post.BelongsTo('User')
+  @Deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Post, 'userId'>
 
-  @Post.BelongsTo('PostVisibility', { optional: true })
+  @Deco.BelongsTo('PostVisibility', { optional: true })
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @Post.HasMany('PostComment', { dependent: 'destroy' })
+  @Deco.HasMany('PostComment', { dependent: 'destroy' })
   public comments: PostComment[]
 
-  @Post.HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @Deco.HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allComments: PostComment[]
 
-  @Post.HasMany('Rating', {
+  @Deco.HasMany('Rating', {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
   })
   public ratings: Rating[]
 
-  @Post.HasMany('PostComment', { on: { body: undefined } })
+  @Deco.HasMany('PostComment', { on: { body: undefined } })
   public invalidWherePostComments: PostComment[]
 
-  @Post.HasMany('PostComment', { notOn: { body: undefined } })
+  @Deco.HasMany('PostComment', { notOn: { body: undefined } })
   public invalidWhereNotPostComments: PostComment[]
 
   // Traveling through NonNullRating, a model
@@ -60,7 +63,7 @@ export default class Post extends ApplicationModel {
   // by passing withoutDefaultScopes, we
   // override the default scope, allowing us
   // to see null bodies
-  @Post.HasMany('NonNullRating', {
+  @Deco.HasMany('NonNullRating', {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
@@ -68,7 +71,7 @@ export default class Post extends ApplicationModel {
   })
   public overriddenNonNullRatings: NonNullRating[]
 
-  @Post.HasMany('ExtraRating/HeartRating', {
+  @Deco.HasMany('ExtraRating/HeartRating', {
     foreignKey: 'extraRateableId',
     polymorphic: true,
     dependent: 'destroy',

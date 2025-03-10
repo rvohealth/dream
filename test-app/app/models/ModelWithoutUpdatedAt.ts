@@ -1,6 +1,8 @@
-import BeforeUpdate from '../../../src/decorators/hooks/BeforeUpdate'
+import { Decorators } from '../../../src'
 import { DreamColumn } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
+
+const Deco = new Decorators<InstanceType<typeof ModelWithoutUpdatedAt>>()
 
 export default class ModelWithoutUpdatedAt extends ApplicationModel {
   public get table() {
@@ -12,7 +14,7 @@ export default class ModelWithoutUpdatedAt extends ApplicationModel {
   public cantUpdateThis: DreamColumn<ModelWithoutUpdatedAt, 'cantUpdateThis'>
   public createdAt: DreamColumn<ModelWithoutUpdatedAt, 'createdAt'>
 
-  @BeforeUpdate()
+  @Deco.BeforeUpdate()
   public clearCantUpdateThis() {
     ;(this as any).cantUpdateThis = undefined
   }

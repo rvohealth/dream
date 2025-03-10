@@ -115,7 +115,7 @@ describe('Query#update', () => {
     beforeEach(async () => {
       await User.create({ email: 'fred@fred', password: 'howyadoin' })
 
-      jest.spyOn(DreamDbConnection, 'getConnection')
+      vi.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
