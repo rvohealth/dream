@@ -1,4 +1,4 @@
-import * as pg from 'pg'
+import { Client } from 'pg'
 
 import DreamApplication from '../../dream-application/index.js'
 
@@ -6,7 +6,7 @@ export default async function loadPgClient({ useSystemDb }: { useSystemDb?: bool
   const dreamconf = DreamApplication.getOrFail()
   const creds = dreamconf.dbCredentials.primary
 
-  const client = new pg.Client({
+  const client = new Client({
     host: creds.host || 'localhost',
     port: creds.port,
     database: useSystemDb ? 'postgres' : creds.name,
