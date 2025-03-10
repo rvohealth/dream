@@ -1,4 +1,4 @@
-import { UpdateableProperties } from '@rvohealth/dream'
+import { UpdateableProperties } from '@rvoh/dream'
 import UnscopedSortableModel from '../../app/models/UnscopedSortableModel'
 
 export default async function createUnscopedSortableModel(

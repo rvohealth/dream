@@ -10,7 +10,7 @@ describe('dream generate:model <name> [...attributes]', () => {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof MealType>>()
@@ -45,7 +45,7 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn } from '@rvohealth/dream'
+import { Decorators, DreamColumn } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof MealType>>()
@@ -74,7 +74,7 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
 import FooBase from './Base'
 
 const Deco = new Decorators<InstanceType<typeof FooBar>>()
@@ -105,7 +105,7 @@ export default class FooBar extends FooBase {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof User>>()
@@ -142,7 +142,7 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof User>>()
@@ -185,7 +185,7 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof Chalupa>>()
@@ -223,7 +223,7 @@ export default class Chalupa extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof Paper>>()
@@ -260,7 +260,7 @@ export default class Paper extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 import GraphNode from './GraphNode'
 
@@ -299,7 +299,7 @@ export default class Composition extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 import GraphNode from './GraphNode'
 
@@ -339,7 +339,7 @@ export default class Composition extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 import PetDomesticCat from './Pet/Domestic/Cat'
 
@@ -377,7 +377,7 @@ export default class CatToy extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel'
 import GraphNode from '../../GraphNode'
 
@@ -415,7 +415,7 @@ export default class PetDomesticCat extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticDog from './Dog'
 
@@ -453,7 +453,7 @@ export default class PetDomesticCat extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel'
 import PetDomesticDog from '../Domestic/Dog'
 
@@ -492,7 +492,7 @@ export default class PetWildCat extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 import Chalupa from './Chalupa'
@@ -537,7 +537,7 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof Composition>>()
@@ -572,7 +572,7 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvohealth/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel'
 
 const Deco = new Decorators<InstanceType<typeof Composition>>()

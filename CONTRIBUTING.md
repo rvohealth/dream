@@ -41,7 +41,7 @@ NODE_ENV=test yarn dreamcore db:migrate
 The global CLI is used to build a new psychic app. You can access the global cli on your machine by doing the following:
 
 ```bash
-yarn dlx @rvohealth/dream
+yarn dlx @rvoh/dream
 ```
 
 Once installed globally, you can access the global cli like so:

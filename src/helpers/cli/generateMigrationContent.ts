@@ -98,7 +98,7 @@ export async function down(db: Kysely<any>): Promise<void> {
   const columnDropLines = columnDrops.length ? newline + columnDrops.join(newline) + newline : ''
 
   return `\
-${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvohealth/dream'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
+${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvoh/dream'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {

@@ -80,7 +80,7 @@ export default function generateSerializerContent({
 
   let dreamImport = ''
   if (dreamImports.length) {
-    dreamImport = `import { ${uniq(dreamImports).join(', ')} } from '@rvohealth/dream'`
+    dreamImport = `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'`
   }
 
   const additionalImportsStr = additionalImports.length ? uniq(additionalImports).join('') : ''

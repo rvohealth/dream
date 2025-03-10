@@ -77,7 +77,7 @@ export type Timestamp = ColumnType<DateTime | CalendarDate>`
 function addCustomImports(file: string) {
   const calendarDateImportStatement = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')
     ? "import CalendarDate from '../../src/helpers/CalendarDate'"
-    : "import { CalendarDate } from '@rvohealth/dream'"
+    : "import { CalendarDate } from '@rvoh/dream'"
 
   const customImports = `${calendarDateImportStatement}
 import { DateTime } from 'luxon'`
