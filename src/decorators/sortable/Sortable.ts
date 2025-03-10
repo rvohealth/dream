@@ -165,10 +165,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
       afterDestroyImplementation(dream, afterDestroyMethodName)
       afterDestroyCommitImplementation(dream, afterDestroyCommitMethodName)
     })
-
-    return function (this: Dream) {
-      return (this as any)[key]
-    }
   }
 }
 
