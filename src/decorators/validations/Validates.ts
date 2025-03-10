@@ -16,12 +16,8 @@ export default function Validates<
     const key = context.name
 
     context.addInitializer(function (this: Dream) {
-      validatesImplementation(this, context.name, type, args)
+      validatesImplementation(this, key, type, args)
     })
-
-    return function (this: Dream) {
-      return (this as any)[key]
-    }
   }
 }
 
