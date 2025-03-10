@@ -25,8 +25,6 @@ export default function Encrypted(encryptedColumnName?: string): any {
         return
       }
 
-      const dreamPrototype = Object.getPrototypeOf(this)
-
       if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
         t['virtualAttributes'] = [...t['virtualAttributes']]
       ;(t['virtualAttributes'] as VirtualAttributeStatement[]).push({
@@ -37,6 +35,8 @@ export default function Encrypted(encryptedColumnName?: string): any {
       if (!Object.getOwnPropertyDescriptor(t, 'explicitUnsafeParamColumns'))
         t['explicitUnsafeParamColumns'] = [...t['explicitUnsafeParamColumns']]
       ;(t['explicitUnsafeParamColumns'] as string[]).push(encryptedKey)
+
+      const dreamPrototype = Object.getPrototypeOf(this)
 
       Object.defineProperty(dreamPrototype, key, {
         get() {
