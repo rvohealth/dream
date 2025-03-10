@@ -30,7 +30,7 @@ export function scopeImplementation(t: typeof Dream, key: string, opts: { defaul
   const alreadyApplied = !!t['scopes'][branch].find(scope => scope.method === key)
 
   if (!alreadyApplied) {
-    t['scopes'][branch].push({
+    ;(t['scopes'][branch] as ScopeStatement[]).push({
       method: key,
       default: opts.default || false,
     })

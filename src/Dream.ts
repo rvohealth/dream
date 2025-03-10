@@ -21,8 +21,7 @@ import {
   PassthroughOnClause,
   WhereStatement,
 } from './decorators/associations/shared.js'
-import { EncryptedAttributeStatement } from './decorators/Encrypted.js'
-import { blankHooksFactory, HookStatement } from './decorators/hooks/shared.js'
+import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/hooks/shared.js'
 import { ScopeStatement } from './decorators/Scope.js'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/sortable/Sortable.js'
@@ -249,43 +248,53 @@ export default class Dream {
     belongsTo: BelongsToStatement<any, any, any, any>[]
     hasMany: HasManyStatement<any, any, any, any>[]
     hasOne: HasOneStatement<any, any, any, any>[]
-  } = blankAssociationsFactory(this)
+  } = Object.freeze(blankAssociationsFactory(this))
 
   /**
    * @internal
    *
    * Model storage for scope metadata, set when using the Scope decorator
+   * (this default assignment simply ensures that it is
+   * always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
   protected static scopes: {
-    default: ScopeStatement[]
-    named: ScopeStatement[]
-  } = {
-    default: [],
-    named: [],
-  }
+    default: readonly ScopeStatement[] | ScopeStatement[]
+    named: readonly ScopeStatement[] | ScopeStatement[]
+  } = Object.freeze({
+    default: Object.freeze([]),
+    named: Object.freeze([]),
+  })
 
   /**
    * @internal
    *
-   * Model storage for virtual attribute metadata, set when using the Virtual decorator
+   * Model storage for virtual attribute metadata, set on the inheriting class when
+   * using the Virtual decorator (this default assignment simply ensures that it is
+   * always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static virtualAttributes: VirtualAttributeStatement[] = []
+  protected static virtualAttributes: readonly VirtualAttributeStatement[] | VirtualAttributeStatement[] =
+    Object.freeze([])
 
   /**
    * @internal
    *
-   * Model storage for encrypted attribute metadata, set when using the Encrypted decorator
-   * Used to filter out columns from param safe columns
-   *
+   * Model storage for additional columns that may not be set via the new/create/update
+   * methods. Set on the inheriting class when using the Virtual decorator (this default
+   * assignment simply ensures that it is always an array rather than undefined)
    */
-  protected static encryptedAttributes: EncryptedAttributeStatement[] = []
+  protected static explicitUnsafeParamColumns: readonly string[] | string[] = Object.freeze([])
 
   /**
    * @internal
    *
    * Model storage for sortable metadata, set when using the Sortable decorator
+   *  (this default assignment simply ensures that it is always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
+   *
    */
-  protected static sortableFields: SortableFieldConfig[] = []
+  protected static sortableFields: readonly SortableFieldConfig[] | SortableFieldConfig[] = Object.freeze([])
 
   /**
    * @internal
@@ -298,16 +307,18 @@ export default class Dream {
    * @internal
    *
    * Model storage for STI metadata, set when using the STI decorator
+   *  (this default assignment simply ensures that it is always a valid object rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
   protected static sti: {
     active: boolean
     baseClass: typeof Dream | null
     value: string | null
-  } = {
+  } = Object.freeze({
     active: false,
     baseClass: null,
     value: null,
-  }
+  })
 
   /**
    * @internal
@@ -326,34 +337,28 @@ export default class Dream {
    *   AfterDestroy
    *   AfterDestroyCommit
    */
-  protected static hooks: {
-    beforeCreate: HookStatement[]
-    beforeUpdate: HookStatement[]
-    beforeSave: HookStatement[]
-    beforeDestroy: HookStatement[]
-    afterCreate: HookStatement[]
-    afterCreateCommit: HookStatement[]
-    afterUpdate: HookStatement[]
-    afterUpdateCommit: HookStatement[]
-    afterSave: HookStatement[]
-    afterSaveCommit: HookStatement[]
-    afterDestroy: HookStatement[]
-    afterDestroyCommit: HookStatement[]
-  } = blankHooksFactory(this)
+  protected static hooks: Readonly<HookStatementMap> = Object.freeze(
+    blankHooksFactory(this, { freeze: true })
+  )
 
   /**
    * @internal
    *
    * Model storage for validation metadata, set when using the Validates decorator
+   * (this default assignment simply ensures that it is always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static validations: ValidationStatement[] = []
+  protected static validations: readonly ValidationStatement[] | ValidationStatement[] = Object.freeze([])
 
   /**
    * @internal
    *
-   * model storage for custom validation metadata, set when using the Validate decorator
+   * Model storage for custom validation metadata, set when using the Validate decorator
+   * (this default assignment simply ensures that it is always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
+   *
    */
-  protected static customValidations: string[] = []
+  protected static customValidations: readonly string[] | string[] = Object.freeze([])
 
   /**
    * @internal
@@ -436,8 +441,7 @@ export default class Dream {
   protected static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
     const existingHook = this.hooks[hookType].find(hook => hook.method === statement.method)
     if (existingHook) return
-
-    this.hooks[hookType] = [...this.hooks[hookType], statement]
+    ;(this.hooks as HookStatementMap)[hookType] = [...this.hooks[hookType], statement]
   }
 
   /**
@@ -527,18 +531,12 @@ export default class Dream {
   protected static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
-    const dreamClass = this.constructor as typeof Dream
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
       if (this.prototype.primaryKey === column) return false
-      if (dreamClass.encryptedAttributes.find(attr => attr.encryptedColumnName === column)) return false
-      if (
-        [
-          this.prototype.createdAtField,
-          this.prototype.updatedAtField,
-          this.prototype.deletedAtField,
-        ].includes(column as any)
-      )
-        return false
+      if (this.prototype.createdAtField === column) return false
+      if (this.prototype.updatedAtField === column) return false
+      if (this.prototype.deletedAtField === column) return false
+      if (this.explicitUnsafeParamColumns.includes(column)) return false
       if (this.isBelongsToAssociationForeignKey(column)) return false
       if (this.isBelongsToAssociationPolymorphicTypeField(column)) return false
       if (this.sti.active && column === 'type') return false
@@ -546,11 +544,7 @@ export default class Dream {
     }) as DreamParamSafeColumnNames<I>[]
 
     return [
-      ...new Set([
-        ...columns,
-        ...this.virtualAttributes.map(attr => attr.property),
-        ...dreamClass.encryptedAttributes.map(attr => attr.property),
-      ]),
+      ...new Set([...columns, ...this.virtualAttributes.map(attr => attr.property)]),
     ] as DreamParamSafeColumnNames<I>[]
   }
 

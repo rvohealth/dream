@@ -11,12 +11,11 @@ export default function Virtual(type?: SerializableTypes): any {
       if (!t['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
-        t['virtualAttributes'] = [...(t['virtualAttributes'] || [])]
-
-      t['virtualAttributes'].push({
+        t['virtualAttributes'] = [...t['virtualAttributes']]
+      ;(t['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
         type,
-      } as VirtualAttributeStatement)
+      } satisfies VirtualAttributeStatement)
     })
 
     return function (this: Dream) {

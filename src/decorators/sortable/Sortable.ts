@@ -41,8 +41,8 @@ export default function Sortable(opts: SortableOpts = {}): any {
       if (!dreamClass['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields'))
-        dreamClass['sortableFields'] = [...(dreamClass['sortableFields'] || [])]
-      dreamClass['sortableFields'].push({
+        dreamClass['sortableFields'] = [...dreamClass['sortableFields']]
+      ;(dreamClass['sortableFields'] as SortableFieldConfig[]).push({
         scope: scopeArray(opts.scope),
         positionField: key,
       })

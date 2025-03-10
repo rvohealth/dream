@@ -41,12 +41,11 @@ export function validatesImplementation<
 
   if (!Object.getOwnPropertyDescriptor(t, 'validations'))
     t['validations'] = [...(t['validations'] || [])] as ValidationStatement[]
-
-  t['validations'].push({
+  ;(t['validations'] as ValidationStatement[]).push({
     type,
     column: key,
     options: extractValidationOptionsFromArgs(type, args),
-  } as ValidationStatement)
+  } satisfies ValidationStatement)
 }
 
 function extractValidationOptionsFromArgs(type: ValidationType, args: any) {

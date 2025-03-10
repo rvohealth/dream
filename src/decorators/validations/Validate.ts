@@ -10,9 +10,8 @@ export default function Validate(): any {
       if (!t['globallyInitializingDecorators']) return
 
       if (!Object.getOwnPropertyDescriptor(t, 'customValidations'))
-        t['customValidations'] = [...(t['customValidations'] || [])] as string[]
-
-      t['customValidations'].push(key)
+        t['customValidations'] = [...(t['customValidations'] || [])]
+      ;(t['customValidations'] as string[]).push(key)
     })
   }
 }

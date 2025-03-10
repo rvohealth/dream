@@ -3,6 +3,7 @@ import InternalEncrypt from '../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../errors/DoNotSetEncryptedFieldsDirectly.js'
 import pascalize from '../helpers/pascalize.js'
 import { DecoratorContext } from './DecoratorContextType.js'
+import { VirtualAttributeStatement } from './Virtual.js'
 
 export default function Encrypted(encryptedColumnName?: string): any {
   return function (_: undefined, context: DecoratorContext) {
@@ -26,13 +27,16 @@ export default function Encrypted(encryptedColumnName?: string): any {
 
       const dreamPrototype = Object.getPrototypeOf(this)
 
-      if (!Object.getOwnPropertyDescriptor(t, 'encryptedAttributes'))
-        t['encryptedAttributes'] = [...(t['encryptedAttributes'] || [])]
-
-      t['encryptedAttributes'].push({
+      if (!Object.getOwnPropertyDescriptor(t, 'virtualAttributes'))
+        t['virtualAttributes'] = [...t['virtualAttributes']]
+      ;(t['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
-        encryptedColumnName: encryptedKey,
-      })
+        type: 'string',
+      } satisfies VirtualAttributeStatement)
+
+      if (!Object.getOwnPropertyDescriptor(t, 'explicitUnsafeParamColumns'))
+        t['explicitUnsafeParamColumns'] = [...t['explicitUnsafeParamColumns']]
+      ;(t['explicitUnsafeParamColumns'] as string[]).push(encryptedKey)
 
       Object.defineProperty(dreamPrototype, key, {
         get() {

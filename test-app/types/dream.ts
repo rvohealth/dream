@@ -183,7 +183,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -261,7 +260,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -335,7 +333,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloonSpotterBalloons: {
         type: 'HasMany',
@@ -472,7 +469,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloonLine: {
         type: 'HasOne',
@@ -607,7 +603,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -692,7 +687,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       composition: {
         type: 'HasOne',
@@ -802,7 +796,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       composition: {
         type: 'BelongsTo',
@@ -942,7 +935,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       cascadeDeletableLocalizedText: {
         type: 'HasOne',
@@ -1083,7 +1075,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -1182,7 +1173,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       extraRateable: {
         type: 'BelongsTo',
@@ -1285,7 +1275,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       edge: {
         type: 'BelongsTo',
@@ -1410,7 +1399,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       edgeNodes: {
         type: 'HasMany',
@@ -1486,7 +1474,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       edgeNodes: {
         type: 'HasMany',
@@ -1602,7 +1589,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       user: {
         type: 'BelongsTo',
@@ -1662,7 +1648,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       users: {
         type: 'HasMany',
@@ -1722,7 +1707,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -1821,7 +1805,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       localizable: {
         type: 'BelongsTo',
@@ -2331,7 +2314,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2376,7 +2358,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2430,7 +2411,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2475,7 +2455,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2529,7 +2508,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -2592,7 +2570,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       pet: {
         type: 'BelongsTo',
@@ -2722,7 +2699,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       collars: {
         type: 'HasMany',
@@ -3269,7 +3245,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       post: {
         type: 'BelongsTo',
@@ -3345,7 +3320,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       post: {
         type: 'HasOne',
@@ -3441,7 +3415,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       allComments: {
         type: 'HasMany',
@@ -3593,7 +3566,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       rateable: {
         type: 'BelongsTo',
@@ -3694,7 +3666,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       mylar: {
         type: 'BelongsTo',
@@ -3754,7 +3725,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       
     },
@@ -3817,7 +3787,6 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    encryptedColumns: [],
     associations: {
       user: {
         type: 'BelongsTo',
@@ -4002,8 +3971,7 @@ export const schema = {
         isArray: false,
       },
     },
-    virtualColumns: ['password'],
-    encryptedColumns: ['otherSecret', 'secret'],
+    virtualColumns: ['otherSecret', 'password', 'secret'],
     associations: {
       allPets: {
         type: 'HasMany',

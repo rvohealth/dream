@@ -166,17 +166,6 @@ export type DreamVirtualColumns<
   Schema = DreamInstance['schema'],
 > = VirtualColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
 
-type EncryptedColumnsForTable<
-  Schema,
-  TableName extends keyof Schema,
-  TableSchema = Schema[TableName],
-> = TableSchema['encryptedColumns' & keyof TableSchema]
-
-export type DreamEncryptedColumns<
-  DreamInstance extends Dream,
-  Schema = DreamInstance['schema'],
-> = EncryptedColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
-
 export type DreamBelongsToAssociationMetadata<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
@@ -304,11 +293,9 @@ export type UpdateablePropertiesForClass<
   > &
     InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
   VirtualColumns = DreamVirtualColumns<InstanceType<DreamClass>>,
-  EncryptedColumns = DreamEncryptedColumns<InstanceType<DreamClass>>,
 > = Partial<
   Updateable<InstanceType<DreamClass>['DB'][TableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
-    (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<InstanceType<DreamClass>> extends never
       ? object
       : AssociatedModelParam<InstanceType<DreamClass>>)
@@ -338,11 +325,9 @@ export type UpdateableProperties<
   I extends Dream,
   TableName extends AssociationTableNames<I['DB'], I['schema']> & I['table'] = I['table'],
   VirtualColumns = DreamVirtualColumns<I>,
-  EncryptedColumns = DreamEncryptedColumns<I>,
 > = Partial<
   Updateable<I['DB'][TableName]> &
     (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
-    (EncryptedColumns extends readonly any[] ? Record<EncryptedColumns[number], any> : object) &
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 

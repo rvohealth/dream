@@ -1,6 +1,7 @@
 import { MockInstance } from 'vitest'
 import { Dream, DreamTransaction } from '../../../src'
 import DreamDbConnection from '../../../src/db/DreamDbConnection'
+import { blankHooksFactory, HookStatement } from '../../../src/decorators/hooks/shared'
 import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
 import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/destroyAssociatedRecords'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor'
@@ -221,6 +222,7 @@ describe('Query#destroy', () => {
 
     context('when a deeply nested association fails to destroy', () => {
       beforeEach(() => {
+        if (!Object.getOwnPropertyDescriptor(Rating, 'hooks')) Rating['hooks'] = blankHooksFactory(Rating)
         ;(Rating.prototype as any)['throwAnError'] = () => {
           throw new Error('howyadoin')
         }
@@ -228,7 +230,7 @@ describe('Query#destroy', () => {
       })
 
       afterEach(() => {
-        Rating['hooks'].afterDestroy.pop()
+        ;(Rating['hooks'].afterDestroy as HookStatement[]).pop()
       })
 
       it('prevents destruction of model', async () => {
