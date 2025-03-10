@@ -1,6 +1,6 @@
-import { getModelsOrFail } from './processModels.js'
-import { getSerializersOrFail } from './processSerializers.js'
-import { getServicesOrFail } from './processServices.js'
+import { getModelsOrFail } from './importers/importModels.js'
+import { getSerializersOrFail } from './importers/importSerializers.js'
+import { getServicesOrFail } from './importers/importServices.js'
 
 let _globalNameMap: any
 

@@ -1,14 +1,17 @@
-import Dream from '../../Dream.js'
-import MissingTable from '../../errors/MissingTable.js'
-import globalModelKeyFromPath from './globalModelKeyFromPath.js'
+import Dream from '../../../Dream.js'
+import MissingTable from '../../../errors/MissingTable.js'
+import DreamImporter from '../DreamImporter.js'
+import globalModelKeyFromPath from '../globalModelKeyFromPath.js'
 
 let _models: Record<string, typeof Dream>
 
-export default function processModels(
+export default async function importModels(
   modelsPath: string,
-  modelClasses: [string, typeof Dream][]
-): Record<string, typeof Dream> {
+  modelImportCb: (path: string) => Promise<any>
+): Promise<Record<string, typeof Dream>> {
   if (_models) return _models
+
+  const modelClasses = await DreamImporter.importDreams(modelsPath, modelImportCb)
 
   /**
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)

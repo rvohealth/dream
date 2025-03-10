@@ -1,14 +1,17 @@
-import globalServiceKeyFromPath from './globalServiceKeyFromPath.js'
+import DreamImporter from '../DreamImporter.js'
+import globalServiceKeyFromPath from '../globalServiceKeyFromPath.js'
 
 let _services: Record<string, any>
 
-export default function processServices(
+export default async function importServices(
   servicesPath: string,
-  serviceClasses: [string, any][]
-): Record<string, any> {
+  serviceImportCb: (path: string) => Promise<any>
+): Promise<Record<string, any>> {
   if (_services) return _services
 
   _services = {}
+
+  const serviceClasses = await DreamImporter.importServices(servicesPath, serviceImportCb)
 
   for (const [servicePath, serviceClass] of serviceClasses) {
     // we only want to register services within our app
