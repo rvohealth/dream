@@ -1,4 +1,6 @@
-import * as pg from 'pg'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import pg from 'pg'
 
 import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
