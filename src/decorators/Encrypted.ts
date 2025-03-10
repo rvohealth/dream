@@ -72,7 +72,6 @@ export default function Encrypted(encryptedColumnName?: string): any {
         },
 
         configurable: false,
-        enumerable: false,
       })
 
       Object.defineProperty(dreamPrototype, encryptedKey, {
@@ -86,7 +85,6 @@ export default function Encrypted(encryptedColumnName?: string): any {
         },
 
         configurable: false,
-        enumerable: false,
       })
     })
   }

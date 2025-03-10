@@ -3030,7 +3030,7 @@ export default class Dream {
     ).map(association => associationToGetterSetterProp(association))
 
     Object.keys(this).forEach(property => {
-      if (!associationDataKeys.includes(`__${property}__`)) clone[property] = cloneDeepSafe(self[property])
+      if (!associationDataKeys.includes(property)) clone[property] = cloneDeepSafe(self[property])
     })
 
     if (includeAssociations) {
