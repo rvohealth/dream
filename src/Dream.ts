@@ -93,14 +93,12 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './dream/types.js'
-import InternalEncrypt from './encrypt/InternalEncrypt.js'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
 import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
-import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly.js'
 import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
 import MissingSerializer from './errors/MissingSerializersDefinition.js'
 import MissingTable from './errors/MissingTable.js'
@@ -277,6 +275,8 @@ export default class Dream {
    * @internal
    *
    * Model storage for encrypted attribute metadata, set when using the Encrypted decorator
+   * Used to filter out columns from param safe columns
+   *
    */
   protected static encryptedAttributes: EncryptedAttributeStatement[] = []
 
@@ -527,8 +527,10 @@ export default class Dream {
   protected static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
+    const dreamClass = this.constructor as typeof Dream
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
       if (this.prototype.primaryKey === column) return false
+      if (dreamClass.encryptedAttributes.find(attr => attr.encryptedColumnName === column)) return false
       if (
         [
           this.prototype.createdAtField,
@@ -544,7 +546,11 @@ export default class Dream {
     }) as DreamParamSafeColumnNames<I>[]
 
     return [
-      ...new Set([...columns, ...this.virtualAttributes.map(attr => attr.property)]),
+      ...new Set([
+        ...columns,
+        ...this.virtualAttributes.map(attr => attr.property),
+        ...dreamClass.encryptedAttributes.map(attr => attr.property),
+      ]),
     ] as DreamParamSafeColumnNames<I>[]
   }
 
@@ -2364,67 +2370,14 @@ export default class Dream {
     const columns = dreamClass.columns()
     const dreamPrototype = Object.getPrototypeOf(this)
 
-    const encryptedAttributes = [...dreamClass.encryptedAttributes]
-    const encryptedAttributeNames = encryptedAttributes.map(attr => attr.encryptedColumnName)
-
     columns.forEach(column => {
       // this ensures that the currentAttributes object will contain keys
       // for each of the properties
       if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
 
-      // handle encrypted columns
-      if (encryptedAttributeNames.includes(column)) {
-        const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
-
-        if (!Object.getOwnPropertyDescriptor(dreamPrototype, encryptedAttribute.property)?.set) {
-          Object.defineProperty(dreamPrototype, encryptedAttribute.property, {
-            get() {
-              return InternalEncrypt.decryptColumn(this.getAttribute(encryptedAttribute.encryptedColumnName))
-            },
-
-            set(val: any) {
-              /**
-               *
-               * Modern Javascript sets all properties that do not have an explicit
-               * assignment within the constructor to undefined in an implicit constructor.
-               * Since the Dream constructor sets the value of properties of instances of
-               * classes that extend Dream (e.g. when passing attributes to #new or #create
-               * or when loading a model via one of the #find methods or #all), we need to
-               * prevent those properties from being set back to undefined. Since all
-               * properties corresponding to a database column get a setter, we achieve this
-               * protection by including a guard in the setters that returns if this
-               * property is set.
-               *
-               */
-              if (this.columnSetterGuardActivated) return
-              this.setAttribute(encryptedAttribute.encryptedColumnName, InternalEncrypt.encryptColumn(val))
-            },
-
-            configurable: true,
-            enumerable: false,
-          })
-        }
-
-        Object.defineProperty(dreamPrototype, encryptedAttribute.encryptedColumnName, {
-          get() {
-            return this.currentAttributes[encryptedAttribute.encryptedColumnName]
-          },
-
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          set(_: any) {
-            throw new DoNotSetEncryptedFieldsDirectly(
-              dreamClass,
-              encryptedAttribute.encryptedColumnName,
-              encryptedAttribute.property
-            )
-          },
-
-          configurable: true,
-          enumerable: false,
-        })
-      } else if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
-        // handle JSON columns
+      if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
+          // handle JSON columns
           Object.defineProperty(dreamPrototype, column, {
             get() {
               if ([undefined, null].includes(this.currentAttributes[column]))
@@ -2453,9 +2406,8 @@ export default class Dream {
             configurable: true,
             enumerable: false,
           })
-
-          // handle all other columns
         } else {
+          // handle all other columns
           Object.defineProperty(dreamPrototype, column, {
             get() {
               return this.currentAttributes[column]
@@ -2476,7 +2428,7 @@ export default class Dream {
                *
                */
               if (this.columnSetterGuardActivated) return
-              return (this.currentAttributes[column] = val)
+              this.currentAttributes[column] = val
             },
 
             configurable: true,
@@ -2501,19 +2453,7 @@ export default class Dream {
     const dreamClass = this.constructor as typeof Dream
     const columns = dreamClass.columns()
     const dream = this
-
-    const encryptedAttributes = [...dreamClass.encryptedAttributes]
-    const encryptedAttributeNames = encryptedAttributes.map(attr => attr.encryptedColumnName)
-
-    columns.forEach(column => {
-      if (encryptedAttributeNames.includes(column)) {
-        const encryptedAttribute = encryptedAttributes.find(attr => attr.encryptedColumnName === column)!
-        delete (dream as any)[encryptedAttribute.property]
-        delete (dream as any)[encryptedAttribute.encryptedColumnName]
-      } else {
-        delete (dream as any)[column]
-      }
-    })
+    columns.forEach(column => delete (dream as any)[column])
   }
 
   protected finalizeConstruction() {

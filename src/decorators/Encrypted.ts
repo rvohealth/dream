@@ -1,10 +1,13 @@
 import Dream from '../Dream.js'
+import InternalEncrypt from '../encrypt/InternalEncrypt.js'
+import DoNotSetEncryptedFieldsDirectly from '../errors/DoNotSetEncryptedFieldsDirectly.js'
 import pascalize from '../helpers/pascalize.js'
 import { DecoratorContext } from './DecoratorContextType.js'
 
 export default function Encrypted(encryptedColumnName?: string): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
+    const encryptedKey = encryptedColumnName || `encrypted${pascalize(key)}`
 
     context.addInitializer(function (this: Dream) {
       const t: typeof Dream = this.constructor as typeof Dream
@@ -21,12 +24,55 @@ export default function Encrypted(encryptedColumnName?: string): any {
         return
       }
 
+      const dreamPrototype = Object.getPrototypeOf(this)
+
       if (!Object.getOwnPropertyDescriptor(t, 'encryptedAttributes'))
         t['encryptedAttributes'] = [...(t['encryptedAttributes'] || [])]
 
       t['encryptedAttributes'].push({
         property: key,
-        encryptedColumnName: encryptedColumnName || `encrypted${pascalize(key)}`,
+        encryptedColumnName: encryptedKey,
+      })
+
+      Object.defineProperty(dreamPrototype, key, {
+        get() {
+          return InternalEncrypt.decryptColumn(this.getAttribute(encryptedKey))
+        },
+
+        set(val: any) {
+          /**
+           *
+           * Modern Javascript sets all properties that do not have an explicit
+           * assignment within the constructor to undefined in an implicit constructor.
+           * Since the Dream constructor sets the value of properties of instances of
+           * classes that extend Dream (e.g. when passing attributes to #new or #create
+           * or when loading a model via one of the #find methods or #all), we need to
+           * prevent those properties from being set back to undefined. Since all
+           * properties corresponding to a database column get a setter, we achieve this
+           * protection by including a guard in the setters that returns if this
+           * property is set.
+           *
+           */
+          if (this.columnSetterGuardActivated) return
+          this.setAttribute(encryptedKey, InternalEncrypt.encryptColumn(val))
+        },
+
+        configurable: false,
+        enumerable: false,
+      })
+
+      Object.defineProperty(dreamPrototype, encryptedKey, {
+        get() {
+          return this.currentAttributes[encryptedKey]
+        },
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        set(_: any) {
+          throw new DoNotSetEncryptedFieldsDirectly(t, encryptedKey, key)
+        },
+
+        configurable: false,
+        enumerable: false,
       })
     })
 

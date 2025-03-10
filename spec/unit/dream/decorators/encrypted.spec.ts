@@ -20,6 +20,12 @@ describe('@Encrypted', () => {
       expect(user.getAttribute('encryptedSecret')).not.toEqual('shh!')
       expect(typeof user.getAttribute('encryptedSecret')).toEqual('string')
     })
+
+    it('persists to and restores from the database', async () => {
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.secret).toEqual('Howdy world')
+    })
   })
 
   context('with a field provided', () => {
