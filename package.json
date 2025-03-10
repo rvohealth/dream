@@ -23,7 +23,6 @@
   ],
   "bin": "./dist/src/global-cli/dream.js",
   "scripts": {
-    "publish": "yarn && yarn npm publish",
     "dream": "yarn dreamts",
     "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
     "dreamts": "node --experimental-specifier-resolution=node --import=./bin/esm.js ./test-app/cli/index.ts",
