@@ -1,4 +1,4 @@
-import { Decorators, DreamColumn, Sortable } from '../../../src'
+import { Decorators, DreamColumn } from '../../../src'
 import ApplicationModel from './ApplicationModel'
 import User from './User'
 
@@ -13,7 +13,7 @@ export default class InvalidAssociationSortableModel extends ApplicationModel {
   public createdAt: DreamColumn<InvalidAssociationSortableModel, 'createdAt'>
   public updatedAt: DreamColumn<InvalidAssociationSortableModel, 'updatedAt'>
 
-  @Sortable({ scope: 'users' })
+  @Deco.Sortable({ scope: 'users' } as any)
   public position: DreamColumn<InvalidAssociationSortableModel, 'position'>
 
   @Deco.HasMany('User', { foreignKey: 'id' })

@@ -1,6 +1,5 @@
 import { Decorators, ops } from '../../../src'
 import SoftDelete from '../../../src/decorators/SoftDelete'
-import Sortable from '../../../src/decorators/sortable/Sortable'
 import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
 import ApplicationModel from './ApplicationModel'
 import Balloon from './Balloon'
@@ -40,7 +39,7 @@ export default class Pet extends ApplicationModel {
     ;(this as Pet).setAttribute('nickname', `Li’l ${nickname}`)
   }
 
-  @Sortable({ scope: 'species' })
+  @Deco.Sortable({ scope: 'species' })
   public positionWithinSpecies: number
 
   @Deco.BelongsTo('User', {
