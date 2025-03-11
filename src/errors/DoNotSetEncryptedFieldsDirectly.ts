@@ -14,7 +14,7 @@ export default class DoNotSetEncryptedFieldsDirectly extends Error {
 Do not set @Encrypted columns directly. Instead, set their accessors, so that
 those fields can be encrypted by Dream internally.
 
-Dream class: ${this.dreamClass.name}
+Dream class: ${this.dreamClass.sanitizedName}
 Problematic setter: ${this.encryptedColumnName}
 Setter to be used instead: ${this.encryptedProperty}`
   }

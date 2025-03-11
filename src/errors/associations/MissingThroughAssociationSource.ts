@@ -24,37 +24,37 @@ export default class MissingThroughAssociationSource extends Error {
 
   public get message() {
     return `
-\`${this.dreamClass.name}\` defines association \`${this.association.as}\` through \`${
-      this.dreamClass.name
+\`${this.dreamClass.sanitizedName}\` defines association \`${this.association.as}\` through \`${
+      this.dreamClass.sanitizedName
     }\` association \`${this.association.through}\`.
 
-\`${this.dreamClass.name}\` association \`${this.association.through}\` points to \`${
-      this.throughClass.name
+\`${this.dreamClass.sanitizedName}\` association \`${this.association.through}\` points to \`${
+      this.throughClass.sanitizedName
     }\`.
 
 Dream expects association \`${this.association.source}\` to be defiend on \`${
-      this.throughClass.name
-    }\`, but \`${this.throughClass.name}\` does not define association \`${this.association.source}\`.
+      this.throughClass.sanitizedName
+    }\`, but \`${this.throughClass.sanitizedName}\` does not define association \`${this.association.source}\`.
 
 There are two possible fixes:
 
 1. Provide an explicit \`source\` in addition to \`through\`.
 
-class ${this.dreamClass.name} {
+class ${this.dreamClass.sanitizedName} {
   ...
-  @${this.dreamClass.name}.HasMany(() => ${this.throughClass.name}, { through: '${
+  @${this.dreamClass.name}.HasMany(() => ${this.throughClass.sanitizedName}, { through: '${
     this.association.through
-  }', source: '<a valid association on ${this.throughClass.name}>'})
-  public ${this.association.as}: ${this.throughClass.name}[]
+  }', source: '<a valid association on ${this.throughClass.sanitizedName}>'})
+  public ${this.association.as}: ${this.throughClass.sanitizedName}[]
 }
 
-2. Define association \`${this.association.source}\` on \`${this.throughClass.name}\`.
+2. Define association \`${this.association.source}\` on \`${this.throughClass.sanitizedName}\`.
 For example:
 
-class ${this.throughClass.name} {
+class ${this.throughClass.sanitizedName} {
   ...
-  @${this.throughClass.name}.HasMany(() => ${this.association.modelCB().name})
-  public ${this.association.source}: ${this.association.modelCB().name}[]
+  @${this.throughClass.sanitizedName}.HasMany(() => ${this.association.modelCB().name})
+  public ${this.association.source}: ${this.association.modelCB().sanitizedName}[]
 }
     `
   }

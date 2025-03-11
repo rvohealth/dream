@@ -519,7 +519,7 @@ export function modelCBtoSingleDreamClass(
 ): typeof Dream {
   if (Array.isArray(partialAssociation.modelCB()))
     throw new Error(
-      `Polymorphic association ${partialAssociation.as} on model ${dreamClass.name} requires an explicit foreignKey`
+      `Polymorphic association ${partialAssociation.as} on model ${dreamClass.sanitizedName} requires an explicit foreignKey`
     )
 
   return partialAssociation.modelCB() as typeof Dream
@@ -572,7 +572,7 @@ export function applyGetterAndSetter(
           partialAssociation.primaryKeyValue(associatedModel)
         if (partialAssociation.polymorphic)
           (this as any)[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
-            associatedModel?.constructor?.name
+            associatedModel?.['sanitizedConstructorName']
       }
     },
   })
@@ -593,7 +593,7 @@ export function associationPrimaryKeyAccessors(
       if (Array.isArray(associationClass)) {
         throw new Error(`
 Cannot lookup primaryKey on polymorphic association:
-dream class: ${dreamClass.name}
+dream class: ${dreamClass.sanitizedName}
 association: ${this.as}
           `)
       }

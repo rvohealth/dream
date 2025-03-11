@@ -29,7 +29,7 @@ export default async function saveDream<DreamInstance extends Dream>(
 
   // need to check validations after running before hooks, or else
   // model hooks that might make a model valid cannot run
-  if (dream.isInvalid) throw new ValidationError(dream.constructor.name, dream.errors)
+  if (dream.isInvalid) throw new ValidationError(dream['sanitizedConstructorName'], dream.errors)
 
   if (alreadyPersisted && !dream.isDirty) return dream
 

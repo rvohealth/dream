@@ -12,15 +12,15 @@ export default class JoinAttemptedOnMissingAssociation extends Error {
 
   public get message() {
     return `
-A joins call has been attempted on \`${this.dreamClass.name}\` association \`${this.associationName}\`,
-but \`${this.dreamClass.name}\` does not define association \`${this.associationName}\`.
+A joins call has been attempted on \`${this.dreamClass.sanitizedName}\` association \`${this.associationName}\`,
+but \`${this.dreamClass.sanitizedName}\` does not define association \`${this.associationName}\`.
 
 
 Either \`${this.associationName}\` is a typo in the joins statement, or association \`${this.associationName}\` needs to be defined on \`${this.dreamClass.name}\`, for example:
 
-class ${this.dreamClass.name} {
+class ${this.dreamClass.sanitizedName} {
   ...
-  @${this.dreamClass.name}.HasMany('SomeModelClass')
+  @${this.dreamClass.sanitizedName}.HasMany('SomeModelClass')
   public ${this.associationName}: SomeModelClass[]
 }
     `

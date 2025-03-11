@@ -10,7 +10,7 @@ export default class CreateOrFindByFailedToCreateAndFind extends Error {
 
   public get message() {
     return `
-Failed to create instance of ${this.dreamClass.name} and no matching model exists.
+Failed to create instance of ${this.dreamClass.sanitizedName} and no matching model exists.
 
 The likely cause is that one of the \`createWith\` fields violates
 a uniqueness constraint.

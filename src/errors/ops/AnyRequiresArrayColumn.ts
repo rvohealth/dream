@@ -13,7 +13,7 @@ export default class AnyRequiresArrayColumn extends Error {
   public get message() {
     return `
 Attempting to call where({ ${this.column}: ops.any(<some value>)} ),
-but ${this.dreamClass.name}#${this.column} is not an array in the database.
+but ${this.dreamClass.sanitizedName}#${this.column} is not an array in the database.
 `
   }
 }

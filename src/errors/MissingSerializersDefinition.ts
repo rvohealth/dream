@@ -11,14 +11,14 @@ export default class MissingSerializersDefinition extends Error {
   public get message() {
     return `
 Missing serializers definition on the following class
-Dream class: ${this.dreamClass.name}
+Dream class: ${this.dreamClass.sanitizedName}
 
-Try something like this in your ${this.dreamClass.name}'s serializer getter:
+Try something like this in your ${this.dreamClass.sanitizedName}'s serializer getter:
 
-class ${this.dreamClass.name} {
-  public get serializers(): DreamSerializers<${this.dreamClass.name}> {
+class ${this.dreamClass.sanitizedName} {
+  public get serializers(): DreamSerializers<${this.dreamClass.sanitizedName}> {
     return {
-      default: '${this.dreamClass.name}Serializer'
+      default: '${this.dreamClass.sanitizedName}Serializer'
     }
   }
   ...

@@ -22,7 +22,7 @@ export function afterUpdateImplementation<T extends Dream>(
     dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
   const hookStatement: HookStatement = {
-    className: dreamClass.name,
+    className: dreamClass.sanitizedName,
     method: key,
     type: 'afterUpdate',
     ifChanged: opts.ifChanged,

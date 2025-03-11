@@ -418,12 +418,73 @@ export default class Dream {
   /**
    * @internal
    *
+   * Returns either the base STI class name, or else this class name
+   *
+   * NOTE: This is necessary due to changes in esbuild strategy WRT esm,
+   * compiled class names can contain a prefixing underscore if they contain
+   * private fields.
+   *
+   * This can create confusion when the class name is used as an attribute,
+   * as is done in the case of polymorphic associations, which use the class
+   * name as the "type" value for the polymorphic association.
+   *
+   * As such, any time the class name is being used as a value, it should be
+   * done using this value, rather than going to the class name directly.
+   *
+   * see https://github.com/evanw/esbuild/issues/1260 for more information
+   *
+   * @returns string
+   */
+  protected static get stiBaseClassOrOwnClassName(): string {
+    return this.stiBaseClassOrOwnClass.sanitizedName
+  }
+
+  /**
+   * @internal
+   *
+   * Returns the class name, replacing prefixed underscores, since esbuild
+   * will translate some class names to have underscore prefixes, which can
+   * cause unexpected behavior.
+   *
+   * see https://github.com/evanw/esbuild/issues/1260 for more information
+   *
+   * @returns string
+   */
+  public static get sanitizedName(): string {
+    return this.name.replace(/^_/, '')
+  }
+
+  /**
+   * @internal
+   *
    * Shadows .stiBaseClassOrOwnClass. Returns either the base STI class, or else this class
    *
    * @returns A dream class
    */
   protected get stiBaseClassOrOwnClass(): typeof Dream {
     return (this.constructor as typeof Dream).stiBaseClassOrOwnClass
+  }
+
+  /**
+   * @internal
+   *
+   * Shadows .stiBaseClassOrOwnClassName. Returns a string
+   *
+   * @returns A string
+   */
+  protected get stiBaseClassOrOwnClassName(): string {
+    return (this.constructor as typeof Dream).stiBaseClassOrOwnClassName
+  }
+
+  /**
+   * @internal
+   *
+   * Shadows .sanitizedName. Returns a string
+   *
+   * @returns A string
+   */
+  protected get sanitizedConstructorName(): string {
+    return (this.constructor as typeof Dream).sanitizedName
   }
 
   /**
@@ -2333,7 +2394,7 @@ export default class Dream {
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
-          returnValues[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClass?.name
+          returnValues[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClassName
           setAttributeOnDreamInstance(foreignKeyTypeField, returnValues[foreignKeyTypeField])
         }
       } else {

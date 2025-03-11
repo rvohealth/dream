@@ -14,10 +14,10 @@ export default class NonExistentScopeProvidedToResort extends Error {
     return `
 Only BelongsTo scopes are supported by the #resort method
 received:
-  dream model class: ${this.dreamClass.name}
+  dream model class: ${this.dreamClass.sanitizedName}
   scope: ${this.scopes.join(', ')}
 
-BelongsTo scopes on ${this.dreamClass.name} are:
+BelongsTo scopes on ${this.dreamClass.sanitizedName} are:
   ${this.dreamClass['sortableFields'].map(conf => conf.positionField).join('\n        ')}
     `
   }

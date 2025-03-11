@@ -14,7 +14,7 @@ export default class CannotPassNullOrUndefinedToRequiredBelongsTo extends Error 
   public get message() {
     return `
 Cannot pass null or undefined as a value to a required association.
-Dream class: ${this.dreamClass.name}
+Dream class: ${this.dreamClass.sanitizedName}
 Association: ${this.association.as}
     `
   }

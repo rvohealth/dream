@@ -34,7 +34,7 @@ export function afterDestroyCommitImplementation<T extends Dream>(target: T, key
     dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
   const hookStatement: HookStatement = {
-    className: dreamClass.name,
+    className: dreamClass.sanitizedName,
     method: key,
     type: 'afterDestroyCommit',
   }

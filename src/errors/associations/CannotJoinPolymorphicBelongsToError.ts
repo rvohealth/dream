@@ -28,7 +28,7 @@ export default class CannotJoinPolymorphicBelongsToError extends Error {
   public get message() {
     return `
 Cannot join on a polymorphic BelongsTo
-Dream class: ${this.dreamClass.name}
+Dream class: ${this.dreamClass.sanitizedName}
 Association: ${this.association.as}
 Inner Join statements:
 ${JSON.stringify(this.innerJoinStatements, null, 2)}

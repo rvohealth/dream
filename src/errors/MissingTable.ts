@@ -13,14 +13,14 @@ export default class MissingTable extends Error {
   public get message() {
     return `
 Missing table definition on the following dream class:
-Dream class: ${this.dreamClass.name}
+Dream class: ${this.dreamClass.sanitizedName}
 
-Try something like this in your ${this.dreamClass.name}'s table getter:
+Try something like this in your ${this.dreamClass.sanitizedName}'s table getter:
 
-class ${this.dreamClass.name} {
+class ${this.dreamClass.sanitizedName} {
   ...
   public get table() {
-    return '${pluralize(snakeify(this.dreamClass.name))}'
+    return '${pluralize(snakeify(this.dreamClass.sanitizedName))}'
   }
 }
     `

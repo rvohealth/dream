@@ -20,15 +20,15 @@ export default class MissingThroughAssociation extends Error {
 
   public get message() {
     return `
-\`${this.dreamClass.name}\` defines through association \`${this.association.through}\`, but \`${this.dreamClass.name}\` does not define association \`${this.association.through}\`.
+\`${this.dreamClass.sanitizedName}\` defines through association \`${this.association.through}\`, but \`${this.dreamClass.name}\` does not define association \`${this.association.through}\`.
 
 
-To fix, define association \`${this.association.through}\` on \`${this.dreamClass.name}\`.
+To fix, define association \`${this.association.through}\` on \`${this.dreamClass.sanitizedName}\`.
 For example:
 
-class ${this.dreamClass.name} {
+class ${this.dreamClass.sanitizedName} {
   ...
-  @${this.dreamClass.name}.HasMany('TheJoinModelClass')
+  @${this.dreamClass.sanitizedName}.HasMany('TheJoinModelClass')
   public ${this.association.through}: TheJoinModelClass[]
 }
     `

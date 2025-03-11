@@ -27,7 +27,7 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
     stiChildClass['sti'] = {
       active: true,
       baseClass,
-      value: value || stiChildClass.name,
+      value: value || stiChildClass.sanitizedName,
     }
     ;(stiChildClass as any)[STI_SCOPE_NAME] = function (query: any) {
       return query.where({ type: stiChildClass['sti'].value })

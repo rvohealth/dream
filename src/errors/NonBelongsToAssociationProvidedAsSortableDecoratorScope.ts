@@ -14,10 +14,10 @@ export default class NonBelongsToAssociationProvidedAsSortableDecoratorScope ext
     return `
 Only BelongsTo associations are supported as scopes for the @Sortable decorator.
 received:
-  dream model class: ${this.dreamClass.name}
+  dream model class: ${this.dreamClass.sanitizedName}
   scope: ${this.scope}
 
-BelongsTo scopes on ${this.dreamClass.name} are:
+BelongsTo scopes on ${this.dreamClass.sanitizedName} are:
   ${this.dreamClass['associationMetadataByType'].belongsTo.map(assoc => assoc.as).join('\n        ')}
     `
   }
