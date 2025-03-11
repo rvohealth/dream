@@ -565,7 +565,7 @@ export default class Query<
    */
   public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
     const record = await this.find(primaryKey)
-    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
     return record
   }
 
@@ -605,7 +605,7 @@ export default class Query<
     whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
   ): Promise<DreamInstance> {
     const record = await this.findBy(whereStatement)
-    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
     return record
   }
 
@@ -2095,7 +2095,7 @@ export default class Query<
    */
   public async firstOrFail() {
     const record = await this.first()
-    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
     return record
   }
 
@@ -2136,7 +2136,7 @@ export default class Query<
    */
   public async lastOrFail() {
     const record = await this.last()
-    if (!record) throw new RecordNotFound(this.dreamInstance.constructor.name)
+    if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
     return record
   }
 
@@ -2505,7 +2505,7 @@ export default class Query<
     associatedDreams: Dream[]
   ) {
     const relevantAssociatedModels = dreams.filter((dream: any) => {
-      return dream[association.foreignKeyTypeField()] === associatedDreamClass['stiBaseClassOrOwnClass'].name
+      return dream[association.foreignKeyTypeField()] === associatedDreamClass['stiBaseClassOrOwnClassName']
     })
 
     if (relevantAssociatedModels.length) {
@@ -2535,7 +2535,7 @@ export default class Query<
         dreams
           .filter((dream: any) => {
             return (
-              dream[association.foreignKeyTypeField()] === loadedAssociation['stiBaseClassOrOwnClass'].name &&
+              dream[association.foreignKeyTypeField()] === loadedAssociation['stiBaseClassOrOwnClassName'] &&
               dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
             )
           })
@@ -3010,8 +3010,8 @@ export default class Query<
                 this.aliasWhereStatement(
                   {
                     [association.foreignKeyTypeField()]: throughClass
-                      ? throughClass['stiBaseClassOrOwnClass'].name
-                      : dreamClass['stiBaseClassOrOwnClass'].name,
+                      ? throughClass['stiBaseClassOrOwnClassName']
+                      : dreamClass['stiBaseClassOrOwnClassName'],
                   } as any,
                   currentAssociationTableOrAlias
                 )

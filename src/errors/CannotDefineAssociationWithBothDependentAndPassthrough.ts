@@ -12,7 +12,7 @@ export default class CannotDefineAssociationWithBothDependentAndPassthrough exte
     return `
 Cannot define association with both "dependent" and "DreamConst.passthrough".
 Error found when trying to parse "${this.associationName}" on the 
-${this.dreamClass.name} dream class.
+${this.dreamClass.sanitizedName} dream class.
     `
   }
 }

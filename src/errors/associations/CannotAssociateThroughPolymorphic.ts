@@ -21,7 +21,7 @@ export default class CannotAssociateThroughPolymorphic extends Error {
   public get message() {
     return `
 Cannot join through a polymorphic association
-Dream class: ${this.dreamClass.name}
+Dream class: ${this.dreamClass.sanitizedName}
 Association: ${this.association.as}
     `
   }

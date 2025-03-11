@@ -26,7 +26,7 @@ export class InvalidComputedForeignKey extends Error {
   public get message() {
     return `
 Add an explicit foreignKey declaration to this association declaration:
-  Dream class: ${this.dreamClass.name}
+  Dream class: ${this.dreamClass.sanitizedName}
   Association: ${this.partialAssociation.as}
 Dream tried ${this.computedForeignKey} automatically, but it isn't a column in table ${this.table}.
     `
@@ -56,7 +56,7 @@ export class ExplicitForeignKeyRequired extends Error {
     return `
 ${this.explicitForeignKey} is not a valid column on table ${this.table}.
 Fix the foreignKey declaration on:
-  Dream class: ${this.dreamClass.name}
+  Dream class: ${this.dreamClass.sanitizedName}
   Association: ${this.partialAssociation.as}
     `
   }

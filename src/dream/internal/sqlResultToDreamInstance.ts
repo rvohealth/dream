@@ -44,7 +44,7 @@ export function findExtendingDreamClass(dreamClass: typeof Dream, type: string):
   if (!dreamClass['extendedBy']) return undefined
 
   const extendingDreamClass = dreamClass['extendedBy'].find(
-    extendingDreamClass => extendingDreamClass.name === type
+    extendingDreamClass => extendingDreamClass.sanitizedName === type
   )
 
   if (extendingDreamClass) return extendingDreamClass

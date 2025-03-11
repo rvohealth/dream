@@ -12,7 +12,7 @@ export default class NonLoadedAssociation extends Error {
 
   public get message() {
     return `
-Attempting to access \`${this.associationName}\` on an instance of \`${this.dreamClass.name}\`,
+Attempting to access \`${this.associationName}\` on an instance of \`${this.dreamClass.sanitizedName}\`,
 but \`${this.associationName}\` has not been preloaded or loaded.
 `
   }

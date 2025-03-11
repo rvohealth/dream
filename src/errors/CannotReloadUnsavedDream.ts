@@ -10,7 +10,7 @@ export default class CannotReloadUnsavedDream extends Error {
   public get message() {
     return `
 Cannot reload a Dream that has not yet been persisted
-  dream: ${this.dream.constructor.name}
+  dream: ${this.dream['sanitizedConstructorName']}
     `
   }
 }

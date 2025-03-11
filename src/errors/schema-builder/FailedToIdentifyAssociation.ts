@@ -23,7 +23,7 @@ An unexpected error occurred while looking up an association that you have defin
 
 While building the schema for your app, we failed to find a match for
 the ${this.associationType} association "${this.associationName}" on the
-${this.modelClass.name} model.
+${this.modelClass.sanitizedName} model.
 
 This method requires either a string or string array as the first argument,
 to the ${this.associationType} decorator. However, we received the following:
@@ -35,7 +35,7 @@ to the ${this.associationType} decorator. However, we received the following:
     "${typeof attemptedName}"
 
 Details:
-    dream: ${this.modelClass.name} (${this.modelClass.globalName})
+    dream: ${this.modelClass.sanitizedName} (${this.modelClass.globalName})
     association type: ${this.associationType}
     association name: ${this.associationName}
 ".
@@ -59,7 +59,7 @@ An unexpected error occurred while looking up an association that you have defin
 
 While building the schema for your app, we failed to find a match for
 the ${this.associationType} association "${this.associationName}"
-on ${this.modelClass.name}, using the global model name "${attemptedName}".
+on ${this.modelClass.sanitizedName}, using the global model name "${attemptedName}".
 
 Usually, this is because the global name for
 the model is not what you anticipated, which often happens when you are
@@ -71,7 +71,7 @@ first argument to an association, since it can help to catch these
 familiar gotchas.
 
 Details:
-    dream: ${this.modelClass.name} (${this.modelClass.globalName})
+    dream: ${this.modelClass.sanitizedName} (${this.modelClass.globalName})
     association type: ${this.associationType}
     association name: ${this.associationName}
     attempted model name: ${attemptedName}

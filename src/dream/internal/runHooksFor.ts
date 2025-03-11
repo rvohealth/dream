@@ -67,7 +67,7 @@ export async function runHook<T extends Dream>(
 Attempting to run ${statement.method} as part of the ${statement.type}
 Dream model hook sequence, but we encountered a method that does not exist.
 
-Please make sure "${statement.method}" is defined on ${dream.constructor.name}
+Please make sure "${statement.method}" is defined on ${dream['sanitizedConstructorName']}
 `
     )
   }

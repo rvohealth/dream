@@ -12,7 +12,7 @@ export default class CannotPassUndefinedAsAValueToAWhereClause extends Error {
     return `
 Cannot pass undefined as a value to a where clause.
 
-dream class: ${this.dreamClass.name}
+dream class: ${this.dreamClass.sanitizedName}
 key receiving an undefined value: ${this.key}
 `
   }

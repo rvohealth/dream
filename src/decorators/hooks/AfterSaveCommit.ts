@@ -40,7 +40,7 @@ export function afterSaveCommitImplementation<T extends Dream>(
     dreamClass['hooks'] = blankHooksFactory(dreamClass)
 
   const hookStatement: HookStatement = {
-    className: dreamClass.name,
+    className: dreamClass.sanitizedName,
     method: key,
     type: 'afterSaveCommit',
     ifChanged: opts.ifChanged,
