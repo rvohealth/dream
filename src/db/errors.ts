@@ -1,6 +1,12 @@
-import * as pg from 'pg'
-
-const { DatabaseError } = pg
+// after building for esm, importing pg using the following:
+//
+//  import * as pg from 'pg'
+//
+// will crash. This is difficult to discover, since it only happens
+// when being imported from our esm build.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import pg from 'pg'
 
 export const PG_ERRORS = {
   23505: 'UNIQUE_CONSTRAINT_VIOLATION',
@@ -13,6 +19,6 @@ function pgErrorFromCode(code: string | undefined): PgErrorType | null {
 }
 
 export function pgErrorType(error: any): PgErrorType | null {
-  if (error instanceof DatabaseError) return pgErrorFromCode(error.code)
+  if (error instanceof pg.DatabaseError) return pgErrorFromCode(error.code)
   return null
 }

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "0.29.4",
+  "version": "0.29.5",
   "description": "dream orm",
   "repository": "https://github.com/rvohealth/dream.git",
   "author": "RVOHealth",
@@ -21,7 +21,7 @@
     "dist/**/*",
     "docs/**/*"
   ],
-  "bin": "./dist/src/global-cli/dream.js",
+  "bin": "./dist/esm/src/global-cli/dream.js",
   "scripts": {
     "dream": "yarn dreamts",
     "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
