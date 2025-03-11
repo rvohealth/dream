@@ -1415,7 +1415,7 @@ export default class Dream {
    *
    * ```ts
    * class Post extends ApplicationModel {
-   *   @Sortable({ scope: ['user']})
+   *   @Deco.Sortable({ scope: ['user']})
    *   public position: DreamColumn<User, 'position'>
    * }
    *

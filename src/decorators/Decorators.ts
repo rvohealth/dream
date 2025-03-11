@@ -192,8 +192,16 @@ export default class Decorators<T extends Dream> {
   //////////////
 
   /**
-   * Shortcut to the Sortable decorator, which also provides extra type protection which cannot be provided
-   * with the Sortable decorator.
+   * Sortable decorator.
+   *
+   * NOTE: the Sortable decorator may not be used in STI child models (it may be used in the STI base class)
+   *
+   * ```ts
+   * class Balloon {
+   *   @Deco.Sortable()
+   *   public position: DreamColumn<Balloon, 'position'>
+   * }
+   * ```
    *
    * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
    * @returns A Sortable decorator
@@ -203,11 +211,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the BeforeCreate decorator
+   * BeforeCreate decorator
    *
    * ```ts
    * class User {
-   *   User.BeforeCreate()
+   *   @Deco.BeforeCreate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -222,11 +230,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the BeforeSave decorator
+   * BeforeSave decorator
    *
    * ```ts
    * class User {
-   *   User.BeforeSave()
+   *   @Deco.BeforeSave()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -241,11 +249,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the BeforeUpdate decorator
+   * BeforeUpdate decorator
    *
    * ```ts
    * class User {
-   *   User.BeforeUpdate()
+   *   @Deco.BeforeUpdate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -260,11 +268,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the BeforeDestroy decorator
+   * BeforeDestroy decorator
    *
    * ```ts
    * class User {
-   *   User.BeforeDestroy()
+   *   @Deco.BeforeDestroy()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -278,11 +286,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterCreate decorator
+   * AfterCreate decorator
    *
    * ```ts
    * class User {
-   *   User.AfterCreate()
+   *   @Deco.AfterCreate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -297,11 +305,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterCreateCommit decorator
+   * AfterCreateCommit decorator
    *
    * ```ts
    * class User {
-   *   User.AfterCreateCommit()
+   *   @Deco.AfterCreateCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -315,11 +323,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterSave decorator
+   * AfterSave decorator
    *
    * ```ts
    * class User {
-   *   User.AfterSave()
+   *   @Deco.AfterSave()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -334,11 +342,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterSaveCommit decorator
+   * AfterSaveCommit decorator
    *
    * ```ts
    * class User {
-   *   User.AfterSaveCommit()
+   *   @Deco.AfterSaveCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -353,11 +361,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterUpdate decorator
+   * AfterUpdate decorator
    *
    * ```ts
    * class User {
-   *   User.AfterUpdate()
+   *   @Deco.AfterUpdate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -372,11 +380,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterUpdateCommit decorator
+   * AfterUpdateCommit decorator
    *
    * ```ts
    * class User {
-   *   User.AfterUpdateCommit()
+   *   @Deco.AfterUpdateCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -391,11 +399,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterDestroy decorator
+   * AfterDestroy decorator
    *
    * ```ts
    * class User {
-   *   User.AfterDestroy()
+   *   @Deco.AfterDestroy()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -410,11 +418,11 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * Shortcut to the AfterDestroyCommit decorator
+   * AfterDestroyCommit decorator
    *
    * ```ts
    * class User {
-   *   User.AfterDestroyCommit()
+   *   @Deco.AfterDestroyCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }

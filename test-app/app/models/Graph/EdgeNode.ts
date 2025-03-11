@@ -1,7 +1,6 @@
 import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
 
 import { Decorators, SoftDelete } from '../../../../src'
-import Sortable from '../../../../src/decorators/sortable/Sortable'
 import ApplicationModel from '../ApplicationModel'
 import GraphEdge from './Edge'
 import GraphNode from './Node'
@@ -23,10 +22,10 @@ export default class EdgeNode extends ApplicationModel {
   public updatedAt: DreamColumn<EdgeNode, 'updatedAt'>
   public deletedAt: DreamColumn<EdgeNode, 'deletedAt'>
 
-  @Sortable({ scope: 'node' })
+  @Deco.Sortable({ scope: 'node' })
   public position: DreamColumn<EdgeNode, 'position'>
 
-  @Sortable({ scope: ['edge', 'node'] })
+  @Deco.Sortable({ scope: ['edge', 'node'] })
   public multiScopedPosition: DreamColumn<EdgeNode, 'multiScopedPosition'>
 
   @Deco.BelongsTo('Graph/Edge', { foreignKey: 'edgeId' })

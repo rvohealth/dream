@@ -60,4 +60,7 @@ export default class Balloon extends ApplicationModel {
 
   @Deco.HasMany('Sandbag', { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
+
+  @Deco.AfterCreate()
+  public justToEnsureSortableWorksWithAnAfterCreate() {}
 }
