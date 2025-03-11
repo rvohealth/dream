@@ -1,7 +1,14 @@
-import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
+// after building for esm, importing pg using the following:
+//
+//  import * as pg from 'pg'
+//
+// will crash. This is difficult to discover, since it only happens
+// when being imported from our esm build.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pg from 'pg'
+
+import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application/index.js'
 import ConnectionConfRetriever from './ConnectionConfRetriever.js'
 import { DbConnectionType } from './types.js'
