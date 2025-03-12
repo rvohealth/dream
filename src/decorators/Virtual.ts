@@ -23,8 +23,10 @@ export default function Virtual(type?: SerializableTypes): any {
       } satisfies VirtualAttributeStatement)
     })
 
-    return function (this: Dream) {
-      return (this as any)[key]
+    if (context.kind === 'field') {
+      return function (this: Dream) {
+        return (this as any)[key]
+      }
     }
   }
 }

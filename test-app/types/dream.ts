@@ -3898,6 +3898,15 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
+      grams: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
       id: {
         coercedType: {} as IdType,
         enumType: null,
@@ -3971,7 +3980,7 @@ export const schema = {
         isArray: false,
       },
     },
-    virtualColumns: ['otherSecret', 'password', 'secret'],
+    virtualColumns: ['kilograms', 'lbs', 'otherSecret', 'password', 'randoVirtual', 'secret'],
     associations: {
       allPets: {
         type: 'HasMany',
