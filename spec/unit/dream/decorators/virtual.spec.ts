@@ -19,15 +19,9 @@ describe('@Virtual', () => {
     expect(user.randoVirtual).toEqual('abc')
   })
 
-  it.only('allows properties custom getter-setter pattern to behave', () => {
-    console.log('STARTING')
-    const user = User.new({ customGreeting: 'abc' })
-    console.debug(
-      'HI!',
-      user._greeting,
-      Object.getOwnPropertyDescriptor(user, 'customGreeting'),
-      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(user), 'customGreeting')
-    )
-    expect(user.customGreeting).toEqual('the greeting is: abc')
+  it('can decorate getter/setter properties', () => {
+    const user = User.new({ lbs: 180.1 })
+    expect(user.lbs).toEqual(180.1)
+    expect(user.grams).toEqual(81693)
   })
 })

@@ -25,7 +25,14 @@ describe('SchemaBuilder', () => {
 
     context('virtual columns', () => {
       it('renders virtualColumns', () => {
-        expect(User.prototype.schema.users.virtualColumns).toEqual(['otherSecret', 'password', 'secret'])
+        expect(User.prototype.schema.users.virtualColumns).toEqual([
+          'kilograms',
+          'lbs',
+          'otherSecret',
+          'password',
+          'randoVirtual',
+          'secret',
+        ])
       })
     })
 

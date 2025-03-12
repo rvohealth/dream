@@ -578,6 +578,7 @@ export interface Users {
   favoriteNumbers: number[] | null;
   favoriteWord: string | null;
   featuredPostPosition: number | null;
+  grams: number | null;
   id: Generated<Int8>;
   myOtherEncryptedSecret: string | null;
   name: string | null;
