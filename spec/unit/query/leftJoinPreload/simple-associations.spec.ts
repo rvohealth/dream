@@ -371,6 +371,22 @@ describe('Query#leftJoinPreload with simple associations', () => {
         expect(reloadedUser.reverseOrderedCompositions[0]).toMatchDreamModel(lastComposition)
         expect(reloadedUser.reverseOrderedCompositions[1]).toMatchDreamModel(firstComposition)
       })
+
+      context('when the asscociation has been aliased', () => {
+        it('loads the associated object', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const firstComposition = await Composition.create({
+            user,
+          })
+          const lastComposition = await Composition.create({
+            user,
+          })
+
+          const reloadedUser = await User.leftJoinPreload('reverseOrderedCompositions as roc').firstOrFail()
+          expect(reloadedUser.reverseOrderedCompositions[0]).toMatchDreamModel(lastComposition)
+          expect(reloadedUser.reverseOrderedCompositions[1]).toMatchDreamModel(firstComposition)
+        })
+      })
     })
   })
 

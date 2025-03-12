@@ -1,8 +1,12 @@
+import { DateTime } from 'luxon'
 import { IdType } from '../../../../src'
 import ops from '../../../../src/ops'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Composition from '../../../../test-app/app/models/Composition'
 import Edge from '../../../../test-app/app/models/Graph/Edge'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
+import Node from '../../../../test-app/app/models/Graph/Node'
 import User from '../../../../test-app/app/models/User'
 
 describe('Query#pluck', () => {
@@ -96,6 +100,87 @@ describe('Query#pluck', () => {
       })
 
       expect(plucked).toEqual([user1.id, user2.id, user3.id])
+    })
+  })
+
+  context('when the association is aliased', () => {
+    it('plucks the specified columns', async () => {
+      await Composition.create({
+        user: user1,
+        createdAt: DateTime.now().minus({ day: 1 }),
+        content: 'hello world',
+      })
+
+      const plucked = await User.where({ id: user1.id })
+        .leftJoin('recentCompositions as rc')
+        .pluck('rc.content')
+      expect(plucked[0]).toEqual('hello world')
+    })
+  })
+
+  context('with order-clause-on-the-association', () => {
+    let node: Node
+    let edge1: Edge
+    let edge2: Edge
+    let edge3: Edge
+    let edgeNode1: EdgeNode
+    let edgeNode2: EdgeNode
+    let edgeNode3: EdgeNode
+
+    beforeEach(async () => {
+      node = await Node.create({ name: 'world', omittedEdgePosition: 1 })
+      edge1 = await Edge.create({ name: 'c' })
+      edge2 = await Edge.create({ name: 'a' })
+      edge3 = await Edge.create({ name: 'b' })
+
+      // position is automatically set by sortable
+      edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+      edgeNode2 = await EdgeNode.create({ node, edge: edge2 })
+      edgeNode3 = await EdgeNode.create({ node, edge: edge3 })
+      await edgeNode3.update({ position: 1 })
+    })
+
+    it('orders the results based on the order specified in the association', async () => {
+      const plucked = await Node.leftJoin('edgesOrderedByName').pluck('edgesOrderedByName.name')
+      expect(plucked[0]).toEqual(edge2.name)
+      expect(plucked[1]).toEqual(edge3.name)
+      expect(plucked[2]).toEqual(edge1.name)
+    })
+
+    context('aliased', () => {
+      it('orders the results based on the order specified in the association', async () => {
+        const plucked = await Node.leftJoin('edgesOrderedByName as eobn').pluck('eobn.name')
+        expect(plucked[0]).toEqual(edge2.name)
+        expect(plucked[1]).toEqual(edge3.name)
+        expect(plucked[2]).toEqual(edge1.name)
+      })
+    })
+
+    context('order on the association we’re going through', () => {
+      it('orders the results based on the order specified in the association', async () => {
+        const plucked = await Node.leftJoin('edgesOrderedByPosition').pluck('edgesOrderedByPosition.name')
+        expect(plucked[0]).toEqual(edge3.name)
+        expect(plucked[1]).toEqual(edge1.name)
+        expect(plucked[2]).toEqual(edge2.name)
+      })
+    })
+
+    context('through a BelongsTo association', () => {
+      it('orders the results based on the order specified in the root association', async () => {
+        const plucked = await edgeNode2.leftJoin('orderedSiblings').pluck('orderedSiblings.id')
+        expect(plucked[0]).toEqual(edgeNode3.id)
+        expect(plucked[1]).toEqual(edgeNode1.id)
+        expect(plucked[2]).toEqual(edgeNode2.id)
+      })
+
+      it('orders the results based on the order specified in the source association', async () => {
+        const plucked = await edgeNode2
+          .leftJoin('orderedSiblingsWithOrderOnSource')
+          .pluck('orderedSiblingsWithOrderOnSource.id')
+        expect(plucked[0]).toEqual(edgeNode3.id)
+        expect(plucked[1]).toEqual(edgeNode1.id)
+        expect(plucked[2]).toEqual(edgeNode2.id)
+      })
     })
   })
 })

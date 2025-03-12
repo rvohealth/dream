@@ -1660,6 +1660,9 @@ export default class Query<
       // base model, it will be underscored (to match the table name), but when the selected column
       // comes back from Kysely camelCased
       aliases.push(field.includes('_') ? camelize(field) : field)
+      //  namespace the selection so that when plucking the same column name from
+      // multpile tables, they don't get saved as the same name (e.g. select results with two `id` columns,
+      // which the pg package then returns in an object with a single `id` key)
       kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${field}` as any)
     })
 
@@ -2565,7 +2568,9 @@ export default class Query<
     const dream = dreams.find(dream => dream['getAssociationMetadata'](associationName))!
     if (!dream) return
 
-    const association = dream['getAssociationMetadata'](associationName)
+    const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
+
+    const association = dream['getAssociationMetadata'](name)
     const dreamClass = dream.constructor as typeof Dream
     const dreamClassToHydrate = association.modelCB() as typeof Dream
 
@@ -2579,7 +2584,7 @@ export default class Query<
     const throughColumnsToHydrate: any[] = []
 
     const columnsToPluck = dreamClassToHydrateColumns.map(column =>
-      this.namespaceColumn(column.toString(), associationName)
+      this.namespaceColumn(column.toString(), alias)
     ) as any[]
 
     const asHasAssociation = association as
@@ -2740,9 +2745,18 @@ export default class Query<
     return query
   }
 
-  // Through associations don't get written into the SQL; they
-  // locate the next association we need to build into the SQL
-  // AND the source to reference on the other side
+  /**
+   * Each association in the chain is pushed onto `throughAssociations`
+   * and `applyOneJoin` is recursively called. The trick is that the
+   * through associations don't get written into the SQL; they
+   * locate the next association we need to build into the SQL,
+   * which is only run by the association that started the `through`
+   * chain. The final association at the end of the `through` chain _is_
+   * written into the SQL as a full association, but the modifications from
+   * the `through` association are only added when the recursion returns
+   * back to the association that kicked off the through associations.
+   */
+
   private joinsBridgeThroughAssociations<
     QueryType extends
       | SelectQueryBuilder<any, any, any>
@@ -2902,11 +2916,20 @@ export default class Query<
     const throughClass = results.throughClass
 
     if (timeToApplyThroughAssociations) {
-      ///////////////////////////////////////////////////////////////////////////////////////
-      // when an association is through another association, `joinsBridgeThroughAssociations`
-      // is called, which eventually calls back to this method, passing in the original
-      // through association as `originalAssociation`
-      ///////////////////////////////////////////////////////////////////////////////////////
+      /**
+       * Each association in the chain is pushed onto `throughAssociations`
+       * and `applyOneJoin` is recursively called. The trick is that the
+       * through associations don't get written into the SQL; they
+       * locate the next association we need to build into the SQL,
+       * which is only run by the association that started the `through`
+       * chain (thus the
+       * `throughAssociations.length && throughAssociations[0].source === association.as`
+       * above). The final association at the end of the `through` chain _is_
+       * written into the SQL as a full association, but the modifications from
+       * the `through` association are only added when the recursion returns
+       * back to the association that kicked off the through associations.
+       */
+
       throughAssociations.forEach(
         (throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>) => {
           if (throughAssociation.type === 'HasMany') {
@@ -2914,7 +2937,7 @@ export default class Query<
               query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
                 this.distinctColumnNameForAssociation({
                   association: throughAssociation,
-                  tableNameOrAlias: throughAssociation.as,
+                  tableNameOrAlias: currentAssociationTableOrAlias,
                   foreignKey: throughAssociation.primaryKey(),
                 }) as string
               ) as QueryType
@@ -2923,8 +2946,8 @@ export default class Query<
             if (throughAssociation.order) {
               query = this.applyOrderStatementForAssociation({
                 query,
-                tableNameOrAlias: throughAssociation.as,
                 association: throughAssociation,
+                tableNameOrAlias: currentAssociationTableOrAlias,
               })
             }
           }
