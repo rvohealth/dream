@@ -60,6 +60,22 @@ export default class User extends ApplicationModel {
   public password: string | undefined
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
 
+  @Virtual()
+  public randoVirtual: string
+
+  public _greeting: string = 'initial'
+
+  @Virtual()
+  public get customGreeting() {
+    return `the greeting is: ${this._greeting}`
+  }
+
+  public set customGreeting(val: string) {
+    console.log('CUSTOM GREETING SET', val)
+    this._greeting = val
+    console.log(this._greeting)
+  }
+
   @Validates('contains', '@')
   @Validates('presence')
   @Validates('length', { min: 4, max: 64 })

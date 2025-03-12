@@ -3971,7 +3971,7 @@ export const schema = {
         isArray: false,
       },
     },
-    virtualColumns: ['otherSecret', 'password', 'secret'],
+    virtualColumns: ['customGreeting', 'otherSecret', 'password', 'randoVirtual', 'secret'],
     associations: {
       allPets: {
         type: 'HasMany',

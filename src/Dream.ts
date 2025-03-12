@@ -2341,6 +2341,8 @@ export default class Dream {
     this.columnSetterGuardActivated = true
   }
 
+  protected initialVirtualColumnValues: Record<string, any> = {}
+
   /**
    * @internal
    *
@@ -2357,7 +2359,10 @@ export default class Dream {
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
       if (!dreamInstance) return
 
-      if (bypassUserDefinedSetters) {
+      if (this.virtualAttributes.find(virtual => virtual.property === attr)) {
+        dreamInstance.initialVirtualColumnValues[attr] = value
+        dreamInstance[attr] = value
+      } else if (bypassUserDefinedSetters) {
         dreamInstance.setAttribute(attr, value)
       } else {
         dreamInstance.assignAttribute(attr, value)
