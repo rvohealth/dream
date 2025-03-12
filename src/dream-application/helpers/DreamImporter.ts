@@ -23,38 +23,50 @@ export default class DreamImporter {
     }
   }
 
-  public static async importDreams(pathToModels: string, importCb: (path: string) => Promise<any>) {
+  public static async importDreams(
+    pathToModels: string,
+    importCb: (path: string) => Promise<any>
+  ): Promise<[string, typeof Dream][]> {
     const modelPaths = await DreamImporter.ls(pathToModels)
-    const modelClasses: [string, typeof Dream][] = []
 
-    for (const modelPath of modelPaths) {
-      modelClasses.push([modelPath, (await importCb(modelPath)) as typeof Dream])
-    }
+    const modelClasses = (await Promise.all(
+      modelPaths.map(modelPath =>
+        importCb(modelPath).then(dreamClass => [modelPath, dreamClass as typeof Dream])
+      )
+    )) as [string, typeof Dream][]
 
     return modelClasses
   }
 
-  public static async importSerializers(pathToSerializers: string, importCb: (path: string) => Promise<any>) {
+  public static async importSerializers(
+    pathToSerializers: string,
+    importCb: (path: string) => Promise<any>
+  ): Promise<[string, Record<string, typeof DreamSerializer>][]> {
     const serializerPaths = await DreamImporter.ls(pathToSerializers)
-    const serializerClasses: [string, Record<string, typeof DreamSerializer>][] = []
 
-    for (const serializerPath of serializerPaths) {
-      serializerClasses.push([
-        serializerPath,
-        (await importCb(serializerPath)) as Record<string, typeof DreamSerializer>,
-      ])
-    }
+    const serializerClasses = (await Promise.all(
+      serializerPaths.map(serializerPath =>
+        importCb(serializerPath).then(serializerClass => [
+          serializerPath,
+          serializerClass as Record<string, typeof DreamSerializer>,
+        ])
+      )
+    )) as [string, Record<string, typeof DreamSerializer>][]
 
     return serializerClasses
   }
 
-  public static async importServices(pathToServices: string, importCb: (path: string) => Promise<any>) {
+  public static async importServices(
+    pathToServices: string,
+    importCb: (path: string) => Promise<any>
+  ): Promise<[string, any][]> {
     const servicePaths = await DreamImporter.ls(pathToServices)
-    const serviceClasses: [string, any][] = []
 
-    for (const servicePath of servicePaths) {
-      serviceClasses.push([servicePath, await importCb(servicePath)])
-    }
+    const serviceClasses = (await Promise.all(
+      servicePaths.map(servicePath =>
+        importCb(servicePath).then(serviceClass => [servicePath, serviceClass as typeof Dream])
+      )
+    )) as [string, any][]
 
     return serviceClasses
   }
