@@ -110,6 +110,22 @@ describe('Dream.distinct', () => {
           const reloaded = await Pet.preload('distinctBalloons').first()
           expect(reloaded?.distinctBalloons).toMatchDreamModels([balloon])
         })
+
+        context('when the association name is aliased', () => {
+          it('applies distinct clause to association upon loading', async () => {
+            const pet = await Pet.create()
+            const balloon = await Latex.create()
+            await pet.createAssociation('collars', {
+              balloon,
+            })
+            await pet.createAssociation('collars', {
+              balloon,
+            })
+
+            const reloaded = await Pet.preload('distinctBalloons as db').first()
+            expect(reloaded?.distinctBalloons).toMatchDreamModels([balloon])
+          })
+        })
       })
     })
 

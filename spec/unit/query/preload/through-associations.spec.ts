@@ -737,6 +737,15 @@ describe('Query#preload through', () => {
       expect(node!.edgesOrderedByName[2]).toMatchDreamModel(edge1)
     })
 
+    context('aliased', () => {
+      it('orders the results based on the order specified in the association', async () => {
+        const node = await Node.preload('edgesOrderedByName as eobn').first()
+        expect(node!.edgesOrderedByName[0]).toMatchDreamModel(edge2)
+        expect(node!.edgesOrderedByName[1]).toMatchDreamModel(edge3)
+        expect(node!.edgesOrderedByName[2]).toMatchDreamModel(edge1)
+      })
+    })
+
     context('order on the association we’re going through', () => {
       it('orders the results based on the order specified in the association', async () => {
         const node = await Node.preload('edgesOrderedByPosition').first()
