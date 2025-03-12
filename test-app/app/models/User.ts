@@ -1,6 +1,6 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
-import { Decorators } from '../../../src'
+import { Decorators, round } from '../../../src'
 import Encrypted from '../../../src/decorators/Encrypted'
 import Scope from '../../../src/decorators/Scope'
 import Validates from '../../../src/decorators/validations/Validates'
@@ -38,6 +38,7 @@ export default class User extends ApplicationModel {
   }
 
   public id: DreamColumn<User, 'id'>
+  public grams: DreamColumn<User, 'grams'>
   public uuid: DreamColumn<User, 'uuid'>
   public name: DreamColumn<User, 'name'>
   public birthdate: DreamColumn<User, 'birthdate'>
@@ -63,17 +64,22 @@ export default class User extends ApplicationModel {
   @Virtual()
   public randoVirtual: string
 
-  public _greeting: string = 'initial'
-
   @Virtual()
-  public get customGreeting() {
-    return `the greeting is: ${this._greeting}`
+  public get lbs() {
+    return gramsToLbs(this.grams ?? 0)
   }
 
-  public set customGreeting(val: string) {
-    console.log('CUSTOM GREETING SET', val)
-    this._greeting = val
-    console.log(this._greeting)
+  public set lbs(lbs: number) {
+    this.grams = lbsToGrams(lbs)
+  }
+
+  @Virtual()
+  public get kilograms() {
+    return gramsToKilograms(this.grams ?? 0)
+  }
+
+  public set kilograms(kilograms: number) {
+    this.grams = kilogramsToGrams(kilograms)
   }
 
   @Validates('contains', '@')
@@ -295,4 +301,24 @@ export const insecurePasswordCompareSinceBcryptBringsInTooMuchGarbage = (
       resolve(timingSafeEqual(hashKeyBuff, derivedKey))
     })
   })
+}
+
+const KG_PER_LB = 0.4536
+const GRAMS_PER_POUND = 453.6
+
+function lbsToGrams(lbs: number) {
+  if (lbs === null) return lbs
+  return round(lbs * KG_PER_LB * 1000)
+}
+
+function gramsToLbs(grams: number) {
+  return round(grams / GRAMS_PER_POUND, 1)
+}
+
+function kilogramsToGrams(kilograms: number) {
+  return round(kilograms * 1000)
+}
+
+function gramsToKilograms(grams: number) {
+  return round(grams / 1000, 1)
 }

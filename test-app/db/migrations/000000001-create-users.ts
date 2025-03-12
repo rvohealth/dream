@@ -15,6 +15,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         .unique()
     )
     .addColumn('name', 'varchar')
+    .addColumn('grams', 'integer')
     .addColumn('encrypted_secret', 'text')
     .addColumn('my_other_encrypted_secret', 'text')
     .addColumn('email', 'varchar', col => col.notNull().unique())
