@@ -6,6 +6,7 @@ export { default as db } from './db/index.js'
 export { default as DreamMigrationHelpers } from './db/migration-helpers/DreamMigrationHelpers.js'
 export { default as validateColumn } from './db/validators/validateColumn.js'
 export { default as validateTable } from './db/validators/validateTable.js'
+export { default as DreamDbConnection } from './db/DreamDbConnection.js'
 export {
   type WhereStatementForDream,
   type WhereStatementForDreamClass,
