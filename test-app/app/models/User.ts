@@ -74,12 +74,12 @@ export default class User extends ApplicationModel {
   }
 
   @Virtual()
-  public get kilograms() {
-    return gramsToKilograms(this.grams ?? 0)
-  }
-
   public set kilograms(kilograms: number) {
     this.grams = kilogramsToGrams(kilograms)
+  }
+
+  public get kilograms() {
+    return gramsToKilograms(this.grams ?? 0)
   }
 
   @Validates('contains', '@')

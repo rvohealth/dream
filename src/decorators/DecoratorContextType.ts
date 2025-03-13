@@ -1,5 +1,5 @@
 export interface DecoratorContext {
-  kind: 'class' | 'field' | 'method' | 'getter'
+  kind: 'class' | 'field' | 'method' | 'getter' | 'setter'
   name: string
   static: boolean
   private: boolean
