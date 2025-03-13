@@ -576,8 +576,13 @@ export default class Dream {
         >[]
       : DreamParamSafeColumnNames<I>[],
   >(this: T): ReturnVal {
-    const defaultParams = this.defaultParamSafeColumns()
+    let defaultParams = this.defaultParamSafeColumns()
     const userDefinedParams = (this.prototype as any).paramSafeColumns as ReturnVal
+    const userDefinedUnsafeParams = (this.prototype as any).paramUnsafeColumns as ReturnVal
+
+    if (Array.isArray(userDefinedUnsafeParams)) {
+      defaultParams = defaultParams.filter(param => !userDefinedUnsafeParams.includes(param)) as ReturnVal
+    }
 
     if (Array.isArray(userDefinedParams)) {
       return userDefinedParams.filter(param => defaultParams.includes(param)) as ReturnVal

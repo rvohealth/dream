@@ -483,6 +483,28 @@ export interface ModelWithoutUpdatedAt {
   name: string | null;
 }
 
+export interface ModelWithParamSafeAndUnsafeColumns {
+  allowedColumn1: string | null;
+  allowedColumn2: string | null;
+  column1: string | null;
+  column2: string | null;
+  createdAt: Timestamp;
+  disallowedColumn1: string | null;
+  disallowedColumn2: string | null;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
+export interface ModelWithParamUnsafeColumns {
+  allowedColumn1: string | null;
+  allowedColumn2: string | null;
+  createdAt: Timestamp;
+  disallowedColumn1: string | null;
+  disallowedColumn2: string | null;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
 export interface ModelWithSerialPrimaryKeys {
   createdAt: Timestamp;
   id: Generated<number>;
@@ -616,6 +638,8 @@ export interface DB {
   invalid_scope_sortable_models: InvalidScopeSortableModels;
   localized_texts: LocalizedTexts;
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs;
+  model_with_param_safe_and_unsafe_columns: ModelWithParamSafeAndUnsafeColumns;
+  model_with_param_unsafe_columns: ModelWithParamUnsafeColumns;
   model_with_serial_primary_keys: ModelWithSerialPrimaryKeys;
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts;
   model_without_deleted_ats: ModelWithoutDeletedAts;
@@ -652,6 +676,8 @@ export class DBClass {
   invalid_scope_sortable_models: InvalidScopeSortableModels
   localized_texts: LocalizedTexts
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
+  model_with_param_safe_and_unsafe_columns: ModelWithParamSafeAndUnsafeColumns
+  model_with_param_unsafe_columns: ModelWithParamUnsafeColumns
   model_with_serial_primary_keys: ModelWithSerialPrimaryKeys
   model_without_custom_deleted_ats: ModelWithoutCustomDeletedAts
   model_without_deleted_ats: ModelWithoutDeletedAts

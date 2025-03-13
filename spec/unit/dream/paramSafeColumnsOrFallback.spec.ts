@@ -1,5 +1,7 @@
 import { Dream } from '../../../src'
 import Latex from '../../../test-app/app/models/Balloon/Latex'
+import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns'
+import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns'
 import Pet from '../../../test-app/app/models/Pet'
 import Rating from '../../../test-app/app/models/Rating'
 import User from '../../../test-app/app/models/User'
@@ -65,6 +67,21 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
       it('excludes disallowed columns', () => {
         expect(subject(User3)).toEqual(['email', 'birthdate'])
       })
+    })
+
+    context(
+      'and #paramUnsafeColumns is defined on the model (including for comprehensiveness; not recommended)',
+      () => {
+        it('excludes paramUnsafeColumns from the results allowed by paramSafeColumns', () => {
+          expect(subject(ModelWithParamSafeAndUnsafeColumns)).toEqual(['allowedColumn1', 'allowedColumn2'])
+        })
+      }
+    )
+  })
+
+  context('#paramUnsafeColumns is defined on the model', () => {
+    it('excludes those columns in addition to the automatically excluded columns', () => {
+      expect(subject(ModelWithParamUnsafeColumns)).toEqual(['allowedColumn1', 'allowedColumn2'])
     })
   })
 })
