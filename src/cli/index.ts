@@ -1,7 +1,7 @@
 import { Command, InvalidArgumentError } from 'commander'
-import DreamBin from '../bin/index.js.js'
-import DreamApplication, { DreamApplicationInitOptions } from '../dream-application/index.js.js'
-import EnvInternal from '../helpers/EnvInternal.js.js'
+import DreamBin from '../bin/index.js'
+import DreamApplication, { DreamApplicationInitOptions } from '../dream-application/index.js'
+import EnvInternal from '../helpers/EnvInternal.js'
 
 export default class DreamCLI {
   /**

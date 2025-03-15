@@ -1,6 +1,6 @@
-import { HookStatement, HookType } from '../../decorators/hooks/shared.js.js'
-import Dream from '../../Dream.js.js'
-import DreamTransaction from '../DreamTransaction.js.js'
+import { HookStatement, HookType } from '../../decorators/hooks/shared.js'
+import Dream from '../../Dream.js'
+import DreamTransaction from '../DreamTransaction.js'
 
 export default async function runHooksFor<T extends Dream>(
   key: HookType,

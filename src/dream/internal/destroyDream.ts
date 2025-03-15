@@ -1,10 +1,10 @@
-import Dream from '../../Dream.js.js'
-import DreamTransaction from '../DreamTransaction.js.js'
-import destroyAssociatedRecords from './destroyAssociatedRecords.js.js'
-import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js.js'
-import runHooksFor from './runHooksFor.js.js'
-import safelyRunCommitHooks from './safelyRunCommitHooks.js.js'
-import softDeleteDream from './softDeleteDream.js.js'
+import Dream from '../../Dream.js'
+import DreamTransaction from '../DreamTransaction.js'
+import destroyAssociatedRecords from './destroyAssociatedRecords.js'
+import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
+import runHooksFor from './runHooksFor.js'
+import safelyRunCommitHooks from './safelyRunCommitHooks.js'
+import softDeleteDream from './softDeleteDream.js'
 
 type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 export interface ReallyDestroyOptions<DreamInstance extends Dream> extends DestroyOptions<DreamInstance> {

@@ -8,61 +8,61 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 
-import { pgErrorType } from './db/errors.js.js'
-import db from './db/index.js.js'
-import { AssociationTableNames } from './db/reflections.js.js'
-import { DbConnectionType } from './db/types.js.js'
-import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp.js.js'
-import { BelongsToStatement } from './decorators/associations/BelongsTo.js.js'
-import { HasManyStatement } from './decorators/associations/HasMany.js.js'
-import { HasOneStatement } from './decorators/associations/HasOne.js.js'
+import { pgErrorType } from './db/errors.js'
+import db from './db/index.js'
+import { AssociationTableNames } from './db/reflections.js'
+import { DbConnectionType } from './db/types.js'
+import associationToGetterSetterProp from './decorators/associations/associationToGetterSetterProp.js'
+import { BelongsToStatement } from './decorators/associations/BelongsTo.js'
+import { HasManyStatement } from './decorators/associations/HasMany.js'
+import { HasOneStatement } from './decorators/associations/HasOne.js'
 import {
   AssociationStatementsMap,
   blankAssociationsFactory,
   PassthroughOnClause,
   WhereStatement,
-} from './decorators/associations/shared.js.js'
-import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/hooks/shared.js.js'
-import { ScopeStatement } from './decorators/Scope.js.js'
-import resortAllRecords from './decorators/sortable/helpers/resortAllRecords.js.js'
-import { SortableFieldConfig } from './decorators/sortable/Sortable.js.js'
-import ValidationStatement, { ValidationType } from './decorators/validations/shared.js.js'
-import { VirtualAttributeStatement } from './decorators/Virtual.js.js'
-import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js.js'
-import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js.js'
-import DreamTransaction from './dream/DreamTransaction.js.js'
-import associationQuery from './dream/internal/associations/associationQuery.js.js'
-import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js.js'
-import createAssociation from './dream/internal/associations/createAssociation.js.js'
-import destroyAssociation from './dream/internal/associations/destroyAssociation.js.js'
-import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js.js'
-import destroyDream from './dream/internal/destroyDream.js.js'
+} from './decorators/associations/shared.js'
+import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/hooks/shared.js'
+import { ScopeStatement } from './decorators/Scope.js'
+import resortAllRecords from './decorators/sortable/helpers/resortAllRecords.js'
+import { SortableFieldConfig } from './decorators/sortable/Sortable.js'
+import ValidationStatement, { ValidationType } from './decorators/validations/shared.js'
+import { VirtualAttributeStatement } from './decorators/Virtual.js'
+import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
+import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
+import DreamTransaction from './dream/DreamTransaction.js'
+import associationQuery from './dream/internal/associations/associationQuery.js'
+import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js'
+import createAssociation from './dream/internal/associations/createAssociation.js'
+import destroyAssociation from './dream/internal/associations/destroyAssociation.js'
+import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js'
+import destroyDream from './dream/internal/destroyDream.js'
 import {
   DestroyOptions,
   destroyOptions,
   reallyDestroyOptions,
   undestroyOptions,
-} from './dream/internal/destroyOptions.js.js'
-import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js.js'
-import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js.js'
-import reload from './dream/internal/reload.js.js'
-import runValidations from './dream/internal/runValidations.js.js'
-import saveDream from './dream/internal/saveDream.js.js'
+} from './dream/internal/destroyOptions.js'
+import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
+import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js'
+import reload from './dream/internal/reload.js'
+import runValidations from './dream/internal/runValidations.js'
+import saveDream from './dream/internal/saveDream.js'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './dream/internal/scopeHelpers.js.js'
-import undestroyDream from './dream/internal/undestroyDream.js.js'
-import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js.js'
-import LoadBuilder from './dream/LoadBuilder.js.js'
+} from './dream/internal/scopeHelpers.js'
+import undestroyDream from './dream/internal/undestroyDream.js'
+import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
+import LoadBuilder from './dream/LoadBuilder.js'
 import Query, {
   BaseModelColumnTypes,
   DefaultQueryTypeOptions,
   FindEachOpts,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './dream/Query.js.js'
+} from './dream/Query.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -92,23 +92,23 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './dream/types.js.js'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js.js'
-import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js.js'
-import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js.js'
-import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js.js'
-import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js.js'
-import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js.js'
-import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js.js'
-import MissingSerializer from './errors/MissingSerializersDefinition.js.js'
-import MissingTable from './errors/MissingTable.js.js'
-import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js.js'
-import CalendarDate from './helpers/CalendarDate.js.js'
-import cloneDeepSafe from './helpers/cloneDeepSafe.js.js'
-import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js.js'
-import isJsonColumn from './helpers/db/types/isJsonColumn.js.js'
-import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js.js'
-import { isString } from './helpers/typechecks.js.js'
+} from './dream/types.js'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
+import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
+import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
+import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
+import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
+import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
+import MissingSerializer from './errors/MissingSerializersDefinition.js'
+import MissingTable from './errors/MissingTable.js'
+import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import CalendarDate from './helpers/CalendarDate.js'
+import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
+import isJsonColumn from './helpers/db/types/isJsonColumn.js'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { isString } from './helpers/typechecks.js'
 
 export default class Dream {
   public DB: any

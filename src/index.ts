@@ -13,7 +13,7 @@ export { default as validateTable } from './db/validators/validateTable.js'
 export {
   type WhereStatementForDream,
   type WhereStatementForDreamClass,
-} from './decorators/associations/shared.js.js'
+} from './decorators/associations/shared.js'
 export { type DecoratorContext } from './decorators/DecoratorContextType.js'
 export { default as Decorators } from './decorators/Decorators.js'
 export { default as ReplicaSafe } from './decorators/ReplicaSafe.js'
@@ -32,7 +32,7 @@ export {
   type DreamApplicationOpts,
   type DreamLogLevel,
   type DreamLogger,
-} from './dream-application/index.js.js'
+} from './dream-application/index.js'
 export { default as Dream } from './Dream.js'
 export { default as DreamTransaction } from './dream/DreamTransaction.js'
 export { default as Query } from './dream/Query.js'
@@ -61,7 +61,7 @@ export {
   type UpdateableProperties,
   type ViewModelSerializerKey,
   type primaryKeyTypes,
-} from './dream/types.js.js'
+} from './dream/types.js'
 export { default as Encrypt, type EncryptAlgorithm, type EncryptOptions } from './encrypt/index.js'
 export { default as NonLoadedAssociation } from './errors/associations/NonLoadedAssociation.js'
 export { default as CreateOrFindByFailedToCreateAndFind } from './errors/CreateOrFindByFailedToCreateAndFind.js'
@@ -81,7 +81,7 @@ export { default as hyphenize } from './helpers/hyphenize.js'
 export {
   inferSerializerFromDreamClassOrViewModelClass,
   default as inferSerializerFromDreamOrViewModel,
-} from './helpers/inferSerializerFromDreamOrViewModel.js.js'
+} from './helpers/inferSerializerFromDreamOrViewModel.js'
 export { default as isEmpty } from './helpers/isEmpty.js'
 export { default as loadRepl } from './helpers/loadRepl.js'
 export { default as pascalize } from './helpers/pascalize.js'
@@ -144,7 +144,7 @@ export {
   type OpenapiShorthandPrimitiveTypes,
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
-} from './openapi/types.js.js'
+} from './openapi/types.js'
 export { default as ops } from './ops/index.js'
 export { default as RendersMany } from './serializer/decorators/associations/RendersMany.js'
 export { default as RendersOne } from './serializer/decorators/associations/RendersOne.js'
@@ -153,5 +153,5 @@ export {
   default as Attribute,
   type AttributeStatement,
   type SerializableTypes,
-} from './serializer/decorators/attribute.js.js'
+} from './serializer/decorators/attribute.js'
 export { default as DreamSerializer } from './serializer/index.js'

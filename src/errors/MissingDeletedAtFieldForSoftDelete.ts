@@ -1,4 +1,4 @@
-import Dream from '../Dream.js.js'
+import Dream from '../Dream.js'
 
 export default class MissingDeletedAtFieldForSoftDelete extends Error {
   constructor(private dreamClass: typeof Dream) {

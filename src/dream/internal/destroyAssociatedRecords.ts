@@ -1,6 +1,6 @@
-import Dream from '../../Dream.js.js'
-import DreamTransaction from '../DreamTransaction.js.js'
-import { ReallyDestroyOptions } from './destroyDream.js.js'
+import Dream from '../../Dream.js'
+import DreamTransaction from '../DreamTransaction.js'
+import { ReallyDestroyOptions } from './destroyDream.js'
 
 /**
  * @internal

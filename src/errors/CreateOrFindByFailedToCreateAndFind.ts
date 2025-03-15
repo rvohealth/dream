@@ -1,4 +1,4 @@
-import Dream from '../Dream.js.js'
+import Dream from '../Dream.js'
 
 export default class CreateOrFindByFailedToCreateAndFind extends Error {
   private dreamClass: typeof Dream

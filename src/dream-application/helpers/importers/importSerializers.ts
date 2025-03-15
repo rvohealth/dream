@@ -1,7 +1,7 @@
-import SerializerNameConflict from '../../../errors/dream-application/SerializerNameConflict.js.js'
-import DreamSerializer from '../../../serializer/index.js.js'
-import DreamImporter from '../DreamImporter.js.js'
-import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js.js'
+import SerializerNameConflict from '../../../errors/dream-application/SerializerNameConflict.js'
+import DreamSerializer from '../../../serializer/index.js'
+import DreamImporter from '../DreamImporter.js'
+import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js'
 
 let _serializers: Record<string, typeof DreamSerializer>
 

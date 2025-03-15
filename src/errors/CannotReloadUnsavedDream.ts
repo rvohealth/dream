@@ -1,4 +1,4 @@
-import Dream from '../Dream.js.js'
+import Dream from '../Dream.js'
 
 export default class CannotReloadUnsavedDream extends Error {
   private dream: Dream

@@ -1,6 +1,6 @@
-import ValidationStatement from '../../decorators/validations/shared.js.js'
-import Dream from '../../Dream.js.js'
-import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js.js'
+import ValidationStatement from '../../decorators/validations/shared.js'
+import Dream from '../../Dream.js'
+import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js'
 
 export default function checkSingleValidation(dream: Dream, validation: ValidationStatement) {
   let value: any

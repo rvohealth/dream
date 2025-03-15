@@ -1,8 +1,8 @@
-import { AssociationTableNames } from '../../db/reflections.js.js'
-import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js.js'
-import Dream from '../../Dream.js.js'
-import { GlobalModelNameTableMap } from '../../dream/types.js.js'
-import { DecoratorContext } from '../DecoratorContextType.js.js'
+import { AssociationTableNames } from '../../db/reflections.js'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import Dream from '../../Dream.js'
+import { GlobalModelNameTableMap } from '../../dream/types.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
@@ -14,7 +14,7 @@ import {
   HasThroughOptions,
   PolymorphicHasOptions,
   validateHasStatementArgs,
-} from './shared.js.js'
+} from './shared.js'
 
 export default function HasOne<
   BaseInstance extends Dream,

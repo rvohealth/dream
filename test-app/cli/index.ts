@@ -12,11 +12,11 @@ process.on('unhandledRejection', reason => {
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import '../app/conf/loadEnv.js.js'
+import '../app/conf/loadEnv.js'
 
 import { Command } from 'commander'
-import { DreamBin, DreamCLI } from '../../src/index.js.js'
-import initializeDreamApplication from './helpers/initializeDreamApplication.js.js'
+import { DreamBin, DreamCLI } from '../../src/index.js'
+import initializeDreamApplication from './helpers/initializeDreamApplication.js'
 
 const program = new Command()
 

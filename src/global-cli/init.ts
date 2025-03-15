@@ -1,4 +1,4 @@
-import initDreamAppIntoExistingProject from './helpers/initDreamAppIntoExistingProject.js.js'
+import initDreamAppIntoExistingProject from './helpers/initDreamAppIntoExistingProject.js'
 import {
   cliDefaultConfigPath,
   cliDefaultDbPath,
@@ -11,9 +11,9 @@ import {
   cliDefaultTypesPath,
   cliPrimaryKeyTypes,
   InitDreamAppCliOptions,
-} from './helpers/primaryKeyTypes.js.js'
-import Prompt from './helpers/prompt.js.js'
-import Select from './helpers/select.js.js'
+} from './helpers/primaryKeyTypes.js'
+import Prompt from './helpers/prompt.js'
+import Select from './helpers/select.js'
 
 export default async function initDreamApp(options: InitDreamAppCliOptions) {
   if (!options.primaryKeyType || !cliPrimaryKeyTypes.includes(options.primaryKeyType)) {

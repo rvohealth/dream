@@ -1,6 +1,6 @@
-import Dream from '../../Dream.js.js'
-import Query from '../Query.js.js'
-import { AllDefaultScopeNames } from '../types.js.js'
+import Dream from '../../Dream.js'
+import Query from '../Query.js'
+import { AllDefaultScopeNames } from '../types.js'
 
 export default function applyScopeBypassingSettingsToQuery<DreamInstance extends Dream>(
   query: Query<DreamInstance>,

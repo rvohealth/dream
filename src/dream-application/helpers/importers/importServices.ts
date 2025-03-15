@@ -1,5 +1,5 @@
-import DreamImporter from '../DreamImporter.js.js'
-import globalServiceKeyFromPath from '../globalServiceKeyFromPath.js.js'
+import DreamImporter from '../DreamImporter.js'
+import globalServiceKeyFromPath from '../globalServiceKeyFromPath.js'
 
 let _services: Record<string, any>
 

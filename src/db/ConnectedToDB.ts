@@ -1,9 +1,9 @@
 import { Kysely, Transaction as KyselyTransaction } from 'kysely'
-import _db from '../db/index.js.js'
-import Dream from '../Dream.js.js'
-import DreamTransaction from '../dream/DreamTransaction.js.js'
-import { DreamConstructorType, SqlCommandType } from '../dream/types.js.js'
-import { DbConnectionType } from './types.js.js'
+import _db from '../db/index.js'
+import Dream from '../Dream.js'
+import DreamTransaction from '../dream/DreamTransaction.js'
+import { DreamConstructorType, SqlCommandType } from '../dream/types.js'
+import { DbConnectionType } from './types.js'
 
 export default class ConnectedToDB<DreamInstance extends Dream> {
   protected readonly dreamClass: DreamConstructorType<DreamInstance>

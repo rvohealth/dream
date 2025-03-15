@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv'
-import EnvInternal from './EnvInternal.js.js'
+import EnvInternal from './EnvInternal.js'
 
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'

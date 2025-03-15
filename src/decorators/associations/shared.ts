@@ -5,8 +5,8 @@ import {
 } from 'kysely'
 import { DateTime } from 'luxon'
 import pluralize from 'pluralize-esm'
-import { AssociationTableNames } from '../../db/reflections.js.js'
-import Dream from '../../Dream.js.js'
+import { AssociationTableNames } from '../../db/reflections.js'
+import Dream from '../../Dream.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
@@ -22,27 +22,27 @@ import {
   TableColumnType,
   TableNameForGlobalModelName,
   TrigramOperator,
-} from '../../dream/types.js.js'
-import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey.js.js'
-import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js.js'
-import CannotDefineAssociationWithBothDependentAndPassthrough from '../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js.js'
-import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js.js'
-import CalendarDate from '../../helpers/CalendarDate.js.js'
-import camelize from '../../helpers/camelize.js.js'
-import { Range } from '../../helpers/range.js.js'
+} from '../../dream/types.js'
+import { checkForeignKey } from '../../errors/associations/InvalidComputedForeignKey.js'
+import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
+import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
+import CalendarDate from '../../helpers/CalendarDate.js'
+import camelize from '../../helpers/camelize.js'
+import { Range } from '../../helpers/range.js'
 import {
   Inc,
   MergeUnionOfRecordTypes,
   ReadonlyTail,
   UnionToIntersection,
-} from '../../helpers/typeutils.js.js.js'
-import CurriedOpsStatement from '../../ops/curried-ops-statement.js.js'
-import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js.js'
-import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js.js'
-import associationToGetterSetterProp from './associationToGetterSetterProp.js.js'
-import { BelongsToStatement } from './BelongsTo.js.js'
-import { HasManyStatement } from './HasMany.js.js'
-import { HasOneStatement } from './HasOne.js.js'
+} from '../../helpers/typeutils.js.js'
+import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
+import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
+import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js'
+import associationToGetterSetterProp from './associationToGetterSetterProp.js'
+import { BelongsToStatement } from './BelongsTo.js'
+import { HasManyStatement } from './HasMany.js'
+import { HasOneStatement } from './HasOne.js'
 
 type MAX_JOINED_TABLES_DEPTH = 25
 

@@ -1,23 +1,23 @@
 import { SelectQueryBuilder, UpdateQueryBuilder, sql } from 'kysely'
-import ConnectedToDB from '../../../db/ConnectedToDB.js.js'
-import { DbConnectionType } from '../../../db/types.js.js'
-import validateColumn from '../../../db/validators/validateColumn.js.js'
-import validateTable from '../../../db/validators/validateTable.js.js'
-import validateTableAlias from '../../../db/validators/validateTableAlias.js.js'
-import { WhereStatement } from '../../../decorators/associations/shared.js.js'
-import Dream from '../../../Dream.js.js'
-import namespaceColumn from '../../../helpers/namespaceColumn.js.js'
-import { isObject } from '../../../helpers/typechecks.js.js'
-import OpsStatement from '../../../ops/ops-statement.js.js'
-import DreamTransaction from '../../DreamTransaction.js.js'
+import ConnectedToDB from '../../../db/ConnectedToDB.js'
+import { DbConnectionType } from '../../../db/types.js'
+import validateColumn from '../../../db/validators/validateColumn.js'
+import validateTable from '../../../db/validators/validateTable.js'
+import validateTableAlias from '../../../db/validators/validateTableAlias.js'
+import { WhereStatement } from '../../../decorators/associations/shared.js'
+import Dream from '../../../Dream.js'
+import namespaceColumn from '../../../helpers/namespaceColumn.js'
+import { isObject } from '../../../helpers/typechecks.js'
+import OpsStatement from '../../../ops/ops-statement.js'
+import DreamTransaction from '../../DreamTransaction.js'
 import {
   JoinOnStatements,
   RelaxedJoinOnStatement,
   SimilarityStatement,
   TRIGRAM_OPERATORS,
-} from '../../types.js.js'
-import similaritySelectSql from './similaritySelectSql.js.js'
-import similarityWhereSql from './similarityWhereSql.js.js'
+} from '../../types.js'
+import similaritySelectSql from './similaritySelectSql.js'
+import similarityWhereSql from './similarityWhereSql.js'
 
 export default class SimilarityBuilder<
   DreamInstance extends Dream,

@@ -1,6 +1,6 @@
-import Dream from '../../Dream.js.js'
-import { DecoratorContext } from '../DecoratorContextType.js.js'
-import { BeforeHookOpts, HookStatement, blankHooksFactory } from './shared.js.js'
+import Dream from '../../Dream.js'
+import { DecoratorContext } from '../DecoratorContextType.js'
+import { BeforeHookOpts, HookStatement, blankHooksFactory } from './shared.js'
 
 export default function BeforeCreate<T extends Dream>(opts: BeforeHookOpts<T> = {}): any {
   return function (_: any, context: DecoratorContext) {

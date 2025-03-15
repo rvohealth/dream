@@ -1,10 +1,10 @@
 import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression, sql } from 'kysely'
-import Dream from '../Dream.js.js'
-import { TrigramOperator } from '../dream/types.js.js'
-import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn.js.js'
-import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn.js.js'
-import CurriedOpsStatement from './curried-ops-statement.js.js'
-import OpsStatement from './ops-statement.js.js'
+import Dream from '../Dream.js'
+import { TrigramOperator } from '../dream/types.js'
+import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn.js'
+import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn.js'
+import CurriedOpsStatement from './curried-ops-statement.js'
+import OpsStatement from './ops-statement.js'
 
 type ArrayOperatorType = 'in' | 'not in'
 

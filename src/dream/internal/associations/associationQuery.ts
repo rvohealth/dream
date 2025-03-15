@@ -1,14 +1,14 @@
-import { HasManyStatement } from '../../../decorators/associations/HasMany.js.js'
-import Dream from '../../../Dream.js.js'
-import DreamTransaction from '../../DreamTransaction.js.js'
-import Query from '../../Query.js.js'
+import { HasManyStatement } from '../../../decorators/associations/HasMany.js'
+import Dream from '../../../Dream.js'
+import DreamTransaction from '../../DreamTransaction.js'
+import Query from '../../Query.js'
 import {
   AssociationNameToDream,
   DreamAssociationNames,
   JoinOnStatements,
   TableOrAssociationName,
-} from '../../types.js.js'
-import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js.js'
+} from '../../types.js'
+import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js'
 
 export default function associationQuery<
   DreamInstance extends Dream,

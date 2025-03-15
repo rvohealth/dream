@@ -1,5 +1,5 @@
-import EnvInternal from '../EnvInternal.js.js'
-import loadPgClient from './loadPgClient.js.js'
+import EnvInternal from '../EnvInternal.js'
+import loadPgClient from './loadPgClient.js'
 
 export default async function truncate() {
   // this was only ever written to clear the db between tests,

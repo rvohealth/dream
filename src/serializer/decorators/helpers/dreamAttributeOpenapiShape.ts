@@ -1,7 +1,7 @@
-import { DbTypes } from '../../../db/dataTypes.js.js'
-import Dream from '../../../Dream.js.js'
-import { DreamClassColumnNames } from '../../../dream/types.js.js'
-import { OpenapiSchemaBody } from '../../../openapi/types.js.js'
+import { DbTypes } from '../../../db/dataTypes.js'
+import Dream from '../../../Dream.js'
+import { DreamClassColumnNames } from '../../../dream/types.js'
+import { OpenapiSchemaBody } from '../../../openapi/types.js'
 
 interface DreamColumnInfo {
   enumValues: string[] | null

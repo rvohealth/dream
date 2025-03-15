@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
-import Dream from '../Dream.js.js'
-import CalendarDate from './CalendarDate.js.js'
-import isDateTimeColumn from './db/types/isDateTimeColumn.js.js'
-import { isString } from './typechecks.js.js'
+import Dream from '../Dream.js'
+import CalendarDate from './CalendarDate.js'
+import isDateTimeColumn from './db/types/isDateTimeColumn.js'
+import { isString } from './typechecks.js'
 
 export default function sqlAttributes(dream: Dream) {
   const attributes = dream.dirtyAttributes()

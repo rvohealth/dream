@@ -1,4 +1,4 @@
-import Env from './Env.js.js'
+import Env from './Env.js'
 
 const EnvInternal = new Env<{
   string: 'DREAM_CORE_DEVELOPMENT' | 'TZ'

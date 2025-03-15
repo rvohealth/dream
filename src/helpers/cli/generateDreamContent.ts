@@ -1,11 +1,11 @@
 import pluralize from 'pluralize-esm'
-import camelize from '../camelize.js.js'
-import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js.js'
-import relativeDreamPath from '../path/relativeDreamPath.js.js'
-import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js.js'
-import snakeify from '../snakeify.js.js'
-import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js.js'
-import uniq from '../uniq.js.js'
+import camelize from '../camelize.js'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
+import relativeDreamPath from '../path/relativeDreamPath.js'
+import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
+import snakeify from '../snakeify.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
+import uniq from '../uniq.js'
 
 export default function generateDreamContent({
   fullyQualifiedModelName,

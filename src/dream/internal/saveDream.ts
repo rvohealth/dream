@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import _db from '../../db/index.js.js'
-import Dream from '../../Dream.js.js'
-import ValidationError from '../../errors/ValidationError.js.js'
-import namespaceColumn from '../../helpers/namespaceColumn.js.js'
-import sqlAttributes from '../../helpers/sqlAttributes.js.js'
-import DreamTransaction from '../DreamTransaction.js.js'
-import executeDatabaseQuery from './executeDatabaseQuery.js.js'
-import runHooksFor from './runHooksFor.js.js'
-import safelyRunCommitHooks from './safelyRunCommitHooks.js.js'
+import _db from '../../db/index.js'
+import Dream from '../../Dream.js'
+import ValidationError from '../../errors/ValidationError.js'
+import namespaceColumn from '../../helpers/namespaceColumn.js'
+import sqlAttributes from '../../helpers/sqlAttributes.js'
+import DreamTransaction from '../DreamTransaction.js'
+import executeDatabaseQuery from './executeDatabaseQuery.js'
+import runHooksFor from './runHooksFor.js'
+import safelyRunCommitHooks from './safelyRunCommitHooks.js'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,

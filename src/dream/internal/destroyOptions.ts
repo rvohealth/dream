@@ -1,12 +1,12 @@
-import Dream from '../../Dream.js.js'
-import { AllDefaultScopeNames } from '../types.js.js'
+import Dream from '../../Dream.js'
+import { AllDefaultScopeNames } from '../types.js'
 import {
   addSoftDeleteScopeToUserScopes,
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_CASCADE,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './scopeHelpers.js.js'
+} from './scopeHelpers.js'
 
 /**
  * Options for destroying a Dream instance or its associations.

@@ -1,6 +1,6 @@
-import Dream from '../../../Dream.js.js'
-import sortableCacheKeyName from './sortableCacheKeyName.js.js'
-import sortableCacheValuesName from './sortableCacheValuesName.js.js'
+import Dream from '../../../Dream.js'
+import sortableCacheKeyName from './sortableCacheKeyName.js'
+import sortableCacheValuesName from './sortableCacheValuesName.js'
 
 export default function clearCachedSortableValues(dream: Dream, positionField: string) {
   const cacheKey = sortableCacheKeyName(positionField)

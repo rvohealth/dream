@@ -1,4 +1,4 @@
-import Dream from '../../Dream.js.js'
+import Dream from '../../Dream.js'
 
 export default function ensureSTITypeFieldIsSet<T extends Dream>(dream: T) {
   const Base = dream.constructor as typeof Dream

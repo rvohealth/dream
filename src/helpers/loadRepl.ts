@@ -1,11 +1,11 @@
-import './loadEnv.js.js'
+import './loadEnv.js'
 
 import { DateTime } from 'luxon'
-import DreamApplication from '../dream-application/index.js.js'
-import Encrypt from '../encrypt/index.js.js'
-import ops from '../ops/index.js.js'
-import CalendarDate from './CalendarDate.js.js'
-import pascalizePath from './pascalizePath.js.js'
+import DreamApplication from '../dream-application/index.js'
+import Encrypt from '../encrypt/index.js'
+import ops from '../ops/index.js'
+import CalendarDate from './CalendarDate.js'
+import pascalizePath from './pascalizePath.js'
 
 export default function loadRepl(context: Record<string, unknown>) {
   const dreamApp = DreamApplication.getOrFail()

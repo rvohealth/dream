@@ -1,4 +1,4 @@
-import Dream from '../Dream.js.js'
+import Dream from '../Dream.js'
 
 export default function uniq<T>(arr: T[], toKey: ((a: T) => string) | undefined = undefined): T[] {
   if (toKey) return uniqWith(arr, toKey)

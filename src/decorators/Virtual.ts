@@ -1,6 +1,6 @@
-import Dream from '../Dream.js.js'
-import { SerializableTypes } from '../serializer/decorators/attribute.js.js'
-import { DecoratorContext } from './DecoratorContextType.js.js'
+import Dream from '../Dream.js'
+import { SerializableTypes } from '../serializer/decorators/attribute.js'
+import { DecoratorContext } from './DecoratorContextType.js'
 
 export default function Virtual(type?: SerializableTypes): any {
   return function (_: undefined, context: DecoratorContext) {

@@ -1,6 +1,6 @@
-import { HasManyStatement } from '../../decorators/associations/HasMany.js.js'
-import { HasOneStatement } from '../../decorators/associations/HasOne.js.js'
-import Dream from '../../Dream.js.js'
+import { HasManyStatement } from '../../decorators/associations/HasMany.js'
+import { HasOneStatement } from '../../decorators/associations/HasOne.js'
+import Dream from '../../Dream.js'
 
 export default class CanOnlyPassBelongsToModelParam extends Error {
   public dreamClass: typeof Dream

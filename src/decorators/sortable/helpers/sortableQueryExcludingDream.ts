@@ -1,6 +1,6 @@
-import Dream from '../../../Dream.js.js'
-import Query from '../../../dream/Query.js.js'
-import applySortableScopeToQuery from './applySortableScopeToQuery.js.js'
+import Dream from '../../../Dream.js'
+import Query from '../../../dream/Query.js'
+import applySortableScopeToQuery from './applySortableScopeToQuery.js'
 
 export default function sortableQueryExcludingDream(
   dream: Dream,

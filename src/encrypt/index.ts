@@ -1,9 +1,9 @@
 import * as crypto from 'crypto'
-import MissingEncryptionKey from '../errors/encrypt/MissingEncryptionKey.js.js'
-import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM.js.js'
-import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM.js.js'
-import generateKeyAESGCM from './algorithms/aes-gcm/generateKeyAESGCM.js.js'
-import validateKeyAESGCM from './algorithms/aes-gcm/validateKeyAESGCM.js.js'
+import MissingEncryptionKey from '../errors/encrypt/MissingEncryptionKey.js'
+import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM.js'
+import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM.js'
+import generateKeyAESGCM from './algorithms/aes-gcm/generateKeyAESGCM.js'
+import validateKeyAESGCM from './algorithms/aes-gcm/validateKeyAESGCM.js'
 //
 export default class Encrypt {
   public static encrypt(data: any, { algorithm, key }: EncryptOptions): string {

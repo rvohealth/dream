@@ -1,6 +1,6 @@
-import Dream from '../Dream.js.js'
-import DreamApplication from '../dream-application/index.js.js'
-import { SerializableDreamClassOrViewModelClass, SerializableDreamOrViewModel } from '../dream/types.js.js'
+import Dream from '../Dream.js'
+import DreamApplication from '../dream-application/index.js'
+import { SerializableDreamClassOrViewModelClass, SerializableDreamOrViewModel } from '../dream/types.js'
 
 export default function inferSerializerFromDreamOrViewModel(
   obj: Dream | SerializableDreamOrViewModel,

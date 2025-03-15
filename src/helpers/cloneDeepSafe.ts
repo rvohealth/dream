@@ -1,11 +1,11 @@
 import { SelectQueryBuilder } from 'kysely'
 import { DateTime } from 'luxon'
-import Dream from '../Dream.js.js'
-import Query from '../dream/Query.js.js'
-import OpsStatement from '../ops/ops-statement.js.js'
-import CalendarDate from './CalendarDate.js.js'
-import { Range } from './range.js.js'
-import { isObject } from './typechecks.js.js'
+import Dream from '../Dream.js'
+import Query from '../dream/Query.js'
+import OpsStatement from '../ops/ops-statement.js'
+import CalendarDate from './CalendarDate.js'
+import { Range } from './range.js'
+import { isObject } from './typechecks.js'
 
 /**
  * @internal
