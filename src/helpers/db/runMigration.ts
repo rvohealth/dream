@@ -4,6 +4,8 @@ import * as path from 'path'
 import DreamDbConnection from '../../db/DreamDbConnection.js'
 import db from '../../db/index.js'
 import DreamApplication from '../../dream-application/index.js'
+import DreamCLI from '../../cli/index.js'
+import colorize from '../../cli/logger/loggable/colorize.js'
 
 type MigrationModes = 'migrate' | 'rollback'
 
@@ -129,10 +131,19 @@ function migratedActionPastTense(mode: MigrationModes) {
 function logResults(results: MigrationResult[] | undefined, mode: MigrationModes) {
   results?.forEach(it => {
     if (it.status === 'Success') {
-      console.log(`migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`)
+      DreamCLI.logger.log(
+        colorize(`[db]`, { color: 'cyan' }) +
+          ` migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`,
+        { permanent: true, logPrefix: '├', logPrefixColor: 'cyan' }
+      )
     } else if (it.status === 'Error') {
-      console.log(it)
-      console.error(`failed to ${migratedActionCurrentTense(mode)} migration "${it.migrationName}"`)
+      DreamCLI.logger.log(JSON.stringify(it, null, 2), { permanent: true })
+      DreamCLI.logger.log(
+        colorize(`failed to ${migratedActionCurrentTense(mode)} migration "${it.migrationName}"`, {
+          color: 'redBright',
+        }),
+        { permanent: true }
+      )
     }
   })
 }
