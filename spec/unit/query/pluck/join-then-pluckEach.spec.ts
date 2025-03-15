@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import ops from '../../../../src/ops.js'
+import ops from '../../../../src/ops/index.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit.js'

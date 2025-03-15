@@ -1,4 +1,4 @@
-import ops from '../../../src/ops.js'
+import ops from '../../../src/ops/index.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Node from '../../../test-app/app/models/Graph/Node.js'
 import Pet from '../../../test-app/app/models/Pet.js'

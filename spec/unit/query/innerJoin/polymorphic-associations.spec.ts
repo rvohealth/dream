@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
 import db from '../../../../src/db.js'
 import CannotJoinPolymorphicBelongsToError from '../../../../src/errors/associations/CannotJoinPolymorphicBelongsToError.js'
-import ops from '../../../../src/ops.js'
+import ops from '../../../../src/ops/index.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'

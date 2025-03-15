@@ -4,7 +4,7 @@ import AnyRequiresArrayColumn from '../../../src/errors/ops/AnyRequiresArrayColu
 import ScoreMustBeANormalNumber from '../../../src/errors/ops/ScoreMustBeANormalNumber.js'
 import range from '../../../src/helpers/range.js'
 import { CalendarDate } from '../../../src/index.js'
-import ops from '../../../src/ops.js'
+import ops from '../../../src/ops/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'

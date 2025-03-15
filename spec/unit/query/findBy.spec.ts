@@ -1,5 +1,5 @@
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
-import ops from '../../../src/ops.js'
+import ops from '../../../src/ops/index.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#findBy', () => {

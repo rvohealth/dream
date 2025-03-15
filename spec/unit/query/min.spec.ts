@@ -1,4 +1,4 @@
-import ops from '../../../src/ops.js'
+import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'

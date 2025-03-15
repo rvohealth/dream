@@ -2,7 +2,7 @@ import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import ReplicaSafe from '../../../src/decorators/ReplicaSafe.js'
 import NoUpdateAllOnJoins from '../../../src/errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociationQuery.js'
-import ops from '../../../src/ops.js'
+import ops from '../../../src/ops/index.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 

@@ -1,6 +1,6 @@
 import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
-import ops from '../../../src/ops.js'
+import ops from '../../../src/ops/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'

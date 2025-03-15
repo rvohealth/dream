@@ -1,6 +1,6 @@
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback.js'
 import MissingRequiredCallbackFunctionToPluckEach from '../../../../src/errors/MissingRequiredCallbackFunctionToPluckEach.js'
-import ops from '../../../../src/ops.js'
+import ops from '../../../../src/ops/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Edge from '../../../../test-app/app/models/Graph/Edge.js'
 import User from '../../../../test-app/app/models/User.js'

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { IdType } from '../../../../src/index.js'
-import ops from '../../../../src/ops.js'
+import ops from '../../../../src/ops/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
