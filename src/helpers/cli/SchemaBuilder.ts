@@ -22,7 +22,7 @@ export default class SchemaBuilder {
       ? `\
 import {
   ${imports.sort().join(',\n  ')}
-} from './db'`
+} from './db.js'`
       : ''
 
     const calendarDateImportStatement = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')

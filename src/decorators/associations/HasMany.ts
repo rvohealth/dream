@@ -6,7 +6,7 @@ import {
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
-} from '../../dream/types.js'
+} from '../../dream/types.js.js'
 import { DecoratorContext } from '../DecoratorContextType.js.js'
 import {
   applyGetterAndSetter,
@@ -20,7 +20,7 @@ import {
   OrderStatement,
   PolymorphicHasOptions,
   validateHasStatementArgs,
-} from './shared.js'
+} from './shared.js.js'
 
 export default function HasMany<
   BaseInstance extends Dream,

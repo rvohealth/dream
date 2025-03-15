@@ -6,7 +6,7 @@ import {
   SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
-} from '../dream/types.js'
+} from '../dream/types.js.js'
 import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet.js.js'
 import MissingSerializer from '../errors/MissingSerializersDefinition.js.js'
 import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js.js'
@@ -15,7 +15,7 @@ import camelize from '../helpers/camelize.js.js'
 import compact from '../helpers/compact.js.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
-} from '../helpers/inferSerializerFromDreamOrViewModel.js'
+} from '../helpers/inferSerializerFromDreamOrViewModel.js.js'
 import round from '../helpers/round.js.js'
 import snakeify from '../helpers/snakeify.js.js'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js.js'

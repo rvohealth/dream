@@ -6,7 +6,7 @@ import {
   DEFAULT_CASCADE,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './scopeHelpers.js'
+} from './scopeHelpers.js.js'
 
 /**
  * Options for destroying a Dream instance or its associations.

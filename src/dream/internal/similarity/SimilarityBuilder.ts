@@ -15,7 +15,7 @@ import {
   RelaxedJoinOnStatement,
   SimilarityStatement,
   TRIGRAM_OPERATORS,
-} from '../../types.js'
+} from '../../types.js.js'
 import similaritySelectSql from './similaritySelectSql.js.js'
 import similarityWhereSql from './similarityWhereSql.js.js'
 

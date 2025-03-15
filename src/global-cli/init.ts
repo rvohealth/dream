@@ -11,7 +11,7 @@ import {
   cliDefaultTypesPath,
   cliPrimaryKeyTypes,
   InitDreamAppCliOptions,
-} from './helpers/primaryKeyTypes.js'
+} from './helpers/primaryKeyTypes.js.js'
 import Prompt from './helpers/prompt.js.js'
 import Select from './helpers/select.js.js'
 

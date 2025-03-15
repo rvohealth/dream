@@ -7,7 +7,7 @@ import {
   DreamAssociationNames,
   JoinOnStatements,
   TableOrAssociationName,
-} from '../../types.js'
+} from '../../types.js.js'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js.js'
 
 export default function associationQuery<

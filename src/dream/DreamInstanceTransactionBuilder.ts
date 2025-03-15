@@ -11,14 +11,14 @@ import {
   DestroyOptions,
   reallyDestroyOptions,
   undestroyOptions,
-} from './internal/destroyOptions.js'
+} from './internal/destroyOptions.js.js'
 import reload from './internal/reload.js.js'
 import saveDream from './internal/saveDream.js.js'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './internal/scopeHelpers.js'
+} from './internal/scopeHelpers.js.js'
 import undestroyDream from './internal/undestroyDream.js.js'
 import LeftJoinLoadBuilder from './LeftJoinLoadBuilder.js.js'
 import LoadBuilder from './LoadBuilder.js.js'
@@ -39,7 +39,7 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types.js'
+} from './types.js.js'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance

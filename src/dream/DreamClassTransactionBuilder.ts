@@ -9,7 +9,7 @@ import Query, {
   FindEachOpts,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './Query.js'
+} from './Query.js.js'
 import {
   DefaultScopeName,
   DreamColumnNames,
@@ -24,7 +24,7 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types.js'
+} from './types.js.js'
 
 export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   /**

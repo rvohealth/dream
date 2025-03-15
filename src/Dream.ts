@@ -21,7 +21,7 @@ import {
   blankAssociationsFactory,
   PassthroughOnClause,
   WhereStatement,
-} from './decorators/associations/shared.js'
+} from './decorators/associations/shared.js.js'
 import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/hooks/shared.js.js'
 import { ScopeStatement } from './decorators/Scope.js.js'
 import resortAllRecords from './decorators/sortable/helpers/resortAllRecords.js.js'
@@ -42,7 +42,7 @@ import {
   destroyOptions,
   reallyDestroyOptions,
   undestroyOptions,
-} from './dream/internal/destroyOptions.js'
+} from './dream/internal/destroyOptions.js.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js.js'
 import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js.js'
 import reload from './dream/internal/reload.js.js'
@@ -52,7 +52,7 @@ import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
-} from './dream/internal/scopeHelpers.js'
+} from './dream/internal/scopeHelpers.js.js'
 import undestroyDream from './dream/internal/undestroyDream.js.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js.js'
 import LoadBuilder from './dream/LoadBuilder.js.js'
@@ -62,7 +62,7 @@ import Query, {
   FindEachOpts,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './dream/Query.js'
+} from './dream/Query.js.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -92,7 +92,7 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './dream/types.js'
+} from './dream/types.js.js'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js.js'
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js.js'
 import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js.js'

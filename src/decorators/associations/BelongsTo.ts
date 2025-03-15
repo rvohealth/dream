@@ -9,7 +9,7 @@ import {
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
-} from '../../dream/types.js'
+} from '../../dream/types.js.js'
 import { DecoratorContext } from '../DecoratorContextType.js.js'
 import { validatesImplementation } from '../validations/Validates.js.js'
 import {
@@ -18,7 +18,7 @@ import {
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
-} from './shared.js'
+} from './shared.js.js'
 
 export default function BelongsTo<
   BaseInstance extends Dream,

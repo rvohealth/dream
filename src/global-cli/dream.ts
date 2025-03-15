@@ -18,7 +18,7 @@ import {
   cliDefaultTypesPath,
   cliPrimaryKeyTypes,
   InitDreamAppCliOptions,
-} from './helpers/primaryKeyTypes.js'
+} from './helpers/primaryKeyTypes.js.js'
 import initDreamApp from './init.js.js'
 import newDreamApp from './new.js.js'
 

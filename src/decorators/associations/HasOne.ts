@@ -14,7 +14,7 @@ import {
   HasThroughOptions,
   PolymorphicHasOptions,
   validateHasStatementArgs,
-} from './shared.js'
+} from './shared.js.js'
 
 export default function HasOne<
   BaseInstance extends Dream,

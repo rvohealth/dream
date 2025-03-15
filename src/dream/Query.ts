@@ -29,7 +29,7 @@ import {
   SelfOnStatement,
   WhereStatement,
   WhereStatementForJoinedAssociation,
-} from '../decorators/associations/shared.js'
+} from '../decorators/associations/shared.js.js'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/SoftDelete.js.js'
 import Dream from '../Dream.js.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js.js'
@@ -100,7 +100,7 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types.js'
+} from './types.js.js'
 
 export type QueryWithJoinedAssociationsType<
   Q extends Query<any, any>,

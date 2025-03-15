@@ -24,7 +24,7 @@ import {
   parsePostgresDate,
   parsePostgresDatetime,
   parsePostgresDecimal,
-} from '../helpers/customPgParsers.js'
+} from '../helpers/customPgParsers.js.js'
 import EnvInternal from '../helpers/EnvInternal.js.js'
 import DreamSerializer from '../serializer/index.js.js'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js.js'
@@ -32,11 +32,11 @@ import importModels, { getModelsOrFail } from './helpers/importers/importModels.
 import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
-} from './helpers/importers/importSerializers.js'
+} from './helpers/importers/importSerializers.js.js'
 import importServices, {
   getServicesOrFail,
   setCachedServices,
-} from './helpers/importers/importServices.js.js'
+} from './helpers/importers/importServices.js.js.js'
 
 const pgTypes = pg.types
 

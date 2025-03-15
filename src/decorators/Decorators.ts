@@ -3,17 +3,17 @@ import { GlobalModelNameTableMap, SortableOptions } from '../dream/types.js.js'
 import BelongsTo, {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
-} from './associations/BelongsTo.js'
+} from './associations/BelongsTo.js.js'
 import HasMany, {
   HasManyOptions,
   HasManyThroughOptions,
   PolymorphicHasManyOptions,
-} from './associations/HasMany.js'
+} from './associations/HasMany.js.js'
 import HasOne, {
   HasOneOptions,
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
-} from './associations/HasOne.js'
+} from './associations/HasOne.js.js'
 import AfterCreate from './hooks/AfterCreate.js.js'
 import AfterCreateCommit from './hooks/AfterCreateCommit.js.js'
 import AfterDestroy from './hooks/AfterDestroy.js.js'

@@ -8,7 +8,7 @@ import {
   AssociatedModelParam,
   OnStatementForAssociation,
   WhereStatement,
-} from '../decorators/associations/shared.js'
+} from '../decorators/associations/shared.js.js'
 import { STI_SCOPE_NAME } from '../decorators/STI.js.js'
 import Dream from '../Dream.js.js'
 import CalendarDate from '../helpers/CalendarDate.js.js'
