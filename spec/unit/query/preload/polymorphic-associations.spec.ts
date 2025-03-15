@@ -1,6 +1,6 @@
 import { sql } from 'kysely'
 import { DateTime } from 'luxon'
-import db from '../../../../src/db.js'
+import db from '../../../../src/db/index.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'

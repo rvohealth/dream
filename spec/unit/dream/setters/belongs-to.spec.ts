@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import db from '../../../../src/db.js'
+import db from '../../../../src/db/index.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
