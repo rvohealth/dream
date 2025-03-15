@@ -1,5 +1,5 @@
-import { Decorators } from '../../../src.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 import Composition from './Composition.js'
 import Post from './Post.js'

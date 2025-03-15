@@ -1,4 +1,4 @@
-import { DreamApplication } from '../../../src.js'
+import { DreamApplication } from '../../../src/index.js'
 import srcPath from '../helpers/srcPath.js'
 import inflections from './inflections.js'
 

@@ -1,5 +1,5 @@
-import { DreamColumn, Scope } from '../../../src.js'
 import SoftDelete from '../../../src/decorators/SoftDelete.js'
+import { DreamColumn, Scope } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
 // const Deco = new Decorators<InstanceType<typeof ModelWithoutDeletedAt>>()

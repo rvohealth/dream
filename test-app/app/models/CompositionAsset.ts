@@ -1,5 +1,5 @@
-import { Decorators } from '../../../src.js'
 import { DreamColumn, DreamConst } from '../../../src/dream/types.js'
+import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 import Composition from './Composition.js'
 import CompositionAssetAudit from './CompositionAssetAudit.js'

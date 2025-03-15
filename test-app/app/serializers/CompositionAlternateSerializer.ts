@@ -1,4 +1,4 @@
-import { RendersMany, RendersOne } from '../../../src.js'
+import { RendersMany, RendersOne } from '../../../src/index.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
 import DreamSerializer from '../../../src/serializer/index.js'
 import { CompositionMetadata } from '../models/Composition.js'

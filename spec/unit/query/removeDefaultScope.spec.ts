@@ -1,4 +1,4 @@
-import { Query, Scope } from '../../../src.js'
+import { Query, Scope } from '../../../src/index.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 

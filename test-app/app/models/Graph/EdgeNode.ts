@@ -1,6 +1,6 @@
 import { DreamColumn, DreamSerializers } from '../../../../src/dream/types.js'
 
-import { Decorators, SoftDelete } from '../../../../src.js'
+import { Decorators, SoftDelete } from '../../../../src/index.js'
 import ApplicationModel from '../ApplicationModel.js'
 import GraphEdge from './Edge.js'
 import GraphNode from './Node.js'

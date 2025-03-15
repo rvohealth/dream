@@ -1,5 +1,5 @@
-import { ops } from '../../../src.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import { ops } from '../../../src/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import User from '../../../test-app/app/models/User.js'

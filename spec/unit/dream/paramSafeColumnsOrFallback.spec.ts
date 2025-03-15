@@ -1,4 +1,4 @@
-import { Dream } from '../../../src.js'
+import { Dream } from '../../../src/index.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns.js'
 import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns.js'

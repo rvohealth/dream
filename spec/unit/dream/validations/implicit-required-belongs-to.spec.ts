@@ -1,4 +1,4 @@
-import { ValidationError } from '../../../../src.js'
+import { ValidationError } from '../../../../src/index.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'

@@ -1,6 +1,6 @@
-import { Decorators } from '../../../src.js'
 import SoftDelete from '../../../src/decorators/SoftDelete.js'
 import { DreamColumn } from '../../../src/dream/types.js'
+import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 import Post from './Post.js'
 

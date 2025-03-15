@@ -1,6 +1,6 @@
-import { Decorators, DreamConst } from '../../../../../src.js'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
 import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
+import { Decorators, DreamConst } from '../../../../../src/index.js'
 import Post from '../../../../../test-app/app/models/Post.js'
 import User from '../../../../../test-app/app/models/User.js'
 import processDynamicallyDefinedModels from '../../../../helpers/processDynamicallyDefinedModels.js'

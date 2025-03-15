@@ -1,5 +1,5 @@
-import { Query } from '../../../src.js'
 import * as destroyDreamModule from '../../../src/dream/internal/destroyDream.js'
+import { Query } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'

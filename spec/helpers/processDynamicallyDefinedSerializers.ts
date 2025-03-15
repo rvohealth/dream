@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../src.js'
+import { DreamSerializer } from '../../src/index.js'
 
 export default function processDynamicallyDefinedSerializers(
   ...serializerClasses: (typeof DreamSerializer<any, any>)[]

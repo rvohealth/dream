@@ -1,5 +1,5 @@
-import { Query } from '../../../src.js'
 import { IdType } from '../../../src/dream/types.js'
+import { Query } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { CalendarDate } from '../../../src.js'
 import snakeify from '../../../src/helpers/snakeify.js'
+import { CalendarDate } from '../../../src/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('snakeify', () => {

@@ -1,6 +1,6 @@
-import { Decorators } from '../../../src.js'
 import Validate from '../../../src/decorators/validations/Validate.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 import Mylar from './Balloon/Mylar.js'
 

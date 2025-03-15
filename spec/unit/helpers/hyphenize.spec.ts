@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { CalendarDate } from '../../../src.js'
 import hyphenize from '../../../src/helpers/hyphenize.js'
+import { CalendarDate } from '../../../src/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('hyphenize', () => {

@@ -1,4 +1,4 @@
-import { NonLoadedAssociation } from '../../../src.js'
+import { NonLoadedAssociation } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'

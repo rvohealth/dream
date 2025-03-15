@@ -1,7 +1,7 @@
-import { DreamTransaction } from '../../../../src.js'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.js'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks.js'
 import MissingDeletedAtFieldForSoftDelete from '../../../../src/errors/MissingDeletedAtFieldForSoftDelete.js'
+import { DreamTransaction } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import ModelWithoutCustomDeletedAt from '../../../../test-app/app/models/ModelWithoutCustomDeletedAt.js'
 import ModelWithoutDeletedAt from '../../../../test-app/app/models/ModelWithoutDeletedAt.js'

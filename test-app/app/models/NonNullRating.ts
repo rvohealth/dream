@@ -1,4 +1,4 @@
-import { Query, Scope } from '../../../src.js'
+import { Query, Scope } from '../../../src/index.js'
 import Rating from './Rating.js'
 
 // const Deco = new Decorators<InstanceType<typeof NonNullRating>>()

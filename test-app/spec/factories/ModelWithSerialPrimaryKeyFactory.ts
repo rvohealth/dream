@@ -1,4 +1,4 @@
-import { UpdateableProperties } from '../../../src.js'
+import { UpdateableProperties } from '../../../src/index.js'
 import ModelWithSerialPrimaryKey from '../../app/models/ModelWithSerialPrimaryKey.js'
 
 export default async function createModelWithSerialPrimaryKey(
