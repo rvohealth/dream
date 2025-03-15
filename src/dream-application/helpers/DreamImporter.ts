@@ -11,8 +11,11 @@ export default class DreamImporter {
         dirents
           .map(dirent => {
             const res = path.resolve(dir, dirent.name)
-            const sanitizedPath = res.replace(/\.ts$/, '.js')
-            return dirent.isDirectory() ? this.ls(res) : /\.js$/.test(sanitizedPath) ? sanitizedPath : null
+            return dirent.isDirectory()
+              ? this.ls(res)
+              : ['.js', '.ts'].includes(path.extname(res))
+                ? res
+                : null
           })
           .filter(ent => ent !== null)
       )
