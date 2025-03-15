@@ -1,4 +1,4 @@
-import './loadEnv.js'
+import './loadEnv.js.js'
 
 import * as repl from 'node:repl'
 import { loadRepl } from '../../../src/index.js.js'

@@ -1,6 +1,4 @@
-import '../../src/helpers/loadEnv.js'
-
-// define global context variable, setting it equal to describe
+import '../../src/helpers/loadEnv.js.js'
 ;(global as any).context = describe
 
 export default async () => {}

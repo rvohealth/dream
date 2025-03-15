@@ -12,7 +12,7 @@ process.on('unhandledRejection', reason => {
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import '../app/conf/loadEnv.js'
+import '../app/conf/loadEnv.js.js'
 
 import { Command } from 'commander'
 import { DreamBin, DreamCLI } from '../../src/index.js.js'

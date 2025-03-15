@@ -1,4 +1,4 @@
-import '../../helpers/loadEnv.js'
+import '../../helpers/loadEnv.js.js'
 
 import * as fs from 'fs/promises'
 import * as path from 'path'
