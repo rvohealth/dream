@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import Dream from '../../Dream.js'
-import DreamSerializer from '../../serializer.js'
+import DreamSerializer from '../../serializer/index.js'
 
 export default class DreamImporter {
   public static async ls(dir: string): Promise<string[]> {

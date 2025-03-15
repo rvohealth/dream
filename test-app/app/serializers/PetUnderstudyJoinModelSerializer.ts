@@ -1,5 +1,5 @@
-import DreamSerializer from '../../../src/serializer.js'
 import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
+import DreamSerializer from '../../../src/serializer/index.js'
 import Pet from '../models/Pet.js'
 import PetUnderstudyJoinModel from '../models/PetUnderstudyJoinModel.js'
 

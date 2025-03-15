@@ -1,7 +1,7 @@
 import { DreamColumn, IdType } from '../../../src/dream/types.js'
-import DreamSerializer from '../../../src/serializer.js'
 import RendersMany from '../../../src/serializer/decorators/associations/RendersMany.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
+import DreamSerializer from '../../../src/serializer/index.js'
 import Pet from '../models/Pet.js'
 import Rating from '../models/Rating.js'
 

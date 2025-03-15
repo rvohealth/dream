@@ -1,6 +1,6 @@
-import DreamSerializer from '../../../src/serializer.js'
 import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
+import DreamSerializer from '../../../src/serializer/index.js'
 import BalloonSummarySerializer from './BalloonSummarySerializer.js'
 
 export default class BalloonSpotterBalloonSerializer extends DreamSerializer {

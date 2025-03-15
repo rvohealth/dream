@@ -1,6 +1,6 @@
 import { RendersMany, RendersOne } from '../../../src.js'
-import DreamSerializer from '../../../src/serializer.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
+import DreamSerializer from '../../../src/serializer/index.js'
 import { CompositionMetadata } from '../models/Composition.js'
 import CompositionAsset from '../models/CompositionAsset.js'
 import LocalizedText from '../models/LocalizedText.js'

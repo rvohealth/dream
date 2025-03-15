@@ -33,10 +33,7 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
-import importServices, {
-  getServicesOrFail,
-  setCachedServices,
-} from './helpers/importers/importServices.js.js'
+import importServices, { getServicesOrFail, setCachedServices } from './helpers/importers/importServices.js'
 
 const pgTypes = pg.types
 

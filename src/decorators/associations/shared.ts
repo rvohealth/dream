@@ -30,12 +30,7 @@ import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../e
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
 import { Range } from '../../helpers/range.js'
-import {
-  Inc,
-  MergeUnionOfRecordTypes,
-  ReadonlyTail,
-  UnionToIntersection,
-} from '../../helpers/typeutils.js.js'
+import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils.js'
 import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
 import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
 import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js'
