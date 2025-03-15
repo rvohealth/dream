@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import Pet from '../../../../../test-app/app/models/Pet'
+import Pet from '../../../../../test-app/app/models/Pet.js'
 
 describe('marshalling postgres datetimes from db', () => {
   it('converts to a UTC DateTime with the date part identical to the specified DateTime', async () => {

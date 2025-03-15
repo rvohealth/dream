@@ -1,4 +1,4 @@
-import sharedPrefix from '../../../../src/helpers/path/sharedPathPrefix'
+import sharedPrefix from '../../../../src/helpers/path/sharedPathPrefix.js'
 
 describe('sharedPrefix', () => {
   context('when the strings share nothing', () => {

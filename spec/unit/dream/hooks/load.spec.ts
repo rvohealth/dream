@@ -1,5 +1,5 @@
-import User from '../../../../test-app/app/models/User'
-import Composition from '../../../../test-app/app/models/Composition'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#load', () => {
   it('loads (by deferring to #preload)', async () => {

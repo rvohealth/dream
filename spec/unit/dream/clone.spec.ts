@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import User from '../../../test-app/app/models/User'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#clone', () => {
   it('returns a new copy', async () => {

@@ -1,4 +1,4 @@
-import sortBy from '../../../src/helpers/sortBy'
+import sortBy from '../../../src/helpers/sortBy.js'
 
 describe('sortBy', () => {
   it('sorts by the return value of the provided function', () => {

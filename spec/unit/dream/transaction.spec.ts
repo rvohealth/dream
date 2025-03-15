@@ -1,7 +1,7 @@
-import { ValidationError } from '../../../src'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Composition from '../../../test-app/app/models/Composition'
-import User from '../../../test-app/app/models/User'
+import { ValidationError } from '../../../src/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('ApplicationModel.transaction', () => {
   it('completes all database actions within the transaction', async () => {

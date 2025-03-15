@@ -1,4 +1,4 @@
-import standardizeFullyQualifiedModelName from '../../../src/helpers/standardizeFullyQualifiedModelName'
+import standardizeFullyQualifiedModelName from '../../../src/helpers/standardizeFullyQualifiedModelName.js'
 
 describe('standardizeFullyQualifiedModelName', () => {
   it('changes user to User', () => {

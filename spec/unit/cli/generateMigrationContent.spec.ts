@@ -1,5 +1,5 @@
-import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator'
-import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent'
+import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator.js'
+import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent.js'
 
 describe('generateMigrationContent', () => {
   context('createOrAlter: true', () => {

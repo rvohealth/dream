@@ -1,12 +1,12 @@
-import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause'
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
-import ops from '../../../src/ops'
-import Balloon from '../../../test-app/app/models/Balloon'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Post from '../../../test-app/app/models/Post'
-import Rating from '../../../test-app/app/models/Rating'
-import User from '../../../test-app/app/models/User'
+import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause.js'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import ops from '../../../src/ops/index.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import Post from '../../../test-app/app/models/Post.js'
+import Rating from '../../../test-app/app/models/Rating.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#whereNot', () => {
   it('negates the logic of all the clauses ANDed together', async () => {

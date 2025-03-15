@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import CalendarDate from '../../../src/helpers/CalendarDate'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import User from '../../../test-app/app/models/User'
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#isDirty', () => {
   it('reflects being dirty when dirty', async () => {

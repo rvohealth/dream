@@ -1,10 +1,10 @@
-import ops from '../../../src/ops'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Composition from '../../../test-app/app/models/Composition'
-import Pet from '../../../test-app/app/models/Pet'
-import Post from '../../../test-app/app/models/Post'
-import Rating from '../../../test-app/app/models/Rating'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../src/ops/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import Post from '../../../test-app/app/models/Post.js'
+import Rating from '../../../test-app/app/models/Rating.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#count', () => {
   it('counts query results', async () => {

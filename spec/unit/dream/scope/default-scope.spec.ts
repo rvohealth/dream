@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import User from '../../../../test-app/app/models/User'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream Scope (default variant)', () => {
   it('builds scope mapping', () => {

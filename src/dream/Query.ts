@@ -11,7 +11,6 @@ import {
   Updateable,
   sql,
 } from 'kysely'
-import { DateTime } from 'luxon'
 import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB.js'
 import { DbConnectionType } from '../db/types.js'
@@ -52,6 +51,7 @@ import CalendarDate from '../helpers/CalendarDate.js'
 import camelize from '../helpers/camelize.js'
 import cloneDeepSafe from '../helpers/cloneDeepSafe.js'
 import compact from '../helpers/compact.js'
+import DateTime from '../helpers/DateTime.js'
 import isEmpty from '../helpers/isEmpty.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
 import objectPathsToArrays from '../helpers/objectPathsToArrays.js'

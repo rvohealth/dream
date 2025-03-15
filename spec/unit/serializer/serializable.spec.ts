@@ -1,7 +1,7 @@
-import { isSerializable } from '../../../src/serializer/decorators/associations/shared'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import BaseExtraRating from '../../../test-app/app/models/ExtraRating/Base'
-import Pet from '../../../test-app/app/models/Pet'
+import { isSerializable } from '../../../src/serializer/decorators/associations/shared.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import BaseExtraRating from '../../../test-app/app/models/ExtraRating/Base.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 
 describe('isSerializable', () => {
   it('returns true for Dreams that define serializers', () => {

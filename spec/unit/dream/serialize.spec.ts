@@ -1,6 +1,6 @@
-import MissingSerializersDefinition from '../../../src/errors/MissingSerializersDefinition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import User from '../../../test-app/app/models/User'
+import MissingSerializersDefinition from '../../../src/errors/MissingSerializersDefinition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#serialize', () => {
   it('serializes a model using the coupled serializer', () => {

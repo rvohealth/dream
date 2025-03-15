@@ -1,6 +1,6 @@
-import STI from '../../../../../src/decorators/STI'
-import { BalloonTypesEnum } from '../../../../types/db'
-import Latex from '../Latex'
+import STI from '../../../../../src/decorators/STI.js'
+import { BalloonTypesEnum } from '../../../../types/db.js'
+import Latex from '../Latex.js'
 
 @STI(Latex)
 export default class Animal extends Latex {

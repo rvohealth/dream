@@ -1,12 +1,15 @@
 export { default as DreamBin } from './bin/index.js'
 export { default as DreamCLI } from './cli/index.js'
-export { closeAllDbConnections, dreamDbConnections } from './db/DreamDbConnection.js'
+export {
+  closeAllDbConnections,
+  default as DreamDbConnection,
+  dreamDbConnections,
+} from './db/DreamDbConnection.js'
 export { pgErrorType } from './db/errors.js'
 export { default as db } from './db/index.js'
 export { default as DreamMigrationHelpers } from './db/migration-helpers/DreamMigrationHelpers.js'
 export { default as validateColumn } from './db/validators/validateColumn.js'
 export { default as validateTable } from './db/validators/validateTable.js'
-export { default as DreamDbConnection } from './db/DreamDbConnection.js'
 export {
   type WhereStatementForDream,
   type WhereStatementForDreamClass,
@@ -71,6 +74,7 @@ export { default as camelize } from './helpers/camelize.js'
 export { default as capitalize } from './helpers/capitalize.js'
 export { default as generateDream } from './helpers/cli/generateDream.js'
 export { default as compact } from './helpers/compact.js'
+export { default as DateTime } from './helpers/DateTime.js'
 export { default as debug } from './helpers/debug.js'
 export { default as Env } from './helpers/Env.js'
 export { default as globalClassNameFromFullyQualifiedModelName } from './helpers/globalClassNameFromFullyQualifiedModelName.js'

@@ -1,6 +1,6 @@
-import RecordNotFound from '../../../src/errors/RecordNotFound'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import User from '../../../test-app/app/models/User'
+import RecordNotFound from '../../../src/errors/RecordNotFound.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.last', () => {
   it('finds the last record in the db, sorting by id', async () => {

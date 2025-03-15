@@ -1,4 +1,4 @@
-import Pet from '../../../../test-app/app/models/Pet'
+import Pet from '../../../../test-app/app/models/Pet.js'
 
 describe('setter override', () => {
   it('overrides the automatically set getter', async () => {

@@ -1,8 +1,8 @@
-import MissingRequiredPassthroughForAssociationOnClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationOnClause'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import LocalizedText from '../../../test-app/app/models/LocalizedText'
-import User from '../../../test-app/app/models/User'
+import MissingRequiredPassthroughForAssociationOnClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationOnClause.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#passthrough', () => {
   context('preload', () => {

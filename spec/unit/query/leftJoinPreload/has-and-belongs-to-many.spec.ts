@@ -1,6 +1,6 @@
-import Edge from '../../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../../test-app/app/models/Graph/Node'
+import Edge from '../../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../../test-app/app/models/Graph/Node.js'
 
 describe('Query#leftJoinPreload has and belongs to many', () => {
   it('loads the associated models', async () => {

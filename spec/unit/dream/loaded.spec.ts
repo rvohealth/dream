@@ -1,5 +1,5 @@
-import Composition from '../../../test-app/app/models/Composition'
-import User from '../../../test-app/app/models/User'
+import Composition from '../../../test-app/app/models/Composition.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#loaded', () => {
   context('when the associated model exists and has been loaded', () => {

@@ -95,8 +95,8 @@ b.) All laptops are ok sleeping places for your
 
 */
 
-import CalendarDate from '../../src/helpers/CalendarDate'
-import { DateTime } from 'luxon'
+import CalendarDate from '../../src/helpers/CalendarDate.js'
+import DateTime from '../../src/helpers/DateTime.js'
 import {
   BalloonColorsEnum,
   BalloonColorsEnumValues,
@@ -122,7 +122,7 @@ import {
   SpeciesTypesEnum,
   SpeciesTypesEnumValues,
   SpeciesValues
-} from './db'
+} from './db.js'
 
 export const schema = {
   balloon_lines: {

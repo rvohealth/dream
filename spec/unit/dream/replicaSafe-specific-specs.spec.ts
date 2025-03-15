@@ -1,10 +1,10 @@
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely'
 import { Pool } from 'pg'
-import db from '../../../src/db'
-import ConnectionConfRetriever from '../../../src/db/ConnectionConfRetriever'
-import DreamDbConnection from '../../../src/db/DreamDbConnection'
-import { DbConnectionType } from '../../../src/db/types'
-import User from '../../../test-app/app/models/User'
+import ConnectionConfRetriever from '../../../src/db/ConnectionConfRetriever.js'
+import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
+import db from '../../../src/db/index.js'
+import { DbConnectionType } from '../../../src/db/types.js'
+import User from '../../../test-app/app/models/User.js'
 
 /**
  * NOTE: for our replica safe specs, we use a database that is not actually set up

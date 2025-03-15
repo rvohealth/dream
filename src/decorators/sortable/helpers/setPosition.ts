@@ -1,7 +1,7 @@
 import { ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import db from '../../../db/index.js'
 import Dream from '../../../Dream.js'
-import DreamTransaction from '../../../dream/DreamTransaction'
+import DreamTransaction from '../../../dream/DreamTransaction.js'
 import Query from '../../../dream/Query.js'
 import range from '../../../helpers/range.js'
 import getColumnForSortableScope from './getColumnForSortableScope.js'

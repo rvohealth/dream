@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import camelize from '../../../src/helpers/camelize'
-import Balloon from '../../../test-app/app/models/Balloon'
-import { CalendarDate } from '../../../src'
+import camelize from '../../../src/helpers/camelize.js'
+import { CalendarDate } from '../../../src/index.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('camelize', () => {
   context('when passed a string', () => {

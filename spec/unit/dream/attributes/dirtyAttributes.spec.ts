@@ -1,4 +1,4 @@
-import User from '../../../../test-app/app/models/User'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#dirtyAttributes', () => {
   it('returns attributes that are dirty', async () => {

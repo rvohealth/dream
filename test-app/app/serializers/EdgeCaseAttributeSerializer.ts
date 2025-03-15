@@ -1,6 +1,6 @@
-import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
-import EdgeCaseAttribute from '../models/EdgeCaseAttribute'
+import Attribute from '../../../src/serializer/decorators/attribute.js'
+import DreamSerializer from '../../../src/serializer/index.js'
+import EdgeCaseAttribute from '../models/EdgeCaseAttribute.js'
 
 export default class EdgeCaseAttributeSerializer<
   DataType extends EdgeCaseAttribute,

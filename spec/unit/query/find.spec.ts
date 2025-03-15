@@ -1,6 +1,6 @@
-import ops from '../../../src/ops'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../src/ops/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#find', () => {
   let user: User

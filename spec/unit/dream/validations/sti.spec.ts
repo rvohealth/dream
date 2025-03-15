@@ -1,4 +1,4 @@
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 
 describe('Dream validations with STI models', () => {
   it('applies validations from base model', () => {

@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv'
 import EnvInternal from './EnvInternal.js'
 
-import { fileURLToPath } from 'node:url'
 import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 declare const importMeta: unique symbol
 let finalDirname: string

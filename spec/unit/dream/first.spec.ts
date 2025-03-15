@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
-import { CalendarDate } from '../../../src'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec'
-import User from '../../../test-app/app/models/User'
+import { CalendarDate } from '../../../src/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.first', () => {
   it('finds the first record in the db, sorting by id', async () => {

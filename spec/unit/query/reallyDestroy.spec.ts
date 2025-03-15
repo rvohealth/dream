@@ -1,8 +1,8 @@
-import { Query } from '../../../src'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Post from '../../../test-app/app/models/Post'
-import Rating from '../../../test-app/app/models/Rating'
-import User from '../../../test-app/app/models/User'
+import { Query } from '../../../src/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Post from '../../../test-app/app/models/Post.js'
+import Rating from '../../../test-app/app/models/Rating.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#reallyDestroy', () => {
   it('destroys the record', async () => {

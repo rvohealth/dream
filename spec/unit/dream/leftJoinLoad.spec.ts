@@ -1,9 +1,9 @@
-import { NonLoadedAssociation } from '../../../src'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import Pet from '../../../test-app/app/models/Pet'
-import User from '../../../test-app/app/models/User'
+import { NonLoadedAssociation } from '../../../src/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#leftJoinLoad', () => {
   let user: User

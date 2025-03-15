@@ -1,4 +1,4 @@
-import Dream from '../../Dream'
+import Dream from '../../Dream.js'
 import CannotReloadUnsavedDream from '../../errors/CannotReloadUnsavedDream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'

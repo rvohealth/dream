@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause'
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Collar from '../../../../test-app/app/models/Collar'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import LocalizedText from '../../../../test-app/app/models/LocalizedText'
-import Pet from '../../../../test-app/app/models/Pet'
-import User from '../../../../test-app/app/models/User'
+import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Collar from '../../../../test-app/app/models/Collar.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import LocalizedText from '../../../../test-app/app/models/LocalizedText.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#updateAssociation', () => {
   context('with an on-clause', () => {

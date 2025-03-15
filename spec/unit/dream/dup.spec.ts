@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import User from '../../../test-app/app/models/User'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#dup', () => {
   it('returns a new, unpersisted copy', async () => {

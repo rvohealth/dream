@@ -1,6 +1,6 @@
-import User from '../../../../test-app/app/models/User'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Latex from '../../../../test-app/app/models/Balloon/Latex'
+import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#preload with sti associations', () => {
   context('HasMany associations', () => {

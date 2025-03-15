@@ -1,4 +1,4 @@
-import allNestedObjectKeys from '../../../src/helpers/allNestedObjectKeys'
+import allNestedObjectKeys from '../../../src/helpers/allNestedObjectKeys.js'
 
 describe('allNestedObjectKeys', () => {
   context('{ hello: "world" }', () => {

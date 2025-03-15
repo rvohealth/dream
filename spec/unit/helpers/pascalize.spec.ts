@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import pascalize from '../../../src/helpers/pascalize'
-import Balloon from '../../../test-app/app/models/Balloon'
-import { CalendarDate } from '../../../src'
+import pascalize from '../../../src/helpers/pascalize.js'
+import { CalendarDate } from '../../../src/index.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('pascalize', () => {
   context('when passed a string', () => {

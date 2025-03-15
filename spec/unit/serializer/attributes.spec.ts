@@ -1,6 +1,6 @@
-import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
-import processDynamicallyDefinedSerializers from '../../helpers/processDynamicallyDefinedSerializers'
+import Attribute from '../../../src/serializer/decorators/attribute.js'
+import DreamSerializer from '../../../src/serializer/index.js'
+import processDynamicallyDefinedSerializers from '../../helpers/processDynamicallyDefinedSerializers.js'
 
 describe('DreamSerializer attribute accessors', () => {
   it('allows accessing attributes from serializer', () => {

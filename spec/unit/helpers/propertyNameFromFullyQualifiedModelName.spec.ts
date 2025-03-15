@@ -1,4 +1,4 @@
-import propertyNameFromFullyQualifiedModelName from '../../../src/helpers/propertyNameFromFullyQualifiedModelName'
+import propertyNameFromFullyQualifiedModelName from '../../../src/helpers/propertyNameFromFullyQualifiedModelName.js'
 
 describe('propertyNameFromFullyQualifiedModelName', () => {
   it('changes user to User', () => {

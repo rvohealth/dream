@@ -5,12 +5,12 @@
 // commanderjs docs:
 // https://github.com/tj/commander.js#quick-start
 
-import '../conf/loadEnv'
+import '../conf/loadEnv.js'
 
 import { DreamCLI } from '@rvoh/dream'
 import { Command } from 'commander'
-import seedDb from '../db/seed'
-import initializeDreamApplication from './helpers/initializeDreamApplication'
+import seedDb from '../db/seed.js'
+import initializeDreamApplication from './helpers/initializeDreamApplication.js'
 
 const program = new Command()
 

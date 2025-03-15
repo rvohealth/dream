@@ -1,9 +1,9 @@
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Balloon from '../../../test-app/app/models/Balloon'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey'
-import User from '../../../test-app/app/models/User'
-import createModelWithSerialPrimaryKey from '../../../test-app/spec/factories/ModelWithSerialPrimaryKeyFactory'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
+import User from '../../../test-app/app/models/User.js'
+import createModelWithSerialPrimaryKey from '../../../test-app/spec/factories/ModelWithSerialPrimaryKeyFactory.js'
 
 describe('Dream.find', () => {
   let user: User

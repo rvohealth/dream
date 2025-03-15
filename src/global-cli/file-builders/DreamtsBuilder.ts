@@ -17,7 +17,7 @@ export default class DreamtsBuilder {
     return `\
 import * as path from 'path'
 import { DreamApplication } from '@rvoh/dream'
-import inflections from './inflections'
+import inflections from './inflections.js'
 
 export default async function (app: DreamApplication) {
   await app.load('models', path.join(__dirname, '..', 'models'))

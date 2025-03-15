@@ -1,7 +1,7 @@
-import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
-import Collar from '../../../../../test-app/app/models/Collar'
-import Pet from '../../../../../test-app/app/models/Pet'
-import User from '../../../../../test-app/app/models/User'
+import Mylar from '../../../../../test-app/app/models/Balloon/Mylar.js'
+import Collar from '../../../../../test-app/app/models/Collar.js'
+import Pet from '../../../../../test-app/app/models/Pet.js'
+import User from '../../../../../test-app/app/models/User.js'
 
 describe('Query#joins through with simple associations and overriding primary key', () => {
   context('explicit HasMany through', () => {

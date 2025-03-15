@@ -1,6 +1,6 @@
-import { Decorators, DreamColumn } from '../../../src'
-import ApplicationModel from './ApplicationModel'
-import User from './User'
+import { Decorators, DreamColumn } from '../../../src/index.js'
+import ApplicationModel from './ApplicationModel.js'
+import User from './User.js'
 
 const Deco = new Decorators<InstanceType<typeof InvalidAssociationSortableModel>>()
 

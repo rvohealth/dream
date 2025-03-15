@@ -1,6 +1,6 @@
-import Collar from '../../../../../test-app/app/models/Collar'
-import Pet from '../../../../../test-app/app/models/Pet'
-import User from '../../../../../test-app/app/models/User'
+import Collar from '../../../../../test-app/app/models/Collar.js'
+import Pet from '../../../../../test-app/app/models/Pet.js'
+import User from '../../../../../test-app/app/models/User.js'
 
 describe('Query#joins with simple associations and overriding primary key', () => {
   it('joins a HasOne association', async () => {

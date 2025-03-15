@@ -1,5 +1,5 @@
-import uniq from '../../../src/helpers/uniq'
-import GraphNode from '../../../test-app/app/models/Graph/Node'
+import uniq from '../../../src/helpers/uniq.js'
+import GraphNode from '../../../test-app/app/models/Graph/Node.js'
 
 describe('uniq', () => {
   const subject = () => uniq(array(), toKey)

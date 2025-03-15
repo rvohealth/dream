@@ -1,5 +1,5 @@
-import { DreamSerializers } from '../../../src'
-import ApplicationModel from '../models/ApplicationModel'
+import { DreamSerializers } from '../../../src/index.js'
+import ApplicationModel from '../models/ApplicationModel.js'
 
 export default class HelloWorldViewModel {
   public get serializers(): DreamSerializers<ApplicationModel> {

@@ -1,6 +1,6 @@
-import { DreamApplication } from '../../../src'
-import srcPath from '../helpers/srcPath'
-import inflections from './inflections'
+import { DreamApplication } from '../../../src/index.js'
+import srcPath from '../helpers/srcPath.js'
+import inflections from './inflections.js'
 
 export default async function (dreamApp: DreamApplication) {
   await dreamApp.load('models', srcPath('app', 'models'), async path => (await import(path)).default)

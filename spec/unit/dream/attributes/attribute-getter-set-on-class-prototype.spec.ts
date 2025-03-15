@@ -1,6 +1,6 @@
-import User from '../../../../test-app/app/models/User'
-import Pet from '../../../../test-app/app/models/Pet'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('attribute getters', () => {
   it('are set based on the columns in the table', () => {

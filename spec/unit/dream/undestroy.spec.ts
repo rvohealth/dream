@@ -1,10 +1,10 @@
-import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/errors/CannotCallUndestroyOnANonSoftDeleteModel'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Collar from '../../../test-app/app/models/Collar'
-import Pet from '../../../test-app/app/models/Pet'
-import Post from '../../../test-app/app/models/Post'
-import PostComment from '../../../test-app/app/models/PostComment'
-import User from '../../../test-app/app/models/User'
+import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Collar from '../../../test-app/app/models/Collar.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import Post from '../../../test-app/app/models/Post.js'
+import PostComment from '../../../test-app/app/models/PostComment.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#undestroy', () => {
   it('undestroys a soft-deleted record', async () => {

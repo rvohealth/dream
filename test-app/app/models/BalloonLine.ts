@@ -1,7 +1,7 @@
-import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Balloon from './Balloon'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import { Decorators } from '../../../src/index.js'
+import ApplicationModel from './ApplicationModel.js'
+import Balloon from './Balloon.js'
 
 const Deco = new Decorators<InstanceType<typeof BalloonLine>>()
 

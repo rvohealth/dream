@@ -1,5 +1,5 @@
-import STI from '../../../../src/decorators/STI'
-import Balloon from '../Balloon'
+import STI from '../../../../src/decorators/STI.js'
+import Balloon from '../Balloon.js'
 
 // esbuild will sometimes translate class definitions to have a prefixing
 // underscore, which will force the value entering the db to be "_Latex"

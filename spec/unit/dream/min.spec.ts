@@ -1,7 +1,7 @@
-import User from '../../../test-app/app/models/User'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.min', () => {
   it('returns the min', async () => {

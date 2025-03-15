@@ -1,6 +1,6 @@
-import validateTable from '../../../../src/db/validators/validateTable'
-import InvalidTableName from '../../../../src/errors/InvalidTableName'
-import User from '../../../../test-app/app/models/User'
+import validateTable from '../../../../src/db/validators/validateTable.js'
+import InvalidTableName from '../../../../src/errors/InvalidTableName.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('validateTable', () => {
   it('returns the table string with a valid table', () => {

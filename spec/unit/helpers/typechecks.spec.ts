@@ -1,4 +1,4 @@
-import { isObject, isString } from '../../../src/helpers/typechecks'
+import { isObject, isString } from '../../../src/helpers/typechecks.js'
 
 describe('isObject', () => {
   const subject = () => isObject(argument)

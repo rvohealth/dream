@@ -1,6 +1,6 @@
-import Dream from '../../../src/Dream'
-import { DBClass } from '../../types/db'
-import { globalSchema, schema } from '../../types/dream'
+import Dream from '../../../src/Dream.js'
+import { DBClass } from '../../types/db.js'
+import { globalSchema, schema } from '../../types/dream.js'
 
 export default class ApplicationModel extends Dream {
   public declare DB: DBClass

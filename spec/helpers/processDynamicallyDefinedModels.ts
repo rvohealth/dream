@@ -1,4 +1,4 @@
-import { Dream } from '../../src'
+import { Dream } from '../../src/index.js'
 
 export default function processDynamicallyDefinedModels(...dreamClasses: (typeof Dream)[]) {
   Dream['globallyInitializingDecorators'] = true

@@ -1,5 +1,5 @@
-import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
+import ops from '../../../src/ops/index.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#last', () => {
   it('returns last record found, ordered by id', async () => {

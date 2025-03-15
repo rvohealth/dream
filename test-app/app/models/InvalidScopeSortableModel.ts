@@ -1,5 +1,5 @@
-import { Decorators, DreamColumn } from '../../../src'
-import ApplicationModel from './ApplicationModel'
+import { Decorators, DreamColumn } from '../../../src/index.js'
+import ApplicationModel from './ApplicationModel.js'
 
 const Deco = new Decorators<InstanceType<typeof InvalidScopeSortableModel>>()
 

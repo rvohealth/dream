@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import Pet from '../../../../test-app/app/models/Pet'
+import Pet from '../../../../test-app/app/models/Pet.js'
 
 describe('Dream#changes', () => {
   context('with a newly-created record', () => {

@@ -1,9 +1,9 @@
-import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src'
-import { OpenapiSchemaBody } from '../../../../src/openapi/types'
-import Balloon from '../../../../test-app/app/models/Balloon'
-import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec'
-import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db'
-import processDynamicallyDefinedSerializers from '../../../helpers/processDynamicallyDefinedSerializers'
+import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src/index.js'
+import { OpenapiSchemaBody } from '../../../../src/openapi/types.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db.js'
+import processDynamicallyDefinedSerializers from '../../../helpers/processDynamicallyDefinedSerializers.js'
 
 describe('@Attribute', () => {
   context('with no arguments', () => {

@@ -1,9 +1,9 @@
-import { Decorators } from '../../../src'
-import { DreamColumn } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Composition from './Composition'
-import CompositionAsset from './CompositionAsset'
-import User from './User'
+import { DreamColumn } from '../../../src/dream/types.js'
+import { Decorators } from '../../../src/index.js'
+import ApplicationModel from './ApplicationModel.js'
+import Composition from './Composition.js'
+import CompositionAsset from './CompositionAsset.js'
+import User from './User.js'
 
 const Deco = new Decorators<InstanceType<typeof CompositionAssetAudit>>()
 

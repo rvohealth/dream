@@ -1,4 +1,4 @@
-import isEmpty from '../../../src/helpers/isEmpty'
+import isEmpty from '../../../src/helpers/isEmpty.js'
 
 describe('isEmpty', () => {
   context('[]', () => {

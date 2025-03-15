@@ -1,8 +1,8 @@
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Composition from '../../../../test-app/app/models/Composition'
-import Sandbag from '../../../../test-app/app/models/Sandbag'
-import User from '../../../../test-app/app/models/User'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import Sandbag from '../../../../test-app/app/models/Sandbag.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream AfterUpdateCommit decorator', () => {
   it('runs the query after the transactions have been commited', async () => {

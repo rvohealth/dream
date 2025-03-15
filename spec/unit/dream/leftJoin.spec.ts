@@ -1,8 +1,8 @@
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Composition from '../../../test-app/app/models/Composition'
-import Post from '../../../test-app/app/models/Post'
-import PostComment from '../../../test-app/app/models/PostComment'
-import User from '../../../test-app/app/models/User'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import Post from '../../../test-app/app/models/Post.js'
+import PostComment from '../../../test-app/app/models/PostComment.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.leftJoin', () => {
   it('joins a HasOne association, including models that don’t have an associated model', async () => {

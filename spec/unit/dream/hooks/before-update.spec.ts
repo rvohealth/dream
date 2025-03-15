@@ -1,9 +1,9 @@
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
-import Sandbag from '../../../../test-app/app/models/Sandbag'
-import User from '../../../../test-app/app/models/User'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit.js'
+import Sandbag from '../../../../test-app/app/models/Sandbag.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream BeforeUpdate decorator', () => {
   it('runs the query before updating a record', async () => {

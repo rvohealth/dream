@@ -1,8 +1,8 @@
-import { ops } from '../../../src'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../test-app/app/models/Graph/Node'
-import User from '../../../test-app/app/models/User'
+import { ops } from '../../../src/index.js'
+import Edge from '../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../test-app/app/models/Graph/Node.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#nestedSelect', () => {
   it('allows nested select statements', async () => {

@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { CalendarDate, ops, range } from '../../../src'
-import cloneDeepSafe, { TypeUnsupportedByClone } from '../../../src/helpers/cloneDeepSafe'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
+import cloneDeepSafe, { TypeUnsupportedByClone } from '../../../src/helpers/cloneDeepSafe.js'
+import { CalendarDate, ops, range } from '../../../src/index.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 
 describe('cloneDeepSafe', () => {
   context('a string', () => {

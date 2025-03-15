@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import hyphenize from '../../../src/helpers/hyphenize'
-import Balloon from '../../../test-app/app/models/Balloon'
-import { CalendarDate } from '../../../src'
+import hyphenize from '../../../src/helpers/hyphenize.js'
+import { CalendarDate } from '../../../src/index.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('hyphenize', () => {
   context('when passed a string', () => {

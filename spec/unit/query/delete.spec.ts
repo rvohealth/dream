@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/User'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#delete', () => {
   it('deletes all records matching the query', async () => {

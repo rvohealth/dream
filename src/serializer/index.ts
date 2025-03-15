@@ -1,6 +1,5 @@
-import { DateTime } from 'luxon'
-import Dream from '../Dream.js'
 import DreamApplication from '../dream-application/index.js'
+import Dream from '../Dream.js'
 import {
   DreamConst,
   SerializableClassOrSerializerCallback,
@@ -13,6 +12,7 @@ import FailedToRenderThroughAssociationForSerializer from '../errors/serializers
 import CalendarDate from '../helpers/CalendarDate.js'
 import camelize from '../helpers/camelize.js'
 import compact from '../helpers/compact.js'
+import DateTime from '../helpers/DateTime.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel.js'

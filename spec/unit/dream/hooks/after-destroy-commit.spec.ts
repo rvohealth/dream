@@ -1,7 +1,7 @@
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import User from '../../../../test-app/app/models/User'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream AfterDestroyCommit decorator', () => {
   it('runs the query after the transactions have been commited', async () => {

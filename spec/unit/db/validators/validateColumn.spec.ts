@@ -1,6 +1,6 @@
-import validateColumn from '../../../../src/db/validators/validateColumn'
-import InvalidColumnName from '../../../../src/errors/InvalidColumnName'
-import User from '../../../../test-app/app/models/User'
+import validateColumn from '../../../../src/db/validators/validateColumn.js'
+import InvalidColumnName from '../../../../src/errors/InvalidColumnName.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('validateColumn', () => {
   it('returns the table string with a valid table', () => {

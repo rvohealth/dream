@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import User from '../../../../../test-app/app/models/User'
+import User from '../../../../../test-app/app/models/User.js'
 
 describe('marshalling postgres dates from db', () => {
   const userOptions = { email: 'fred@', password: 'howyadoin' }

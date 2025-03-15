@@ -1,10 +1,10 @@
-import { Dream } from '../../../src'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns'
-import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns'
-import Pet from '../../../test-app/app/models/Pet'
-import Rating from '../../../test-app/app/models/Rating'
-import User from '../../../test-app/app/models/User'
+import { Dream } from '../../../src/index.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns.js'
+import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import Rating from '../../../test-app/app/models/Rating.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#paramSafeColumnsOrFallback', () => {
   const subject = (model: typeof Dream) => model.paramSafeColumnsOrFallback()

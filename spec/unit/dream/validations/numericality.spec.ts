@@ -1,6 +1,6 @@
-import ValidationError from '../../../../src/errors/ValidationError'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import User from '../../../../test-app/app/models/User'
+import ValidationError from '../../../../src/errors/ValidationError.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream presence numericality', () => {
   it('appplies validation configuration to dream class', () => {

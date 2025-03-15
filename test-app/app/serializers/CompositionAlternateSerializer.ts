@@ -1,10 +1,10 @@
-import { RendersMany, RendersOne } from '../../../src'
-import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
-import { CompositionMetadata } from '../models/Composition'
-import CompositionAsset from '../models/CompositionAsset'
-import LocalizedText from '../models/LocalizedText'
-import { LocalizedTextBaseSerializer } from './LocalizedText/BaseSerializer'
+import { RendersMany, RendersOne } from '../../../src/index.js'
+import Attribute from '../../../src/serializer/decorators/attribute.js'
+import DreamSerializer from '../../../src/serializer/index.js'
+import { CompositionMetadata } from '../models/Composition.js'
+import CompositionAsset from '../models/CompositionAsset.js'
+import LocalizedText from '../models/LocalizedText.js'
+import { LocalizedTextBaseSerializer } from './LocalizedText/BaseSerializer.js'
 
 // Since this serializer's name is different from the model it is related to,
 // dream will not be able to infer the origin model, and will fail to lookup serializers

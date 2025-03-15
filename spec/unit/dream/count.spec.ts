@@ -1,5 +1,5 @@
-import User from '../../../test-app/app/models/User'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.count', () => {
   it('counts all records for a given model', async () => {

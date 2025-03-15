@@ -1,4 +1,4 @@
-import pascalizePath from '../../../src/helpers/pascalizePath'
+import pascalizePath from '../../../src/helpers/pascalizePath.js'
 
 describe('pascalizePath', () => {
   context('when passed a string', () => {

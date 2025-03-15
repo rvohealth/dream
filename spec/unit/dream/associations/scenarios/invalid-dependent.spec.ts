@@ -1,9 +1,9 @@
-import { Decorators, DreamConst } from '../../../../../src'
-import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndPassthrough'
-import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause'
-import Post from '../../../../../test-app/app/models/Post'
-import User from '../../../../../test-app/app/models/User'
-import processDynamicallyDefinedModels from '../../../../helpers/processDynamicallyDefinedModels'
+import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
+import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
+import { Decorators, DreamConst } from '../../../../../src/index.js'
+import Post from '../../../../../test-app/app/models/Post.js'
+import User from '../../../../../test-app/app/models/User.js'
+import processDynamicallyDefinedModels from '../../../../helpers/processDynamicallyDefinedModels.js'
 
 describe('Invalid dependent set within HasOne/HasMany associations', () => {
   context('HasMany', () => {

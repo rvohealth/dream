@@ -1,4 +1,4 @@
-import User from '../../../../test-app/app/models/User'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('@Encrypted', () => {
   it('adds the decorated property to the defaultParamSafeColumns', () => {

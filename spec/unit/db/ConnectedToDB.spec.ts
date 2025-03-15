@@ -1,6 +1,6 @@
-import ConnectedToDB from '../../../src/db/ConnectedToDB'
-import Balloon from '../../../test-app/app/models/Balloon'
-import Composition from '../../../test-app/app/models/Composition'
+import ConnectedToDB from '../../../src/db/ConnectedToDB.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import Composition from '../../../test-app/app/models/Composition.js'
 
 describe('ConnectedToDB', () => {
   describe('#dbConnectionType', () => {

@@ -1,7 +1,7 @@
-import Balloon from '../../../../../test-app/app/models/Balloon'
-import Latex from '../../../../../test-app/app/models/Balloon/Latex'
-import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
-import Pet from '../../../../../test-app/app/models/Pet'
+import Balloon from '../../../../../test-app/app/models/Balloon.js'
+import Latex from '../../../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../../../test-app/app/models/Balloon/Mylar.js'
+import Pet from '../../../../../test-app/app/models/Pet.js'
 
 describe('on clauses on associations (also see various specs in spec/unit/query)', () => {
   let pet: Pet

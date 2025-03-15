@@ -6,7 +6,6 @@ import {
   Updateable,
   UpdateQueryBuilder,
 } from 'kysely'
-import { DateTime } from 'luxon'
 
 import { pgErrorType } from './db/errors.js'
 import db from './db/index.js'
@@ -105,6 +104,7 @@ import MissingTable from './errors/MissingTable.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import DateTime from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'

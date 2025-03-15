@@ -1,5 +1,5 @@
-import ops from '../../../src/ops'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../src/ops/index.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#exists', () => {
   context('when a matching record exists', () => {

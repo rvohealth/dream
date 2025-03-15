@@ -1,10 +1,10 @@
-import { Decorators, SoftDelete } from '../../../src'
-import Scope from '../../../src/decorators/Scope'
-import Query from '../../../src/dream/Query'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Balloon from './Balloon'
-import Pet from './Pet'
+import Scope from '../../../src/decorators/Scope.js'
+import Query from '../../../src/dream/Query.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import { Decorators, SoftDelete } from '../../../src/index.js'
+import ApplicationModel from './ApplicationModel.js'
+import Balloon from './Balloon.js'
+import Pet from './Pet.js'
 
 const Deco = new Decorators<InstanceType<typeof Collar>>()
 

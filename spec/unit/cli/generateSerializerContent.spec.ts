@@ -1,4 +1,4 @@
-import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent'
+import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent.js'
 
 describe('dream generate:serializer <name> [...attributes]', () => {
   context('when provided attributes', () => {
@@ -12,7 +12,7 @@ describe('dream generate:serializer <name> [...attributes]', () => {
         expect(res).toEqual(
           `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -45,8 +45,8 @@ export default class UserSerializer<
         expect(res).toEqual(
           `\
 import { Attribute, DreamColumn } from '@rvoh/dream'
-import FooBaseSerializer, { FooBaseSummarySerializer } from './BaseSerializer'
-import FooBar from '../../models/Foo/Bar'
+import FooBaseSerializer, { FooBaseSummarySerializer } from './BaseSerializer.js'
+import FooBar from '../../models/Foo/Bar.js'
 
 export class FooBarSummarySerializer<
   DataType extends FooBar,
@@ -74,7 +74,7 @@ export default class FooBarSerializer<
           expect(res).toEqual(
             `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import UserAdmin from '../../models/User/Admin'
+import UserAdmin from '../../models/User/Admin.js'
 
 export class UserAdminSummarySerializer<
   DataType extends UserAdmin,
@@ -131,7 +131,7 @@ export default class UserAdminSerializer<
           expect(res).toEqual(
             `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -211,7 +211,7 @@ export default class UserSerializer<
           expect(res).toEqual(
             `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -244,7 +244,7 @@ export default class UserSerializer<
             expect(res).toEqual(
               `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -274,7 +274,7 @@ export default class UserSerializer<
               expect(res).toEqual(
                 `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -306,7 +306,7 @@ export default class UserSerializer<
             expect(res).toEqual(
               `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -337,7 +337,7 @@ export default class UserSerializer<
             expect(res).toEqual(
               `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,
@@ -370,7 +370,7 @@ function expectAttributeType(startingAttributeType: string) {
   expect(res).toEqual(
     `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '../models/User.js'
 
 export class UserSummarySerializer<
   DataType extends User,

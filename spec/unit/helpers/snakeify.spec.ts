@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import snakeify from '../../../src/helpers/snakeify'
-import Balloon from '../../../test-app/app/models/Balloon'
-import { CalendarDate } from '../../../src'
+import snakeify from '../../../src/helpers/snakeify.js'
+import { CalendarDate } from '../../../src/index.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('snakeify', () => {
   context('when passed a string', () => {

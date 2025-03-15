@@ -1,7 +1,7 @@
-import ops from '../../../src/ops'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Pet from '../../../test-app/app/models/Pet'
-import User from '../../../test-app/app/models/User'
+import ops from '../../../src/ops/index.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#order', () => {
   it('orders by ascending direction when passed a single column', async () => {
