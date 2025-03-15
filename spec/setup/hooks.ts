@@ -3,7 +3,7 @@ import 'luxon-jest-matchers'
 
 import { provideDreamViteMatchers, truncate } from '@rvoh/dream-spec-helpers'
 import { toBeOneOf } from 'jest-extended'
-import { DreamApplication } from '../../src.js'
+import { DreamApplication } from '../../src/index.js'
 import initializeDreamApplication from '../../test-app/cli/helpers/initializeDreamApplication.js'
 
 provideDreamViteMatchers()
