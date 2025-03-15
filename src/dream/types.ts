@@ -1,5 +1,4 @@
 import { ColumnType, Updateable } from 'kysely'
-import { DateTime } from 'luxon'
 import { AssociationTableNames } from '../db/reflections.js'
 import { BelongsToStatement } from '../decorators/associations/BelongsTo.js'
 import { HasManyStatement } from '../decorators/associations/HasMany.js'
@@ -12,6 +11,7 @@ import {
 import { STI_SCOPE_NAME } from '../decorators/STI.js'
 import Dream from '../Dream.js'
 import CalendarDate from '../helpers/CalendarDate.js'
+import DateTime from '../helpers/DateTime.js'
 import { Camelized } from '../helpers/stringCasing.js'
 import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils.js'
 import OpsStatement from '../ops/ops-statement.js'

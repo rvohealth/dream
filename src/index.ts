@@ -1,8 +1,8 @@
 export { default as DreamBin } from './bin/index.js'
 export { default as DreamCLI } from './cli/index.js'
 export {
-  default as DreamDbConnection,
   closeAllDbConnections,
+  default as DreamDbConnection,
   dreamDbConnections,
 } from './db/DreamDbConnection.js'
 export { pgErrorType } from './db/errors.js'
@@ -30,8 +30,8 @@ export {
   default as DreamApplication,
   type DreamApplicationInitOptions,
   type DreamApplicationOpts,
-  type DreamLogLevel,
   type DreamLogger,
+  type DreamLogLevel,
 } from './dream-application/index.js'
 export { default as Dream } from './Dream.js'
 export { default as DreamTransaction } from './dream/DreamTransaction.js'
@@ -52,15 +52,15 @@ export {
   type DreamVirtualColumns,
   type IdType,
   type PrimaryKeyType,
+  type primaryKeyTypes,
   type SerializableClassOrSerializerCallback,
   type SerializableDreamClassOrViewModelClass,
   type SerializableDreamOrViewModel,
-  type TRIGRAM_OPERATORS,
   type Timestamp,
+  type TRIGRAM_OPERATORS,
   type UpdateableAssociationProperties,
   type UpdateableProperties,
   type ViewModelSerializerKey,
-  type primaryKeyTypes,
 } from './dream/types.js'
 export { default as Encrypt, type EncryptAlgorithm, type EncryptOptions } from './encrypt/index.js'
 export { default as NonLoadedAssociation } from './errors/associations/NonLoadedAssociation.js'
@@ -74,6 +74,7 @@ export { default as camelize } from './helpers/camelize.js'
 export { default as capitalize } from './helpers/capitalize.js'
 export { default as generateDream } from './helpers/cli/generateDream.js'
 export { default as compact } from './helpers/compact.js'
+export { default as DateTime } from './helpers/DateTime.js'
 export { default as debug } from './helpers/debug.js'
 export { default as Env } from './helpers/Env.js'
 export { default as globalClassNameFromFullyQualifiedModelName } from './helpers/globalClassNameFromFullyQualifiedModelName.js'

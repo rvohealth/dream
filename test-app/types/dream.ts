@@ -96,7 +96,7 @@ b.) All laptops are ok sleeping places for your
 */
 
 import CalendarDate from '../../src/helpers/CalendarDate.js'
-import { DateTime } from 'luxon'
+import DateTime from '../../src/helpers/DateTime.js'
 import {
   BalloonColorsEnum,
   BalloonColorsEnumValues,
