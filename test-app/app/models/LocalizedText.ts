@@ -1,8 +1,8 @@
-import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Composition from './Composition'
-import CompositionAsset from './CompositionAsset'
+import { Decorators } from '../../../src.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import Composition from './Composition.js'
+import CompositionAsset from './CompositionAsset.js'
 
 const Deco = new Decorators<InstanceType<typeof LocalizedText>>()
 

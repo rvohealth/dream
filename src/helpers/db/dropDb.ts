@@ -1,9 +1,9 @@
 import { Client } from 'pg'
-import ConnectionConfRetriever from '../../db/ConnectionConfRetriever.js'
-import { DbConnectionType } from '../../db/types.js'
-import DreamApplication from '../../dream-application/index.js'
-import EnvInternal from '../EnvInternal.js'
-import loadPgClient from './loadPgClient.js'
+import ConnectionConfRetriever from '../../db/ConnectionConfRetriever.js.js'
+import { DbConnectionType } from '../../db/types.js.js'
+import DreamApplication from '../../dream-application/index.js.js'
+import EnvInternal from '../EnvInternal.js.js'
+import loadPgClient from './loadPgClient.js.js'
 
 export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,

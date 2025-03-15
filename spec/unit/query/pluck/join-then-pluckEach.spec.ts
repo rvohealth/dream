@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import ops from '../../../../src/ops'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit'
-import Edge from '../../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../../test-app/app/models/Graph/Node'
-import Pet from '../../../../test-app/app/models/Pet'
-import User from '../../../../test-app/app/models/User'
+import ops from '../../../../src/ops.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit.js'
+import Edge from '../../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../../test-app/app/models/Graph/Node.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#pluckEach on a join query', () => {
   it('can pluck from the associated namespace', async () => {

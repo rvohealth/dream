@@ -1,8 +1,8 @@
 import pluralize from 'pluralize-esm'
-import { PrimaryKeyType } from '../../dream/types.js'
-import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
-import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
-import snakeify from '../snakeify.js'
+import { PrimaryKeyType } from '../../dream/types.js.js'
+import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js.js'
+import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js.js'
+import snakeify from '../snakeify.js.js'
 
 interface ColumnDefsAndDrops {
   columnDefs: string[]

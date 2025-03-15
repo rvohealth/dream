@@ -1,8 +1,8 @@
-import { Decorators } from '../../../src'
-import Validate from '../../../src/decorators/validations/Validate'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Mylar from './Balloon/Mylar'
+import { Decorators } from '../../../src.js'
+import Validate from '../../../src/decorators/validations/Validate.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import Mylar from './Balloon/Mylar.js'
 
 const Deco = new Decorators<InstanceType<typeof Sandbag>>()
 

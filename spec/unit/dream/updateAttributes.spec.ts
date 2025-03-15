@@ -1,8 +1,8 @@
-import User from '../../../test-app/app/models/User'
-import Animal from '../../../test-app/app/models/Balloon/Latex/Animal'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Pet from '../../../test-app/app/models/Pet'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#updateAttributes', () => {
   it('updates the attributes for a dream', async () => {

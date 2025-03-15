@@ -1,8 +1,8 @@
-import { CommitHookType } from '../../decorators/hooks/shared.js'
-import Dream from '../../Dream.js'
-import DreamTransaction from '../DreamTransaction.js'
-import { DreamConstructorType } from '../types.js'
-import runHooksFor from './runHooksFor.js'
+import { CommitHookType } from '../../decorators/hooks/shared.js.js'
+import Dream from '../../Dream.js.js'
+import DreamTransaction from '../DreamTransaction.js.js'
+import { DreamConstructorType } from '../types.js.js'
+import runHooksFor from './runHooksFor.js.js'
 
 export default async function safelyRunCommitHooks<DreamInstance extends Dream>(
   dream: DreamInstance,

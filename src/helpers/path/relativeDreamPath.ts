@@ -1,7 +1,7 @@
-import pascalize from '../pascalize.js'
-import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
-import dreamPath, { DreamPaths } from './dreamPath.js'
-import sharedPathPrefix from './sharedPathPrefix.js'
+import pascalize from '../pascalize.js.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js.js'
+import dreamPath, { DreamPaths } from './dreamPath.js.js'
+import sharedPathPrefix from './sharedPathPrefix.js.js'
 
 export default function (
   originDreamPathType: DreamPaths,

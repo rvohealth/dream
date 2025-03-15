@@ -1,5 +1,5 @@
 import { Kysely } from 'kysely'
-import { DreamMigrationHelpers } from '../../../src'
+import { DreamMigrationHelpers } from '../../../src.js'
 
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema

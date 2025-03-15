@@ -1,10 +1,10 @@
-import camelize from '../camelize.js'
-import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
-import pascalize from '../pascalize.js'
-import relativeDreamPath from '../path/relativeDreamPath.js'
-import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
-import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
-import uniq from '../uniq.js'
+import camelize from '../camelize.js.js'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js.js'
+import pascalize from '../pascalize.js.js'
+import relativeDreamPath from '../path/relativeDreamPath.js.js'
+import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js.js'
+import uniq from '../uniq.js.js'
 
 export default function generateSerializerContent({
   fullyQualifiedModelName,

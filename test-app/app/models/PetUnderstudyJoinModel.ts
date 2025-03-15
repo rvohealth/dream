@@ -1,7 +1,7 @@
-import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Pet from './Pet'
+import { Decorators } from '../../../src.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import Pet from './Pet.js'
 
 const Deco = new Decorators<InstanceType<typeof PetUnderstudyJoinModel>>()
 

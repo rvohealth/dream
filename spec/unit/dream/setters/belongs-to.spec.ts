@@ -1,9 +1,9 @@
 import { sql } from 'kysely'
-import db from '../../../../src/db'
-import Composition from '../../../../test-app/app/models/Composition'
-import Post from '../../../../test-app/app/models/Post'
-import Rating from '../../../../test-app/app/models/Rating'
-import User from '../../../../test-app/app/models/User'
+import db from '../../../../src/db.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import Post from '../../../../test-app/app/models/Post.js'
+import Rating from '../../../../test-app/app/models/Rating.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('BelongsTo setters', () => {
   it('the getter is updated to the new model', async () => {

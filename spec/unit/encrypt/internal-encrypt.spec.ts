@@ -1,6 +1,6 @@
-import Encrypt from '../../../src/encrypt'
-import InternalEncrypt from '../../../src/encrypt/InternalEncrypt'
-import initializeDreamApplication from '../../../test-app/cli/helpers/initializeDreamApplication'
+import Encrypt from '../../../src/encrypt.js'
+import InternalEncrypt from '../../../src/encrypt/InternalEncrypt.js'
+import initializeDreamApplication from '../../../test-app/cli/helpers/initializeDreamApplication.js'
 
 describe('InternalEncrypt', () => {
   describe('#encryptColumn, #decryptColumn', () => {

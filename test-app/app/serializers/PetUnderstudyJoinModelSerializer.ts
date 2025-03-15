@@ -1,7 +1,7 @@
-import DreamSerializer from '../../../src/serializer'
-import RendersOne from '../../../src/serializer/decorators/associations/RendersOne'
-import Pet from '../models/Pet'
-import PetUnderstudyJoinModel from '../models/PetUnderstudyJoinModel'
+import DreamSerializer from '../../../src/serializer.js'
+import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
+import Pet from '../models/Pet.js'
+import PetUnderstudyJoinModel from '../models/PetUnderstudyJoinModel.js'
 
 export default class PetUnderstudyJoinModelSerializer<
   DataType extends PetUnderstudyJoinModel,

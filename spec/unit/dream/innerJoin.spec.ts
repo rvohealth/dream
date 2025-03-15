@@ -1,10 +1,10 @@
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import BalloonLine from '../../../test-app/app/models/BalloonLine'
-import Composition from '../../../test-app/app/models/Composition'
-import Post from '../../../test-app/app/models/Post'
-import PostComment from '../../../test-app/app/models/PostComment'
-import User from '../../../test-app/app/models/User'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import Post from '../../../test-app/app/models/Post.js'
+import PostComment from '../../../test-app/app/models/PostComment.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.innerJoin', () => {
   it('joins a HasOne association, omitting models that don’t have an associated model', async () => {

@@ -1,9 +1,9 @@
-import Post from '../../../test-app/app/models/Post'
-import User from '../../../test-app/app/models/User'
-import ops from '../../../src/ops'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import Rating from '../../../test-app/app/models/Rating'
+import ops from '../../../src/ops.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import Post from '../../../test-app/app/models/Post.js'
+import Rating from '../../../test-app/app/models/Rating.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#limit', () => {
   it('limits number of records returned', async () => {

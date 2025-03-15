@@ -1,5 +1,5 @@
-import Encrypt, { EncryptOptions } from '../../../src/encrypt'
-import MissingEncryptionKey from '../../../src/errors/encrypt/MissingEncryptionKey'
+import Encrypt, { EncryptOptions } from '../../../src/encrypt.js'
+import MissingEncryptionKey from '../../../src/errors/encrypt/MissingEncryptionKey.js'
 
 const encryptionOptions = [
   {

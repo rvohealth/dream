@@ -1,10 +1,10 @@
-import { CalendarDate } from '../../../src'
-import { IdType } from '../../../src/dream/types'
-import DreamSerializer from '../../../src/serializer'
-import RendersOne from '../../../src/serializer/decorators/associations/RendersOne'
-import Attribute from '../../../src/serializer/decorators/attribute'
-import User from '../models/User'
-import UserSettings from '../models/UserSettings'
+import { CalendarDate } from '../../../src.js'
+import { IdType } from '../../../src/dream/types.js'
+import DreamSerializer from '../../../src/serializer.js'
+import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
+import Attribute from '../../../src/serializer/decorators/attribute.js'
+import User from '../models/User.js'
+import UserSettings from '../models/UserSettings.js'
 
 export default class UserSerializer<
   DataType extends User,

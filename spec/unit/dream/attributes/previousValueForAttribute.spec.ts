@@ -1,4 +1,4 @@
-import Pet from '../../../../test-app/app/models/Pet'
+import Pet from '../../../../test-app/app/models/Pet.js'
 
 describe('Dream#previousValueForAttribute', () => {
   context('with a newly-created record', () => {

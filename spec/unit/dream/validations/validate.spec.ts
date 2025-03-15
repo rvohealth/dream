@@ -1,7 +1,7 @@
-import ValidationError from '../../../../src/errors/ValidationError'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Sandbag from '../../../../test-app/app/models/Sandbag'
-import User from '../../../../test-app/app/models/User'
+import ValidationError from '../../../../src/errors/ValidationError.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Sandbag from '../../../../test-app/app/models/Sandbag.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream "validate" validation (the "validate" decorator is used to run custom validations)', () => {
   it('builds scope mapping', () => {

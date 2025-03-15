@@ -1,4 +1,4 @@
-import generateUnitSpecContent from '../../../src/helpers/cli/generateUnitSpecContent'
+import generateUnitSpecContent from '../../../src/helpers/cli/generateUnitSpecContent.js'
 
 describe('generateUnitSpecContent', () => {
   it('generates a blank unit spec for a dream model, with context commented out above', () => {

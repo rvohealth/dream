@@ -1,6 +1,6 @@
-import Dream from '../../Dream.js'
-import { DreamColumnNames } from '../../dream/types.js'
-import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js'
+import Dream from '../../Dream.js.js'
+import { DreamColumnNames } from '../../dream/types.js.js'
+import freezeBaseClassArrayMap from '../helpers/freezeBaseClassArrayMap.js.js'
 
 export type HookType =
   | 'beforeCreate'

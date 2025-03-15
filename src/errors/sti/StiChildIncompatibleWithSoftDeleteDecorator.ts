@@ -1,4 +1,4 @@
-import Dream from '../../Dream.js'
+import Dream from '../../Dream.js.js'
 
 export default class StiChildIncompatibleWithSoftDeleteDecorator extends Error {
   constructor(public childStiDreamClass: typeof Dream) {

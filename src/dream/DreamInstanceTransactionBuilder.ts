@@ -1,28 +1,28 @@
-import Dream from '../Dream.js'
-import DreamTransaction from './DreamTransaction.js'
-import associationQuery from './internal/associations/associationQuery.js'
-import associationUpdateQuery from './internal/associations/associationUpdateQuery.js'
-import createAssociation from './internal/associations/createAssociation.js'
-import destroyAssociation from './internal/associations/destroyAssociation.js'
-import undestroyAssociation from './internal/associations/undestroyAssociation.js'
-import destroyDream from './internal/destroyDream.js'
+import Dream from '../Dream.js.js'
+import DreamTransaction from './DreamTransaction.js.js'
+import associationQuery from './internal/associations/associationQuery.js.js'
+import associationUpdateQuery from './internal/associations/associationUpdateQuery.js.js'
+import createAssociation from './internal/associations/createAssociation.js.js'
+import destroyAssociation from './internal/associations/destroyAssociation.js.js'
+import undestroyAssociation from './internal/associations/undestroyAssociation.js.js'
+import destroyDream from './internal/destroyDream.js.js'
 import {
   destroyOptions,
   DestroyOptions,
   reallyDestroyOptions,
   undestroyOptions,
 } from './internal/destroyOptions.js'
-import reload from './internal/reload.js'
-import saveDream from './internal/saveDream.js'
+import reload from './internal/reload.js.js'
+import saveDream from './internal/saveDream.js.js'
 import {
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
   DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
   DEFAULT_SKIP_HOOKS,
 } from './internal/scopeHelpers.js'
-import undestroyDream from './internal/undestroyDream.js'
-import LeftJoinLoadBuilder from './LeftJoinLoadBuilder.js'
-import LoadBuilder from './LoadBuilder.js'
-import Query, { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from './Query.js'
+import undestroyDream from './internal/undestroyDream.js.js'
+import LeftJoinLoadBuilder from './LeftJoinLoadBuilder.js.js'
+import LoadBuilder from './LoadBuilder.js.js'
+import Query, { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from './Query.js.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,

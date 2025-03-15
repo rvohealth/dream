@@ -1,7 +1,7 @@
-import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
-import Pet from '../../../../test-app/app/models/Pet'
-import User from '../../../../test-app/app/models/User'
+import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('getter override', () => {
   it('overrides the automatically set getter', async () => {

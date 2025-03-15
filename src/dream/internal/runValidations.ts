@@ -1,6 +1,6 @@
-import ValidationStatement from '../../decorators/validations/shared.js'
-import Dream from '../../Dream.js'
-import checkSingleValidation from './checkSingleValidation.js'
+import ValidationStatement from '../../decorators/validations/shared.js.js'
+import Dream from '../../Dream.js.js'
+import checkSingleValidation from './checkSingleValidation.js.js'
 
 export default function runValidations(dream: Dream) {
   const Base = dream.constructor as typeof Dream

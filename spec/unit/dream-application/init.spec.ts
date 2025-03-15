@@ -1,9 +1,9 @@
-import { DreamApplication } from '../../../src'
-import * as LoadModelsModule from '../../../src/dream-application/helpers/importers/importModels'
-import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels'
-import DreamApplicationInitMissingMissingProjectRoot from '../../../src/errors/dream-application/DreamApplicationInitMissingMissingProjectRoot'
-import InvalidTableName from '../../../src/errors/InvalidTableName'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import { DreamApplication } from '../../../src.js'
+import * as LoadModelsModule from '../../../src/dream-application/helpers/importers/importModels.js'
+import DreamApplicationInitMissingCallToLoadModels from '../../../src/errors/dream-application/DreamApplicationInitMissingCallToLoadModels.js'
+import DreamApplicationInitMissingMissingProjectRoot from '../../../src/errors/dream-application/DreamApplicationInitMissingMissingProjectRoot.js'
+import InvalidTableName from '../../../src/errors/InvalidTableName.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
 describe('DreamApplication#init', () => {
   const dbCredentials = {

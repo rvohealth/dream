@@ -1,5 +1,5 @@
-import ValidationError from '../../../../src/errors/ValidationError'
-import User from '../../../../test-app/app/models/User'
+import ValidationError from '../../../../src/errors/ValidationError.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream contains validation', () => {
   it('builds scope mapping', () => {

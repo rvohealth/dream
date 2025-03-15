@@ -1,12 +1,12 @@
 import { ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
-import db from '../../../db/index.js'
-import Dream from '../../../Dream.js'
-import DreamTransaction from '../../../dream/DreamTransaction'
-import Query from '../../../dream/Query.js'
-import range from '../../../helpers/range.js'
-import getColumnForSortableScope from './getColumnForSortableScope.js'
-import scopeArray from './scopeArray.js'
-import sortableQueryExcludingDream from './sortableQueryExcludingDream.js'
+import db from '../../../db/index.js.js'
+import Dream from '../../../Dream.js.js'
+import DreamTransaction from '../../../dream/DreamTransaction.js'
+import Query from '../../../dream/Query.js.js'
+import range from '../../../helpers/range.js.js'
+import getColumnForSortableScope from './getColumnForSortableScope.js.js'
+import scopeArray from './scopeArray.js.js'
+import sortableQueryExcludingDream from './sortableQueryExcludingDream.js.js'
 
 export default async function setPosition({
   position,

@@ -1,5 +1,5 @@
-import Dream from '../Dream.js'
-import { DecoratorContext } from './DecoratorContextType.js'
+import Dream from '../Dream.js.js'
+import { DecoratorContext } from './DecoratorContextType.js.js'
 
 export default function Scope(
   opts: {

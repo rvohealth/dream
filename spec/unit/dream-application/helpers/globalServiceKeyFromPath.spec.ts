@@ -1,4 +1,4 @@
-import globalServiceKeyFromPath from '../../../../src/dream-application/helpers/globalServiceKeyFromPath'
+import globalServiceKeyFromPath from '../../../../src/dream-application/helpers/globalServiceKeyFromPath.js'
 
 describe('globalServiceKeyFromPath', () => {
   it('converts test-app/app/services/Graph/Edge.ts to services/Graph/Edge', () => {

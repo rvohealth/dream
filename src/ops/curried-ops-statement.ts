@@ -1,5 +1,5 @@
-import Dream from '../Dream.js'
-import OpsStatement from './ops-statement.js'
+import Dream from '../Dream.js.js'
+import OpsStatement from './ops-statement.js.js'
 
 export default class CurriedOpsStatement<
   T extends typeof Dream,

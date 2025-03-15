@@ -1,7 +1,7 @@
-import { ValidationError } from '../../../../src'
-import Composition from '../../../../test-app/app/models/Composition'
-import Pet from '../../../../test-app/app/models/Pet'
-import User from '../../../../test-app/app/models/User'
+import { ValidationError } from '../../../../src.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('associated BelongsTo models', () => {
   it('are required', async () => {

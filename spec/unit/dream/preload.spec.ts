@@ -1,11 +1,11 @@
-import DreamDbConnection from '../../../src/db/DreamDbConnection'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import User from '../../../test-app/app/models/User'
+import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.preload', () => {
   it('loads a HasOne association', async () => {

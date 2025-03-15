@@ -1,4 +1,4 @@
-import globalClassNameFromFullyQualifiedModelName from '../../../src/helpers/globalClassNameFromFullyQualifiedModelName'
+import globalClassNameFromFullyQualifiedModelName from '../../../src/helpers/globalClassNameFromFullyQualifiedModelName.js'
 
 describe('globalClassNameFromFullyQualifiedModelName', () => {
   it('changes user to User', () => {

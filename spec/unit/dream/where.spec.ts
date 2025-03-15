@@ -1,5 +1,5 @@
-import User from '../../../test-app/app/models/User'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.where', () => {
   it('finds records matching specified conditions', async () => {

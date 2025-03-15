@@ -1,4 +1,4 @@
-import { EncryptAESBitSize } from '../../index.js'
+import { EncryptAESBitSize } from '../../index.js.js'
 
 export default function validateKeyAESGCM(base64EncodedKey: string, bitSize: EncryptAESBitSize): boolean {
   try {

@@ -1,4 +1,4 @@
-import { capitalize } from '../../../src'
+import { capitalize } from '../../../src.js'
 
 describe('capitalize', () => {
   it('capitalizes strings', () => {

@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/User'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#isValid', () => {
   it('returns true when the dream does not have any errors', () => {

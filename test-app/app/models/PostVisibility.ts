@@ -1,7 +1,7 @@
-import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Post from './Post'
+import { Decorators } from '../../../src.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import Post from './Post.js'
 
 const Deco = new Decorators<InstanceType<typeof PostVisibility>>()
 

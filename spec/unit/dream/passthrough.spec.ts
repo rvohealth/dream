@@ -1,7 +1,7 @@
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Composition from '../../../test-app/app/models/Composition'
-import LocalizedText from '../../../test-app/app/models/LocalizedText'
-import User from '../../../test-app/app/models/User'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.passthrough', () => {
   it('sets up the passthrough data to be used by passthrough where clauses on associations', async () => {

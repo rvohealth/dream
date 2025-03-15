@@ -1,5 +1,5 @@
-import stringCase, { Camelized } from './stringCasing.js'
-import uncapitalize from './uncapitalize.js'
+import stringCase, { Camelized } from './stringCasing.js.js'
+import uncapitalize from './uncapitalize.js.js'
 
 export default function camelize<const T, RT extends Camelized<T>>(target: T): RT {
   return stringCase(target, camelizeString)

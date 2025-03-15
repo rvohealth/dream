@@ -1,5 +1,5 @@
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import User from '../../../test-app/app/models/User'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.order', () => {
   it('correctly orders results', async () => {

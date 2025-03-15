@@ -8,7 +8,7 @@
 // @ts-ignore
 import pg from 'pg'
 
-import DreamApplication from '../../dream-application/index.js'
+import DreamApplication from '../../dream-application/index.js.js'
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
   const dreamconf = DreamApplication.getOrFail()

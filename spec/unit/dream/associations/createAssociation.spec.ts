@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
-import CannotCreateAssociationWithThroughContext from '../../../../src/errors/associations/CannotCreateAssociationWithThroughContext'
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Composition from '../../../../test-app/app/models/Composition'
-import Pet from '../../../../test-app/app/models/Pet'
-import Post from '../../../../test-app/app/models/Post'
-import PostVisibility from '../../../../test-app/app/models/PostVisibility'
-import User from '../../../../test-app/app/models/User'
+import CannotCreateAssociationWithThroughContext from '../../../../src/errors/associations/CannotCreateAssociationWithThroughContext.js'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import Post from '../../../../test-app/app/models/Post.js'
+import PostVisibility from '../../../../test-app/app/models/PostVisibility.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#createAssociation', () => {
   context('with a HasMany association', () => {

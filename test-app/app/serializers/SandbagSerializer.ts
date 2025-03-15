@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import DreamSerializer from '../../../src/serializer'
-import Attribute from '../../../src/serializer/decorators/attribute'
+import DreamSerializer from '../../../src/serializer.js'
+import Attribute from '../../../src/serializer/decorators/attribute.js'
 
 export default class SandbagSerializer extends DreamSerializer {
   @Attribute()

@@ -1,6 +1,6 @@
-import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause'
-import ops from '../../../src/ops'
-import User from '../../../test-app/app/models/User'
+import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import ops from '../../../src/ops.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#findBy', () => {
   let user: User

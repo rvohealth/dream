@@ -1,5 +1,5 @@
 import { Kysely, sql } from 'kysely'
-import { DreamMigrationHelpers } from '../../../src'
+import { DreamMigrationHelpers } from '../../../src.js'
 
 export async function up(db: Kysely<any>): Promise<void> {
   // NOTE: intentionally leaving out updated at field on this model so that models without

@@ -1,5 +1,5 @@
-import Dream from '../../Dream.js'
-import { AllDefaultScopeNames } from '../types.js'
+import Dream from '../../Dream.js.js'
+import { AllDefaultScopeNames } from '../types.js.js'
 import {
   addSoftDeleteScopeToUserScopes,
   DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,

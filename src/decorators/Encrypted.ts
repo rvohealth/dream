@@ -1,9 +1,9 @@
-import Dream from '../Dream.js'
-import InternalEncrypt from '../encrypt/InternalEncrypt.js'
-import DoNotSetEncryptedFieldsDirectly from '../errors/DoNotSetEncryptedFieldsDirectly.js'
-import pascalize from '../helpers/pascalize.js'
-import { DecoratorContext } from './DecoratorContextType.js'
-import { VirtualAttributeStatement } from './Virtual.js'
+import Dream from '../Dream.js.js'
+import InternalEncrypt from '../encrypt/InternalEncrypt.js.js'
+import DoNotSetEncryptedFieldsDirectly from '../errors/DoNotSetEncryptedFieldsDirectly.js.js'
+import pascalize from '../helpers/pascalize.js.js'
+import { DecoratorContext } from './DecoratorContextType.js.js'
+import { VirtualAttributeStatement } from './Virtual.js.js'
 
 export default function Encrypted(encryptedColumnName?: string): any {
   return function (_: undefined, context: DecoratorContext) {

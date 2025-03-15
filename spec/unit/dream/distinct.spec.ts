@@ -1,8 +1,8 @@
-import ops from '../../../src/ops'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Node from '../../../test-app/app/models/Graph/Node'
-import Pet from '../../../test-app/app/models/Pet'
-import PetUnderstudyJoinModel from '../../../test-app/app/models/PetUnderstudyJoinModel'
+import ops from '../../../src/ops.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Node from '../../../test-app/app/models/Graph/Node.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import PetUnderstudyJoinModel from '../../../test-app/app/models/PetUnderstudyJoinModel.js'
 
 describe('Dream.distinct', () => {
   it('returns unique results distinct on the primary key', async () => {

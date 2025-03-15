@@ -1,6 +1,6 @@
-import { DreamColumn } from '../../../src'
-import SoftDelete from '../../../src/decorators/SoftDelete'
-import ApplicationModel from './ApplicationModel'
+import { DreamColumn } from '../../../src.js'
+import SoftDelete from '../../../src/decorators/SoftDelete.js'
+import ApplicationModel from './ApplicationModel.js'
 
 // const Deco = new Decorators<InstanceType<typeof ModelWithoutCustomDeletedAt>>()
 

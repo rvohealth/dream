@@ -1,4 +1,4 @@
-import Pet from '../../../../../test-app/app/models/Pet'
+import Pet from '../../../../../test-app/app/models/Pet.js'
 
 describe('marshalling postgres arrays from db', () => {
   it('converts stored postgres array data into proper array type', async () => {

@@ -1,6 +1,6 @@
 import { UpdateableProperties } from '@rvoh/dream'
-import PostComment from '../../../test-app/app/models/PostComment'
-import Post from '../../../test-app/app/models/Post'
+import Post from '../../../test-app/app/models/Post.js'
+import PostComment from '../../../test-app/app/models/PostComment.js'
 
 export default async function createPostComment(
   post: Post,

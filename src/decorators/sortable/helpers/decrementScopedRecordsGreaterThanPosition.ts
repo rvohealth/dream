@@ -1,9 +1,9 @@
 import { ExpressionBuilder } from 'kysely'
-import Dream from '../../../Dream.js'
-import Query from '../../../dream/Query.js'
-import ops from '../../../ops/index.js'
-import getColumnForSortableScope from './getColumnForSortableScope.js'
-import scopeArray from './scopeArray.js'
+import Dream from '../../../Dream.js.js'
+import Query from '../../../dream/Query.js.js'
+import ops from '../../../ops/index.js.js'
+import getColumnForSortableScope from './getColumnForSortableScope.js.js'
+import scopeArray from './scopeArray.js.js'
 
 export default async function decrementPositionForScopedRecordsGreaterThanPosition(
   position: number,

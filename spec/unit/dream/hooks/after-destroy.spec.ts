@@ -1,6 +1,6 @@
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import User from '../../../../test-app/app/models/User'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream AfterDestroy decorator', () => {
   it('runs the method after destroying a record', async () => {

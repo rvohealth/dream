@@ -1,7 +1,7 @@
-import Dream from '../Dream.js'
-import Query from '../dream/Query.js'
-import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
-import { scopeImplementation } from './Scope.js'
+import Dream from '../Dream.js.js'
+import Query from '../dream/Query.js.js'
+import StiChildIncompatibleWithSoftDeleteDecorator from '../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js.js'
+import { scopeImplementation } from './Scope.js.js'
 
 export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
 

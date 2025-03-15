@@ -10,13 +10,13 @@ import pg from 'pg'
 
 import { CompiledQuery } from 'kysely'
 import { Settings } from 'luxon'
-import db from '../db/index.js'
-import validateTable from '../db/validators/validateTable.js'
-import Dream from '../Dream.js'
-import { primaryKeyTypes } from '../dream/types.js'
-import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
-import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels.js'
-import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot.js'
+import db from '../db/index.js.js'
+import validateTable from '../db/validators/validateTable.js.js'
+import Dream from '../Dream.js.js'
+import { primaryKeyTypes } from '../dream/types.js.js'
+import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js.js'
+import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels.js.js'
+import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot.js.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -25,15 +25,18 @@ import {
   parsePostgresDatetime,
   parsePostgresDecimal,
 } from '../helpers/customPgParsers.js'
-import EnvInternal from '../helpers/EnvInternal.js'
-import DreamSerializer from '../serializer/index.js'
-import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js'
-import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
+import EnvInternal from '../helpers/EnvInternal.js.js'
+import DreamSerializer from '../serializer/index.js.js'
+import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js.js'
+import importModels, { getModelsOrFail } from './helpers/importers/importModels.js.js'
 import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
-import importServices, { getServicesOrFail, setCachedServices } from './helpers/importers/importServices.js'
+import importServices, {
+  getServicesOrFail,
+  setCachedServices,
+} from './helpers/importers/importServices.js.js'
 
 const pgTypes = pg.types
 

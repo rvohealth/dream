@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/User'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#clone', () => {
   it('returns a new copy of the query', () => {

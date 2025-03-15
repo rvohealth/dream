@@ -1,4 +1,4 @@
-import compact from '../../../src/helpers/compact'
+import compact from '../../../src/helpers/compact.js'
 
 describe('compact(obj)', () => {
   it('strips null values from object', () => {

@@ -19,8 +19,8 @@ import {
   cliPrimaryKeyTypes,
   InitDreamAppCliOptions,
 } from './helpers/primaryKeyTypes.js'
-import initDreamApp from './init.js'
-import newDreamApp from './new.js'
+import initDreamApp from './init.js.js'
+import newDreamApp from './new.js.js'
 
 const program = new Command()
 

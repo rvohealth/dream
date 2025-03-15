@@ -1,9 +1,9 @@
-import { Decorators } from '../../../src'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Composition from './Composition'
-import Post from './Post'
-import User from './User'
+import { Decorators } from '../../../src.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import Composition from './Composition.js'
+import Post from './Post.js'
+import User from './User.js'
 
 const Deco = new Decorators<InstanceType<typeof Rating>>()
 

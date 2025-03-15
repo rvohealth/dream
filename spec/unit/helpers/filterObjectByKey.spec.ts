@@ -1,4 +1,4 @@
-import filterObjectByKey from '../../../src/helpers/filterObjectByKey'
+import filterObjectByKey from '../../../src/helpers/filterObjectByKey.js'
 
 describe('filterObjectByKey', () => {
   it('filters objects by key', () => {

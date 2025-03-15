@@ -1,9 +1,9 @@
-import Dream from '../../../Dream.js'
-import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../errors/NonBelongsToAssociationProvidedAsSortableDecoratorScope.js'
-import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../errors/SortableDecoratorRequiresColumnOrBelongsToAssociation.js'
-import { BelongsToStatement } from '../../associations/BelongsTo.js'
-import { HasManyStatement } from '../../associations/HasMany.js'
-import { HasOneStatement } from '../../associations/HasOne.js'
+import Dream from '../../../Dream.js.js'
+import NonBelongsToAssociationProvidedAsSortableDecoratorScope from '../../../errors/NonBelongsToAssociationProvidedAsSortableDecoratorScope.js.js'
+import SortableDecoratorRequiresColumnOrBelongsToAssociation from '../../../errors/SortableDecoratorRequiresColumnOrBelongsToAssociation.js.js'
+import { BelongsToStatement } from '../../associations/BelongsTo.js.js'
+import { HasManyStatement } from '../../associations/HasMany.js.js'
+import { HasOneStatement } from '../../associations/HasOne.js.js'
 
 export default function getColumnForSortableScope(dream: Dream, scope?: string) {
   if (!scope) return null

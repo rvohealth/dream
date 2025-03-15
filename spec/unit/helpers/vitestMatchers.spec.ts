@@ -1,6 +1,6 @@
-import User from '../../../test-app/app/models/User'
-import Balloon from '../../../test-app/app/models/Balloon'
-import CalendarDate from '../../../src/helpers/CalendarDate'
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('viMatchers', () => {
   describe('toMatchDreamModel', () => {

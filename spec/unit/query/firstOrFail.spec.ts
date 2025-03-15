@@ -1,6 +1,6 @@
-import RecordNotFound from '../../../src/errors/RecordNotFound'
-import ops from '../../../src/ops'
-import User from '../../../test-app/app/models/User'
+import RecordNotFound from '../../../src/errors/RecordNotFound.js'
+import ops from '../../../src/ops.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#firstOrFail', () => {
   it('returns first record found, ordered by id', async () => {

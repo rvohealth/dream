@@ -1,9 +1,9 @@
-import { DreamColumn, DreamSerializers } from '../../../../src/dream/types'
+import { DreamColumn, DreamSerializers } from '../../../../src/dream/types.js'
 
-import { Decorators, SoftDelete } from '../../../../src'
-import ApplicationModel from '../ApplicationModel'
-import GraphEdge from './Edge'
-import GraphNode from './Node'
+import { Decorators, SoftDelete } from '../../../../src.js'
+import ApplicationModel from '../ApplicationModel.js'
+import GraphEdge from './Edge.js'
+import GraphNode from './Node.js'
 
 const Deco = new Decorators<InstanceType<typeof EdgeNode>>()
 

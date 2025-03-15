@@ -1,7 +1,7 @@
-import DreamDbConnection from '../../../src/db/DreamDbConnection'
-import ReplicaSafe from '../../../src/decorators/ReplicaSafe'
-import ops from '../../../src/ops'
-import User from '../../../test-app/app/models/User'
+import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
+import ReplicaSafe from '../../../src/decorators/ReplicaSafe.js'
+import ops from '../../../src/ops.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#all', () => {
   it('returns all records, ordered by id', async () => {

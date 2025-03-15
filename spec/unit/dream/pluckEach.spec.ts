@@ -1,6 +1,6 @@
-import { IdType } from '../../../src'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import User from '../../../test-app/app/models/User'
+import { IdType } from '../../../src.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#pluckEach', () => {
   let user1: User

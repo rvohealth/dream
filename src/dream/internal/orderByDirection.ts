@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { OrderDir } from '../types.js'
+import { OrderDir } from '../types.js.js'
 
 export default function orderByDirection(dir: OrderDir | null) {
   switch (dir) {

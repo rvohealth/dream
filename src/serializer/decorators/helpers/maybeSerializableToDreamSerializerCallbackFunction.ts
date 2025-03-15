@@ -1,6 +1,6 @@
-import Dream from '../../../Dream.js'
-import { DreamSerializerCallback, SerializableClassOrClasses } from '../../../dream/types.js'
-import hasSerializersGetter from './hasSerializersGetter.js'
+import Dream from '../../../Dream.js.js'
+import { DreamSerializerCallback, SerializableClassOrClasses } from '../../../dream/types.js.js'
+import hasSerializersGetter from './hasSerializersGetter.js.js'
 
 export default function (
   dreamOrSerializerClass: SerializableClassOrClasses | null

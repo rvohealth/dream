@@ -1,7 +1,7 @@
-import { Dream } from '../../../src'
-import CreateOrFindByFailedToCreateAndFind from '../../../src/errors/CreateOrFindByFailedToCreateAndFind'
-import Composition from '../../../test-app/app/models/Composition'
-import User from '../../../test-app/app/models/User'
+import { Dream } from '../../../src.js'
+import CreateOrFindByFailedToCreateAndFind from '../../../src/errors/CreateOrFindByFailedToCreateAndFind.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.createOrFindBy', () => {
   context('no underlying conflicts to prevent save', () => {

@@ -1,5 +1,5 @@
 import * as crypto from 'crypto'
-import { EncryptAESAlgorithm } from '../../index.js'
+import { EncryptAESAlgorithm } from '../../index.js.js'
 
 export default function encryptAESGCM(algorithm: EncryptAESAlgorithm, data: any, key: string): string {
   const iv = crypto.randomBytes(12).toString('base64')

@@ -1,7 +1,7 @@
-import Dream from '../../Dream'
-import CannotReloadUnsavedDream from '../../errors/CannotReloadUnsavedDream.js'
-import DreamTransaction from '../DreamTransaction.js'
-import Query from '../Query.js'
+import Dream from '../../Dream.js'
+import CannotReloadUnsavedDream from '../../errors/CannotReloadUnsavedDream.js.js'
+import DreamTransaction from '../DreamTransaction.js.js'
+import Query from '../Query.js.js'
 
 export default async function reload<DreamInstance extends Dream>(
   dream: DreamInstance,

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import EnvInternal from './EnvInternal.js'
+import EnvInternal from './EnvInternal.js.js'
 
 export type BenchmarkLogLevel = 'log' | 'warn' | 'error'
 

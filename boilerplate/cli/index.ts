@@ -9,8 +9,8 @@ import '../conf/loadEnv'
 
 import { DreamCLI } from '@rvoh/dream'
 import { Command } from 'commander'
-import seedDb from '../db/seed'
-import initializeDreamApplication from './helpers/initializeDreamApplication'
+import seedDb from '../db/seed.js'
+import initializeDreamApplication from './helpers/initializeDreamApplication.js'
 
 const program = new Command()
 

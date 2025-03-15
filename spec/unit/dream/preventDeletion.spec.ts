@@ -1,5 +1,5 @@
-import User from '../../../test-app/app/models/User'
-import Pet from '../../../test-app/app/models/Pet'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#preventDeletion', () => {
   let user: User

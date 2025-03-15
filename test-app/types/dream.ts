@@ -95,33 +95,33 @@ b.) All laptops are ok sleeping places for your
 
 */
 
-import CalendarDate from '../../src/helpers/CalendarDate'
 import { DateTime } from 'luxon'
+import CalendarDate from '../../src/helpers/CalendarDate.js'
 import {
-  BalloonColorsEnum,
-  BalloonColorsEnumValues,
-  BalloonLineMaterialsEnum,
-  BalloonLineMaterialsEnumValues,
-  BalloonTypesEnum,
-  BalloonTypesEnumValues,
-  CatTreats,
-  CatTreatsValues,
-  ExtraRateableTypesEnum,
-  ExtraRateableTypesEnumValues,
-  ExtraRatingTypesEnum,
-  ExtraRatingTypesEnumValues,
-  IdType,
-  Json,
-  LocalesEnum,
-  LocalesEnumValues,
-  LocalizableTypesEnum,
-  LocalizableTypesEnumValues,
-  PetTreatsEnum,
-  PetTreatsEnumValues,
-  Species,
-  SpeciesTypesEnum,
-  SpeciesTypesEnumValues,
-  SpeciesValues
+    BalloonColorsEnum,
+    BalloonColorsEnumValues,
+    BalloonLineMaterialsEnum,
+    BalloonLineMaterialsEnumValues,
+    BalloonTypesEnum,
+    BalloonTypesEnumValues,
+    CatTreats,
+    CatTreatsValues,
+    ExtraRateableTypesEnum,
+    ExtraRateableTypesEnumValues,
+    ExtraRatingTypesEnum,
+    ExtraRatingTypesEnumValues,
+    IdType,
+    Json,
+    LocalesEnum,
+    LocalesEnumValues,
+    LocalizableTypesEnum,
+    LocalizableTypesEnumValues,
+    PetTreatsEnum,
+    PetTreatsEnumValues,
+    Species,
+    SpeciesTypesEnum,
+    SpeciesTypesEnumValues,
+    SpeciesValues
 } from './db'
 
 export const schema = {

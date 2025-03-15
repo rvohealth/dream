@@ -1,9 +1,9 @@
-import { DreamColumn, IdType } from '../../../src/dream/types'
-import DreamSerializer from '../../../src/serializer'
-import RendersMany from '../../../src/serializer/decorators/associations/RendersMany'
-import Attribute from '../../../src/serializer/decorators/attribute'
-import Pet from '../models/Pet'
-import Rating from '../models/Rating'
+import { DreamColumn, IdType } from '../../../src/dream/types.js'
+import DreamSerializer from '../../../src/serializer.js'
+import RendersMany from '../../../src/serializer/decorators/associations/RendersMany.js'
+import Attribute from '../../../src/serializer/decorators/attribute.js'
+import Pet from '../models/Pet.js'
+import Rating from '../models/Rating.js'
 
 export default class PetSerializer<DataType extends Pet, Passthrough extends object> extends DreamSerializer<
   DataType,

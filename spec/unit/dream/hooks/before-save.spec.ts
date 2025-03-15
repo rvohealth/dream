@@ -1,8 +1,8 @@
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Composition from '../../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../../test-app/app/models/CompositionAsset'
-import Sandbag from '../../../../test-app/app/models/Sandbag'
-import User from '../../../../test-app/app/models/User'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import Sandbag from '../../../../test-app/app/models/Sandbag.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream BeforeSave decorator', () => {
   it('runs the query before creating a record', async () => {

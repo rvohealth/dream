@@ -1,7 +1,7 @@
-import Dream from '../../../Dream.js'
-import DreamTransaction from '../../DreamTransaction.js'
-import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types.js'
-import associationUpdateQuery from './associationUpdateQuery.js'
+import Dream from '../../../Dream.js.js'
+import DreamTransaction from '../../DreamTransaction.js.js'
+import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types.js.js'
+import associationUpdateQuery from './associationUpdateQuery.js.js'
 
 export default async function undestroyAssociation<
   DreamInstance extends Dream,

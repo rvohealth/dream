@@ -1,12 +1,12 @@
-import { Query } from '../../../src'
-import * as destroyDreamModule from '../../../src/dream/internal/destroyDream'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Collar from '../../../test-app/app/models/Collar'
-import Pet from '../../../test-app/app/models/Pet'
-import Post from '../../../test-app/app/models/Post'
-import PostComment from '../../../test-app/app/models/PostComment'
-import Rating from '../../../test-app/app/models/Rating'
-import User from '../../../test-app/app/models/User'
+import { Query } from '../../../src.js'
+import * as destroyDreamModule from '../../../src/dream/internal/destroyDream.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Collar from '../../../test-app/app/models/Collar.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import Post from '../../../test-app/app/models/Post.js'
+import PostComment from '../../../test-app/app/models/PostComment.js'
+import Rating from '../../../test-app/app/models/Rating.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#reallyDestroy', () => {
   it('destroys the record', async () => {

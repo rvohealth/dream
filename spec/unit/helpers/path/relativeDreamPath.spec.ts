@@ -1,4 +1,6 @@
-import relativeDreamPath, { dreamPathTypeRelativePath } from '../../../../src/helpers/path/relativeDreamPath'
+import relativeDreamPath, {
+  dreamPathTypeRelativePath,
+} from '../../../../src/helpers/path/relativeDreamPath.js'
 
 describe('relativeDreamPath', () => {
   context('to models', () => {

@@ -1,4 +1,4 @@
-import User from '../../../test-app/app/models/User'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#isNewRecord', () => {
   context('for a new record', () => {

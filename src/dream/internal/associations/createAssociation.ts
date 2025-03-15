@@ -1,10 +1,10 @@
-import { BelongsToStatement } from '../../../decorators/associations/BelongsTo.js'
-import { HasManyStatement } from '../../../decorators/associations/HasMany.js'
-import { HasOneStatement } from '../../../decorators/associations/HasOne.js'
-import Dream from '../../../Dream.js'
-import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext.js'
-import DreamTransaction from '../../DreamTransaction.js'
-import { DreamAssociationNames, UpdateableAssociationProperties } from '../../types.js'
+import { BelongsToStatement } from '../../../decorators/associations/BelongsTo.js.js'
+import { HasManyStatement } from '../../../decorators/associations/HasMany.js.js'
+import { HasOneStatement } from '../../../decorators/associations/HasOne.js.js'
+import Dream from '../../../Dream.js.js'
+import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext.js.js'
+import DreamTransaction from '../../DreamTransaction.js.js'
+import { DreamAssociationNames, UpdateableAssociationProperties } from '../../types.js.js'
 
 export default async function createAssociation<
   DreamInstance extends Dream,

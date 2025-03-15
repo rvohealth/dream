@@ -1,9 +1,9 @@
-import { findExtendingDreamClass } from '../../../../src/dream/internal/sqlResultToDreamInstance'
-import Balloon from '../../../../test-app/app/models/Balloon'
-import Latex from '../../../../test-app/app/models/Balloon/Latex'
-import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import User from '../../../../test-app/app/models/User'
+import { findExtendingDreamClass } from '../../../../src/dream/internal/sqlResultToDreamInstance.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
+import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream STI', () => {
   let user: User | null = null

@@ -1,26 +1,26 @@
 import { DateTime } from 'luxon'
-import Dream from '../Dream.js'
-import DreamApplication from '../dream-application/index.js'
+import DreamApplication from '../dream-application/index.js.js'
+import Dream from '../Dream.js.js'
 import {
   DreamConst,
   SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../dream/types.js'
-import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet.js'
-import MissingSerializer from '../errors/MissingSerializersDefinition.js'
-import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
-import CalendarDate from '../helpers/CalendarDate.js'
-import camelize from '../helpers/camelize.js'
-import compact from '../helpers/compact.js'
+import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet.js.js'
+import MissingSerializer from '../errors/MissingSerializersDefinition.js.js'
+import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js.js'
+import CalendarDate from '../helpers/CalendarDate.js.js'
+import camelize from '../helpers/camelize.js.js'
+import compact from '../helpers/compact.js.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel.js'
-import round from '../helpers/round.js'
-import snakeify from '../helpers/snakeify.js'
-import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
-import { AttributeStatement, SerializableTypes } from './decorators/attribute.js'
-import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
+import round from '../helpers/round.js.js'
+import snakeify from '../helpers/snakeify.js.js'
+import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js.js'
+import { AttributeStatement, SerializableTypes } from './decorators/attribute.js.js'
+import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js.js'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
   public static attributeStatements: AttributeStatement[] = []

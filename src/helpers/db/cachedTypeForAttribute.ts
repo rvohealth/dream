@@ -1,4 +1,4 @@
-import Dream from '../../Dream.js'
+import Dream from '../../Dream.js.js'
 
 export default function cachedTypeForAttribute<
   T extends typeof Dream,

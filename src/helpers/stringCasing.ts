@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { isObject, isString } from './typechecks.js'
-import { ReadonlyHead, NotReadonlyHead, ReadonlyTail, NotReadonlyTail } from './typeutils.js'
-import CalendarDate from './CalendarDate.js'
+import CalendarDate from './CalendarDate.js.js'
+import { isObject, isString } from './typechecks.js.js'
+import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from './typeutils.js.js'
 
 type RecursivelyStringCaseObjectKeysInTuple<
   T extends any[],

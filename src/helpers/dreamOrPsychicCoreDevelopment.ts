@@ -1,7 +1,7 @@
 // normally we wouldn't consider psychic core development,
 // but given the awkward nature of the test-app folder,
 
-import EnvInternal from './EnvInternal.js'
+import EnvInternal from './EnvInternal.js.js'
 
 // it is sometimes necessary to consider it
 export default function dreamOrPsychicCoreDevelopment() {

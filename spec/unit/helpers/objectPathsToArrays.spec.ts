@@ -1,4 +1,4 @@
-import objectPathsToArrays from '../../../src/helpers/objectPathsToArrays'
+import objectPathsToArrays from '../../../src/helpers/objectPathsToArrays.js'
 
 describe('objectPathsToArrays', () => {
   context('{ hello: {} }', () => {

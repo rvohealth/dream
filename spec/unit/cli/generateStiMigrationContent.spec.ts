@@ -1,5 +1,5 @@
-import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator'
-import generateStiMigrationContent from '../../../src/helpers/cli/generateStiMigrationContent'
+import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator.js'
+import generateStiMigrationContent from '../../../src/helpers/cli/generateStiMigrationContent.js'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('string attributes', () => {

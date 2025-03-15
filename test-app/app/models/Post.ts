@@ -1,13 +1,13 @@
-import { Decorators } from '../../../src'
-import SoftDelete from '../../../src/decorators/SoftDelete'
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import HeartRating from './ExtraRating/HeartRating'
-import NonNullRating from './NonNullRating'
-import PostComment from './PostComment'
-import PostVisibility from './PostVisibility'
-import Rating from './Rating'
-import User from './User'
+import { Decorators } from '../../../src.js'
+import SoftDelete from '../../../src/decorators/SoftDelete.js'
+import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import HeartRating from './ExtraRating/HeartRating.js'
+import NonNullRating from './NonNullRating.js'
+import PostComment from './PostComment.js'
+import PostVisibility from './PostVisibility.js'
+import Rating from './Rating.js'
+import User from './User.js'
 
 const Deco = new Decorators<InstanceType<typeof Post>>()
 

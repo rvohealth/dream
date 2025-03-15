@@ -1,13 +1,13 @@
-import LeftJoinPreloadIncompatibleWithFindEach from '../../../src/errors/LeftJoinPreloadIncompatibleWithFindEach'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import Latex from '../../../test-app/app/models/Balloon/Latex'
-import Mylar from '../../../test-app/app/models/Balloon/Mylar'
-import Collar from '../../../test-app/app/models/Collar'
-import Composition from '../../../test-app/app/models/Composition'
-import CompositionAsset from '../../../test-app/app/models/CompositionAsset'
-import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit'
-import Pet from '../../../test-app/app/models/Pet'
-import User from '../../../test-app/app/models/User'
+import LeftJoinPreloadIncompatibleWithFindEach from '../../../src/errors/LeftJoinPreloadIncompatibleWithFindEach.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import Collar from '../../../test-app/app/models/Collar.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.leftJoinPreload', () => {
   it('loads a HasOne association', async () => {

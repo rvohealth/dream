@@ -1,7 +1,7 @@
-import RecordNotFound from '../../../src/errors/RecordNotFound'
-import ops from '../../../src/ops'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel'
-import User from '../../../test-app/app/models/User'
+import RecordNotFound from '../../../src/errors/RecordNotFound.js'
+import ops from '../../../src/ops.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Query#findOrFail', () => {
   let user: User

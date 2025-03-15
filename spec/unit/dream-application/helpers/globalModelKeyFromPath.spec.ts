@@ -1,4 +1,4 @@
-import globalModelKeyFromPath from '../../../../src/dream-application/helpers/globalModelKeyFromPath'
+import globalModelKeyFromPath from '../../../../src/dream-application/helpers/globalModelKeyFromPath.js'
 
 describe('globalModelKeyFromPath', () => {
   it('converts test-app/app/models/Graph/Edge.ts to models/Graph/Edge', () => {

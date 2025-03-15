@@ -1,4 +1,4 @@
-import MissingRequiredEnvironmentVariable from '../errors/environment/MissingRequiredEnvironmentVariable.js'
+import MissingRequiredEnvironmentVariable from '../errors/environment/MissingRequiredEnvironmentVariable.js.js'
 
 export default class Env<
   T extends {

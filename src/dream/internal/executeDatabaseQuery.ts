@@ -1,5 +1,5 @@
-import DreamApplication from '../../dream-application/index.js'
-import EnvInternal from '../../helpers/EnvInternal.js'
+import DreamApplication from '../../dream-application/index.js.js'
+import EnvInternal from '../../helpers/EnvInternal.js.js'
 
 export default async function executeDatabaseQuery<
   Command extends 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow',

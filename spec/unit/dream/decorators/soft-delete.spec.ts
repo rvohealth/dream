@@ -1,12 +1,12 @@
-import { DreamTransaction } from '../../../../src'
-import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor'
-import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks'
-import MissingDeletedAtFieldForSoftDelete from '../../../../src/errors/MissingDeletedAtFieldForSoftDelete'
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import ModelWithoutCustomDeletedAt from '../../../../test-app/app/models/ModelWithoutCustomDeletedAt'
-import ModelWithoutDeletedAt from '../../../../test-app/app/models/ModelWithoutDeletedAt'
-import Post from '../../../../test-app/app/models/Post'
-import User from '../../../../test-app/app/models/User'
+import { DreamTransaction } from '../../../../src.js'
+import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.js'
+import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks.js'
+import MissingDeletedAtFieldForSoftDelete from '../../../../src/errors/MissingDeletedAtFieldForSoftDelete.js'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import ModelWithoutCustomDeletedAt from '../../../../test-app/app/models/ModelWithoutCustomDeletedAt.js'
+import ModelWithoutDeletedAt from '../../../../test-app/app/models/ModelWithoutDeletedAt.js'
+import Post from '../../../../test-app/app/models/Post.js'
+import User from '../../../../test-app/app/models/User.js'
 
 // NOTE: this spec does not cover ALL implementation cases for SoftDelete.
 // Many specs for SoftDelete are spread throughout the dream/destroy.spec.ts,

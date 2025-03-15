@@ -1,5 +1,5 @@
-import GraphEdge from '../../../test-app/app/models/Graph/Edge'
-import GraphNode from '../../../test-app/app/models/Graph/Node'
+import GraphEdge from '../../../test-app/app/models/Graph/Edge.js'
+import GraphNode from '../../../test-app/app/models/Graph/Node.js'
 
 describe('Dream#equals', () => {
   context('null', () => {

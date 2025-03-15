@@ -1,7 +1,7 @@
-import ops from '../../../../src/ops'
-import Edge from '../../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../../test-app/app/models/Graph/Node'
+import ops from '../../../../src/ops.js'
+import Edge from '../../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../../test-app/app/models/Graph/Node.js'
 
 describe('Query#joins has and belongs to many', () => {
   it('joins the associated models', async () => {

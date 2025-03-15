@@ -1,5 +1,5 @@
-import stringCase, { Snakeified } from './stringCasing.js'
-import { camelizeString } from './camelize.js'
+import { camelizeString } from './camelize.js.js'
+import stringCase, { Snakeified } from './stringCasing.js.js'
 
 export default function snakeify<const T, RT extends Snakeified<T>>(target: T): RT {
   return stringCase(target, snakeifyString)

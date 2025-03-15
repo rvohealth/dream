@@ -1,9 +1,9 @@
-import { applySortableScopesToQuery } from '../../decorators/sortable/helpers/setPosition.js'
-import Dream from '../../Dream.js'
-import DreamTransaction from '../DreamTransaction.js'
-import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
-import runHooksFor from './runHooksFor.js'
-import safelyRunCommitHooks from './safelyRunCommitHooks.js'
+import { applySortableScopesToQuery } from '../../decorators/sortable/helpers/setPosition.js.js'
+import Dream from '../../Dream.js.js'
+import DreamTransaction from '../DreamTransaction.js.js'
+import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js.js'
+import runHooksFor from './runHooksFor.js.js'
+import safelyRunCommitHooks from './safelyRunCommitHooks.js.js'
 
 type UndestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 

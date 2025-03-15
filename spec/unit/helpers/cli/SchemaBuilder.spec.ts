@@ -2,8 +2,8 @@
 // we can simply examine the types/dream.ts file to ensure that it is properly
 // written
 
-import User from '../../../../test-app/app/models/User'
-import { BalloonColorsEnumValues } from '../../../../test-app/types/db'
+import User from '../../../../test-app/app/models/User.js'
+import { BalloonColorsEnumValues } from '../../../../test-app/types/db.js'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {

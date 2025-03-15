@@ -1,4 +1,4 @@
-import protectAgainstPollutingAssignment from './protectAgainstPollutingAssignment.js'
+import protectAgainstPollutingAssignment from './protectAgainstPollutingAssignment.js.js'
 
 export default function filterObjectByKey<
   T extends object,

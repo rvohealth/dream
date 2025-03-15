@@ -1,4 +1,4 @@
-import Dream from '../Dream.js'
+import Dream from '../Dream.js.js'
 
 export default class NonBelongsToAssociationProvidedAsSortableDecoratorScope extends Error {
   private scope: string

@@ -1,5 +1,5 @@
-import { DreamColumn } from '../../../src'
-import ApplicationModel from './ApplicationModel'
+import { DreamColumn } from '../../../src.js'
+import ApplicationModel from './ApplicationModel.js'
 
 // const Deco = new Decorators<InstanceType<typeof ModelForOpenapiTypeSpecs>>()
 

@@ -1,4 +1,4 @@
-import { Encrypt } from '../../../src'
+import { Encrypt } from '../../../src.js'
 
 describe('Encrypt.hash, Encrypt.veryify', () => {
   it('can verify a string', async () => {

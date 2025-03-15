@@ -1,5 +1,5 @@
-import Mylar from '../../../../../test-app/app/models/Balloon/Mylar'
-import User from '../../../../../test-app/app/models/User'
+import Mylar from '../../../../../test-app/app/models/Balloon/Mylar.js'
+import User from '../../../../../test-app/app/models/User.js'
 
 describe('marshalling postgres decimals from db', () => {
   let user: User

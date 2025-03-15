@@ -1,6 +1,6 @@
-import Dream from '../../Dream.js'
-import { DecoratorContext } from '../DecoratorContextType.js'
-import { HookStatement, blankHooksFactory } from './shared.js'
+import Dream from '../../Dream.js.js'
+import { DecoratorContext } from '../DecoratorContextType.js.js'
+import { HookStatement, blankHooksFactory } from './shared.js.js'
 
 /**
  * Calls the decorated method whenever a dream has finished

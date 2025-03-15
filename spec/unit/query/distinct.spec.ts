@@ -1,6 +1,6 @@
-import ops from '../../../src/ops'
-import Edge from '../../../test-app/app/models/Graph/Edge'
-import Node from '../../../test-app/app/models/Graph/Node'
+import ops from '../../../src/ops.js'
+import Edge from '../../../test-app/app/models/Graph/Edge.js'
+import Node from '../../../test-app/app/models/Graph/Node.js'
 
 describe('Query#distinct', () => {
   it('returns unique results distinct on the primary key', async () => {

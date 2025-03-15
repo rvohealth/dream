@@ -1,7 +1,7 @@
-import DreamSerializer from '../../../src/serializer'
-import RendersOne from '../../../src/serializer/decorators/associations/RendersOne'
-import Post from '../models/Post'
-import PostVisibility from '../models/PostVisibility'
+import DreamSerializer from '../../../src/serializer.js'
+import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
+import Post from '../models/Post.js'
+import PostVisibility from '../models/PostVisibility.js'
 
 // NOTE: this serializer is intentionally exported
 // non-default to test that our client api

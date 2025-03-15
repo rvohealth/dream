@@ -1,13 +1,13 @@
-import { AssociationTableNames } from '../../db/reflections.js'
-import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
-import Dream from '../../Dream.js'
+import { AssociationTableNames } from '../../db/reflections.js.js'
+import lookupModelByGlobalNameOrNames from '../../dream-application/helpers/lookupModelByGlobalNameOrNames.js.js'
+import Dream from '../../Dream.js.js'
 import {
   GlobalModelNames,
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../../dream/types.js'
-import { DecoratorContext } from '../DecoratorContextType.js'
+import { DecoratorContext } from '../DecoratorContextType.js.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,

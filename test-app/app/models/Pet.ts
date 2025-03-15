@@ -1,13 +1,13 @@
-import { Decorators, ops } from '../../../src'
-import SoftDelete from '../../../src/decorators/SoftDelete'
-import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import Balloon from './Balloon'
-import Collar from './Collar'
-import PetUnderstudyJoinModel from './PetUnderstudyJoinModel'
-import Post from './Post'
-import Rating from './Rating'
-import User from './User'
+import { Decorators, ops } from '../../../src.js'
+import SoftDelete from '../../../src/decorators/SoftDelete.js'
+import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import Balloon from './Balloon.js'
+import Collar from './Collar.js'
+import PetUnderstudyJoinModel from './PetUnderstudyJoinModel.js'
+import Post from './Post.js'
+import Rating from './Rating.js'
+import User from './User.js'
 
 const Deco = new Decorators<InstanceType<typeof Pet>>()
 

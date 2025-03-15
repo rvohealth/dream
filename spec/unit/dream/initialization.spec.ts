@@ -1,9 +1,9 @@
 import { DateTime } from 'luxon'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo'
-import BalloonLine from '../../../test-app/app/models/BalloonLine'
-import Composition from '../../../test-app/app/models/Composition'
-import Pet from '../../../test-app/app/models/Pet'
-import User from '../../../test-app/app/models/User'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
+import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
 
 describe('Dream initialization', () => {
   it('sets attributes', () => {

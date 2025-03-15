@@ -1,11 +1,11 @@
-import { Decorators } from '../../../src'
-import { DreamColumn, DreamConst, DreamSerializers } from '../../../src/dream/types'
-import ApplicationModel from './ApplicationModel'
-import CompositionAsset from './CompositionAsset'
-import CompositionAssetAudit from './CompositionAssetAudit'
-import HeartRating from './ExtraRating/HeartRating'
-import LocalizedText from './LocalizedText'
-import User from './User'
+import { Decorators } from '../../../src.js'
+import { DreamColumn, DreamConst, DreamSerializers } from '../../../src/dream/types.js'
+import ApplicationModel from './ApplicationModel.js'
+import CompositionAsset from './CompositionAsset.js'
+import CompositionAssetAudit from './CompositionAssetAudit.js'
+import HeartRating from './ExtraRating/HeartRating.js'
+import LocalizedText from './LocalizedText.js'
+import User from './User.js'
 
 const Deco = new Decorators<InstanceType<typeof Composition>>()
 

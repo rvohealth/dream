@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
-import { IdType } from '../../../../src'
-import ops from '../../../../src/ops'
-import ApplicationModel from '../../../../test-app/app/models/ApplicationModel'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar'
-import Composition from '../../../../test-app/app/models/Composition'
-import Edge from '../../../../test-app/app/models/Graph/Edge'
-import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode'
-import Node from '../../../../test-app/app/models/Graph/Node'
-import User from '../../../../test-app/app/models/User'
+import { IdType } from '../../../../src.js'
+import ops from '../../../../src/ops.js'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
+import Edge from '../../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../../test-app/app/models/Graph/Node.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#pluck', () => {
   let user1: User

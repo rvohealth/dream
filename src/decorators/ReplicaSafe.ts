@@ -1,5 +1,5 @@
-import Dream from '../Dream.js'
-import StiChildIncompatibleWithReplicaSafeDecorator from '../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
+import Dream from '../Dream.js.js'
+import StiChildIncompatibleWithReplicaSafeDecorator from '../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js.js'
 
 export default function ReplicaSafe(): ClassDecorator {
   return function (target: any) {

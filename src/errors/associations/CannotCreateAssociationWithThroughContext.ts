@@ -1,6 +1,6 @@
-import { HasManyStatement } from '../../decorators/associations/HasMany.js'
-import { HasOneStatement } from '../../decorators/associations/HasOne.js'
-import Dream from '../../Dream.js'
+import { HasManyStatement } from '../../decorators/associations/HasMany.js.js'
+import { HasOneStatement } from '../../decorators/associations/HasOne.js.js'
+import Dream from '../../Dream.js.js'
 
 export default class CannotCreateAssociationWithThroughContext extends Error {
   public dreamClass: typeof Dream
