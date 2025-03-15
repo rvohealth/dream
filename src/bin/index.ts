@@ -1,3 +1,4 @@
+import DreamCLI from '../cli/index.js'
 import ConnectionConfRetriever from '../db/ConnectionConfRetriever.js'
 import DreamApplication from '../dream-application/index.js'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder.js'
@@ -19,16 +20,16 @@ export default class DreamBin {
   }
 
   public static async buildDreamSchema() {
-    console.log('writing dream schema...')
+    const spinner = DreamCLI.logger.log('writing dream schema...', { spinner: true })
     await new SchemaBuilder().build()
-    console.log('Done!')
+    spinner.stop()
   }
 
   public static async dbCreate() {
     const connectionRetriever = new ConnectionConfRetriever()
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
-    console.log(`creating ${primaryDbConf.name}`)
+    const spinner = DreamCLI.logger.log(`creating ${primaryDbConf.name}...`, { spinner: true })
     await createDb('primary')
 
     // TODO: add support for creating replicas. Began doing it below, but it is very tricky,
@@ -40,14 +41,14 @@ export default class DreamBin {
     //   await createDb('replica')
     // }
 
-    console.log('complete!')
+    spinner.stop()
   }
 
   public static async dbDrop() {
     const connectionRetriever = new ConnectionConfRetriever()
     const primaryDbConf = connectionRetriever.getConnectionConf('primary')
 
-    console.log(`dropping ${primaryDbConf.name}`)
+    const spinner = DreamCLI.logger.log(`dropping ${primaryDbConf.name}...`, { spinner: true })
     await _dropDb('primary')
 
     // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,
@@ -59,21 +60,33 @@ export default class DreamBin {
     //   await _dropDb('replica')
     // }
 
-    console.log('complete!')
+    spinner.stop()
   }
 
   public static async dbMigrate() {
+    const connectionRetriever = new ConnectionConfRetriever()
+    const primaryDbConf = connectionRetriever.getConnectionConf('primary')
+    const spinner = DreamCLI.logger.log(`migrating ${primaryDbConf.name}...`, { spinner: true })
+
     await runMigration({ mode: 'migrate' })
     await this.duplicateDatabase()
+
+    spinner.stop()
   }
 
   public static async dbRollback(opts: { steps: number }) {
+    const connectionRetriever = new ConnectionConfRetriever()
+    const primaryDbConf = connectionRetriever.getConnectionConf('primary')
+    const spinner = DreamCLI.logger.log(`rolling back ${primaryDbConf.name}...`, { spinner: true })
+
     let step = opts.steps
     while (step > 0) {
       await runMigration({ mode: 'rollback' })
       step -= 1
     }
     await this.duplicateDatabase()
+
+    spinner.stop()
   }
 
   public static async generateDream(
@@ -101,9 +114,8 @@ export default class DreamBin {
   // It is only made private so that people don't mistakenly try
   // to use it to generate docs for their apps.
   private static async buildDocs() {
-    console.log('generating docs...')
+    DreamCLI.logger.log('generating docs...')
     await sspawn('yarn typedoc src/index.ts --tsconfig ./tsconfig.esm.build.json --out docs')
-    console.log('done!')
   }
 
   private static async duplicateDatabase() {
@@ -116,17 +128,30 @@ export default class DreamBin {
 
     if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
-      console.log(`creating fake replica test database ${replicaTestWorkerDatabaseName}`)
+      const spinner = DreamCLI.logger.log(
+        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
+        {
+          spinner: true,
+        }
+      )
       await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
       await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
+      spinner.stop()
     }
 
     for (let i = 2; i <= parallelTests; i++) {
       const workerDatabaseName = `${dbConf.name}_${i}`
 
       console.log(`creating duplicate test database ${workerDatabaseName} for concurrent tests`)
+      const spinner = DreamCLI.logger.log(
+        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
+        {
+          spinner: true,
+        }
+      )
       await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
       await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
+      spinner.stop()
     }
     await client.end()
   }

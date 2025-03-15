@@ -1,7 +1,9 @@
+import { spawn, SpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApplication, { DreamApplicationInitOptions } from '../dream-application/index.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import DreamCliLogger from './logger/DreamCliLogger.js'
 
 export default class DreamCLI {
   /**
@@ -146,6 +148,7 @@ export default class DreamCLI {
         EnvInternal.provideDefaultNodeEnv('test')
 
         await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+
         await DreamBin.dbMigrate()
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
@@ -224,6 +227,34 @@ export default class DreamCLI {
         process.exit()
       })
   }
+
+  /*
+   * the default spawn provided by node:child_process is incompatible
+   * with promises. this will automatically wrap the spawn method,
+   * and will by default connect STDOUT to the current STDOUT,
+   * so that whatever the command is outputting is output to the
+   * primary STDOUT context.
+   */
+  public static async spawn(command: string, opts?: SpawnOptions) {
+    return new Promise((accept, reject) => {
+      const spawnInstance = spawn(command, {
+        stdio: 'inherit',
+        shell: true,
+        ...(opts || {}),
+      })
+
+      spawnInstance.on('close', code => {
+        if (code !== 0) reject(new Error(code?.toString()))
+        accept({})
+      })
+    })
+  }
+
+  public static get logger() {
+    this._logger ||= new DreamCliLogger()
+    return this._logger
+  }
+  private static _logger: DreamCliLogger | undefined = undefined
 }
 
 function myParseInt(value: string) {
