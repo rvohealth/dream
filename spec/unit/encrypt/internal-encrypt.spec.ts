@@ -1,4 +1,4 @@
-import Encrypt from '../../../src/encrypt.js'
+import Encrypt from '../../../src/encrypt/index.js'
 import InternalEncrypt from '../../../src/encrypt/InternalEncrypt.js'
 import initializeDreamApplication from '../../../test-app/cli/helpers/initializeDreamApplication.js'
 
