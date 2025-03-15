@@ -4,7 +4,7 @@
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "target": "ESNext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "Node",
     "noImplicitAny": true,
     "resolveJsonModule": true,
     /* rootDir and outDir together help maintain dist/src folder */
