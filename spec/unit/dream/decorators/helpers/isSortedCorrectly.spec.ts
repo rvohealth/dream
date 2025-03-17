@@ -1,4 +1,4 @@
-import isSortedCorrectly from '../../../../../src/decorators/sortable/helpers/isSortedCorrectly.js'
+import isSortedCorrectly from '../../../../../src/decorators/field/sortable/helpers/isSortedCorrectly.js'
 
 describe('isSortedCorrectly', () => {
   const subject = () => isSortedCorrectly(data, 'position')

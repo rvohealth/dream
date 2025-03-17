@@ -1,34 +1,34 @@
 import Dream from '../Dream.js'
 import { EncryptedOptions, GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
+import Encrypted from './field/Encrypted.js'
 import BelongsTo, {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
-} from './associations/BelongsTo.js'
+} from './field/association/BelongsTo.js'
 import HasMany, {
   HasManyOptions,
   HasManyThroughOptions,
   PolymorphicHasManyOptions,
-} from './associations/HasMany.js'
+} from './field/association/HasMany.js'
 import HasOne, {
   HasOneOptions,
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
-} from './associations/HasOne.js'
-import Encrypted from './Encrypted.js'
-import AfterCreate from './hooks/AfterCreate.js'
-import AfterCreateCommit from './hooks/AfterCreateCommit.js'
-import AfterDestroy from './hooks/AfterDestroy.js'
-import AfterDestroyCommit from './hooks/AfterDestroyCommit.js'
-import AfterSave from './hooks/AfterSave.js'
-import AfterSaveCommit from './hooks/AfterSaveCommit.js'
-import AfterUpdate from './hooks/AfterUpdate.js'
-import AfterUpdateCommit from './hooks/AfterUpdateCommit.js'
-import BeforeCreate from './hooks/BeforeCreate.js'
-import BeforeDestroy from './hooks/BeforeDestroy.js'
-import BeforeSave from './hooks/BeforeSave.js'
-import BeforeUpdate from './hooks/BeforeUpdate.js'
-import { AfterHookOpts, BeforeHookOpts } from './hooks/shared.js'
-import Sortable from './sortable/Sortable.js'
+} from './field/association/HasOne.js'
+import AfterCreate from './field/lifecycle/AfterCreate.js'
+import AfterCreateCommit from './field/lifecycle/AfterCreateCommit.js'
+import AfterDestroy from './field/lifecycle/AfterDestroy.js'
+import AfterDestroyCommit from './field/lifecycle/AfterDestroyCommit.js'
+import AfterSave from './field/lifecycle/AfterSave.js'
+import AfterSaveCommit from './field/lifecycle/AfterSaveCommit.js'
+import AfterUpdate from './field/lifecycle/AfterUpdate.js'
+import AfterUpdateCommit from './field/lifecycle/AfterUpdateCommit.js'
+import BeforeCreate from './field/lifecycle/BeforeCreate.js'
+import BeforeDestroy from './field/lifecycle/BeforeDestroy.js'
+import BeforeSave from './field/lifecycle/BeforeSave.js'
+import BeforeUpdate from './field/lifecycle/BeforeUpdate.js'
+import { AfterHookOpts, BeforeHookOpts } from './field/lifecycle/shared.js'
+import Sortable from './field/sortable/Sortable.js'
 
 export default class Decorators<T extends Dream> {
   public BelongsTo<

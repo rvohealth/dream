@@ -1,4 +1,4 @@
-import Scope from '../../../src/decorators/Scope.js'
+import Scope from '../../../src/decorators/static-method/Scope.js'
 import Query from '../../../src/dream/Query.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
 import { Decorators, SoftDelete } from '../../../src/index.js'

@@ -1,4 +1,4 @@
-import ValidationStatement from '../../decorators/validations/shared.js'
+import ValidationStatement from '../../decorators/field/validation/shared.js'
 import Dream from '../../Dream.js'
 import checkSingleValidation from './checkSingleValidation.js'
 

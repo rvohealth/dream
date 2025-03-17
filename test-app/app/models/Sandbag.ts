@@ -1,4 +1,4 @@
-import Validate from '../../../src/decorators/validations/Validate.js'
+import Validate from '../../../src/decorators/field/validation/Validate.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
 import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'

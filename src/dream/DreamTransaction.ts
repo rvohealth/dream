@@ -1,5 +1,5 @@
 import { Transaction } from 'kysely'
-import { HookStatement } from '../decorators/hooks/shared.js'
+import { HookStatement } from '../decorators/field/lifecycle/shared.js'
 import Dream from '../Dream.js'
 import { runHook } from './internal/runHooksFor.js'
 

@@ -1,5 +1,5 @@
 import { MockInstance } from 'vitest'
-import { blankHooksFactory, HookStatement } from '../../../src/decorators/hooks/shared.js'
+import { blankHooksFactory, HookStatement } from '../../../src/decorators/field/lifecycle/shared.js'
 import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/destroyAssociatedRecords.js'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor.js'
 import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks.js'

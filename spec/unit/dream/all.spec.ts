@@ -1,5 +1,5 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import ReplicaSafe from '../../../src/decorators/ReplicaSafe.js'
+import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'

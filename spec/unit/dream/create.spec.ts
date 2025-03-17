@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { MockInstance } from 'vitest'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import ReplicaSafe from '../../../src/decorators/ReplicaSafe.js'
+import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor.js'
 import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks.js'
 import CanOnlyPassBelongsToModelParam from '../../../src/errors/associations/CanOnlyPassBelongsToModelParam.js'

@@ -1,4 +1,4 @@
-import { PassthroughOnClause } from '../decorators/associations/shared.js'
+import { PassthroughOnClause } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
 import DreamTransaction from './DreamTransaction.js'
 import Query, { QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload } from './Query.js'

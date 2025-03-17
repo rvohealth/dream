@@ -1,4 +1,4 @@
-import { applySortableScopesToQuery } from '../../decorators/sortable/helpers/setPosition.js'
+import { applySortableScopesToQuery } from '../../decorators/field/sortable/helpers/setPosition.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'

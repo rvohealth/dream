@@ -1,4 +1,4 @@
-import { SOFT_DELETE_SCOPE_NAME } from '../../decorators/SoftDelete.js'
+import { SOFT_DELETE_SCOPE_NAME } from '../../decorators/class/SoftDelete.js'
 import Dream from '../../Dream.js'
 import uniq from '../../helpers/uniq.js'
 import { AllDefaultScopeNames } from '../types.js'

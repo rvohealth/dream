@@ -1,4 +1,4 @@
-import STI from '../../../../src/decorators/STI.js'
+import STI from '../../../../src/decorators/class/STI.js'
 import BaseExtraRating from './Base.js'
 
 @STI(BaseExtraRating)

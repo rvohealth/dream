@@ -14,10 +14,11 @@ import {
 import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB.js'
 import { DbConnectionType } from '../db/types.js'
-import associationToGetterSetterProp from '../decorators/associations/associationToGetterSetterProp.js'
-import { BelongsToStatement } from '../decorators/associations/BelongsTo.js'
-import { HasManyStatement } from '../decorators/associations/HasMany.js'
-import { HasOneStatement } from '../decorators/associations/HasOne.js'
+import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
+import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
+import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
+import { HasManyStatement } from '../decorators/field/association/HasMany.js'
+import { HasOneStatement } from '../decorators/field/association/HasOne.js'
 import {
   AssociationStatement,
   ColumnNamesAccountingForJoinedAssociations,
@@ -28,8 +29,7 @@ import {
   SelfOnStatement,
   WhereStatement,
   WhereStatementForJoinedAssociation,
-} from '../decorators/associations/shared.js'
-import { SOFT_DELETE_SCOPE_NAME } from '../decorators/SoftDelete.js'
+} from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js'
 import CannotJoinPolymorphicBelongsToError from '../errors/associations/CannotJoinPolymorphicBelongsToError.js'

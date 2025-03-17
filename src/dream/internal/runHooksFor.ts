@@ -1,4 +1,4 @@
-import { HookStatement, HookType } from '../../decorators/hooks/shared.js'
+import { HookStatement, HookType } from '../../decorators/field/lifecycle/shared.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 
