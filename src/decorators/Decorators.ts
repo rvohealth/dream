@@ -205,8 +205,12 @@ export default class Decorators<T extends Dream> {
    * ```ts
    * class User {
    *   @Deco.Encrypted()
+   *   // automatically sets `encryptedSsn` to the encrypted value that
+   *   // `ssn` is set to in new/create/update, e.g., `await user.update({ ssn })`
    *   public ssn: string
    *
+   *   // automatically sets `myEncryptedPhone` to the encrypted value that
+   *   // `phone` is set to new/create/update, e.g., `await user.update({ phone })`
    *   @Deco.Encrypted('myEncryptedPhone)
    *   public phone: string
    * }
