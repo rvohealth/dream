@@ -24,9 +24,7 @@
     "dist/**/*",
     "docs/**/*"
   ],
-  "bin": {
-    "dream": "dist/esm/src/global-cli/dream.js"
-  },
+  "bin": "dist/esm/src/global-cli/dream.js",
   "scripts": {
     "dream": "yarn dreamts",
     "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",

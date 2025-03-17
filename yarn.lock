@@ -563,7 +563,7 @@ __metadata:
     luxon: ^3.5.0
     pg: "*"
   bin:
-    dream: ./dist/esm/src/global-cli/dream.js
+    dream: dist/esm/src/global-cli/dream.js
   languageName: unknown
   linkType: soft
 
