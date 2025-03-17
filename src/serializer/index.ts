@@ -18,8 +18,8 @@ import inferSerializerFromDreamOrViewModel, {
 } from '../helpers/inferSerializerFromDreamOrViewModel.js'
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
+import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute.js'
-import { DreamSerializerAssociationStatement } from './decorators/field/association/shared.js'
 import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {

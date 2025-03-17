@@ -1,4 +1,3 @@
-import Scope from '../../../src/decorators/static-method/Scope.js'
 import Query from '../../../src/dream/Query.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
 import { Decorators, SoftDelete } from '../../../src/index.js'
@@ -35,7 +34,7 @@ export default class Collar extends ApplicationModel {
   public balloon: Balloon
   public balloonId: DreamColumn<Collar, 'balloonId'>
 
-  @Scope({ default: true })
+  @Deco.Scope({ default: true })
   public static hideHiddenCollars(query: Query<Collar>) {
     return query.where({ hidden: false })
   }

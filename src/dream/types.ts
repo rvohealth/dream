@@ -43,8 +43,6 @@ export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type OrderDir = 'asc' | 'desc'
 
-export type EncryptedOptions<T extends Dream> = DreamColumnNames<T>
-
 export interface SortableOptions<T extends Dream> {
   scope?:
     | keyof DreamBelongsToAssociationMetadata<T>

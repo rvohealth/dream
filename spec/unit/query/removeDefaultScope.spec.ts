@@ -1,4 +1,4 @@
-import { Query, Scope } from '../../../src/index.js'
+import { Query } from '../../../src/index.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -6,7 +6,7 @@ describe('Query#removeDefaultScope', () => {
   let user: User
 
   class PetNamedAster extends Pet {
-    @Scope({ default: true })
+    @Deco.Scope({ default: true })
     public static onlyAster(query: Query<PetNamedAster>) {
       return query.where({ name: 'aster' })
     }

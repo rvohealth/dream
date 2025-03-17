@@ -1,8 +1,5 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
-import Virtual from '../../../src/decorators/field-or-getter/Virtual.js'
-import Validates from '../../../src/decorators/field/validation/Validates.js'
-import Scope from '../../../src/decorators/static-method/Scope.js'
 import Query from '../../../src/dream/Query.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
 import range from '../../../src/helpers/range.js'
@@ -56,34 +53,38 @@ export default class User extends ApplicationModel {
   @Deco.Encrypted('myOtherEncryptedSecret')
   public otherSecret: { token: string } | null
 
-  @Virtual()
+  @Deco.Virtual()
   public password: string | undefined
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
 
-  @Virtual()
+  @Deco.Virtual()
   public randoVirtual: string
 
-  @Virtual()
+  @Deco.Virtual()
   public get lbs() {
-    return gramsToLbs(this.grams ?? 0)
+    const self: User = this
+    return gramsToLbs(self.getAttribute('grams') ?? 0)
   }
 
   public set lbs(lbs: number) {
-    this.grams = lbsToGrams(lbs)
+    const self: User = this
+    self.setAttribute('grams', lbsToGrams(lbs))
   }
 
-  @Virtual()
-  public set kilograms(kilograms: number) {
-    this.grams = kilogramsToGrams(kilograms)
+  @Deco.Virtual()
+  public set kilograms(kg: number) {
+    const self: User = this
+    self.setAttribute('grams', kilogramsToGrams(kg))
   }
 
   public get kilograms() {
-    return gramsToKilograms(this.grams ?? 0)
+    const self: User = this
+    return gramsToKilograms(self.getAttribute('grams') ?? 0)
   }
 
-  @Validates('contains', '@')
-  @Validates('presence')
-  @Validates('length', { min: 4, max: 64 })
+  @Deco.Validates('contains', '@')
+  @Deco.Validates('presence')
+  @Deco.Validates('length', { min: 4, max: 64 })
   public email: DreamColumn<User, 'email'>
 
   @Deco.HasOne('UserSettings')
@@ -240,12 +241,12 @@ export default class User extends ApplicationModel {
   @Deco.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
   public balloonsFromUuid: Collar[]
 
-  @Scope()
+  @Deco.Scope()
   public static withFunnyName(query: Query<User>) {
     return query.where({ name: 'Chalupas jr' })
   }
 
-  @Scope({ default: true })
+  @Deco.Scope({ default: true })
   public static hideDeleted(query: Query<User>) {
     return query.where({ deletedAt: null })
   }

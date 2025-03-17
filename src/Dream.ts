@@ -1514,7 +1514,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Scope()
+   *   @Deco.Scope()
    *   public visible(query: Query<User>) {
    *     return query.where({ hidden: false })
    *   }
@@ -2070,7 +2070,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Validates('presence')
+   *   @Deco.Validates('presence')
    *   public email: DreamColumn<User, 'email'>
    * }
    * const user = User.new()
@@ -2118,7 +2118,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Validates('presence')
+   *   @Deco.Validates('presence')
    *   public email: DreamColumn<User, 'email'>
    * }
    *
@@ -2560,7 +2560,7 @@ export default class Dream {
    * ```ts
    *  class User extends ApplicationModel {
    *    ...
-   *    @Validate()
+   *    @Deco.Validate()
    *    public async validateName() {
    *      if (typeof this.name === 'number')
    *        this.addError('name', 'name cannot be a number')

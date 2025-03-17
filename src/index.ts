@@ -15,15 +15,11 @@ export { default as SoftDelete } from './decorators/class/SoftDelete.js'
 export { default as STI } from './decorators/class/STI.js'
 export { type DecoratorContext } from './decorators/DecoratorContextType.js'
 export { default as Decorators } from './decorators/Decorators.js'
-export { default as Virtual } from './decorators/field-or-getter/Virtual.js'
 export {
   type WhereStatementForDream,
   type WhereStatementForDreamClass,
 } from './decorators/field/association/shared.js'
 export { type ValidationType } from './decorators/field/validation/shared.js'
-export { default as Validate } from './decorators/field/validation/Validate.js'
-export { default as Validates } from './decorators/field/validation/Validates.js'
-export { default as Scope } from './decorators/static-method/Scope.js'
 export { default as DreamImporter } from './dream-application/helpers/DreamImporter.js'
 export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName.js'
 export {
