@@ -296,8 +296,8 @@ export default class Decorators<T extends Dream> {
   }
 
   /**
-   * The Validates decorator decorates a method to run
-   * before saving a model to the database.
+   * The Validates decorator decorates a field to validate
+   * according to the specified validator and options.
    *
    *
    * ```ts
@@ -308,7 +308,7 @@ export default class Decorators<T extends Dream> {
    * ```
    *
    * @param type — the type of validation
-   * @param args — arguments specific to the type of validation
+   * @param args — optional arguments specific to the type of validation
    * @returns A Validates decorator
    */
   public Validates<

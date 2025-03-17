@@ -34,7 +34,6 @@ export default class User extends ApplicationModel {
   }
 
   public id: DreamColumn<User, 'id'>
-  public grams: DreamColumn<User, 'grams'>
   public uuid: DreamColumn<User, 'uuid'>
   public name: DreamColumn<User, 'name'>
   public birthdate: DreamColumn<User, 'birthdate'>
