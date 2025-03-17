@@ -1,10 +1,11 @@
-import { Query } from '../../../src/index.js'
+import { Decorators, Query } from '../../../src/index.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#removeDefaultScope', () => {
   let user: User
 
+  const Deco = new Decorators<InstanceType<typeof PetNamedAster>>()
   class PetNamedAster extends Pet {
     @Deco.Scope({ default: true })
     public static onlyAster(query: Query<PetNamedAster>) {
