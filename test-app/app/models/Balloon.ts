@@ -1,7 +1,5 @@
+import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import Decorators from '../../../src/decorators/Decorators.js'
-import Scope from '../../../src/decorators/Scope.js'
-import SoftDelete from '../../../src/decorators/SoftDelete.js'
-import Validates from '../../../src/decorators/validations/Validates.js'
 import { DreamColumn, IdType } from '../../../src/dream/types.js'
 import { Query, ReplicaSafe } from '../../../src/index.js'
 import { BalloonTypesEnum } from '../../types/db.js'
@@ -40,12 +38,12 @@ export default class Balloon extends ApplicationModel {
   @Deco.Sortable({ scope: 'user' })
   public positionBeta: DreamColumn<Balloon, 'positionBeta'>
 
-  @Scope()
+  @Deco.Scope()
   public static red(query: Query<Balloon>) {
     return query.where({ color: 'red' })
   }
 
-  @Validates('numericality', { min: 0, max: 100 })
+  @Deco.Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
   @Deco.BelongsTo('User', { optional: true })

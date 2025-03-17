@@ -73,11 +73,11 @@ class Composition {
 ```ts
 export default class User extends Dream {
   ...
-  @Validates('contains', '@')
-  @Validates('presence')
+  @Deco.Validates('contains', '@')
+  @Deco.Validates('presence')
   public email: string
 
-  @Validates('length', { min: 4, max: 18 })
+  @Deco.Validates('length', { min: 4, max: 18 })
   public password: string
   ...
 }
@@ -136,13 +136,13 @@ export default class CompositionAsset extends Dream {
 
 ```ts
 class User {
-  @Scope()
+  @Deco.Scope()
   public static withFunnyName(query: Query<User>) {
     return query.where({ name: 'Chalupas jr' })
   }
 
   // this will always fire whenever queries are run against the model
-  @Scope({ default: true })
+  @Deco.Scope({ default: true })
   public static hideDeleted(query: Query<User>) {
     return query.where({ deleted_at: null })
   }

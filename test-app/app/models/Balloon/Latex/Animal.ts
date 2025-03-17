@@ -1,4 +1,4 @@
-import STI from '../../../../../src/decorators/STI.js'
+import STI from '../../../../../src/decorators/class/STI.js'
 import { BalloonTypesEnum } from '../../../../types/db.js'
 import Latex from '../Latex.js'
 

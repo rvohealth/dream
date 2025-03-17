@@ -1,33 +1,39 @@
 import Dream from '../Dream.js'
-import { GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
+import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
+import Virtual from './field-or-getter/Virtual.js'
+import Encrypted from './field/Encrypted.js'
 import BelongsTo, {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
-} from './associations/BelongsTo.js'
+} from './field/association/BelongsTo.js'
 import HasMany, {
   HasManyOptions,
   HasManyThroughOptions,
   PolymorphicHasManyOptions,
-} from './associations/HasMany.js'
+} from './field/association/HasMany.js'
 import HasOne, {
   HasOneOptions,
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
-} from './associations/HasOne.js'
-import AfterCreate from './hooks/AfterCreate.js'
-import AfterCreateCommit from './hooks/AfterCreateCommit.js'
-import AfterDestroy from './hooks/AfterDestroy.js'
-import AfterDestroyCommit from './hooks/AfterDestroyCommit.js'
-import AfterSave from './hooks/AfterSave.js'
-import AfterSaveCommit from './hooks/AfterSaveCommit.js'
-import AfterUpdate from './hooks/AfterUpdate.js'
-import AfterUpdateCommit from './hooks/AfterUpdateCommit.js'
-import BeforeCreate from './hooks/BeforeCreate.js'
-import BeforeDestroy from './hooks/BeforeDestroy.js'
-import BeforeSave from './hooks/BeforeSave.js'
-import BeforeUpdate from './hooks/BeforeUpdate.js'
-import { AfterHookOpts, BeforeHookOpts } from './hooks/shared.js'
-import Sortable from './sortable/Sortable.js'
+} from './field/association/HasOne.js'
+import AfterCreate from './field/lifecycle/AfterCreate.js'
+import AfterCreateCommit from './field/lifecycle/AfterCreateCommit.js'
+import AfterDestroy from './field/lifecycle/AfterDestroy.js'
+import AfterDestroyCommit from './field/lifecycle/AfterDestroyCommit.js'
+import AfterSave from './field/lifecycle/AfterSave.js'
+import AfterSaveCommit from './field/lifecycle/AfterSaveCommit.js'
+import AfterUpdate from './field/lifecycle/AfterUpdate.js'
+import AfterUpdateCommit from './field/lifecycle/AfterUpdateCommit.js'
+import BeforeCreate from './field/lifecycle/BeforeCreate.js'
+import BeforeDestroy from './field/lifecycle/BeforeDestroy.js'
+import BeforeSave from './field/lifecycle/BeforeSave.js'
+import BeforeUpdate from './field/lifecycle/BeforeUpdate.js'
+import { AfterHookOpts, BeforeHookOpts } from './field/lifecycle/shared.js'
+import Sortable from './field/sortable/Sortable.js'
+import Validates from './field/validation/Validates.js'
+import { ValidationType } from './field/validation/shared.js'
+import Validate from './method/Validate.js'
+import Scope from './static-method/Scope.js'
 
 export default class Decorators<T extends Dream> {
   public BelongsTo<
@@ -192,13 +198,66 @@ export default class Decorators<T extends Dream> {
   //////////////
 
   /**
-   * Sortable decorator.
+   * The Encrypted decorator automatically encrypts (upon setting)
+   * and decrypts (upon getting) so that the encrypted value is
+   * stored in the database.
+   *
+   * ```ts
+   * class User {
+   *   @Deco.Encrypted()
+   *   // automatically sets `encryptedSsn` to the encrypted value that
+   *   // `ssn` is set to in new/create/update, e.g., `await user.update({ ssn })`
+   *   public ssn: string
+   *
+   *   // automatically sets `myEncryptedPhone` to the encrypted value that
+   *   // `phone` is set to new/create/update, e.g., `await user.update({ phone })`
+   *   @Deco.Encrypted('myEncryptedPhone)
+   *   public phone: string
+   * }
+   * ```
+   *
+   * @param column — if omitted, then 'encrypted' is prepended to the Pascal cased version of the decorated field
+   * @returns An Encrypted decorator
+   */
+  public Encrypted(this: Decorators<T>, column?: DreamColumnNames<T>) {
+    return Encrypted(column)
+  }
+
+  /**
+   * The Scope decorator decorates a static method that accepts
+   * and returns a Dream Query.
+   *
+   * ```ts
+   * class Collar {
+   *   @Deco.Scope({ default: true })
+   *   public static hideHiddenCollars(query: Query<Collar>) {
+   *     return query.where({ hidden: false })
+   *   }
+   * }
+   * ```
+   *
+   * @param opts — optional options
+   * @param opts.default - boolean: if true, then this scope will be applied to all queries involving this model
+   * @returns A Scope decorator
+   */
+  public Scope(
+    this: Decorators<T>,
+    opts: {
+      default?: boolean
+    } = {}
+  ) {
+    return Scope(opts)
+  }
+
+  /**
+   * The Sortable decorator automatically adjusts the value of the columns
+   * corresponding to the decorated field.
    *
    * NOTE: the Sortable decorator may not be used in STI child models (it may be used in the STI base class)
    *
    * ```ts
    * class Balloon {
-   *   @Deco.Sortable()
+   *   @Deco.Sortable({ scope: 'user' })
    *   public position: DreamColumn<Balloon, 'position'>
    * }
    * ```
@@ -208,6 +267,126 @@ export default class Decorators<T extends Dream> {
    */
   public Sortable(this: Decorators<T>, opts?: SortableOptions<T>) {
     return Sortable(opts)
+  }
+
+  /**
+   * The Validate decorator decorates a method to run
+   * before saving a model to the database.
+   *
+   *
+   * ```ts
+   * class Sandbag {
+   *   @Deco.Validate()
+   *   public validateWeight(this: Sandbag) {
+   *     if (!this.weight) return
+   *
+   *     const undefinedOrNull: any[] = [undefined, null]
+   *     if (!undefinedOrNull.includes(this.weightKgs))
+   *       this.addError('weight', 'cannot include weightKgs AND weight')
+   *     if (!undefinedOrNull.includes(this.weightTons))
+   *       this.addError('weight', 'cannot include weightTons AND weight')
+   *   }
+   * }
+   * ```
+   *
+   * @returns A Validate decorator
+   */
+  public Validate(this: Decorators<T>) {
+    return Validate()
+  }
+
+  /**
+   * The Validates decorator decorates a field to validate
+   * according to the specified validator and options.
+   *
+   *
+   * ```ts
+   * class Balloon {
+   *   @Deco.Validates('numericality', { min: 0, max: 100 })
+   *   public volume: DreamColumn<Balloon, 'volume'>
+   * }
+   * ```
+   *
+   * @param type — the type of validation
+   * @param args — optional arguments specific to the type of validation
+   * @returns A Validates decorator
+   */
+  public Validates<
+    VT extends ValidationType,
+    VTArgs extends VT extends 'numericality'
+      ? { min?: number; max?: number }
+      : VT extends 'length'
+        ? { min: number; max?: number }
+        : VT extends 'contains'
+          ? string | RegExp
+          : never,
+  >(this: Decorators<T>, type: VT, args?: VTArgs): any {
+    return Validates(type, args)
+  }
+
+  /**
+   * The Virtual decorator enables setting of fields as if they
+   * corresponded to columns in the model's table so they can
+   * be passed to new, create, and update.
+   *
+   * For example, in the first example, below, one could call
+   * `await bodyMeasurement.update({ lbs 180.1 })`, and `180.1` will be
+   * passed into the `lbs` setter, which then translates lbs
+   * to grams to be stored in the `grams` column in the metrics
+   * table.
+   *
+   * And in the second example, below, one could call
+   * `await user.update({ password })`, and, in the BeforeSave
+   * lifecycle hook, the password would be hashed into
+   * `hashedPassword`. (This is just an example to illustrate
+   * using the Virtual decorator on a simple field; it might be
+   * better design to use the getter/setter pattern for password,
+   * with the getter simply returning `undefined`.)
+   *
+   *
+   * ```ts
+   * class BodyMeasurement {
+   *   @Deco.Virtual()
+   *   public get lbs() {
+   *     const self: User = this
+   *     return gramsToLbs(self.getAttribute('grams') ?? 0)
+   *   }
+   *
+   *   public set lbs(lbs: number) {
+   *     const self: User = this
+   *     self.setAttribute('grams', lbsToGrams(lbs))
+   *   }
+   *
+   *   @Deco.Virtual()
+   *   public get kilograms() {
+   *     const self: User = this
+   *     return gramsToKilograms(self.getAttribute('grams') ?? 0)
+   *   }
+   *
+   *   public set kilograms(kg: number) {
+   *     const self: User = this
+   *     self.setAttribute('grams', kilogramsToGrams(kg))
+   *   }
+   * }
+   * ```
+   *
+   *
+   * ```ts
+   * class User {
+   *   @Deco.Virtual()
+   *   public password: string
+   *
+   *   @Deco.BeforeSave()
+   *   public hasPassword() {
+   *     this.setAttribute('hashedPassword', preferredHashingAlgorithm(this.password))
+   *   }
+   * }
+   * ```
+   *
+   * @returns An Virtual decorator
+   */
+  public Virtual(this: Decorators<T>) {
+    return Virtual()
   }
 
   /**

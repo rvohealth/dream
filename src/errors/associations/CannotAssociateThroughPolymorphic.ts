@@ -1,5 +1,5 @@
-import { HasManyStatement } from '../../decorators/associations/HasMany.js'
-import { HasOneStatement } from '../../decorators/associations/HasOne.js'
+import { HasManyStatement } from '../../decorators/field/association/HasMany.js'
+import { HasOneStatement } from '../../decorators/field/association/HasOne.js'
 import Dream from '../../Dream.js'
 
 export default class CannotAssociateThroughPolymorphic extends Error {

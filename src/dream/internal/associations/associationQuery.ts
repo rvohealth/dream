@@ -1,4 +1,4 @@
-import { HasManyStatement } from '../../../decorators/associations/HasMany.js'
+import { HasManyStatement } from '../../../decorators/field/association/HasMany.js'
 import Dream from '../../../Dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import Query from '../../Query.js'

@@ -1,4 +1,3 @@
-import Validate from '../../../src/decorators/validations/Validate.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
 import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
@@ -22,7 +21,7 @@ export default class Sandbag extends ApplicationModel {
   public createdAt: DreamColumn<Sandbag, 'createdAt'>
   public updatedAt: DreamColumn<Sandbag, 'updatedAt'>
 
-  @Validate()
+  @Deco.Validate()
   public validateWeight(this: Sandbag) {
     if (!this.weight) return
 

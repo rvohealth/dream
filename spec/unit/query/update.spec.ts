@@ -1,5 +1,5 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import ReplicaSafe from '../../../src/decorators/ReplicaSafe.js'
+import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import NoUpdateAllOnJoins from '../../../src/errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociationQuery.js'
 import ops from '../../../src/ops/index.js'

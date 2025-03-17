@@ -1,4 +1,4 @@
-import SoftDelete from '../../../src/decorators/SoftDelete.js'
+import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
 import { Decorators } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'

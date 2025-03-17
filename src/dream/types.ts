@@ -1,14 +1,14 @@
 import { ColumnType, Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections.js'
-import { BelongsToStatement } from '../decorators/associations/BelongsTo.js'
-import { HasManyStatement } from '../decorators/associations/HasMany.js'
-import { HasOneStatement } from '../decorators/associations/HasOne.js'
+import { STI_SCOPE_NAME } from '../decorators/class/STI.js'
+import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
+import { HasManyStatement } from '../decorators/field/association/HasMany.js'
+import { HasOneStatement } from '../decorators/field/association/HasOne.js'
 import {
   AssociatedModelParam,
   OnStatementForAssociation,
   WhereStatement,
-} from '../decorators/associations/shared.js'
-import { STI_SCOPE_NAME } from '../decorators/STI.js'
+} from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import DateTime from '../helpers/DateTime.js'

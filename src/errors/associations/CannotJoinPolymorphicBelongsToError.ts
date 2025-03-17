@@ -1,4 +1,4 @@
-import { BelongsToStatement } from '../../decorators/associations/BelongsTo.js'
+import { BelongsToStatement } from '../../decorators/field/association/BelongsTo.js'
 import Dream from '../../Dream.js'
 
 export default class CannotJoinPolymorphicBelongsToError extends Error {

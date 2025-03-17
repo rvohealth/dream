@@ -1,6 +1,6 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections.js'
-import { PassthroughOnClause, WhereStatement } from '../decorators/associations/shared.js'
+import { PassthroughOnClause, WhereStatement } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
 import DreamTransaction from './DreamTransaction.js'
 import saveDream from './internal/saveDream.js'

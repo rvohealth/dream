@@ -1,6 +1,6 @@
 import User from '../../../../test-app/app/models/User.js'
 
-describe('@Virtual', () => {
+describe('@Deco.Virtual', () => {
   it('adds the decorated property to the defaultParamSafeColumns', () => {
     expect(User['defaultParamSafeColumns']()).toEqual(expect.arrayContaining(['password']))
   })

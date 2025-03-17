@@ -1,4 +1,4 @@
-import STI from '../../../../src/decorators/STI.js'
+import STI from '../../../../src/decorators/class/STI.js'
 import Balloon from '../Balloon.js'
 
 // esbuild will sometimes translate class definitions to have a prefixing
