@@ -1,5 +1,5 @@
 import Dream from '../Dream.js'
-import { GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
+import { EncryptedOptions, GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
 import BelongsTo, {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
@@ -14,6 +14,7 @@ import HasOne, {
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
 } from './associations/HasOne.js'
+import Encrypted from './Encrypted.js'
 import AfterCreate from './hooks/AfterCreate.js'
 import AfterCreateCommit from './hooks/AfterCreateCommit.js'
 import AfterDestroy from './hooks/AfterDestroy.js'
@@ -190,6 +191,25 @@ export default class Decorators<T extends Dream> {
   //////////////
   // end: HasOne
   //////////////
+
+  /**
+   * Encrypted decorator.
+   *
+   * NOTE: the Encrypted decorator may not be used in STI child models (it may be used in the STI base class)
+   *
+   * ```ts
+   * class Balloon {
+   *   @Deco.Encrypted()
+   *   public position: DreamColumn<Balloon, 'position'>
+   * }
+   * ```
+   *
+   * @param scope - The column into which to store the encrypted value
+   * @returns An Encrypted decorator
+   */
+  public Encrypted(this: Decorators<T>, opts?: EncryptedOptions<T>) {
+    return Encrypted(opts)
+  }
 
   /**
    * Sortable decorator.

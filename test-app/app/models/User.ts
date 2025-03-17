@@ -1,6 +1,5 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { DateTime } from 'luxon'
-import Encrypted from '../../../src/decorators/Encrypted.js'
 import Scope from '../../../src/decorators/Scope.js'
 import Validates from '../../../src/decorators/validations/Validates.js'
 import Virtual from '../../../src/decorators/Virtual.js'
@@ -51,10 +50,10 @@ export default class User extends ApplicationModel {
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
-  @Encrypted()
+  @Deco.Encrypted()
   public secret: DreamColumn<User, 'encryptedSecret'>
 
-  @Encrypted('myOtherEncryptedSecret')
+  @Deco.Encrypted('myOtherEncryptedSecret')
   public otherSecret: { token: string } | null
 
   @Virtual()
