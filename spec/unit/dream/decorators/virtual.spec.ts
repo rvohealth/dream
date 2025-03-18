@@ -22,12 +22,12 @@ describe('@Deco.Virtual', () => {
   it('can decorate getter properties', () => {
     const user = User.new({ lbs: 180.1 })
     expect(user.lbs).toEqual(180.1)
-    expect(user.grams).toEqual(81693)
+    expect(user.getAttribute('grams')).toEqual(81693)
   })
 
   it('can decorate setter properties', () => {
     const user = User.new({ kilograms: 90.2 })
     expect(user.kilograms).toEqual(90.2)
-    expect(user.grams).toEqual(90200)
+    expect(user.getAttribute('grams')).toEqual(90200)
   })
 })
