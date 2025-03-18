@@ -1,5 +1,6 @@
 import Dream from '../Dream.js'
 import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
+import { SerializableTypes } from '../serializer/decorators/attribute.js'
 import Virtual from './field-or-getter/Virtual.js'
 import Encrypted from './field/Encrypted.js'
 import BelongsTo, {
@@ -385,8 +386,8 @@ export default class Decorators<T extends Dream> {
    *
    * @returns An Virtual decorator
    */
-  public Virtual(this: Decorators<T>) {
-    return Virtual()
+  public Virtual(this: Decorators<T>, type?: SerializableTypes) {
+    return Virtual(type)
   }
 
   /**

@@ -59,7 +59,7 @@ export default class User extends ApplicationModel {
   @Deco.Virtual()
   public randoVirtual: string
 
-  @Deco.Virtual()
+  @Deco.Virtual('number')
   public get lbs() {
     const self: User = this
     return gramsToLbs(self.getAttribute('grams') ?? 0)
@@ -70,7 +70,7 @@ export default class User extends ApplicationModel {
     self.setAttribute('grams', lbsToGrams(lbs))
   }
 
-  @Deco.Virtual()
+  @Deco.Virtual({ type: 'number', nullable: true })
   public set kilograms(kg: number) {
     const self: User = this
     self.setAttribute('grams', kilogramsToGrams(kg))
