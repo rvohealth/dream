@@ -61,8 +61,6 @@ export default class DreamCLI {
         'properties of the model column1:text/string/enum/etc. column2:text/string/enum/etc. ... columnN:text/string/enum/etc.'
       )
       .action(async (migrationName: string, columnsWithTypes: string[]) => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         await initializeDreamApplication()
         await DreamBin.generateMigration(migrationName, columnsWithTypes)
         process.exit()
@@ -84,8 +82,6 @@ export default class DreamCLI {
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
       .action(async (modelName: string, columnsWithTypes: string[], options: { serializer: boolean }) => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         await initializeDreamApplication()
         await DreamBin.generateDream(modelName, columnsWithTypes, options)
         process.exit()
@@ -116,8 +112,6 @@ export default class DreamCLI {
           columnsWithTypes: string[],
           options: { serializer: boolean }
         ) => {
-          EnvInternal.provideDefaultNodeEnv('test')
-
           await initializeDreamApplication()
           if (extendsWord !== 'extends')
             throw new Error('Expecting: `<child-name> extends <parent-name> <columns-and-types>')
@@ -132,7 +126,6 @@ export default class DreamCLI {
         'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
       )
       .action(async () => {
-        EnvInternal.provideDefaultNodeEnv('test')
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
 
         await initializeDreamApplication({ bypassModelIntegrityCheck: true })
@@ -145,8 +138,6 @@ export default class DreamCLI {
       .description('db:migrate runs any outstanding database migrations')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ skipSync }: { skipSync: boolean }) => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         await initializeDreamApplication({ bypassModelIntegrityCheck: true })
 
         await DreamBin.dbMigrate()
@@ -164,8 +155,6 @@ export default class DreamCLI {
       .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         await initializeDreamApplication({ bypassModelIntegrityCheck: true })
         await DreamBin.dbRollback({ steps })
 
@@ -182,8 +171,6 @@ export default class DreamCLI {
         'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
       )
       .action(async () => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
         await initializeDreamApplication({ bypassModelIntegrityCheck: true })
         await DreamBin.dbDrop()
@@ -194,8 +181,6 @@ export default class DreamCLI {
       .command('db:reset')
       .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
       .action(async () => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
         await initializeDreamApplication({ bypassModelIntegrityCheck: true })
 
@@ -215,8 +200,6 @@ export default class DreamCLI {
       .command('db:seed')
       .description('seeds the database using the file located in db/seed.ts')
       .action(async () => {
-        EnvInternal.provideDefaultNodeEnv('test')
-
         if (process.env.NODE_ENV === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
           console.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
           return
