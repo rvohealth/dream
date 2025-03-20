@@ -27,11 +27,6 @@ export default class Env<
     }
   }
 
-  public provideDefaultNodeEnv(defaultNodeEnv: StandardNodeEnvValues) {
-    if (process.env.NODE_ENV) return
-    process.env.NODE_ENV = defaultNodeEnv
-  }
-
   public get isDebug(): boolean {
     return this.optional('DEBUG') === '1'
   }
