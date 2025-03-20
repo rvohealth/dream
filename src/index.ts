@@ -65,6 +65,7 @@ export { default as GlobalNameNotSet } from './errors/dream-application/GlobalNa
 export { default as RecordNotFound } from './errors/RecordNotFound.js'
 export { default as ValidationError } from './errors/ValidationError.js'
 export { default as Benchmark } from './helpers/benchmark.js'
+export { default as DreamGlam } from './helpers/DreamGlam/DreamGlam.js'
 export { default as CalendarDate } from './helpers/CalendarDate.js'
 export { default as camelize } from './helpers/camelize.js'
 export { default as capitalize } from './helpers/capitalize.js'
