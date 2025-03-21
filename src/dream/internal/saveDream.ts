@@ -1,7 +1,7 @@
 import _db from '../../db/index.js'
 import Dream from '../../Dream.js'
 import ValidationError from '../../errors/ValidationError.js'
-import DateTime from '../../helpers/DateTime.js'
+import { DateTime } from '../../helpers/DateTime.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
 import sqlAttributes from '../../helpers/sqlAttributes.js'
 import DreamTransaction from '../DreamTransaction.js'

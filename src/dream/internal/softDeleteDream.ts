@@ -1,6 +1,6 @@
 import Dream from '../../Dream.js'
 import MissingDeletedAtFieldForSoftDelete from '../../errors/MissingDeletedAtFieldForSoftDelete.js'
-import DateTime from '../../helpers/DateTime.js'
+import { DateTime } from '../../helpers/DateTime.js'
 import isDateTimeColumn from '../../helpers/db/types/isDateTimeColumn.js'
 import DreamTransaction from '../DreamTransaction.js'
 

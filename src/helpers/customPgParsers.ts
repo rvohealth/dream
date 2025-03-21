@@ -1,6 +1,6 @@
 import { Kysely } from 'kysely'
 import CalendarDate from './CalendarDate.js'
-import DateTime from './DateTime.js'
+import { DateTime } from './DateTime.js'
 
 export async function findEnumArrayOids(kyselyDb: Kysely<any>): Promise<number[]> {
   const result = await kyselyDb.selectFrom('pg_type').select('typarray').where('typtype', '=', 'e').execute()

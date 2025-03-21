@@ -1,6 +1,6 @@
-import { DateTime } from 'luxon'
 import JoinAttemptedOnMissingAssociation from '../../../../src/errors/associations/JoinAttemptedOnMissingAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
+import { DateTime } from '../../../../src/index.js'
 import ops from '../../../../src/ops/index.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'

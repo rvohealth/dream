@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Pet from '../../../test-app/app/models/Pet.js'

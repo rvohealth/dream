@@ -1,4 +1,4 @@
-import DateTime from './DateTime.js'
+import { DateTime } from './DateTime.js'
 import EnvInternal from './EnvInternal.js'
 
 export type BenchmarkLogLevel = 'log' | 'warn' | 'error'

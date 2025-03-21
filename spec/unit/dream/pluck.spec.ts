@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { CalendarDate } from '../../../src/index.js'
+import { CalendarDate, DateTime } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../test-app/app/models/User.js'

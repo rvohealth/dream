@@ -1,5 +1,5 @@
 import CalendarDate from './CalendarDate.js'
-import DateTime from './DateTime.js'
+import { DateTime } from './DateTime.js'
 import { isObject, isString } from './typechecks.js'
 import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from './typeutils.js'
 

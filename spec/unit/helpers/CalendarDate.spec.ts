@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
 import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DateTime } from '../../../src/index.js'
 
 describe('CalendarDate', () => {
   describe('constructor', () => {

@@ -26,7 +26,7 @@ import {
       : ''
 
     const calendarDateImportStatement = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')
-      ? "import CalendarDate from '../../src/helpers/CalendarDate.js'\nimport DateTime from '../../src/helpers/DateTime.js'"
+      ? "import CalendarDate from '../../src/helpers/CalendarDate.js'\nimport { DateTime } from '../../src/helpers/DateTime.js'"
       : "import { CalendarDate, DateTime } from '@rvoh/dream'"
 
     const dreamApp = DreamApplication.getOrFail()

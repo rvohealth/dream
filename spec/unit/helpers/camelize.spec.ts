@@ -1,6 +1,5 @@
-import { DateTime } from 'luxon'
 import camelize from '../../../src/helpers/camelize.js'
-import { CalendarDate } from '../../../src/index.js'
+import { CalendarDate, DateTime } from '../../../src/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('camelize', () => {

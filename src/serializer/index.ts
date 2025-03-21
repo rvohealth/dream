@@ -12,7 +12,7 @@ import FailedToRenderThroughAssociationForSerializer from '../errors/serializers
 import CalendarDate from '../helpers/CalendarDate.js'
 import camelize from '../helpers/camelize.js'
 import compact from '../helpers/compact.js'
-import DateTime from '../helpers/DateTime.js'
+import { DateTime } from '../helpers/DateTime.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel.js'
@@ -211,7 +211,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
           case 'date-time':
             dateValue = this.getAttributeValue(attributeStatement)
             returnObj[fieldWithCasing] = dateValue?.toISO()
-              ? DateTime.fromISO(dateValue.toISO()!).toISO()
+              ? DateTime.fromISO(dateValue.toISO()).toISO()
               : null
             break
 

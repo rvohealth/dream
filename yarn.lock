@@ -705,7 +705,6 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:=9.0.0"
     "@rvoh/dream-spec-helpers": "npm:0.1.0"
-    "@types/luxon": "npm:^3.4.2"
     "@types/node": "npm:^22.5.1"
     "@types/pg": "npm:^8.11.11"
     "@types/winston": "npm:^2.4.4"
@@ -733,12 +732,10 @@ __metadata:
     yoctocolors: "npm:^2.1.1"
   peerDependencies:
     "@rvoh/dream-spec-helpers": "*"
-    "@types/luxon": ^3.4.2
     "@types/node": "*"
     "@types/pg": "*"
     kysely: ^0.27.4
     kysely-codegen: ~0.17.0
-    luxon: ^3.5.0
     pg: "*"
   bin:
     dream: dist/esm/src/global-cli/dream.js
@@ -802,13 +799,6 @@ __metadata:
   dependencies:
     "@types/unist": "npm:*"
   checksum: 10c0/3249781a511b38f1d330fd1e3344eed3c4e7ea8eff82e835d35da78e637480d36fad37a78be5a7aed8465d237ad0446abc1150859d0fde395354ea634decf9f7
-  languageName: node
-  linkType: hard
-
-"@types/luxon@npm:^3.4.2":
-  version: 3.4.2
-  resolution: "@types/luxon@npm:3.4.2"
-  checksum: 10c0/d835467de3daf7e17ba78b50bb5a14efd94272439ca067990d71332a54b311544459c69623eddd243b511b28d70194c9591a9ee8cf9c038962c965f991affd7e
   languageName: node
   linkType: hard
 

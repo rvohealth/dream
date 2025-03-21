@@ -1,14 +1,8 @@
-import {
-  DateObjectUnits,
-  DateTimeFormatOptions,
-  DateTimeJSOptions,
-  DateTimeUnit,
-  DurationLikeObject,
-  DurationObjectUnits,
-  LocaleOptions,
-  Zone,
-} from 'luxon'
-import DateTime from './DateTime.js'
+import { DateObjectUnits, DateTimeJSOptions, DateTimeUnit, LocaleOptions } from '../types/luxon/datetime.js'
+import { DurationLikeObject, DurationObjectUnits } from '../types/luxon/duration.js'
+import { DateTimeFormatOptions } from '../types/luxon/misc.js'
+import { Zone } from '../types/luxon/zone.js'
+import { DateTime } from './DateTime.js'
 
 type CalendarDateDurationLike = Pick<
   DurationLikeObject,

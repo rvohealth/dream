@@ -28,7 +28,7 @@ import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../err
 import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
 import CalendarDate from '../../../helpers/CalendarDate.js'
 import camelize from '../../../helpers/camelize.js'
-import DateTime from '../../../helpers/DateTime.js'
+import { DateTime } from '../../../helpers/DateTime.js'
 import { Range } from '../../../helpers/range.js'
 import {
   Inc,

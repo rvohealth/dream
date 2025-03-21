@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
 import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DateTime } from '../../../src/index.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -33,7 +33,7 @@ describe('Dream#isDirty', () => {
 
     context('when the DateTime is a different object at the same time', () => {
       it('is false', () => {
-        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO()!)
+        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO())
         expect(user.isDirty).toBe(false)
       })
     })

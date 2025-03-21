@@ -1,6 +1,6 @@
-import { DateTime } from 'luxon'
 import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
 import range from '../../../../src/helpers/range.js'
+import { DateTime } from '../../../../src/index.js'
 import ops from '../../../../src/ops/index.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'

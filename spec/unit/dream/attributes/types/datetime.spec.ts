@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime } from '../../../../../src/index.js'
 import Pet from '../../../../../test-app/app/models/Pet.js'
 
 describe('marshalling postgres datetimes from db', () => {

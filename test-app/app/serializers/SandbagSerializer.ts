@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime } from '../../../src/index.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
 import DreamSerializer from '../../../src/serializer/index.js'
 

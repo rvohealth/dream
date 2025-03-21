@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "0.30.3",
+  "version": "0.31.0",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -47,24 +47,22 @@
     "colorette": "^2.0.20",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
+    "luxon": "^3.5.0",
     "pluralize-esm": "^9.0.5",
     "yocto-spinner": "^0.2.1",
     "yoctocolors": "^2.1.1"
   },
   "peerDependencies": {
     "@rvoh/dream-spec-helpers": "*",
-    "@types/luxon": "^3.4.2",
     "@types/node": "*",
     "@types/pg": "*",
     "kysely": "^0.27.4",
     "kysely-codegen": "~0.17.0",
-    "luxon": "^3.5.0",
     "pg": "*"
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
     "@rvoh/dream-spec-helpers": "0.1.0",
-    "@types/luxon": "^3.4.2",
     "@types/node": "^22.5.1",
     "@types/pg": "^8.11.11",
     "@types/winston": "^2.4.4",
@@ -73,7 +71,6 @@
     "jest-extended": "^4.0.2",
     "kysely": "^0.27.4",
     "kysely-codegen": "~0.17.0",
-    "luxon": "^3.5.0",
     "luxon-jest-matchers": "^0.1.14",
     "pg": "^8.13.3",
     "prettier": "^3.3.3",
