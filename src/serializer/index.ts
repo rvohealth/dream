@@ -211,7 +211,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
           case 'date-time':
             dateValue = this.getAttributeValue(attributeStatement)
             returnObj[fieldWithCasing] = dateValue?.toISO()
-              ? DateTime.fromISO(dateValue.toISO()).toISO()
+              ? DateTime.fromISO(dateValue.toISO()!).toISO()
               : null
             break
 

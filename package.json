@@ -31,7 +31,7 @@
     "dreamts": "NODE_ENV=${NODE_ENV:-test} tsx ./test-app/cli/index.ts",
     "dreamcore": "DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
     "gdreamcore": "DREAM_CORE_DEVELOPMENT=1 tsx ./src/global-cli/dream.ts",
-    "build": "echo \"building cjs...\" && rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json && echo \"building esm...\" && npx tsc -p ./tsconfig.esm.build.json",
+    "build": "echo \"building cjs...\" && rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json && echo \"building esm...\" && npx tsc -p ./tsconfig.esm.build.json && cp -r src/types/ dist/types/src/types/",
     "build:core": "rm -rf dist && mkdir dist && npx tsc -p ./tsconfig.cjs.build.core.json && npx tsc -p ./tsconfig.esm.build.core.json",
     "spec": "DREAM_CORE_DEVELOPMENT=1 DREAM_CORE_SPEC_RUN=1 vitest",
     "console": "DREAM_CORE_DEVELOPMENT=1 tsx ./test-app/app/conf/repl.ts",
