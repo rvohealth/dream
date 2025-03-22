@@ -95,8 +95,8 @@ b.) All laptops are ok sleeping places for your
 
 */
 
-import CalendarDate from '../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../src/helpers/DateTime.js'
+import type CalendarDate from '../../src/helpers/CalendarDate.js'
+import { type DateTime } from '../../src/helpers/DateTime.js'
 import {
   BalloonColorsEnum,
   BalloonColorsEnumValues,

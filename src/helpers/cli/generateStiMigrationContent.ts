@@ -1,4 +1,4 @@
-import { PrimaryKeyType } from '../../dream/types.js'
+import { PrimaryKeyType } from '../../types/dream.js'
 import generateMigrationContent from './generateMigrationContent.js'
 
 export default function generateStiMigrationContent({

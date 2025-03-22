@@ -1,6 +1,7 @@
 import Dream from '../../../Dream.js'
+import { AfterHookOpts, HookStatement } from '../../../types/lifecycle.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
-import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared.js'
+import { blankHooksFactory } from './shared.js'
 
 export default function AfterSave<T extends Dream>(opts: AfterHookOpts<T> = {}): any {
   return function (_: any, context: DecoratorContext) {

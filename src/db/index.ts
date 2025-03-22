@@ -3,8 +3,8 @@ import Dream from '../Dream.js'
 import { Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import '../helpers/loadEnv.js'
+import { DbConnectionType } from '../types/db.js'
 import DreamDbConnection from './DreamDbConnection.js'
-import { DbConnectionType } from './types.js'
 
 if (EnvInternal.string('TZ', { optional: true })) Settings.defaultZone = EnvInternal.string('TZ')
 

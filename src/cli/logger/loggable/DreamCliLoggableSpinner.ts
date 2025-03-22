@@ -1,9 +1,9 @@
 import { Spinner } from 'yocto-spinner'
-import { DreamCliBgColor, DreamCliForegroundColor } from '../DreamCliLogger.js'
+import { DreamCliBgColor, DreamCliForegroundColor } from '../../../types/logger.js'
+import DreamCLI from '../../index.js'
 import createSpinner from '../helpers/createSpinner.js'
 import DreamCliLoggable from './DreamCliLoggable.js'
 import spinners from './spinners.js'
-import DreamCLI from '../../index.js'
 
 export default class DreamCliLoggableSpinner extends DreamCliLoggable {
   private text: string

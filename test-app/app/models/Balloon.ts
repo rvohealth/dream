@@ -1,7 +1,7 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import Decorators from '../../../src/decorators/Decorators.js'
-import { DreamColumn, IdType } from '../../../src/dream/types.js'
 import { Query, ReplicaSafe } from '../../../src/index.js'
+import { DreamColumn, IdType } from '../../../src/types/dream.js'
 import { BalloonTypesEnum } from '../../types/db.js'
 import ApplicationModel from './ApplicationModel.js'
 import BalloonLine from './BalloonLine.js'

@@ -1,4 +1,4 @@
-import { DreamColumn, DreamSerializers } from '../../../../src/dream/types.js'
+import { DreamColumn, DreamSerializers } from '../../../../src/types/dream.js'
 
 import { Decorators, SoftDelete } from '../../../../src/index.js'
 import ApplicationModel from '../ApplicationModel.js'
