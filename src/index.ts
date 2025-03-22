@@ -15,7 +15,6 @@ export { default as SoftDelete } from './decorators/class/SoftDelete.js'
 export { default as STI } from './decorators/class/STI.js'
 export { type DecoratorContext } from './decorators/DecoratorContextType.js'
 export { default as Decorators } from './decorators/Decorators.js'
-export { type ValidationType } from './decorators/field/validation/shared.js'
 export { default as DreamImporter } from './dream-application/helpers/DreamImporter.js'
 export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName.js'
 export {
@@ -152,3 +151,4 @@ export {
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
 } from './types/openapi.js'
+export { type ValidationType } from './types/validation.js'
