@@ -1,5 +1,5 @@
-import { AssociationTableNames } from '../../db/reflections.js'
-import Dream from '../../Dream.js'
+import { AssociationTableNames } from '../../db/reflections.ts'
+import Dream from '../../Dream.ts'
 import { GlobalModelNameTableMap } from '../dream.js'
 import { HasOptions, HasStatement, HasThroughOptions, PolymorphicHasOptions } from './shared.js'
 
