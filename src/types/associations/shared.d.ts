@@ -3,7 +3,6 @@ import {
   SelectQueryBuilder,
   Updateable,
 } from 'kysely'
-import { AssociationTableNames } from '../../db/reflections.ts'
 import Dream from '../../Dream.ts'
 import { DreamConst } from '../../dream/constants.ts'
 import CalendarDate from '../../helpers/CalendarDate.ts'
@@ -12,6 +11,7 @@ import { Range } from '../../helpers/range.ts'
 import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils.ts'
 import CurriedOpsStatement from '../../ops/curried-ops-statement.ts'
 import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.ts'
+import { AssociationTableNames } from '../db.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,

@@ -9,7 +9,6 @@ import {
 
 import { pgErrorType } from './db/errors.js'
 import db from './db/index.js'
-import { AssociationTableNames } from './db/reflections.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
@@ -74,7 +73,7 @@ import { BelongsToStatement } from './types/associations/belongsTo.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import { AssociationStatementsMap, PassthroughOnClause, WhereStatement } from './types/associations/shared.js'
-import { type DbConnectionType } from './types/db.js'
+import { AssociationTableNames, type DbConnectionType } from './types/db.js'
 import {
   type AllDefaultScopeNames,
   type AssociationNameToDream,

@@ -1,5 +1,4 @@
 import { ColumnType, Updateable } from 'kysely'
-import { AssociationTableNames } from '../db/reflections.ts'
 import { STI_SCOPE_NAME } from '../decorators/class/STI.ts'
 import Dream from '../Dream.ts'
 import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.ts'
@@ -13,6 +12,7 @@ import { BelongsToStatement } from './associations/belongsTo.ts'
 import { HasManyStatement } from './associations/hasMany.ts'
 import { HasOneStatement } from './associations/hasOne.ts'
 import { AssociatedModelParam, OnStatementForAssociation, WhereStatement } from './associations/shared.ts'
+import { AssociationTableNames } from './db.js'
 import { AliasedSchemaAssociation } from './variadic.ts'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]

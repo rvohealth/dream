@@ -1,5 +1,5 @@
-import { AssociationTableNames } from '../../db/reflections.ts'
 import Dream from '../../Dream.ts'
+import { AssociationTableNames } from '../db.js'
 import {
   GlobalModelNames,
   GlobalModelNameTableMap,
