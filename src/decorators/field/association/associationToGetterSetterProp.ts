@@ -1,7 +1,7 @@
+import { PartialAssociationStatement } from '../../../types/associations.js'
 import { BelongsToStatement } from './BelongsTo.js'
 import { HasManyStatement } from './HasMany.js'
 import { HasOneStatement } from './HasOne.js'
-import { PartialAssociationStatement } from './shared.js'
 
 export default function associationToGetterSetterProp(
   association:

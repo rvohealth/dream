@@ -18,17 +18,6 @@ import associationToGetterSetterProp from '../decorators/field/association/assoc
 import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
 import { HasManyStatement } from '../decorators/field/association/HasMany.js'
 import { HasOneStatement } from '../decorators/field/association/HasOne.js'
-import {
-  AssociationStatement,
-  ColumnNamesAccountingForJoinedAssociations,
-  LimitStatement,
-  OffsetStatement,
-  OrderQueryStatement,
-  PassthroughOnClause,
-  SelfOnStatement,
-  WhereStatement,
-  WhereStatementForJoinedAssociation,
-} from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js'
 import CannotJoinPolymorphicBelongsToError from '../errors/associations/CannotJoinPolymorphicBelongsToError.js'
@@ -63,6 +52,17 @@ import uniq from '../helpers/uniq.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import ops from '../ops/index.js'
 import OpsStatement from '../ops/ops-statement.js'
+import {
+  AssociationStatement,
+  ColumnNamesAccountingForJoinedAssociations,
+  LimitStatement,
+  OffsetStatement,
+  OrderQueryStatement,
+  PassthroughOnClause,
+  SelfOnStatement,
+  WhereStatement,
+  WhereStatementForJoinedAssociation,
+} from '../types/associations.js'
 import { type DbConnectionType } from '../types/db.js'
 import {
   AliasToDreamIdMap,

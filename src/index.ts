@@ -15,10 +15,6 @@ export { default as SoftDelete } from './decorators/class/SoftDelete.js'
 export { default as STI } from './decorators/class/STI.js'
 export { type DecoratorContext } from './decorators/DecoratorContextType.js'
 export { default as Decorators } from './decorators/Decorators.js'
-export {
-  type WhereStatementForDream,
-  type WhereStatementForDreamClass,
-} from './decorators/field/association/shared.js'
 export { type ValidationType } from './decorators/field/validation/shared.js'
 export { default as DreamImporter } from './dream-application/helpers/DreamImporter.js'
 export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName.js'
@@ -30,6 +26,13 @@ export {
   type DreamLogLevel,
 } from './dream-application/index.js'
 export { default as Dream } from './Dream.js'
+export {
+  DreamConst,
+  openapiPrimitiveTypes,
+  openapiShorthandPrimitiveTypes,
+  primaryKeyTypes,
+  TRIGRAM_OPERATORS,
+} from './dream/constants.js'
 export { default as DreamTransaction } from './dream/DreamTransaction.js'
 export { default as Query } from './dream/Query.js'
 export { default as Encrypt, type EncryptAlgorithm, type EncryptOptions } from './encrypt/index.js'
@@ -79,6 +82,30 @@ export {
   type SerializableTypes,
 } from './serializer/decorators/attribute.js'
 export { default as DreamSerializer } from './serializer/index.js'
+export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations.js'
+export {
+  type DreamAssociationMetadata,
+  type DreamAttributes,
+  type DreamClassColumn,
+  type DreamColumn,
+  type DreamColumnNames,
+  type DreamOrViewModelSerializerKey,
+  type DreamParamSafeAttributes,
+  type DreamParamSafeColumnNames,
+  type DreamSerializerKey,
+  type DreamSerializers,
+  type DreamTableSchema,
+  type DreamVirtualColumns,
+  type IdType,
+  type PrimaryKeyType,
+  type SerializableClassOrSerializerCallback,
+  type SerializableDreamClassOrViewModelClass,
+  type SerializableDreamOrViewModel,
+  type Timestamp,
+  type UpdateableAssociationProperties,
+  type UpdateableProperties,
+  type ViewModelSerializerKey,
+} from './types/dream.js'
 export {
   type CommonOpenapiSchemaObjectFields,
   type OpenapiAllTypes,
@@ -125,35 +152,3 @@ export {
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
 } from './types/openapi.js'
-
-export {
-  DreamConst,
-  openapiPrimitiveTypes,
-  openapiShorthandPrimitiveTypes,
-  primaryKeyTypes,
-  TRIGRAM_OPERATORS,
-} from './dream/constants.js'
-
-export {
-  type DreamAssociationMetadata,
-  type DreamAttributes,
-  type DreamClassColumn,
-  type DreamColumn,
-  type DreamColumnNames,
-  type DreamOrViewModelSerializerKey,
-  type DreamParamSafeAttributes,
-  type DreamParamSafeColumnNames,
-  type DreamSerializerKey,
-  type DreamSerializers,
-  type DreamTableSchema,
-  type DreamVirtualColumns,
-  type IdType,
-  type PrimaryKeyType,
-  type SerializableClassOrSerializerCallback,
-  type SerializableDreamClassOrViewModelClass,
-  type SerializableDreamOrViewModel,
-  type Timestamp,
-  type UpdateableAssociationProperties,
-  type UpdateableProperties,
-  type ViewModelSerializerKey,
-} from './types/dream.js'

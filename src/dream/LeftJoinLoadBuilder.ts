@@ -1,5 +1,5 @@
-import { PassthroughOnClause } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
+import { PassthroughOnClause } from '../types/associations.js'
 import { IdType, PassthroughColumnNames } from '../types/dream.js'
 import { VariadicLeftJoinLoadArgs } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'

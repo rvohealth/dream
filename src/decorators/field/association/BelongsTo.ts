@@ -1,6 +1,7 @@
 import { AssociationTableNames } from '../../../db/reflections.js'
 import lookupModelByGlobalNameOrNames from '../../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
+import { blankAssociationsFactory } from '../../../types/associations.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
@@ -15,7 +16,6 @@ import { validatesImplementation } from '../validation/Validates.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
-  blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
 } from './shared.js'

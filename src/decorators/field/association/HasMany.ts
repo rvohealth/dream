@@ -2,6 +2,14 @@ import { AssociationTableNames } from '../../../db/reflections.js'
 import lookupModelByGlobalNameOrNames from '../../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
 import {
+  blankAssociationsFactory,
+  HasOptions,
+  HasStatement,
+  HasThroughOptions,
+  OrderStatement,
+  PolymorphicHasOptions,
+} from '../../../types/associations.js'
+import {
   GlobalModelNames,
   GlobalModelNameTableMap,
   TableColumnNames,
@@ -11,14 +19,8 @@ import { DecoratorContext } from '../../DecoratorContextType.js'
 import {
   applyGetterAndSetter,
   associationPrimaryKeyAccessors,
-  blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
-  HasOptions,
-  HasStatement,
-  HasThroughOptions,
-  OrderStatement,
-  PolymorphicHasOptions,
   validateHasStatementArgs,
 } from './shared.js'
 

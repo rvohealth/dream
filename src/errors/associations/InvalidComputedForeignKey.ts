@@ -1,8 +1,6 @@
-import {
-  PartialAssociationStatement,
-  modelCBtoSingleDreamClass,
-} from '../../decorators/field/association/shared.js'
+import { modelCBtoSingleDreamClass } from '../../decorators/field/association/shared.js'
 import Dream from '../../Dream.js'
+import { PartialAssociationStatement } from '../../types/associations.js'
 
 export class InvalidComputedForeignKey extends Error {
   public dreamClass: typeof Dream

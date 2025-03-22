@@ -4,11 +4,6 @@ import { STI_SCOPE_NAME } from '../decorators/class/STI.ts'
 import { BelongsToStatement } from '../decorators/field/association/BelongsTo.ts'
 import { HasManyStatement } from '../decorators/field/association/HasMany.ts'
 import { HasOneStatement } from '../decorators/field/association/HasOne.ts'
-import {
-  AssociatedModelParam,
-  OnStatementForAssociation,
-  WhereStatement,
-} from '../decorators/field/association/shared.ts'
 import Dream from '../Dream.ts'
 import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.ts'
 import { FindEachOpts } from '../dream/Query.ts'
@@ -17,6 +12,7 @@ import { DateTime } from '../helpers/DateTime.ts'
 import { FilterInterface, Inc } from '../helpers/typeutils.ts'
 import OpsStatement from '../ops/ops-statement.ts'
 import DreamSerializer from '../serializer/index.ts'
+import { AssociatedModelParam, OnStatementForAssociation, WhereStatement } from './associations.ts'
 import { AliasedSchemaAssociation } from './variadic.ts'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
