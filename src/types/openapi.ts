@@ -1,5 +1,6 @@
+import { openapiPrimitiveTypes, openapiShorthandPrimitiveTypes } from '../dream/constants.js'
 import DreamSerializer from '../serializer/index.js'
-import { SerializableDreamClassOrViewModelClass } from '../types/dream.js'
+import { SerializableDreamClassOrViewModelClass } from './dream.js'
 
 export type OpenapiSchemaBody =
   | OpenapiSchemaBase
@@ -228,30 +229,6 @@ export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
-export const openapiPrimitiveTypes = [
-  'string',
-  'boolean',
-  'number',
-  'date',
-  'date-time',
-  'double',
-  'integer',
-  'null',
-] as const
-
-export const openapiShorthandPrimitiveTypes = [
-  ...openapiPrimitiveTypes,
-  'decimal',
-  'string[]',
-  'boolean[]',
-  'number[]',
-  'date[]',
-  'date-time[]',
-  'decimal[]',
-  'double[]',
-  'integer[]',
-  'json',
-] as const
 export type OpenapiPrimitiveTypes = (typeof openapiPrimitiveTypes)[number]
 export type OpenapiShorthandPrimitiveTypes = (typeof openapiShorthandPrimitiveTypes)[number]
 export type OpenapiAllTypes = OpenapiPrimitiveTypes | 'object' | 'array'
