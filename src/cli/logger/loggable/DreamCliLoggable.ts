@@ -1,4 +1,4 @@
-import { DreamCliBgColor, DreamCliForegroundColor } from '../DreamCliLogger.js'
+import { DreamCliBgColor, DreamCliForegroundColor } from '../../../types/logger.js'
 import colorize from './colorize.js'
 
 export default class DreamCliLoggable {
