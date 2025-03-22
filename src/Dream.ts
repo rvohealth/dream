@@ -480,13 +480,12 @@ export default class Dream {
   }
 
   /**
-   * @internal
-   *
-   * Shadows .sanitizedName. Returns a string
+   * this.constructor.name may be prefixed with an underscore during conversion to Javascript.
+   * This method returns the constructor name without a leading underscore.
    *
    * @returns A string
    */
-  protected get sanitizedConstructorName(): string {
+  public get sanitizedConstructorName(): string {
     return (this.constructor as typeof Dream).sanitizedName
   }
 
