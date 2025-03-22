@@ -1,4 +1,4 @@
-import { RelaxedJoinStatement } from '../types/dream.js'
+import { type RelaxedJoinStatement } from '../types/dream.js'
 
 export default function objectPathsToArrays(obj: RelaxedJoinStatement): string[][] {
   const completePaths: string[][] = []

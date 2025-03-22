@@ -14,9 +14,9 @@ import inferSerializerFromDreamOrViewModel, {
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
 import {
-  SerializableClassOrSerializerCallback,
-  SerializableDreamClassOrViewModelClass,
-  SerializableDreamOrViewModel,
+  type SerializableClassOrSerializerCallback,
+  type SerializableDreamClassOrViewModelClass,
+  type SerializableDreamOrViewModel,
 } from '../types/dream.js'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute.js'

@@ -1,22 +1,22 @@
 import Dream from '../Dream.js'
 import {
-  AllDefaultScopeNames,
-  AssociationNameToDream,
-  DreamAssociationNames,
-  DreamAssociationNamesWithoutRequiredOnClauses,
-  DreamAttributes,
-  DreamConstructorType,
-  JoinOnStatements,
-  UpdateableAssociationProperties,
-  UpdateableProperties,
+  type AllDefaultScopeNames,
+  type AssociationNameToDream,
+  type DreamAssociationNames,
+  type DreamAssociationNamesWithoutRequiredOnClauses,
+  type DreamAttributes,
+  type DreamConstructorType,
+  type JoinOnStatements,
+  type UpdateableAssociationProperties,
+  type UpdateableProperties,
 } from '../types/dream.js'
 import {
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
-  RequiredOnClauseKeys,
-  VariadicJoinsArgs,
-  VariadicLeftJoinLoadArgs,
-  VariadicLoadArgs,
+  type JoinedAssociation,
+  type JoinedAssociationsTypeFromAssociations,
+  type RequiredOnClauseKeys,
+  type VariadicJoinsArgs,
+  type VariadicLeftJoinLoadArgs,
+  type VariadicLoadArgs,
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
 import associationQuery from './internal/associations/associationQuery.js'

@@ -2,7 +2,7 @@ import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression, sql
 import Dream from '../Dream.js'
 import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn.js'
 import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn.js'
-import { TrigramOperator } from '../types/dream.js'
+import { type TrigramOperator } from '../types/dream.js'
 import CurriedOpsStatement from './curried-ops-statement.js'
 import OpsStatement from './ops-statement.js'
 

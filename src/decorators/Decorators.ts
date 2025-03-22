@@ -1,20 +1,20 @@
 import Dream from '../Dream.js'
 import { SerializableTypes } from '../serializer/decorators/attribute.js'
 import {
-  NonPolymorphicBelongsToOptions,
-  PolymorphicBelongsToOptions,
+  type NonPolymorphicBelongsToOptions,
+  type PolymorphicBelongsToOptions,
 } from '../types/associations/belongsTo.js'
 import {
-  HasManyOptions,
-  HasManyThroughOptions,
-  PolymorphicHasManyOptions,
+  type HasManyOptions,
+  type HasManyThroughOptions,
+  type PolymorphicHasManyOptions,
 } from '../types/associations/hasMany.js'
 import {
-  HasOneOptions,
-  HasOneThroughOptions,
-  PolymorphicHasOneOptions,
+  type HasOneOptions,
+  type HasOneThroughOptions,
+  type PolymorphicHasOneOptions,
 } from '../types/associations/hasOne.js'
-import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../types/dream.js'
+import { type DreamColumnNames, type GlobalModelNameTableMap, type SortableOptions } from '../types/dream.js'
 import Virtual from './field-or-getter/Virtual.js'
 import Encrypted from './field/Encrypted.js'
 import BelongsTo from './field/association/BelongsTo.js'

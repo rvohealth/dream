@@ -3,7 +3,7 @@ import _db from '../db/index.js'
 import Dream from '../Dream.js'
 import DreamTransaction from '../dream/DreamTransaction.js'
 import { type DbConnectionType } from '../types/db.js'
-import { DreamConstructorType, SqlCommandType } from '../types/dream.js'
+import { type DreamConstructorType, type SqlCommandType } from '../types/dream.js'
 
 export default class ConnectedToDB<DreamInstance extends Dream> {
   protected readonly dreamClass: DreamConstructorType<DreamInstance>

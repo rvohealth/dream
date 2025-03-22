@@ -1,5 +1,5 @@
-import { DbTypes } from '../../../db/dataTypes.js'
 import Dream from '../../../Dream.js'
+import { DbTypes } from '../../../types/db.js'
 import { DreamClassColumnNames } from '../../../types/dream.js'
 import { OpenapiSchemaBody } from '../../../types/openapi.js'
 
