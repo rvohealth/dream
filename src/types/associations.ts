@@ -7,11 +7,6 @@ import { AssociationTableNames } from '../db/reflections.js'
 import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
 import { HasManyStatement } from '../decorators/field/association/HasMany.js'
 import { HasOneStatement } from '../decorators/field/association/HasOne.js'
-import {
-  AssociatedBelongsToModelType,
-  MAX_JOINED_TABLES_DEPTH,
-} from '../decorators/field/association/shared.js'
-import freezeBaseClassArrayMap from '../decorators/helpers/freezeBaseClassArrayMap.js'
 import Dream from '../Dream.js'
 import { DreamConst } from '../dream/constants.js'
 import CalendarDate from '../helpers/CalendarDate.js'
@@ -35,6 +30,19 @@ import {
   TrigramOperator,
 } from './dream.js'
 import { JoinedAssociation } from './variadic.js'
+
+export type MAX_JOINED_TABLES_DEPTH = 25
+
+export type AssociatedBelongsToModelType<
+  I extends Dream,
+  AssociationName extends keyof DreamBelongsToAssociationMetadata<I>,
+  PossibleArrayAssociationType extends I[AssociationName & keyof I] = I[AssociationName & keyof I],
+  AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType
+    : PossibleArrayAssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+    ? ElementType
+    : PossibleArrayAssociationType,
+> = AssociationType
 
 // For sending a BelongsTo model into a statement such as `await Post.create({ user })`
 
@@ -408,27 +416,6 @@ export interface AssociationStatementsMap {
   hasOne: readonly HasOneStatement<any, any, any, any>[] | HasOneStatement<any, any, any, any>[]
 }
 
-export function blankAssociationsFactory(
-  dreamClass: typeof Dream,
-  {
-    freeze = false,
-  }: {
-    freeze?: boolean
-  } = {}
-): AssociationStatementsMap {
-  // This pattern allows associations to be defined on a base STI class and on
-  // child STI classes. The new `associationsMap` property will be created
-  // on the child STI class, but it will include all the associations already
-  // declared on the base STI class.
-  const associationsMap = {
-    belongsTo: [...(dreamClass['associationMetadataByType']?.belongsTo || [])],
-    hasMany: [...(dreamClass['associationMetadataByType']?.hasMany || [])],
-    hasOne: [...(dreamClass['associationMetadataByType']?.hasOne || [])],
-  }
-
-  if (freeze) return freezeBaseClassArrayMap(associationsMap)
-  return associationsMap
-}
 export type DependentOptions = 'destroy'
 type partialTypeFields =
   | 'modelCB'

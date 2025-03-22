@@ -15,6 +15,7 @@ import associationToGetterSetterProp from './decorators/field/association/associ
 import { BelongsToStatement } from './decorators/field/association/BelongsTo.js'
 import { HasManyStatement } from './decorators/field/association/HasMany.js'
 import { HasOneStatement } from './decorators/field/association/HasOne.js'
+import { blankAssociationsFactory } from './decorators/field/association/shared.js'
 import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
@@ -72,12 +73,7 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { isString } from './helpers/typechecks.js'
-import {
-  AssociationStatementsMap,
-  blankAssociationsFactory,
-  PassthroughOnClause,
-  WhereStatement,
-} from './types/associations.js'
+import { AssociationStatementsMap, PassthroughOnClause, WhereStatement } from './types/associations.js'
 import { type DbConnectionType } from './types/db.js'
 import {
   type AllDefaultScopeNames,

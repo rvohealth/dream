@@ -6,22 +6,41 @@ import NonLoadedAssociation from '../../../errors/associations/NonLoadedAssociat
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
 import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
 import camelize from '../../../helpers/camelize.js'
-import { DependentOptions, PartialAssociationStatement } from '../../../types/associations.js'
-import { DreamBelongsToAssociationMetadata } from '../../../types/dream.js'
+import {
+  AssociationStatementsMap,
+  DependentOptions,
+  PartialAssociationStatement,
+} from '../../../types/associations.js'
+import freezeBaseClassArrayMap from '../../helpers/freezeBaseClassArrayMap.js'
 import associationToGetterSetterProp from './associationToGetterSetterProp.js'
 
-export type MAX_JOINED_TABLES_DEPTH = 25
+export function blankAssociationsFactory(
+  dreamClass: typeof Dream,
+  {
+    freeze = false,
+  }: {
+    freeze?: boolean
+  } = {}
+): AssociationStatementsMap {
+  // This pattern allows associations to be defined on a base STI class and on
+  // child STI classes. The new `associationsMap` property will be created
+  // on the child STI class, but it will include all the associations already
+  // declared on the base STI class.
+  const associationsMap = {
+    belongsTo: [...(dreamClass['associationMetadataByType']?.belongsTo || [])],
+    hasMany: [...(dreamClass['associationMetadataByType']?.hasMany || [])],
+    hasOne: [...(dreamClass['associationMetadataByType']?.hasOne || [])],
+  }
 
-export type AssociatedBelongsToModelType<
-  I extends Dream,
-  AssociationName extends keyof DreamBelongsToAssociationMetadata<I>,
-  PossibleArrayAssociationType extends I[AssociationName & keyof I] = I[AssociationName & keyof I],
-  AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType
-    : PossibleArrayAssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
-    ? ElementType
-    : PossibleArrayAssociationType,
-> = AssociationType
+  if (freeze) return freezeBaseClassArrayMap(associationsMap)
+  return associationsMap
+}
+
+// function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
+//   if (!dream) return
+//   if (!sourceName) return
+//   return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
+// }
 
 export function finalForeignKey(
   foreignKey: string | undefined,
@@ -167,9 +186,3 @@ export function validateHasStatementArgs({
   if (dependent && hasRequiredOn)
     throw new CannotDefineAssociationWithBothDependentAndRequiredOnClause(dreamClass, methodName)
 }
-
-// function hydratedSourceValue(dream: Dream | typeof Dream | undefined, sourceName: string) {
-//   if (!dream) return
-//   if (!sourceName) return
-//   return (dream as any)[sourceName] || (dream as any)[singular(sourceName)]
-// }
