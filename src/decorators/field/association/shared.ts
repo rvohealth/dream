@@ -10,7 +10,7 @@ import {
   AssociationStatementsMap,
   DependentOptions,
   PartialAssociationStatement,
-} from '../../../types/associations.js'
+} from '../../../types/associations/shared.js'
 import freezeBaseClassArrayMap from '../../helpers/freezeBaseClassArrayMap.js'
 import associationToGetterSetterProp from './associationToGetterSetterProp.js'
 

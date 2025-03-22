@@ -1,7 +1,7 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections.js'
 import Dream from '../Dream.js'
-import { PassthroughOnClause, WhereStatement } from '../types/associations.js'
+import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
 import {
   DefaultScopeName,
   DreamColumnNames,

@@ -9,10 +9,10 @@ import { DateTime } from '../helpers/DateTime.ts'
 import { FilterInterface, Inc } from '../helpers/typeutils.ts'
 import OpsStatement from '../ops/ops-statement.ts'
 import DreamSerializer from '../serializer/index.ts'
-import { AssociatedModelParam, OnStatementForAssociation, WhereStatement } from './associations.ts'
 import { BelongsToStatement } from './associations/belongsTo.ts'
 import { HasManyStatement } from './associations/hasMany.ts'
 import { HasOneStatement } from './associations/hasOne.ts'
+import { AssociatedModelParam, OnStatementForAssociation, WhereStatement } from './associations/shared.ts'
 import { AliasedSchemaAssociation } from './variadic.ts'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]

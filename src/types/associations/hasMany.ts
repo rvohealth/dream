@@ -1,18 +1,18 @@
 import { AssociationTableNames } from '../../db/reflections.js'
 import Dream from '../../Dream.js'
 import {
-  HasOptions,
-  HasStatement,
-  HasThroughOptions,
-  OrderStatement,
-  PolymorphicHasOptions,
-} from '../associations.js'
-import {
   GlobalModelNames,
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
 } from '../dream.js'
+import {
+  HasOptions,
+  HasStatement,
+  HasThroughOptions,
+  OrderStatement,
+  PolymorphicHasOptions,
+} from './shared.js'
 
 export type HasManyStatement<
   BaseInstance extends Dream,

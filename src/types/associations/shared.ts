@@ -3,18 +3,15 @@ import {
   SelectQueryBuilder,
   Updateable,
 } from 'kysely'
-import { AssociationTableNames } from '../db/reflections.js'
-import Dream from '../Dream.js'
-import { DreamConst } from '../dream/constants.js'
-import CalendarDate from '../helpers/CalendarDate.js'
-import { DateTime } from '../helpers/DateTime.js'
-import { Range } from '../helpers/range.js'
-import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../helpers/typeutils.js'
-import CurriedOpsStatement from '../ops/curried-ops-statement.js'
-import OpsStatement, { ExtraSimilarityArgs } from '../ops/ops-statement.js'
-import { BelongsToStatement } from './associations/belongsTo.js'
-import { HasManyStatement } from './associations/hasMany.js'
-import { HasOneStatement } from './associations/hasOne.js'
+import { AssociationTableNames } from '../../db/reflections.js'
+import Dream from '../../Dream.js'
+import { DreamConst } from '../../dream/constants.js'
+import CalendarDate from '../../helpers/CalendarDate.js'
+import { DateTime } from '../../helpers/DateTime.js'
+import { Range } from '../../helpers/range.js'
+import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils.js'
+import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
+import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,
@@ -28,8 +25,11 @@ import {
   TableColumnType,
   TableNameForGlobalModelName,
   TrigramOperator,
-} from './dream.js'
-import { JoinedAssociation } from './variadic.js'
+} from '../dream.js'
+import { JoinedAssociation } from '../variadic.js'
+import { BelongsToStatement } from './belongsTo.js'
+import { HasManyStatement } from './hasMany.js'
+import { HasOneStatement } from './hasOne.js'
 
 export type MAX_JOINED_TABLES_DEPTH = 25
 

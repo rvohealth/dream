@@ -82,7 +82,7 @@ export {
   type SerializableTypes,
 } from './serializer/decorators/attribute.js'
 export { default as DreamSerializer } from './serializer/index.js'
-export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations.js'
+export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
 export {
   type DreamAssociationMetadata,
   type DreamAttributes,

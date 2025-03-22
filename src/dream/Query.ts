@@ -49,6 +49,9 @@ import uniq from '../helpers/uniq.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import ops from '../ops/index.js'
 import OpsStatement from '../ops/ops-statement.js'
+import { BelongsToStatement } from '../types/associations/belongsTo.js'
+import { HasManyStatement } from '../types/associations/hasMany.js'
+import { HasOneStatement } from '../types/associations/hasOne.js'
 import {
   AssociationStatement,
   ColumnNamesAccountingForJoinedAssociations,
@@ -59,10 +62,7 @@ import {
   SelfOnStatement,
   WhereStatement,
   WhereStatementForJoinedAssociation,
-} from '../types/associations.js'
-import { BelongsToStatement } from '../types/associations/belongsTo.js'
-import { HasManyStatement } from '../types/associations/hasMany.js'
-import { HasOneStatement } from '../types/associations/hasOne.js'
+} from '../types/associations/shared.js'
 import { type DbConnectionType } from '../types/db.js'
 import {
   AliasToDreamIdMap,

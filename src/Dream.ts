@@ -70,10 +70,10 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { isString } from './helpers/typechecks.js'
-import { AssociationStatementsMap, PassthroughOnClause, WhereStatement } from './types/associations.js'
 import { BelongsToStatement } from './types/associations/belongsTo.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
+import { AssociationStatementsMap, PassthroughOnClause, WhereStatement } from './types/associations/shared.js'
 import { type DbConnectionType } from './types/db.js'
 import {
   type AllDefaultScopeNames,
