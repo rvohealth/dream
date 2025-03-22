@@ -15,7 +15,6 @@ import { blankAssociationsFactory } from './decorators/field/association/shared.
 import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
-import ValidationStatement, { ValidationType } from './decorators/field/validation/shared.js'
 import { ScopeStatement } from './decorators/static-method/Scope.js'
 import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
 import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
@@ -99,6 +98,7 @@ import {
   type UpdateablePropertiesForClass,
 } from './types/dream.js'
 import { HookStatement, HookStatementMap } from './types/lifecycle.js'
+import ValidationStatement, { ValidationType } from './types/validation.js'
 import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,

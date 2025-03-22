@@ -1,4 +1,4 @@
-import { ValidationType } from '../decorators/field/validation/shared.js'
+import { ValidationType } from '../types/validation.js'
 
 export default class ValidationError extends Error {
   public dreamClassName: string
