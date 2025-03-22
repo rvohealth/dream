@@ -1,6 +1,6 @@
-import { AssociationTableNames } from '../db/reflections.js'
-import { Camelized } from '../helpers/stringCasing.js'
-import { Inc, ReadonlyTail } from '../helpers/typeutils.js'
+import { AssociationTableNames } from '../db/reflections.ts'
+import { Camelized } from '../helpers/stringCasing.ts'
+import { Inc, ReadonlyTail } from '../helpers/typeutils.ts'
 import {
   AssociationNamesForTable,
   AssociationTableName,

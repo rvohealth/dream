@@ -1,5 +1,5 @@
 import ConnectionConfRetriever from '../../db/ConnectionConfRetriever.js'
-import { DbConnectionType } from '../../types/db.js'
+import { type DbConnectionType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 

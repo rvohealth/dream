@@ -127,8 +127,10 @@ export {
   type SerializableTypes,
 } from './serializer/decorators/attribute.js'
 export { default as DreamSerializer } from './serializer/index.js'
+
+export { DreamConst, primaryKeyTypes, TRIGRAM_OPERATORS } from './dream/constants.js'
+
 export {
-  DreamConst,
   type DreamAssociationMetadata,
   type DreamAttributes,
   type DreamClassColumn,
@@ -143,12 +145,10 @@ export {
   type DreamVirtualColumns,
   type IdType,
   type PrimaryKeyType,
-  type primaryKeyTypes,
   type SerializableClassOrSerializerCallback,
   type SerializableDreamClassOrViewModelClass,
   type SerializableDreamOrViewModel,
   type Timestamp,
-  type TRIGRAM_OPERATORS,
   type UpdateableAssociationProperties,
   type UpdateableProperties,
   type ViewModelSerializerKey,

@@ -1,23 +1,23 @@
 import { ColumnType, Updateable } from 'kysely'
-import { AssociationTableNames } from '../db/reflections.js'
-import { STI_SCOPE_NAME } from '../decorators/class/STI.js'
-import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from '../decorators/field/association/HasMany.js'
-import { HasOneStatement } from '../decorators/field/association/HasOne.js'
+import { AssociationTableNames } from '../db/reflections.ts'
+import { STI_SCOPE_NAME } from '../decorators/class/STI.ts'
+import { BelongsToStatement } from '../decorators/field/association/BelongsTo.ts'
+import { HasManyStatement } from '../decorators/field/association/HasMany.ts'
+import { HasOneStatement } from '../decorators/field/association/HasOne.ts'
 import {
   AssociatedModelParam,
   OnStatementForAssociation,
   WhereStatement,
-} from '../decorators/field/association/shared.js'
-import Dream from '../Dream.js'
-import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
-import { FindEachOpts } from '../dream/Query.js'
-import CalendarDate from '../helpers/CalendarDate.js'
-import { DateTime } from '../helpers/DateTime.js'
-import { FilterInterface, Inc } from '../helpers/typeutils.js'
-import OpsStatement from '../ops/ops-statement.js'
-import DreamSerializer from '../serializer/index.js'
-import { AliasedSchemaAssociation } from './variadic.js'
+} from '../decorators/field/association/shared.ts'
+import Dream from '../Dream.ts'
+import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.ts'
+import { FindEachOpts } from '../dream/Query.ts'
+import CalendarDate from '../helpers/CalendarDate.ts'
+import { DateTime } from '../helpers/DateTime.ts'
+import { FilterInterface, Inc } from '../helpers/typeutils.ts'
+import OpsStatement from '../ops/ops-statement.ts'
+import DreamSerializer from '../serializer/index.ts'
+import { AliasedSchemaAssociation } from './variadic.ts'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 

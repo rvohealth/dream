@@ -1,4 +1,4 @@
-import { IdType } from '../../../src/index.js'
+import { type IdType } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
 

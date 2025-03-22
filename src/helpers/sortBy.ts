@@ -1,4 +1,4 @@
-import { IdType } from '../types/dream.js'
+import { type IdType } from '../types/dream.js'
 
 export default function sortBy<T>(
   array: T[],

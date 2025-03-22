@@ -1,7 +1,7 @@
 import { Client } from 'pg'
 import ConnectionConfRetriever from '../../db/ConnectionConfRetriever.js'
 import DreamApplication from '../../dream-application/index.js'
-import { DbConnectionType } from '../../types/db.js'
+import { type DbConnectionType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 
