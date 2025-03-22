@@ -44,7 +44,6 @@ import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutin
 import { Range } from '../helpers/range.js'
 import snakeify from '../helpers/snakeify.js'
 import { isObject, isString } from '../helpers/typechecks.js'
-import { FindInterfaceWithValue } from '../helpers/typeutils.js'
 import uniq from '../helpers/uniq.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import ops from '../ops/index.js'
@@ -87,6 +86,7 @@ import {
   type TableColumnType,
   type TableOrAssociationName,
 } from '../types/dream.js'
+import { FindInterfaceWithValue } from '../types/utils.js'
 import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,

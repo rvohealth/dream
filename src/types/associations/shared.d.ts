@@ -8,7 +8,6 @@ import { DreamConst } from '../../dream/constants.ts'
 import CalendarDate from '../../helpers/CalendarDate.ts'
 import { DateTime } from '../../helpers/DateTime.ts'
 import { Range } from '../../helpers/range.ts'
-import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../../helpers/typeutils.ts'
 import CurriedOpsStatement from '../../ops/curried-ops-statement.ts'
 import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.ts'
 import { AssociationTableNames } from '../db.js'
@@ -26,6 +25,7 @@ import {
   TableNameForGlobalModelName,
   TrigramOperator,
 } from '../dream.js'
+import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../utils.ts'
 import { JoinedAssociation } from '../variadic.js'
 import { BelongsToStatement } from './belongsTo.ts'
 import { HasManyStatement } from './hasMany.ts'
