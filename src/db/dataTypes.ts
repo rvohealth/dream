@@ -1,3 +1,5 @@
+import { NonArrayDbTypes } from '../types/db.js'
+
 export default function dataTypes() {
   // In the future, when we support multiple db drivers,
   // this will need to be updated
@@ -53,6 +55,3 @@ export const postgresDatatypes = [
   'uuid',
   'xml',
 ] as const
-
-type NonArrayDbTypes = (typeof postgresDatatypes)[number]
-export type DbTypes = NonArrayDbTypes | `${NonArrayDbTypes}[]`

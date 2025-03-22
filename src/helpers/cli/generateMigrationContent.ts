@@ -1,6 +1,6 @@
 import pluralize from 'pluralize-esm'
-import { PrimaryKeyType } from '../../dream/types.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
+import { PrimaryKeyType } from '../../types/dream.js'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
 import snakeify from '../snakeify.js'
 

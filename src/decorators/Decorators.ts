@@ -1,22 +1,27 @@
 import Dream from '../Dream.js'
-import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
 import { SerializableTypes } from '../serializer/decorators/attribute.js'
-import Virtual from './field-or-getter/Virtual.js'
-import Encrypted from './field/Encrypted.js'
-import BelongsTo, {
+import {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
-} from './field/association/BelongsTo.js'
-import HasMany, {
+} from '../types/associations/belongsTo.js'
+import {
   HasManyOptions,
   HasManyThroughOptions,
   PolymorphicHasManyOptions,
-} from './field/association/HasMany.js'
-import HasOne, {
+} from '../types/associations/hasMany.js'
+import {
   HasOneOptions,
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
-} from './field/association/HasOne.js'
+} from '../types/associations/hasOne.js'
+import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../types/dream.js'
+import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
+import { ValidationType } from '../types/validation.js'
+import Virtual from './field-or-getter/Virtual.js'
+import Encrypted from './field/Encrypted.js'
+import BelongsTo from './field/association/BelongsTo.js'
+import HasMany from './field/association/HasMany.js'
+import HasOne from './field/association/HasOne.js'
 import AfterCreate from './field/lifecycle/AfterCreate.js'
 import AfterCreateCommit from './field/lifecycle/AfterCreateCommit.js'
 import AfterDestroy from './field/lifecycle/AfterDestroy.js'
@@ -29,10 +34,8 @@ import BeforeCreate from './field/lifecycle/BeforeCreate.js'
 import BeforeDestroy from './field/lifecycle/BeforeDestroy.js'
 import BeforeSave from './field/lifecycle/BeforeSave.js'
 import BeforeUpdate from './field/lifecycle/BeforeUpdate.js'
-import { AfterHookOpts, BeforeHookOpts } from './field/lifecycle/shared.js'
 import Sortable from './field/sortable/Sortable.js'
 import Validates from './field/validation/Validates.js'
-import { ValidationType } from './field/validation/shared.js'
 import Validate from './method/Validate.js'
 import Scope from './static-method/Scope.js'
 

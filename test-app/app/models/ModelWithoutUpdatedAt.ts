@@ -1,5 +1,5 @@
-import { DreamColumn } from '../../../src/dream/types.js'
 import { Decorators } from '../../../src/index.js'
+import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 
 const Deco = new Decorators<InstanceType<typeof ModelWithoutUpdatedAt>>()

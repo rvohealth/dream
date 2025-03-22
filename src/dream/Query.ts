@@ -13,23 +13,8 @@ import {
 } from 'kysely'
 import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB.js'
-import { DbConnectionType } from '../db/types.js'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
-import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from '../decorators/field/association/HasMany.js'
-import { HasOneStatement } from '../decorators/field/association/HasOne.js'
-import {
-  AssociationStatement,
-  ColumnNamesAccountingForJoinedAssociations,
-  LimitStatement,
-  OffsetStatement,
-  OrderQueryStatement,
-  PassthroughOnClause,
-  SelfOnStatement,
-  WhereStatement,
-  WhereStatementForJoinedAssociation,
-} from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js'
 import CannotJoinPolymorphicBelongsToError from '../errors/associations/CannotJoinPolymorphicBelongsToError.js'
@@ -59,18 +44,25 @@ import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutin
 import { Range } from '../helpers/range.js'
 import snakeify from '../helpers/snakeify.js'
 import { isObject, isString } from '../helpers/typechecks.js'
-import { FindInterfaceWithValue } from '../helpers/typeutils.js'
 import uniq from '../helpers/uniq.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import ops from '../ops/index.js'
 import OpsStatement from '../ops/ops-statement.js'
-import DreamTransaction from './DreamTransaction.js'
-import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
-import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'
-import orderByDirection from './internal/orderByDirection.js'
-import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope.js'
-import SimilarityBuilder from './internal/similarity/SimilarityBuilder.js'
-import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance.js'
+import { BelongsToStatement } from '../types/associations/belongsTo.js'
+import { HasManyStatement } from '../types/associations/hasMany.js'
+import { HasOneStatement } from '../types/associations/hasOne.js'
+import {
+  AssociationStatement,
+  ColumnNamesAccountingForJoinedAssociations,
+  LimitStatement,
+  OffsetStatement,
+  OrderQueryStatement,
+  PassthroughOnClause,
+  SelfOnStatement,
+  WhereStatement,
+  WhereStatementForJoinedAssociation,
+} from '../types/associations/shared.js'
+import { DbConnectionType } from '../types/db.js'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
@@ -79,80 +71,43 @@ import {
   AssociationNameToDreamClassMap,
   DefaultScopeName,
   DreamColumnNames,
-  DreamConst,
   DreamTableSchema,
-  IdType,
   JoinOnStatements,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
   OrderDir,
   PassthroughColumnNames,
   PluckEachArgs,
   PrimaryKeyForFind,
-  QueryTypeOptions,
   RelaxedJoinOnStatement,
   RelaxedJoinStatement,
   RelaxedPreloadOnStatement,
   RelaxedPreloadStatement,
   TableColumnNames,
-  TableColumnType,
   TableOrAssociationName,
+} from '../types/dream.js'
+import {
+  DefaultQueryTypeOptions,
+  ExtendQueryType,
+  FindEachOpts,
+  JoinTypes,
+  NamespacedOrBaseModelColumnTypes,
+  PreloadedDreamsAndWhatTheyPointTo,
+} from '../types/query.js'
+import {
+  JoinedAssociation,
+  JoinedAssociationsTypeFromAssociations,
+  QueryTypeOptions,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types.js'
-
-export type QueryWithJoinedAssociationsType<
-  Q extends Query<any, any>,
-  JoinedAssociations extends Readonly<JoinedAssociation[]>,
-> = Query<
-  Q['dreamInstance'],
-  ExtendQueryType<
-    Q['queryTypeOpts'],
-    Readonly<{
-      joinedAssociations: JoinedAssociations
-    }>
-  >
->
-
-export type QueryWithJoinedAssociationsTypeAndNoPreload<
-  Q extends Query<any, any>,
-  JoinedAssociations extends Readonly<JoinedAssociation[]> = Readonly<JoinedAssociation[]>,
-> = Query<
-  Q['dreamInstance'],
-  ExtendQueryType<
-    Q['queryTypeOpts'],
-    Readonly<{
-      joinedAssociations: JoinedAssociations
-      allowPreload: false
-    }>
-  >
->
-
-export type QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload<
-  Q extends Query<any, any>,
-  JoinedAssociations extends Readonly<JoinedAssociation[]> = Readonly<JoinedAssociation[]>,
-> = Query<
-  Q['dreamInstance'],
-  ExtendQueryType<
-    Q['queryTypeOpts'],
-    Readonly<{
-      joinedAssociations: JoinedAssociations
-      allowLeftJoinPreload: false
-    }>
-  >
->
-
-export type DefaultQueryTypeOptions<
-  TableNameSource extends Dream,
-  TableAliasSource extends Dream | string = TableNameSource,
-> = Readonly<{
-  joinedAssociations: Readonly<[]>
-  rootTableName: TableNameSource['table']
-  rootTableAlias: TableAliasSource extends Dream ? TableAliasSource['table'] : TableAliasSource
-  allowPreload: true
-  allowLeftJoinPreload: true
-}>
+} from '../types/variadic.js'
+import { DreamConst } from './constants.js'
+import DreamTransaction from './DreamTransaction.js'
+import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
+import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'
+import orderByDirection from './internal/orderByDirection.js'
+import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope.js'
+import SimilarityBuilder from './internal/similarity/SimilarityBuilder.js'
+import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance.js'
 
 export default class Query<
   DreamInstance extends Dream,
@@ -3949,75 +3904,3 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
     (dream as Dream)['getAssociationMetadata'](pluralize.singular(sourceName))
   )
 }
-
-export interface PreloadedDreamsAndWhatTheyPointTo {
-  dream: Dream
-  pointsToPrimaryKey: IdType
-}
-
-export interface FindEachOpts {
-  batchSize?: number
-}
-
-type JoinTypes = 'inner' | 'left'
-
-export type ExtendQueryType<
-  OriginalOpts extends Readonly<QueryTypeOptions>,
-  Opts extends Readonly<Partial<QueryTypeOptions>>,
-> = Readonly<{
-  joinedAssociations: Opts['joinedAssociations'] extends Readonly<JoinedAssociation[]>
-    ? Readonly<[...OriginalOpts['joinedAssociations'], ...Opts['joinedAssociations']]>
-    : OriginalOpts['joinedAssociations']
-
-  rootTableName: OriginalOpts['rootTableName']
-  rootTableAlias: OriginalOpts['rootTableAlias']
-
-  allowPreload: Opts['allowPreload'] extends false ? false : OriginalOpts['allowPreload']
-  allowLeftJoinPreload: Opts['allowLeftJoinPreload'] extends false
-    ? false
-    : OriginalOpts['allowLeftJoinPreload']
-}>
-
-export type NamespacedColumnType<
-  ColumnName,
-  Q extends Query<any, any>,
-  DreamInstance extends Dream,
-  //
-  // begin: inferred types
-  JoinedAssociationsArr = Q['queryTypeOpts']['joinedAssociations'],
-  AssociationName = ColumnName extends `${infer Name extends string}.${string}` ? Name : never,
-  RealColumnName = ColumnName extends `${string}.${infer Col extends string}` ? Col : never,
-  JoinedAssociation extends FindInterfaceWithValue<
-    JoinedAssociationsArr,
-    'alias',
-    AssociationName
-  > = FindInterfaceWithValue<JoinedAssociationsArr, 'alias', AssociationName>,
-  JoinedTable = JoinedAssociation['table'] extends never
-    ? DreamInstance['table']
-    : JoinedAssociation['table'],
-  ReturnType = TableColumnType<DreamInstance['schema'], JoinedTable, RealColumnName>,
-> = ReturnType
-
-type NamespacedColumnTypes<ColumnNames, Q extends Query<any, any>, DreamInstance extends Dream> =
-  ColumnNames extends Readonly<[infer First, ...infer Rest]>
-    ? [
-        NamespacedColumnType<First, Q, DreamInstance>,
-        ...NamespacedColumnTypes<Readonly<Rest>, Q, DreamInstance>,
-      ]
-    : []
-
-export type BaseModelColumnTypes<ColumnNames, DreamInstance extends Dream> =
-  ColumnNames extends Readonly<[infer First, ...infer Rest]>
-    ? [
-        TableColumnType<DreamInstance['schema'], DreamInstance['table'], First>,
-        ...BaseModelColumnTypes<Readonly<Rest>, DreamInstance>,
-      ]
-    : []
-
-export type NamespacedOrBaseModelColumnTypes<
-  ColumnNames,
-  Q extends Query<any, any>,
-  DreamInstance extends Dream,
-> = Q['queryTypeOpts']['joinedAssociations']['length'] extends 0
-  ? BaseModelColumnTypes<ColumnNames, DreamInstance>
-  : NamespacedColumnTypes<ColumnNames, Q, DreamInstance>

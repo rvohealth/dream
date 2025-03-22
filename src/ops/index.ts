@@ -1,8 +1,8 @@
 import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression, sql } from 'kysely'
 import Dream from '../Dream.js'
-import { TrigramOperator } from '../dream/types.js'
 import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn.js'
 import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn.js'
+import { TrigramOperator } from '../types/dream.js'
 import CurriedOpsStatement from './curried-ops-statement.js'
 import OpsStatement from './ops-statement.js'
 

@@ -1,10 +1,8 @@
-import { BelongsToStatement } from '../../../decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from '../../../decorators/field/association/HasMany.js'
-import { HasOneStatement } from '../../../decorators/field/association/HasOne.js'
 import Dream from '../../../Dream.js'
 import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext.js'
+import { HasManyStatement } from '../../../types/associations/hasMany.js'
+import { DreamAssociationNames, UpdateableAssociationProperties } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
-import { DreamAssociationNames, UpdateableAssociationProperties } from '../../types.js'
 
 export default async function createAssociation<
   DreamInstance extends Dream,
@@ -22,10 +20,7 @@ export default async function createAssociation<
   associationName: AssociationName,
   opts: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType> = {} as any
 ): Promise<NonNullable<AssociationType>> {
-  const association = dream['associationMetadataMap']()[associationName as any] as
-    | HasManyStatement<any, any, any, any>
-    | HasOneStatement<any, any, any, any>
-    | BelongsToStatement<any, any, any, any>
+  const association = dream['associationMetadataMap']()[associationName as any]
 
   if (Array.isArray(association.modelCB())) {
     throw new Error(`

@@ -1,4 +1,5 @@
-import { DreamConst, SerializableClassOrClasses } from '../../../dream/types.js'
+import { DreamConst } from '../../../dream/constants.js'
+import { SerializableClassOrClasses } from '../../../types/dream.js'
 import hasSerializersGetter from '../helpers/hasSerializersGetter.js'
 import maybeSerializableToDreamSerializerCallbackFunction from '../helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
 

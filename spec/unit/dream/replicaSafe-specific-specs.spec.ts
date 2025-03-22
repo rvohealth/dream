@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 import ConnectionConfRetriever from '../../../src/db/ConnectionConfRetriever.js'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import db from '../../../src/db/index.js'
-import { DbConnectionType } from '../../../src/db/types.js'
+import { DbConnectionType } from '../../../src/types/db.js'
 import User from '../../../test-app/app/models/User.js'
 
 /**
