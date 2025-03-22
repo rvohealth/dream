@@ -92,23 +92,25 @@ import {
   DreamParamSafeColumnNames,
   DreamSerializeOptions,
   IdType,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
   JoinOnStatements,
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
   PluckEachArgs,
   PrimaryKeyForFind,
-  RequiredOnClauseKeys,
   TableColumnNames,
   UpdateableAssociationProperties,
   UpdateableProperties,
   UpdateablePropertiesForClass,
+} from './types/dream.js'
+import {
+  JoinedAssociation,
+  JoinedAssociationsTypeFromAssociations,
+  RequiredOnClauseKeys,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types/dream.js'
+} from './types/variadic.js'
 
 export default class Dream {
   public DB: any

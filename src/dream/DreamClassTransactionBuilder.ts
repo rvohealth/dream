@@ -5,18 +5,20 @@ import Dream from '../Dream.js'
 import {
   DefaultScopeName,
   DreamColumnNames,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
   OrderDir,
   PassthroughColumnNames,
   PluckEachArgs,
   PrimaryKeyForFind,
   TableColumnNames,
   UpdateableProperties,
+} from '../types/dream.js'
+import {
+  JoinedAssociation,
+  JoinedAssociationsTypeFromAssociations,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from '../types/dream.js'
+} from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
 import saveDream from './internal/saveDream.js'
 import Query, {

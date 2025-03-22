@@ -6,16 +6,18 @@ import {
   DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAttributes,
   DreamConstructorType,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
   JoinOnStatements,
-  RequiredOnClauseKeys,
   UpdateableAssociationProperties,
   UpdateableProperties,
+} from '../types/dream.js'
+import {
+  JoinedAssociation,
+  JoinedAssociationsTypeFromAssociations,
+  RequiredOnClauseKeys,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from '../types/dream.js'
+} from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
 import associationQuery from './internal/associations/associationQuery.js'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery.js'

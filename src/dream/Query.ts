@@ -76,13 +76,10 @@ import {
   DreamTableSchema,
   IdType,
   JoinOnStatements,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
   OrderDir,
   PassthroughColumnNames,
   PluckEachArgs,
   PrimaryKeyForFind,
-  QueryTypeOptions,
   RelaxedJoinOnStatement,
   RelaxedJoinStatement,
   RelaxedPreloadOnStatement,
@@ -90,10 +87,15 @@ import {
   TableColumnNames,
   TableColumnType,
   TableOrAssociationName,
+} from '../types/dream.js'
+import {
+  JoinedAssociation,
+  JoinedAssociationsTypeFromAssociations,
+  QueryTypeOptions,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from '../types/dream.js'
+} from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
 import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
 import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'

@@ -30,7 +30,6 @@ import {
   DreamConst,
   GlobalModelNameTableMap,
   IdType,
-  JoinedAssociation,
   OrderDir,
   TableColumnEnumTypeArray,
   TableColumnNames,
@@ -38,6 +37,7 @@ import {
   TableNameForGlobalModelName,
   TrigramOperator,
 } from '../../../types/dream.js'
+import { JoinedAssociation } from '../../../types/variadic.js'
 import freezeBaseClassArrayMap from '../../helpers/freezeBaseClassArrayMap.js'
 import associationToGetterSetterProp from './associationToGetterSetterProp.js'
 import { BelongsToStatement } from './BelongsTo.js'
