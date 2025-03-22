@@ -1,4 +1,4 @@
-import { PrimaryKeyType } from '../../dream/types.js'
+import { PrimaryKeyType } from '../../types/dream.js'
 
 export default function foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType) {
   switch (primaryKey) {

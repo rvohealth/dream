@@ -1,4 +1,4 @@
-import { DreamConst } from '../../../src/dream/types.js'
+import { DreamConst } from '../../../src/dream/constants.js'
 import MissingSerializer from '../../../src/errors/MissingSerializersDefinition.js'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
 import { CalendarDate, DateTime, DreamApplication, NonLoadedAssociation } from '../../../src/index.js'

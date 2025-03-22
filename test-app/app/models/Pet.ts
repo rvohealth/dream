@@ -1,6 +1,6 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
-import { DreamColumn, DreamSerializers, IdType } from '../../../src/dream/types.js'
 import { Decorators, ops } from '../../../src/index.js'
+import { DreamColumn, DreamSerializers, IdType } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 import Collar from './Collar.js'

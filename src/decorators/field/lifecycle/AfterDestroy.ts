@@ -1,6 +1,7 @@
 import Dream from '../../../Dream.js'
+import { HookStatement } from '../../../types/lifecycle.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
-import { HookStatement, blankHooksFactory } from './shared.js'
+import { blankHooksFactory } from './shared.js'
 
 export default function AfterDestroy(): any {
   return function (_: any, context: DecoratorContext) {

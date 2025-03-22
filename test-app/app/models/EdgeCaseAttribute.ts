@@ -1,4 +1,4 @@
-import { DreamColumn, DreamSerializers } from '../../../src/dream/types.js'
+import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 
 // const Deco = new Decorators<InstanceType<typeof EdgeCaseAttribute>>()

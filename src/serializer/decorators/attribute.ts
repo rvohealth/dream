@@ -2,7 +2,7 @@ import { DecoratorContext } from '../../decorators/DecoratorContextType.js'
 import Dream from '../../Dream.js'
 import { RoundingPrecision } from '../../helpers/round.js'
 import { isString } from '../../helpers/typechecks.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../openapi/types.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import DreamSerializer from '../index.js'
 import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 

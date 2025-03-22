@@ -1,6 +1,6 @@
 import Dream from '../../../Dream.js'
+import { type ValidationStatement, type ValidationType } from '../../../types/validation.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
-import ValidationStatement, { ValidationType } from './shared.js'
 
 export default function Validates<
   VT extends ValidationType,

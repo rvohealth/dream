@@ -1,5 +1,5 @@
 import Dream from '../../../Dream.js'
-import { DreamSerializerCallback, SerializableClassOrClasses } from '../../../dream/types.js'
+import { DreamSerializerCallback, SerializableClassOrClasses } from '../../../types/dream.js'
 import hasSerializersGetter from './hasSerializersGetter.js'
 
 export default function (

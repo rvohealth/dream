@@ -1,6 +1,6 @@
 import Dream from '../../../Dream.js'
+import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
-import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types.js'
 import associationUpdateQuery from './associationUpdateQuery.js'
 
 export default async function undestroyAssociation<

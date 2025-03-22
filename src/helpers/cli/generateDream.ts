@@ -56,7 +56,7 @@ export default async function generateDream({
   const isSTI = !!fullyQualifiedParentName
   if (columnsWithTypes.length || !isSTI) {
     await generateMigration({
-      migrationName: fullyQualifiedModelName,
+      migrationName: `Create${fullyQualifiedModelName}`,
       columnsWithTypes,
       fullyQualifiedModelName,
       fullyQualifiedParentName,

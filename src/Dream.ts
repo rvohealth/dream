@@ -9,23 +9,12 @@ import {
 
 import { pgErrorType } from './db/errors.js'
 import db from './db/index.js'
-import { AssociationTableNames } from './db/reflections.js'
-import { DbConnectionType } from './db/types.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
-import { BelongsToStatement } from './decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from './decorators/field/association/HasMany.js'
-import { HasOneStatement } from './decorators/field/association/HasOne.js'
-import {
-  AssociationStatementsMap,
-  blankAssociationsFactory,
-  PassthroughOnClause,
-  WhereStatement,
-} from './decorators/field/association/shared.js'
-import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/field/lifecycle/shared.js'
+import { blankAssociationsFactory } from './decorators/field/association/shared.js'
+import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
-import ValidationStatement, { ValidationType } from './decorators/field/validation/shared.js'
 import { ScopeStatement } from './decorators/static-method/Scope.js'
 import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
 import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
@@ -55,43 +44,7 @@ import {
 import undestroyDream from './dream/internal/undestroyDream.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
 import LoadBuilder from './dream/LoadBuilder.js'
-import Query, {
-  BaseModelColumnTypes,
-  DefaultQueryTypeOptions,
-  FindEachOpts,
-  QueryWithJoinedAssociationsType,
-  QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './dream/Query.js'
-import {
-  AllDefaultScopeNames,
-  AssociationNameToDream,
-  AttributeKeys,
-  DefaultOrNamedScopeName,
-  DreamAssociationNames,
-  DreamAssociationNamesWithoutRequiredOnClauses,
-  DreamAttributes,
-  DreamColumnNames,
-  DreamConstructorType,
-  DreamParamSafeColumnNames,
-  DreamSerializeOptions,
-  IdType,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
-  JoinOnStatements,
-  NextPreloadArgumentType,
-  OrderDir,
-  PassthroughColumnNames,
-  PluckEachArgs,
-  PrimaryKeyForFind,
-  RequiredOnClauseKeys,
-  TableColumnNames,
-  UpdateableAssociationProperties,
-  UpdateableProperties,
-  UpdateablePropertiesForClass,
-  VariadicJoinsArgs,
-  VariadicLeftJoinLoadArgs,
-  VariadicLoadArgs,
-} from './dream/types.js'
+import Query from './dream/Query.js'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
 import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
@@ -109,6 +62,56 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { isString } from './helpers/typechecks.js'
+import { HasManyStatement } from './types/associations/hasMany.js'
+import { HasOneStatement } from './types/associations/hasOne.js'
+import {
+  type AssociationMetadataMap,
+  type AssociationStatementsMap,
+  type PassthroughOnClause,
+  type WhereStatement,
+} from './types/associations/shared.js'
+import { type AssociationTableNames, type DbConnectionType } from './types/db.js'
+import {
+  type AllDefaultScopeNames,
+  type AssociationNameToDream,
+  type AttributeKeys,
+  type DefaultOrNamedScopeName,
+  type DreamAssociationNames,
+  type DreamAssociationNamesWithoutRequiredOnClauses,
+  type DreamAttributes,
+  type DreamColumnNames,
+  type DreamConstructorType,
+  type DreamParamSafeColumnNames,
+  type DreamSerializeOptions,
+  type IdType,
+  type JoinOnStatements,
+  type NextPreloadArgumentType,
+  type OrderDir,
+  type PassthroughColumnNames,
+  type PluckEachArgs,
+  type PrimaryKeyForFind,
+  type TableColumnNames,
+  type UpdateableAssociationProperties,
+  type UpdateableProperties,
+  type UpdateablePropertiesForClass,
+} from './types/dream.js'
+import { type HookStatement, type HookStatementMap } from './types/lifecycle.js'
+import {
+  type BaseModelColumnTypes,
+  type DefaultQueryTypeOptions,
+  type FindEachOpts,
+  type QueryWithJoinedAssociationsType,
+  type QueryWithJoinedAssociationsTypeAndNoPreload,
+} from './types/query.js'
+import { type ValidationStatement, type ValidationType } from './types/validation.js'
+import {
+  type JoinedAssociation,
+  type JoinedAssociationsTypeFromAssociations,
+  type RequiredOnClauseKeys,
+  type VariadicJoinsArgs,
+  type VariadicLeftJoinLoadArgs,
+  type VariadicLoadArgs,
+} from './types/variadic.js'
 
 export default class Dream {
   public DB: any
@@ -477,13 +480,12 @@ export default class Dream {
   }
 
   /**
-   * @internal
-   *
-   * Shadows .sanitizedName. Returns a string
+   * this.constructor.name may be prefixed with an underscore during conversion to Javascript.
+   * This method returns the constructor name without a leading underscore.
    *
    * @returns A string
    */
-  protected get sanitizedConstructorName(): string {
+  public get sanitizedConstructorName(): string {
     return (this.constructor as typeof Dream).sanitizedName
   }
 
@@ -662,24 +664,14 @@ export default class Dream {
    *
    * @returns An array containing all of the associations for this dream class
    */
-  private static associationMetadataMap<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-  >(this: T) {
+  private static associationMetadataMap<T extends typeof Dream>(this: T): AssociationMetadataMap {
     const allAssociations = [
       ...this.associationMetadataByType.belongsTo,
       ...this.associationMetadataByType.hasOne,
       ...this.associationMetadataByType.hasMany,
     ]
 
-    const map = {} as {
-      [key: (typeof allAssociations)[number]['as']]:
-        | BelongsToStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
-        | HasManyStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
-        | HasOneStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
-    }
+    const map: AssociationMetadataMap = {}
 
     for (const association of allAssociations) {
       map[association.as] = association
@@ -2375,17 +2367,14 @@ export default class Dream {
       if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
         throw new CanOnlyPassBelongsToModelParam(this, associationMetaData)
       } else if (associationMetaData) {
-        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any, any>
+        const belongsToAssociationMetaData = associationMetaData
         const associatedObject = (attributes as any)[attr] as Dream | null
 
         // if dream instance is passed, set the loaded association
         if (dreamInstance && associatedObject !== undefined) (dreamInstance as any)[attr] = associatedObject
 
-        if (!(associationMetaData as BelongsToStatement<any, any, any, any>).optional && !associatedObject)
-          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
-            this,
-            associationMetaData as BelongsToStatement<any, any, any, any>
-          )
+        if (!associationMetaData.optional && !associatedObject)
+          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(this, associationMetaData)
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         const foreignKeyValue = belongsToAssociationMetaData.primaryKeyValue(associatedObject)

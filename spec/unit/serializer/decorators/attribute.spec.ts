@@ -1,5 +1,5 @@
 import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src/index.js'
-import { OpenapiSchemaBody } from '../../../../src/openapi/types.js'
+import { OpenapiSchemaBody } from '../../../../src/types/openapi.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import { BalloonTypesEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db.js'

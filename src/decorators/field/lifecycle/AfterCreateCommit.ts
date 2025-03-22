@@ -1,6 +1,7 @@
 import Dream from '../../../Dream.js'
+import { AfterHookOpts, HookStatement } from '../../../types/lifecycle.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
-import { AfterHookOpts, HookStatement, blankHooksFactory } from './shared.js'
+import { blankHooksFactory } from './shared.js'
 
 /**
  * Calls the decorated method whenever a dream has finished

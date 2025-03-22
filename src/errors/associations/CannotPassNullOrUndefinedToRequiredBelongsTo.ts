@@ -1,5 +1,5 @@
-import { BelongsToStatement } from '../../decorators/field/association/BelongsTo.js'
 import Dream from '../../Dream.js'
+import { BelongsToStatement } from '../../types/associations/belongsTo.js'
 
 export default class CannotPassNullOrUndefinedToRequiredBelongsTo extends Error {
   public dreamClass: typeof Dream
