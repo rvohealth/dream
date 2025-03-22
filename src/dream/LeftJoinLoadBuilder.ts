@@ -1,12 +1,13 @@
 import Dream from '../Dream.js'
 import { type PassthroughOnClause } from '../types/associations/shared.js'
 import { type IdType, type PassthroughColumnNames } from '../types/dream.js'
-import { type VariadicLeftJoinLoadArgs } from '../types/variadic.js'
-import DreamTransaction from './DreamTransaction.js'
-import Query, {
+import {
   PreloadedDreamsAndWhatTheyPointTo,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './Query.js'
+} from '../types/query.js'
+import { type VariadicLeftJoinLoadArgs } from '../types/variadic.js'
+import DreamTransaction from './DreamTransaction.js'
+import Query from './Query.js'
 
 export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   private dream: Dream

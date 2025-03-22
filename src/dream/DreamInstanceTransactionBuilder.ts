@@ -10,6 +10,7 @@ import {
   type UpdateableAssociationProperties,
   type UpdateableProperties,
 } from '../types/dream.js'
+import { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from '../types/query.js'
 import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,
@@ -41,7 +42,7 @@ import {
 import undestroyDream from './internal/undestroyDream.js'
 import LeftJoinLoadBuilder from './LeftJoinLoadBuilder.js'
 import LoadBuilder from './LoadBuilder.js'
-import Query, { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from './Query.js'
+import Query from './Query.js'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance

@@ -44,13 +44,7 @@ import {
 import undestroyDream from './dream/internal/undestroyDream.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
 import LoadBuilder from './dream/LoadBuilder.js'
-import Query, {
-  BaseModelColumnTypes,
-  DefaultQueryTypeOptions,
-  FindEachOpts,
-  QueryWithJoinedAssociationsType,
-  QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './dream/Query.js'
+import Query from './dream/Query.js'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
 import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
@@ -98,6 +92,13 @@ import {
   type UpdateablePropertiesForClass,
 } from './types/dream.js'
 import { HookStatement, HookStatementMap } from './types/lifecycle.js'
+import {
+  BaseModelColumnTypes,
+  DefaultQueryTypeOptions,
+  FindEachOpts,
+  QueryWithJoinedAssociationsType,
+  QueryWithJoinedAssociationsTypeAndNoPreload,
+} from './types/query.js'
 import ValidationStatement, { ValidationType } from './types/validation.js'
 import {
   type JoinedAssociation,

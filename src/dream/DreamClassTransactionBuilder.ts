@@ -13,6 +13,12 @@ import {
   type UpdateableProperties,
 } from '../types/dream.js'
 import {
+  BaseModelColumnTypes,
+  FindEachOpts,
+  QueryWithJoinedAssociationsType,
+  QueryWithJoinedAssociationsTypeAndNoPreload,
+} from '../types/query.js'
+import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,
   type VariadicJoinsArgs,
@@ -21,12 +27,7 @@ import {
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
 import saveDream from './internal/saveDream.js'
-import Query, {
-  BaseModelColumnTypes,
-  FindEachOpts,
-  QueryWithJoinedAssociationsType,
-  QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './Query.js'
+import Query from './Query.js'
 
 export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   /**
