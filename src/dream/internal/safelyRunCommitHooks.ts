@@ -1,6 +1,6 @@
-import { CommitHookType } from '../../decorators/field/lifecycle/shared.js'
 import Dream from '../../Dream.js'
 import { DreamConstructorType } from '../../types/dream.js'
+import { CommitHookType } from '../../types/lifecycle.js'
 import DreamTransaction from '../DreamTransaction.js'
 import runHooksFor from './runHooksFor.js'
 

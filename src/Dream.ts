@@ -12,7 +12,7 @@ import db from './db/index.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
-import { blankHooksFactory, HookStatement, HookStatementMap } from './decorators/field/lifecycle/shared.js'
+import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
 import ValidationStatement, { ValidationType } from './decorators/field/validation/shared.js'
@@ -98,6 +98,7 @@ import {
   type UpdateableProperties,
   type UpdateablePropertiesForClass,
 } from './types/dream.js'
+import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,
