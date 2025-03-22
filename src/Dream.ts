@@ -62,7 +62,6 @@ import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { isString } from './helpers/typechecks.js'
-import { BelongsToStatement } from './types/associations/belongsTo.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -2369,17 +2368,14 @@ export default class Dream {
       if (associationMetaData && associationMetaData.type !== 'BelongsTo') {
         throw new CanOnlyPassBelongsToModelParam(this, associationMetaData)
       } else if (associationMetaData) {
-        const belongsToAssociationMetaData = associationMetaData as BelongsToStatement<any, any, any, any>
+        const belongsToAssociationMetaData = associationMetaData
         const associatedObject = (attributes as any)[attr] as Dream | null
 
         // if dream instance is passed, set the loaded association
         if (dreamInstance && associatedObject !== undefined) (dreamInstance as any)[attr] = associatedObject
 
-        if (!(associationMetaData as BelongsToStatement<any, any, any, any>).optional && !associatedObject)
-          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(
-            this,
-            associationMetaData as BelongsToStatement<any, any, any, any>
-          )
+        if (!associationMetaData.optional && !associatedObject)
+          throw new CannotPassNullOrUndefinedToRequiredBelongsTo(this, associationMetaData)
 
         const foreignKey = belongsToAssociationMetaData.foreignKey()
         const foreignKeyValue = belongsToAssociationMetaData.primaryKeyValue(associatedObject)

@@ -1,8 +1,5 @@
 import Dream from '../../../Dream.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
-import { BelongsToStatement } from '../../../types/associations/belongsTo.js'
-import { HasManyStatement } from '../../../types/associations/hasMany.js'
-import { HasOneStatement } from '../../../types/associations/hasOne.js'
 import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import Query from '../../Query.js'
@@ -30,10 +27,7 @@ export default function associationUpdateQuery<
     defaultScopesToBypass: string[]
   }
 ): AssociationQuery {
-  const association = dream['associationMetadataMap']()[associationName as any] as
-    | HasManyStatement<any, any, any, any>
-    | HasOneStatement<any, any, any, any>
-    | BelongsToStatement<any, any, any, any>
+  const association = dream['associationMetadataMap']()[associationName as any]
 
   const associationClass = association.modelCB()
   if (Array.isArray(associationClass)) {
