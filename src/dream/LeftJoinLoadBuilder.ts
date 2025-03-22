@@ -2,8 +2,8 @@ import Dream from '../Dream.js'
 import { type PassthroughOnClause } from '../types/associations/shared.js'
 import { type IdType, type PassthroughColumnNames } from '../types/dream.js'
 import {
-  PreloadedDreamsAndWhatTheyPointTo,
-  QueryWithJoinedAssociationsTypeAndNoPreload,
+  type PreloadedDreamsAndWhatTheyPointTo,
+  type QueryWithJoinedAssociationsTypeAndNoPreload,
 } from '../types/query.js'
 import { type VariadicLeftJoinLoadArgs } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'

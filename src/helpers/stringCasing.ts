@@ -1,4 +1,9 @@
-import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from '../types/utils.js'
+import {
+  type NotReadonlyHead,
+  type NotReadonlyTail,
+  type ReadonlyHead,
+  type ReadonlyTail,
+} from '../types/utils.js'
 import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
 import { isObject, isString } from './typechecks.js'

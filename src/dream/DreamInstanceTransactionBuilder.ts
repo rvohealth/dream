@@ -10,7 +10,7 @@ import {
   type UpdateableAssociationProperties,
   type UpdateableProperties,
 } from '../types/dream.js'
-import { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from '../types/query.js'
+import { type DefaultQueryTypeOptions, type QueryWithJoinedAssociationsType } from '../types/query.js'
 import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,

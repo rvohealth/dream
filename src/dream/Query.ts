@@ -85,12 +85,12 @@ import {
   type TableOrAssociationName,
 } from '../types/dream.js'
 import {
-  DefaultQueryTypeOptions,
-  ExtendQueryType,
-  FindEachOpts,
-  JoinTypes,
-  NamespacedOrBaseModelColumnTypes,
-  PreloadedDreamsAndWhatTheyPointTo,
+  type DefaultQueryTypeOptions,
+  type ExtendQueryType,
+  type FindEachOpts,
+  type JoinTypes,
+  type NamespacedOrBaseModelColumnTypes,
+  type PreloadedDreamsAndWhatTheyPointTo,
 } from '../types/query.js'
 import {
   type JoinedAssociation,

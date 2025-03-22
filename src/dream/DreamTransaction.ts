@@ -1,6 +1,6 @@
 import { Transaction } from 'kysely'
 import Dream from '../Dream.js'
-import { HookStatement } from '../types/lifecycle.js'
+import { type HookStatement } from '../types/lifecycle.js'
 import { runHook } from './internal/runHooksFor.js'
 
 export interface TransactionCommitHookStatement {
