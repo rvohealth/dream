@@ -10,6 +10,7 @@ import {
   WhereStatement,
 } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
+import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
 import { FindEachOpts } from '../dream/Query.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
@@ -18,28 +19,12 @@ import OpsStatement from '../ops/ops-statement.js'
 import DreamSerializer from '../serializer/index.js'
 import { AliasedSchemaAssociation } from './variadic.js'
 
-export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
 export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 export type MAX_VARIADIC_DEPTH = 25
-
-class RequiredAttribute {
-  constructor() {}
-}
-
-class PassthroughAttribute {
-  constructor() {}
-}
-
-export const DreamConst = {
-  passthrough: PassthroughAttribute,
-  required: RequiredAttribute,
-}
-
-export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 export type TrigramOperator = (typeof TRIGRAM_OPERATORS)[number]
 export type OrderDir = 'asc' | 'desc'
 

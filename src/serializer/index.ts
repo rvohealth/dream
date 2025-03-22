@@ -1,5 +1,6 @@
 import DreamApplication from '../dream-application/index.js'
 import Dream from '../Dream.js'
+import { DreamConst } from '../dream/constants.js'
 import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet.js'
 import MissingSerializer from '../errors/MissingSerializersDefinition.js'
 import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
@@ -13,7 +14,6 @@ import inferSerializerFromDreamOrViewModel, {
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
 import {
-  DreamConst,
   SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,

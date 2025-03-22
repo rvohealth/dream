@@ -9,12 +9,8 @@ import namespaceColumn from '../../../helpers/namespaceColumn.js'
 import { isObject } from '../../../helpers/typechecks.js'
 import OpsStatement from '../../../ops/ops-statement.js'
 import { DbConnectionType } from '../../../types/db.js'
-import {
-  JoinOnStatements,
-  RelaxedJoinOnStatement,
-  SimilarityStatement,
-  TRIGRAM_OPERATORS,
-} from '../../../types/dream.js'
+import { JoinOnStatements, RelaxedJoinOnStatement, SimilarityStatement } from '../../../types/dream.js'
+import { TRIGRAM_OPERATORS } from '../../constants.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import similaritySelectSql from './similaritySelectSql.js'
 import similarityWhereSql from './similarityWhereSql.js'

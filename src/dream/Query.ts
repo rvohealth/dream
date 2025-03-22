@@ -72,7 +72,6 @@ import {
   AssociationNameToDreamClassMap,
   DefaultScopeName,
   DreamColumnNames,
-  DreamConst,
   DreamTableSchema,
   IdType,
   JoinOnStatements,
@@ -96,6 +95,7 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from '../types/variadic.js'
+import { DreamConst } from './constants.js'
 import DreamTransaction from './DreamTransaction.js'
 import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
 import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'

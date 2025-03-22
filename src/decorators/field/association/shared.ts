@@ -6,6 +6,7 @@ import {
 import pluralize from 'pluralize-esm'
 import { AssociationTableNames } from '../../../db/reflections.js'
 import Dream from '../../../Dream.js'
+import { DreamConst } from '../../../dream/constants.js'
 import { checkForeignKey } from '../../../errors/associations/InvalidComputedForeignKey.js'
 import NonLoadedAssociation from '../../../errors/associations/NonLoadedAssociation.js'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
@@ -27,7 +28,6 @@ import {
   DefaultScopeNameForTable,
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
-  DreamConst,
   GlobalModelNameTableMap,
   IdType,
   OrderDir,
