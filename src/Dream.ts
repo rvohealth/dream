@@ -10,7 +10,6 @@ import {
 import { pgErrorType } from './db/errors.js'
 import db from './db/index.js'
 import { AssociationTableNames } from './db/reflections.js'
-import { DbConnectionType } from './db/types.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { BelongsToStatement } from './decorators/field/association/BelongsTo.js'
@@ -62,6 +61,24 @@ import Query, {
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './dream/Query.js'
+import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
+import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
+import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
+import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
+import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
+import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
+import MissingSerializer from './errors/MissingSerializersDefinition.js'
+import MissingTable from './errors/MissingTable.js'
+import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import CalendarDate from './helpers/CalendarDate.js'
+import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import { DateTime } from './helpers/DateTime.js'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
+import isJsonColumn from './helpers/db/types/isJsonColumn.js'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { isString } from './helpers/typechecks.js'
+import { DbConnectionType } from './types/db.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -91,24 +108,7 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './dream/types.js'
-import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
-import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
-import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
-import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
-import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
-import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
-import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
-import MissingSerializer from './errors/MissingSerializersDefinition.js'
-import MissingTable from './errors/MissingTable.js'
-import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
-import CalendarDate from './helpers/CalendarDate.js'
-import cloneDeepSafe from './helpers/cloneDeepSafe.js'
-import { DateTime } from './helpers/DateTime.js'
-import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
-import isJsonColumn from './helpers/db/types/isJsonColumn.js'
-import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { isString } from './helpers/typechecks.js'
+} from './types/dream.js'
 
 export default class Dream {
   public DB: any

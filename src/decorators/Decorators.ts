@@ -1,6 +1,6 @@
 import Dream from '../Dream.js'
-import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../dream/types.js'
 import { SerializableTypes } from '../serializer/decorators/attribute.js'
+import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../types/dream.js'
 import Virtual from './field-or-getter/Virtual.js'
 import Encrypted from './field/Encrypted.js'
 import BelongsTo, {

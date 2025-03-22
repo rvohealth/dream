@@ -10,13 +10,13 @@ import {
   WhereStatement,
 } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
+import { FindEachOpts } from '../dream/Query.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
 import { Camelized } from '../helpers/stringCasing.js'
 import { FilterInterface, Inc, ReadonlyTail } from '../helpers/typeutils.js'
 import OpsStatement from '../ops/ops-statement.js'
 import DreamSerializer from '../serializer/index.js'
-import { FindEachOpts } from './Query.js'
 
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]

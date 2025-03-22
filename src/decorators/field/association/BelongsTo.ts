@@ -9,7 +9,7 @@ import {
   GlobalModelNameTableMap,
   TableColumnNames,
   TableNameForGlobalModelName,
-} from '../../../dream/types.js'
+} from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import { validatesImplementation } from '../validation/Validates.js'
 import {

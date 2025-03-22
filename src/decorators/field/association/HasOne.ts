@@ -1,7 +1,7 @@
 import { AssociationTableNames } from '../../../db/reflections.js'
 import lookupModelByGlobalNameOrNames from '../../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
-import { GlobalModelNameTableMap } from '../../../dream/types.js'
+import { GlobalModelNameTableMap } from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import {
   applyGetterAndSetter,

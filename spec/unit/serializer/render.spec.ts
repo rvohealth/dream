@@ -1,4 +1,3 @@
-import { DreamConst } from '../../../src/dream/types.js'
 import MissingSerializer from '../../../src/errors/MissingSerializersDefinition.js'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
 import { CalendarDate, DateTime, DreamApplication, NonLoadedAssociation } from '../../../src/index.js'
@@ -6,6 +5,7 @@ import RendersMany from '../../../src/serializer/decorators/associations/Renders
 import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
 import DreamSerializer from '../../../src/serializer/index.js'
+import { DreamConst } from '../../../src/types/dream.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'

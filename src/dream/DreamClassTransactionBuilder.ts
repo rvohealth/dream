@@ -2,14 +2,6 @@ import { SelectArg, SelectExpression, Updateable } from 'kysely'
 import { AssociationTableNames } from '../db/reflections.js'
 import { PassthroughOnClause, WhereStatement } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
-import DreamTransaction from './DreamTransaction.js'
-import saveDream from './internal/saveDream.js'
-import Query, {
-  BaseModelColumnTypes,
-  FindEachOpts,
-  QueryWithJoinedAssociationsType,
-  QueryWithJoinedAssociationsTypeAndNoPreload,
-} from './Query.js'
 import {
   DefaultScopeName,
   DreamColumnNames,
@@ -24,7 +16,15 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types.js'
+} from '../types/dream.js'
+import DreamTransaction from './DreamTransaction.js'
+import saveDream from './internal/saveDream.js'
+import Query, {
+  BaseModelColumnTypes,
+  FindEachOpts,
+  QueryWithJoinedAssociationsType,
+  QueryWithJoinedAssociationsTypeAndNoPreload,
+} from './Query.js'
 
 export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
   /**

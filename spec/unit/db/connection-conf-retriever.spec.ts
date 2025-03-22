@@ -1,7 +1,7 @@
 import ConnectionConfRetriever from '../../../src/db/ConnectionConfRetriever.js'
-import { DbConnectionType } from '../../../src/db/types.js'
 import { cacheDreamApplication } from '../../../src/dream-application/cache.js'
 import DreamApplication, { SingleDbCredential } from '../../../src/dream-application/index.js'
+import { DbConnectionType } from '../../../src/types/db.js'
 
 describe('ConnectionConfRetriever', () => {
   const updateDbCredentials = () => {

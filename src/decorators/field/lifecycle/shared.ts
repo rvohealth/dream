@@ -1,5 +1,5 @@
 import Dream from '../../../Dream.js'
-import { DreamColumnNames } from '../../../dream/types.js'
+import { DreamColumnNames } from '../../../types/dream.js'
 import freezeBaseClassArrayMap from '../../helpers/freezeBaseClassArrayMap.js'
 
 export type HookType =

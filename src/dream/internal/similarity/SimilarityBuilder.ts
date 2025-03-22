@@ -1,6 +1,5 @@
 import { SelectQueryBuilder, UpdateQueryBuilder, sql } from 'kysely'
 import ConnectedToDB from '../../../db/ConnectedToDB.js'
-import { DbConnectionType } from '../../../db/types.js'
 import validateColumn from '../../../db/validators/validateColumn.js'
 import validateTable from '../../../db/validators/validateTable.js'
 import validateTableAlias from '../../../db/validators/validateTableAlias.js'
@@ -9,13 +8,14 @@ import Dream from '../../../Dream.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
 import { isObject } from '../../../helpers/typechecks.js'
 import OpsStatement from '../../../ops/ops-statement.js'
-import DreamTransaction from '../../DreamTransaction.js'
+import { DbConnectionType } from '../../../types/db.js'
 import {
   JoinOnStatements,
   RelaxedJoinOnStatement,
   SimilarityStatement,
   TRIGRAM_OPERATORS,
-} from '../../types.js'
+} from '../../../types/dream.js'
+import DreamTransaction from '../../DreamTransaction.js'
 import similaritySelectSql from './similaritySelectSql.js'
 import similarityWhereSql from './similarityWhereSql.js'
 

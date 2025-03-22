@@ -2,7 +2,7 @@ import { Updateable } from 'kysely'
 import { AssociationTableNames } from '../../db/reflections.js'
 import Dream from '../../Dream.js'
 import STIChildMissing from '../../errors/sti/STIChildMissing.js'
-import { UpdateablePropertiesForClass } from '../types.js'
+import { UpdateablePropertiesForClass } from '../../types/dream.js'
 
 export default function sqlResultToDreamInstance<
   DreamClass extends typeof Dream,

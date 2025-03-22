@@ -3,9 +3,9 @@ import { HasManyStatement } from '../../../decorators/field/association/HasMany.
 import { HasOneStatement } from '../../../decorators/field/association/HasOne.js'
 import Dream from '../../../Dream.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
+import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import Query from '../../Query.js'
-import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../types.js'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js'
 
 export default function associationUpdateQuery<

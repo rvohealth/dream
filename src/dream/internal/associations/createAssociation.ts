@@ -3,8 +3,8 @@ import { HasManyStatement } from '../../../decorators/field/association/HasMany.
 import { HasOneStatement } from '../../../decorators/field/association/HasOne.js'
 import Dream from '../../../Dream.js'
 import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext.js'
+import { DreamAssociationNames, UpdateableAssociationProperties } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
-import { DreamAssociationNames, UpdateableAssociationProperties } from '../../types.js'
 
 export default async function createAssociation<
   DreamInstance extends Dream,

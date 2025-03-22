@@ -1,5 +1,5 @@
 import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
-import { SerializableClassOrClasses } from '../../../dream/types.js'
+import { SerializableClassOrClasses } from '../../../types/dream.js'
 import DreamSerializer from '../../index.js'
 import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
 

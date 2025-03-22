@@ -13,7 +13,6 @@ import {
 } from 'kysely'
 import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB.js'
-import { DbConnectionType } from '../db/types.js'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
 import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
@@ -64,13 +63,7 @@ import uniq from '../helpers/uniq.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import ops from '../ops/index.js'
 import OpsStatement from '../ops/ops-statement.js'
-import DreamTransaction from './DreamTransaction.js'
-import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
-import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'
-import orderByDirection from './internal/orderByDirection.js'
-import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope.js'
-import SimilarityBuilder from './internal/similarity/SimilarityBuilder.js'
-import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance.js'
+import { DbConnectionType } from '../types/db.js'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
@@ -100,7 +93,14 @@ import {
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
-} from './types.js'
+} from '../types/dream.js'
+import DreamTransaction from './DreamTransaction.js'
+import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
+import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'
+import orderByDirection from './internal/orderByDirection.js'
+import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope.js'
+import SimilarityBuilder from './internal/similarity/SimilarityBuilder.js'
+import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance.js'
 
 export type QueryWithJoinedAssociationsType<
   Q extends Query<any, any>,

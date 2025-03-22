@@ -6,22 +6,6 @@ import {
 import pluralize from 'pluralize-esm'
 import { AssociationTableNames } from '../../../db/reflections.js'
 import Dream from '../../../Dream.js'
-import {
-  DefaultScopeName,
-  DefaultScopeNameForTable,
-  DreamBelongsToAssociationMetadata,
-  DreamColumnNames,
-  DreamConst,
-  GlobalModelNameTableMap,
-  IdType,
-  JoinedAssociation,
-  OrderDir,
-  TableColumnEnumTypeArray,
-  TableColumnNames,
-  TableColumnType,
-  TableNameForGlobalModelName,
-  TrigramOperator,
-} from '../../../dream/types.js'
 import { checkForeignKey } from '../../../errors/associations/InvalidComputedForeignKey.js'
 import NonLoadedAssociation from '../../../errors/associations/NonLoadedAssociation.js'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
@@ -38,6 +22,22 @@ import {
 } from '../../../helpers/typeutils.js'
 import CurriedOpsStatement from '../../../ops/curried-ops-statement.js'
 import OpsStatement, { ExtraSimilarityArgs } from '../../../ops/ops-statement.js'
+import {
+  DefaultScopeName,
+  DefaultScopeNameForTable,
+  DreamBelongsToAssociationMetadata,
+  DreamColumnNames,
+  DreamConst,
+  GlobalModelNameTableMap,
+  IdType,
+  JoinedAssociation,
+  OrderDir,
+  TableColumnEnumTypeArray,
+  TableColumnNames,
+  TableColumnType,
+  TableNameForGlobalModelName,
+  TrigramOperator,
+} from '../../../types/dream.js'
 import freezeBaseClassArrayMap from '../../helpers/freezeBaseClassArrayMap.js'
 import associationToGetterSetterProp from './associationToGetterSetterProp.js'
 import { BelongsToStatement } from './BelongsTo.js'

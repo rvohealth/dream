@@ -1,5 +1,5 @@
-import { SerializableDreamClassOrViewModelClass } from '../dream/types.js'
 import DreamSerializer from '../serializer/index.js'
+import { SerializableDreamClassOrViewModelClass } from '../types/dream.js'
 
 export type OpenapiSchemaBody =
   | OpenapiSchemaBase

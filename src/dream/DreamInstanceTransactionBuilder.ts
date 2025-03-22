@@ -1,4 +1,21 @@
 import Dream from '../Dream.js'
+import {
+  AllDefaultScopeNames,
+  AssociationNameToDream,
+  DreamAssociationNames,
+  DreamAssociationNamesWithoutRequiredOnClauses,
+  DreamAttributes,
+  DreamConstructorType,
+  JoinedAssociation,
+  JoinedAssociationsTypeFromAssociations,
+  JoinOnStatements,
+  RequiredOnClauseKeys,
+  UpdateableAssociationProperties,
+  UpdateableProperties,
+  VariadicJoinsArgs,
+  VariadicLeftJoinLoadArgs,
+  VariadicLoadArgs,
+} from '../types/dream.js'
 import DreamTransaction from './DreamTransaction.js'
 import associationQuery from './internal/associations/associationQuery.js'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery.js'
@@ -23,23 +40,6 @@ import undestroyDream from './internal/undestroyDream.js'
 import LeftJoinLoadBuilder from './LeftJoinLoadBuilder.js'
 import LoadBuilder from './LoadBuilder.js'
 import Query, { DefaultQueryTypeOptions, QueryWithJoinedAssociationsType } from './Query.js'
-import {
-  AllDefaultScopeNames,
-  AssociationNameToDream,
-  DreamAssociationNames,
-  DreamAssociationNamesWithoutRequiredOnClauses,
-  DreamAttributes,
-  DreamConstructorType,
-  JoinedAssociation,
-  JoinedAssociationsTypeFromAssociations,
-  JoinOnStatements,
-  RequiredOnClauseKeys,
-  UpdateableAssociationProperties,
-  UpdateableProperties,
-  VariadicJoinsArgs,
-  VariadicLeftJoinLoadArgs,
-  VariadicLoadArgs,
-} from './types.js'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
   public dreamInstance: DreamInstance

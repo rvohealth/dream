@@ -1,8 +1,8 @@
 import { PassthroughOnClause } from '../decorators/field/association/shared.js'
 import Dream from '../Dream.js'
+import { PassthroughColumnNames, VariadicLoadArgs } from '../types/dream.js'
 import DreamTransaction from './DreamTransaction.js'
 import Query, { QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload } from './Query.js'
-import { PassthroughColumnNames, VariadicLoadArgs } from './types.js'
 
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
