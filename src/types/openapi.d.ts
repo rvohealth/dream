@@ -1,5 +1,5 @@
-import { openapiPrimitiveTypes, openapiShorthandPrimitiveTypes } from '../dream/constants.js'
-import DreamSerializer from '../serializer/index.js'
+import { openapiPrimitiveTypes, openapiShorthandPrimitiveTypes } from '../dream/constants.ts'
+import DreamSerializer from '../serializer/index.ts'
 import { SerializableDreamClassOrViewModelClass } from './dream.js'
 
 export type OpenapiSchemaBody =
