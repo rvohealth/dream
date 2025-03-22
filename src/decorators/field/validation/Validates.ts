@@ -1,5 +1,5 @@
 import Dream from '../../../Dream.js'
-import ValidationStatement, { ValidationType } from '../../../types/validation.js'
+import { type ValidationStatement, type ValidationType } from '../../../types/validation.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 
 export default function Validates<

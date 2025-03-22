@@ -1,4 +1,4 @@
-export default interface ValidationStatement {
+export interface ValidationStatement {
   type: ValidationType
   column: string
   options?: {

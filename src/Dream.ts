@@ -65,8 +65,13 @@ import { isString } from './helpers/typechecks.js'
 import { BelongsToStatement } from './types/associations/belongsTo.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
-import { AssociationStatementsMap, PassthroughOnClause, WhereStatement } from './types/associations/shared.js'
-import { AssociationTableNames, type DbConnectionType } from './types/db.js'
+import {
+  type AssociationMetadataMap,
+  type AssociationStatementsMap,
+  type PassthroughOnClause,
+  type WhereStatement,
+} from './types/associations/shared.js'
+import { type AssociationTableNames, type DbConnectionType } from './types/db.js'
 import {
   type AllDefaultScopeNames,
   type AssociationNameToDream,
@@ -91,15 +96,15 @@ import {
   type UpdateableProperties,
   type UpdateablePropertiesForClass,
 } from './types/dream.js'
-import { HookStatement, HookStatementMap } from './types/lifecycle.js'
+import { type HookStatement, type HookStatementMap } from './types/lifecycle.js'
 import {
-  BaseModelColumnTypes,
-  DefaultQueryTypeOptions,
-  FindEachOpts,
-  QueryWithJoinedAssociationsType,
-  QueryWithJoinedAssociationsTypeAndNoPreload,
+  type BaseModelColumnTypes,
+  type DefaultQueryTypeOptions,
+  type FindEachOpts,
+  type QueryWithJoinedAssociationsType,
+  type QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './types/query.js'
-import ValidationStatement, { ValidationType } from './types/validation.js'
+import { type ValidationStatement, type ValidationType } from './types/validation.js'
 import {
   type JoinedAssociation,
   type JoinedAssociationsTypeFromAssociations,
@@ -661,24 +666,14 @@ export default class Dream {
    *
    * @returns An array containing all of the associations for this dream class
    */
-  private static associationMetadataMap<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-  >(this: T) {
+  private static associationMetadataMap<T extends typeof Dream>(this: T): AssociationMetadataMap {
     const allAssociations = [
       ...this.associationMetadataByType.belongsTo,
       ...this.associationMetadataByType.hasOne,
       ...this.associationMetadataByType.hasMany,
     ]
 
-    const map = {} as {
-      [key: (typeof allAssociations)[number]['as']]:
-        | BelongsToStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
-        | HasManyStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
-        | HasOneStatement<any, DB, Schema, AssociationTableNames<DB, Schema> & keyof DB>
-    }
+    const map: AssociationMetadataMap = {}
 
     for (const association of allAssociations) {
       map[association.as] = association

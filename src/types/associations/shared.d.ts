@@ -33,6 +33,13 @@ import { HasOneStatement } from './hasOne.ts'
 
 export type MAX_JOINED_TABLES_DEPTH = 25
 
+export type AssociationMetadataMap = Record<
+  string,
+  | BelongsToStatement<any, any, any, any>
+  | HasManyStatement<any, any, any, any>
+  | HasOneStatement<any, any, any, any>
+>
+
 export type AssociatedBelongsToModelType<
   I extends Dream,
   AssociationName extends keyof DreamBelongsToAssociationMetadata<I>,
