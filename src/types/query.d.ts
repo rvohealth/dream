@@ -1,7 +1,7 @@
-import Dream from '../Dream.js'
-import Query from '../dream/Query.js'
+import Dream from '../Dream.ts'
+import Query from '../dream/Query.ts'
 import type { IdType, TableColumnType } from './dream.js'
-import { FindInterfaceWithValue } from './utils.js'
+import { FindInterfaceWithValue } from './utils.ts'
 import type { JoinedAssociation, QueryTypeOptions } from './variadic.js'
 
 export type QueryWithJoinedAssociationsType<
