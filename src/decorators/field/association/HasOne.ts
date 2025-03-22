@@ -1,12 +1,11 @@
-import { AssociationTableNames } from '../../../db/reflections.js'
 import lookupModelByGlobalNameOrNames from '../../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
 import {
-  HasOptions,
-  HasStatement,
-  HasThroughOptions,
-  PolymorphicHasOptions,
-} from '../../../types/associations.js'
+  HasOneOptions,
+  HasOneStatement,
+  HasOneThroughOptions,
+  PolymorphicHasOneOptions,
+} from '../../../types/associations/hasOne.js'
 import { GlobalModelNameTableMap } from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import {
@@ -162,25 +161,3 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
     })
   }
 }
-
-export type HasOneStatement<
-  BaseInstance extends Dream,
-  DB,
-  Schema,
-  ForeignTableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = HasStatement<BaseInstance, DB, Schema, ForeignTableName, 'HasOne'>
-
-export type HasOneOptions<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasOptions<BaseInstance, AssociationGlobalName>
-
-export type PolymorphicHasOneOptions<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName>
-
-export type HasOneThroughOptions<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasThroughOptions<BaseInstance, AssociationGlobalName>

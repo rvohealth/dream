@@ -4,9 +4,6 @@ import {
   Updateable,
 } from 'kysely'
 import { AssociationTableNames } from '../db/reflections.js'
-import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from '../decorators/field/association/HasMany.js'
-import { HasOneStatement } from '../decorators/field/association/HasOne.js'
 import Dream from '../Dream.js'
 import { DreamConst } from '../dream/constants.js'
 import CalendarDate from '../helpers/CalendarDate.js'
@@ -15,6 +12,9 @@ import { Range } from '../helpers/range.js'
 import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../helpers/typeutils.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import OpsStatement, { ExtraSimilarityArgs } from '../ops/ops-statement.js'
+import { BelongsToStatement } from './associations/belongsTo.js'
+import { HasManyStatement } from './associations/hasMany.js'
+import { HasOneStatement } from './associations/hasOne.js'
 import {
   DefaultScopeName,
   DefaultScopeNameForTable,

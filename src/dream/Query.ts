@@ -15,9 +15,6 @@ import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB.js'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
-import { BelongsToStatement } from '../decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from '../decorators/field/association/HasMany.js'
-import { HasOneStatement } from '../decorators/field/association/HasOne.js'
 import Dream from '../Dream.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js'
 import CannotJoinPolymorphicBelongsToError from '../errors/associations/CannotJoinPolymorphicBelongsToError.js'
@@ -63,6 +60,9 @@ import {
   WhereStatement,
   WhereStatementForJoinedAssociation,
 } from '../types/associations.js'
+import { BelongsToStatement } from '../types/associations/belongsTo.js'
+import { HasManyStatement } from '../types/associations/hasMany.js'
+import { HasOneStatement } from '../types/associations/hasOne.js'
 import { type DbConnectionType } from '../types/db.js'
 import {
   AliasToDreamIdMap,

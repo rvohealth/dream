@@ -1,5 +1,5 @@
-import { HasManyStatement } from '../../../decorators/field/association/HasMany.js'
 import Dream from '../../../Dream.js'
+import { HasManyStatement } from '../../../types/associations/hasMany.js'
 import {
   AssociationNameToDream,
   DreamAssociationNames,

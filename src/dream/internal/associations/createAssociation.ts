@@ -1,8 +1,8 @@
-import { BelongsToStatement } from '../../../decorators/field/association/BelongsTo.js'
-import { HasManyStatement } from '../../../decorators/field/association/HasMany.js'
-import { HasOneStatement } from '../../../decorators/field/association/HasOne.js'
 import Dream from '../../../Dream.js'
 import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext.js'
+import { BelongsToStatement } from '../../../types/associations/belongsTo.js'
+import { HasManyStatement } from '../../../types/associations/hasMany.js'
+import { HasOneStatement } from '../../../types/associations/hasOne.js'
 import { DreamAssociationNames, UpdateableAssociationProperties } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
 
