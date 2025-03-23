@@ -11,7 +11,7 @@ describe('uniq', () => {
       const graphNode2 = await GraphNode.create({ name: 'Hello' })
       const graphNode3 = await GraphNode.find(graphNode1.id)
 
-      expect(uniq([graphNode1, graphNode2, graphNode3])).toMatchObject([graphNode1, graphNode2])
+      expect(uniq([graphNode1, graphNode2, graphNode3])).toEqual([graphNode1, graphNode2])
     })
 
     context('when a custom comparator is passed', () => {
@@ -20,7 +20,7 @@ describe('uniq', () => {
         const graphNode2 = await GraphNode.create({ name: 'Hello' })
         const graphNode3 = await GraphNode.findOrFail(graphNode1.id)
 
-        expect(uniq([graphNode1, graphNode2, graphNode3], (a: GraphNode) => a.name!)).toMatchObject([
+        expect(uniq([graphNode1, graphNode2, graphNode3], (a: GraphNode) => a.name!)).toEqual([
           graphNode1,
           graphNode2,
         ])
@@ -33,7 +33,7 @@ describe('uniq', () => {
         const balloon = await Mylar.create()
         const graphNode2 = await GraphNode.findOrFail(graphNode1.id)
 
-        expect(uniq([graphNode1, balloon, graphNode2], (a: GraphNode) => a.name!)).toMatchObject([
+        expect(uniq([graphNode1, balloon, graphNode2], (a: GraphNode) => a.name!)).toEqual([
           graphNode1,
           balloon,
         ])
@@ -43,15 +43,12 @@ describe('uniq', () => {
 
   context('when the first element is not a Dream', () => {
     it('it compares the items directly', () => {
-      expect(uniq(['world', 'hello', 'hello'])).toMatchObject(['world', 'hello'])
+      expect(uniq(['world', 'hello', 'hello'])).toEqual(['world', 'hello'])
     })
 
     context('when a custom comparator is passed', () => {
       it('uses the custom comparator', () => {
-        expect(uniq(['world', 'hello', 'hello', ''], (str: string) => str.length)).toMatchObject([
-          'world',
-          '',
-        ])
+        expect(uniq(['world', 'hello', 'hello', ''], (str: string) => str.length)).toEqual(['world', ''])
       })
     })
   })
@@ -60,7 +57,7 @@ describe('uniq', () => {
     const graphNode1 = await GraphNode.create({ name: 'Hello' })
     const graphNode2 = await GraphNode.findOrFail(graphNode1.id)
 
-    expect(uniq([graphNode1, 'world', 3, 7, graphNode2, 'hello', 7, 'hello'])).toMatchObject([
+    expect(uniq([graphNode1, 'world', 3, 7, graphNode2, 'hello', 7, 'hello'])).toEqual([
       graphNode1,
       'world',
       3,

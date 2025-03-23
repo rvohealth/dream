@@ -1,9 +1,23 @@
-import { IdType } from '../types/dream.js'
-
-export default function sortBy<T>(
-  array: T[],
-  valueToCompare: (value: T) => number | string | bigint | IdType
-): T[] {
+/**
+ * Returns a copy of the array, sorted by the value returned by calling the function in the second argument on each element in the array
+ * Returns a copy of the array sorted by the return value of the function passed as the second argument.
+ * ```ts
+ * import { sortBy } from '@rvoh/dream'
+ *
+ * sortBy(['aaa', 'a', 'aa'], (str: string) => str.length)
+ * // ['a', 'aa', 'aaa']
+ *
+ * sortBy(['aaa', 'a', 'aa'], (str: string) => -str.length)
+ * // ['aaa', 'aa', 'a']
+ *
+ * sortBy([5, 3, 7], (num: number) => num)
+ * // [3, 5, 7]
+ *
+ * sortBy([5, 3, 7], (num: number) => -num)
+ * // [7, 5, 3]
+ * ```
+ */
+export default function sortBy<T>(array: T[], valueToCompare: (value: T) => number | string | bigint): T[] {
   const arrayClone = [...array]
   return arrayClone.sort((a: T, b: T) => {
     const aPrime = valueToCompare(a)

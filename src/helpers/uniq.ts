@@ -3,7 +3,7 @@ import Dream from '../Dream.js'
 export default function uniq<
   ArrayType extends any[],
   ElementType extends ArrayType extends (infer U)[] ? U : never,
->(arr: ArrayType, toKey: ((a: ElementType) => string | number) | undefined = undefined): ArrayType {
+>(arr: ArrayType, toKey: ((a: ElementType) => string | number | bigint) | undefined = undefined): ArrayType {
   if (toKey) return uniqWith(arr, toKey)
   return uniqWith(arr, a => String(a))
 }
@@ -14,7 +14,7 @@ function dreamKey(dream: Dream): string {
 
 function uniqWith<ArrayType extends any[], ElementType extends ArrayType extends (infer U)[] ? U : never>(
   arr: ArrayType,
-  toKey: (a: ElementType) => string | number
+  toKey: (a: ElementType) => string | number | bigint
 ): ArrayType {
   const map: Record<string, ElementType> = arr.reduce(
     (acc, val) => {
