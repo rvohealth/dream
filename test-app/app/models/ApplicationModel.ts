@@ -3,7 +3,7 @@ import { DBClass } from '../../types/db.js'
 import { globalSchema, schema } from '../../types/dream.js'
 
 export default class ApplicationModel extends Dream {
-  public declare DB: DBClass
+  declare public DB: DBClass
   public get schema() {
     return schema
   }
