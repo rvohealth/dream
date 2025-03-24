@@ -19,7 +19,7 @@ export default async function writeSyncFile() {
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
   await sspawn(
-    `kysely-codegen --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`
+    `kysely-codegen --dialect=postgres --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`
   )
 
   // intentionally bypassing helpers here, since they often end up referencing
