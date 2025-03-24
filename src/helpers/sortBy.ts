@@ -1,3 +1,5 @@
+export default function sortBy<T>(array: T[], valueToCompare: (value: T) => number): T[]
+export default function sortBy<T>(array: T[], valueToCompare: (value: T) => string): T[]
 /**
  * Returns a copy of the array, sorted by the value returned by calling the function in the second argument on each element in the array
  * Returns a copy of the array sorted by the return value of the function passed as the second argument.
@@ -17,7 +19,7 @@
  * // [7, 5, 3]
  * ```
  */
-export default function sortBy<T>(array: T[], valueToCompare: (value: T) => number | string | bigint): T[] {
+export default function sortBy<T>(array: T[], valueToCompare: (value: T) => unknown) {
   const arrayClone = [...array]
   return arrayClone.sort((a: T, b: T) => {
     const aPrime = valueToCompare(a)
@@ -25,8 +27,6 @@ export default function sortBy<T>(array: T[], valueToCompare: (value: T) => numb
 
     if (typeof aPrime === 'string' && typeof bPrime === 'string') return aPrime.localeCompare(bPrime)
     if (typeof aPrime === 'number' && typeof bPrime === 'number') return aPrime - bPrime
-    if (typeof aPrime === 'bigint' && typeof bPrime === 'bigint')
-      return aPrime.toString().localeCompare(bPrime.toString())
     throw new UnsupportedValueFromComparisonFunction(aPrime, bPrime)
   })
 }

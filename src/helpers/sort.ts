@@ -14,13 +14,10 @@ import sortBy from './sortBy.js'
  * // ['hello', 'Hello', 'world', 'World']
  * ```
  */
-export default function sort<
-  ArrayType extends string[] | number[] | bigint[],
-  ElementType extends ArrayType extends (infer U)[] ? U : never,
->(array: ArrayType): ArrayType {
-  // Asserting types because, even though ElementType is inferred from ArrayType,
-  // Typescript doesn't understand that ElementType[] is equivalent to ArrayType.
-  // Changing the type signature of `sort` to `(string | number | bigint)[]` would
-  // allow mixing of types within the array, which this implementation does not support
-  return sortBy(array as ElementType[], (a: ElementType) => a) as unknown as ArrayType
+export default function sort<ArrayType extends string[] | number[] | bigint[]>(array: ArrayType): ArrayType {
+  if (typeof array[0] === 'bigint') {
+    return sortBy(array as bigint[], a => String(a)) as ArrayType
+  }
+
+  return sortBy(array as number[], a => a) as ArrayType
 }

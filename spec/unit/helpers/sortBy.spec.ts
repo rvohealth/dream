@@ -16,4 +16,9 @@ describe('sortBy', () => {
     const array = [red, blue, green]
     expect(sortBy(array, balloon => balloon.color!)).toEqual([blue, green, red])
   })
+
+  it('can sort numbers mixed with strings', () => {
+    const array = [2, 3, 'world', 1, 'hello']
+    expect(sortBy(array, a => String(a))).toEqual([1, 2, 3, 'hello', 'world'])
+  })
 })
