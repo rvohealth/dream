@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Post from './Post.js'
 
-const Deco = new Decorators<InstanceType<typeof PostVisibility>>()
+const deco = new Decorators<InstanceType<typeof PostVisibility>>()
 
 export default class PostVisibility extends ApplicationModel {
   public get table() {
@@ -20,10 +20,10 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @Deco.HasOne('Post', { dependent: 'destroy' })
+  @deco.HasOne('Post', { dependent: 'destroy' })
   public post: Post
 
-  @Deco.BeforeCreate()
+  @deco.BeforeCreate()
   public conditionallyRaise() {
     if (this.notes === 'raise exception if notes set to this')
       throw new Error(

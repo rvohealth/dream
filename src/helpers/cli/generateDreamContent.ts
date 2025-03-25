@@ -53,7 +53,7 @@ export default function generateDreamContent({
       case 'belongs_to':
         modelImportStatements.push(associationImportStatement)
         return `
-@Deco.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
+@deco.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
 public ${associationName}: ${associationModelName}${descriptors.includes('optional') ? ' | null' : ''}
 public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
@@ -97,7 +97,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}
 
-const Deco = new Decorators<InstanceType<typeof ${modelClassName}>>()
+const deco = new Decorators<InstanceType<typeof ${modelClassName}>>()
 
 ${isSTI ? `\n@STI(${parentModelClassName})` : ''}
 export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {

@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 import Composition from './Composition.js'
 import CompositionAsset from './CompositionAsset.js'
 
-const Deco = new Decorators<InstanceType<typeof LocalizedText>>()
+const deco = new Decorators<InstanceType<typeof LocalizedText>>()
 
 export default class LocalizedText extends ApplicationModel {
   public get table() {
@@ -25,7 +25,7 @@ export default class LocalizedText extends ApplicationModel {
   public createdAt: DreamColumn<LocalizedText, 'createdAt'>
   public updatedAt: DreamColumn<LocalizedText, 'updatedAt'>
 
-  @Deco.BelongsTo(['Composition', 'CompositionAsset'], {
+  @deco.BelongsTo(['Composition', 'CompositionAsset'], {
     foreignKey: 'localizableId',
     polymorphic: true,
   })

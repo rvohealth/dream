@@ -1176,10 +1176,10 @@ export default class Query<
    *
    * ```ts
    * class Post {
-   *   @Deco.HasMany('LocalizedText')
+   *   @deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Deco.HasOne('LocalizedText', {
+   *   @deco.HasOne('LocalizedText', {
    *     on: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText

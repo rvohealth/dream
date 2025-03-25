@@ -3,7 +3,7 @@ import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof IncompatibleForeignKeyTypeExample>>()
+const deco = new Decorators<InstanceType<typeof IncompatibleForeignKeyTypeExample>>()
 
 export default class IncompatibleForeignKeyTypeExample extends ApplicationModel {
   public get table() {
@@ -14,7 +14,7 @@ export default class IncompatibleForeignKeyTypeExample extends ApplicationModel 
   public createdAt: DreamColumn<IncompatibleForeignKeyTypeExample, 'createdAt'>
   public updatedAt: DreamColumn<IncompatibleForeignKeyTypeExample, 'updatedAt'>
 
-  @Deco.BelongsTo('User')
+  @deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<IncompatibleForeignKeyTypeExample, 'userId'>
 }

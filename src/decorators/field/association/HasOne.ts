@@ -48,12 +48,12 @@ export default function HasOne<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @Deco.HasOne('UserSettings')
+ *   @deco.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  *
  * class UserSettings extends ApplicationModel {
- *   @Deco.BelongsTo('User')
+ *   @deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }

@@ -9,9 +9,9 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
   context('HasMany', () => {
     context('dependent AND passthrough both set', () => {
       it('throws a targeted exception', () => {
-        const Deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<InstanceType<typeof User2>>()
         class User2 extends User {
-          @Deco.HasMany('Post', {
+          @deco.HasMany('Post', {
             dependent: 'destroy',
             on: { body: DreamConst.passthrough },
           })
@@ -26,9 +26,9 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
 
     context('dependent AND DreamConst.required both set', () => {
       it('throws a targeted exception', () => {
-        const Deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<InstanceType<typeof User2>>()
         class User2 extends User {
-          @Deco.HasMany('Post', {
+          @deco.HasMany('Post', {
             dependent: 'destroy',
             on: { body: DreamConst.required },
           })
@@ -45,9 +45,9 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
   context('HasOne', () => {
     context('dependent AND passthrough both set', () => {
       it('throws a targeted exception', () => {
-        const Deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<InstanceType<typeof User2>>()
         class User2 extends User {
-          @Deco.HasOne('Post', {
+          @deco.HasOne('Post', {
             dependent: 'destroy',
             on: { body: DreamConst.passthrough },
           })
@@ -62,9 +62,9 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
 
     context('dependent AND DreamConst.required both set', () => {
       it('throws a targeted exception', () => {
-        const Deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<InstanceType<typeof User2>>()
         class User2 extends User {
-          @Deco.HasOne('Post', {
+          @deco.HasOne('Post', {
             dependent: 'destroy',
             on: { body: DreamConst.required },
           })

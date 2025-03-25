@@ -17,12 +17,12 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @Deco.HasOne('Settings')
+ *   @deco.HasOne('Settings')
  *   public settings: Settings
  * }
  *
  * class Settings extends ApplicationModel {
- *   @Deco.BelongsTo('User')
+ *   @deco.BelongsTo('User')
  *   public user: User
  * }
  *

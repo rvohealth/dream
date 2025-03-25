@@ -9,7 +9,7 @@ import HeartRating from './ExtraRating/HeartRating.js'
 import Sandbag from './Sandbag.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof Balloon>>()
+const deco = new Decorators<InstanceType<typeof Balloon>>()
 
 @ReplicaSafe()
 @SoftDelete()
@@ -32,33 +32,33 @@ export default class Balloon extends ApplicationModel {
     ;(this as Balloon).setAttribute('type', newType)
   }
 
-  @Deco.Sortable({ scope: 'user' })
+  @deco.Sortable({ scope: 'user' })
   public positionAlpha: DreamColumn<Balloon, 'positionAlpha'>
 
-  @Deco.Sortable({ scope: 'user' })
+  @deco.Sortable({ scope: 'user' })
   public positionBeta: DreamColumn<Balloon, 'positionBeta'>
 
-  @Deco.Scope()
+  @deco.Scope()
   public static red(query: Query<Balloon>) {
     return query.where({ color: 'red' })
   }
 
-  @Deco.Validates('numericality', { min: 0, max: 100 })
+  @deco.Validates('numericality', { min: 0, max: 100 })
   public volume: number
 
-  @Deco.BelongsTo('User', { optional: true })
+  @deco.BelongsTo('User', { optional: true })
   public user: User
   public userId: IdType
 
-  @Deco.HasOne('BalloonLine', { foreignKey: 'balloonId' })
+  @deco.HasOne('BalloonLine', { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine
 
-  @Deco.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
+  @deco.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
   public heartRatings: HeartRating[]
 
-  @Deco.HasMany('Sandbag', { foreignKey: 'balloonId' })
+  @deco.HasMany('Sandbag', { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
 
-  @Deco.AfterCreate()
+  @deco.AfterCreate()
   public justToEnsureSortableWorksWithAnAfterCreate() {}
 }

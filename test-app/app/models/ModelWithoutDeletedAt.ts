@@ -2,7 +2,7 @@ import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof ModelWithoutDeletedAt>>()
+const deco = new Decorators<InstanceType<typeof ModelWithoutDeletedAt>>()
 
 // NOTE: this model only exists for the sake of testing
 // what happens when @SoftDelete is applied to a model
@@ -18,6 +18,6 @@ export default class ModelWithoutDeletedAt extends ApplicationModel {
   public updatedAt: DreamColumn<ModelWithoutDeletedAt, 'updatedAt'>
 
   // Used for testing the rendering of default scopes within SchemaBuilder.spec
-  @Deco.Scope({ default: true })
+  @deco.Scope({ default: true })
   public static howyadoin() {}
 }

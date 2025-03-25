@@ -80,7 +80,7 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
           When validating using "length", the second argument must be a number representing
           the min length, or else an object expressing both min and max length, like so:
 
-          @Deco.Validates('length', { min: 4, max: 32 })
+          @deco.Validates('length', { min: 4, max: 32 })
         `)
       }
 

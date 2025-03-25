@@ -1,7 +1,7 @@
 import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 
-// const Deco = new Decorators<InstanceType<typeof ModelWithSerialPrimaryKey>>()
+// const deco = new Decorators<InstanceType<typeof ModelWithSerialPrimaryKey>>()
 
 export default class ModelWithSerialPrimaryKey extends ApplicationModel {
   public get table() {

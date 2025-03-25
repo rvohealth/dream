@@ -67,13 +67,13 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class UserSettings extends ApplicationModel {
-   *   @Deco.BelongsTo('User')
+   *   @deco.BelongsTo('User')
    *   public user: User
    *   public userId: DreamColumn<UserSettings, 'userId'>
    * }
    *
    * class User extends ApplicationModel {
-   *   @Deco.HasOne('UserSettings')
+   *   @deco.HasOne('UserSettings')
    *   public userSettings: UserSettings
    * }
    * ```
@@ -121,12 +121,12 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.HasMany('Post')
+   *   @deco.HasMany('Post')
    *   public posts: Post[]
    * }
    *
    * class Post extends ApplicationModel {
-   *   @Deco.BelongsTo('User')
+   *   @deco.BelongsTo('User')
    *   public user: User
    *   public userId: DreamColumn<Post, 'userId'>
    * }
@@ -175,12 +175,12 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.HasOne('UserSettings')
+   *   @deco.HasOne('UserSettings')
    *   public userSettings: UserSettings
    * }
    *
    * class UserSettings extends ApplicationModel {
-   *   @Deco.BelongsTo('User')
+   *   @deco.BelongsTo('User')
    *   public user: User
    *   public userId: DreamColumn<UserSettings, 'userId'>
    * }
@@ -208,14 +208,14 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.Encrypted()
+   *   @deco.Encrypted()
    *   // automatically sets `encryptedSsn` to the encrypted value that
    *   // `ssn` is set to in new/create/update, e.g., `await user.update({ ssn })`
    *   public ssn: string
    *
    *   // automatically sets `myEncryptedPhone` to the encrypted value that
    *   // `phone` is set to new/create/update, e.g., `await user.update({ phone })`
-   *   @Deco.Encrypted('myEncryptedPhone)
+   *   @deco.Encrypted('myEncryptedPhone)
    *   public phone: string
    * }
    * ```
@@ -233,7 +233,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class Collar {
-   *   @Deco.Scope({ default: true })
+   *   @deco.Scope({ default: true })
    *   public static hideHiddenCollars(query: Query<Collar>) {
    *     return query.where({ hidden: false })
    *   }
@@ -261,7 +261,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class Balloon {
-   *   @Deco.Sortable({ scope: 'user' })
+   *   @deco.Sortable({ scope: 'user' })
    *   public position: DreamColumn<Balloon, 'position'>
    * }
    * ```
@@ -280,7 +280,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class Sandbag {
-   *   @Deco.Validate()
+   *   @deco.Validate()
    *   public validateWeight(this: Sandbag) {
    *     if (!this.weight) return
    *
@@ -306,7 +306,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class Balloon {
-   *   @Deco.Validates('numericality', { min: 0, max: 100 })
+   *   @deco.Validates('numericality', { min: 0, max: 100 })
    *   public volume: DreamColumn<Balloon, 'volume'>
    * }
    * ```
@@ -350,7 +350,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class BodyMeasurement {
-   *   @Deco.Virtual()
+   *   @deco.Virtual()
    *   public get lbs() {
    *     const self: User = this
    *     return gramsToLbs(self.getAttribute('grams') ?? 0)
@@ -361,7 +361,7 @@ export default class Decorators<T extends Dream> {
    *     self.setAttribute('grams', lbsToGrams(lbs))
    *   }
    *
-   *   @Deco.Virtual()
+   *   @deco.Virtual()
    *   public get kilograms() {
    *     const self: User = this
    *     return gramsToKilograms(self.getAttribute('grams') ?? 0)
@@ -377,10 +377,10 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.Virtual()
+   *   @deco.Virtual()
    *   public password: string
    *
-   *   @Deco.BeforeSave()
+   *   @deco.BeforeSave()
    *   public hasPassword() {
    *     this.setAttribute('hashedPassword', preferredHashingAlgorithm(this.password))
    *   }
@@ -398,7 +398,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.BeforeCreate()
+   *   @deco.BeforeCreate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -417,7 +417,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.BeforeSave()
+   *   @deco.BeforeSave()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -436,7 +436,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.BeforeUpdate()
+   *   @deco.BeforeUpdate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -455,7 +455,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.BeforeDestroy()
+   *   @deco.BeforeDestroy()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -473,7 +473,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterCreate()
+   *   @deco.AfterCreate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -492,7 +492,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterCreateCommit()
+   *   @deco.AfterCreateCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -510,7 +510,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterSave()
+   *   @deco.AfterSave()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -529,7 +529,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterSaveCommit()
+   *   @deco.AfterSaveCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -548,7 +548,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterUpdate()
+   *   @deco.AfterUpdate()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -567,7 +567,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterUpdateCommit()
+   *   @deco.AfterUpdateCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -586,7 +586,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterDestroy()
+   *   @deco.AfterDestroy()
    *   public doSomething() {
    *     console.log('hi!')
    *   }
@@ -605,7 +605,7 @@ export default class Decorators<T extends Dream> {
    *
    * ```ts
    * class User {
-   *   @Deco.AfterDestroyCommit()
+   *   @deco.AfterDestroyCommit()
    *   public doSomething() {
    *     console.log('hi!')
    *   }

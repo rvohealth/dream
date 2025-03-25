@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Pet from './Pet.js'
 
-const Deco = new Decorators<InstanceType<typeof PetUnderstudyJoinModel>>()
+const deco = new Decorators<InstanceType<typeof PetUnderstudyJoinModel>>()
 
 export default class PetUnderstudyJoinModel extends ApplicationModel {
   public get table() {
@@ -18,11 +18,11 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public createdAt: DreamColumn<PetUnderstudyJoinModel, 'createdAt'>
   public updatedAt: DreamColumn<PetUnderstudyJoinModel, 'updatedAt'>
 
-  @Deco.BelongsTo('Pet')
+  @deco.BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<PetUnderstudyJoinModel, 'petId'>
 
-  @Deco.BelongsTo('Pet', { foreignKey: 'understudyId' })
+  @deco.BelongsTo('Pet', { foreignKey: 'understudyId' })
   public understudy: Pet
   public understudyId: DreamColumn<PetUnderstudyJoinModel, 'understudyId'>
 }

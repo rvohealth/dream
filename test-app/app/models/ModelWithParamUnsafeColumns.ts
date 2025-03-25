@@ -1,7 +1,7 @@
 import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 
-// const Deco = new Decorators<InstanceType<typeof ModelWithParamUnsafeColumns>>()
+// const deco = new Decorators<InstanceType<typeof ModelWithParamUnsafeColumns>>()
 
 export default class ModelWithParamUnsafeColumns extends ApplicationModel {
   public get table() {

@@ -4,7 +4,7 @@ import ApplicationModel from '../ApplicationModel.js'
 import EdgeNode from './EdgeNode.js'
 import GraphNode from './Node.js'
 
-const Deco = new Decorators<InstanceType<typeof Edge>>()
+const deco = new Decorators<InstanceType<typeof Edge>>()
 
 export default class Edge extends ApplicationModel {
   public get table() {
@@ -27,9 +27,9 @@ export default class Edge extends ApplicationModel {
     aliasedCreatedAt?: DreamColumn<EdgeNode, 'createdAt'>
   } = {}
 
-  @Deco.HasMany('Graph/EdgeNode', { foreignKey: 'edgeId' })
+  @deco.HasMany('Graph/EdgeNode', { foreignKey: 'edgeId' })
   public edgeNodes: EdgeNode[]
 
-  @Deco.HasMany('Graph/Node', { through: 'edgeNodes' })
+  @deco.HasMany('Graph/Node', { through: 'edgeNodes' })
   public nodes: GraphNode[]
 }

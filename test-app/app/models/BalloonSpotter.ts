@@ -5,7 +5,7 @@ import Balloon from './Balloon.js'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof BalloonSpotter>>()
+const deco = new Decorators<InstanceType<typeof BalloonSpotter>>()
 
 export default class BalloonSpotter extends ApplicationModel {
   public get table() {
@@ -21,12 +21,12 @@ export default class BalloonSpotter extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotter, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotter, 'updatedAt'>
 
-  @Deco.HasMany('BalloonSpotterBalloon')
+  @deco.HasMany('BalloonSpotterBalloon')
   public balloonSpotterBalloons: BalloonSpotterBalloon[]
 
-  @Deco.HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
+  @deco.HasMany('Balloon', { through: 'balloonSpotterBalloons', source: 'balloon' })
   public balloons: Balloon[]
 
-  @Deco.HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
+  @deco.HasMany('User', { through: 'balloonSpotterBalloons', source: 'user' })
   public users: User[]
 }
