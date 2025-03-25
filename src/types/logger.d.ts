@@ -1,11 +1,7 @@
-export interface DreamCliLoggerLogOpts<IsSpinner extends boolean> {
-  permanent?: boolean
-  spinner?: IsSpinner
+export interface DreamCliLoggerLogOpts {
   logPrefix?: string
   logPrefixColor?: DreamCliForegroundColor
   logPrefixBgColor?: DreamCliBgColor
-  spinnerPrefixColor?: DreamCliForegroundColor
-  spinnerPrefixBgColor?: DreamCliBgColor
 }
 
 export type DreamCliColor = DreamCliForegroundColor | DreamCliBgColor

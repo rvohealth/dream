@@ -131,18 +131,17 @@ function migratedActionPastTense(mode: MigrationModes) {
 function logResults(results: MigrationResult[] | undefined, mode: MigrationModes) {
   results?.forEach(it => {
     if (it.status === 'Success') {
-      DreamCLI.logger.log(
+      DreamCLI.logger.logContinueProgress(
         colorize(`[db]`, { color: 'cyan' }) +
           ` migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`,
-        { permanent: true, logPrefix: '├', logPrefixColor: 'cyan' }
+        { logPrefixColor: 'cyan' }
       )
     } else if (it.status === 'Error') {
-      DreamCLI.logger.log(JSON.stringify(it, null, 2), { permanent: true })
-      DreamCLI.logger.log(
+      DreamCLI.logger.logContinueProgress(JSON.stringify(it, null, 2))
+      DreamCLI.logger.logContinueProgress(
         colorize(`failed to ${migratedActionCurrentTense(mode)} migration "${it.migrationName}"`, {
           color: 'redBright',
-        }),
-        { permanent: true }
+        })
       )
     }
   })

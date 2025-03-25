@@ -9,14 +9,12 @@ export default class DreamCliLoggableText extends DreamCliLoggable {
   constructor(
     private text: string,
     {
-      permanent,
       logPrefix,
       color,
       bgColor,
       logPrefixColor,
       logPrefixBgColor,
     }: {
-      permanent: boolean
       logPrefix?: string
       color?: DreamCliForegroundColor
       bgColor?: DreamCliBgColor
@@ -24,7 +22,7 @@ export default class DreamCliLoggableText extends DreamCliLoggable {
       logPrefixBgColor?: DreamCliBgColor
     }
   ) {
-    super({ permanent, logPrefix })
+    super({ logPrefix })
     this.color = color
     this.bgColor = bgColor
     this.logPrefixColor = logPrefixColor
