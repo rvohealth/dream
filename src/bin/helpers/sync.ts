@@ -10,6 +10,8 @@ import EnvInternal from '../../helpers/EnvInternal.js'
 import dreamPath from '../../helpers/path/dreamPath.js'
 import snakeify from '../../helpers/snakeify.js'
 import sspawn from '../../helpers/sspawn.js'
+import DreamCLI from '../../cli/index.js'
+import colorize from '../../cli/logger/loggable/colorize.js'
 
 export default async function writeSyncFile() {
   const dbConf = new ConnectionConfRetriever().getConnectionConf('primary')
@@ -19,7 +21,14 @@ export default async function writeSyncFile() {
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
   await sspawn(
-    `kysely-codegen --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`
+    `kysely-codegen --dialect=postgres --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`,
+    {
+      onStdout: message => {
+        DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
+          logPrefixColor: 'cyan',
+        })
+      },
+    }
   )
 
   // intentionally bypassing helpers here, since they often end up referencing
@@ -28,8 +37,6 @@ export default async function writeSyncFile() {
   const enhancedSchema = enhanceSchema(file)
 
   await fs.writeFile(absoluteDbSyncPath, enhancedSchema)
-
-  DreamApplication.log('done writing dream sync file!')
 }
 
 // begin: schema helpers

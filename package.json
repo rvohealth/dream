@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "0.31.1",
+  "version": "0.31.2",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -49,7 +49,6 @@
     "dotenv": "^16.4.5",
     "luxon": "^3.5.0",
     "pluralize-esm": "^9.0.5",
-    "yocto-spinner": "^0.2.1",
     "yoctocolors": "^2.1.1"
   },
   "peerDependencies": {
