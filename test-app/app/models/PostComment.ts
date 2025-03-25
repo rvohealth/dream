@@ -4,7 +4,7 @@ import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Post from './Post.js'
 
-const Deco = new Decorators<InstanceType<typeof PostComment>>()
+const deco = new Decorators<InstanceType<typeof PostComment>>()
 
 @SoftDelete()
 export default class PostComment extends ApplicationModel {
@@ -18,10 +18,10 @@ export default class PostComment extends ApplicationModel {
   public createdAt: DreamColumn<PostComment, 'createdAt'>
   public updatedAt: DreamColumn<PostComment, 'updatedAt'>
 
-  @Deco.BelongsTo('Post')
+  @deco.BelongsTo('Post')
   public post: Post
   public postId: DreamColumn<PostComment, 'postId'>
 
-  @Deco.BelongsTo('Post', { foreignKey: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
+  @deco.BelongsTo('Post', { foreignKey: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
   public postEvenIfDeleted: Post
 }

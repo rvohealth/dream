@@ -48,12 +48,12 @@ export default function HasMany<
  *
  * ```ts
  * class User extends ApplicationModel {
- *   @Deco.HasMany('Post')
+ *   @deco.HasMany('Post')
  *   public posts: Post[]
  * }
  *
  * class Post extends ApplicationModel {
- *   @Deco.BelongsTo('User')
+ *   @deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<Post, 'userId'>
  * }

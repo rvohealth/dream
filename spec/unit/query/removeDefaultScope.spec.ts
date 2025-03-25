@@ -5,9 +5,9 @@ import User from '../../../test-app/app/models/User.js'
 describe('Query#removeDefaultScope', () => {
   let user: User
 
-  const Deco = new Decorators<InstanceType<typeof PetNamedAster>>()
+  const deco = new Decorators<InstanceType<typeof PetNamedAster>>()
   class PetNamedAster extends Pet {
-    @Deco.Scope({ default: true })
+    @deco.Scope({ default: true })
     public static onlyAster(query: Query<PetNamedAster>) {
       return query.where({ name: 'aster' })
     }

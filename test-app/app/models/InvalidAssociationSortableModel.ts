@@ -2,7 +2,7 @@ import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof InvalidAssociationSortableModel>>()
+const deco = new Decorators<InstanceType<typeof InvalidAssociationSortableModel>>()
 
 export default class InvalidAssociationSortableModel extends ApplicationModel {
   public get table() {
@@ -13,9 +13,9 @@ export default class InvalidAssociationSortableModel extends ApplicationModel {
   public createdAt: DreamColumn<InvalidAssociationSortableModel, 'createdAt'>
   public updatedAt: DreamColumn<InvalidAssociationSortableModel, 'updatedAt'>
 
-  @Deco.Sortable({ scope: 'users' } as any)
+  @deco.Sortable({ scope: 'users' } as any)
   public position: DreamColumn<InvalidAssociationSortableModel, 'position'>
 
-  @Deco.HasMany('User', { foreignKey: 'id' })
+  @deco.HasMany('User', { foreignKey: 'id' })
   public users: User[]
 }

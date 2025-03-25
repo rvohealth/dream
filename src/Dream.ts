@@ -244,9 +244,9 @@ export default class Dream {
    * @internal
    *
    * Model storage for association metadata, set when using the association decorators like:
-   *   @Deco.HasOne
-   *   @Deco.HasMany
-   *   @Deco.BelongsTo
+   *   @deco.HasOne
+   *   @deco.HasMany
+   *   @deco.BelongsTo
    */
   protected static associationMetadataByType: AssociationStatementsMap = blankAssociationsFactory(this, {
     freeze: true,
@@ -1473,7 +1473,7 @@ export default class Dream {
    *
    * ```ts
    * class Post extends ApplicationModel {
-   *   @Deco.Sortable({ scope: ['user']})
+   *   @deco.Sortable({ scope: ['user']})
    *   public position: DreamColumn<User, 'position'>
    * }
    *
@@ -1506,7 +1506,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.Scope()
+   *   @deco.Scope()
    *   public visible(query: Query<User>) {
    *     return query.where({ hidden: false })
    *   }
@@ -1669,10 +1669,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Deco.HasMany('LocalizedText')
+   *   @deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Deco.HasOne('LocalizedText', {
+   *   @deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -2062,7 +2062,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.Validates('presence')
+   *   @deco.Validates('presence')
    *   public email: DreamColumn<User, 'email'>
    * }
    * const user = User.new()
@@ -2110,7 +2110,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.Validates('presence')
+   *   @deco.Validates('presence')
    *   public email: DreamColumn<User, 'email'>
    * }
    *
@@ -2549,7 +2549,7 @@ export default class Dream {
    * ```ts
    *  class User extends ApplicationModel {
    *    ...
-   *    @Deco.Validate()
+   *    @deco.Validate()
    *    public async validateName() {
    *      if (typeof this.name === 'number')
    *        this.addError('name', 'name cannot be a number')
@@ -3493,10 +3493,10 @@ export default class Dream {
    *
    * ```ts
    * class Post {
-   *   @Deco.HasMany('LocalizedText')
+   *   @deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Deco.HasOne('LocalizedText', {
+   *   @deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText
@@ -3845,7 +3845,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.BeforeDestroy()
+   *   @deco.BeforeDestroy()
    *   public softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
@@ -3867,13 +3867,13 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   @Deco.BeforeDestroy()
+   *   @deco.BeforeDestroy()
    *   public async softDelete() {
    *     await this.update({ deletedAt: DateTime.now() })
    *     this.preventDeletion()
    *   }
    *
-   *   @Deco.BeforeDestroy()
+   *   @deco.BeforeDestroy()
    *   public async undoSoftDelete() {
    *     await this.update({ deletedAt: null })
    *     this.unpreventDeletion()

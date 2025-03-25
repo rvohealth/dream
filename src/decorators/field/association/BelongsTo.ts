@@ -43,13 +43,13 @@ export default function BelongsTo<
  *
  * ```ts
  * class UserSettings extends ApplicationModel {
- *   @Deco.BelongsTo('User')
+ *   @deco.BelongsTo('User')
  *   public user: User
  *   public userId: DreamColumn<UserSettings, 'userId'>
  * }
  *
  * class User extends ApplicationModel {
- *   @Deco.HasOne('UserSettings')
+ *   @deco.HasOne('UserSettings')
  *   public userSettings: UserSettings
  * }
  * ```

@@ -1,7 +1,7 @@
 import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof InvalidScopeSortableModel>>()
+const deco = new Decorators<InstanceType<typeof InvalidScopeSortableModel>>()
 
 export default class InvalidScopeSortableModel extends ApplicationModel {
   public get table() {
@@ -12,6 +12,6 @@ export default class InvalidScopeSortableModel extends ApplicationModel {
   public createdAt: DreamColumn<InvalidScopeSortableModel, 'createdAt'>
   public updatedAt: DreamColumn<InvalidScopeSortableModel, 'updatedAt'>
 
-  @Deco.Sortable({ scope: 'intentionallyInvalidScope' } as any)
+  @deco.Sortable({ scope: 'intentionallyInvalidScope' } as any)
   public position: DreamColumn<InvalidScopeSortableModel, 'position'>
 }

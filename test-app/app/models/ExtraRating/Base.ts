@@ -6,7 +6,7 @@ import Composition from '../Composition.js'
 import Post from '../Post.js'
 import User from '../User.js'
 
-const Deco = new Decorators<InstanceType<typeof BaseExtraRating>>()
+const deco = new Decorators<InstanceType<typeof BaseExtraRating>>()
 
 export default class BaseExtraRating extends ApplicationModel {
   public get table() {
@@ -24,11 +24,11 @@ export default class BaseExtraRating extends ApplicationModel {
   public extraRateableId: DreamColumn<BaseExtraRating, 'extraRateableId'>
   public extraRateableType: DreamColumn<BaseExtraRating, 'extraRateableType'>
 
-  @Deco.BelongsTo('User')
+  @deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<BaseExtraRating, 'userId'>
 
-  @Deco.BelongsTo(['Composition', 'Post', 'Balloon'], {
+  @deco.BelongsTo(['Composition', 'Post', 'Balloon'], {
     foreignKey: 'extraRateableId',
     polymorphic: true,
   })

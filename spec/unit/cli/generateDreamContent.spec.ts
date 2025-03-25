@@ -13,7 +13,7 @@ describe('dream generate:model <name> [...attributes]', () => {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof MealType>>()
+const deco = new Decorators<InstanceType<typeof MealType>>()
 
 export default class MealType extends ApplicationModel {
   public get table() {
@@ -48,7 +48,7 @@ export default class MealType extends ApplicationModel {
 import { Decorators, DreamColumn } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof MealType>>()
+const deco = new Decorators<InstanceType<typeof MealType>>()
 
 export default class MealType extends ApplicationModel {
   public get table() {
@@ -77,7 +77,7 @@ export default class MealType extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
 import FooBase from './Base.js'
 
-const Deco = new Decorators<InstanceType<typeof FooBar>>()
+const deco = new Decorators<InstanceType<typeof FooBar>>()
 
 @STI(FooBase)
 export default class FooBar extends FooBase {
@@ -108,7 +108,7 @@ export default class FooBar extends FooBase {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof User>>()
+const deco = new Decorators<InstanceType<typeof User>>()
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -145,7 +145,7 @@ export default class User extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof User>>()
+const deco = new Decorators<InstanceType<typeof User>>()
 
 export default class User extends ApplicationModel {
   public get table() {
@@ -188,7 +188,7 @@ export default class User extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof Chalupa>>()
+const deco = new Decorators<InstanceType<typeof Chalupa>>()
 
 export default class Chalupa extends ApplicationModel {
   public get table() {
@@ -226,7 +226,7 @@ export default class Chalupa extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof Paper>>()
+const deco = new Decorators<InstanceType<typeof Paper>>()
 
 export default class Paper extends ApplicationModel {
   public get table() {
@@ -264,7 +264,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import GraphNode from './GraphNode.js'
 
-const Deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -282,7 +282,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @Deco.BelongsTo('GraphNode')
+  @deco.BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
@@ -303,7 +303,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import GraphNode from './GraphNode.js'
 
-const Deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -321,7 +321,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @Deco.BelongsTo('GraphNode', { optional: true })
+  @deco.BelongsTo('GraphNode', { optional: true })
   public graphNode: GraphNode | null
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
@@ -343,7 +343,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import PetDomesticCat from './Pet/Domestic/Cat.js'
 
-const Deco = new Decorators<InstanceType<typeof CatToy>>()
+const deco = new Decorators<InstanceType<typeof CatToy>>()
 
 export default class CatToy extends ApplicationModel {
   public get table() {
@@ -361,7 +361,7 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @Deco.BelongsTo('Pet/Domestic/Cat')
+  @deco.BelongsTo('Pet/Domestic/Cat')
   public petDomesticCat: PetDomesticCat
   public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
 }
@@ -381,7 +381,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import GraphNode from '../../GraphNode.js'
 
-const Deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
+const deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
 
 export default class PetDomesticCat extends ApplicationModel {
   public get table() {
@@ -399,7 +399,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @Deco.BelongsTo('GraphNode')
+  @deco.BelongsTo('GraphNode')
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
 }
@@ -419,7 +419,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import PetDomesticDog from './Dog.js'
 
-const Deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
+const deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
 
 export default class PetDomesticCat extends ApplicationModel {
   public get table() {
@@ -437,7 +437,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @Deco.BelongsTo('Pet/Domestic/Dog')
+  @deco.BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
 }
@@ -457,7 +457,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import PetDomesticDog from '../Domestic/Dog.js'
 
-const Deco = new Decorators<InstanceType<typeof PetWildCat>>()
+const deco = new Decorators<InstanceType<typeof PetWildCat>>()
 
 export default class PetWildCat extends ApplicationModel {
   public get table() {
@@ -475,7 +475,7 @@ export default class PetWildCat extends ApplicationModel {
   public createdAt: DreamColumn<PetWildCat, 'createdAt'>
   public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-  @Deco.BelongsTo('Pet/Domestic/Dog')
+  @deco.BelongsTo('Pet/Domestic/Dog')
   public petDomesticDog: PetDomesticDog
   public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
 }
@@ -497,7 +497,7 @@ import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 import Chalupa from './Chalupa.js'
 
-const Deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -515,11 +515,11 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @Deco.BelongsTo('User')
+  @deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @Deco.BelongsTo('Chalupa')
+  @deco.BelongsTo('Chalupa')
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
 }
@@ -540,7 +540,7 @@ export default class Composition extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
   public get table() {
@@ -575,7 +575,7 @@ export default class Composition extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
   public get table() {

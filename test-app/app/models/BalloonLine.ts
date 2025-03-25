@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 
-const Deco = new Decorators<InstanceType<typeof BalloonLine>>()
+const deco = new Decorators<InstanceType<typeof BalloonLine>>()
 
 export default class BalloonLine extends ApplicationModel {
   public get table() {
@@ -19,7 +19,7 @@ export default class BalloonLine extends ApplicationModel {
   public createdAt: DreamColumn<BalloonLine, 'createdAt'>
   public updatedAt: DreamColumn<BalloonLine, 'updatedAt'>
 
-  @Deco.BelongsTo('Balloon', { foreignKey: 'balloonId' })
+  @deco.BelongsTo('Balloon', { foreignKey: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonLine, 'balloonId'>
 }

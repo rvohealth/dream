@@ -5,7 +5,7 @@ import ApplicationModel from '../ApplicationModel.js'
 import GraphEdge from './Edge.js'
 import GraphNode from './Node.js'
 
-const Deco = new Decorators<InstanceType<typeof EdgeNode>>()
+const deco = new Decorators<InstanceType<typeof EdgeNode>>()
 
 @SoftDelete()
 export default class EdgeNode extends ApplicationModel {
@@ -22,61 +22,61 @@ export default class EdgeNode extends ApplicationModel {
   public updatedAt: DreamColumn<EdgeNode, 'updatedAt'>
   public deletedAt: DreamColumn<EdgeNode, 'deletedAt'>
 
-  @Deco.Sortable({ scope: 'node' })
+  @deco.Sortable({ scope: 'node' })
   public position: DreamColumn<EdgeNode, 'position'>
 
-  @Deco.Sortable({ scope: ['edge', 'node'] })
+  @deco.Sortable({ scope: ['edge', 'node'] })
   public multiScopedPosition: DreamColumn<EdgeNode, 'multiScopedPosition'>
 
-  @Deco.BelongsTo('Graph/Edge', { foreignKey: 'edgeId' })
+  @deco.BelongsTo('Graph/Edge', { foreignKey: 'edgeId' })
   public edge: GraphEdge
   public edgeId: DreamColumn<EdgeNode, 'edgeId'>
 
-  @Deco.BelongsTo('Graph/Node', { foreignKey: 'nodeId' })
+  @deco.BelongsTo('Graph/Node', { foreignKey: 'nodeId' })
   public node: GraphNode
   public nodeId: DreamColumn<EdgeNode, 'nodeId'>
 
-  @Deco.HasMany('Graph/EdgeNode', {
+  @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
   })
   public siblingsIncludingMe: EdgeNode[]
 
-  @Deco.HasMany('Graph/EdgeNode', {
+  @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     selfNotOn: { id: 'id' },
   })
   public siblings: EdgeNode[]
 
-  @Deco.HasMany('Graph/EdgeNode', {
+  @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     order: 'position',
   })
   public orderedSiblings: EdgeNode[]
 
-  @Deco.HasMany('Graph/EdgeNode', {
+  @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'orderedEdgeNodes',
   })
   public orderedSiblingsWithOrderOnSource: EdgeNode[]
 
-  @Deco.HasOne('Graph/EdgeNode', {
+  @deco.HasOne('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     selfOn: { id: 'id' },
   })
   public justThisSibling: EdgeNode
 
-  @Deco.HasOne('Graph/EdgeNode', {
+  @deco.HasOne('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     on: { position: 1 },
   })
   public headSibling: EdgeNode
 
-  @Deco.HasMany('Graph/EdgeNode', {
+  @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
     notOn: { position: 1 },

@@ -42,22 +42,22 @@ const user = await User.where({ email: ops.like('%fred@%') })
 
 class Composition {
   ...
-  @Deco.BeforeCreate()
+  @deco.BeforeCreate()
   public setDefaultContent() {
     if (!this.content) this.content = 'default content'
   }
 
-  @Deco.AfterCreate()
+  @deco.AfterCreate()
   public conditionallyChangeContentOnCreate() {
     if (this.content === 'change me after create') this.content = 'changed after create'
   }
 
-  @Deco.AfterUpdate()
+  @deco.AfterUpdate()
   public conditionallyChangeContentOnUpdate() {
     if (this.content === 'change me after update') this.content = 'changed after update'
   }
 
-  @Deco.AfterSave()
+  @deco.AfterSave()
   public conditionallyChangeContentOnSave() {
     if (this.content === 'change me after save') this.content = 'changed after save'
   }
@@ -73,11 +73,11 @@ class Composition {
 ```ts
 export default class User extends Dream {
   ...
-  @Deco.Validates('contains', '@')
-  @Deco.Validates('presence')
+  @deco.Validates('contains', '@')
+  @deco.Validates('presence')
   public email: string
 
-  @Deco.Validates('length', { min: 4, max: 18 })
+  @deco.Validates('length', { min: 4, max: 18 })
   public password: string
   ...
 }
@@ -97,13 +97,13 @@ export default class User extends Dream {
 // models/user.ts
 class User {
   ...
-  @Deco.HasMany('Composition')
+  @deco.HasMany('Composition')
   public compositions: Composition[]
 
-  @Deco.HasOne('Composition')
+  @deco.HasOne('Composition')
   public mainComposition: Composition
 
-  @Deco.HasMany('CompositionAsset', {
+  @deco.HasMany('CompositionAsset', {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
@@ -112,14 +112,14 @@ class User {
 // models/composition.ts
 export default class Composition extends Dream {
   ...
-  @Deco.BelongsTo('User')
+  @deco.BelongsTo('User')
   public user: User
 }
 
 // models/composition-asset.ts
 export default class CompositionAsset extends Dream {
   ...
-  @Deco.BelongsTo('Composition')
+  @deco.BelongsTo('Composition')
   public composition: Composition
   ...
 }
@@ -136,13 +136,13 @@ export default class CompositionAsset extends Dream {
 
 ```ts
 class User {
-  @Deco.Scope()
+  @deco.Scope()
   public static withFunnyName(query: Query<User>) {
     return query.where({ name: 'Chalupas jr' })
   }
 
   // this will always fire whenever queries are run against the model
-  @Deco.Scope({ default: true })
+  @deco.Scope({ default: true })
   public static hideDeleted(query: Query<User>) {
     return query.where({ deleted_at: null })
   }
@@ -354,18 +354,18 @@ const pets = await user
 ```ts
 @STI(A)
 class B extends A {
-  @Deco.HasMany('X')
+  @deco.HasMany('X')
   public xx: X[]
 }
 
 @STI(A)
 class C extends A {
-  @Deco.HasMany('X', { on: { something: true } })
+  @deco.HasMany('X', { on: { something: true } })
   public xx: X[]
 }
 
 class Z extends Dream {
-  @Deco.HasMany('A')
+  @deco.HasMany('A')
   public aa: A[]
 }
 

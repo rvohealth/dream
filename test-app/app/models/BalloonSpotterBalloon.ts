@@ -5,7 +5,7 @@ import Balloon from './Balloon.js'
 import BalloonSpotter from './BalloonSpotter.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof BalloonSpotterBalloon>>()
+const deco = new Decorators<InstanceType<typeof BalloonSpotterBalloon>>()
 
 export default class BalloonSpotterBalloon extends ApplicationModel {
   public get table() {
@@ -20,15 +20,15 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public createdAt: DreamColumn<BalloonSpotterBalloon, 'createdAt'>
   public updatedAt: DreamColumn<BalloonSpotterBalloon, 'updatedAt'>
 
-  @Deco.BelongsTo('User', { optional: true })
+  @deco.BelongsTo('User', { optional: true })
   public user: User
   public userId: DreamColumn<BalloonSpotterBalloon, 'userId'>
 
-  @Deco.BelongsTo('BalloonSpotter')
+  @deco.BelongsTo('BalloonSpotter')
   public balloonSpotter: BalloonSpotter
   public balloonSpotterId: DreamColumn<BalloonSpotterBalloon, 'balloonSpotterId'>
 
-  @Deco.BelongsTo('Balloon', { foreignKey: 'balloonId' })
+  @deco.BelongsTo('Balloon', { foreignKey: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonSpotterBalloon, 'balloonId'>
 }

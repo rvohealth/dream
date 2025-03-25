@@ -5,7 +5,7 @@ import Composition from './Composition.js'
 import CompositionAsset from './CompositionAsset.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof CompositionAssetAudit>>()
+const deco = new Decorators<InstanceType<typeof CompositionAssetAudit>>()
 
 export default class CompositionAssetAudit extends ApplicationModel {
   public get table() {
@@ -16,21 +16,21 @@ export default class CompositionAssetAudit extends ApplicationModel {
   public approval: DreamColumn<CompositionAssetAudit, 'approval'>
   public notes: DreamColumn<CompositionAssetAudit, 'notes'>
 
-  @Deco.BelongsTo('CompositionAsset')
+  @deco.BelongsTo('CompositionAsset')
   public compositionAsset: CompositionAsset
   public compositionAssetId: DreamColumn<CompositionAssetAudit, 'compositionAssetId'>
 
-  @Deco.HasOne('Composition', {
+  @deco.HasOne('Composition', {
     through: 'compositionAsset',
   })
   public composition: Composition
 
-  @Deco.HasOne('User', {
+  @deco.HasOne('User', {
     through: 'compositionAsset',
   })
   public user: User
 
-  @Deco.BeforeUpdate()
+  @deco.BeforeUpdate()
   public ensureApprovalIsSet() {
     if (![true, false].includes(this.approval!)) this.approval = false
   }

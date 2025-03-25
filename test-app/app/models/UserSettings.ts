@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof UserSettings>>()
+const deco = new Decorators<InstanceType<typeof UserSettings>>()
 
 export default class UserSettings extends ApplicationModel {
   public get table() {
@@ -22,7 +22,7 @@ intentionally try to call .serializers on it.`)
   public createdAt: DreamColumn<UserSettings, 'createdAt'>
   public updatedAt: DreamColumn<UserSettings, 'updatedAt'>
 
-  @Deco.BelongsTo('User')
+  @deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<UserSettings, 'userId'>
 }

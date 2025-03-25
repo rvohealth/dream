@@ -12,7 +12,7 @@ import { blankHooksFactory } from './shared.js'
  * is complete.
  *
  * class User extends ApplicationModel {
- *   @Deco.AfterSaveCommit()
+ *   @deco.AfterSaveCommit()
  *   public doSomething() {
  *     ...
  *   }

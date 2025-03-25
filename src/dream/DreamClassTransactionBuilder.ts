@@ -696,10 +696,10 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * ```ts
    * class Post {
-   *   @Deco.HasMany('LocalizedText')
+   *   @deco.HasMany('LocalizedText')
    *   public localizedTexts: LocalizedText[]
    *
-   *   @Deco.HasOne('LocalizedText', {
+   *   @deco.HasOne('LocalizedText', {
    *     where: { locale: DreamConst.passthrough },
    *   })
    *   public currentLocalizedText: LocalizedText

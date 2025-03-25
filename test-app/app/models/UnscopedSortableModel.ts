@@ -1,7 +1,7 @@
 import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-const Deco = new Decorators<InstanceType<typeof UnscopedSortableModel>>()
+const deco = new Decorators<InstanceType<typeof UnscopedSortableModel>>()
 
 export default class UnscopedSortableModel extends ApplicationModel {
   public get table() {
@@ -12,6 +12,6 @@ export default class UnscopedSortableModel extends ApplicationModel {
   public createdAt: DreamColumn<UnscopedSortableModel, 'createdAt'>
   public updatedAt: DreamColumn<UnscopedSortableModel, 'updatedAt'>
 
-  @Deco.Sortable()
+  @deco.Sortable()
   public position: DreamColumn<UnscopedSortableModel, 'position'>
 }

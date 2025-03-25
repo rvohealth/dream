@@ -5,7 +5,7 @@ import Composition from './Composition.js'
 import Post from './Post.js'
 import User from './User.js'
 
-const Deco = new Decorators<InstanceType<typeof Rating>>()
+const deco = new Decorators<InstanceType<typeof Rating>>()
 
 export default class Rating extends ApplicationModel {
   public get table() {
@@ -20,11 +20,11 @@ export default class Rating extends ApplicationModel {
   public body: DreamColumn<Rating, 'body'>
   public rating: DreamColumn<Rating, 'rating'>
 
-  @Deco.BelongsTo('User')
+  @deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<Rating, 'userId'>
 
-  @Deco.BelongsTo(['Composition', 'Post'], {
+  @deco.BelongsTo(['Composition', 'Post'], {
     foreignKey: 'rateableId',
     polymorphic: true,
   })
@@ -32,7 +32,7 @@ export default class Rating extends ApplicationModel {
   public rateableId: DreamColumn<Rating, 'rateableId'>
   public rateableType: DreamColumn<Rating, 'rateableType'>
 
-  @Deco.BelongsTo(['Post', 'Composition'], {
+  @deco.BelongsTo(['Post', 'Composition'], {
     foreignKey: 'rateableId',
     polymorphic: true,
     withoutDefaultScopes: ['dream:SoftDelete'],
