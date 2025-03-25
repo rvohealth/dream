@@ -22,9 +22,9 @@ export default class DreamBin {
     await this.buildDreamSchema()
     DreamCLI.logger.logEndProgress()
 
-    DreamCLI.logger.logStartProgress('running sync hooks...')
+    // intentionally leaving logs off here, since it allows other
+    // onSync handlers to determine their own independent logging approach
     await onSync()
-    DreamCLI.logger.logEndProgress()
   }
 
   public static async buildDreamSchema() {
