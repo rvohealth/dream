@@ -43,21 +43,33 @@ export default class Env<
     return this.isTest || this.isDevelopment
   }
 
-  public string(env: StringEnvs, opts: { optional: true }): string | undefined
-  public string(env: StringEnvs, opts: { optional: false }): string
-  public string(env: StringEnvs): string
-  public string(env: StringEnvs, opts: unknown = {}): unknown {
-    return (opts as any)?.optional ? this.optional(env) : this.required(env)
+  public string<
+    OptionalConfig extends { optional: boolean } | undefined,
+    ReturnType extends OptionalConfig extends undefined
+      ? string
+      : OptionalConfig extends { optional: boolean }
+        ? OptionalConfig['optional'] extends true
+          ? string | undefined
+          : string
+        : string,
+  >(env: StringEnvs, opts: OptionalConfig = { optional: false } as OptionalConfig): ReturnType {
+    return (opts!.optional ? this.optional(env) : this.required(env)) as ReturnType
   }
 
-  public integer(env: IntegerEnvs, opts: { optional: true }): number | undefined
-  public integer(env: IntegerEnvs, opts: { optional: false }): number
-  public integer(env: IntegerEnvs): number
-  public integer(env: IntegerEnvs, opts: unknown = {}): unknown {
-    const val = (opts as any)?.optional ? this.optional(env) : this.required(env)
-    if (val === undefined) return undefined
+  public integer<
+    OptionalConfig extends { optional: boolean } | undefined,
+    ReturnType extends OptionalConfig extends undefined
+      ? number
+      : OptionalConfig extends { optional: boolean }
+        ? OptionalConfig['optional'] extends true
+          ? number | undefined
+          : number
+        : number,
+  >(env: IntegerEnvs, opts: OptionalConfig = { optional: false } as OptionalConfig): ReturnType {
+    const val = opts!.optional ? this.optional(env) : this.required(env)
+    if (val === undefined) return undefined as ReturnType
     const parsedVal = parseInt(val, 10)
-    return parsedVal.toString() === val ? parsedVal : undefined
+    return (parsedVal.toString() === val ? parsedVal : undefined) as ReturnType
   }
 
   public boolean(env: BooleanEnvs): boolean {
