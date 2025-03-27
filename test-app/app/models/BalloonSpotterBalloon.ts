@@ -8,7 +8,7 @@ import User from './User.js'
 const deco = new Decorators<InstanceType<typeof BalloonSpotterBalloon>>()
 
 export default class BalloonSpotterBalloon extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'balloon_spotter_balloons' as const
   }
 

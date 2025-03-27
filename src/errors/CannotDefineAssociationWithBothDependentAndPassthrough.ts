@@ -8,7 +8,7 @@ export default class CannotDefineAssociationWithBothDependentAndPassthrough exte
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Cannot define association with both "dependent" and "DreamConst.passthrough".
 Error found when trying to parse "${this.associationName}" on the 

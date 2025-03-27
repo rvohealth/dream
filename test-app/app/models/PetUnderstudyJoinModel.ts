@@ -6,7 +6,7 @@ import Pet from './Pet.js'
 const deco = new Decorators<InstanceType<typeof PetUnderstudyJoinModel>>()
 
 export default class PetUnderstudyJoinModel extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'pet_understudy_join_models' as const
   }
 

@@ -8,7 +8,7 @@ export default class MissingSerializersDefinition extends Error {
     this.dreamClass = dreamClass
   }
 
-  public get message() {
+  public override get message() {
     return `
 Missing serializers definition on the following class
 Dream class: ${this.dreamClass.sanitizedName}

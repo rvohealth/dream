@@ -9,7 +9,7 @@ const deco = new Decorators<InstanceType<typeof Collar>>()
 
 @SoftDelete()
 export default class Collar extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'collars' as const
   }
 

@@ -9,7 +9,7 @@ export default class CannotNegateSimilarityClause extends Error {
     this.value = value
   }
 
-  public get message() {
+  public override get message() {
     return `
 Negating similarity expressions is not supported.
   table: ${this.tableName}

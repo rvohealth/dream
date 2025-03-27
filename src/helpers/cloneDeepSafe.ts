@@ -50,7 +50,7 @@ export class TypeUnsupportedByClone extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `Type unsupported by cloneDeepSafe:
 ${this.original}
 ${this.original.toString()}

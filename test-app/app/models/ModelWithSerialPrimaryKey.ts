@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 // const deco = new Decorators<InstanceType<typeof ModelWithSerialPrimaryKey>>()
 
 export default class ModelWithSerialPrimaryKey extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'model_with_serial_primary_keys' as const
   }
 

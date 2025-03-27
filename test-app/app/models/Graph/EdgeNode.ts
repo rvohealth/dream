@@ -9,7 +9,7 @@ const deco = new Decorators<InstanceType<typeof EdgeNode>>()
 
 @SoftDelete()
 export default class EdgeNode extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'graph_edge_nodes' as const
   }
 

@@ -7,7 +7,7 @@ import CompositionAsset from './CompositionAsset.js'
 const deco = new Decorators<InstanceType<typeof LocalizedText>>()
 
 export default class LocalizedText extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'localized_texts' as const
   }
 

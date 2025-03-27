@@ -13,7 +13,7 @@ const deco = new Decorators<InstanceType<typeof Pet>>()
 
 @SoftDelete()
 export default class Pet extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'pets' as const
   }
 

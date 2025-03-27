@@ -6,7 +6,7 @@ import Post from './Post.js'
 const deco = new Decorators<InstanceType<typeof PostVisibility>>()
 
 export default class PostVisibility extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'post_visibilities' as const
   }
 

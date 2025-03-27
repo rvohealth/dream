@@ -3,7 +3,7 @@ export default class MissingRequiredPassthroughForAssociationOnClause extends Er
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Missing passthrough for association on clause:
 Missing passthrough on clause for column: ${this.column}

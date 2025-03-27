@@ -8,7 +8,7 @@ const deco = new Decorators<InstanceType<typeof PostComment>>()
 
 @SoftDelete()
 export default class PostComment extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'post_comments' as const
   }
 

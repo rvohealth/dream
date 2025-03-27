@@ -9,7 +9,7 @@ export default class MissingRequiredAssociationOnClause extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Missing required association on clause:
 Association: ${this.association.as}

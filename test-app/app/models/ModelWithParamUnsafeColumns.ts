@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 // const deco = new Decorators<InstanceType<typeof ModelWithParamUnsafeColumns>>()
 
 export default class ModelWithParamUnsafeColumns extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'model_with_param_unsafe_columns' as const
   }
 

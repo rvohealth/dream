@@ -7,7 +7,7 @@ export default class MissingRequiredCallbackFunctionToPluckEach extends Error {
     this.args = providedArgs
   }
 
-  public get message() {
+  public override get message() {
     return `
 Missing required callback function when calling ${this.methodName}
 args provided were:

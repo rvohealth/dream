@@ -7,7 +7,7 @@ import EdgeNode from './EdgeNode.js'
 const deco = new Decorators<InstanceType<typeof Node>>()
 
 export default class Node extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'graph_nodes' as const
   }
 

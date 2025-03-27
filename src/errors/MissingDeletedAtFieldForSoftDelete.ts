@@ -5,7 +5,7 @@ export default class MissingDeletedAtFieldForSoftDelete extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     const deletedAtField = this.dreamClass.prototype.deletedAtField
     return `
 Expected "${deletedAtField}" to be a valid column for the ${this.dreamClass.name} model.

@@ -9,7 +9,7 @@ const deco = new Decorators<InstanceType<typeof ModelWithoutDeletedAt>>()
 // which does not have a `deletedAt` field
 @SoftDelete()
 export default class ModelWithoutDeletedAt extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'model_without_deleted_ats' as const
   }
 

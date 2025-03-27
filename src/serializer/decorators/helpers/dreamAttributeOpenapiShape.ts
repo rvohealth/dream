@@ -97,7 +97,7 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): Openap
 }
 
 export class UseCustomOpenapiForJson extends Error {
-  public get message() {
+  public override get message() {
     return `Use custom OpenAPI declaration (OpenapiSchemaBodyShorthand) to define shape of json and jsonb fields`
   }
 }

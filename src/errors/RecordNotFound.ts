@@ -5,7 +5,7 @@ export default class RecordNotFound extends Error {
     this.dreamClassName = dreamClassName
   }
 
-  public get message() {
+  public override get message() {
     return `\
 Failed to find a record for the following dream class: ${this.dreamClassName}
 `

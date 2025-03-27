@@ -6,7 +6,7 @@ import User from './User.js'
 const deco = new Decorators<InstanceType<typeof UserSettings>>()
 
 export default class UserSettings extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'user_settings' as const
   }
 

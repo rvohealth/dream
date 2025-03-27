@@ -10,7 +10,7 @@ export default class NonBelongsToAssociationProvidedAsSortableDecoratorScope ext
     this.dreamClass = dreamClass
   }
 
-  public get message() {
+  public override get message() {
     return `
 Only BelongsTo associations are supported as scopes for the @Sortable decorator.
 received:

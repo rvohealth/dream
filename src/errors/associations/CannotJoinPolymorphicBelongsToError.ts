@@ -25,7 +25,7 @@ export default class CannotJoinPolymorphicBelongsToError extends Error {
     this.leftJoinStatements = leftJoinStatements
   }
 
-  public get message() {
+  public override get message() {
     return `
 Cannot join on a polymorphic BelongsTo
 Dream class: ${this.dreamClass.sanitizedName}

@@ -10,7 +10,7 @@ import User from './User.js'
 const deco = new Decorators<InstanceType<typeof CompositionAsset>>()
 
 export default class CompositionAsset extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'composition_assets' as const
   }
 

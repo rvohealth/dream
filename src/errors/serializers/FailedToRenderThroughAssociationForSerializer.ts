@@ -6,7 +6,7 @@ export default class FailedToRenderThroughAssociationForSerializer extends Error
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Failed to render association data for ${this.className}
 missing through field: "${this.missingThroughField}"`

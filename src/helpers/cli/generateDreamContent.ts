@@ -104,7 +104,7 @@ export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 
 ${
   isSTI
     ? ''
-    : `  public get table() {
+    : `  public override get table() {
     return '${tableName}' as const
   }
 

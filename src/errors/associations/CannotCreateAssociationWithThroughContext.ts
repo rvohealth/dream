@@ -18,7 +18,7 @@ export default class CannotCreateAssociationWithThroughContext extends Error {
     this.association = association
   }
 
-  public get message() {
+  public override get message() {
     return `
 'createAssociation' is not supported for through associations.
 Dream class: ${this.dreamClass.sanitizedName}

@@ -8,7 +8,7 @@ import User from './User.js'
 const deco = new Decorators<InstanceType<typeof CompositionAssetAudit>>()
 
 export default class CompositionAssetAudit extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'composition_asset_audits' as const
   }
 

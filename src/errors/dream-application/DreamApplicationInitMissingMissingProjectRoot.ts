@@ -1,5 +1,5 @@
 export default class DreamApplicationInitMissingMissingProjectRoot extends Error {
-  public get message() {
+  public override get message() {
     return `
 must set app root when initializing a new DreamApplication.
 

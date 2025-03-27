@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof UnscopedSortableModel>>()
 
 export default class UnscopedSortableModel extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'unscoped_sortable_models' as const
   }
 

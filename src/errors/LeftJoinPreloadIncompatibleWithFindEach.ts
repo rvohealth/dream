@@ -1,5 +1,5 @@
 export default class LeftJoinPreloadIncompatibleWithFindEach extends Error {
-  public get message() {
+  public override get message() {
     // An unknown and irregular number of records will be returned for each base
     // model, so we cannot establish the correct pagination points to flesh out
     // all the associations (if we broke at a certain number of records, there

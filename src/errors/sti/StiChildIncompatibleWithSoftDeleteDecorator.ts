@@ -5,7 +5,7 @@ export default class StiChildIncompatibleWithSoftDeleteDecorator extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 @SoftDelete decorator cannot be applied to STI children.
 Apply @SoftDelete to the base STI class instead.

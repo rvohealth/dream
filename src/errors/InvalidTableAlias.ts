@@ -5,7 +5,7 @@ export default class InvalidTableAlias extends Error {
     this.tableAlias = tableAlias
   }
 
-  public get message() {
+  public override get message() {
     return `
 Invalid table alias passed to an underlying sql function.
 table alias given:

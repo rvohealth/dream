@@ -10,19 +10,19 @@ import ApplicationModel from './ApplicationModel.js'
 // to a column that is not a datetime field
 @SoftDelete()
 export default class ModelWithoutCustomDeletedAt extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'model_without_custom_deleted_ats' as const
   }
 
-  public get deletedAtField() {
+  public override get deletedAtField() {
     return 'id' as const
   }
 
-  public get createdAtField() {
+  public override get createdAtField() {
     return 'updatedAt' as const
   }
 
-  public get updatedAtField() {
+  public override get updatedAtField() {
     return 'createdAt' as const
   }
 

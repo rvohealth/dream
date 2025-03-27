@@ -10,7 +10,7 @@ export default class NonLoadedAssociation extends Error {
     this.associationName = associationName
   }
 
-  public get message() {
+  public override get message() {
     return `
 Attempting to access \`${this.associationName}\` on an instance of \`${this.dreamClass.sanitizedName}\`,
 but \`${this.associationName}\` has not been preloaded or loaded.

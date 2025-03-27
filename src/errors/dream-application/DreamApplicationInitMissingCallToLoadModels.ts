@@ -1,5 +1,5 @@
 export default class DreamApplicationInitMissingCallToLoadModels extends Error {
-  public get message() {
+  public override get message() {
     return `
 must load models when initializing a new DreamApplication.
 

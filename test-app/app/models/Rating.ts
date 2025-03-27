@@ -8,7 +8,7 @@ import User from './User.js'
 const deco = new Decorators<InstanceType<typeof Rating>>()
 
 export default class Rating extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'ratings' as const
   }
 

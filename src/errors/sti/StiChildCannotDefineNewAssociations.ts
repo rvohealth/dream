@@ -8,7 +8,7 @@ export default class StiChildCannotDefineNewAssociations extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 STI children cannot define new associations.
 Define on the base STI class instead.

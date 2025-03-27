@@ -9,7 +9,7 @@ export default class ValidationError extends Error {
     this.errors = errors
   }
 
-  public get message() {
+  public override get message() {
     return `\
 Failed to save ${this.dreamClassName}. The following validation errors occurred while trying to save:
 

@@ -16,7 +16,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof MealType>>()
 
 export default class MealType extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'meal_types' as const
   }
 
@@ -51,7 +51,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof MealType>>()
 
 export default class MealType extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'meal_types' as const
   }
 
@@ -111,7 +111,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof User>>()
 
 export default class User extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'users' as const
   }
 
@@ -148,7 +148,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof User>>()
 
 export default class User extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'users' as const
   }
 
@@ -191,7 +191,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof Chalupa>>()
 
 export default class Chalupa extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'chalupas' as const
   }
 
@@ -229,7 +229,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof Paper>>()
 
 export default class Paper extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'paper' as const
   }
 
@@ -267,7 +267,7 @@ import GraphNode from './GraphNode.js'
 const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'compositions' as const
   }
 
@@ -306,7 +306,7 @@ import GraphNode from './GraphNode.js'
 const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'compositions' as const
   }
 
@@ -346,7 +346,7 @@ import PetDomesticCat from './Pet/Domestic/Cat.js'
 const deco = new Decorators<InstanceType<typeof CatToy>>()
 
 export default class CatToy extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'cat_toys' as const
   }
 
@@ -384,7 +384,7 @@ import GraphNode from '../../GraphNode.js'
 const deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
 
 export default class PetDomesticCat extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'pet_domestic_cats' as const
   }
 
@@ -422,7 +422,7 @@ import PetDomesticDog from './Dog.js'
 const deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
 
 export default class PetDomesticCat extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'pet_domestic_cats' as const
   }
 
@@ -460,7 +460,7 @@ import PetDomesticDog from '../Domestic/Dog.js'
 const deco = new Decorators<InstanceType<typeof PetWildCat>>()
 
 export default class PetWildCat extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'pet_wild_cats' as const
   }
 
@@ -500,7 +500,7 @@ import Chalupa from './Chalupa.js'
 const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'compositions' as const
   }
 
@@ -543,7 +543,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'compositions' as const
   }
 
@@ -578,7 +578,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof Composition>>()
 
 export default class Composition extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'compositions' as const
   }
 

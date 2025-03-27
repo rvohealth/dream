@@ -10,7 +10,7 @@ export default class MissingTable extends Error {
     this.dreamClass = dreamClass
   }
 
-  public get message() {
+  public override get message() {
     return `
 Missing table definition on the following dream class:
 Dream class: ${this.dreamClass.sanitizedName}
@@ -19,7 +19,7 @@ Try something like this in your ${this.dreamClass.sanitizedName}'s table getter:
 
 class ${this.dreamClass.sanitizedName} {
   ...
-  public get table() {
+  public override get table() {
     return '${pluralize(snakeify(this.dreamClass.sanitizedName))}'
   }
 }

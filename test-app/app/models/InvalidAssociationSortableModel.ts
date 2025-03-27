@@ -5,7 +5,7 @@ import User from './User.js'
 const deco = new Decorators<InstanceType<typeof InvalidAssociationSortableModel>>()
 
 export default class InvalidAssociationSortableModel extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'invalid_association_sortable_models' as const
   }
 

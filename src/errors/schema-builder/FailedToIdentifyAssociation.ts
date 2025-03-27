@@ -11,7 +11,7 @@ export default class FailedToIdentifyAssociation extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     const dreamApp = DreamApplication.getOrFail()
     const attemptedName = Array.isArray(this.globalAssociationNameOrNames)
       ? this.globalAssociationNameOrNames[0]

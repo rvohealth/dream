@@ -14,7 +14,7 @@ const deco = new Decorators<InstanceType<typeof Balloon>>()
 @ReplicaSafe()
 @SoftDelete()
 export default class Balloon extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'beautiful_balloons' as const
   }
 

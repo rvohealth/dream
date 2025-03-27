@@ -5,7 +5,7 @@ export default class CannotCallUndestroyOnANonSoftDeleteModel extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Cannot call "undestroy" on a non-SoftDelete model. Ensure that your
 model has @SoftDelete applied before calling "undestroy":

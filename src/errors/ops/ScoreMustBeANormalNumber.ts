@@ -6,7 +6,7 @@ export default class ScoreMustBeANormalNumber extends Error {
     this.score = score
   }
 
-  public get message() {
+  public override get message() {
     return `
 Attempting to pass a non-normal number to a similarity score in your query.
 When passing a score, make sure it is a number between 0 and 1, i.e. 0.5

@@ -1,5 +1,5 @@
 export default class MissingColumnEncryptionOpts extends Error {
-  public get message() {
+  public override get message() {
     return `
       In order to use the Encrypt library to encrypt columns,
       encryption keys must be provided to dream:

@@ -10,7 +10,7 @@ export default class AnyRequiresArrayColumn extends Error {
     this.column = column
   }
 
-  public get message() {
+  public override get message() {
     return `
 Attempting to call where({ ${this.column}: ops.any(<some value>)} ),
 but ${this.dreamClass.sanitizedName}#${this.column} is not an array in the database.

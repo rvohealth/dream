@@ -39,7 +39,7 @@ export class UnsupportedValueFromComparisonFunction extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `Value incompatible with compare: ${this.aPrime}, ${this.bPrime}`
   }
 }

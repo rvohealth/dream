@@ -12,7 +12,7 @@ export default class STIChildMissing extends Error {
     this.primaryKeyValue = primaryKeyValue
   }
 
-  public get message() {
+  public override get message() {
     return `
 Missing STI child class
 Base Dream class: ${this.baseDreamClass.sanitizedName}

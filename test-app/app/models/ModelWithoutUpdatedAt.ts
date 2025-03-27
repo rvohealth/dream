@@ -5,7 +5,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof ModelWithoutUpdatedAt>>()
 
 export default class ModelWithoutUpdatedAt extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'model_without_updated_at' as const
   }
 

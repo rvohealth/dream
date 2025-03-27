@@ -5,7 +5,7 @@ export default class AttemptingToMarshalInvalidArrayType extends Error {
     this.given = given
   }
 
-  public get message() {
+  public override get message() {
     return `
 cannot properly interpret array value. Expecting value to match either
 an array or a postgres-serialized array.

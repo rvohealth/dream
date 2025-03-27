@@ -6,7 +6,7 @@ export default class InvalidDecimalFieldPassedToGenerator extends Error {
     this.attribute = attribute
   }
 
-  public get message() {
+  public override get message() {
     return `
 must pass scale and precision after decimal, like so:
   ${this.attribute.split(':')[0]}:decimal:4,2

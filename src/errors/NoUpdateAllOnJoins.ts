@@ -1,5 +1,5 @@
 export default class NoUpdateAllOnJoins extends Error {
-  public get message() {
+  public override get message() {
     return `
 udpateAll may not yet be called on joins. As a workaround,
 use where + nestedSelect instead, e.g.:

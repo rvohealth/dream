@@ -6,7 +6,7 @@ export default class PrototypePollutingAssignment extends Error {
     this.key = key
   }
 
-  public get message() {
+  public override get message() {
     return `Passed "${this.key}" as the key to modify an object`
   }
 }

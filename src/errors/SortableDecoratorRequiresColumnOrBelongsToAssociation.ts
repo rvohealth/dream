@@ -10,7 +10,7 @@ export default class SortableDecoratorRequiresColumnOrBelongsToAssociation exten
     this.dreamClass = dreamClass
   }
 
-  public get message() {
+  public override get message() {
     return `
 Only Column or BelongsTo scopes are supported by the @Sortable decorator.
 received:

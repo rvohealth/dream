@@ -3,7 +3,7 @@ export default class SerializerNameConflict extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Attempted to register ${this.serializerGlobalName}, but another serializer
 has the sane name.`

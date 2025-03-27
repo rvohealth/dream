@@ -3,7 +3,7 @@ export default class MissingRequiredEnvironmentVariable extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `Missing required environment variable ${this.environmentVariableName}`
   }
 }

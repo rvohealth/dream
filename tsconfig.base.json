@@ -6,7 +6,9 @@
     "module": "Node16",
     "target": "ES2022",
     "moduleResolution": "node16",
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
+    "noImplicitOverride": true,
     "resolveJsonModule": true,
     /* rootDir and outDir together help maintain dist/src folder */
     "rootDir": "./",

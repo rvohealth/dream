@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 // const deco = new Decorators<InstanceType<typeof EdgeCaseAttribute>>()
 
 export default class EdgeCaseAttribute extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'edge_case_attributes' as const
   }
 

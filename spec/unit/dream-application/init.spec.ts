@@ -59,7 +59,7 @@ describe('DreamApplication#init', () => {
 
     context('model is introduced with invalid table name', () => {
       class HelloWorld extends ApplicationModel {
-        public get table() {
+        public override get table() {
           // intentionally invalid table name
           return 'userz'
         }

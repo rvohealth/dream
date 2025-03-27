@@ -18,7 +18,7 @@ export default class MissingThroughAssociation extends Error {
     this.association = association
   }
 
-  public get message() {
+  public override get message() {
     return `
 \`${this.dreamClass.sanitizedName}\` defines through association \`${this.association.through}\`, but \`${this.dreamClass.name}\` does not define association \`${this.association.through}\`.
 

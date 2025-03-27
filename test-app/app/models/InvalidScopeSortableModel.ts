@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 const deco = new Decorators<InstanceType<typeof InvalidScopeSortableModel>>()
 
 export default class InvalidScopeSortableModel extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'invalid_scope_sortable_models' as const
   }
 

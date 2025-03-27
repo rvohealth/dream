@@ -6,7 +6,7 @@ import Mylar from './Balloon/Mylar.js'
 const deco = new Decorators<InstanceType<typeof Sandbag>>()
 
 export default class Sandbag extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'sandbags' as const
   }
 

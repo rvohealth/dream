@@ -8,7 +8,7 @@ export default class CreateOrFindByFailedToCreateAndFind extends Error {
     this.dreamClass = dreamClass
   }
 
-  public get message() {
+  public override get message() {
     return `
 Failed to create instance of ${this.dreamClass.sanitizedName} and no matching model exists.
 

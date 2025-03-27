@@ -6,7 +6,7 @@ import Balloon from './Balloon.js'
 const deco = new Decorators<InstanceType<typeof BalloonLine>>()
 
 export default class BalloonLine extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'balloon_lines' as const
   }
 

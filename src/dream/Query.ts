@@ -137,7 +137,7 @@ export default class Query<
    * stores the dream transaction applied to the
    * current Query instance
    */
-  public dreamTransaction: DreamTransaction<Dream> | null = null
+  public override dreamTransaction: DreamTransaction<Dream> | null = null
 
   /**
    * @internal

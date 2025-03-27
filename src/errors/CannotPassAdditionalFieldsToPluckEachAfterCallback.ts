@@ -7,7 +7,7 @@ export default class CannotPassAdditionalFieldsToPluckEachAfterCallback extends 
     this.args = providedArgs
   }
 
-  public get message() {
+  public override get message() {
     return `
 Cannot pass additional fields after the callback function when calling ${this.methodName}
 args provided were:

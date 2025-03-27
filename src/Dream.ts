@@ -2168,7 +2168,7 @@ export default class Dream {
    *
    * ```ts
    * class User extends ApplicationModel {
-   *   public get table() {
+   *   public override get table() {
    *     return 'users' as const
    *   }
    * }

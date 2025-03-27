@@ -3,7 +3,6 @@ import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
 import User from '../../../test-app/app/models/User.js'
-import createModelWithSerialPrimaryKey from '../../../test-app/spec/factories/ModelWithSerialPrimaryKeyFactory.js'
 
 describe('Dream.find', () => {
   let user: User
@@ -68,7 +67,7 @@ describe('Dream.find', () => {
 
   context('a model with a serial primary key', () => {
     it('can be found by a string', async () => {
-      const model = await createModelWithSerialPrimaryKey()
+      const model = await ModelWithSerialPrimaryKey.create()
       const foundModel = await ModelWithSerialPrimaryKey.find(model.id.toString())
       expect(foundModel).toMatchDreamModel(model)
     })

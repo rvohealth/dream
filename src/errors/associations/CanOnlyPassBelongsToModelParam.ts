@@ -15,7 +15,7 @@ export default class CanOnlyPassBelongsToModelParam extends Error {
     this.association = association
   }
 
-  public get message() {
+  public override get message() {
     return `
 Can only pass BelongsTo associated models as params
 Dream class: ${this.dreamClass.sanitizedName}

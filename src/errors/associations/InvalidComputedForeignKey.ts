@@ -21,7 +21,7 @@ export class InvalidComputedForeignKey extends Error {
     this.table = table
   }
 
-  public get message() {
+  public override get message() {
     return `
 Add an explicit foreignKey declaration to this association declaration:
   Dream class: ${this.dreamClass.sanitizedName}
@@ -50,7 +50,7 @@ export class ExplicitForeignKeyRequired extends Error {
     this.table = table
   }
 
-  public get message() {
+  public override get message() {
     return `
 ${this.explicitForeignKey} is not a valid column on table ${this.table}.
 Fix the foreignKey declaration on:

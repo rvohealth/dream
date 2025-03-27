@@ -13,7 +13,7 @@ const deco = new Decorators<InstanceType<typeof Post>>()
 
 @SoftDelete()
 export default class Post extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'posts' as const
   }
 
@@ -51,10 +51,10 @@ export default class Post extends ApplicationModel {
   })
   public ratings: Rating[]
 
-  @deco.HasMany('PostComment', { on: { body: undefined } })
+  @deco.HasMany('PostComment', { on: { body: undefined as unknown as string } })
   public invalidWherePostComments: PostComment[]
 
-  @deco.HasMany('PostComment', { notOn: { body: undefined } })
+  @deco.HasMany('PostComment', { notOn: { body: undefined as unknown as string } })
   public invalidWhereNotPostComments: PostComment[]
 
   // Traveling through NonNullRating, a model

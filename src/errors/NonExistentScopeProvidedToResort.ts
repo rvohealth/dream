@@ -10,7 +10,7 @@ export default class NonExistentScopeProvidedToResort extends Error {
     this.dreamClass = dreamClass
   }
 
-  public get message() {
+  public override get message() {
     return `
 Only BelongsTo scopes are supported by the #resort method
 received:

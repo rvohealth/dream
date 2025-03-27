@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 // const deco = new Decorators<InstanceType<typeof ModelForOpenapiTypeSpecs>>()
 
 export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
-  public get table() {
+  public override get table() {
     return 'model_for_openapi_type_specs' as const
   }
 

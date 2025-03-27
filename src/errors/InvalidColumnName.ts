@@ -7,7 +7,7 @@ export default class InvalidColumnName extends Error {
     this.columnName = columnName
   }
 
-  public get message() {
+  public override get message() {
     return `
 Invalid column name passed to an underlying sql function.
 The invalid column name received was:

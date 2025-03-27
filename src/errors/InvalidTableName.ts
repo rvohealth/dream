@@ -7,7 +7,7 @@ export default class InvalidTableName extends Error {
     this.tableName = tableName
   }
 
-  public get message() {
+  public override get message() {
     const keys: string[] = Object.keys(this.schema)
 
     return `

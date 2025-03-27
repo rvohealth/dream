@@ -29,7 +29,7 @@ export default class DreamCliLoggableText extends DreamCliLoggable {
     this.logPrefixBgColor = logPrefixBgColor
   }
 
-  public render() {
+  public override render() {
     console.log(
       `${this.colorizedLogPrefix} ${colorize(this.text, { color: this.color, bgColor: this.bgColor })}`
     )

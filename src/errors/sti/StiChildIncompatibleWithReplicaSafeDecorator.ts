@@ -5,7 +5,7 @@ export default class StiChildIncompatibleWithReplicaSafeDecorator extends Error 
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 @ReplicaSafe decorator cannot be applied to STI children.
 Apply @ReplicaSafe to the base STI class instead.

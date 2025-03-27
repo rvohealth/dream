@@ -9,7 +9,7 @@ export default class DoNotSetEncryptedFieldsDirectly extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Do not set @Encrypted columns directly. Instead, set their accessors, so that
 those fields can be encrypted by Dream internally.

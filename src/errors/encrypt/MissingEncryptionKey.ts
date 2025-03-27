@@ -1,5 +1,5 @@
 export default class MissingEncryptionKey extends Error {
-  public get message() {
+  public override get message() {
     return `
       In order to use the Encrypt library, encryption key and algorithm must be provided:
 

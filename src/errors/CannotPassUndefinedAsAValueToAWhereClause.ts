@@ -8,7 +8,7 @@ export default class CannotPassUndefinedAsAValueToAWhereClause extends Error {
     super()
   }
 
-  public get message() {
+  public override get message() {
     return `
 Cannot pass undefined as a value to a where clause.
 

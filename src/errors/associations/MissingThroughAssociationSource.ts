@@ -22,7 +22,7 @@ export default class MissingThroughAssociationSource extends Error {
     this.association = association
   }
 
-  public get message() {
+  public override get message() {
     return `
 \`${this.dreamClass.sanitizedName}\` defines association \`${this.association.as}\` through \`${
       this.dreamClass.sanitizedName
