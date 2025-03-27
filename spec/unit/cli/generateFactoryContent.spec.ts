@@ -36,10 +36,10 @@ import Post from '../../app/models/Post.js'
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.name ||= \`Post name \${++counter}\`
-  attrs.title ||= \`Post title \${counter}\`
-  attrs.body ||= \`Post body \${counter}\`
-  attrs.type ||= 'WeeklyPost'
+  attrs.name ??= \`Post name \${++counter}\`
+  attrs.title ??= \`Post title \${counter}\`
+  attrs.body ??= \`Post body \${counter}\`
+  attrs.type ??= 'WeeklyPost'
   return await Post.create(attrs)
 }
 `
@@ -100,8 +100,8 @@ import createUser from './UserFactory.js'
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.user ||= await createUser()
-  attrs.name ||= \`Post name \${++counter}\`
+  attrs.user ??= await createUser()
+  attrs.name ??= \`Post name \${++counter}\`
   return await Post.create(attrs)
 }
 `
@@ -123,8 +123,8 @@ import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationF
 let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
-  attrs.myNestedDoubleNestedOrganization ||= await createMyNestedDoubleNestedOrganization()
-  attrs.name ||= \`My/Nested/User name \${++counter}\`
+  attrs.myNestedDoubleNestedOrganization ??= await createMyNestedDoubleNestedOrganization()
+  attrs.name ??= \`My/Nested/User name \${++counter}\`
   return await MyNestedUser.create(attrs)
 }
 `

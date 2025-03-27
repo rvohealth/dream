@@ -41,7 +41,7 @@ export default function generateFactoryContent({
         belongsToTypedNames.push(`${associationName}: ${associationModelName}`)
         additionalImports.push(associationFactoryImportStatement)
         associationCreationStatements.push(
-          `attrs.${associationName} ||= await create${associationModelName}()`
+          `attrs.${associationName} ??= await create${associationModelName}()`
         )
         break
 
@@ -49,14 +49,14 @@ export default function generateFactoryContent({
       case 'text':
       case 'citext':
         stringAttributes.push(
-          `attrs.${camelize(attributeName)} ||= \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\``
+          `attrs.${camelize(attributeName)} ??= \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\``
         )
         firstStringAttr = false
         break
 
       case 'enum':
         stringAttributes.push(
-          `attrs.${camelize(attributeName)} ||= '${(descriptors[descriptors.length - 1] || '<tbd>').split(',')[0]}'`
+          `attrs.${camelize(attributeName)} ??= '${(descriptors[descriptors.length - 1] || '<tbd>').split(',')[0]}'`
         )
         break
 
