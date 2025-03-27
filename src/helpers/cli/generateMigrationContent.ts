@@ -4,9 +4,14 @@ import { PrimaryKeyType } from '../../types/dream.js'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
 import snakeify from '../snakeify.js'
 
+const COLUMNS_TO_INDEX = ['type']
+const NOT_NULL_COLUMNS = ['type']
+
 interface ColumnDefsAndDrops {
   columnDefs: string[]
   columnDrops: string[]
+  indexDefs: string[]
+  indexDrops: string[]
 }
 
 export default function generateMigrationContent({
@@ -22,9 +27,10 @@ export default function generateMigrationContent({
 } = {}) {
   const altering = createOrAlter === 'alter'
   let requireCitextExtension = false
-  const { columnDefs, columnDrops } = columnsWithTypes.reduce(
+
+  const { columnDefs, columnDrops, indexDefs, indexDrops } = columnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attribute: string) => {
-      const { columnDefs, columnDrops } = acc
+      const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
       const [nonStandardAttributeName, attributeType, ...descriptors] = attribute.split(':')
       let attributeName = snakeify(nonStandardAttributeName)
 
@@ -67,9 +73,21 @@ export default function generateMigrationContent({
 
       columnDrops.push(`.dropColumn('${attributeName}')`)
 
+      if (COLUMNS_TO_INDEX.includes(attributeName)) {
+        const indexName = `${table}_${attributeName}`
+
+        indexDefs.push(`await db.schema
+    .createIndex('${indexName}')
+    .on('${table}')
+    .column('${attributeName}')
+    .execute()`)
+
+        indexDrops.push(`await db.schema.dropIndex('${indexName}').execute()`)
+      }
+
       return acc
     },
-    { columnDefs: [], columnDrops: [] } as ColumnDefsAndDrops
+    { columnDefs: [], columnDrops: [], indexDefs: [], indexDrops: [] } as ColumnDefsAndDrops
   )
 
   if (!table) {
@@ -93,9 +111,12 @@ export async function down(db: Kysely<any>): Promise<void> {
   const dreamImports: string[] = []
   if (requireCitextExtension) dreamImports.push('DreamMigrationHelpers')
 
-  const newline = '\n    '
-  const columnDefLines = columnDefs.length ? newline + columnDefs.join(newline) : ''
-  const columnDropLines = columnDrops.length ? newline + columnDrops.join(newline) + newline : ''
+  const newlineIndent = '\n  '
+  const newlineDoubleIndent = '\n    '
+  const columnDefLines = columnDefs.length ? newlineDoubleIndent + columnDefs.join(newlineDoubleIndent) : ''
+  const columnDropLines = columnDrops.length
+    ? newlineDoubleIndent + columnDrops.join(newlineDoubleIndent) + newlineDoubleIndent
+    : ''
 
   return `\
 ${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvoh/dream'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
@@ -104,23 +125,23 @@ ${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvoh/dream
 export async function up(db: Kysely<any>): Promise<void> {
 ${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
     .${altering ? 'alterTable' : 'createTable'}('${table}')${
-      altering ? '' : newline + generateIdStr({ primaryKeyType })
+      altering ? '' : newlineDoubleIndent + generateIdStr({ primaryKeyType })
     }${columnDefLines}${
       altering
         ? ''
-        : newline +
+        : newlineDoubleIndent +
           ".addColumn('created_at', 'timestamp', col => col.notNull())" +
-          newline +
+          newlineDoubleIndent +
           ".addColumn('updated_at', 'timestamp', col => col.notNull())"
     }
-    .execute()
+    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(newlineDoubleIndent)}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  ${
+  ${indexDrops.join(newlineIndent)}${indexDrops.length ? newlineIndent : ''}${
     altering
-      ? `await db.schema${newline}.alterTable('${table}')${columnDropLines}.execute()`
+      ? `await db.schema${newlineDoubleIndent}.alterTable('${table}')${columnDropLines}.execute()`
       : `await db.schema.dropTable('${table}').execute()`
   }${generateEnumDropStatements(columnsWithTypes)}
 }\
@@ -182,7 +203,9 @@ function generateBooleanStr(attributeName: string) {
 
 function generateEnumStr(attribute: string) {
   const computedAttributeType = enumAttributeType(attribute)
-  return `.addColumn('${attribute.split(':')[0]}', ${computedAttributeType})`
+  const attributeName = attribute.split(':')[0]
+  const notNull = NOT_NULL_COLUMNS.includes(attributeName)
+  return `.addColumn('${attributeName}', ${computedAttributeType}${notNull ? ', col => col.notNull()' : ''})`
 }
 
 function generateDecimalStr(attribute: string) {
@@ -201,9 +224,7 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
   const hasExtraValues = descriptors.includes('primary') || providedDefault
   if (hasExtraValues) returnStr += ', col => col'
 
-  if (descriptors.includes('primary')) returnStr += `.defaultTo('${providedDefault}')`
-  if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
-  // TODO: handle index
+  if (descriptors.includes('primary') || providedDefault) returnStr += `.defaultTo('${providedDefault}')`
 
   return `${returnStr}${hasExtraValues ? '))' : ')'}`
 }

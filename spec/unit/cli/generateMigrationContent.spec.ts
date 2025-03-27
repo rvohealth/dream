@@ -315,6 +315,54 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
+    context('"type" column', () => {
+      it('is non-nullable, and includes index', () => {
+        const res = generateMigrationContent({
+          table: 'balloons',
+          columnsWithTypes: ['type:enum:balloon_types:Mylar,Latex'],
+          primaryKeyType: 'bigserial',
+        })
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createType('balloon_types_enum')
+    .asEnum([
+      'Mylar',
+      'Latex'
+    ])
+    .execute()
+
+  await db.schema
+    .createTable('balloons')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('type', sql\`balloon_types_enum\`, col => col.notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('balloons_type')
+    .on('balloons')
+    .column('type')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('balloons_type').execute()
+  await db.schema.dropTable('balloons').execute()
+
+  await db.schema.dropType('balloon_types_enum').execute()
+}\
+`
+        )
+      })
+    })
+
     context('belongs_to attribute', () => {
       it('generates a kysely model with the belongsTo association', () => {
         const res = generateMigrationContent({
