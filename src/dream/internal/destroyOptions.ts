@@ -16,24 +16,24 @@ export interface DestroyOptions<DreamInstance extends Dream> {
    * If true, bypasses all default scopes when destroying the instance.
    * Defaults to false.
    */
-  bypassAllDefaultScopes?: boolean
+  bypassAllDefaultScopes?: boolean | undefined
 
   /**
    * An array of default scope names to bypass when destroying the instance.
    * Defaults to an empty array.
    */
-  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
+  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[] | undefined
 
   /**
    * If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true.
    */
-  cascade?: boolean
+  cascade?: boolean | undefined
 
   /**
    * If true, skips applying model hooks during the destroy operation.
    * Defaults to false.
    */
-  skipHooks?: boolean
+  skipHooks?: boolean | undefined
 }
 
 function baseDestroyOptions<DreamInstance extends Dream>({

@@ -430,11 +430,11 @@ export interface SimilarityBuilderOpts<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['schema'] = DreamInstance['schema'],
 > {
-  where?: WhereStatement<DB, Schema, any>[]
-  whereNot?: WhereStatement<DB, Schema, any>[]
-  joinOnStatements?: RelaxedJoinOnStatement<DB, Schema>
+  where?: WhereStatement<DB, Schema, any>[] | undefined
+  whereNot?: WhereStatement<DB, Schema, any>[] | undefined
+  joinOnStatements?: RelaxedJoinOnStatement<DB, Schema> | undefined
   transaction?: DreamTransaction<Dream> | null | undefined
-  connection?: DbConnectionType
+  connection?: DbConnectionType | undefined
 }
 
 export const SIMILARITY_TYPES = ['where', 'on'] as const

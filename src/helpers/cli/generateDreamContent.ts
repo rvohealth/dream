@@ -15,7 +15,7 @@ export default function generateDreamContent({
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
-  fullyQualifiedParentName?: string
+  fullyQualifiedParentName?: string | undefined
   serializer: boolean
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)

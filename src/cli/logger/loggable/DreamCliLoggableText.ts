@@ -15,11 +15,11 @@ export default class DreamCliLoggableText extends DreamCliLoggable {
       logPrefixColor,
       logPrefixBgColor,
     }: {
-      logPrefix?: string
-      color?: DreamCliForegroundColor
-      bgColor?: DreamCliBgColor
-      logPrefixColor?: DreamCliForegroundColor
-      logPrefixBgColor?: DreamCliBgColor
+      logPrefix?: string | undefined
+      color?: DreamCliForegroundColor | undefined
+      bgColor?: DreamCliBgColor | undefined
+      logPrefixColor?: DreamCliForegroundColor | undefined
+      logPrefixBgColor?: DreamCliBgColor | undefined
     }
   ) {
     super({ logPrefix })

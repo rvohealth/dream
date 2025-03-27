@@ -11,7 +11,7 @@ export default async function positionIsInvalid({
   query: Query<Dream>
   dream: Dream
   position: number | null | undefined
-  scope?: string | string[]
+  scope?: string | string[] | undefined
 }) {
   const totalRecordsQuery = applySortableScopeToQuery(query, dream, scope)
 

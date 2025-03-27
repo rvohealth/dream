@@ -12,8 +12,8 @@ export default function generateSerializerContent({
   fullyQualifiedParentName,
 }: {
   fullyQualifiedModelName: string
-  columnsWithTypes?: string[]
-  fullyQualifiedParentName?: string
+  columnsWithTypes?: string[] | undefined
+  fullyQualifiedParentName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []

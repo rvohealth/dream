@@ -11,9 +11,9 @@ export default class DreamCliLoggable {
     logPrefixColor,
     logPrefixBgColor,
   }: {
-    logPrefix?: string
-    logPrefixColor?: DreamCliForegroundColor
-    logPrefixBgColor?: DreamCliBgColor
+    logPrefix?: string | undefined
+    logPrefixColor?: DreamCliForegroundColor | undefined
+    logPrefixBgColor?: DreamCliBgColor | undefined
   }) {
     this.logPrefix = logPrefix
     this.logPrefixColor = logPrefixColor

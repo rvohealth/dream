@@ -395,8 +395,8 @@ export default class Query<
       bypassAllDefaultScopesExceptOnAssociations = false,
       defaultScopesToBypassExceptOnAssociations = [],
     }: {
-      bypassAllDefaultScopesExceptOnAssociations?: boolean
-      defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance>[]
+      bypassAllDefaultScopesExceptOnAssociations?: boolean | undefined
+      defaultScopesToBypassExceptOnAssociations?: AllDefaultScopeNames<DreamInstance>[] | undefined
     } = {}
   ): Query<InstanceType<T>, DefaultQueryTypeOptions<DreamInstance>> {
     const associationQuery = dreamClass.query().clone({
@@ -2125,7 +2125,10 @@ export default class Query<
   public async destroy({
     skipHooks,
     cascade,
-  }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
+  }: {
+    skipHooks?: boolean | undefined
+    cascade?: boolean | undefined
+  } = {}): Promise<number> {
     let counter = 0
 
     const options = {
@@ -3869,31 +3872,31 @@ export interface QueryOpts<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   PassthroughColumns extends PassthroughColumnNames<DreamInstance> = PassthroughColumnNames<DreamInstance>,
 > {
-  baseSqlAlias?: TableOrAssociationName<Schema>
-  baseSelectQuery?: Query<any, any> | null
-  passthroughOnStatement?: PassthroughOnClause<PassthroughColumns> | null
-  where?: readonly WhereStatement<DB, Schema, any>[] | null
-  whereNot?: readonly WhereStatement<DB, Schema, any>[] | null
-  limit?: LimitStatement | null
-  offset?: OffsetStatement | null
-  or?: WhereStatement<DB, Schema, any>[][] | null
-  order?: OrderQueryStatement<ColumnType>[] | null
-  loadFromJoins?: boolean
-  preloadStatements?: RelaxedPreloadStatement
-  preloadOnStatements?: RelaxedPreloadOnStatement<DB, Schema>
-  distinctColumn?: ColumnType | null
-  innerJoinDreamClasses?: readonly (typeof Dream)[]
-  innerJoinStatements?: RelaxedJoinStatement
-  innerJoinOnStatements?: RelaxedJoinOnStatement<DB, Schema>
-  leftJoinStatements?: RelaxedJoinStatement
-  leftJoinOnStatements?: RelaxedJoinOnStatement<DB, Schema>
-  bypassAllDefaultScopes?: boolean
-  bypassAllDefaultScopesExceptOnAssociations?: boolean
-  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
-  defaultScopesToBypassExceptOnAssociations?: DefaultScopeName<DreamInstance>[]
+  baseSqlAlias?: TableOrAssociationName<Schema> | undefined
+  baseSelectQuery?: Query<any, any> | null | undefined
+  passthroughOnStatement?: PassthroughOnClause<PassthroughColumns> | null | undefined
+  where?: readonly WhereStatement<DB, Schema, any>[] | null | undefined
+  whereNot?: readonly WhereStatement<DB, Schema, any>[] | null | undefined
+  limit?: LimitStatement | null | undefined
+  offset?: OffsetStatement | null | undefined
+  or?: WhereStatement<DB, Schema, any>[][] | null | undefined
+  order?: OrderQueryStatement<ColumnType>[] | null | undefined
+  loadFromJoins?: boolean | undefined
+  preloadStatements?: RelaxedPreloadStatement | undefined
+  preloadOnStatements?: RelaxedPreloadOnStatement<DB, Schema> | undefined
+  distinctColumn?: ColumnType | null | undefined
+  innerJoinDreamClasses?: readonly (typeof Dream)[] | undefined
+  innerJoinStatements?: RelaxedJoinStatement | undefined
+  innerJoinOnStatements?: RelaxedJoinOnStatement<DB, Schema> | undefined
+  leftJoinStatements?: RelaxedJoinStatement | undefined
+  leftJoinOnStatements?: RelaxedJoinOnStatement<DB, Schema> | undefined
+  bypassAllDefaultScopes?: boolean | undefined
+  bypassAllDefaultScopesExceptOnAssociations?: boolean | undefined
+  defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[] | undefined
+  defaultScopesToBypassExceptOnAssociations?: DefaultScopeName<DreamInstance>[] | undefined
   transaction?: DreamTransaction<Dream> | null | undefined
-  connection?: DbConnectionType
-  shouldReallyDestroy?: boolean
+  connection?: DbConnectionType | undefined
+  shouldReallyDestroy?: boolean | undefined
 }
 
 function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceName: string) {

@@ -3754,7 +3754,7 @@ export default class Dream {
    * @returns void
    */
   public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<void> {
-    await saveDream(this, null, { skipHooks })
+    await saveDream(this, null, skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -3802,7 +3802,7 @@ export default class Dream {
   ): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
-    await this.save({ skipHooks })
+    await this.save(skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -3834,7 +3834,7 @@ export default class Dream {
   ): Promise<void> {
     // use #setAttributes to bypass any custom-defined setters
     this.setAttributes(attributes)
-    await this.save({ skipHooks })
+    await this.save(skipHooks ? { skipHooks } : undefined)
   }
 
   /**

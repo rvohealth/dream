@@ -1,7 +1,7 @@
 export interface DreamCliLoggerLogOpts {
-  logPrefix?: string
-  logPrefixColor?: DreamCliForegroundColor
-  logPrefixBgColor?: DreamCliBgColor
+  logPrefix?: string | undefined
+  logPrefixColor?: DreamCliForegroundColor | undefined
+  logPrefixBgColor?: DreamCliBgColor | undefined
 }
 
 export type DreamCliColor = DreamCliForegroundColor | DreamCliBgColor

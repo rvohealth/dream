@@ -22,8 +22,8 @@ export interface HookStatement {
   type: HookType
   className: string
   method: string
-  ifChanging?: string[]
-  ifChanged?: string[]
+  ifChanging?: string[] | undefined
+  ifChanged?: string[] | undefined
 }
 
 export interface BeforeHookOpts<T extends Dream | null = null> {

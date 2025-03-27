@@ -8,7 +8,7 @@ import { DreamConstructorType, SqlCommandType } from '../types/dream.js'
 export default class ConnectedToDB<DreamInstance extends Dream> {
   protected readonly dreamClass: DreamConstructorType<DreamInstance>
   protected dreamTransaction: DreamTransaction<Dream> | null = null
-  protected connectionOverride?: DbConnectionType
+  protected connectionOverride: DbConnectionType | undefined
 
   /**
    * @internal
@@ -58,6 +58,6 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
 
 export interface ConnectedToDBOpts {
   transaction?: DreamTransaction<Dream> | null | undefined
-  connection?: DbConnectionType
-  innerJoinDreamClasses?: readonly (typeof Dream)[]
+  connection?: DbConnectionType | undefined
+  innerJoinDreamClasses?: readonly (typeof Dream)[] | undefined
 }

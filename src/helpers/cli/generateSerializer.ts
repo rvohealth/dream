@@ -11,7 +11,7 @@ export default async function generateSerializer({
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
-  fullyQualifiedParentName?: string
+  fullyQualifiedParentName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 

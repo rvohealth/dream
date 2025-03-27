@@ -325,7 +325,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<void> {
     this.dreamInstance.assignAttributes(attributes)
-    await saveDream(this.dreamInstance, this.dreamTransaction, { skipHooks })
+    await saveDream(this.dreamInstance, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -358,7 +358,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<void> {
     this.dreamInstance.setAttributes(attributes)
-    await saveDream(this.dreamInstance, this.dreamTransaction, { skipHooks })
+    await saveDream(this.dreamInstance, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -418,7 +418,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<void> {
-    await saveDream(this.dreamInstance, this.dreamTransaction, { skipHooks })
+    await saveDream(this.dreamInstance, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
   }
 
   ///////////////////

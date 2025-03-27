@@ -20,10 +20,10 @@ export default function generateMigrationContent({
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
 }: {
-  table?: string
-  columnsWithTypes?: string[]
-  primaryKeyType?: PrimaryKeyType
-  createOrAlter?: 'create' | 'alter'
+  table?: string | undefined
+  columnsWithTypes?: string[] | undefined
+  primaryKeyType?: PrimaryKeyType | undefined
+  createOrAlter?: 'create' | 'alter' | undefined
 } = {}) {
   const altering = createOrAlter === 'alter'
   let requireCitextExtension = false

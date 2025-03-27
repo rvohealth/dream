@@ -16,8 +16,8 @@ export default async function afterUpdateSortable({
   positionField: string
   dream: Dream
   query: Query<Dream>
-  txn?: DreamTransaction<any>
-  scope?: string | string[]
+  txn?: DreamTransaction<any> | undefined
+  scope?: string | string[] | undefined
 }) {
   const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)

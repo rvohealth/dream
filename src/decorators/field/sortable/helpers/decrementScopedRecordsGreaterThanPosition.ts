@@ -16,7 +16,7 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
     dream: Dream
     positionField: string
     query: Query<Dream>
-    scope?: string | string[]
+    scope?: string | string[] | undefined
   }
 ) {
   let kyselyQuery = query

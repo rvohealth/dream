@@ -3,7 +3,13 @@ import { DreamCliBgColor, DreamCliForegroundColor } from '../../../types/logger.
 
 export default function colorize(
   text: string,
-  { color, bgColor }: { color?: DreamCliForegroundColor; bgColor?: DreamCliBgColor }
+  {
+    color,
+    bgColor,
+  }: {
+    color?: DreamCliForegroundColor | undefined
+    bgColor?: DreamCliBgColor | undefined
+  }
 ) {
   const foregroundApplied = color ? c[color](text) : text
   return bgColor ? c[bgColor](foregroundApplied) : foregroundApplied

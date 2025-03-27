@@ -17,7 +17,7 @@ export default async function generateDream({
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   options: { serializer: boolean }
-  fullyQualifiedParentName?: string
+  fullyQualifiedParentName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 

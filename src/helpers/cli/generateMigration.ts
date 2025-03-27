@@ -19,8 +19,8 @@ export default async function generateMigration({
 }: {
   migrationName: string
   columnsWithTypes: string[]
-  fullyQualifiedModelName?: string
-  fullyQualifiedParentName?: string
+  fullyQualifiedModelName?: string | undefined
+  fullyQualifiedParentName?: string | undefined
 }) {
   const { relFilePath, absFilePath } = dreamFileAndDirPaths(
     path.join(dreamPath('db'), 'migrations'),

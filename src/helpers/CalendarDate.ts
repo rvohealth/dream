@@ -36,7 +36,7 @@ export default class CalendarDate {
   }
 
   public static fromJSDate(javascriptDate: Date, { zone }: { zone?: string | Zone } = {}): CalendarDate {
-    return new CalendarDate(DateTime.fromJSDate(javascriptDate, { zone }))
+    return new CalendarDate(DateTime.fromJSDate(javascriptDate, zone ? { zone } : undefined))
   }
 
   public static newInvalidDate(): CalendarDate {
