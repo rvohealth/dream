@@ -32,9 +32,11 @@ export default function generateMigrationContent({
     (acc: ColumnDefsAndDrops, attribute: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
       const [nonStandardAttributeName, attributeType, ...descriptors] = attribute.split(':')
-      let attributeName = snakeify(nonStandardAttributeName)
 
-      if (['has_one', 'has_many'].includes(attributeType)) return acc
+      let attributeName = snakeify(nonStandardAttributeName)
+      if (attributeName === undefined) return acc
+
+      if (attributeType !== undefined && ['has_one', 'has_many'].includes(attributeType)) return acc
 
       if (attributeType === 'citext') requireCitextExtension = true
 
@@ -67,7 +69,9 @@ export default function generateMigrationContent({
           break
 
         default:
-          columnDefs.push(generateColumnStr(attributeName, coercedAttributeType, descriptors))
+          if (coercedAttributeType !== undefined) {
+            columnDefs.push(generateColumnStr(attributeName, coercedAttributeType, descriptors))
+          }
           break
       }
 
@@ -175,7 +179,9 @@ function generateEnumStatements(columnsWithTypes: string[]) {
   const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
   const finalStatements = enumStatements.map(statement => {
     const enumName = statement.split(':')[2]
-    const columnsWithTypes = statement.split(':')[3].split(/,\s{0,}/)
+    const columnsWithTypesString = statement.split(':')[3]
+    if (columnsWithTypesString === undefined) return ''
+    const columnsWithTypes = columnsWithTypesString.split(/,\s{0,}/)
     return `  await db.schema
     .createType('${enumName}_enum')
     .asEnum([
@@ -204,6 +210,7 @@ function generateBooleanStr(attributeName: string) {
 function generateEnumStr(attribute: string) {
   const computedAttributeType = enumAttributeType(attribute)
   const attributeName = attribute.split(':')[0]
+  if (attributeName === undefined) return ''
   const notNull = NOT_NULL_COLUMNS.includes(attributeName)
   return `.addColumn('${attributeName}', ${computedAttributeType}${notNull ? ', col => col.notNull()' : ''})`
 }

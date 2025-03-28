@@ -14,17 +14,19 @@ export default async function beforeSortableSave({
   positionField: string
   dream: Dream
   query: Query<Dream>
-  scope?: string | string[] | undefined
+  scope: string | string[] | undefined
 }) {
   const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)
   const dreamAsAny = dream as any
 
-  const changingScope = scopeArray(scope).filter(scopeField =>
-    dream['getAssociationMetadata'](scopeField)
-      ? dream.willSaveChangeToAttribute(dream['getAssociationMetadata'](scopeField).foreignKey())
+  const changingScope = scopeArray(scope).filter(scopeField => {
+    const association = dream['getAssociationMetadata'](scopeField)
+
+    return association
+      ? dream.willSaveChangeToAttribute(association.foreignKey())
       : dream.willSaveChangeToAttribute(scopeField as any)
-  ).length
+  }).length
 
   if (!dream.willSaveChangeToAttribute(positionField) && !changingScope) return
 

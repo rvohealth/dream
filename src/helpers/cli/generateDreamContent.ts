@@ -38,6 +38,7 @@ export default function generateDreamContent({
 
   const attributeStatements = columnsWithTypes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+    if (attributeName === undefined) return ''
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
     const associationImportStatement = importStatementForModel(

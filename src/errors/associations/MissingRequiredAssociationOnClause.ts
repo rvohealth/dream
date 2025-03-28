@@ -4,7 +4,7 @@ import { HasOneStatement } from '../../types/associations/hasOne.js'
 export default class MissingRequiredAssociationOnClause extends Error {
   constructor(
     private association: HasManyStatement<any, any, any, any> | HasOneStatement<any, any, any, any>,
-    private column: string
+    private column: string | undefined
   ) {
     super()
   }

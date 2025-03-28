@@ -1,6 +1,5 @@
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
-import pascalize from '../pascalize.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
 import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
@@ -101,6 +100,8 @@ export default class ${defaultSerialzerClassName}${dataTypeCapture} extends ${de
 ${columnsWithTypes
   .map(attr => {
     const [name, type] = attr.split(':')
+    if (name === undefined) return ''
+
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
     const associatedModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
     const propertyName = camelize(associatedModelName)
@@ -113,7 +114,7 @@ ${columnsWithTypes
 
       default:
         return `  @Attribute(${modelClassName}${attributeOptionsSpecifier(type, attr)})
-  public ${propertyName}: ${jsType(type, attr, propertyName, modelClassName)}`
+  public ${propertyName}: ${`DreamColumn<${modelClassName}, '${propertyName}'>`}`
     }
   })
   .join('\n\n  ')}
@@ -121,47 +122,13 @@ ${columnsWithTypes
 `
 }
 
-function attributeOptionsSpecifier(type: string, attr: string) {
+function attributeOptionsSpecifier(type: string | undefined, attr: string) {
   switch (type) {
     case 'decimal':
       return `, { precision: ${attr.split(',').pop()} }`
 
     default:
       return ''
-  }
-}
-
-function jsType(
-  type: string,
-  originalAttribute: string,
-  propertyName: string,
-  modelClass: string | null = null
-) {
-  if (modelClass) return `DreamColumn<${modelClass}, '${propertyName}'>`
-
-  switch (type) {
-    case 'date':
-      return 'CalendarDate'
-
-    case 'datetime':
-      return 'DateTime'
-
-    case 'decimal':
-    case 'integer':
-    case 'number':
-      return 'number'
-
-    case 'string':
-    case 'text':
-    case 'bigint':
-    case 'uuid':
-      return 'string'
-
-    case 'enum':
-      return pascalize(originalAttribute.split(':')[2]) + 'Enum'
-
-    default:
-      return 'any'
   }
 }
 

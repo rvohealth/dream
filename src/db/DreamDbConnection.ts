@@ -53,7 +53,7 @@ export default class DreamDbConnection {
 
   public static async dropAllConnections() {
     for (const key of Object.keys(connections)) {
-      await connections[key].destroy()
+      await connections[key]?.destroy()
       delete connections[key]
     }
   }

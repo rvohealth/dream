@@ -23,10 +23,12 @@ export default function generateFactoryContent({
 
   for (const attribute of columnsWithTypes) {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+    if (attributeName === undefined) continue
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
     const associationFactoryImportStatement = `import create${associationModelName} from '${relativeDreamPath('factories', 'factories', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
     const associationName = camelize(associationModelName)
+    if (attributeName === undefined) continue
 
     if (/_type$/.test(attributeName)) continue
 

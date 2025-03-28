@@ -11,7 +11,9 @@ export default function objectPathsToArrays(obj: RelaxedJoinStatement): string[]
 
 function depthFirstSearch(obj: RelaxedJoinStatement, workingPath: string[], completePaths: string[][]) {
   return Object.keys(obj).forEach(key => {
-    if (Object.keys(obj[key]).length) {
+    const subObj = obj[key]
+
+    if (subObj && Object.keys(subObj).length) {
       depthFirstSearch(obj[key] as RelaxedJoinStatement, [...workingPath, key], completePaths)
     } else {
       completePaths.push([...workingPath, key])

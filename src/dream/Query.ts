@@ -16,6 +16,7 @@ import ConnectedToDB from '../db/ConnectedToDB.js'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
 import Dream from '../Dream.js'
+import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js'
 import CannotJoinPolymorphicBelongsToError from '../errors/associations/CannotJoinPolymorphicBelongsToError.js'
 import JoinAttemptedOnMissingAssociation from '../errors/associations/JoinAttemptedOnMissingAssociation.js'
@@ -32,6 +33,7 @@ import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequire
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
 import RecordNotFound from '../errors/RecordNotFound.js'
+import UnexpectedUndefined from '../errors/UnexpectedUndefined.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import camelize from '../helpers/camelize.js'
 import cloneDeepSafe from '../helpers/cloneDeepSafe.js'
@@ -908,7 +910,10 @@ export default class Query<
     const namesToAssociationsAndDreamClasses =
       this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
     return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
-      remap[associationName] = namesToAssociationsAndDreamClasses[associationName].dreamClass
+      const associationAndDreamClass = namesToAssociationsAndDreamClasses[associationName]
+      if (associationAndDreamClass === undefined) throw new UnexpectedUndefined()
+
+      remap[associationName] = associationAndDreamClass.dreamClass
       return remap
     }, associationsToDreamClassesMap)
   }
@@ -925,7 +930,10 @@ export default class Query<
     const namesToAssociationsAndDreamClasses =
       this.associationNamesToAssociationDataAndDreamClassesMap(associationNames)
     return Object.keys(namesToAssociationsAndDreamClasses).reduce((remap, associationName) => {
-      remap[associationName] = namesToAssociationsAndDreamClasses[associationName].association
+      const associationAndDreamClass = namesToAssociationsAndDreamClasses[associationName]
+      if (associationAndDreamClass === undefined) throw new UnexpectedUndefined()
+
+      remap[associationName] = associationAndDreamClass.association
       return remap
     }, associationsToAssociations)
   }
@@ -941,6 +949,8 @@ export default class Query<
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
       const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
       const association = dreamClass['getAssociationMetadata'](name)
+      if (association === undefined) throw new UnexpectedUndefined()
+
       const through = (association as any).through
 
       if (through) {
@@ -955,6 +965,7 @@ export default class Query<
       }
 
       const nextDreamClass = association.modelCB() as typeof Dream
+      if (alias === undefined) throw new UnexpectedUndefined()
       associationsToDreamClassesMap[alias] = { association, dreamClass: nextDreamClass }
       return nextDreamClass
     }, this.dreamClass)
@@ -969,13 +980,12 @@ export default class Query<
     dreamClass: typeof Dream,
     through: string
   ): {
-    throughAssociation:
-      | BelongsToStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
+    throughAssociation: AssociationStatement
     throughAssociationDreamClass: typeof Dream
   } {
     const throughAssociation = dreamClass['getAssociationMetadata'](through)
+    if (throughAssociation === undefined) throw new UnexpectedUndefined()
+
     const throughAssociationDreamClass = throughAssociation.modelCB() as typeof Dream
     return { throughAssociation, throughAssociationDreamClass }
   }
@@ -1023,10 +1033,9 @@ export default class Query<
   ): typeof Dream | null {
     if (!previousDreamClass) return null
 
-    const association = (previousDreamClass['associationMetadataMap']() as any)[associationName] as
-      | BelongsToStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
+    const association = (previousDreamClass['associationMetadataMap']() as any)[
+      associationName
+    ] as AssociationStatement
     if (!association) return null
 
     this.addThroughAssociatedDreamClassToInnerJoinDreamClasses(
@@ -1037,15 +1046,17 @@ export default class Query<
 
     const dreamClasses = [association.modelCB()].flat()
     dreamClasses.forEach(dreamClass => innerJoinDreamClasses.push(dreamClass))
-    return dreamClasses[0]
+
+    const dreamClass = dreamClasses[0]
+    if (dreamClass === undefined)
+      throw new AssociationDeclaredWithoutAssociatedDreamClass(previousDreamClass, association.as)
+
+    return dreamClass
   }
 
   private addThroughAssociatedDreamClassToInnerJoinDreamClasses(
     dreamClass: typeof Dream,
-    _association:
-      | BelongsToStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>,
+    _association: AssociationStatement,
     innerJoinDreamClasses: (typeof Dream)[]
   ) {
     const association = _association as
@@ -1054,14 +1065,16 @@ export default class Query<
     const throughAssociationName = association.through
     if (!throughAssociationName) return
 
-    const throughAssociation = (dreamClass['associationMetadataMap']() as any)[throughAssociationName] as
-      | BelongsToStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
+    const throughAssociation = (dreamClass['associationMetadataMap']() as any)[
+      throughAssociationName
+    ] as AssociationStatement
 
     if (!throughAssociation) return
 
     const throughDreamClass = [throughAssociation.modelCB()].flat()[0]
+    if (throughDreamClass === undefined)
+      throw new AssociationDeclaredWithoutAssociatedDreamClass(dreamClass, throughAssociation.as)
+
     innerJoinDreamClasses.push(throughDreamClass)
 
     this.addThroughAssociatedDreamClassToInnerJoinDreamClasses(
@@ -1653,9 +1666,11 @@ export default class Query<
 
     aliases.forEach((aliasOrExpression: string) => {
       const alias = extractAssociationMetadataFromAssociationName(aliasOrExpression).alias
+      if (alias === undefined) throw new UnexpectedUndefined()
 
       associationAliasToColumnAliasMap[alias] ||= {}
       const aliasedDreamClass = aliasToDreamClassesMap[alias]
+      if (aliasedDreamClass === undefined) throw new UnexpectedUndefined()
       const association = aliasToAssociationsMap[alias]
 
       const columns =
@@ -1668,13 +1683,19 @@ export default class Query<
       columns.forEach((column: string) => {
         const columnAlias = `dr${nextColumnAliasCounter++}`
         kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(column, alias)} as ${columnAlias}`)
-        associationAliasToColumnAliasMap[alias][column] = columnAlias
+        const columnAliasMap = associationAliasToColumnAliasMap[alias]
+        if (columnAliasMap === undefined) throw new UnexpectedUndefined()
+
+        columnAliasMap[column] = columnAlias
       })
 
       if (association?.type === 'HasOne' || association?.type === 'HasMany') {
         const setupPreloadData = (dbColumnName: string) => {
           const columnAlias = `dr${nextColumnAliasCounter++}`
-          associationAliasToColumnAliasMap[association.through!][dbColumnName] = columnAlias
+          const columnAliasMap = associationAliasToColumnAliasMap[association.through!]
+          if (columnAliasMap === undefined) throw new UnexpectedUndefined()
+
+          columnAliasMap[dbColumnName] = columnAlias
           kyselyQuery = kyselyQuery.select(
             `${this.namespaceColumn(dbColumnName, association.through)} as ${columnAlias}`
           )
@@ -1733,9 +1754,18 @@ export default class Query<
     leftJoinStatements: RelaxedJoinStatement
   }) {
     const dreamClass = aliasToDreamClassesMap[currentAlias]
-    const columnToColumnAliasMap = associationAliasToColumnAliasMap[currentAlias]
-    const primaryKeyValue = singleSqlResult[columnToColumnAliasMap[dreamClass.primaryKey]]
+    if (dreamClass === undefined) throw new UnexpectedUndefined()
 
+    const columnToColumnAliasMap = associationAliasToColumnAliasMap[currentAlias]
+    if (columnToColumnAliasMap === undefined) throw new UnexpectedUndefined()
+
+    const primaryKeyName = dreamClass.primaryKey
+    if (primaryKeyName === undefined) throw new UnexpectedUndefined()
+
+    const columnAlias = columnToColumnAliasMap[primaryKeyName]
+    if (columnAlias === undefined) throw new UnexpectedUndefined()
+
+    const primaryKeyValue = singleSqlResult[columnAlias]
     if (!primaryKeyValue) return null
 
     aliasToDreamIdMap[currentAlias] ||= new Map()
@@ -1743,7 +1773,9 @@ export default class Query<
     if (!aliasToDreamIdMap[currentAlias].get(primaryKeyValue)) {
       const columnValueMap = Object.keys(columnToColumnAliasMap).reduce(
         (columnNameValueMap, columnName) => {
-          columnNameValueMap[columnName] = singleSqlResult[columnToColumnAliasMap[columnName]]
+          const columnAlias = columnToColumnAliasMap[columnName]
+          if (columnAlias === undefined) throw new UnexpectedUndefined()
+          columnNameValueMap[columnName] = singleSqlResult[columnAlias]
           return columnNameValueMap
         },
         {} as Record<string, any>
@@ -1755,6 +1787,7 @@ export default class Query<
         | HasManyStatement<any, any, any, any>
       if (association && association.through && association.preloadThroughColumns) {
         const throughAssociationColumnToColumnAliasMap = associationAliasToColumnAliasMap[association.through]
+        if (throughAssociationColumnToColumnAliasMap === undefined) throw new UnexpectedUndefined()
 
         this.hydratePreloadedThroughColumns({
           association,
@@ -1764,7 +1797,7 @@ export default class Query<
         })
       }
 
-      aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)].set(primaryKeyValue, dream)
+      aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)]?.set(primaryKeyValue, dream)
     }
 
     const dream = aliasToDreamIdMap[currentAlias].get(primaryKeyValue)
@@ -1773,6 +1806,8 @@ export default class Query<
       const { name: associationName, alias } = extractAssociationMetadataFromAssociationName(nextAlias)
 
       const association = dreamClass['getAssociationMetadata'](associationName)
+      if (association === undefined) throw new UnexpectedUndefined()
+
       const associatedDream = this.fleshOutJoinLoadExecutionResults({
         currentAlias: alias,
         singleSqlResult,
@@ -1823,7 +1858,7 @@ export default class Query<
     if (isObject(association.preloadThroughColumns)) {
       const preloadMap = association.preloadThroughColumns as Record<string, string>
       columnNames = Object.keys(preloadMap).map(columnName => {
-        columnNameToPreloadedThroughColumnNameMap[columnName] = preloadMap[columnName]
+        columnNameToPreloadedThroughColumnNameMap[columnName] = preloadMap[columnName]!
         return columnName
       })
     } else if (Array.isArray(association.preloadThroughColumns)) {
@@ -1833,11 +1868,17 @@ export default class Query<
       })
     }
 
-    columnNames.forEach(
-      columnName =>
-        ((dream as any).preloadedThroughColumns[columnNameToPreloadedThroughColumnNameMap[columnName]] =
-          singleSqlResult[columnToColumnAliasMap[columnName]])
-    )
+    columnNames.forEach(columnName => {
+      const preloadedThroughColumnName = columnNameToPreloadedThroughColumnNameMap[columnName]
+      if (preloadedThroughColumnName === undefined) throw new UnexpectedUndefined()
+
+      const columnAlias = columnToColumnAliasMap[columnName]
+      if (columnAlias === undefined) {
+        throw new UnexpectedUndefined()
+      }
+
+      ;(dream as any).preloadedThroughColumns[preloadedThroughColumnName] = singleSqlResult[columnAlias]
+    })
   }
 
   /**
@@ -2349,10 +2390,7 @@ export default class Query<
    */
   private hydrateAssociation(
     dreams: Dream[],
-    association:
-      | HasManyStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-      | BelongsToStatement<any, any, any, any>,
+    association: AssociationStatement,
     preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
   ) {
     switch (association.type) {
@@ -2529,6 +2567,8 @@ export default class Query<
     const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
 
     const association = dream['getAssociationMetadata'](name)
+    if (association === undefined) throw new UnexpectedUndefined()
+
     const dreamClass = dream.constructor as typeof Dream
     const dreamClassToHydrate = association.modelCB() as typeof Dream
 
@@ -2664,6 +2704,7 @@ export default class Query<
     return Object.keys(preloadOnStatements).reduce(
       (agg, key) => {
         const value = preloadOnStatements[key]
+        if (value === undefined) throw new UnexpectedUndefined()
         // filter out plain objects, but not ops and not on/notOn/onAny statements
         // because plain objects are just the next level of nested preload
         if (
@@ -2731,20 +2772,14 @@ export default class Query<
   }: {
     query: QueryType
     dreamClass: typeof Dream
-    association:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | BelongsToStatement<any, any, any, any>
+    association: AssociationStatement
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     throughAssociations: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
     joinType: JoinTypes
   }): {
     query: QueryType
     dreamClass: typeof Dream
-    association:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | BelongsToStatement<any, any, any, any>
+    association: AssociationStatement
     throughClass?: typeof Dream | null
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
@@ -2831,10 +2866,7 @@ export default class Query<
     joinType: JoinTypes
   }): {
     query: QueryType
-    association:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | BelongsToStatement<any, any, any, any>
+    association: AssociationStatement
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
@@ -2867,7 +2899,7 @@ export default class Query<
 
     association = results.association
     const timeToApplyThroughAssociations =
-      throughAssociations.length && throughAssociations[0].source === association.as
+      throughAssociations.length && throughAssociations[0]?.source === association.as
 
     const originalPreviousAssociationTableOrAlias = previousAssociationTableOrAlias
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
@@ -3165,10 +3197,7 @@ export default class Query<
   }: {
     join: JoinBuilder<any, any>
     tableNameOrAlias: string
-    association:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | BelongsToStatement<any, any, any, any>
+    association: AssociationStatement
   }) {
     let scopesQuery = new Query<DreamInstance, QueryTypeOpts>(this.dreamInstance)
     const associationClass = association.modelCB() as typeof Dream
@@ -3253,7 +3282,7 @@ export default class Query<
       })
 
       query = results.query
-      const association = results.association as AssociationStatement
+      const association = results.association
 
       query = this.recursivelyJoin({
         query,
@@ -3667,7 +3696,11 @@ export default class Query<
   private checkForQueryViolations(this: Query<DreamInstance, QueryTypeOpts>) {
     const invalidWhereNotClauses = this.similarityStatementBuilder().whereNotStatementsWithSimilarityClauses()
     if (invalidWhereNotClauses.length) {
-      const { tableName, columnName, opsStatement } = invalidWhereNotClauses[0]
+      const invalidWhereNotClause = invalidWhereNotClauses[0]
+
+      if (invalidWhereNotClause === undefined) throw new UnexpectedUndefined()
+
+      const { tableName, columnName, opsStatement } = invalidWhereNotClause
       throw new CannotNegateSimilarityClause(tableName, columnName, opsStatement.value)
     }
   }

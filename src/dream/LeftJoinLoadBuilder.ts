@@ -1,4 +1,5 @@
 import Dream from '../Dream.js'
+import UnexpectedUndefined from '../errors/UnexpectedUndefined.js'
 import { PassthroughOnClause } from '../types/associations/shared.js'
 import { IdType, PassthroughColumnNames } from '../types/dream.js'
 import {
@@ -90,9 +91,12 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     const dreamWithLoadedAssociations = await this.query.firstOrFail()
 
     Object.keys(this.query['leftJoinStatements']).forEach(associationName => {
+      const associationMetadata = this.dream['getAssociationMetadata'](associationName)
+      if (associationMetadata === undefined) throw new UnexpectedUndefined()
+
       this.query['hydrateAssociation'](
         [this.dream],
-        this.dream['getAssociationMetadata'](associationName),
+        associationMetadata,
         this.associationToPreloadedDreamsAndWhatTheyPointTo({
           pointsToPrimaryKey: this.dream.primaryKeyValue,
           associatedModels: (dreamWithLoadedAssociations as any)[associationName] as Dream | Dream[],

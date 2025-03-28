@@ -1,5 +1,6 @@
 import Dream from '../../../Dream.js'
 import CannotCreateAssociationWithThroughContext from '../../../errors/associations/CannotCreateAssociationWithThroughContext.js'
+import UnexpectedUndefined from '../../../errors/UnexpectedUndefined.js'
 import { HasManyStatement } from '../../../types/associations/hasMany.js'
 import { DreamAssociationNames, UpdateableAssociationProperties } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
@@ -21,6 +22,7 @@ export default async function createAssociation<
   opts: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType> = {} as any
 ): Promise<NonNullable<AssociationType>> {
   const association = dream['associationMetadataMap']()[associationName as any]
+  if (association === undefined) throw new UnexpectedUndefined()
 
   if (Array.isArray(association.modelCB())) {
     throw new Error(`

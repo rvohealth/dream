@@ -1821,7 +1821,7 @@ export default class Dream {
    */
   private static belongsToAssociationForeignKeys() {
     const associationMap = this.associationMetadataMap()
-    return this.belongsToAssociationNames().map(belongsToKey => associationMap[belongsToKey].foreignKey())
+    return this.belongsToAssociationNames().map(belongsToKey => associationMap[belongsToKey]?.foreignKey())
   }
 
   /**
@@ -1839,8 +1839,8 @@ export default class Dream {
   private static polymorphicTypeColumns() {
     const associationMap = this.associationMetadataMap()
     return this.belongsToAssociationNames()
-      .filter(key => associationMap[key].polymorphic)
-      .map(belongsToKey => associationMap[belongsToKey].foreignKeyTypeField())
+      .filter(key => associationMap[key]?.polymorphic)
+      .map(belongsToKey => associationMap[belongsToKey]?.foreignKeyTypeField())
   }
 
   /**
@@ -1859,7 +1859,7 @@ export default class Dream {
    */
   private static belongsToAssociationNames() {
     const associationMap = this.associationMetadataMap()
-    return Object.keys(associationMap).filter(key => associationMap[key].type === 'BelongsTo')
+    return Object.keys(associationMap).filter(key => associationMap[key]?.type === 'BelongsTo')
   }
 
   /**
@@ -2128,7 +2128,7 @@ export default class Dream {
   public get isValid(): boolean {
     this._errors = {}
     runValidations(this)
-    return !Object.keys(this.errors).filter(key => !!this.errors[key].length).length
+    return !Object.keys(this.errors).filter(key => !!this.errors[key]?.length).length
   }
 
   /**

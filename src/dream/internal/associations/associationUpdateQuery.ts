@@ -1,4 +1,5 @@
 import Dream from '../../../Dream.js'
+import UnexpectedUndefined from '../../../errors/UnexpectedUndefined.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
 import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
@@ -28,6 +29,7 @@ export default function associationUpdateQuery<
   }
 ): AssociationQuery {
   const association = dream['associationMetadataMap']()[associationName as any]
+  if (association === undefined) throw new UnexpectedUndefined()
 
   const associationClass = association.modelCB()
   if (Array.isArray(associationClass)) {

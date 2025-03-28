@@ -1,5 +1,7 @@
 import Dream from '../../Dream.js'
 import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js'
+import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
+import { AssociationMetadataMap, AssociationStatement } from '../../types/associations/shared.js'
 import { ValidationStatement } from '../../types/validation.js'
 
 export default function checkSingleValidation(dream: Dream, validation: ValidationStatement) {
@@ -11,6 +13,9 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
   }
 
   let parsedFloat: number
+  let metadataMap: AssociationMetadataMap
+  let associationMetadata: AssociationStatement | undefined
+
   switch (validation.type) {
     case 'presence':
       return !isBlank(value)
@@ -52,7 +57,11 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
       )
 
     case 'requiredBelongsTo':
-      return !!(value || (dream as any)[dream['associationMetadataMap']()[validation.column].foreignKey()])
+      metadataMap = dream['associationMetadataMap']()
+      associationMetadata = metadataMap[validation.column]
+      if (associationMetadata === undefined) throw new UnexpectedUndefined()
+
+      return !!(value || (dream as any)[associationMetadata.foreignKey()])
 
     default:
       throw new Error(

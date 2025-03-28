@@ -4,11 +4,11 @@ export default function argAndValue(arg: string, args: string[]): [string | null
   const foundArg = argIndex === -1 ? null : args[argIndex]
   const foundValue = argIndex === -1 ? null : valueOrNull(argIndex, args)
 
-  return [foundArg, foundValue]
+  return [foundArg ?? null, foundValue]
 }
 
 function valueOrNull(argIndex: number, args: string[]) {
-  let value: string | null = args[argIndex + 1]
-  if (/--/.test(value)) value = null
+  const value: string | null | undefined = args[argIndex + 1]
+  if (value === undefined || /--/.test(value)) return null
   return value
 }

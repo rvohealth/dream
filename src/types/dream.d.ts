@@ -6,9 +6,6 @@ import CalendarDate from '../helpers/CalendarDate.ts'
 import { DateTime } from '../helpers/DateTime.ts'
 import OpsStatement from '../ops/ops-statement.ts'
 import DreamSerializer from '../serializer/index.ts'
-import { BelongsToStatement } from './associations/belongsTo.ts'
-import { HasManyStatement } from './associations/hasMany.ts'
-import { HasOneStatement } from './associations/hasOne.ts'
 import { AssociatedModelParam, OnStatementForAssociation, WhereStatement } from './associations/shared.ts'
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.ts'
@@ -386,20 +383,12 @@ export type PreloadArgumentTypeAssociatedTableNames<
 // end:preload
 
 export type AssociationNameToDreamClassMap = Record<string, typeof Dream>
-export type AssociationNameToAssociationMap = Record<
-  string,
-  | BelongsToStatement<any, any, any, any>
-  | HasOneStatement<any, any, any, any>
-  | HasManyStatement<any, any, any, any>
->
+export type AssociationNameToAssociationMap = Record<string, AssociationMetadata>
 export type AssociationNameToAssociationDataAndDreamClassMap = Record<
   string,
   {
     dreamClass: typeof Dream
-    association:
-      | BelongsToStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
+    association: AssociationMetadata
   }
 >
 

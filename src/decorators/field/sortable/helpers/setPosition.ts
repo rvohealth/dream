@@ -22,8 +22,8 @@ export default async function setPosition({
   previousPosition?: number
   positionField: string
   query: Query<Dream>
-  scope?: string | string[] | undefined
-  txn?: DreamTransaction<any> | undefined
+  scope: string | string[] | undefined
+  txn: DreamTransaction<any> | undefined
 }) {
   if (position) {
     await setPositionFromValue({
@@ -61,8 +61,8 @@ async function setPositionFromValue({
   previousPosition?: number | undefined
   positionField: string
   query: Query<Dream>
-  scope?: string | string[] | undefined
-  txn?: DreamTransaction<any> | undefined
+  scope: string | string[] | undefined
+  txn: DreamTransaction<any> | undefined
 }) {
   const newPosition = position
 
@@ -114,7 +114,7 @@ async function applyUpdates({
   previousPosition?: number | undefined
   positionField: string
   query: Query<Dream>
-  scope?: string | string[] | undefined
+  scope: string | string[] | undefined
   txn: DreamTransaction<any>
   newPosition: number
 }) {
@@ -142,9 +142,9 @@ async function setNewPosition({
   dream: Dream
   positionField: string
   query: Query<Dream>
-  scope?: string | string[] | undefined
+  scope: string | string[] | undefined
   previousPosition?: number | undefined
-  txn?: DreamTransaction<any> | undefined
+  txn: DreamTransaction<any> | undefined
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
@@ -200,7 +200,7 @@ async function updateConflictingRecords({
   previousPosition?: number | undefined
   positionField: string
   query: Query<Dream>
-  scope?: string | string[] | undefined
+  scope: string | string[] | undefined
   txn: DreamTransaction<any>
 }) {
   const newPosition = position
