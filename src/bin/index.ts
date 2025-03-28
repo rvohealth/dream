@@ -1,6 +1,7 @@
 import DreamCLI from '../cli/index.js'
 import ConnectionConfRetriever from '../db/ConnectionConfRetriever.js'
 import DreamApplication from '../dream-application/index.js'
+import EnvInternal from '../helpers/EnvInternal.js'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder.js'
 import generateDream from '../helpers/cli/generateDream.js'
 import generateMigration from '../helpers/cli/generateMigration.js'
@@ -129,7 +130,7 @@ export default class DreamBin {
     const dbConf = connectionRetriever.getConnectionConf('primary')
     const client = await loadPgClient({ useSystemDb: true })
 
-    if (process.env.DREAM_CORE_DEVELOPMENT === '1') {
+    if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
       DreamCLI.logger.logContinueProgress(
         `creating fake replica test database ${replicaTestWorkerDatabaseName}...`
