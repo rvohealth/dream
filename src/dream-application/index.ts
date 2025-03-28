@@ -419,7 +419,7 @@ export interface DreamDirectoryPaths {
 
 export interface DreamDbCredentialOptions {
   primary: SingleDbCredential
-  replica?: SingleDbCredential
+  replica?: SingleDbCredential | undefined
 }
 
 export interface SingleDbCredential {

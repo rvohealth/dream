@@ -59,8 +59,8 @@ export default async function (app: DreamApplication) {
     primary: {
       user: process.env.DB_USER!,
       password: process.env.DB_PASSWORD!,
-      host: process.env.PRIMARY_DB_HOST!,
-      name: process.env.PRIMARY_DB_NAME!,
+      host: process.env.DB_HOST!,
+      name: process.env.DB_NAME!,
       port: parseInt(process.env.DB_PORT!),
       useSsl: process.env.DB_USE_SSL === '1',
     },
