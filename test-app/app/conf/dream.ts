@@ -1,5 +1,6 @@
 import { DreamApplication } from '../../../src/index.js'
 import srcPath from '../helpers/srcPath.js'
+import AppEnv from './AppEnv.js'
 import inflections from './inflections.js'
 
 export default async function (dreamApp: DreamApplication) {
@@ -60,21 +61,23 @@ export default async function (dreamApp: DreamApplication) {
   // provides db credentials and configuration for your app.
   dreamApp.set('db', {
     primary: {
-      user: process.env.DB_USER!,
-      password: process.env.DB_PASSWORD!,
-      host: process.env.PRIMARY_DB_HOST!,
-      name: process.env.PRIMARY_DB_NAME!,
-      port: parseInt(process.env.DB_PORT!),
-      useSsl: process.env.DB_USE_SSL === '1',
+      user: AppEnv.string('DB_USER'),
+      password: AppEnv.string('DB_PASSWORD', { optional: !AppEnv.isProduction }),
+      host: AppEnv.string('DB_HOST', { optional: true }),
+      name: AppEnv.string('DB_NAME', { optional: true }),
+      port: AppEnv.integer('DB_PORT', { optional: true }),
+      useSsl: false,
     },
-    replica: {
-      user: process.env.DB_USER!,
-      password: process.env.DB_PASSWORD!,
-      host: process.env.REPLICA_DB_HOST!,
-      name: process.env.REPLICA_DB_NAME!,
-      port: parseInt(process.env.DB_PORT!),
-      useSsl: process.env.DB_USE_SSL === '1',
-    },
+    replica: AppEnv.string('REPLICA_DB_HOST', { optional: true })
+      ? {
+          user: AppEnv.string('DB_USER'),
+          password: AppEnv.string('DB_PASSWORD', { optional: !AppEnv.isProduction }),
+          host: AppEnv.string('REPLICA_DB_HOST', { optional: true }),
+          name: AppEnv.string('DB_NAME', { optional: true }),
+          port: AppEnv.integer('REPLICA_DB_PORT', { optional: true }) || AppEnv.integer('DB_PORT'),
+          useSsl: false,
+        }
+      : undefined,
   })
 
   dreamApp.on('db:log', event => {
