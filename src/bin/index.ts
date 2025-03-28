@@ -8,7 +8,6 @@ import createDb from '../helpers/db/createDb.js'
 import _dropDb from '../helpers/db/dropDb.js'
 import loadPgClient from '../helpers/db/loadPgClient.js'
 import runMigration from '../helpers/db/runMigration.js'
-import '../helpers/loadEnv.js'
 import sspawn from '../helpers/sspawn.js'
 import writeSyncFile from './helpers/sync.js'
 
