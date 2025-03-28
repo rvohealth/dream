@@ -1,5 +1,3 @@
-import '../../helpers/loadEnv.js'
-
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import DreamCLI from '../../cli/index.js'

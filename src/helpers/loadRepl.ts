@@ -1,5 +1,3 @@
-import './loadEnv.js'
-
 import DreamApplication from '../dream-application/index.js'
 import Encrypt from '../encrypt/index.js'
 import ops from '../ops/index.js'
