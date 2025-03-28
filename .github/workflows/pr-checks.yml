@@ -85,7 +85,7 @@ jobs:
         run: yarn list
 
       - run: yarn install --immutable
-      - run: APP_ROOT_PATH=$(pwd) yarn dreamcore db:migrate --skip-sync
+      - run: APP_ROOT_PATH=$(pwd) yarn dream db:migrate --skip-sync
       - run: yarn spec --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
   linting:

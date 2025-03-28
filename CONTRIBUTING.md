@@ -30,10 +30,10 @@ DB_HOST=localhost
 
 ```bash
 yarn install
-NODE_ENV=development yarn dreamcore db:create
-NODE_ENV=development yarn dreamcore db:migrate
-NODE_ENV=test yarn dreamcore db:create
-NODE_ENV=test yarn dreamcore db:migrate
+NODE_ENV=development yarn dream db:create
+NODE_ENV=development yarn dream db:migrate
+NODE_ENV=test yarn dream db:create
+NODE_ENV=test yarn dream db:migrate
 ```
 
 ## Global CLI
@@ -53,7 +53,7 @@ dream new myapp
 To test the global cli without publishing, you can run the following from within the psychic directory:
 
 ```bash
-yarn gdreamcore new myapp
+yarn gdream new myapp
 ```
 
 NOTE: doing so will create the new app in the dream folder, so once done testing remember to remove it.
