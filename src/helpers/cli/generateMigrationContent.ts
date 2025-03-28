@@ -4,8 +4,9 @@ import { PrimaryKeyType } from '../../types/dream.js'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
 import snakeify from '../snakeify.js'
 
-const COLUMNS_TO_INDEX = ['type']
-const NOT_NULL_COLUMNS = ['type']
+const STI_TYPE_COLUMN_NAME = 'type'
+const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
+const NOT_NULL_COLUMNS = [STI_TYPE_COLUMN_NAME]
 
 interface ColumnDefsAndDrops {
   columnDefs: string[]
@@ -228,12 +229,22 @@ function generateColumnStr(attributeName: string, attributeType: string, descrip
 
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
-  const hasExtraValues = descriptors.includes('primary') || providedDefault
+  const notNull = NOT_NULL_COLUMNS.includes(attributeName)
+  const hasExtraValues = providedDefault || notNull
+
   if (hasExtraValues) returnStr += ', col => col'
+  if (notNull) returnStr += '.notNull()'
+  if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
 
-  if (descriptors.includes('primary') || providedDefault) returnStr += `.defaultTo('${providedDefault}')`
+  returnStr = `${returnStr})`
 
-  return `${returnStr}${hasExtraValues ? '))' : ')'}`
+  if (attributeName === STI_TYPE_COLUMN_NAME)
+    returnStr = `// CONSIDER: when using type for STI, always use an enum
+    // Try using the enum syntax in your generator, e.g.:
+    // yarn psy g:model Balloon type:enum:balloon_type:latex,mylar
+    ${returnStr}`
+
+  return returnStr
 }
 
 function attributeTypeString(attributeType: string) {

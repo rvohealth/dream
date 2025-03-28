@@ -315,7 +315,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
-    context('"type" column', () => {
+    context('"type" enum column', () => {
       it('is non-nullable, and includes index', () => {
         const res = generateMigrationContent({
           table: 'balloons',
@@ -357,6 +357,47 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('balloons').execute()
 
   await db.schema.dropType('balloon_types_enum').execute()
+}\
+`
+        )
+      })
+    })
+
+    context('"type" string column', () => {
+      it('includes a comment suggesting use of an enum', () => {
+        const res = generateMigrationContent({
+          table: 'balloons',
+          columnsWithTypes: ['type:string'],
+          primaryKeyType: 'bigserial',
+        })
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('balloons')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    // CONSIDER: when using type for STI, always use an enum
+    // Try using the enum syntax in your generator, e.g.:
+    // yarn psy g:model Balloon type:enum:balloon_type:latex,mylar
+    .addColumn('type', 'varchar(255)', col => col.notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('balloons_type')
+    .on('balloons')
+    .column('type')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('balloons_type').execute()
+  await db.schema.dropTable('balloons').execute()
 }\
 `
         )
