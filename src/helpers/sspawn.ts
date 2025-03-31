@@ -1,8 +1,8 @@
-import { spawn } from 'child_process'
+import { spawn, SpawnOptions } from 'child_process'
 
 export default function sspawn(
   command: string,
-  opts: Record<string, unknown> & { onStdout?: (str: string) => void } = {}
+  opts: SpawnOptions & { onStdout?: (str: string) => void } = {}
 ) {
   return new Promise((accept, reject) => {
     ssspawn(command, opts).on('close', code => {
@@ -12,10 +12,7 @@ export default function sspawn(
   })
 }
 
-export function ssspawn(
-  command: string,
-  opts: Record<string, unknown> & { onStdout?: (str: string) => void } = {}
-) {
+export function ssspawn(command: string, opts: SpawnOptions & { onStdout?: (str: string) => void } = {}) {
   const proc = spawn(command, {
     // even though github security scans want to remove this,
     // it is necessary to allow the cli util to run as the current
@@ -29,7 +26,7 @@ export function ssspawn(
   // NOTE: adding this stdout spy so that
   // when this cli utility runs node commands,
   // it can properly hijack the stdout from the command
-  proc.stdout.on('data', chunk => {
+  proc.stdout?.on('data', chunk => {
     const txt = chunk?.toString()?.trim()
     if (typeof txt !== 'string' || !txt) return
 
@@ -40,7 +37,7 @@ export function ssspawn(
     }
   })
 
-  proc.stdout.on('error', err => {
+  proc.stdout?.on('error', err => {
     console.log('sspawn error!')
     console.error(err)
   })

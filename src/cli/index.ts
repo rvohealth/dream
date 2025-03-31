@@ -1,8 +1,9 @@
-import { spawn, SpawnOptions } from 'child_process'
+import { SpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApplication, { DreamApplicationInitOptions } from '../dream-application/index.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
 
 export default class DreamCLI {
@@ -218,19 +219,8 @@ export default class DreamCLI {
    * so that whatever the command is outputting is output to the
    * primary STDOUT context.
    */
-  public static async spawn(command: string, opts?: SpawnOptions) {
-    return new Promise((accept, reject) => {
-      const spawnInstance = spawn(command, {
-        stdio: 'inherit',
-        shell: true,
-        ...(opts || {}),
-      })
-
-      spawnInstance.on('close', code => {
-        if (code !== 0) reject(new Error(code?.toString()))
-        accept({})
-      })
-    })
+  public static async spawn(command: string, opts?: SpawnOptions & { onStdout?: (str: string) => void }) {
+    return await sspawn(command, opts)
   }
 
   public static get logger() {
