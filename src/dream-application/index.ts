@@ -65,6 +65,10 @@ export default class DreamApplication {
 
     await deferCb?.(dreamApp)
 
+    for (const plugin of dreamApp.plugins) {
+      await plugin(dreamApp)
+    }
+
     dreamApp.validateApplicationBuildIntegrity({
       bypassModelIntegrityCheck: opts.bypassModelIntegrityCheck || false,
     })
@@ -249,6 +253,11 @@ Try setting it to something valid, like:
     return this._inflections
   }
 
+  private _plugins: ((app: DreamApplication) => void | Promise<void>)[] = []
+  public get plugins() {
+    return this._plugins
+  }
+
   protected loadedModels: boolean = false
 
   constructor(opts?: Partial<DreamApplicationOpts>) {
@@ -302,6 +311,10 @@ Try setting it to something valid, like:
         await importServices(resourcePath, importCb)
         break
     }
+  }
+
+  public plugin(cb: (app: DreamApplication) => void | Promise<void>) {
+    this._plugins.push(cb)
   }
 
   public set<ApplyOpt extends DreamApplicationSetOption>(
