@@ -25,6 +25,38 @@ describe('Query#innerJoin with aliased associations', () => {
     expect(notMatching).toBeNull()
   })
 
+  context('with aliased associations', () => {
+    context('HasOne/HasMany association', () => {
+      it('includes on clauses when aliased', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Composition.create({ user, content: 'chalupas' })
+
+        const otherUser = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        await Composition.create({ user: otherUser, content: 'chalupaz' })
+
+        const matching = await User.query()
+          .innerJoin('compositions as c1', { on: { content: 'chalupas' } })
+          .all()
+        expect(matching).toMatchDreamModels([user])
+      })
+    })
+
+    context('BelongsTo association', () => {
+      it('includes on clauses when aliased', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user, content: 'chalupas' })
+
+        const otherUser = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        await Composition.create({ user: otherUser, content: 'chalupaz' })
+
+        const matching = await Composition.query()
+          .innerJoin('user as u', { on: { email: 'fred@frewd' } })
+          .all()
+        expect(matching).toMatchDreamModels([composition])
+      })
+    })
+  })
+
   context('within a transaction', () => {
     it('handles conflicting aliases correctly when namespaced', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
