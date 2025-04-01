@@ -30,7 +30,7 @@ export default async function runMigration({ mode = 'migrate' }: MigrationOpts =
   })
 
   if (mode === 'migrate') {
-    await migrate(migrator, migrationFolder)
+    await migrate(migrator)
   } else if (mode === 'rollback') {
     await rollback(migrator)
   }
@@ -38,16 +38,13 @@ export default async function runMigration({ mode = 'migrate' }: MigrationOpts =
   await DreamDbConnection.dropAllConnections()
 }
 
-async function migrate(migrator: Migrator, migrationFolder: string) {
-  let nextMigrationRequiringNewTransaction = await findNextMigrationRequiringNewTransaction(
-    migrator,
-    migrationFolder
-  )
+async function migrate(migrator: Migrator) {
+  let nextMigrationRequiringNewTransaction = await findNextMigrationRequiringNewTransaction(migrator)
 
   while (nextMigrationRequiringNewTransaction) {
     const migrateTo = await findMigrationBeforeNextMigrationRequiringNewTransaction(
       migrator,
-      nextMigrationRequiringNewTransaction
+      nextMigrationRequiringNewTransaction.name
     )
 
     if (migrateTo) {
@@ -60,11 +57,9 @@ async function migrate(migrator: Migrator, migrationFolder: string) {
       }
     }
 
-    nextMigrationRequiringNewTransaction = await findNextMigrationRequiringNewTransaction(
-      migrator,
-      migrationFolder,
-      { ignore: nextMigrationRequiringNewTransaction }
-    )
+    nextMigrationRequiringNewTransaction = await findNextMigrationRequiringNewTransaction(migrator, {
+      ignore: nextMigrationRequiringNewTransaction.name,
+    })
   }
 
   const { error, results } = await migrator.migrateToLatest()
@@ -90,19 +85,16 @@ async function findMigrationBeforeNextMigrationRequiringNewTransaction(
 
 async function findNextMigrationRequiringNewTransaction(
   migrator: Migrator,
-  migrationFolder: string,
   { ignore }: { ignore?: string } = {}
 ) {
-  const notYetRunMigrations = (await migrator.getMigrations())
-    .filter(migrationInfo => !migrationInfo.executedAt)
-    .map(migrationInfo => migrationInfo.name)
-    .filter(name => name !== ignore)
+  const notYetRunMigrations = (await migrator.getMigrations()).filter(
+    migrationInfo => !migrationInfo.executedAt && migrationInfo.name !== ignore
+  )
 
   for (const notYetRunMigration of notYetRunMigrations) {
-    const filepath = path.join(migrationFolder, `${notYetRunMigration}.ts`)
-    const migrationRequiresNewTransaction = (await fs.readFile(filepath)).includes(
-      'DreamMigrationHelpers.dropEnumValue'
-    )
+    const upAndDownString =
+      notYetRunMigration.migration.up.toString() + (notYetRunMigration.migration.down || '').toString()
+    const migrationRequiresNewTransaction = upAndDownString.includes('DreamMigrationHelpers.dropEnumValue')
     if (migrationRequiresNewTransaction) return notYetRunMigration
   }
 }
