@@ -2871,6 +2871,11 @@ export default class Query<
     currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
     const { name, alias } = extractAssociationMetadataFromAssociationName(currentAssociationTableOrAlias)
+    const joinOnStatement = joinOnStatements[currentAssociationTableOrAlias] as RelaxedJoinOnStatement<
+      DB,
+      Schema
+    >
+
     previousAssociationTableOrAlias = extractAssociationMetadataFromAssociationName(
       previousAssociationTableOrAlias
     ).alias
@@ -2991,11 +2996,7 @@ export default class Query<
             association,
           })
 
-          join = this.applyJoinOnStatements(
-            join,
-            joinOnStatements[currentAssociationTableOrAlias] as RelaxedJoinOnStatement<DB, Schema>,
-            currentAssociationTableOrAlias
-          )
+          join = this.applyJoinOnStatement(join, joinOnStatement, currentAssociationTableOrAlias)
 
           return join
         }
@@ -3062,11 +3063,7 @@ export default class Query<
             association,
           })
 
-          join = this.applyJoinOnStatements(
-            join,
-            joinOnStatements[currentAssociationTableOrAlias] as RelaxedJoinOnStatement<DB, Schema>,
-            currentAssociationTableOrAlias
-          )
+          join = this.applyJoinOnStatement(join, joinOnStatement, currentAssociationTableOrAlias)
 
           return join
         }
@@ -3552,7 +3549,7 @@ export default class Query<
     return { a, b, c, a2, b2, c2 }
   }
 
-  private applyJoinOnStatements<Schema extends DreamInstance['schema']>(
+  private applyJoinOnStatement<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
     joinOnStatement: JoinOnStatements<any, any, any, any> | null,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>
