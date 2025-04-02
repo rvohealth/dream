@@ -58,19 +58,4 @@ export default class DreamImporter {
 
     return serializerClasses
   }
-
-  public static async importServices(
-    pathToServices: string,
-    importCb: (path: string) => Promise<any>
-  ): Promise<[string, any][]> {
-    const servicePaths = await DreamImporter.ls(pathToServices)
-
-    const serviceClasses = (await Promise.all(
-      servicePaths.map(servicePath =>
-        importCb(servicePath).then(serviceClass => [servicePath, serviceClass as typeof Dream])
-      )
-    )) as [string, any][]
-
-    return serviceClasses
-  }
 }

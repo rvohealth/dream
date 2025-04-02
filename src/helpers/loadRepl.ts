@@ -17,7 +17,7 @@ import sortBy from './sortBy.js'
 import uncapitalize from './uncapitalize.js'
 import uniq from './uniq.js'
 
-export default function loadRepl(context: Record<string, unknown>) {
+export default async function loadRepl(context: Record<string, unknown>) {
   const dreamApp = DreamApplication.getOrFail()
 
   context.CalendarDate = CalendarDate
@@ -42,9 +42,7 @@ export default function loadRepl(context: Record<string, unknown>) {
     context[pascalizePath(globalName)] = dreamApp.models[globalName]
   }
 
-  for (const globalName of Object.keys(dreamApp.services)) {
-    if (!context[globalName]) {
-      context[pascalizePath(globalName)] = dreamApp.services[globalName]
-    }
+  for (const hook of dreamApp.specialHooks.replStart) {
+    await hook(context)
   }
 }

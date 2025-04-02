@@ -521,7 +521,7 @@ export default class Dream {
    * @internal
    *
    * Used by DreamApplication during the load process
-   * for models, services, and controllers to assign
+   * for models and serializers to assign
    * unique global names to each model based on the file
    * name of that model.
    */
