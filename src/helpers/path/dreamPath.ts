@@ -18,8 +18,6 @@ export default function (dreamPathType: DreamPaths) {
       return dreamApp.paths.factories
     case 'types':
       return dreamApp.paths.types
-    case 'services':
-      return dreamApp.paths.services
   }
 }
 

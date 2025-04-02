@@ -6,7 +6,6 @@ import inflections from './inflections.js'
 export default async function (dreamApp: DreamApplication) {
   await dreamApp.load('models', srcPath('app', 'models'), async path => (await import(path)).default)
   await dreamApp.load('serializers', srcPath('app', 'serializers'), async path => await import(path))
-  await dreamApp.load('services', srcPath('app', 'services'), async path => (await import(path)).default)
 
   dreamApp.set('encryption', {
     columns: {
@@ -52,7 +51,6 @@ export default async function (dreamApp: DreamApplication) {
     factories: 'test-app/spec/factories',
     models: 'test-app/app/models',
     serializers: 'test-app/app/serializers',
-    services: 'test-app/app/services',
     modelSpecs: 'test-app/spec/unit/models',
   })
 
@@ -99,6 +97,10 @@ export default async function (dreamApp: DreamApplication) {
         params: event.query.parameters.map(maskPII),
       })
     }
+  })
+
+  dreamApp.on('repl:start', context => {
+    context.__REPL_HOOK_TEST = true
   })
 }
 

@@ -9,6 +9,7 @@
 import pg from 'pg'
 
 import { CompiledQuery } from 'kysely'
+import { Context } from 'node:vm'
 import db from '../db/index.js'
 import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
@@ -33,7 +34,6 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
-import importServices, { getServicesOrFail, setCachedServices } from './helpers/importers/importServices.js'
 
 const pgTypes = pg.types
 
@@ -74,7 +74,6 @@ export default class DreamApplication {
     })
 
     if (!dreamApp.serializers) setCachedSerializers({})
-    if (!dreamApp.services) setCachedServices({})
 
     cacheDreamApplication(dreamApp)
 
@@ -203,6 +202,7 @@ Try setting it to something valid, like:
 
   private _specialHooks: DreamApplicationSpecialHooks = {
     dbLog: [],
+    replStart: [],
   }
   public get specialHooks() {
     return this._specialHooks
@@ -275,7 +275,6 @@ Try setting it to something valid, like:
       models: opts?.paths?.models || 'src/app/models',
       modelSpecs: opts?.paths?.modelSpecs || 'spec/unit/models',
       serializers: opts?.paths?.serializers || 'src/app/serializers',
-      services: opts?.paths?.services || 'src/app/services',
       types: opts?.paths?.types || 'src/types',
     }
   }
@@ -288,11 +287,7 @@ Try setting it to something valid, like:
     return getSerializersOrFail()
   }
 
-  public get services(): Record<string, any> {
-    return getServicesOrFail()
-  }
-
-  public async load<RT extends 'models' | 'serializers' | 'services'>(
+  public async load<RT extends 'models' | 'serializers'>(
     resourceType: RT,
     resourcePath: string,
     importCb: (path: string) => Promise<any>
@@ -305,10 +300,6 @@ Try setting it to something valid, like:
 
       case 'serializers':
         await importSerializers(resourcePath, importCb)
-        break
-
-      case 'services':
-        await importServices(resourcePath, importCb)
         break
     }
   }
@@ -386,17 +377,25 @@ Try setting it to something valid, like:
 
   public on<T extends DreamHookEventType>(
     hookEventType: T,
-    cb: T extends 'db:log' ? (event: KyselyLogEvent) => void : never
+    cb: T extends 'db:log'
+      ? (event: KyselyLogEvent) => void
+      : T extends 'repl:start'
+        ? (context: Context) => void | Promise<void>
+        : never
   ) {
     switch (hookEventType) {
       case 'db:log':
-        this._specialHooks.dbLog.push(cb)
+        this._specialHooks.dbLog.push(cb as (event: KyselyLogEvent) => void)
+        break
+
+      case 'repl:start':
+        this._specialHooks.replStart.push(cb as (context: Context) => void | Promise<void>)
         break
     }
   }
 }
 
-export type DreamHookEventType = 'db:log'
+export type DreamHookEventType = 'db:log' | 'repl:start'
 
 export interface DreamApplicationOpts {
   projectRoot: string
@@ -422,7 +421,6 @@ export type DreamApplicationSetOption =
 export interface DreamDirectoryPaths {
   models?: string
   serializers?: string
-  services?: string
   conf?: string
   db?: string
   modelSpecs?: string
@@ -463,6 +461,7 @@ interface SegmentedEncryptionOptions {
 
 export interface DreamApplicationSpecialHooks {
   dbLog: ((event: KyselyLogEvent) => void)[]
+  replStart: ((context: Context) => void | Promise<void>)[]
 }
 
 export interface DreamApplicationInitOptions {
