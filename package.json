@@ -23,12 +23,10 @@
     "dist/**/*",
     "docs/**/*"
   ],
-  "bin": "dist/esm/src/global-cli/dream.js",
   "scripts": {
     "dream": "DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
     "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
     "dreamts": "NODE_ENV=${NODE_ENV:-test} tsx ./test-app/cli/index.ts",
-    "gdream": "DREAM_CORE_DEVELOPMENT=1 tsx ./src/global-cli/dream.ts",
     "build": "echo \"building cjs...\" && rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json && echo \"building esm...\" && npx tsc -p ./tsconfig.esm.build.json && cp -r src/types/ dist/types/src/types/",
     "build:test-app": "rm -rf dist && echo \"building test app to esm...\" && npx tsc -p ./tsconfig.esm.build.test-app.json && echo \"building test app to cjs...\" && npx tsc -p ./tsconfig.cjs.build.test-app.json",
     "spec": "DREAM_CORE_DEVELOPMENT=1 DREAM_CORE_SPEC_RUN=1 vitest",
