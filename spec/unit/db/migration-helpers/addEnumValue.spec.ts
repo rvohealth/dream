@@ -1,6 +1,6 @@
 import { Kysely, sql } from 'kysely'
 import DreamMigrationHelpers from '../../../../src/db/migration-helpers/DreamMigrationHelpers.js'
-import { db } from '../../../../src/index.js'
+import db from '../../../../test-app/db/index.js'
 
 describe('DreamMigrationHelpers.addEnumValue', () => {
   let _db: Kysely<any>

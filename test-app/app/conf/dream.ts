@@ -1,5 +1,5 @@
 import { DreamApplication } from '../../../src/index.js'
-import srcPath from '../helpers/srcPath.js'
+import srcPath from '../system/srcPath.js'
 import AppEnv from './AppEnv.js'
 import inflections from './inflections.js'
 
