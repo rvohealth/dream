@@ -14,7 +14,7 @@ describe('Dream.passthrough', () => {
     const reloadedUser = await User.passthrough({ locale: 'es-ES' })
       .preload('compositions', 'passthroughCurrentLocalizedText')
       .first()
-    expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(compositionText2)
+    expect(reloadedUser!.compositions[0]!.passthroughCurrentLocalizedText).toMatchDreamModel(compositionText2)
   })
 
   context('in a transaction', () => {
@@ -36,7 +36,7 @@ describe('Dream.passthrough', () => {
           .passthrough({ locale: 'es-ES' })
           .preload('compositions', 'passthroughCurrentLocalizedText')
           .first()
-        expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+        expect(reloadedUser!.compositions[0]!.passthroughCurrentLocalizedText).toMatchDreamModel(
           compositionText2
         )
       })
@@ -57,6 +57,6 @@ describe('Dream#passthrough', () => {
       .load('compositions', 'passthroughCurrentLocalizedText')
       .execute()
 
-    expect(reloadedUser.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(compositionText2)
+    expect(reloadedUser.compositions[0]!.passthroughCurrentLocalizedText).toMatchDreamModel(compositionText2)
   })
 })

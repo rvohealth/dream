@@ -89,8 +89,8 @@ describe('replicaSafe specific specs', () => {
       const primaryUser = await User.preload('posts').firstOrFail()
       const replicaUser = await User.preload('posts').connection('replica').firstOrFail()
 
-      expect(primaryUser.posts[0].body).toEqual('primary body')
-      expect(replicaUser.posts[0].body).toEqual('replica body')
+      expect(primaryUser.posts[0]!.body).toEqual('primary body')
+      expect(replicaUser.posts[0]!.body).toEqual('replica body')
     })
   })
 
@@ -99,8 +99,8 @@ describe('replicaSafe specific specs', () => {
       const primaryUser = await User.leftJoinPreload('posts').firstOrFail()
       const replicaUser = await User.leftJoinPreload('posts').connection('replica').firstOrFail()
 
-      expect(primaryUser.posts[0].body).toEqual('primary body')
-      expect(replicaUser.posts[0].body).toEqual('replica body')
+      expect(primaryUser.posts[0]!.body).toEqual('primary body')
+      expect(replicaUser.posts[0]!.body).toEqual('replica body')
     })
   })
 })

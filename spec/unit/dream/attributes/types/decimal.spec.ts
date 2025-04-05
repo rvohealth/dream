@@ -24,7 +24,7 @@ describe('marshalling postgres decimals from db', () => {
 
   context('when decimal value is set to undefined', () => {
     it('is null', async () => {
-      const balloon = await Mylar.create({ volume: undefined, user })
+      const balloon = await Mylar.create({ volume: undefined as any, user })
       const reloadedBalloon = await Mylar.find(balloon.id)
       expect(reloadedBalloon!.volume).toEqual(null)
     })
@@ -53,7 +53,7 @@ describe('marshalling postgres decimals from db', () => {
 
     context('when decimal value is set to undefined', () => {
       it('is undefined', () => {
-        const balloon = Mylar.new({ volume: undefined })
+        const balloon = Mylar.new({ volume: undefined as any })
         expect(balloon.volume).toBeUndefined()
       })
     })

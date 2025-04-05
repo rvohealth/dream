@@ -40,23 +40,25 @@ export default function generateSerializerContent({
 >`
   dreamSerializerTypeArgs = `<DataType, Passthrough>`
 
-  const defaultSerialzerClassName = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const defaultSerialzerClassName = serializerNameFromFullyQualifiedModelName(
+    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
   )
 
-  const summarySerialzerClassName = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')
+  const summarySerialzerClassName = serializerNameFromFullyQualifiedModelName(
+    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName),
+    'summary'
   )
 
   const defaultSerialzerExtends = isSTI
-    ? globalClassNameFromFullyQualifiedModelName(
-        serializerNameFromFullyQualifiedModelName(fullyQualifiedParentName!)
+    ? serializerNameFromFullyQualifiedModelName(
+        fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!)
       )
     : summarySerialzerClassName
 
   const summarySerialzerExtends = isSTI
-    ? globalClassNameFromFullyQualifiedModelName(
-        serializerNameFromFullyQualifiedModelName(fullyQualifiedParentName!, 'summary')
+    ? serializerNameFromFullyQualifiedModelName(
+        fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!),
+        'summary'
       )
     : 'DreamSerializer'
 
@@ -133,9 +135,13 @@ function attributeOptionsSpecifier(type: string | undefined, attr: string) {
 }
 
 function importStatementForSerializer(originModelName: string, destinationModelName: string) {
-  return `\nimport ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(destinationModelName))}, { ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(destinationModelName, 'summary'))} } from '${relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)}'`
+  return `\nimport ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(fullyQualifiedModelNameToSerializerBaseName(destinationModelName)))}, { ${globalClassNameFromFullyQualifiedModelName(serializerNameFromFullyQualifiedModelName(fullyQualifiedModelNameToSerializerBaseName(destinationModelName), 'summary'))} } from '${relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)}'`
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
   return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('serializers', 'models', originModelName, destinationModelName)}'`
+}
+
+function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {
+  return fullyQualifiedModelName.split('/').pop() ?? ''
 }

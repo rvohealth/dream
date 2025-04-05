@@ -40,8 +40,8 @@ describe('Dream.order', () => {
       const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
       const records = await User.order({ id: 'desc' }).all()
-      expect(records[0].id).toEqual(user2.id)
-      expect(records[1].id).toEqual(user1.id)
+      expect(records[0]!.id).toEqual(user2.id)
+      expect(records[1]!.id).toEqual(user1.id)
     })
   })
 
@@ -52,9 +52,9 @@ describe('Dream.order', () => {
       const user3 = await User.create({ email: 'fred2@frewd', name: 'a', password: 'howyadoin' })
 
       const records = await User.order({ name: 'asc', email: 'desc' }).all()
-      expect(records[0].id).toEqual(user3.id)
-      expect(records[1].id).toEqual(user2.id)
-      expect(records[2].id).toEqual(user1.id)
+      expect(records[0]!.id).toEqual(user3.id)
+      expect(records[1]!.id).toEqual(user2.id)
+      expect(records[2]!.id).toEqual(user1.id)
     })
   })
 })

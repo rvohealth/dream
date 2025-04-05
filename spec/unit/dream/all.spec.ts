@@ -13,8 +13,8 @@ describe('Dream.all', () => {
 
     const results = await User.all()
     expect(results.length).toEqual(2)
-    expect(results[0].id).toEqual(user1.id)
-    expect(results[1].id).toEqual(user2.id)
+    expect(results[0]!.id).toEqual(user1.id)
+    expect(results[1]!.id).toEqual(user2.id)
   })
 
   context('with specific columns to select', () => {
@@ -22,15 +22,15 @@ describe('Dream.all', () => {
       await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
       const results = await User.all({ columns: ['name'] })
-      expect(results[0].name).toEqual('Fred')
-      expect(results[0].email).toBeUndefined()
+      expect(results[0]!.name).toEqual('Fred')
+      expect(results[0]!.email).toBeUndefined()
     })
 
     it('always selects id', async () => {
       const user = await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
       const results = await User.all({ columns: ['name'] })
-      expect(results[0].id).toEqual(user.id)
+      expect(results[0]!.id).toEqual(user.id)
     })
 
     context('STI models when "type" is not explicitly listed as a column to select', () => {
@@ -38,16 +38,16 @@ describe('Dream.all', () => {
         await Latex.create({ color: 'green' })
 
         const balloons = await Balloon.all({ columns: ['color'] })
-        expect(balloons[0].type).toEqual('Latex')
-        expect(balloons[0].color).toEqual('green')
+        expect(balloons[0]!.type).toEqual('Latex')
+        expect(balloons[0]!.color).toEqual('green')
       })
 
       it('querying an STI child works', async () => {
         await Latex.create({ color: 'green' })
 
         const latexBalloons = await Latex.all({ columns: ['color'] })
-        expect(latexBalloons[0].type).toEqual('Latex')
-        expect(latexBalloons[0].color).toEqual('green')
+        expect(latexBalloons[0]!.type).toEqual('Latex')
+        expect(latexBalloons[0]!.color).toEqual('green')
       })
     })
 
@@ -56,15 +56,15 @@ describe('Dream.all', () => {
         await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
         const results = await User.leftJoinPreload('pets').all({ columns: ['id', 'name'] })
-        expect(results[0].name).toEqual('Fred')
-        expect(results[0].email).toBeUndefined()
+        expect(results[0]!.name).toEqual('Fred')
+        expect(results[0]!.email).toBeUndefined()
       })
 
       it('always selects id', async () => {
         const user = await User.create({ name: 'Fred', email: 'fred@frewd', password: 'howyadoin' })
 
         const results = await User.leftJoinPreload('pets').all({ columns: ['name'] })
-        expect(results[0].id).toEqual(user.id)
+        expect(results[0]!.id).toEqual(user.id)
       })
 
       context('STI models when "type" is not explicitly listed as a column to select', () => {
@@ -72,16 +72,16 @@ describe('Dream.all', () => {
           await Latex.create({ color: 'green' })
 
           const balloons = await Balloon.leftJoinPreload('user').all({ columns: ['color'] })
-          expect(balloons[0].type).toEqual('Latex')
-          expect(balloons[0].color).toEqual('green')
+          expect(balloons[0]!.type).toEqual('Latex')
+          expect(balloons[0]!.color).toEqual('green')
         })
 
         it('querying an STI child works', async () => {
           await Latex.create({ color: 'green' })
 
           const latexBalloons = await Latex.leftJoinPreload('user').all({ columns: ['color'] })
-          expect(latexBalloons[0].type).toEqual('Latex')
-          expect(latexBalloons[0].color).toEqual('green')
+          expect(latexBalloons[0]!.type).toEqual('Latex')
+          expect(latexBalloons[0]!.color).toEqual('green')
         })
       })
     })
@@ -116,8 +116,8 @@ describe('Dream.all', () => {
           results = await User.txn(txn).all({ columns: ['name'] })
         })
 
-        expect(results[0].name).toEqual('Fred')
-        expect(results[0].email).toBeUndefined()
+        expect(results[0]!.name).toEqual('Fred')
+        expect(results[0]!.email).toBeUndefined()
       })
     })
   })

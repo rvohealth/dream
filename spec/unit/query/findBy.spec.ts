@@ -15,7 +15,7 @@ describe('Query#findBy', () => {
 
   context('when passed undefined as a value', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().findBy({ email: undefined })).rejects.toThrowError(
+      await expect(async () => await User.query().findBy({ email: undefined as any })).rejects.toThrowError(
         CannotPassUndefinedAsAValueToAWhereClause
       )
     })

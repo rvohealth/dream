@@ -17,7 +17,7 @@ describe('Query#leftJoinPreload with aliased associations', () => {
       .firstOrFail()
 
     expect(reloaded.compositionAssets).toMatchDreamModel([compositionAsset])
-    expect(reloaded.compositions[0].compositionAssets).toMatchDreamModels([otherCompositionAsset])
+    expect(reloaded.compositions[0]!.compositionAssets).toMatchDreamModels([otherCompositionAsset])
   })
 
   context('within a transaction', () => {
@@ -40,7 +40,7 @@ describe('Query#leftJoinPreload with aliased associations', () => {
       })
 
       expect(reloaded!.compositionAssets).toMatchDreamModel([compositionAsset!])
-      expect(reloaded!.compositions[0].compositionAssets).toMatchDreamModels([otherCompositionAsset!])
+      expect(reloaded!.compositions[0]!.compositionAssets).toMatchDreamModels([otherCompositionAsset!])
     })
   })
 

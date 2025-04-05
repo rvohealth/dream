@@ -30,7 +30,7 @@ describe('Query#leftJoinPreload through', () => {
         .leftJoinPreload('balloonSpotterBalloons', 'balloon')
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
-      expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+      expect(reloaded.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
     })
 
     it('supports on-clauses', async () => {
@@ -44,7 +44,7 @@ describe('Query#leftJoinPreload through', () => {
         .leftJoinPreload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon2.id } }, 'balloon')
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
-      expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
+      expect(reloaded.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon2)
     })
 
     context('supports notOn-clauses', () => {
@@ -72,12 +72,12 @@ describe('Query#leftJoinPreload through', () => {
           on: { color: 'red' },
         })
         .firstOrFail()
-      expect(reloaded.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+      expect(reloaded.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
 
       const reloaded2 = await BalloonSpotter.query()
         .leftJoinPreload('balloonSpotterBalloons', 'balloon', { on: { color: 'blue' } })
         .firstOrFail()
-      expect(reloaded2.balloonSpotterBalloons[0].balloon).toBeNull()
+      expect(reloaded2.balloonSpotterBalloons[0]!.balloon).toBeNull()
     })
   })
 
@@ -130,7 +130,7 @@ describe('Query#leftJoinPreload through', () => {
         .leftJoinPreload('balloonSpotterBalloons', 'user')
         .firstOrFail()
       expect(reloaded2.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
-      expect(reloaded2.balloonSpotterBalloons[0].user).toMatchDreamModel(user)
+      expect(reloaded2.balloonSpotterBalloons[0]!.user).toMatchDreamModel(user)
     })
   })
 
@@ -313,7 +313,7 @@ describe('Query#leftJoinPreload through', () => {
       it('sets the association to an empty array', async () => {
         await User.create({ email: 'fred@fred', password: 'howyadoin' })
         const users = await User.query().leftJoinPreload('compositionAssets').all()
-        expect(users[0].compositionAssets).toEqual([])
+        expect(users[0]!.compositionAssets).toEqual([])
       })
     })
   })
@@ -360,7 +360,7 @@ describe('Query#leftJoinPreload through', () => {
         const reloadedUser = await User.query()
           .leftJoinPreload('recentCompositions', 'compositionAssets')
           .firstOrFail()
-        expect(reloadedUser.recentCompositions[0].compositionAssets).toMatchDreamModels([compositionAsset1])
+        expect(reloadedUser.recentCompositions[0]!.compositionAssets).toMatchDreamModels([compositionAsset1])
       })
     })
 
@@ -676,7 +676,7 @@ describe('Query#leftJoinPreload through', () => {
         .firstOrFail()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser.pets).toMatchDreamModels([pet])
-      expect(unscopedReloadedUser.pets[0].where_red).toMatchDreamModels([balloon])
+      expect(unscopedReloadedUser.pets[0]!.where_red).toMatchDreamModels([balloon])
     })
   })
 

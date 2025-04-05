@@ -13,7 +13,7 @@ describe('Dream.findBy', () => {
 
   context('when passed undefined as a value', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.findBy({ email: undefined })).rejects.toThrowError(
+      await expect(async () => await User.findBy({ email: undefined as any })).rejects.toThrowError(
         CannotPassUndefinedAsAValueToAWhereClause
       )
     })
