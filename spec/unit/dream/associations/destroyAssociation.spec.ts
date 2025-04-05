@@ -2,6 +2,7 @@ import { MockInstance } from 'vitest'
 import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation.js'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.js'
 import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks.js'
+import CannotDestroyAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
 import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime, Dream, DreamTransaction, Query } from '../../../../src/index.js'
@@ -461,6 +462,26 @@ describe('Dream#destroyAssociation', () => {
 
         expect(await user!.associationQuery('petsFromUuid').all()).toEqual([])
         expect(await Pet.all()).toMatchDreamModels([pet2])
+      })
+    })
+  })
+
+  context('performing destroyAssociation on an unpersisted model ', () => {
+    it('throws CannotDestroyAssociationOnUnpersistedDream', async () => {
+      const user = User.new()
+
+      await expect(user.destroyAssociation('pets')).rejects.toThrow(
+        CannotDestroyAssociationOnUnpersistedDream
+      )
+    })
+
+    context('in a transaction', () => {
+      it('throws CannotDestroyAssociationOnUnpersistedDream', async () => {
+        const user = User.new()
+
+        await expect(
+          ApplicationModel.transaction(async txn => await user.txn(txn).destroyAssociation('pets'))
+        ).rejects.toThrow(CannotDestroyAssociationOnUnpersistedDream)
       })
     })
   })

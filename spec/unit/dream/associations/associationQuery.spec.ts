@@ -1,3 +1,4 @@
+import CannotAssociationQueryOnUnpersistedDream from '../../../../src/errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
 import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/index.js'
@@ -457,6 +458,24 @@ describe('Dream#associationQuery', () => {
       const posts = await user.associationQuery('posts').all({ columns: ['position'] })
       expect(posts[0]!.position).toEqual(1)
       expect(posts[0]!.body).toBeUndefined()
+    })
+  })
+
+  context('performing associationQuery on an unpersisted model ', () => {
+    it('throws CannotAssociationQueryOnUnpersistedDream', () => {
+      const user = User.new()
+
+      expect(() => user.associationQuery('pets')).toThrow(CannotAssociationQueryOnUnpersistedDream)
+    })
+
+    context('in a transaction', () => {
+      it('throws CannotAssociationQueryOnUnpersistedDream', async () => {
+        const user = User.new()
+
+        await expect(
+          ApplicationModel.transaction(async txn => await user.txn(txn).associationQuery('pets').all())
+        ).rejects.toThrow(CannotAssociationQueryOnUnpersistedDream)
+      })
     })
   })
 })
