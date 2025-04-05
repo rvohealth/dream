@@ -10,7 +10,7 @@ describe('Query#whereAny', () => {
       await expect(
         async () =>
           await User.query()
-            .whereAny([{ email: undefined }, { email: 'hi' }])
+            .whereAny([{ email: undefined as any }, { email: 'hi' }])
             .all()
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })

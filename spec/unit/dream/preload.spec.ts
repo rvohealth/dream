@@ -57,7 +57,7 @@ describe('Dream.preload', () => {
       const latex = await Latex.create({ user, color: 'blue' })
 
       const users = await User.preload('balloons').all()
-      expect(users[0].balloons).toMatchDreamModels([mylar, latex])
+      expect(users[0]!.balloons).toMatchDreamModels([mylar, latex])
     })
   })
 

@@ -212,7 +212,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
             .passthrough({ locale: 'es-ES' })
             .leftJoinPreload('compositions', 'passthroughCurrentLocalizedText')
             .firstOrFail()
-          expect(reloadedUser.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+          expect(reloadedUser.compositions[0]!.passthroughCurrentLocalizedText).toMatchDreamModel(
             compositionText2
           )
         })

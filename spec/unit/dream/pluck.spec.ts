@@ -105,7 +105,7 @@ describe('Dream#pluck', () => {
       'favoriteTreats'
     )
 
-    const values = plucked[0]
+    const values = plucked[0]!
 
     expect(values[0]).toEqual('Charlie')
     expect(values[1]).toEqual(['Chuck', 'Luce'])

@@ -71,7 +71,7 @@ describe('Dream#destroyAssociation', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () => await user.destroyAssociation('pets', { on: { name: undefined } })
+        async () => await user.destroyAssociation('pets', { on: { name: undefined as any } })
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 

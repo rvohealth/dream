@@ -5,8 +5,8 @@ import User from '../../../../test-app/app/models/User.js'
 describe('Dream Scope (default variant)', () => {
   it('builds scope mapping', () => {
     const scopes = User['scopes'].default
-    expect(scopes[0].method).toEqual('hideDeleted')
-    expect(scopes[0].default).toEqual(true)
+    expect(scopes[0]!.method).toEqual('hideDeleted')
+    expect(scopes[0]!.default).toEqual(true)
   })
 
   it('exposes a method which auto-applies scope', async () => {

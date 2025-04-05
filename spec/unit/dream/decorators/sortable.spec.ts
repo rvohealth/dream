@@ -268,7 +268,7 @@ describe('@Sortable', () => {
           const post3 = await UnscopedSortableModel.create()
           const post4 = await UnscopedSortableModel.create()
 
-          await post2.update({ position: undefined })
+          await post2.update({ position: undefined as any })
           await post1.reload()
           await post2.reload()
           await post3.reload()
@@ -562,7 +562,7 @@ describe('@Sortable', () => {
           const post3 = await Post.create({ body: 'post3', user: user2 })
           const post4 = await Post.create({ body: 'post4', user })
 
-          await post2.update({ position: undefined })
+          await post2.update({ position: undefined as any })
           await post1.reload()
           await post2.reload()
           await post3.reload()

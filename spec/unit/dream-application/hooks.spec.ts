@@ -1,4 +1,4 @@
-import { DreamHookEventType } from '../../../src/dream-application.js'
+import { DreamHookEventType } from '../../../src/dream-application/index.js'
 
 describe('DreamApplication hooks', () => {
   function expectHookCalled(hookEventType: DreamHookEventType) {

@@ -80,8 +80,8 @@ describe('Dream#leftJoinLoad', () => {
         const clone = await user.leftJoinLoad('pets').execute()
         await Pet.query().update({ name: 'Snoopy' })
         const clone2 = await clone.leftJoinLoad('pets').execute()
-        expect(clone.pets[0].name).toEqual('aster')
-        expect(clone2.pets[0].name).toEqual('Snoopy')
+        expect(clone.pets[0]!.name).toEqual('aster')
+        expect(clone2.pets[0]!.name).toEqual('Snoopy')
       })
     })
 
@@ -103,7 +103,7 @@ describe('Dream#leftJoinLoad', () => {
         const clone = await user.leftJoinLoad('compositionAssets').execute()
         await CompositionAsset.query().update({ name: 'hello' })
         const clone2 = await clone.leftJoinLoad('compositionAssets').execute()
-        expect(clone2.compositionAssets[0].name).toEqual('hello')
+        expect(clone2.compositionAssets[0]!.name).toEqual('hello')
       })
     })
 
@@ -113,8 +113,8 @@ describe('Dream#leftJoinLoad', () => {
         name: 'compositionAsset X',
       })
       const clone = await user.leftJoinLoad('compositionAssets').leftJoinLoad('pets').execute()
-      expect(clone.compositionAssets[0].name).toEqual('compositionAsset X')
-      expect(clone.pets[0].name).toEqual('aster')
+      expect(clone.compositionAssets[0]!.name).toEqual('compositionAsset X')
+      expect(clone.pets[0]!.name).toEqual('aster')
     })
   })
 })

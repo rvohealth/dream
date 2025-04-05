@@ -135,7 +135,7 @@ describe('Dream#save', () => {
         await Pet.create({ species: 'cat', name: 'Aster' })
 
         const results = await Pet.all({ columns: ['species'] })
-        const pet = results[0]
+        const pet = results[0]!
         await pet.update({ species: 'dog' })
         await pet.reload()
         expect(pet.species).toEqual('dog')

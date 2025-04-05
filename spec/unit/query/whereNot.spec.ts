@@ -20,9 +20,12 @@ describe('Query#whereNot', () => {
 
   context('passing undefined as a value for a field', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().whereNot({ email: undefined }).all()).rejects.toThrowError(
-        CannotPassUndefinedAsAValueToAWhereClause
-      )
+      await expect(
+        async () =>
+          await User.query()
+            .whereNot({ email: undefined as any })
+            .all()
+      ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
   })
 

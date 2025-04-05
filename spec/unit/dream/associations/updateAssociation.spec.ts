@@ -46,7 +46,8 @@ describe('Dream#updateAssociation', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () => await user.updateAssociation('pets', { name: 'howyadoin' }, { on: { name: undefined } })
+        async () =>
+          await user.updateAssociation('pets', { name: 'howyadoin' }, { on: { name: undefined as any } })
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
