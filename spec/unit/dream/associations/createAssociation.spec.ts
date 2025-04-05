@@ -1,3 +1,4 @@
+import CannotCreateAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
 import CannotCreateAssociationWithThroughContext from '../../../../src/errors/associations/CannotCreateAssociationWithThroughContext.js'
 import { DateTime } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
@@ -183,6 +184,26 @@ describe('Dream#createAssociation', () => {
             postVisibility
           )
         })
+      })
+    })
+  })
+
+  context('performing updateAssociation on an unpersisted model ', () => {
+    it('throws CannotCreateAssociationOnUnpersistedDream', async () => {
+      const user = User.new()
+
+      await expect(user.createAssociation('pets', {})).rejects.toThrow(
+        CannotCreateAssociationOnUnpersistedDream
+      )
+    })
+
+    context('in a transaction', () => {
+      it('throws CannotCreateAssociationOnUnpersistedDream', async () => {
+        const user = User.new()
+
+        await expect(
+          ApplicationModel.transaction(async txn => await user.txn(txn).createAssociation('pets', {}))
+        ).rejects.toThrow(CannotCreateAssociationOnUnpersistedDream)
       })
     })
   })

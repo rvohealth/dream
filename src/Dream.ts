@@ -45,7 +45,11 @@ import undestroyDream from './dream/internal/undestroyDream.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
 import LoadBuilder from './dream/LoadBuilder.js'
 import Query from './dream/Query.js'
+import CannotAssociationQueryOnUnpersistedDream from './errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
+import CannotCreateAssociationOnUnpersistedDream from './errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
+import CannotDestroyAssociationOnUnpersistedDream from './errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
+import CannotUpdateAssociationOnUnpersistedDream from './errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
 import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
@@ -3125,6 +3129,8 @@ export default class Dream {
     associationName: AssociationName,
     attributes: UpdateableAssociationProperties<I, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
+    if (this.isNewRecord) throw new CannotCreateAssociationOnUnpersistedDream(this, associationName)
+
     return createAssociation(this, null, associationName, attributes)
   }
 
@@ -3182,6 +3188,8 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    if (this.isNewRecord) throw new CannotDestroyAssociationOnUnpersistedDream(this, associationName)
+
     return await destroyAssociation(this, null, associationName, {
       ...destroyOptions<I>(options as any),
       joinOnStatements: {
@@ -3254,6 +3262,8 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    if (this.isNewRecord) throw new CannotDestroyAssociationOnUnpersistedDream(this, associationName)
+
     return await destroyAssociation(this, null, associationName, {
       ...reallyDestroyOptions<I>(options as any),
       joinOnStatements: {
@@ -3390,6 +3400,8 @@ export default class Dream {
     associationName: AssociationName,
     joinOnStatements?: unknown
   ): unknown {
+    if (this.isNewRecord) throw new CannotAssociationQueryOnUnpersistedDream(this, associationName)
+
     return associationQuery(this, null, associationName, {
       joinOnStatements: joinOnStatements as any,
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
@@ -3469,6 +3481,8 @@ export default class Dream {
     attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
     updateAssociationOptions?: unknown
   ): Promise<number> {
+    if (this.isNewRecord) throw new CannotUpdateAssociationOnUnpersistedDream(this, associationName)
+
     return associationUpdateQuery(this, null, associationName, {
       joinOnStatements: {
         on: (updateAssociationOptions as any)?.on,

@@ -1,3 +1,4 @@
+import CannotUpdateAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
 import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/index.js'
@@ -304,6 +305,26 @@ describe('Dream#updateAssociation', () => {
         await unrelatedPet!.reload()
         expect(pet!.name).toEqual('aster')
         expect(unrelatedPet!.name).toEqual('chalupa joe')
+      })
+    })
+  })
+
+  context('performing updateAssociation on an unpersisted model ', () => {
+    it('throws CannotUpdateAssociationOnUnpersistedDream', async () => {
+      const user = User.new()
+
+      await expect(user.updateAssociation('pets', {})).rejects.toThrow(
+        CannotUpdateAssociationOnUnpersistedDream
+      )
+    })
+
+    context('in a transaction', () => {
+      it('throws CannotUpdateAssociationOnUnpersistedDream', async () => {
+        const user = User.new()
+
+        await expect(
+          ApplicationModel.transaction(async txn => await user.txn(txn).updateAssociation('pets', {}))
+        ).rejects.toThrow(CannotUpdateAssociationOnUnpersistedDream)
       })
     })
   })

@@ -1,4 +1,8 @@
 import Dream from '../Dream.js'
+import CannotAssociationQueryOnUnpersistedDream from '../errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
+import CannotCreateAssociationOnUnpersistedDream from '../errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
+import CannotDestroyAssociationOnUnpersistedDream from '../errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
+import CannotUpdateAssociationOnUnpersistedDream from '../errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
@@ -474,6 +478,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
   >(this: I, associationName: AssociationName, joinOnStatements?: unknown): unknown {
+    if (this.dreamInstance.isNewRecord)
+      throw new CannotAssociationQueryOnUnpersistedDream(this.dreamInstance, associationName)
+
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName, {
       joinOnStatements: joinOnStatements as any,
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
@@ -558,6 +565,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
     updateAssociationOptions: unknown
   ): Promise<number> {
+    if (this.dreamInstance.isNewRecord)
+      throw new CannotUpdateAssociationOnUnpersistedDream(this.dreamInstance, associationName)
+
     return await associationUpdateQuery(this.dreamInstance, this.dreamTransaction, associationName, {
       joinOnStatements: {
         on: (updateAssociationOptions as any)?.on,
@@ -602,6 +612,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     associationName: AssociationName,
     opts: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType> = {} as any
   ): Promise<NonNullable<AssociationType>> {
+    if (this.dreamInstance.isNewRecord)
+      throw new CannotCreateAssociationOnUnpersistedDream(this.dreamInstance, associationName)
+
     return await createAssociation(this.dreamInstance, this.dreamTransaction, associationName, opts)
   }
 
@@ -660,6 +673,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
+    if (this.dreamInstance.isNewRecord)
+      throw new CannotDestroyAssociationOnUnpersistedDream(this.dreamInstance, associationName)
+
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
       ...destroyOptions<DreamInstance>(options as any),
       joinOnStatements: {
@@ -733,6 +749,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
+    if (this.dreamInstance.isNewRecord)
+      throw new CannotDestroyAssociationOnUnpersistedDream(this.dreamInstance, associationName)
+
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
       ...reallyDestroyOptions<DreamInstance>(options as any),
       joinOnStatements: {
