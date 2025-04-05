@@ -4,8 +4,8 @@ import User from '../../../../test-app/app/models/User.js'
 describe('Dream Scope (method variant)', () => {
   it('builds scope mapping', () => {
     const scopes = User['scopes'].named
-    expect(scopes[0].method).toEqual('withFunnyName')
-    expect(scopes[0].default).toEqual(false)
+    expect(scopes[0]!.method).toEqual('withFunnyName')
+    expect(scopes[0]!.default).toEqual(false)
   })
 
   it('exposes a method which auto-applies scope', async () => {

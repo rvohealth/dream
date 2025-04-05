@@ -142,7 +142,7 @@ describe('Dream.distinct', () => {
 
           const ids = await Pet.query().innerJoin('uniqueCollars').pluck('uniqueCollars.id')
           expect(ids.length).toEqual(1)
-          expect([collar1.id, collar2.id].includes(ids[0])).toBe(true)
+          expect([collar1.id, collar2.id].includes(ids[0]!)).toBe(true)
         })
       })
 

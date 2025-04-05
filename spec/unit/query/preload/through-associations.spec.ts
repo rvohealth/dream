@@ -28,7 +28,7 @@ describe('Query#preload through', () => {
 
       const reloaded = await BalloonSpotter.query().preload('balloonSpotterBalloons', 'balloon').first()
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
-      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+      expect(reloaded!.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
     })
 
     it('supports where clauses', async () => {
@@ -42,7 +42,7 @@ describe('Query#preload through', () => {
         .preload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon2.id } }, 'balloon')
         .first()
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
-      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon2)
+      expect(reloaded!.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon2)
     })
 
     it('supports where clauses farther in', async () => {
@@ -55,12 +55,12 @@ describe('Query#preload through', () => {
           on: { color: 'red' },
         })
         .first()
-      expect(reloaded!.balloonSpotterBalloons[0].balloon).toMatchDreamModel(balloon)
+      expect(reloaded!.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
 
       const reloaded2 = await BalloonSpotter.query()
         .preload('balloonSpotterBalloons', 'balloon', { on: { color: 'blue' } })
         .first()
-      expect(reloaded2!.balloonSpotterBalloons[0].balloon).toBeNull()
+      expect(reloaded2!.balloonSpotterBalloons[0]!.balloon).toBeNull()
     })
   })
 
@@ -112,7 +112,7 @@ describe('Query#preload through', () => {
         .first()
       expect(reloaded!.balloons).toMatchDreamModels([balloon])
       expect(reloaded!.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon])
-      expect(reloaded!.balloonSpotterBalloons[0].user).toMatchDreamModel(user)
+      expect(reloaded!.balloonSpotterBalloons[0]!.user).toMatchDreamModel(user)
     })
   })
 
@@ -228,11 +228,11 @@ describe('Query#preload through', () => {
         const mylar = await Mylar.create({ color: 'red', user })
         const sandbag = await Sandbag.create({ mylar })
 
-        const reloaded = await User.query().preload('balloons', 'sandbags').order('id').first()
-        expect(reloaded!.balloons).toMatchDreamModels([latex, mylar])
-        if (reloaded!.balloons[1] instanceof Mylar)
-          expect(reloaded!.balloons[1].sandbags).toMatchDreamModels([sandbag])
-        else expect((reloaded!.balloons[0] as Mylar).sandbags).toMatchDreamModels([sandbag])
+        const reloaded = await User.query().preload('balloons', 'sandbags').order('id').firstOrFail()
+        expect(reloaded.balloons).toMatchDreamModels([latex, mylar])
+        if (reloaded.balloons[1] instanceof Mylar)
+          expect(reloaded.balloons[1].sandbags).toMatchDreamModels([sandbag])
+        else expect((reloaded.balloons[0] as Mylar).sandbags).toMatchDreamModels([sandbag])
       })
 
       context("when the query doesn't include any STI child that has the association", () => {
@@ -316,7 +316,7 @@ describe('Query#preload through', () => {
       it('sets the association to an empty array', async () => {
         await User.create({ email: 'fred@fred', password: 'howyadoin' })
         const users = await User.query().preload('compositionAssets').all()
-        expect(users[0].compositionAssets).toEqual([])
+        expect(users[0]!.compositionAssets).toEqual([])
       })
     })
   })
@@ -361,7 +361,7 @@ describe('Query#preload through', () => {
         await CompositionAsset.create({ composition: olderComposition })
 
         const reloadedUser = await User.query().preload('recentCompositions', 'compositionAssets').first()
-        expect(reloadedUser!.recentCompositions[0].compositionAssets).toMatchDreamModels([compositionAsset1])
+        expect(reloadedUser!.recentCompositions[0]!.compositionAssets).toMatchDreamModels([compositionAsset1])
       })
     })
 
@@ -658,7 +658,7 @@ describe('Query#preload through', () => {
       const unscopedReloadedUser = await User.removeAllDefaultScopes().preload('pets', 'where_red').first()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser!.pets).toMatchDreamModels([pet])
-      expect(unscopedReloadedUser!.pets[0].where_red).toMatchDreamModels([balloon])
+      expect(unscopedReloadedUser!.pets[0]!.where_red).toMatchDreamModels([balloon])
     })
   })
 

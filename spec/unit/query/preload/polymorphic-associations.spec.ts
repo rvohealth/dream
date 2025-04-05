@@ -128,7 +128,7 @@ describe('Query#preload with polymorphic associations', () => {
 
         expect(await NonNullRating.count()).toEqual(0)
         expect(reloaded.overriddenNonNullRatings[0]).toMatchDreamModel(rating)
-        expect(reloaded.overriddenNonNullRatings[0].user).toMatchDreamModel(user)
+        expect(reloaded.overriddenNonNullRatings[0]!.user).toMatchDreamModel(user)
       })
     })
   })

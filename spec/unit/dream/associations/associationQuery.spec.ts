@@ -17,7 +17,7 @@ describe('Dream#associationQuery', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () => await user.associationQuery('pets', { on: { name: undefined } }).all()
+        async () => await user.associationQuery('pets', { on: { name: undefined as any } }).all()
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
@@ -455,8 +455,8 @@ describe('Dream#associationQuery', () => {
       await Post.create({ user, body: 'Hello world', position: 1 })
 
       const posts = await user.associationQuery('posts').all({ columns: ['position'] })
-      expect(posts[0].position).toEqual(1)
-      expect(posts[0].body).toBeUndefined()
+      expect(posts[0]!.position).toEqual(1)
+      expect(posts[0]!.body).toBeUndefined()
     })
   })
 })

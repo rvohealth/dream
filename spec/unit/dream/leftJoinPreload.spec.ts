@@ -18,7 +18,7 @@ describe('Dream.leftJoinPreload', () => {
       compositionAssetId: compositionAsset.id,
     })
 
-    const reloaded = (await CompositionAssetAudit.leftJoinPreload('compositionAsset').all())[0]
+    const reloaded = (await CompositionAssetAudit.leftJoinPreload('compositionAsset').all())[0]!
     expect(reloaded.compositionAsset).toMatchDreamModel(compositionAsset)
   })
 
@@ -44,7 +44,7 @@ describe('Dream.leftJoinPreload', () => {
       await User.leftJoinPreload('compositions', { on: { content: 'goodbye' } })
         .order('users.birthdate')
         .all()
-    )[0]
+    )[0]!
     expect(reloaded.compositions).toMatchDreamModels([composition])
   })
 
@@ -75,14 +75,14 @@ describe('Dream.leftJoinPreload', () => {
       expect(await User.count()).toEqual(1)
       expect(users.length).toEqual(1)
 
-      expect(users[0].pets.length).toEqual(2)
-      expect(users[0].pets).toMatchDreamModels([pet1, pet2])
+      expect(users[0]!.pets.length).toEqual(2)
+      expect(users[0]!.pets).toMatchDreamModels([pet1, pet2])
 
-      expect(users[0].pets[0].collars.length).toEqual(2)
-      expect(users[0].pets[0].collars).toMatchDreamModels([collar1a, collar1b])
+      expect(users[0]!.pets[0]!.collars.length).toEqual(2)
+      expect(users[0]!.pets[0]!.collars).toMatchDreamModels([collar1a, collar1b])
 
-      expect(users[0].pets[1].collars.length).toEqual(2)
-      expect(users[0].pets[1].collars).toMatchDreamModels([collar2a, collar2b])
+      expect(users[0]!.pets[1]!.collars.length).toEqual(2)
+      expect(users[0]!.pets[1]!.collars).toMatchDreamModels([collar2a, collar2b])
     })
 
     context('some models without the next level', () => {
@@ -104,16 +104,16 @@ describe('Dream.leftJoinPreload', () => {
         expect(await User.count()).toEqual(2)
         expect(users.length).toEqual(2)
 
-        expect(users[0].pets.length).toEqual(2)
-        expect(users[0].pets).toMatchDreamModels([pet1, pet2])
+        expect(users[0]!.pets.length).toEqual(2)
+        expect(users[0]!.pets).toMatchDreamModels([pet1, pet2])
 
-        expect(users[0].pets[0].collars.length).toEqual(2)
-        expect(users[0].pets[0].collars).toMatchDreamModels([collar1a, collar1b])
+        expect(users[0]!.pets[0]!.collars.length).toEqual(2)
+        expect(users[0]!.pets[0]!.collars).toMatchDreamModels([collar1a, collar1b])
 
-        expect(users[0].pets[1].collars.length).toEqual(2)
-        expect(users[0].pets[1].collars).toMatchDreamModels([collar2a, collar2b])
+        expect(users[0]!.pets[1]!.collars.length).toEqual(2)
+        expect(users[0]!.pets[1]!.collars).toMatchDreamModels([collar2a, collar2b])
 
-        expect(users[1].pets.length).toEqual(0)
+        expect(users[1]!.pets.length).toEqual(0)
       })
     })
   })
@@ -132,7 +132,7 @@ describe('Dream.leftJoinPreload', () => {
 
         reloadedCompositionAssetAudit = (
           await CompositionAssetAudit.txn(txn).leftJoinPreload('compositionAsset').all()
-        )[0]
+        )[0]!
       })
 
       expect(reloadedCompositionAssetAudit!.compositionAsset).toMatchDreamModel(compositionAsset)
@@ -146,7 +146,7 @@ describe('Dream.leftJoinPreload', () => {
       const latex = await Latex.create({ user, color: 'blue' })
 
       const users = await User.leftJoinPreload('balloons').all()
-      expect(users[0].balloons).toMatchDreamModels([mylar, latex])
+      expect(users[0]!.balloons).toMatchDreamModels([mylar, latex])
     })
   })
 })

@@ -39,13 +39,13 @@ describe('Dream initialization', () => {
     context('undefined is passed', () => {
       context('the relationship is optional', () => {
         it('allows undefined to be set', () => {
-          expect(() => Pet.new({ user: undefined })).not.toThrow()
+          expect(() => Pet.new({ user: undefined as any })).not.toThrow()
         })
       })
 
       context('the relationship is required', () => {
         it('throws a targeted exception', () => {
-          expect(() => BalloonLine.new({ balloon: undefined })).toThrow(
+          expect(() => BalloonLine.new({ balloon: undefined as any })).toThrow(
             CannotPassNullOrUndefinedToRequiredBelongsTo
           )
         })

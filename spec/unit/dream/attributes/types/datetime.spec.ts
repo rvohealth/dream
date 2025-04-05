@@ -21,7 +21,7 @@ describe('marshalling postgres datetimes from db', () => {
 
   context('when date value is set to undefined', () => {
     it('is null', async () => {
-      const user = await Pet.create({ deletedAt: undefined })
+      const user = await Pet.create({ deletedAt: undefined as any })
       const reloadedPet = await Pet.find(user.id)
       expect(reloadedPet!.deletedAt).toEqual(null)
     })

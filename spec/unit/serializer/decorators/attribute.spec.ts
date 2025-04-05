@@ -140,8 +140,8 @@ describe('@Attribute', () => {
           field: 'collarCountInt',
           functional: false,
           openApiShape: expectedOpenapiShape,
-          renderAs: undefined,
-          renderOptions: undefined,
+          renderAs: undefined as any,
+          renderOptions: undefined as any,
         }
 
         expect(TestSerializer.attributeStatements).toEqual([expected])
@@ -162,7 +162,7 @@ describe('@Attribute', () => {
           field: 'volume',
           functional: false,
           openApiShape: expectedOpenapiShape,
-          renderAs: undefined,
+          renderAs: undefined as any,
           renderOptions: { precision: 2 },
         }
 

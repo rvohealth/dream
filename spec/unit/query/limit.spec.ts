@@ -11,8 +11,8 @@ describe('Query#limit', () => {
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
     const records = await User.order('id').limit(2).all()
-    expect(records[0].id).toEqual(user1.id)
-    expect(records[1].id).toEqual(user2.id)
+    expect(records[0]!.id).toEqual(user1.id)
+    expect(records[1]!.id).toEqual(user2.id)
   })
 
   context('with a where statement passed', () => {

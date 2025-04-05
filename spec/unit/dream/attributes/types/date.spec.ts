@@ -22,7 +22,7 @@ describe('marshalling postgres dates from db', () => {
 
   context('when date value is set to undefined', () => {
     it('is null', async () => {
-      const user = await User.create({ ...userOptions, birthdate: undefined })
+      const user = await User.create({ ...userOptions, birthdate: undefined as any })
       const reloadedUser = await User.find(user.id)
       expect(reloadedUser!.birthdate).toEqual(null)
     })

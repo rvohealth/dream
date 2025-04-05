@@ -33,7 +33,7 @@ describe('Dream#isDirty', () => {
 
     context('when the DateTime is a different object at the same time', () => {
       it('is false', () => {
-        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO())
+        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO()!)
         expect(user.isDirty).toBe(false)
       })
     })

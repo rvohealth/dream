@@ -8,7 +8,7 @@ describe('Dream.where', () => {
 
     const records = await User.where({ email: 'fred@frewd' }).all()
     expect(records.length).toEqual(1)
-    expect(records[0].id).toEqual(user1.id)
+    expect(records[0]!.id).toEqual(user1.id)
   })
 
   context('when encased in a transaction', () => {

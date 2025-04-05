@@ -245,7 +245,7 @@ describe('Dream#update', () => {
       it('does not update the value to null', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const pet = await Pet.create({ user })
-        await pet.update({ user: undefined })
+        await pet.update({ user: undefined as any })
 
         expect(pet.userId).toEqual(user.id)
         const reloadedPet = await Pet.find(pet.id)

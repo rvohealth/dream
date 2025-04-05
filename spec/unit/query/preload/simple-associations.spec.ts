@@ -275,11 +275,11 @@ describe('Query#preload with simple associations', () => {
             .preload('compositions', 'passthroughCurrentLocalizedText')
             .preload('compositions', 'compositionAssets', 'passthroughCurrentLocalizedText')
             .first()
-          expect(reloadedUser!.compositions[0].passthroughCurrentLocalizedText).toMatchDreamModel(
+          expect(reloadedUser!.compositions[0]!.passthroughCurrentLocalizedText).toMatchDreamModel(
             compositionText2
           )
           expect(
-            reloadedUser!.compositions[0].compositionAssets[0].passthroughCurrentLocalizedText
+            reloadedUser!.compositions[0]!.compositionAssets[0]!.passthroughCurrentLocalizedText
           ).toMatchDreamModel(compositionAssetText1)
         })
       })
