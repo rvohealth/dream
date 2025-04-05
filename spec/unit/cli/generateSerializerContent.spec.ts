@@ -37,29 +37,29 @@ export default class UserSerializer<
     context('when parentName is included', () => {
       it('the serializers extend the parent serializers, summary omits id', () => {
         const res = generateSerializerContent({
-          fullyQualifiedModelName: 'Foo/Bar',
+          fullyQualifiedModelName: 'Foo/Bar/Baz',
           columnsWithTypes: ['hello'],
-          fullyQualifiedParentName: 'Foo/Base',
+          fullyQualifiedParentName: 'Foo/Bar',
         })
 
         expect(res).toEqual(
           `\
 import { Attribute, DreamColumn } from '@rvoh/dream'
-import FooBaseSerializer, { FooBaseSummarySerializer } from './BaseSerializer.js'
-import FooBar from '../../models/Foo/Bar.js'
+import BarSerializer, { BarSummarySerializer } from '../BarSerializer.js'
+import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
 
-export class FooBarSummarySerializer<
-  DataType extends FooBar,
+export class BazSummarySerializer<
+  DataType extends FooBarBaz,
   Passthrough extends object,
-> extends FooBaseSummarySerializer<DataType, Passthrough> {
+> extends BarSummarySerializer<DataType, Passthrough> {
 }
 
-export default class FooBarSerializer<
-  DataType extends FooBar,
+export default class BazSerializer<
+  DataType extends FooBarBaz,
   Passthrough extends object,
-> extends FooBaseSerializer<DataType, Passthrough> {
-  @Attribute(FooBar)
-  public hello: DreamColumn<FooBar, 'hello'>
+> extends BarSerializer<DataType, Passthrough> {
+  @Attribute(FooBarBaz)
+  public hello: DreamColumn<FooBarBaz, 'hello'>
 }
 `
         )
@@ -68,15 +68,19 @@ export default class FooBarSerializer<
 
     context('nested paths', () => {
       context('when passed a nested model class', () => {
-        it('correctly injects extra updirs to account for nested paths', () => {
-          const res = generateSerializerContent({ fullyQualifiedModelName: 'User/Admin' })
+        it(
+          'correctly injects extra updirs to account for nested paths, but leaves ' +
+            'the class name as just the model name + Serializer/SummarySerializer so that ' +
+            'the serializers getter in the model does not replicate the nesting structure twice',
+          () => {
+            const res = generateSerializerContent({ fullyQualifiedModelName: 'User/Admin' })
 
-          expect(res).toEqual(
-            `\
+            expect(res).toEqual(
+              `\
 import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
 import UserAdmin from '../../models/User/Admin.js'
 
-export class UserAdminSummarySerializer<
+export class AdminSummarySerializer<
   DataType extends UserAdmin,
   Passthrough extends object,
 > extends DreamSerializer<DataType, Passthrough> {
@@ -84,15 +88,16 @@ export class UserAdminSummarySerializer<
   public id: DreamColumn<UserAdmin, 'id'>
 }
 
-export default class UserAdminSerializer<
+export default class AdminSerializer<
   DataType extends UserAdmin,
   Passthrough extends object,
-> extends UserAdminSummarySerializer<DataType, Passthrough> {
+> extends AdminSummarySerializer<DataType, Passthrough> {
 
 }
 `
-          )
-        })
+            )
+          }
+        )
       })
     })
 

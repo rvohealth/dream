@@ -67,28 +67,28 @@ export default class MealType extends ApplicationModel {
   context('when parentName is included', () => {
     it('extends the parent, adds STI decorator, omits table and base attributes', () => {
       const res = generateDreamContent({
-        fullyQualifiedModelName: 'Foo/Bar',
+        fullyQualifiedModelName: 'Foo/Bar/Baz',
         columnsWithTypes: ['hello:string'],
-        fullyQualifiedParentName: 'Foo/Base',
+        fullyQualifiedParentName: 'Foo/Bar',
         serializer: true,
       })
       expect(res).toEqual(
         `\
 import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
-import FooBase from './Base.js'
+import FooBar from '../Bar.js'
 
-const deco = new Decorators<InstanceType<typeof FooBar>>()
+const deco = new Decorators<InstanceType<typeof FooBarBaz>>()
 
-@STI(FooBase)
-export default class FooBar extends FooBase {
-  public get serializers(): DreamSerializers<FooBar> {
+@STI(FooBar)
+export default class FooBarBaz extends FooBar {
+  public get serializers(): DreamSerializers<FooBarBaz> {
     return {
-      default: 'Foo/BarSerializer',
-      summary: 'Foo/BarSummarySerializer',
+      default: 'Foo/Bar/BazSerializer',
+      summary: 'Foo/Bar/BazSummarySerializer',
     }
   }
 
-  public hello: DreamColumn<FooBar, 'hello'>
+  public hello: DreamColumn<FooBarBaz, 'hello'>
 }
 `
       )
