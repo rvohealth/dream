@@ -112,7 +112,7 @@ ${
 `
 }${
     serializer
-      ? `  public get serializers(): DreamSerializers<${modelClassName}> {
+      ? `  public ${isSTI ? 'override ' : ''}get serializers(): DreamSerializers<${modelClassName}> {
     return {
       default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
       summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',

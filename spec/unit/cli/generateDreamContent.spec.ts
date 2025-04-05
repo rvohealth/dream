@@ -81,7 +81,7 @@ const deco = new Decorators<InstanceType<typeof FooBarBaz>>()
 
 @STI(FooBar)
 export default class FooBarBaz extends FooBar {
-  public get serializers(): DreamSerializers<FooBarBaz> {
+  public override get serializers(): DreamSerializers<FooBarBaz> {
     return {
       default: 'Foo/Bar/BazSerializer',
       summary: 'Foo/Bar/BazSummarySerializer',
