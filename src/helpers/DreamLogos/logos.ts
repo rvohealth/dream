@@ -59,7 +59,7 @@ export default function whaaaaaaaaaaok() {
   )
 }
 
-export function whaaaaaaaaaaokBasic() {
+export function monochromeLogo() {
   return `
                                     ,▄█▄                 
     ]█▄▄                         ╓█████▌                 
