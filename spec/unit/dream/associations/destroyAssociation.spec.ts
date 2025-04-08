@@ -1,7 +1,6 @@
 import { MockInstance } from 'vitest'
 import * as destroyAssociationModule from '../../../../src/dream/internal/associations/destroyAssociation.js'
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.js'
-import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks.js'
 import CannotDestroyAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
 import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
@@ -18,7 +17,6 @@ import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#destroyAssociation', () => {
   let hooksSpy: MockInstance
-  let commitHooksSpy: MockInstance
 
   function expectDestroyHooksCalled(dream: Dream) {
     expect(hooksSpy).toHaveBeenCalledWith(
@@ -35,9 +33,9 @@ describe('Dream#destroyAssociation', () => {
       null,
       expect.any(DreamTransaction)
     )
-    expect(commitHooksSpy).toHaveBeenCalledWith(
-      expect.toMatchDreamModel(dream),
+    expect(hooksSpy).toHaveBeenCalledWith(
       'afterDestroyCommit',
+      expect.toMatchDreamModel(dream),
       true,
       null,
       expect.any(DreamTransaction)
@@ -59,9 +57,9 @@ describe('Dream#destroyAssociation', () => {
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null])
     )
-    expect(commitHooksSpy).not.toHaveBeenCalledWith(
-      expect.toMatchDreamModel(dream),
+    expect(hooksSpy).not.toHaveBeenCalledWith(
       'afterDestroyCommit',
+      expect.toMatchDreamModel(dream),
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null])
@@ -122,7 +120,6 @@ describe('Dream#destroyAssociation', () => {
       const compositionAsset = await composition.createAssociation('compositionAssets')
 
       hooksSpy = vi.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await composition.destroyAssociation('compositionAssets')
 
@@ -136,7 +133,6 @@ describe('Dream#destroyAssociation', () => {
         const compositionAsset = await composition.createAssociation('compositionAssets')
 
         hooksSpy = vi.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await composition.destroyAssociation('compositionAssets', { skipHooks: true })
 
@@ -161,7 +157,6 @@ describe('Dream#destroyAssociation', () => {
           const post = await Post.create({ user })
 
           hooksSpy = vi.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
           await user.destroyAssociation('posts')
 
@@ -173,7 +168,6 @@ describe('Dream#destroyAssociation', () => {
             const pet = await Pet.create()
 
             hooksSpy = vi.spyOn(runHooksForModule, 'default')
-            commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
             await pet.destroy({ skipHooks: true })
 
@@ -191,7 +185,6 @@ describe('Dream#destroyAssociation', () => {
       const rating = await Rating.create({ rateable: post, user })
 
       hooksSpy = vi.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await user.destroyAssociation('posts')
 

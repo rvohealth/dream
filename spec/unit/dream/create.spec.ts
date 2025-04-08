@@ -2,7 +2,6 @@ import { MockInstance } from 'vitest'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor.js'
-import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks.js'
 import CanOnlyPassBelongsToModelParam from '../../../src/errors/associations/CanOnlyPassBelongsToModelParam.js'
 import { DateTime, Dream, DreamTransaction } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -52,7 +51,6 @@ describe('Dream.create', () => {
     context('model hooks', () => {
       let user: User
       let hooksSpy: MockInstance
-      let commitHooksSpy: MockInstance
 
       function expectAfterCreateAndSaveHooksCalled(dream: Dream) {
         expect(hooksSpy).toHaveBeenCalledWith(
@@ -69,16 +67,16 @@ describe('Dream.create', () => {
           expect.anything(),
           expect.any(DreamTransaction)
         )
-        expect(commitHooksSpy).toHaveBeenCalledWith(
-          expect.toMatchDreamModel(dream),
+        expect(hooksSpy).toHaveBeenCalledWith(
           'afterCreateCommit',
+          expect.toMatchDreamModel(dream),
           false,
           expect.anything(),
           expect.any(DreamTransaction)
         )
-        expect(commitHooksSpy).toHaveBeenCalledWith(
-          expect.toMatchDreamModel(dream),
+        expect(hooksSpy).toHaveBeenCalledWith(
           'afterSaveCommit',
+          expect.toMatchDreamModel(dream),
           false,
           expect.anything(),
           expect.any(DreamTransaction)
@@ -100,16 +98,16 @@ describe('Dream.create', () => {
           expect.anything(),
           expect.any(DreamTransaction)
         )
-        expect(commitHooksSpy).not.toHaveBeenCalledWith(
-          expect.anything(),
+        expect(hooksSpy).not.toHaveBeenCalledWith(
           'afterCreateCommit',
+          expect.anything(),
           false,
           expect.anything(),
           expect.any(DreamTransaction)
         )
-        expect(commitHooksSpy).not.toHaveBeenCalledWith(
-          expect.anything(),
+        expect(hooksSpy).not.toHaveBeenCalledWith(
           'afterSaveCommit',
+          expect.anything(),
           false,
           expect.anything(),
           expect.any(DreamTransaction)
@@ -119,7 +117,7 @@ describe('Dream.create', () => {
       it('calls model hooks', async () => {
         await ApplicationModel.transaction(async txn => {
           hooksSpy = vi.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
+
           user = await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
         })
 
@@ -133,7 +131,7 @@ describe('Dream.create', () => {
           try {
             await ApplicationModel.transaction(async txn => {
               hooksSpy = vi.spyOn(runHooksForModule, 'default')
-              commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
+
               user = await User.txn(txn).create({ email: 'fred@alreadyexists', password: 'howyadoin' })
             })
           } catch {

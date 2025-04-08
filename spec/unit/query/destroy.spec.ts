@@ -4,7 +4,6 @@ import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import { blankHooksFactory } from '../../../src/decorators/field/lifecycle/shared.js'
 import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/destroyAssociatedRecords.js'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor.js'
-import * as safelyRunCommitHooksModule from '../../../src/dream/internal/safelyRunCommitHooks.js'
 import { Dream, DreamTransaction } from '../../../src/index.js'
 import { HookStatement } from '../../../src/types/lifecycle.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -21,7 +20,6 @@ import User from '../../../test-app/app/models/User.js'
 
 describe('Query#destroy', () => {
   let hooksSpy: MockInstance
-  let commitHooksSpy: MockInstance
   let cascadeSpy: MockInstance
 
   function expectDestroyHooksCalled(dream: Dream) {
@@ -39,9 +37,9 @@ describe('Query#destroy', () => {
       null,
       expect.any(DreamTransaction)
     )
-    expect(commitHooksSpy).toHaveBeenCalledWith(
-      expect.toMatchDreamModel(dream),
+    expect(hooksSpy).toHaveBeenCalledWith(
       'afterDestroyCommit',
+      expect.toMatchDreamModel(dream),
       true,
       null,
       expect.any(DreamTransaction)
@@ -63,9 +61,9 @@ describe('Query#destroy', () => {
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null])
     )
-    expect(commitHooksSpy).not.toHaveBeenCalledWith(
-      expect.toMatchDreamModel(dream),
+    expect(hooksSpy).not.toHaveBeenCalledWith(
       'afterDestroyCommit',
+      expect.toMatchDreamModel(dream),
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null]),
       expect.toBeOneOf([expect.anything(), undefined, null])
@@ -96,7 +94,6 @@ describe('Query#destroy', () => {
       const pet = await Pet.create()
 
       hooksSpy = vi.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
       await Pet.query().destroy()
 
@@ -108,7 +105,6 @@ describe('Query#destroy', () => {
         const pet = await Pet.create()
 
         hooksSpy = vi.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await Pet.query().destroy({ skipHooks: true })
 
@@ -121,7 +117,6 @@ describe('Query#destroy', () => {
         const pet = await Pet.create()
 
         hooksSpy = vi.spyOn(runHooksForModule, 'default')
-        commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
         await Pet.query().destroy()
 
@@ -133,7 +128,6 @@ describe('Query#destroy', () => {
           const pet = await Pet.create()
 
           hooksSpy = vi.spyOn(runHooksForModule, 'default')
-          commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
           await Pet.query().destroy({ skipHooks: true })
 
@@ -159,7 +153,6 @@ describe('Query#destroy', () => {
       expect(await HeartRating.count()).toEqual(1)
 
       hooksSpy = vi.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
     it('cascade deletes all related HasMany associations, including deeply nested associations', async () => {
@@ -339,7 +332,6 @@ describe('Query#destroy', () => {
       expect(await LocalizedText.count()).toEqual(2)
 
       hooksSpy = vi.spyOn(runHooksForModule, 'default')
-      commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
     })
 
     it('cascade deletes all related HasOne associations', async () => {

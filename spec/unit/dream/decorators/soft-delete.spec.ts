@@ -1,5 +1,4 @@
 import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.js'
-import * as safelyRunCommitHooksModule from '../../../../src/dream/internal/safelyRunCommitHooks.js'
 import MissingDeletedAtFieldForSoftDelete from '../../../../src/errors/MissingDeletedAtFieldForSoftDelete.js'
 import { DreamTransaction } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
@@ -42,7 +41,6 @@ describe('@SoftDelete', () => {
     const post = await Post.create({ body: 'hello', user })
 
     const hooksSpy = vi.spyOn(runHooksForModule, 'default')
-    const commitHooksSpy = vi.spyOn(safelyRunCommitHooksModule, 'default')
 
     await post.destroy()
 
@@ -60,9 +58,9 @@ describe('@SoftDelete', () => {
       null,
       expect.any(DreamTransaction)
     )
-    expect(commitHooksSpy).toHaveBeenCalledWith(
-      expect.toMatchDreamModel(post),
+    expect(hooksSpy).toHaveBeenCalledWith(
       'afterDestroyCommit',
+      expect.toMatchDreamModel(post),
       true,
       null,
       expect.any(DreamTransaction)

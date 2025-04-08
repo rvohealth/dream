@@ -7,7 +7,6 @@ import sqlAttributes from '../../helpers/sqlAttributes.js'
 import DreamTransaction from '../DreamTransaction.js'
 import executeDatabaseQuery from './executeDatabaseQuery.js'
 import runHooksFor from './runHooksFor.js'
-import safelyRunCommitHooks from './safelyRunCommitHooks.js'
 
 export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
@@ -84,9 +83,21 @@ export default async function saveDream<DreamInstance extends Dream>(
         txn as DreamTransaction<any>
       )
 
-    const commitHookType = alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit'
-    await safelyRunCommitHooks(dream, commitHookType, alreadyPersisted, beforeSaveChanges, txn)
-    await safelyRunCommitHooks(dream, 'afterSaveCommit', alreadyPersisted, beforeSaveChanges, txn)
+    await runHooksFor(
+      alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit',
+      dream,
+      alreadyPersisted,
+      beforeSaveChanges,
+      txn as DreamTransaction<any>
+    )
+
+    await runHooksFor(
+      'afterSaveCommit',
+      dream,
+      alreadyPersisted,
+      beforeSaveChanges,
+      txn as DreamTransaction<any>
+    )
   }
 
   return dream

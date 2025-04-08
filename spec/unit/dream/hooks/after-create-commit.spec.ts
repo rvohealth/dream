@@ -42,15 +42,39 @@ describe('Dream AfterCreateCommit decorator', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterCreateCommitHook).toHaveBeenCalled()
       })
+
+      context('in a transaction', () => {
+        it('calls hook', async () => {
+          vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+          await ApplicationModel.transaction(
+            async txn => await mylar.txn(txn).createAssociation('sandbags', { weightKgs: 10 })
+          )
+
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(Sandbag.prototype.conditionalAfterCreateCommitHook).toHaveBeenCalled()
+        })
+      })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
-      it('calls hook', async () => {
+      it('does not call the hook', async () => {
         vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weight: 10 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterCreateCommitHook).not.toHaveBeenCalled()
+      })
+
+      context('in a transaction', () => {
+        it('does not call the hook', async () => {
+          vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+          await ApplicationModel.transaction(
+            async txn => await mylar.txn(txn).createAssociation('sandbags', { weight: 10 })
+          )
+
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(Sandbag.prototype.conditionalAfterCreateCommitHook).not.toHaveBeenCalled()
+        })
       })
     })
   })

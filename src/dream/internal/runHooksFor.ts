@@ -10,48 +10,98 @@ export default async function runHooksFor<T extends Dream>(
   txn?: DreamTransaction<any>
 ): Promise<void> {
   const Base = dream.constructor as typeof Dream
-  for (const statement of Base['hooks'][key]) {
-    if (statement.ifChanging?.length) {
+  for (const hook of Base['hooks'][key]) {
+    if (hook.ifChanging?.length) {
       switch (key) {
         case 'beforeCreate':
-          await runConditionalBeforeHooksForCreate(dream, statement, txn)
+          if (shouldRunBeforeCreateHook(dream, hook)) {
+            await runHook(hook, dream, txn)
+          }
           break
 
         case 'beforeSave':
-          if (alreadyPersisted) await runConditionalBeforeHooksForUpdate(dream, statement, txn)
-          else await runConditionalBeforeHooksForCreate(dream, statement, txn)
+          if (
+            (alreadyPersisted && shouldRunBeforeUpdateHook(dream, hook)) ||
+            (!alreadyPersisted && shouldRunBeforeCreateHook(dream, hook))
+          ) {
+            await runHook(hook, dream, txn)
+          }
+
           break
 
         case 'beforeUpdate':
-          await runConditionalBeforeHooksForUpdate(dream, statement, txn)
+          if (shouldRunBeforeUpdateHook(dream, hook)) {
+            await runHook(hook, dream, txn)
+          }
           break
 
         default:
           throw new Error(`Unexpected statement key detected with ifChanging clause: ${key}`)
       }
-    } else if (statement.ifChanged?.length) {
+    } else if (hook.ifChanged?.length) {
       switch (key) {
         case 'afterCreate':
+          if (shouldRunAfterCreateHook(dream, hook, beforeSaveChanges)) {
+            await runHook(hook, dream, txn)
+          }
+          break
+
         case 'afterCreateCommit':
-          await runConditionalAfterHooksForCreate(dream, statement, beforeSaveChanges, txn)
+          if (shouldRunAfterCreateHook(dream, hook, beforeSaveChanges)) {
+            if (txn) txn.addCommitHook(hook, dream)
+            else await runHook(hook, dream)
+          }
           break
 
         case 'afterSave':
+          if (
+            (alreadyPersisted && shouldRunAfterUpdateHook(dream, hook)) ||
+            (!alreadyPersisted && shouldRunAfterCreateHook(dream, hook, beforeSaveChanges))
+          ) {
+            await runHook(hook, dream, txn)
+          }
+          break
+
         case 'afterSaveCommit':
-          if (alreadyPersisted) await runConditionalAfterHooksForUpdate(dream, statement, txn)
-          else await runConditionalAfterHooksForCreate(dream, statement, beforeSaveChanges, txn)
+          if (
+            (alreadyPersisted && shouldRunAfterUpdateHook(dream, hook)) ||
+            (!alreadyPersisted && shouldRunAfterCreateHook(dream, hook, beforeSaveChanges))
+          ) {
+            if (txn) txn.addCommitHook(hook, dream)
+            else await runHook(hook, dream)
+          }
           break
 
         case 'afterUpdate':
+          if (shouldRunAfterUpdateHook(dream, hook)) {
+            await runHook(hook, dream, txn)
+          }
+          break
+
         case 'afterUpdateCommit':
-          await runConditionalAfterHooksForUpdate(dream, statement, txn)
+          if (shouldRunAfterUpdateHook(dream, hook)) {
+            if (txn) txn.addCommitHook(hook, dream)
+            else await runHook(hook, dream)
+          }
+
           break
 
         default:
           throw new Error(`Unexpected statement key detected with ifChanged clause: ${key}`)
       }
     } else {
-      await runHook(statement, dream, txn)
+      switch (key) {
+        case 'afterCreateCommit':
+        case 'afterSaveCommit':
+        case 'afterUpdateCommit':
+        case 'afterDestroyCommit':
+          if (txn) txn.addCommitHook(hook, dream)
+          else await runHook(hook, dream)
+          break
+
+        default:
+          await runHook(hook, dream, txn)
+      }
     }
   }
 }
@@ -74,25 +124,20 @@ Please make sure "${statement.method}" is defined on ${dream['sanitizedConstruct
   await (dream as any)[statement.method](txn)
 }
 
-async function runConditionalBeforeHooksForCreate(
-  dream: Dream,
-  statement: HookStatement,
-  txn?: DreamTransaction<any>
-) {
+function shouldRunBeforeCreateHook(dream: Dream, statement: HookStatement): boolean {
   let shouldRun = false
   for (const attribute of statement.ifChanging!) {
     if ((dream as any)[attribute] !== undefined) shouldRun = true
   }
 
-  if (shouldRun) await runHook(statement, dream, txn)
+  return shouldRun
 }
 
-async function runConditionalAfterHooksForCreate(
+function shouldRunAfterCreateHook(
   dream: Dream,
   statement: HookStatement,
-  beforeSaveChanges: Partial<Record<string, { was: any; now: any }>> | null,
-  txn?: DreamTransaction<any>
-) {
+  beforeSaveChanges: Partial<Record<string, { was: any; now: any }>> | null
+): boolean {
   let shouldRun = false
   for (const attribute of statement.ifChanged!) {
     if (
@@ -102,31 +147,23 @@ async function runConditionalAfterHooksForCreate(
       shouldRun = true
   }
 
-  if (shouldRun) await runHook(statement, dream, txn)
+  return shouldRun
 }
 
-async function runConditionalBeforeHooksForUpdate(
-  dream: Dream,
-  statement: HookStatement,
-  txn?: DreamTransaction<any>
-) {
+function shouldRunBeforeUpdateHook(dream: Dream, statement: HookStatement): boolean {
   let shouldRun = false
   for (const attribute of statement.ifChanging!) {
     if (dream.willSaveChangeToAttribute(attribute as any)) shouldRun = true
   }
 
-  if (shouldRun) await runHook(statement, dream, txn)
+  return shouldRun
 }
 
-async function runConditionalAfterHooksForUpdate(
-  dream: Dream,
-  statement: HookStatement,
-  txn?: DreamTransaction<any>
-) {
+function shouldRunAfterUpdateHook(dream: Dream, statement: HookStatement): boolean {
   let shouldRun = false
   for (const attribute of statement.ifChanged!) {
     if (dream.savedChangeToAttribute(attribute as any)) shouldRun = true
   }
 
-  if (shouldRun) await runHook(statement, dream, txn)
+  return shouldRun
 }

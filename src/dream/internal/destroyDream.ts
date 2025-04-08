@@ -3,7 +3,6 @@ import DreamTransaction from '../DreamTransaction.js'
 import destroyAssociatedRecords from './destroyAssociatedRecords.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
 import runHooksFor from './runHooksFor.js'
-import safelyRunCommitHooks from './safelyRunCommitHooks.js'
 import softDeleteDream from './softDeleteDream.js'
 
 type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
@@ -62,7 +61,7 @@ async function destroyDreamWithTransaction<I extends Dream>(
 
   if (!skipHooks) {
     await runHooksFor('afterDestroy', dream, true, null, txn || undefined)
-    await safelyRunCommitHooks(dream, 'afterDestroyCommit', true, null, txn)
+    await runHooksFor('afterDestroyCommit', dream, true, null, txn)
   }
 
   if (shouldSoftDelete(dream, reallyDestroy)) {

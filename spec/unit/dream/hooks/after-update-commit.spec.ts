@@ -49,16 +49,38 @@ describe('Dream AfterUpdateCommit decorator', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterUpdateCommitHook).toHaveBeenCalled()
       })
+
+      context('in a transaction', () => {
+        it('calls hook', async () => {
+          vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateCommitHook')
+          await ApplicationModel.transaction(async txn => await sandbag.txn(txn).update({ weightTons: 11 }))
+
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(Sandbag.prototype.conditionalAfterUpdateCommitHook).toHaveBeenCalled()
+        })
+      })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
-      it('calls hook', async () => {
+      it('does not call the hook', async () => {
         await sandbag.update({ weightTons: null })
         vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateCommitHook')
         await sandbag.update({ weightKgs: 120 })
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(Sandbag.prototype.conditionalAfterUpdateCommitHook).not.toHaveBeenCalled()
+      })
+
+      context('in a transaction', () => {
+        it('does not call the hook', async () => {
+          await sandbag.update({ weightTons: null })
+          vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateCommitHook')
+
+          await ApplicationModel.transaction(async txn => await sandbag.txn(txn).update({ weightKgs: 120 }))
+
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(Sandbag.prototype.conditionalAfterUpdateCommitHook).not.toHaveBeenCalled()
+        })
       })
     })
   })

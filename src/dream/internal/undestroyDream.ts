@@ -3,7 +3,6 @@ import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
 import runHooksFor from './runHooksFor.js'
-import safelyRunCommitHooks from './safelyRunCommitHooks.js'
 
 type UndestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 
@@ -58,7 +57,7 @@ async function undestroyDreamWithTransaction<I extends Dream>(
 
   if (!skipHooks) {
     await runHooksFor('afterUpdate', dream, true, null, txn)
-    await safelyRunCommitHooks(dream, 'afterUpdateCommit', true, null, txn)
+    await runHooksFor('afterUpdateCommit', dream, true, null, txn)
   }
 
   await dream.txn(txn).reload()
