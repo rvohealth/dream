@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof UserSettings>>()
+const deco = new Decorators<typeof UserSettings>()
 
 export default class UserSettings extends ApplicationModel {
   public override get table() {

@@ -5,7 +5,7 @@ import Balloon from './Balloon.js'
 import BalloonSpotterBalloon from './BalloonSpotterBalloon.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof BalloonSpotter>>()
+const deco = new Decorators<typeof BalloonSpotter>()
 
 export default class BalloonSpotter extends ApplicationModel {
   public override get table() {

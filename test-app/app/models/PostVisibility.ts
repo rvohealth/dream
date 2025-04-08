@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Post from './Post.js'
 
-const deco = new Decorators<InstanceType<typeof PostVisibility>>()
+const deco = new Decorators<typeof PostVisibility>()
 
 export default class PostVisibility extends ApplicationModel {
   public override get table() {

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "0.34.1",
+  "version": "0.35.0",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "dream": "DREAM_CORE_DEVELOPMENT=1 yarn dreamts",
-    "dreamjs": "node --experimental-modules dist/test-app/cli/index.js",
+    "dream:js": "node --experimental-modules dist/test-app/cli/index.js",
     "dreamts": "NODE_ENV=${NODE_ENV:-test} tsx ./test-app/cli/index.ts",
     "build": "echo \"building cjs...\" && rm -rf dist && npx tsc -p ./tsconfig.cjs.build.json && echo \"building esm...\" && npx tsc -p ./tsconfig.esm.build.json && cp -r src/types/ dist/types/src/types/",
     "build:test-app": "rm -rf dist && echo \"building test app to esm...\" && npx tsc -p ./tsconfig.esm.build.test-app.json && echo \"building test app to cjs...\" && npx tsc -p ./tsconfig.cjs.build.test-app.json",

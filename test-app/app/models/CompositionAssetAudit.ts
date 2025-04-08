@@ -5,7 +5,7 @@ import Composition from './Composition.js'
 import CompositionAsset from './CompositionAsset.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof CompositionAssetAudit>>()
+const deco = new Decorators<typeof CompositionAssetAudit>()
 
 export default class CompositionAssetAudit extends ApplicationModel {
   public override get table() {

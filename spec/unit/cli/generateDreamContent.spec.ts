@@ -13,7 +13,7 @@ describe('dream generate:model <name> [...attributes]', () => {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof MealType>>()
+const deco = new Decorators<typeof MealType>()
 
 export default class MealType extends ApplicationModel {
   public override get table() {
@@ -48,7 +48,7 @@ export default class MealType extends ApplicationModel {
 import { Decorators, DreamColumn } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof MealType>>()
+const deco = new Decorators<typeof MealType>()
 
 export default class MealType extends ApplicationModel {
   public override get table() {
@@ -77,7 +77,7 @@ export default class MealType extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
 import FooBar from '../Bar.js'
 
-const deco = new Decorators<InstanceType<typeof FooBarBaz>>()
+const deco = new Decorators<typeof FooBarBaz>()
 
 @STI(FooBar)
 export default class FooBarBaz extends FooBar {
@@ -108,7 +108,7 @@ export default class FooBarBaz extends FooBar {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof User>>()
+const deco = new Decorators<typeof User>()
 
 export default class User extends ApplicationModel {
   public override get table() {
@@ -145,7 +145,7 @@ export default class User extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof User>>()
+const deco = new Decorators<typeof User>()
 
 export default class User extends ApplicationModel {
   public override get table() {
@@ -188,7 +188,7 @@ export default class User extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof Chalupa>>()
+const deco = new Decorators<typeof Chalupa>()
 
 export default class Chalupa extends ApplicationModel {
   public override get table() {
@@ -226,7 +226,7 @@ export default class Chalupa extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof Paper>>()
+const deco = new Decorators<typeof Paper>()
 
 export default class Paper extends ApplicationModel {
   public override get table() {
@@ -264,7 +264,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import GraphNode from './GraphNode.js'
 
-const deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {
@@ -303,7 +303,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import GraphNode from './GraphNode.js'
 
-const deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {
@@ -343,7 +343,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import PetDomesticCat from './Pet/Domestic/Cat.js'
 
-const deco = new Decorators<InstanceType<typeof CatToy>>()
+const deco = new Decorators<typeof CatToy>()
 
 export default class CatToy extends ApplicationModel {
   public override get table() {
@@ -381,7 +381,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import GraphNode from '../../GraphNode.js'
 
-const deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
+const deco = new Decorators<typeof PetDomesticCat>()
 
 export default class PetDomesticCat extends ApplicationModel {
   public override get table() {
@@ -419,7 +419,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import PetDomesticDog from './Dog.js'
 
-const deco = new Decorators<InstanceType<typeof PetDomesticCat>>()
+const deco = new Decorators<typeof PetDomesticCat>()
 
 export default class PetDomesticCat extends ApplicationModel {
   public override get table() {
@@ -457,7 +457,7 @@ import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import PetDomesticDog from '../Domestic/Dog.js'
 
-const deco = new Decorators<InstanceType<typeof PetWildCat>>()
+const deco = new Decorators<typeof PetWildCat>()
 
 export default class PetWildCat extends ApplicationModel {
   public override get table() {
@@ -497,7 +497,7 @@ import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 import Chalupa from './Chalupa.js'
 
-const deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {
@@ -540,7 +540,7 @@ export default class Composition extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {
@@ -575,7 +575,7 @@ export default class Composition extends ApplicationModel {
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {

@@ -5,7 +5,7 @@ import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 import Pet from './Pet.js'
 
-const deco = new Decorators<InstanceType<typeof Collar>>()
+const deco = new Decorators<typeof Collar>()
 
 @SoftDelete()
 export default class Collar extends ApplicationModel {

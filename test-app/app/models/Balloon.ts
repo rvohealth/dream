@@ -9,7 +9,7 @@ import HeartRating from './ExtraRating/HeartRating.js'
 import Sandbag from './Sandbag.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof Balloon>>()
+const deco = new Decorators<typeof Balloon>()
 
 @ReplicaSafe()
 @SoftDelete()

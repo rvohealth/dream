@@ -1,7 +1,7 @@
 import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof InvalidScopeSortableModel>>()
+const deco = new Decorators<typeof InvalidScopeSortableModel>()
 
 export default class InvalidScopeSortableModel extends ApplicationModel {
   public override get table() {

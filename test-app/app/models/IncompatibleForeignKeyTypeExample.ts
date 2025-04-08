@@ -3,7 +3,7 @@ import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof IncompatibleForeignKeyTypeExample>>()
+const deco = new Decorators<typeof IncompatibleForeignKeyTypeExample>()
 
 export default class IncompatibleForeignKeyTypeExample extends ApplicationModel {
   public override get table() {

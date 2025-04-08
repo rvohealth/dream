@@ -2,7 +2,7 @@ import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof ModelWithoutDeletedAt>>()
+const deco = new Decorators<typeof ModelWithoutDeletedAt>()
 
 // NOTE: this model only exists for the sake of testing
 // what happens when @SoftDelete is applied to a model

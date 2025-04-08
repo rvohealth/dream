@@ -8,7 +8,7 @@ import HeartRating from './ExtraRating/HeartRating.js'
 import LocalizedText from './LocalizedText.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof Composition>>()
+const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {

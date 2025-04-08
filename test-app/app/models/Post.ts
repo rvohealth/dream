@@ -9,7 +9,7 @@ import PostVisibility from './PostVisibility.js'
 import Rating from './Rating.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof Post>>()
+const deco = new Decorators<typeof Post>()
 
 @SoftDelete()
 export default class Post extends ApplicationModel {

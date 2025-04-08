@@ -39,13 +39,13 @@ import Validates from './field/validation/Validates.js'
 import Validate from './method/Validate.js'
 import Scope from './static-method/Scope.js'
 
-export default class Decorators<T extends Dream> {
+export default class Decorators<TD extends typeof Dream, T extends Dream = InstanceType<TD>> {
   public BelongsTo<
     const AssociationGlobalNameOrNames extends
       | keyof GlobalModelNameTableMap<T>
       | (keyof GlobalModelNameTableMap<T>)[],
   >(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
     options?: NonPolymorphicBelongsToOptions<T, AssociationGlobalNameOrNames>
   ): any
@@ -55,7 +55,7 @@ export default class Decorators<T extends Dream> {
       | keyof GlobalModelNameTableMap<T>
       | (keyof GlobalModelNameTableMap<T>)[],
   >(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalNameOrNames,
     options?: PolymorphicBelongsToOptions<T, AssociationGlobalNameOrNames>
   ): any
@@ -88,7 +88,7 @@ export default class Decorators<T extends Dream> {
     const AssociationGlobalNameOrNames extends
       | keyof GlobalModelNameTableMap<T>
       | (keyof GlobalModelNameTableMap<T>)[],
-  >(this: Decorators<T>, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
+  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
     return BelongsTo<T, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options as any)
   }
 
@@ -96,19 +96,19 @@ export default class Decorators<T extends Dream> {
   // HasMany
   ///////////
   public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options?: HasManyOptions<T, AssociationGlobalName>
   ): any
 
   public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options?: HasManyThroughOptions<T, AssociationGlobalName>
   ): any
 
   public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options?: PolymorphicHasManyOptions<T, AssociationGlobalName>
   ): any
@@ -137,7 +137,7 @@ export default class Decorators<T extends Dream> {
    * @returns A HasMany decorator
    */
   public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options: unknown = {}
   ) {
@@ -151,19 +151,19 @@ export default class Decorators<T extends Dream> {
   // HasOne
   ///////////
   public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options?: HasOneOptions<T, AssociationGlobalName>
   ): any
 
   public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options?: HasOneThroughOptions<T, AssociationGlobalName>
   ): any
 
   public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options?: PolymorphicHasOneOptions<T, AssociationGlobalName>
   ): any
@@ -191,7 +191,7 @@ export default class Decorators<T extends Dream> {
    * @returns A HasOne decorator
    */
   public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
     options: unknown = {}
   ): any {
@@ -223,7 +223,7 @@ export default class Decorators<T extends Dream> {
    * @param column — if omitted, then 'encrypted' is prepended to the Pascal cased version of the decorated field
    * @returns An Encrypted decorator
    */
-  public Encrypted(this: Decorators<T>, column?: DreamColumnNames<T>) {
+  public Encrypted(this: Decorators<TD>, column?: DreamColumnNames<T>) {
     return Encrypted(column)
   }
 
@@ -245,7 +245,7 @@ export default class Decorators<T extends Dream> {
    * @returns A Scope decorator
    */
   public Scope(
-    this: Decorators<T>,
+    this: Decorators<TD>,
     opts: {
       default?: boolean
     } = {}
@@ -269,7 +269,7 @@ export default class Decorators<T extends Dream> {
    * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
    * @returns A Sortable decorator
    */
-  public Sortable(this: Decorators<T>, opts?: SortableOptions<T>) {
+  public Sortable(this: Decorators<TD>, opts?: SortableOptions<T>) {
     return Sortable(opts)
   }
 
@@ -295,7 +295,7 @@ export default class Decorators<T extends Dream> {
    *
    * @returns A Validate decorator
    */
-  public Validate(this: Decorators<T>) {
+  public Validate(this: Decorators<TD>) {
     return Validate()
   }
 
@@ -324,7 +324,7 @@ export default class Decorators<T extends Dream> {
         : VT extends 'contains'
           ? string | RegExp
           : never,
-  >(this: Decorators<T>, type: VT, args?: VTArgs): any {
+  >(this: Decorators<TD>, type: VT, args?: VTArgs): any {
     return Validates(type, args)
   }
 
@@ -389,7 +389,7 @@ export default class Decorators<T extends Dream> {
    *
    * @returns An Virtual decorator
    */
-  public Virtual(this: Decorators<T>, type?: SerializableTypes) {
+  public Virtual(this: Decorators<TD>, type?: SerializableTypes) {
     return Virtual(type)
   }
 
@@ -408,7 +408,7 @@ export default class Decorators<T extends Dream> {
    * @returns The BeforeCreate decorator
    *
    */
-  public BeforeCreate(this: Decorators<T>, opts?: BeforeHookOpts<T>) {
+  public BeforeCreate(this: Decorators<TD>, opts?: BeforeHookOpts<T>) {
     return BeforeCreate<T>(opts)
   }
 
@@ -427,7 +427,7 @@ export default class Decorators<T extends Dream> {
    * @returns The BeforeSave decorator
    *
    */
-  public BeforeSave(this: Decorators<T>, opts?: BeforeHookOpts<T>) {
+  public BeforeSave(this: Decorators<TD>, opts?: BeforeHookOpts<T>) {
     return BeforeSave<T>(opts)
   }
 
@@ -446,7 +446,7 @@ export default class Decorators<T extends Dream> {
    * @returns The BeforeUpdate decorator
    *
    */
-  public BeforeUpdate(this: Decorators<T>, opts?: BeforeHookOpts<T>) {
+  public BeforeUpdate(this: Decorators<TD>, opts?: BeforeHookOpts<T>) {
     return BeforeUpdate<T>(opts)
   }
 
@@ -464,7 +464,7 @@ export default class Decorators<T extends Dream> {
    *
    * @returns The BeforeDestroy decorator
    */
-  public BeforeDestroy(this: Decorators<T>) {
+  public BeforeDestroy(this: Decorators<TD>) {
     return BeforeDestroy()
   }
 
@@ -483,7 +483,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterCreate decorator
    *
    */
-  public AfterCreate(this: Decorators<T>, opts?: AfterHookOpts<T>) {
+  public AfterCreate(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
     return AfterCreate<T>(opts)
   }
 
@@ -501,7 +501,7 @@ export default class Decorators<T extends Dream> {
    *
    * @returns The AfterCreateCommit decorator
    */
-  public AfterCreateCommit(this: Decorators<T>, opts?: AfterHookOpts<T>) {
+  public AfterCreateCommit(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
     return AfterCreateCommit<T>(opts)
   }
 
@@ -520,7 +520,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterSave decorator
    *
    */
-  public AfterSave(this: Decorators<T>, opts?: AfterHookOpts<T>) {
+  public AfterSave(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
     return AfterSave<T>(opts)
   }
 
@@ -539,7 +539,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterSaveCommit decorator
    *
    */
-  public AfterSaveCommit(this: Decorators<T>, opts?: AfterHookOpts<T>) {
+  public AfterSaveCommit(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
     return AfterSaveCommit<T>(opts)
   }
 
@@ -558,7 +558,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterUpdate decorator
    *
    */
-  public AfterUpdate(this: Decorators<T>, opts?: AfterHookOpts<T>) {
+  public AfterUpdate(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
     return AfterUpdate<T>(opts)
   }
 
@@ -577,7 +577,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterUpdateCommit decorator
    *
    */
-  public AfterUpdateCommit(this: Decorators<T>, opts?: AfterHookOpts<T>) {
+  public AfterUpdateCommit(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
     return AfterUpdateCommit<T>(opts)
   }
 
@@ -596,7 +596,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterDestroy decorator
    *
    */
-  public AfterDestroy(this: Decorators<T>) {
+  public AfterDestroy(this: Decorators<TD>) {
     return AfterDestroy()
   }
 
@@ -615,7 +615,7 @@ export default class Decorators<T extends Dream> {
    * @returns The AfterDestroyCommit decorator
    *
    */
-  public AfterDestroyCommit(this: Decorators<T>) {
+  public AfterDestroyCommit(this: Decorators<TD>) {
     return AfterDestroyCommit()
   }
 }

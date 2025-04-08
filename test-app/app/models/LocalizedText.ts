@@ -4,7 +4,7 @@ import ApplicationModel from './ApplicationModel.js'
 import Composition from './Composition.js'
 import CompositionAsset from './CompositionAsset.js'
 
-const deco = new Decorators<InstanceType<typeof LocalizedText>>()
+const deco = new Decorators<typeof LocalizedText>()
 
 export default class LocalizedText extends ApplicationModel {
   public override get table() {

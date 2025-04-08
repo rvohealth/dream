@@ -4,7 +4,7 @@ import ApplicationModel from '../ApplicationModel.js'
 import GraphEdge from './Edge.js'
 import EdgeNode from './EdgeNode.js'
 
-const deco = new Decorators<InstanceType<typeof Node>>()
+const deco = new Decorators<typeof Node>()
 
 export default class Node extends ApplicationModel {
   public override get table() {

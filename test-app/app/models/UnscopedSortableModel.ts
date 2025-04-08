@@ -1,7 +1,7 @@
 import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-const deco = new Decorators<InstanceType<typeof UnscopedSortableModel>>()
+const deco = new Decorators<typeof UnscopedSortableModel>()
 
 export default class UnscopedSortableModel extends ApplicationModel {
   public override get table() {

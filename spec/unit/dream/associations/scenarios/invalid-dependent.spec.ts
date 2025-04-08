@@ -9,7 +9,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
   context('HasMany', () => {
     context('dependent AND passthrough both set', () => {
       it('throws a targeted exception', () => {
-        const deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<typeof User2>()
         class User2 extends User {
           @deco.HasMany('Post', {
             dependent: 'destroy',
@@ -26,7 +26,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
 
     context('dependent AND DreamConst.required both set', () => {
       it('throws a targeted exception', () => {
-        const deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<typeof User2>()
         class User2 extends User {
           @deco.HasMany('Post', {
             dependent: 'destroy',
@@ -45,7 +45,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
   context('HasOne', () => {
     context('dependent AND passthrough both set', () => {
       it('throws a targeted exception', () => {
-        const deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<typeof User2>()
         class User2 extends User {
           @deco.HasOne('Post', {
             dependent: 'destroy',
@@ -62,7 +62,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
 
     context('dependent AND DreamConst.required both set', () => {
       it('throws a targeted exception', () => {
-        const deco = new Decorators<InstanceType<typeof User2>>()
+        const deco = new Decorators<typeof User2>()
         class User2 extends User {
           @deco.HasOne('Post', {
             dependent: 'destroy',

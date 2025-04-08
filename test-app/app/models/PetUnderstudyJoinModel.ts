@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Pet from './Pet.js'
 
-const deco = new Decorators<InstanceType<typeof PetUnderstudyJoinModel>>()
+const deco = new Decorators<typeof PetUnderstudyJoinModel>()
 
 export default class PetUnderstudyJoinModel extends ApplicationModel {
   public override get table() {

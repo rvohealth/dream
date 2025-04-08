@@ -5,7 +5,7 @@ import ApplicationModel from '../ApplicationModel.js'
 import GraphEdge from './Edge.js'
 import GraphNode from './Node.js'
 
-const deco = new Decorators<InstanceType<typeof EdgeNode>>()
+const deco = new Decorators<typeof EdgeNode>()
 
 @SoftDelete()
 export default class EdgeNode extends ApplicationModel {

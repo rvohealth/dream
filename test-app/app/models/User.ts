@@ -18,7 +18,7 @@ import PostComment from './PostComment.js'
 import Rating from './Rating.js'
 import UserSettings from './UserSettings.js'
 
-const deco = new Decorators<InstanceType<typeof User>>()
+const deco = new Decorators<typeof User>()
 
 export default class User extends ApplicationModel {
   public override get table() {

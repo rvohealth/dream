@@ -4,7 +4,7 @@ import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Post from './Post.js'
 
-const deco = new Decorators<InstanceType<typeof PostComment>>()
+const deco = new Decorators<typeof PostComment>()
 
 @SoftDelete()
 export default class PostComment extends ApplicationModel {

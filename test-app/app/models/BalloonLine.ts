@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 
-const deco = new Decorators<InstanceType<typeof BalloonLine>>()
+const deco = new Decorators<typeof BalloonLine>()
 
 export default class BalloonLine extends ApplicationModel {
   public override get table() {

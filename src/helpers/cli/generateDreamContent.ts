@@ -98,7 +98,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   return `\
 import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}
 
-const deco = new Decorators<InstanceType<typeof ${modelClassName}>>()
+const deco = new Decorators<typeof ${modelClassName}>()
 
 ${isSTI ? `\n@STI(${parentModelClassName})` : ''}
 export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {

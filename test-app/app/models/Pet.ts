@@ -9,7 +9,7 @@ import Post from './Post.js'
 import Rating from './Rating.js'
 import User from './User.js'
 
-const deco = new Decorators<InstanceType<typeof Pet>>()
+const deco = new Decorators<typeof Pet>()
 
 @SoftDelete()
 export default class Pet extends ApplicationModel {

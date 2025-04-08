@@ -6,7 +6,7 @@ import Composition from '../Composition.js'
 import Post from '../Post.js'
 import User from '../User.js'
 
-const deco = new Decorators<InstanceType<typeof BaseExtraRating>>()
+const deco = new Decorators<typeof BaseExtraRating>()
 
 export default class BaseExtraRating extends ApplicationModel {
   public override get table() {

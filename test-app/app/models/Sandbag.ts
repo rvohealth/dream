@@ -3,7 +3,7 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Mylar from './Balloon/Mylar.js'
 
-const deco = new Decorators<InstanceType<typeof Sandbag>>()
+const deco = new Decorators<typeof Sandbag>()
 
 export default class Sandbag extends ApplicationModel {
   public override get table() {
