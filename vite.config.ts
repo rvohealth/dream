@@ -1,12 +1,13 @@
+import './test-app/app/conf/loadEnv.js'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
     globals: true,
     setupFiles: ['luxon-jest-matchers', './spec/setup/beforeAll.ts', './spec/setup/hooks.ts'],
-    fileParallelism: false,
-    maxConcurrency: 1,
-    maxWorkers: 1,
+    fileParallelism: true,
+    maxConcurrency: parseInt(process.env.DREAM_PARALLEL_TESTS || '1'),
+    maxWorkers: parseInt(process.env.DREAM_PARALLEL_TESTS || '1'),
     minWorkers: 1,
     mockReset: true,
     // globals: {
