@@ -1,6 +1,8 @@
+import { DateTime } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
+import ModelWithDateTimeConditionalHooks from '../../../../test-app/app/models/ModelWithDateTimeConditionalHooks.js'
 import Sandbag from '../../../../test-app/app/models/Sandbag.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -112,5 +114,25 @@ describe('Dream AfterSaveCommit decorator', () => {
         })
       })
     })
+
+    context(
+      'an infinite loop caused by saving in an AfterSaveCommit hook conditional on a datetime that is not changed in the hook',
+      () => {
+        it('is no longer an infinite loop', async () => {
+          await ModelWithDateTimeConditionalHooks.create({ somethingHappenedAt: DateTime.now() })
+        })
+
+        context('in a transaction', () => {
+          it('is no longer an infinite loop', async () => {
+            await ApplicationModel.transaction(
+              async txn =>
+                await ModelWithDateTimeConditionalHooks.txn(txn).create({
+                  somethingHappenedAt: DateTime.now(),
+                })
+            )
+          })
+        })
+      }
+    )
   })
 })
