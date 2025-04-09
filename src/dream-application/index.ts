@@ -34,6 +34,7 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
+import { DbConnectionType } from '../types/db.js'
 
 const pgTypes = pg.types
 
@@ -285,6 +286,22 @@ Try setting it to something valid, like:
 
   public get serializers(): Record<string, typeof DreamSerializer> {
     return getSerializersOrFail()
+  }
+
+  public getConnectionTypeName(connectionType: DbConnectionType): string {
+    return this.parallelDatabasesEnabled ? `${connectionType}_${process.env.VITEST_POOL_ID}` : connectionType
+  }
+
+  public getDatabaseName(dbName: string): string {
+    return this.parallelDatabasesEnabled ? `${dbName}_${process.env.VITEST_POOL_ID}` : dbName
+  }
+
+  get parallelDatabasesEnabled(): boolean {
+    return (
+      !!this.parallelTests &&
+      !Number.isNaN(Number(process.env.VITEST_POOL_ID)) &&
+      Number(process.env.VITEST_POOL_ID) > 1
+    )
   }
 
   public async load<RT extends 'models' | 'serializers'>(

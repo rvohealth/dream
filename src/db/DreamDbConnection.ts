@@ -17,7 +17,8 @@ let connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
   public static getConnection<DB>(connectionType: DbConnectionType): Kysely<DB> {
-    const connectionName = getConnectionTypeName(connectionType)
+    const dreamApp = DreamApplication.getOrFail()
+    const connectionName = dreamApp.getConnectionTypeName(connectionType)
     const connection = connections[connectionName]
     if (connection) {
       return connection
@@ -37,7 +38,7 @@ export default class DreamDbConnection {
         pool: new pg.Pool({
           user: connectionConf.user || '',
           password: connectionConf.password || '',
-          database: getDatabaseName(connectionConf.name),
+          database: dreamApp.getDatabaseName(connectionConf.name),
           host: connectionConf.host || 'localhost',
           port: connectionConf.port || 5432,
           ssl: connectionConf.useSsl ? sslConfig(connectionConf) : false,
@@ -46,7 +47,7 @@ export default class DreamDbConnection {
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
-    connections[getConnectionTypeName(connectionType)] = dbConn
+    connections[dreamApp.getConnectionTypeName(connectionType)] = dbConn
 
     return dbConn
   }
@@ -57,22 +58,6 @@ export default class DreamDbConnection {
       delete connections[key]
     }
   }
-}
-
-function getConnectionTypeName(connectionType: DbConnectionType): string {
-  return parallelDatabasesEnabled() ? `${connectionType}_${process.env.JEST_WORKER_ID}` : connectionType
-}
-
-function getDatabaseName(dbName: string): string {
-  return parallelDatabasesEnabled() ? `${dbName}_${process.env.JEST_WORKER_ID}` : dbName
-}
-
-function parallelDatabasesEnabled(): boolean {
-  return (
-    !!DreamApplication.getOrFail().parallelTests &&
-    !Number.isNaN(Number(process.env.JEST_WORKER_ID)) &&
-    Number(process.env.JEST_WORKER_ID) > 1
-  )
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
