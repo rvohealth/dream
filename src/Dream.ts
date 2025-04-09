@@ -65,6 +65,7 @@ import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
+import notEqual from './helpers/notEqual.js'
 import { isString } from './helpers/typechecks.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
@@ -2774,12 +2775,7 @@ export default class Dream {
     ;(this.constructor as typeof Dream).columns().forEach(column => {
       const was = this.previousValueForAttribute(column as any)
       const now = (this as any)[column]
-      if (was !== now) {
-        ;(obj as any)[column] = {
-          was,
-          now,
-        }
-      }
+      if (notEqual(was, now)) (obj as any)[column] = { was, now }
     })
     return obj
   }
@@ -2820,7 +2816,7 @@ export default class Dream {
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
   >(this: I, columnName: ColumnName): Updateable<Table>[ColumnName] {
-    if (this.frozenAttributes[columnName] !== (this as any)[columnName])
+    if (notEqual(this.frozenAttributes[columnName], (this as any)[columnName]))
       return this.frozenAttributes[columnName]
     return (this.attributesFromBeforeLastSave as any)[columnName]
   }
@@ -2837,7 +2833,7 @@ export default class Dream {
     const changes = this.changes()
     const now = (changes as any)?.[columnName]?.now
     const was = (changes as any)?.[columnName]?.was
-    return this.isPersisted && now !== was
+    return this.isPersisted && notEqual(now, was)
   }
 
   /**
@@ -3035,7 +3031,12 @@ export default class Dream {
    * @returns A boolean
    */
   public equals(other: any): boolean {
-    return other?.constructor === this.constructor && other.primaryKeyValue === this.primaryKeyValue
+    if (!(other as Dream)?.isDreamInstance) return false
+    return this.comparisonKey === (other as Dream).comparisonKey
+  }
+
+  public get comparisonKey(): string {
+    return `${(this.constructor as typeof Dream).globalName}:${this.primaryKeyValue}`
   }
 
   /**

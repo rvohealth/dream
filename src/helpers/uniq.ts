@@ -8,10 +8,6 @@ export default function uniq<
   return uniqWith(arr, a => String(a))
 }
 
-function dreamKey(dream: Dream): string {
-  return `${(dream.constructor as typeof Dream).globalName}:${dream.primaryKeyValue}`
-}
-
 function uniqWith<ArrayType extends any[], ElementType extends ArrayType extends (infer U)[] ? U : never>(
   arr: ArrayType,
   toKey: (a: ElementType) => string | number | bigint
@@ -21,7 +17,9 @@ function uniqWith<ArrayType extends any[], ElementType extends ArrayType extends
       // Prefix with underscore to ensure that the values cannot be interpreted as integers.
       // If they can be interpreted as integers, then the keys are ordered not by the
       // order in which they were added, but in ascending numerical order.
-      const key = (val as unknown as Dream)?.isDreamInstance ? dreamKey(val) : `_${toKey(val)}`
+      const key = (val as unknown as Dream)?.isDreamInstance
+        ? (val as unknown as Dream).comparisonKey
+        : `_${toKey(val)}`
       acc[key] ||= val
       return acc
     },
