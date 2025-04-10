@@ -1,5 +1,4 @@
 import DreamCLI from '../cli/index.js'
-import ConnectionConfRetriever from '../db/ConnectionConfRetriever.js'
 import DreamApplication from '../dream-application/index.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder.js'
@@ -32,8 +31,8 @@ export default class DreamBin {
   }
 
   public static async dbCreate() {
-    const connectionRetriever = new ConnectionConfRetriever()
-    const primaryDbConf = connectionRetriever.getConnectionConf('primary')
+    const dreamApp = DreamApplication.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
 
     DreamCLI.logger.logStartProgress(`creating ${primaryDbConf.name}...`)
     await createDb('primary')
@@ -50,8 +49,8 @@ export default class DreamBin {
   }
 
   public static async dbDrop() {
-    const connectionRetriever = new ConnectionConfRetriever()
-    const primaryDbConf = connectionRetriever.getConnectionConf('primary')
+    const dreamApp = DreamApplication.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
 
     DreamCLI.logger.logStartProgress(`dropping ${primaryDbConf.name}...`)
     await _dropDb('primary')
@@ -68,18 +67,19 @@ export default class DreamBin {
   }
 
   public static async dbMigrate() {
-    const connectionRetriever = new ConnectionConfRetriever()
-    const primaryDbConf = connectionRetriever.getConnectionConf('primary')
+    const dreamApp = DreamApplication.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
     DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
 
     await runMigration({ mode: 'migrate' })
-    await this.duplicateDatabase()
     DreamCLI.logger.logEndProgress()
+
+    await this.duplicateDatabase()
   }
 
   public static async dbRollback(opts: { steps: number }) {
-    const connectionRetriever = new ConnectionConfRetriever()
-    const primaryDbConf = connectionRetriever.getConnectionConf('primary')
+    const dreamApp = DreamApplication.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
     DreamCLI.logger.logStartProgress(`rolling back ${primaryDbConf.name}...`)
 
     let step = opts.steps
@@ -87,9 +87,9 @@ export default class DreamBin {
       await runMigration({ mode: 'rollback' })
       step -= 1
     }
-    await this.duplicateDatabase()
-
     DreamCLI.logger.logEndProgress()
+
+    await this.duplicateDatabase()
   }
 
   public static async generateDream(
@@ -123,17 +123,19 @@ export default class DreamBin {
   }
 
   private static async duplicateDatabase() {
-    const parallelTests = DreamApplication.getOrFail().parallelTests
+    const dreamApp = DreamApplication.getOrFail()
+    const parallelTests = dreamApp.parallelTests
     if (!parallelTests) return
 
-    const connectionRetriever = new ConnectionConfRetriever()
-    const dbConf = connectionRetriever.getConnectionConf('primary')
+    DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
+    const dbConf = dreamApp.dbConnectionConfig('primary')
     const client = await loadPgClient({ useSystemDb: true })
 
     if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
       DreamCLI.logger.logContinueProgress(
-        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`
+        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
+        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
       )
       await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
       await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
@@ -142,13 +144,15 @@ export default class DreamBin {
     for (let i = 2; i <= parallelTests; i++) {
       const workerDatabaseName = `${dbConf.name}_${i}`
 
-      console.log(`creating duplicate test database ${workerDatabaseName} for concurrent tests`)
       DreamCLI.logger.logContinueProgress(
-        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`
+        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
+        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
       )
       await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
       await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
     }
     await client.end()
+
+    DreamCLI.logger.logEndProgress()
   }
 }
