@@ -93,6 +93,8 @@ import {
   JoinTypes,
   NamespacedOrBaseModelColumnTypes,
   PreloadedDreamsAndWhatTheyPointTo,
+  QueryToKyselyDBType,
+  QueryToKyselyTableNamesType,
 } from '../types/query.js'
 import {
   JoinedAssociation,
@@ -1440,12 +1442,14 @@ export default class Query<
    */
   public toKysely<
     QueryType extends 'select' | 'delete' | 'update',
+    DbType = QueryToKyselyDBType<typeof this>,
+    TableNames = QueryToKyselyTableNamesType<typeof this>,
     ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<DreamInstance['DB'], DreamInstance['table'], unknown>
+      ? SelectQueryBuilder<DbType, TableNames & keyof DbType, unknown>
       : QueryType extends 'delete'
-        ? DeleteQueryBuilder<DreamInstance['DB'], DreamInstance['table'], unknown>
+        ? DeleteQueryBuilder<DbType, TableNames & keyof DbType, unknown>
         : QueryType extends 'update'
-          ? UpdateQueryBuilder<DreamInstance['DB'], DreamInstance['table'], DreamInstance['table'], unknown>
+          ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
           : never,
   >(type: QueryType) {
     switch (type) {

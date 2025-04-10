@@ -1,11 +1,4 @@
-import {
-  CompiledQuery,
-  DeleteQueryBuilder,
-  InsertQueryBuilder,
-  SelectQueryBuilder,
-  Updateable,
-  UpdateQueryBuilder,
-} from 'kysely'
+import { CompiledQuery, Updateable } from 'kysely'
 
 import { pgErrorType } from './db/errors.js'
 import db from './db/index.js'
@@ -1576,40 +1569,11 @@ export default class Dream {
    * @param type - The type of Kysely query builder instance you would like to obtain
    * @returns A Kysely query. Depending on the type passed, it will return either a SelectQueryBuilder, DeleteQueryBuilder, UpdateQueryBuilder, or an InsertQueryBuilder
    */
-  public static toKysely<
-    T extends typeof Dream,
-    QueryType extends 'select' | 'delete' | 'update' | 'insert',
-    ToKyselyReturnType = QueryType extends 'select'
-      ? SelectQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], unknown>
-      : QueryType extends 'delete'
-        ? DeleteQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], unknown>
-        : QueryType extends 'update'
-          ? UpdateQueryBuilder<
-              InstanceType<T>['DB'],
-              InstanceType<T>['table'],
-              InstanceType<T>['table'],
-              unknown
-            >
-          : QueryType extends 'insert'
-            ? InsertQueryBuilder<InstanceType<T>['DB'], InstanceType<T>['table'], unknown>
-            : never,
-  >(this: T, type: QueryType) {
-    switch (type) {
-      case 'select':
-        return this.query().dbFor('select').selectFrom(this.table) as ToKyselyReturnType
-
-      case 'delete':
-        return this.query().dbFor('delete').deleteFrom(this.table) as ToKyselyReturnType
-
-      case 'update':
-        return this.query().dbFor('update').updateTable(this.table) as ToKyselyReturnType
-
-      case 'insert':
-        return this.query().dbFor('insert').insertInto(this.table) as ToKyselyReturnType
-
-      default:
-        throw new Error('never')
-    }
+  public static toKysely<T extends typeof Dream, QueryType extends 'select' | 'delete' | 'update'>(
+    this: T,
+    type: QueryType
+  ) {
+    return this.query().toKysely(type)
   }
 
   /**
