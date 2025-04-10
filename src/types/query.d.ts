@@ -1,3 +1,4 @@
+import { Nullable } from 'kysely'
 import Dream from '../Dream.ts'
 import Query from '../dream/Query.ts'
 import { IdType, TableColumnType } from './dream.js'
@@ -125,3 +126,40 @@ export type NamespacedOrBaseModelColumnTypes<
 > = Q['queryTypeOpts']['joinedAssociations']['length'] extends 0
   ? BaseModelColumnTypes<ColumnNames, DreamInstance>
   : NamespacedColumnTypes<ColumnNames, Q, DreamInstance>
+
+export type QueryToKyselyTableNamesType<
+  Q extends Query<any, any>,
+  DreamInstance = Q['dreamInstance'],
+  QueryTypeOpts = Q['queryTypeOpts'],
+  HasJoinedAssociations = QueryTypeOpts['joinedAssociations']['length'] extends 0 ? false : true,
+  JoinedAssociationTables = HasJoinedAssociations extends true
+    ? QueryTypeOpts['joinedAssociations'][number]['table']
+    : null,
+  JoinedAssociationAliases = HasJoinedAssociations extends true
+    ? QueryTypeOpts['joinedAssociations'][number]['alias']
+    : null,
+  TableNames = HasJoinedAssociations extends true
+    ? DreamInstance['table'] | JoinedAssociationTables | JoinedAssociationAliases
+    : DreamInstance['table'],
+> = TableNames
+
+export type QueryToKyselyDBType<
+  Q extends Query<any, any>,
+  DreamInstance = Q['dreamInstance'],
+  AliasToDbMaps = QueryToKyselyAliasMap<Q>,
+  DbType = AliasToDbMaps extends null ? DreamInstance['DB'] : DreamInstance['DB'] & AliasToDbMaps,
+> = DbType
+
+export type QueryToKyselyAliasMap<
+  Q extends Query<any, any>,
+  DreamInstance = Q['dreamInstance'],
+  QueryTypeOpts = Q['queryTypeOpts'],
+  HasJoinedAssociations = QueryTypeOpts['joinedAssociations']['length'] extends 0 ? false : true,
+  AliasToDbMaps = HasJoinedAssociations extends true
+    ? {
+        [Key in QueryTypeOpts['joinedAssociations'][number]['alias']]: Nullable<
+          DreamInstance['DB'][Extract<QueryTypeOpts['joinedAssociations'][number], { alias: Key }>['table']]
+        >
+      }
+    : null,
+> = AliasToDbMaps
