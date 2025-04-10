@@ -1,8 +1,8 @@
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely'
 import { Pool } from 'pg'
-import ConnectionConfRetriever from '../../../src/db/ConnectionConfRetriever.js'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import db from '../../../src/db/index.js'
+import { DreamApplication } from '../../../src/index.js'
 import { DbConnectionType } from '../../../src/types/db.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -22,7 +22,7 @@ describe('replicaSafe specific specs', () => {
 
   beforeEach(async () => {
     const originalPrimaryConnection = DreamDbConnection.getConnection('primary')
-    const connectionConf = new ConnectionConfRetriever().getConnectionConf('primary')
+    const connectionConf = DreamApplication.getOrFail().dbConnectionConfig('primary')
 
     const fakeReplicaName = `replica_test_${connectionConf.name}`
     fakeReplicaConnection = new Kysely<unknown>({

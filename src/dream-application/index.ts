@@ -288,15 +288,29 @@ Try setting it to something valid, like:
     return getSerializersOrFail()
   }
 
-  public getConnectionTypeName(connectionType: DbConnectionType): string {
-    return this.parallelDatabasesEnabled ? `${connectionType}_${process.env.VITEST_POOL_ID}` : connectionType
+  public dbName(connection: DbConnectionType): string {
+    const conf = this.dbConnectionConfig(connection)
+    return this.parallelDatabasesEnabled ? `${conf.name}_${process.env.VITEST_POOL_ID}` : conf.name
   }
 
-  public getDatabaseName(dbName: string): string {
-    return this.parallelDatabasesEnabled ? `${dbName}_${process.env.VITEST_POOL_ID}` : dbName
+  public dbConnectionConfig(connection: DbConnectionType): SingleDbCredential {
+    const conf = this.dbCredentials?.[connection] || this.dbCredentials?.primary
+
+    if (!conf)
+      throw new Error(`
+      Cannot find a connection config given the following connection and node environment:
+        connection: ${connection}
+        NODE_ENV: ${EnvInternal.nodeEnv}
+    `)
+
+    return conf
   }
 
-  get parallelDatabasesEnabled(): boolean {
+  public get hasReplicaConfig() {
+    return !!this.dbCredentials.replica
+  }
+
+  public get parallelDatabasesEnabled(): boolean {
     return (
       !!this.parallelTests &&
       !Number.isNaN(Number(process.env.VITEST_POOL_ID)) &&
