@@ -1,4 +1,5 @@
 import './test-app/app/conf/loadEnv.js'
+
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
