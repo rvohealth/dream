@@ -49,8 +49,8 @@ import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestr
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
 import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
+import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import MissingSerializer from './errors/MissingSerializersDefinition.js'
-import MissingTable from './errors/MissingTable.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
@@ -118,14 +118,14 @@ export default class Dream {
    * @internal
    *
    * This getter will throw an error when developers use .toEqual instead of
-   * useToMatchDreamModels or useToMatchDreamModel in a jest spec. This
+   * useToMatchDreamModels or useToMatchDreamModel in a vite spec. This
    * must be the first getter in the class in order for this to work, so don't move it.
    *
    */
   private get _useToMatchDreamModels(): any {
     throw new Error(`
       Hi there! It looks like you're trying to compare a Dream model in
-      a Jest expectation using \`toEqual\`. That won't work.
+      a Vite expectation using \`toEqual\`. That won't work.
       Instead, use \`toMatchDreamModel\` or \`toMatchDreamModels\`.
 
       For example, instead of:
@@ -166,11 +166,11 @@ export default class Dream {
   private static globallyInitializingDecorators: boolean = false
 
   public get schema(): any {
-    throw new Error('Must define schema getter in ApplicationModel')
+    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'schema')
   }
 
   public get globalSchema(): any {
-    throw new Error('Must define schema getter in ApplicationModel')
+    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'globalSchema')
   }
 
   /**
@@ -2146,7 +2146,7 @@ export default class Dream {
    * @returns The table name for this model
    */
   public get table(): AssociationTableNames<any, any> {
-    throw new MissingTable(this.constructor as typeof Dream)
+    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'table')
   }
 
   /**

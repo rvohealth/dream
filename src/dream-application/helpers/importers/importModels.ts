@@ -1,5 +1,5 @@
 import Dream from '../../../Dream.js'
-import MissingTable from '../../../errors/MissingTable.js'
+import DreamMissingRequiredOverride from '../../../errors/DreamMissingRequiredOverride.js'
 import DreamImporter from '../DreamImporter.js'
 import globalModelKeyFromPath from '../globalModelKeyFromPath.js'
 
@@ -36,7 +36,7 @@ export default async function importModels(
       } catch (error) {
         // ApplicationModel will automatically raise an exception here,
         // since it does not have a table.
-        if (!(error instanceof MissingTable)) throw error
+        if (!(error instanceof DreamMissingRequiredOverride)) throw error
       }
     }
   }
@@ -54,7 +54,7 @@ export default async function importModels(
       } catch (error) {
         // ApplicationModel will automatically raise an exception here,
         // since it does not have a table.
-        if (!(error instanceof MissingTable)) throw error
+        if (!(error instanceof DreamMissingRequiredOverride)) throw error
       }
     }
   }
