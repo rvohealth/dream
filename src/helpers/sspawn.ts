@@ -37,15 +37,14 @@ export function ssspawn(command: string, opts: SpawnOptions & { onStdout?: (str:
     }
   })
 
-  proc.stdout?.on('error', err => {
-    console.log('sspawn error!')
-    console.error(err)
-  })
-
-  proc.on('error', err => {
-    console.log('sspawn error!')
-    console.error(err)
-  })
+  proc.stdout?.on('error', handleSpawnError)
+  proc.stderr?.on('error', handleSpawnError)
+  proc.stderr?.on('data', handleSpawnError)
+  proc.on('error', handleSpawnError)
 
   return proc
+}
+
+function handleSpawnError(err: any) {
+  console.error(err?.toString())
 }
