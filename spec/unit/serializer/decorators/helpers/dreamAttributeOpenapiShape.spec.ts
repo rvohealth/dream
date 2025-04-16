@@ -22,8 +22,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'name')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
-        nullable: true,
+        type: ['string', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -44,11 +43,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'nicknames')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -74,8 +72,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'notes')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
-        nullable: true,
+        type: ['string', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -96,11 +93,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteTexts')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -126,8 +122,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteCitext')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
-        nullable: true,
+        type: ['string', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -148,11 +143,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteCitexts')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -178,8 +172,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'optionalUuid')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
-        nullable: true,
+        type: ['string', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -200,11 +193,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteUuids')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -230,9 +222,8 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'birthdate')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
+        type: ['string', 'null'],
         format: 'date',
-        nullable: true,
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -254,12 +245,11 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteDates')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
             format: 'date',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -299,12 +289,11 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteDatetimes')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
             format: 'date-time',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -334,8 +323,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'collarCountInt')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'integer',
-        nullable: true,
+        type: ['integer', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -356,11 +344,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteIntegers')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'integer',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -389,9 +376,8 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'volume')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'number',
+        type: ['number', 'null'],
         format: 'decimal',
-        nullable: true,
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -402,9 +388,8 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'collarCountNumeric')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'number',
+        type: ['number', 'null'],
         format: 'decimal',
-        nullable: true,
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -414,12 +399,11 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteNumerics')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'number',
             format: 'decimal',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -449,8 +433,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteBigint')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
-        nullable: true,
+        type: ['string', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -471,11 +454,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteBigints')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -501,8 +483,7 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'likesWalks')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'boolean',
-        nullable: true,
+        type: ['boolean', 'null'],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -523,11 +504,10 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteBooleans')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'boolean',
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -556,9 +536,8 @@ describe('dreamAttributeOpenapiShape', () => {
     it('generates the expected Openapi shape', () => {
       const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'species')
       const expectedOpenapiShape: OpenapiSchemaBody = {
-        type: 'string',
-        enum: [...SpeciesTypesEnumValues, 'null'],
-        nullable: true,
+        type: ['string', 'null'],
+        enum: [...SpeciesTypesEnumValues],
       }
 
       expect(openApiShape).toEqual(expectedOpenapiShape)
@@ -568,12 +547,11 @@ describe('dreamAttributeOpenapiShape', () => {
       it('generates the expected Openapi shape', () => {
         const openApiShape = dreamAttributeOpenapiShape(ModelForOpenapiTypeSpecs, 'favoriteTreats')
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'array',
+          type: ['array', 'null'],
           items: {
             type: 'string',
-            enum: [...PetTreatsEnumValues, 'null'],
+            enum: [...PetTreatsEnumValues],
           },
-          nullable: true,
         }
 
         expect(openApiShape).toEqual(expectedOpenapiShape)

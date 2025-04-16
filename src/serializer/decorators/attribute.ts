@@ -64,10 +64,7 @@ export default function Attribute(
  * class UserSerializer extends DreamSerializer {
  *   @Attribute({
  *     first: 'string',
- *     last: {
- *       type: 'string',
- *       nullable: true,
- *     },
+ *     last: ['string', 'null'],
  *   })
  *   public name: { first: string; last: number | null }
  * }
@@ -84,15 +81,11 @@ export default function Attribute(
  *         type: 'object',
  *         properties: {
  *           first: 'string',
- *           last: {
- *             type: 'string',
- *             nullable: true,
- *           },
+ *           last: ['string', 'null'],
  *         }
  *       },
  *       {
- *         type: 'string',
- *         nullable: true,
+ *         type: ['string', 'null'],
  *       },
  *       {
  *         $schema: 'UserName'
@@ -142,7 +135,10 @@ export default function Attribute(
         }
 
         //
-      } else if (isString(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)) {
+      } else if (
+        isString(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions) ||
+        Array.isArray(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)
+      ) {
         renderAs = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes
         openApiShape = { type: renderAs, ...openApiOptions }
         //
@@ -186,11 +182,6 @@ function openApiAndRenderOptionsToSeparateOptions(
     openApiOptions.description = openApiAndRenderOptions.description
   }
 
-  if (openApiAndRenderOptions.nullable !== undefined) {
-    openApiOptions ||= {}
-    openApiOptions.nullable = openApiAndRenderOptions.nullable
-  }
-
   if (openApiAndRenderOptions.delegate !== undefined) {
     renderOptions ||= {}
     renderOptions.delegate = openApiAndRenderOptions.delegate
@@ -214,7 +205,6 @@ export interface AttributeStatement {
   renderOptions?: AttributeRenderOptions
 }
 interface OpenapiOnlyOptions {
-  nullable?: boolean
   description?: string
 }
 
@@ -226,7 +216,7 @@ interface AttributeRenderOptions {
 type AutomaticOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'description'> &
   Pick<AttributeRenderOptions, 'precision'>
 
-type ShorthandAttributeOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'nullable' | 'description'> &
+type ShorthandAttributeOpenapiAndRenderOptions = Pick<OpenapiOnlyOptions, 'description'> &
   Pick<AttributeRenderOptions, 'delegate'>
 
 type DecimalShorthandAttributeRenderOptions = Pick<AttributeRenderOptions, 'precision'>

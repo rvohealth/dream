@@ -35,7 +35,7 @@ describe('@Attribute', () => {
         }
         processDynamicallyDefinedSerializers(TestSerializer)
 
-        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'string', nullable: true }
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: ['string', 'null'] }
 
         expect(TestSerializer.attributeStatements).toEqual([
           {
@@ -82,9 +82,8 @@ describe('@Attribute', () => {
           processDynamicallyDefinedSerializers(TestSerializer)
 
           const expectedOpenapiShape: OpenapiSchemaBody = {
-            type: 'string',
-            enum: [...SpeciesTypesEnumValues, 'null'],
-            nullable: true,
+            type: ['string', 'null'],
+            enum: [...SpeciesTypesEnumValues],
           }
 
           expect(TestSerializer.attributeStatements).toEqual([
@@ -109,9 +108,8 @@ describe('@Attribute', () => {
         processDynamicallyDefinedSerializers(TestSerializer)
 
         const expectedOpenapiShape: OpenapiSchemaBody = {
-          type: 'string',
+          type: ['string', 'null'],
           description: 'Hello world',
-          nullable: true,
         }
 
         expect(TestSerializer.attributeStatements).toEqual([
@@ -134,7 +132,7 @@ describe('@Attribute', () => {
         }
         processDynamicallyDefinedSerializers(TestSerializer)
 
-        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'integer', nullable: true }
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: ['integer', 'null'] }
 
         const expected: AttributeStatement = {
           field: 'collarCountInt',
@@ -156,7 +154,7 @@ describe('@Attribute', () => {
         }
         processDynamicallyDefinedSerializers(TestSerializer)
 
-        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'number', format: 'decimal', nullable: true }
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: ['number', 'null'], format: 'decimal' }
 
         const expected: AttributeStatement = {
           field: 'volume',
@@ -195,7 +193,7 @@ describe('@Attribute', () => {
       () => {
         it('sets the openApiShape and renderAs to that shorthand string', () => {
           class TestSerializer extends DreamSerializer {
-            @Attribute('date-time[]', { nullable: true, delegate: 'hello', description: 'Hello world' })
+            @Attribute(['null', 'date-time[]'], { delegate: 'hello', description: 'Hello world' })
             public name: string
           }
           processDynamicallyDefinedSerializers(TestSerializer)
@@ -204,8 +202,8 @@ describe('@Attribute', () => {
             {
               field: 'name',
               functional: false,
-              openApiShape: { type: 'date-time[]', nullable: true, description: 'Hello world' },
-              renderAs: 'date-time[]',
+              openApiShape: { type: ['null', 'date-time[]'], description: 'Hello world' },
+              renderAs: ['null', 'date-time[]'],
               renderOptions: { delegate: 'hello' },
             },
           ])
@@ -238,7 +236,7 @@ describe('@Attribute', () => {
       () => {
         it('sets the openApiShape and renderAs to that shorthand string', () => {
           class TestSerializer extends DreamSerializer {
-            @Attribute({ type: 'decimal', nullable: true }, { precision: 2 })
+            @Attribute({ type: ['decimal', 'null'] }, { precision: 2 })
             public name: string
           }
           processDynamicallyDefinedSerializers(TestSerializer)
@@ -247,8 +245,8 @@ describe('@Attribute', () => {
             {
               field: 'name',
               functional: false,
-              openApiShape: { type: 'decimal', nullable: true },
-              renderAs: { type: 'decimal', nullable: true },
+              openApiShape: { type: ['decimal', 'null'] },
+              renderAs: { type: ['decimal', 'null'] },
               renderOptions: { precision: 2 },
             },
           ])

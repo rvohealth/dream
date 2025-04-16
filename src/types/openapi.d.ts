@@ -32,32 +32,28 @@ export type OpenapiSchemaBase =
   | OpenapiSchemaExpressionRef
 
 export type OpenapiSchemaShorthandExpressionAnyOf = {
-  anyOf: (OpenapiSchemaBodyShorthand | OpenapiSchemaPartialSegment)[]
+  anyOf: OpenapiSchemaBodyShorthand[]
 }
 
 export type OpenapiSchemaShorthandExpressionOneOf = {
-  oneOf: (OpenapiSchemaBodyShorthand | OpenapiSchemaPartialSegment)[]
+  oneOf: OpenapiSchemaBodyShorthand[]
 }
 
 export type OpenapiSchemaShorthandExpressionAllOf = {
-  allOf: (OpenapiSchemaBodyShorthand | OpenapiSchemaPartialSegment)[]
-}
-
-export type OpenapiSchemaPartialSegment = {
-  nullable?: boolean
+  allOf: OpenapiSchemaBodyShorthand[]
 }
 
 export type OpenapiSchemaShorthandExpressionSerializerRef = {
   $serializer: typeof DreamSerializer
   many?: boolean
-  nullable?: boolean
+  maybeNull?: boolean
 }
 
 export type OpenapiSchemaShorthandExpressionSerializableRef = {
   $serializable: SerializableDreamClassOrViewModelClass
-  many?: boolean
-  nullable?: boolean
   key?: string
+  many?: boolean
+  maybeNull?: boolean
 }
 
 export type OpenapiSchemaExpressionRef = {
@@ -69,25 +65,24 @@ export type OpenapiSchemaExpressionRefSchemaShorthand = {
 }
 
 export type OpenapiSchemaExpressionAllOf = {
-  allOf: (OpenapiSchemaBody | OpenapiSchemaPartialSegment)[]
+  allOf: OpenapiSchemaBody[]
 }
 
 export type OpenapiSchemaExpressionAnyOf = {
-  anyOf: (OpenapiSchemaBody | OpenapiSchemaPartialSegment)[]
+  anyOf: OpenapiSchemaBody[]
 }
 
 export type OpenapiSchemaExpressionOneOf = {
-  oneOf: (OpenapiSchemaBody | OpenapiSchemaPartialSegment)[]
+  oneOf: OpenapiSchemaBody[]
 }
 
 export type OpenapiSchemaCommonFields<T> = T & {
-  nullable?: boolean
   description?: string
   summary?: string
 }
 
 export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
-  type: 'string'
+  type: 'string' | ['string', 'null'] | ['null', 'string']
   enum?: string[] | Readonly<string[]>
   format?: string
   pattern?: string
@@ -96,13 +91,13 @@ export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
 }>
 
 export type OpenapiSchemaInteger = OpenapiSchemaCommonFields<{
-  type: 'integer'
+  type: 'integer' | ['integer', 'null'] | ['null', 'integer']
   minimum?: number
   maximum?: number
 }>
 
 export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
-  type: 'number'
+  type: 'number' | ['number', 'null'] | ['null', 'number']
   format?: OpenapiNumberFormats
   multipleOf?: number
   minimum?: number
@@ -188,13 +183,13 @@ export type OpenapiSchemaObjectAllOfShorthand = CommonOpenapiSchemaObjectFields<
 
 export type CommonOpenapiSchemaObjectFields<T> = OpenapiSchemaCommonFields<
   T & {
-    type: 'object'
+    type: 'object' | ['object', 'null'] | ['null', 'object']
     required?: string[]
   }
 >
 
 export type OpenapiSchemaArray = OpenapiSchemaCommonFields<{
-  type: 'array'
+  type: 'array' | ['array', 'null'] | ['null', 'array']
   items:
     | OpenapiSchemaBody
     | OpenapiSchemaExpressionAllOf
@@ -203,7 +198,7 @@ export type OpenapiSchemaArray = OpenapiSchemaCommonFields<{
 }>
 
 export type OpenapiSchemaArrayShorthand = OpenapiSchemaCommonFields<{
-  type: 'array'
+  type: 'array' | ['array', 'null'] | ['null', 'array']
   items:
     | OpenapiSchemaBodyShorthand
     | OpenapiSchemaShorthandExpressionAllOf
@@ -229,10 +224,27 @@ export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
-export type OpenapiPrimitiveTypes = (typeof openapiPrimitiveTypes)[number]
-export type OpenapiShorthandPrimitiveTypes = (typeof openapiShorthandPrimitiveTypes)[number]
-export type OpenapiAllTypes = OpenapiPrimitiveTypes | 'object' | 'array'
-export type OpenapiShorthandAllTypes = OpenapiShorthandPrimitiveTypes | 'object' | 'array'
+type OpenapiPrimitiveBaseTypes = (typeof openapiPrimitiveTypes)[number]
+export type OpenapiPrimitiveTypes =
+  | OpenapiPrimitiveBaseTypes
+  | [OpenapiPrimitiveBaseTypes, 'null']
+  | ['null', OpenapiPrimitiveBaseTypes]
+
+type OpenapiShorthandPrimitiveBaseTypes = (typeof openapiShorthandPrimitiveTypes)[number]
+export type OpenapiShorthandPrimitiveTypes =
+  | OpenapiShorthandPrimitiveBaseTypes
+  | [OpenapiShorthandPrimitiveBaseTypes, 'null']
+  | ['null', OpenapiShorthandPrimitiveBaseTypes]
+
+type ObjectOrArrayPrimitiveTypes =
+  | 'object'
+  | 'array'
+  | ['object' | 'array', 'null']
+  | ['null', 'object' | 'array']
+
+export type OpenapiAllTypes = OpenapiPrimitiveTypes | ObjectOrArrayPrimitiveTypes
+
+export type OpenapiShorthandAllTypes = OpenapiShorthandPrimitiveTypes | ObjectOrArrayPrimitiveTypes
 
 export type OpenapiTypeField = OpenapiPrimitiveTypes | OpenapiTypeFieldObject
 

@@ -194,7 +194,7 @@ describe('DreamSerializer#render', () => {
 
       context('the date field is specified using openapi syntax', () => {
         class MySerializer extends DreamSerializer {
-          @Attribute({ type: 'string', format: 'date', nullable: true })
+          @Attribute({ type: ['string', 'null'], format: 'date' })
           public createdAt: string
         }
         processDynamicallyDefinedSerializers(MySerializer)
@@ -270,7 +270,7 @@ describe('DreamSerializer#render', () => {
 
       context('the date-time field is specified using openapi syntax', () => {
         class MySerializer extends DreamSerializer {
-          @Attribute({ type: 'string', format: 'date-time', nullable: true })
+          @Attribute({ type: ['string', 'null'], format: 'date-time' })
           public createdAt: string
         }
         processDynamicallyDefinedSerializers(MySerializer)

@@ -18,6 +18,7 @@ import {
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../types/dream.js'
+import { OpenapiSchemaNumber, OpenapiSchemaString } from '../types/openapi.js'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
 import { AttributeStatement, SerializableTypes } from './decorators/attribute.js'
 import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
@@ -249,14 +250,27 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   private computedRenderAs(renderAs: SerializableTypes | undefined) {
     if (typeof renderAs === 'object') {
-      const safeRenderAs = renderAs as any
+      const safeRenderAs = renderAs as OpenapiSchemaString | OpenapiSchemaNumber
+      let openApiType = safeRenderAs.type
 
-      if (safeRenderAs.type === 'string' || safeRenderAs.type === 'number') {
-        if (safeRenderAs.format) return safeRenderAs.format
-        return safeRenderAs.type
+      if (Array.isArray(openApiType)) {
+        if (openApiType[1] === 'null') {
+          openApiType = openApiType[0]
+        } else if (openApiType[0] === 'null') {
+          openApiType = openApiType[1]
+        } else {
+          throw new Error(
+            `Expected array with 'null' and an OpenAPI primitive string: ${JSON.stringify(openApiType)}`
+          )
+        }
       }
 
-      if (safeRenderAs.type) return safeRenderAs.type
+      if (openApiType === 'string' || openApiType === 'number') {
+        if (safeRenderAs.format) return safeRenderAs.format
+        return openApiType
+      }
+
+      if (openApiType) return openApiType
     }
 
     return renderAs

@@ -133,7 +133,6 @@ export {
   type OpenapiSchemaObjectOneOf,
   type OpenapiSchemaObjectOneOfShorthand,
   type OpenapiSchemaObjectShorthand,
-  type OpenapiSchemaPartialSegment,
   type OpenapiSchemaPrimitiveGeneric,
   type OpenapiSchemaProperties,
   type OpenapiSchemaPropertiesShorthand,

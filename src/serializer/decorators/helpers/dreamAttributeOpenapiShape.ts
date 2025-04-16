@@ -20,26 +20,22 @@ export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
   if (!dreamColumnInfo) return { type: 'string' }
 
   const singleType = singularAttributeOpenapiShape(dreamColumnInfo)
-  const nullable = dreamColumnInfo.allowNull ? { nullable: true } : {}
 
-  if (dreamColumnInfo.isArray) return { type: 'array', items: singleType, ...nullable }
+  if (dreamColumnInfo.isArray)
+    return { type: dreamColumnInfo.allowNull ? ['array', 'null'] : 'array', items: singleType }
 
   return {
     ...singleType,
-    ...nullable,
-  }
+    type: dreamColumnInfo.allowNull ? [singleType.type, 'null'] : singleType.type,
+  } as OpenapiSchemaBody
 }
 
-function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): OpenapiSchemaBody {
-  if (dreamColumnInfo.enumValues)
-    return {
-      type: 'string',
-      enum: [...dreamColumnInfo.enumValues, ...(dreamColumnInfo.allowNull ? ['null'] : [])],
-    }
+function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo) {
+  if (dreamColumnInfo.enumValues) return { type: 'string', enum: dreamColumnInfo.enumValues } as const
 
   switch (dreamColumnInfo.dbType.replace('[]', '')) {
     case 'boolean':
-      return { type: 'boolean' }
+      return { type: 'boolean' } as const
 
     case 'bigint':
     case 'bigserial':
@@ -58,21 +54,21 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): Openap
     case 'varbit':
     case 'varchar':
     case 'xml':
-      return { type: 'string' }
+      return { type: 'string' } as const
 
     case 'integer':
     case 'serial':
     case 'smallint':
     case 'smallserial':
-      return { type: 'integer' }
+      return { type: 'integer' } as const
 
     case 'decimal':
     case 'numeric':
-      return { type: 'number', format: 'decimal' }
+      return { type: 'number', format: 'decimal' } as const
 
     case 'double':
     case 'real':
-      return { type: 'number' }
+      return { type: 'number' } as const
 
     case 'datetime':
     case 'time':
@@ -80,10 +76,10 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo): Openap
     case 'timestamp':
     case 'timestamp with time zone':
     case 'timestamp without time zone':
-      return { type: 'string', format: 'date-time' }
+      return { type: 'string', format: 'date-time' } as const
 
     case 'date':
-      return { type: 'string', format: 'date' }
+      return { type: 'string', format: 'date' } as const
 
     case 'json':
     case 'jsonb':

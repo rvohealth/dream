@@ -69,7 +69,7 @@ export default class User extends ApplicationModel {
     self.setAttribute('grams', lbsToGrams(lbs))
   }
 
-  @deco.Virtual({ type: 'number', nullable: true })
+  @deco.Virtual(['number', 'null'])
   public set kilograms(kg: number) {
     const self: User = this
     self.setAttribute('grams', kilogramsToGrams(kg))

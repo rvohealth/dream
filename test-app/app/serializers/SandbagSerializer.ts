@@ -29,12 +29,10 @@ export default class SandbagSerializer extends DreamSerializer {
   @Attribute({
     anyOf: [
       {
-        type: 'date-time',
-        nullable: true,
+        type: ['date-time', 'null'],
       },
       {
-        type: 'date',
-        nullable: false,
+        type: ['date', 'null'],
       },
     ],
   })
@@ -43,8 +41,7 @@ export default class SandbagSerializer extends DreamSerializer {
   @Attribute({
     anyOf: [
       {
-        type: 'date',
-        nullable: false,
+        type: ['date', 'null'],
       },
       {
         $ref: 'components/schemas/Howyadoin',
@@ -62,7 +59,7 @@ export default class SandbagSerializer extends DreamSerializer {
   @Attribute({ type: 'object', additionalProperties: 'number' })
   public history: Record<string, number>
 
-  @Attribute({ type: 'object', additionalProperties: { type: 'number', nullable: true } })
+  @Attribute({ type: 'object', additionalProperties: { type: ['number', 'null'] } })
   public nullableHistory: Record<string, number>
 
   @Attribute({
