@@ -184,11 +184,11 @@ describe('DreamSerializer#render', () => {
           createdAt = undefined
         })
 
-        it('sets the field to null on the serializer', () => {
+        it('sets the field to undefined on the serializer', () => {
           const serializer = new MySerializer({
             createdAt: undefined,
           })
-          expect(serializer.render()).toEqual({ createdAt: null })
+          expect(serializer.render()).toEqual({ createdAt: undefined })
         })
       })
 
@@ -275,11 +275,11 @@ describe('DreamSerializer#render', () => {
           createdAt = undefined
         })
 
-        it('sets the field to null on the serializer', () => {
+        it('sets the field to undefined on the serializer', () => {
           const serializer = new MySerializer({
             createdAt: undefined,
           })
-          expect(serializer.render()).toEqual({ createdAt: null })
+          expect(serializer.render()).toEqual({ createdAt: undefined })
         })
       })
 
@@ -363,11 +363,11 @@ describe('DreamSerializer#render', () => {
       })
 
       context('the integer field is undefined', () => {
-        it('sets the field to null on the serializer', () => {
+        it('sets the field to undefined on the serializer', () => {
           const serializer = new MySerializer({
             kilos: undefined,
           })
-          expect(serializer.render()).toEqual({ kilos: null })
+          expect(serializer.render()).toEqual({ kilos: undefined })
         })
       })
 
@@ -438,11 +438,11 @@ describe('DreamSerializer#render', () => {
             kilos = undefined
           })
 
-          it('sets the field to null on the serializer', () => {
+          it('sets the field to undefined on the serializer', () => {
             const serializer = new MySerializer({
               kilos: undefined,
             })
-            expect(serializer.render()).toEqual({ kilos: null })
+            expect(serializer.render()).toEqual({ kilos: undefined })
           })
         })
       })
@@ -483,11 +483,11 @@ describe('DreamSerializer#render', () => {
             kilos = undefined
           })
 
-          it('sets the field to null on the serializer', () => {
+          it('sets the field to undefined on the serializer', () => {
             const serializer = new MySerializer({
               kilos: undefined,
             })
-            expect(serializer.render()).toEqual({ kilos: null })
+            expect(serializer.render()).toEqual({ kilos: undefined })
           })
         })
       })

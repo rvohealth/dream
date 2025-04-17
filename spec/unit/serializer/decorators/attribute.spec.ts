@@ -75,6 +75,28 @@ describe('@Attribute', () => {
       it('attributeStatements specify field, OpenAPI type, and renderAs type', () => {
         class TestSerializer extends DreamSerializer {
           @Attribute(ModelForOpenapiTypeSpecs)
+          public requiredCollarCountInt: number
+        }
+        processDynamicallyDefinedSerializers(TestSerializer)
+
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: 'integer' }
+
+        expect(TestSerializer.attributeStatements).toEqual([
+          {
+            field: 'requiredCollarCountInt',
+            functional: false,
+            openApiShape: expectedOpenapiShape,
+            renderAs: 'integer',
+            renderOptions: undefined,
+          },
+        ])
+      })
+    })
+
+    context('decorating a property corresponding to a nullable integer column', () => {
+      it('attributeStatements specify field, OpenAPI type, and renderAs type', () => {
+        class TestSerializer extends DreamSerializer {
+          @Attribute(ModelForOpenapiTypeSpecs)
           public collarCountInt: number
         }
         processDynamicallyDefinedSerializers(TestSerializer)

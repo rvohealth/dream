@@ -329,30 +329,26 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 }
 
-function unknownTypeToIsoDateString(dateTime: unknown): string | null {
-  if (dateTime instanceof CalendarDate || dateTime instanceof DateTime) return dateTime.toISODate()
+function unknownTypeToIsoDateString(date: unknown): string | null | undefined {
+  if (date === undefined) return undefined
+  if (date instanceof CalendarDate || date instanceof DateTime) return date.toISODate()
   return null
 }
 
-function unknownTypeToIsoDatetimeString(dateTime: unknown): string | null {
+function unknownTypeToIsoDatetimeString(dateTime: unknown): string | null | undefined {
+  if (dateTime === undefined) return undefined
   if (dateTime instanceof CalendarDate) return DateTime.fromISO(dateTime.toISO()!).toISO()
   if (dateTime instanceof DateTime) return dateTime.toISO()
   return null
 }
 
-function numberOrStringToNumber(num: string | number | undefined | null) {
-  if (num === undefined) return null
-  if (num === null) return null
-  if (typeof num === 'number') return num
-  return Number(num)
-}
-
 function unknownTypeToDecimal(
   decimalOrString: string | number | undefined | null,
   precision: RoundingPrecision | undefined
-): number | null {
-  const decimalValue = numberOrStringToNumber(decimalOrString)
-  if (decimalValue === null) return null
+): number | null | undefined {
+  if (decimalOrString === undefined) return undefined
+  if (decimalOrString === null) return null
+  const decimalValue = typeof decimalOrString === 'number' ? decimalOrString : Number(decimalOrString)
   return precision === undefined ? decimalValue : round(decimalValue, precision)
 }
 
