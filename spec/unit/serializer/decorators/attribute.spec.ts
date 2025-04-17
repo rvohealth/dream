@@ -203,7 +203,7 @@ describe('@Attribute', () => {
               field: 'name',
               functional: false,
               openApiShape: { type: ['null', 'date-time[]'], description: 'Hello world' },
-              renderAs: ['null', 'date-time[]'],
+              renderAs: 'date-time[]',
               renderOptions: { delegate: 'hello' },
             },
           ])
@@ -225,10 +225,30 @@ describe('@Attribute', () => {
           field: 'name',
           functional: false,
           openApiShape: { type: 'date', description: 'Hello world' },
-          renderAs: { type: 'date', description: 'Hello world' },
+          renderAs: 'date',
           renderOptions: undefined,
         },
       ])
+    })
+
+    context('maybe null', () => {
+      it('sets the openApiShape and renderAs', () => {
+        class TestSerializer extends DreamSerializer {
+          @Attribute({ type: ['string', 'null'], format: 'date-time', description: 'Hello world' })
+          public happenedAt: string
+        }
+        processDynamicallyDefinedSerializers(TestSerializer)
+
+        expect(TestSerializer.attributeStatements).toEqual([
+          {
+            field: 'happenedAt',
+            functional: false,
+            openApiShape: { type: ['string', 'null'], format: 'date-time', description: 'Hello world' },
+            renderAs: 'date-time',
+            renderOptions: undefined,
+          },
+        ])
+      })
     })
 
     context(
@@ -246,7 +266,7 @@ describe('@Attribute', () => {
               field: 'name',
               functional: false,
               openApiShape: { type: ['decimal', 'null'] },
-              renderAs: { type: ['decimal', 'null'] },
+              renderAs: 'decimal',
               renderOptions: { precision: 2 },
             },
           ])

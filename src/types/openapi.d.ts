@@ -230,7 +230,7 @@ export type OpenapiPrimitiveTypes =
   | [OpenapiPrimitiveBaseTypes, 'null']
   | ['null', OpenapiPrimitiveBaseTypes]
 
-type OpenapiShorthandPrimitiveBaseTypes = (typeof openapiShorthandPrimitiveTypes)[number]
+export type OpenapiShorthandPrimitiveBaseTypes = (typeof openapiShorthandPrimitiveTypes)[number]
 export type OpenapiShorthandPrimitiveTypes =
   | OpenapiShorthandPrimitiveBaseTypes
   | [OpenapiShorthandPrimitiveBaseTypes, 'null']

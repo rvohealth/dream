@@ -215,6 +215,21 @@ describe('DreamSerializer#render', () => {
       })
     })
 
+    context('one of the fields is a date array', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('date[]')
+        public dates: CalendarDate[]
+      }
+      processDynamicallyDefinedSerializers(MySerializer)
+
+      it('renders an array of date ISO strings', () => {
+        const date1 = CalendarDate.fromISO('2002-10-02')
+        const date2 = CalendarDate.fromISO('2002-10-03')
+        const rendered = new MySerializer({ dates: [date1, date2] }).render()
+        expect(rendered).toEqual({ dates: ['2002-10-02', '2002-10-03'] })
+      })
+    })
+
     context('one of the fields is a date-time', () => {
       const subject = () => new MySerializer({ createdAt }).render()
       let createdAt: CalendarDate | DateTime | null | undefined
@@ -291,6 +306,21 @@ describe('DreamSerializer#render', () => {
       })
     })
 
+    context('one of the fields is a datetime array', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('date-time[]')
+        public datetimes: DateTime[]
+      }
+      processDynamicallyDefinedSerializers(MySerializer)
+
+      it('renders an array of datetime ISO strings', () => {
+        const datetime1 = DateTime.fromISO('2002-10-02T00:00:00.000Z')
+        const datetime2 = DateTime.fromISO('2002-10-03T00:00:00.000Z')
+        const rendered = new MySerializer({ datetimes: [datetime1, datetime2] }).render()
+        expect(rendered).toEqual({ datetimes: ['2002-10-02T00:00:00.000Z', '2002-10-03T00:00:00.000Z'] })
+      })
+    })
+
     context('integer', () => {
       let kilos: number | null | undefined
 
@@ -354,6 +384,20 @@ describe('DreamSerializer#render', () => {
           })
           expect(serializer.render()).toEqual({ kilos: 123 })
         })
+      })
+    })
+
+    context('integer[]', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('integer[]')
+        public kilos: number
+      }
+      processDynamicallyDefinedSerializers(MySerializer)
+
+      it('rounds the numbers to the nearest integer', () => {
+        const kilos = [7.6, 9.1]
+        const rendered = new MySerializer({ kilos }).render()
+        expect(rendered).toEqual({ kilos: [8, 9] })
       })
     })
 
@@ -499,6 +543,20 @@ describe('DreamSerializer#render', () => {
           })
           expect(serializer.render()).toEqual({ kilos: 123.456 })
         })
+      })
+    })
+
+    context('decimal[]', () => {
+      class MySerializer extends DreamSerializer {
+        @Attribute('decimal[]', { precision: 2 })
+        public kilos: number
+      }
+      processDynamicallyDefinedSerializers(MySerializer)
+
+      it('rounds the decimals to the specified precision', () => {
+        const kilos = [7.6789, 9.4321]
+        const rendered = new MySerializer({ kilos }).render()
+        expect(rendered).toEqual({ kilos: [7.68, 9.43] })
       })
     })
   })

@@ -11,16 +11,15 @@ import { DateTime } from '../helpers/DateTime.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from '../helpers/inferSerializerFromDreamOrViewModel.js'
-import round from '../helpers/round.js'
+import round, { RoundingPrecision } from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
 import {
   SerializableClassOrSerializerCallback,
   SerializableDreamClassOrViewModelClass,
   SerializableDreamOrViewModel,
 } from '../types/dream.js'
-import { OpenapiSchemaNumber, OpenapiSchemaString } from '../types/openapi.js'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
-import { AttributeStatement, SerializableTypes } from './decorators/attribute.js'
+import { AttributeStatement } from './decorators/attribute.js'
 import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
 
 export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
@@ -200,36 +199,41 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         const { field, renderAs, renderOptions } = attributeStatement
         const fieldWithCasing = this.applyCasingToField(field)
 
-        let dateValue: CalendarDate | DateTime | null | undefined
-        let decimalValue: number | null | undefined
+        let dateValue: CalendarDate | CalendarDate[] | DateTime | DateTime[] | null | undefined
+        let decimalValue: number | number[] | string | string[] | null | undefined
 
-        switch (this.computedRenderAs(renderAs)) {
+        switch (renderAs) {
           case 'date':
+          case 'date[]':
             dateValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = dateValue?.toISODate() || null
+            returnObj[fieldWithCasing] = Array.isArray(dateValue)
+              ? dateValue?.map(date => unknownTypeToIsoDateString(date))
+              : unknownTypeToIsoDateString(dateValue)
             break
 
           case 'date-time':
+          case 'date-time[]':
             dateValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = dateValue?.toISO()
-              ? DateTime.fromISO(dateValue.toISO()!).toISO()
-              : null
+            returnObj[fieldWithCasing] = Array.isArray(dateValue)
+              ? dateValue?.map(date => unknownTypeToIsoDatetimeString(date))
+              : unknownTypeToIsoDatetimeString(dateValue)
             break
 
           case 'decimal':
-            decimalValue = this.numberOrStringToNumber(this.getAttributeValue(attributeStatement))
-
-            returnObj[fieldWithCasing] =
-              decimalValue === null
-                ? null
-                : renderOptions?.precision === undefined
-                  ? decimalValue
-                  : round(decimalValue, renderOptions?.precision)
+          case 'decimal[]':
+            decimalValue = this.getAttributeValue(attributeStatement)
+            returnObj[fieldWithCasing] = Array.isArray(decimalValue)
+              ? decimalValue?.map(date => unknownTypeToDecimal(date, renderOptions?.precision))
+              : unknownTypeToDecimal(decimalValue, renderOptions?.precision)
             break
 
           case 'integer':
-            decimalValue = this.numberOrStringToNumber(this.getAttributeValue(attributeStatement))
-            returnObj[fieldWithCasing] = decimalValue === null ? null : round(decimalValue)
+          case 'integer[]':
+            decimalValue = this.getAttributeValue(attributeStatement)
+            returnObj[fieldWithCasing] = Array.isArray(decimalValue)
+              ? decimalValue?.map(date => unknownTypeToDecimal(date, 0))
+              : unknownTypeToDecimal(decimalValue, 0)
+
             break
 
           default:
@@ -239,41 +243,6 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     })
 
     return returnObj
-  }
-
-  private numberOrStringToNumber(num: string | number | undefined | null) {
-    if (num === undefined) return null
-    if (num === null) return null
-    if (typeof num === 'number') return num
-    return Number(num)
-  }
-
-  private computedRenderAs(renderAs: SerializableTypes | undefined) {
-    if (typeof renderAs === 'object') {
-      const safeRenderAs = renderAs as OpenapiSchemaString | OpenapiSchemaNumber
-      let openApiType = safeRenderAs.type
-
-      if (Array.isArray(openApiType)) {
-        if (openApiType[1] === 'null') {
-          openApiType = openApiType[0]
-        } else if (openApiType[0] === 'null') {
-          openApiType = openApiType[1]
-        } else {
-          throw new Error(
-            `Expected array with 'null' and an OpenAPI primitive string: ${JSON.stringify(openApiType)}`
-          )
-        }
-      }
-
-      if (openApiType === 'string' || openApiType === 'number') {
-        if (safeRenderAs.format) return safeRenderAs.format
-        return openApiType
-      }
-
-      if (openApiType) return openApiType
-    }
-
-    return renderAs
   }
 
   private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
@@ -358,6 +327,33 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
         return field
     }
   }
+}
+
+function unknownTypeToIsoDateString(dateTime: unknown): string | null {
+  if (dateTime instanceof CalendarDate || dateTime instanceof DateTime) return dateTime.toISODate()
+  return null
+}
+
+function unknownTypeToIsoDatetimeString(dateTime: unknown): string | null {
+  if (dateTime instanceof CalendarDate) return DateTime.fromISO(dateTime.toISO()!).toISO()
+  if (dateTime instanceof DateTime) return dateTime.toISO()
+  return null
+}
+
+function numberOrStringToNumber(num: string | number | undefined | null) {
+  if (num === undefined) return null
+  if (num === null) return null
+  if (typeof num === 'number') return num
+  return Number(num)
+}
+
+function unknownTypeToDecimal(
+  decimalOrString: string | number | undefined | null,
+  precision: RoundingPrecision | undefined
+): number | null {
+  const decimalValue = numberOrStringToNumber(decimalOrString)
+  if (decimalValue === null) return null
+  return precision === undefined ? decimalValue : round(decimalValue, precision)
 }
 
 export interface DreamSerializerStaticRenderOpts {

@@ -1,8 +1,12 @@
 import { DecoratorContext } from '../../decorators/DecoratorContextType.js'
 import Dream from '../../Dream.js'
 import { RoundingPrecision } from '../../helpers/round.js'
-import { isString } from '../../helpers/typechecks.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
+import { isObject, isString } from '../../helpers/typechecks.js'
+import {
+  OpenapiSchemaBodyShorthand,
+  OpenapiShorthandPrimitiveBaseTypes,
+  OpenapiShorthandPrimitiveTypes,
+} from '../../types/openapi.js'
 import DreamSerializer from '../index.js'
 import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 
@@ -119,8 +123,9 @@ export default function Attribute(
         return
       }
 
-      let renderAs: SerializableTypes | undefined
+      let renderAs: OpenapiShorthandPrimitiveBaseTypes | undefined
       let openApiShape: OpenapiSchemaBodyShorthand | undefined
+
       const { openApiOptions, renderOptions } = openApiAndRenderOptionsToSeparateOptions(
         openApiAndRenderOptions_or_renderOptions as DecimalShorthandAttributeOpenapiAndRenderOptions
       )
@@ -136,15 +141,24 @@ export default function Attribute(
 
         //
       } else if (
-        isString(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions) ||
-        Array.isArray(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)
+        isString(
+          maybeNullPrimitiveToPrimitive(
+            dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes
+          )
+        )
       ) {
-        renderAs = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes
-        openApiShape = { type: renderAs, ...openApiOptions }
+        openApiShape = {
+          type: dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes,
+          ...openApiOptions,
+        }
+        renderAs = maybeNullPrimitiveToPrimitive(
+          dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiShorthandPrimitiveTypes
+        )
         //
-      } else if (typeof dreamClass_or_shorthandAttribute_or_manualOpenapiOptions === 'object') {
+      } else if (isObject(dreamClass_or_shorthandAttribute_or_manualOpenapiOptions)) {
         openApiShape = dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as OpenapiSchemaBodyShorthand
-        renderAs = openApiShape
+        renderAs = (openApiShape as any).format || maybeNullPrimitiveToPrimitive((openApiShape as any)?.type)
+        //
       } else if (dreamClass_or_shorthandAttribute_or_manualOpenapiOptions === undefined) {
         // no-op
       } else {
@@ -168,6 +182,20 @@ Attribute: ${key}
         } as AttributeStatement,
       ]
     })
+  }
+}
+
+function maybeNullPrimitiveToPrimitive(
+  openapiType: OpenapiShorthandPrimitiveTypes
+): OpenapiShorthandPrimitiveBaseTypes {
+  if (Array.isArray(openapiType)) {
+    if (openapiType[1] === 'null') return openapiType[0]
+    if (openapiType[0] === 'null') return openapiType[1]
+    throw new Error(
+      `Expected array with 'null' and an OpenAPI primitive string: ${JSON.stringify(openapiType)}`
+    )
+  } else {
+    return openapiType
   }
 }
 
@@ -201,7 +229,7 @@ export interface AttributeStatement {
   field: string
   functional: boolean
   openApiShape: OpenapiSchemaBodyShorthand
-  renderAs?: SerializableTypes
+  renderAs?: OpenapiShorthandPrimitiveBaseTypes
   renderOptions?: AttributeRenderOptions
 }
 interface OpenapiOnlyOptions {
