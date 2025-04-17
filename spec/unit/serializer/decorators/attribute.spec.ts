@@ -1,4 +1,4 @@
-import { Attribute, AttributeStatement, DreamSerializer } from '../../../../src/index.js'
+import { Attribute, AttributeStatement, CalendarDate, DreamSerializer } from '../../../../src/index.js'
 import { OpenapiSchemaBody } from '../../../../src/types/openapi.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
@@ -42,7 +42,51 @@ describe('@Attribute', () => {
             field: 'name',
             functional: false,
             openApiShape: expectedOpenapiShape,
-            renderAs: undefined,
+            renderAs: 'string',
+            renderOptions: undefined,
+          },
+        ])
+      })
+    })
+
+    context('decorating a property corresponding to a date column', () => {
+      it('attributeStatements specify field, OpenAPI type, and renderAs type', () => {
+        class TestSerializer extends DreamSerializer {
+          @Attribute(ModelForOpenapiTypeSpecs)
+          public birthdate: CalendarDate
+        }
+        processDynamicallyDefinedSerializers(TestSerializer)
+
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: ['string', 'null'], format: 'date' }
+
+        expect(TestSerializer.attributeStatements).toEqual([
+          {
+            field: 'birthdate',
+            functional: false,
+            openApiShape: expectedOpenapiShape,
+            renderAs: 'date',
+            renderOptions: undefined,
+          },
+        ])
+      })
+    })
+
+    context('decorating a property corresponding to an integer column', () => {
+      it('attributeStatements specify field, OpenAPI type, and renderAs type', () => {
+        class TestSerializer extends DreamSerializer {
+          @Attribute(ModelForOpenapiTypeSpecs)
+          public collarCountInt: number
+        }
+        processDynamicallyDefinedSerializers(TestSerializer)
+
+        const expectedOpenapiShape: OpenapiSchemaBody = { type: ['integer', 'null'] }
+
+        expect(TestSerializer.attributeStatements).toEqual([
+          {
+            field: 'collarCountInt',
+            functional: false,
+            openApiShape: expectedOpenapiShape,
+            renderAs: 'integer',
             renderOptions: undefined,
           },
         ])
@@ -67,7 +111,7 @@ describe('@Attribute', () => {
             field: 'type',
             functional: false,
             openApiShape: expectedOpenapiShape,
-            renderAs: undefined,
+            renderAs: 'string',
             renderOptions: undefined,
           },
         ])
@@ -91,7 +135,7 @@ describe('@Attribute', () => {
               field: 'species',
               functional: false,
               openApiShape: expectedOpenapiShape,
-              renderAs: undefined,
+              renderAs: 'string',
               renderOptions: undefined,
             },
           ])
@@ -117,7 +161,7 @@ describe('@Attribute', () => {
             field: 'name',
             functional: false,
             openApiShape: expectedOpenapiShape,
-            renderAs: undefined,
+            renderAs: 'string',
             renderOptions: undefined,
           },
         ])
@@ -138,7 +182,7 @@ describe('@Attribute', () => {
           field: 'collarCountInt',
           functional: false,
           openApiShape: expectedOpenapiShape,
-          renderAs: undefined as any,
+          renderAs: 'integer',
           renderOptions: undefined as any,
         }
 
@@ -160,7 +204,7 @@ describe('@Attribute', () => {
           field: 'volume',
           functional: false,
           openApiShape: expectedOpenapiShape,
-          renderAs: undefined as any,
+          renderAs: 'decimal',
           renderOptions: { precision: 2 },
         }
 

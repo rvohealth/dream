@@ -138,6 +138,7 @@ export default function Attribute(
           ),
           ...openApiOptions,
         }
+        renderAs = (openApiShape as any).format || maybeNullPrimitiveToPrimitive((openApiShape as any)?.type)
 
         //
       } else if (
