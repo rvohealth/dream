@@ -83,7 +83,7 @@ export type OpenapiSchemaCommonFields<T> = T & {
 
 export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
   type: 'string' | ['string', 'null'] | ['null', 'string']
-  enum?: string[] | Readonly<string[]>
+  enum?: (string | null)[] | Readonly<(string | null)[]>
   format?: string
   pattern?: string
   minLength?: number
