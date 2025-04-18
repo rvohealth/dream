@@ -141,7 +141,7 @@ describe('DreamSerializer#render', () => {
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {
       const subject = () => new MySerializer({ createdAt }).render()
-      let createdAt: CalendarDate | DateTime | null | undefined
+      let createdAt: CalendarDate | DateTime | string | null | undefined
 
       beforeEach(() => {
         createdAt = null
@@ -169,6 +169,16 @@ describe('DreamSerializer#render', () => {
         })
 
         it('renders unique format for dates', () => {
+          expect(subject()).toEqual({ createdAt: '2002-10-02' })
+        })
+      })
+
+      context('the date field is a date string', () => {
+        beforeEach(() => {
+          createdAt = '2002-10-02'
+        })
+
+        it('renders the provided string', () => {
           expect(subject()).toEqual({ createdAt: '2002-10-02' })
         })
       })
@@ -232,7 +242,7 @@ describe('DreamSerializer#render', () => {
 
     context('one of the fields is a date-time', () => {
       const subject = () => new MySerializer({ createdAt }).render()
-      let createdAt: CalendarDate | DateTime | null | undefined
+      let createdAt: CalendarDate | DateTime | string | null | undefined
 
       beforeEach(() => {
         createdAt = null
@@ -260,6 +270,16 @@ describe('DreamSerializer#render', () => {
         })
 
         it('renders unique format for date-times', () => {
+          expect(subject()).toEqual({ createdAt: '2002-10-02T00:00:00.000Z' })
+        })
+      })
+
+      context('the date field is a datetime string', () => {
+        beforeEach(() => {
+          createdAt = '2002-10-02T00:00:00.000Z'
+        })
+
+        it('renders the provided string', () => {
           expect(subject()).toEqual({ createdAt: '2002-10-02T00:00:00.000Z' })
         })
       })

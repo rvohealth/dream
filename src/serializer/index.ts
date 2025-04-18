@@ -331,15 +331,17 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
 function unknownTypeToIsoDateString(date: unknown): string | null | undefined {
   if (date === undefined) return undefined
+  if (date === null) return null
   if (date instanceof CalendarDate || date instanceof DateTime) return date.toISODate()
-  return null
+  return date as string
 }
 
 function unknownTypeToIsoDatetimeString(dateTime: unknown): string | null | undefined {
   if (dateTime === undefined) return undefined
+  if (dateTime === null) return null
   if (dateTime instanceof CalendarDate) return DateTime.fromISO(dateTime.toISO()!).toISO()
   if (dateTime instanceof DateTime) return dateTime.toISO()
-  return null
+  return dateTime as string
 }
 
 function unknownTypeToDecimal(
