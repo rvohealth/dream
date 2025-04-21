@@ -124,7 +124,7 @@ describe('Query#min', () => {
         await CompositionAsset.create({ composition, score: 3 })
 
         const min = await Composition.query()
-          .innerJoin('compositionAssets', { on: { name: 'howyadoin' } })
+          .innerJoin('compositionAssets', { and: { name: 'howyadoin' } })
           .min('compositionAssets.score')
 
         expect(min).toEqual(7)

@@ -10,7 +10,7 @@ import {
   DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAttributes,
   DreamConstructorType,
-  JoinOnStatements,
+  JoinAndStatements,
   UpdateableAssociationProperties,
   UpdateableProperties,
 } from '../types/dream.js'
@@ -440,7 +440,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    joinOnStatements: JoinOnStatements<
+    joinAndStatements: JoinAndStatements<
       DB,
       Schema,
       AssociationTableName,
@@ -458,7 +458,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    joinOnStatements?: JoinOnStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements?: JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   /**
@@ -477,12 +477,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public associationQuery<
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
-  >(this: I, associationName: AssociationName, joinOnStatements?: unknown): unknown {
+  >(this: I, associationName: AssociationName, joinAndStatements?: unknown): unknown {
     if (this.dreamInstance.isNewRecord)
       throw new CannotAssociationQueryOnUnpersistedDream(this.dreamInstance, associationName)
 
     return associationQuery(this.dreamInstance, this.dreamTransaction, associationName, {
-      joinOnStatements: joinOnStatements as any,
+      joinAndStatements: joinAndStatements as any,
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass: DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
     })
@@ -511,7 +511,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
       skipHooks?: boolean
-    } & JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+    } & JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async updateAssociation<
@@ -529,7 +529,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
       skipHooks?: boolean
-    } & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    } & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -542,7 +542,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * await ApplicationModel.transaction(async txn => {
    *   await user.txn(txn).createAssociation('posts', { body: 'hello world' })
    *   await user.txn(txn).createAssociation('posts', { body: 'howyadoin' })
-   *   await user.txn(txn).updateAssociation('posts', { body: 'goodbye world' }, { on: { body: 'hello world' }})
+   *   await user.txn(txn).updateAssociation('posts', { body: 'goodbye world' }, { and: { body: 'hello world' }})
    *   // 1
    * })
    * ```
@@ -569,10 +569,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       throw new CannotUpdateAssociationOnUnpersistedDream(this.dreamInstance, associationName)
 
     return await associationUpdateQuery(this.dreamInstance, this.dreamTransaction, associationName, {
-      joinOnStatements: {
-        on: (updateAssociationOptions as any)?.on,
-        notOn: (updateAssociationOptions as any)?.notOn,
-        onAny: (updateAssociationOptions as any)?.onAny,
+      joinAndStatements: {
+        and: (updateAssociationOptions as any)?.and,
+        andNot: (updateAssociationOptions as any)?.andNot,
+        andAny: (updateAssociationOptions as any)?.andAny,
       },
 
       bypassAllDefaultScopes:
@@ -634,7 +634,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<DreamInstance> &
-      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async destroyAssociation<
@@ -647,7 +647,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<DreamInstance> & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -656,13 +656,15 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await user.txn(txn).destroyAssociation('posts', { on: { body: 'hello world' } })
+   *   await user.txn(txn).destroyAssociation('posts', { and: { body: 'hello world' } })
    * })
    * ```
    *
    * @param associationName - The name of the association to destroy
    * @param options - Options for destroying the association
-   * @param options.on - Optional where statement to apply to query before destroying
+   * @param options.and - Optional and statement to apply to query before destroying
+   * @param options.andNot - Optional andNot statement to apply to query before destroying
+   * @param options.andAny - Optional andAny statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
@@ -678,10 +680,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
       ...destroyOptions<DreamInstance>(options as any),
-      joinOnStatements: {
-        on: (options as any)?.on,
-        notOn: (options as any)?.notOn,
-        onAny: (options as any)?.onAny,
+      joinAndStatements: {
+        and: (options as any)?.and,
+        andNot: (options as any)?.andNot,
+        andAny: (options as any)?.andAny,
       },
     })
   }
@@ -705,7 +707,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<DreamInstance> &
-      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async reallyDestroyAssociation<
@@ -718,7 +720,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<DreamInstance> & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -732,13 +734,15 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await user.txn(txn).reallyDestroyAssociation('posts', { on: { body: 'hello world' } })
+   *   await user.txn(txn).reallyDestroyAssociation('posts', { and: { body: 'hello world' } })
    * })
    * ```
    *
    * @param associationName - The name of the association to destroy
    * @param options - Options for destroying the association
-   * @param options.on - Optional where statement to apply to query before destroying
+   * @param options.and - Optional and statement to apply to query before destroying
+   * @param options.andNot - Optional andNot statement to apply to query before destroying
+   * @param options.andAny - Optional andAny statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
@@ -754,10 +758,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
     return await destroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
       ...reallyDestroyOptions<DreamInstance>(options as any),
-      joinOnStatements: {
-        on: (options as any)?.on,
-        notOn: (options as any)?.notOn,
-        onAny: (options as any)?.onAny,
+      joinAndStatements: {
+        and: (options as any)?.and,
+        andNot: (options as any)?.andNot,
+        andAny: (options as any)?.andAny,
       },
     })
   }
@@ -781,7 +785,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<DreamInstance> &
-      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async undestroyAssociation<
@@ -794,7 +798,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<DreamInstance> & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -804,12 +808,14 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * will also be undeleted.
    *
    * ```ts
-   * await user.undestroyAssociation('posts', { on: { body: 'hello world' } })
+   * await user.undestroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to undestroy
    * @param options - Options for undestroying the association
-   * @param options.on - Optional where statement to apply to query before undestroying
+   * @param options.and - Optional and statement to apply to query before undestroying
+   * @param options.andNot - Optional andNot statement to apply to query before undestroying
+   * @param options.andAny - Optional andAny statement to apply to query before undestroying
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false
@@ -822,10 +828,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
     return await undestroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
       ...undestroyOptions<DreamInstance>(options as any),
-      joinOnStatements: {
-        on: (options as any)?.on,
-        notOn: (options as any)?.notOn,
-        onAny: (options as any)?.onAny,
+      joinAndStatements: {
+        and: (options as any)?.and,
+        andNot: (options as any)?.andNot,
+        andAny: (options as any)?.andAny,
       },
     })
   }

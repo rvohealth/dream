@@ -3,7 +3,7 @@ import { AssociationTableNames } from './db.js'
 import {
   AssociationNamesForTable,
   AssociationTableName,
-  JoinOnStatements,
+  JoinAndStatements,
   MAX_VARIADIC_DEPTH,
 } from './dream.js'
 import { Inc, ReadonlyTail } from './utils.ts'
@@ -149,7 +149,7 @@ type VariadicCheckThenRecurse<
       ? VALID
       : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
         ? VALID
-        : ConcreteArgs[0] extends JoinOnStatements<
+        : ConcreteArgs[0] extends JoinAndStatements<
               DB,
               Schema,
               ConcreteTableName,
@@ -298,7 +298,7 @@ type AllowedNextArgValuesForLoad<
 > =
   | AssociationNamesForTable<Schema, TableName>
   | AssociationNamesForTable<Schema, TableName>[]
-  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+  | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 type AllowedNextArgValuesForLeftJoinLoad<
   DB,
   Schema,
@@ -308,7 +308,7 @@ type AllowedNextArgValuesForLeftJoinLoad<
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>[]
-  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+  | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 type AllowedNextArgValuesForJoin<
   DB,
   Schema,
@@ -317,7 +317,7 @@ type AllowedNextArgValuesForJoin<
   UsedNamespaces,
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
-  | JoinOnStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+  | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 
 export interface JoinedAssociation {
   table: string

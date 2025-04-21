@@ -51,10 +51,10 @@ export default class Post extends ApplicationModel {
   })
   public ratings: Rating[]
 
-  @deco.HasMany('PostComment', { on: { body: undefined as unknown as string } })
+  @deco.HasMany('PostComment', { and: { body: undefined as unknown as string } })
   public invalidWherePostComments: PostComment[]
 
-  @deco.HasMany('PostComment', { notOn: { body: undefined as unknown as string } })
+  @deco.HasMany('PostComment', { andNot: { body: undefined as unknown as string } })
   public invalidWhereNotPostComments: PostComment[]
 
   // Traveling through NonNullRating, a model

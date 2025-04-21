@@ -113,7 +113,7 @@ export default class User extends ApplicationModel {
   @deco.HasMany('Rating', { through: 'posts', source: 'ratings' })
   public postRatings: Rating[]
 
-  @deco.HasOne('Post', { selfOn: { position: 'featuredPostPosition' } })
+  @deco.HasOne('Post', { selfAnd: { position: 'featuredPostPosition' } })
   public featuredPost: Post
 
   @deco.HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
@@ -122,7 +122,7 @@ export default class User extends ApplicationModel {
   @deco.HasMany('Rating', {
     through: 'posts',
     source: 'ratings',
-    selfOn: { rating: 'targetRating' },
+    selfAnd: { rating: 'targetRating' },
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
@@ -130,7 +130,7 @@ export default class User extends ApplicationModel {
   public compositions: Composition[]
 
   @deco.HasOne('Composition', {
-    on: { primary: true },
+    and: { primary: true },
   })
   public mainComposition: Composition
 
@@ -172,13 +172,13 @@ export default class User extends ApplicationModel {
 
   // recent associations
   @deco.HasMany('Composition', {
-    on: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
+    and: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public recentCompositions: Composition[]
 
   // not recent associations (contrived so that we can test whereNot)
   @deco.HasMany('Composition', {
-    notOn: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
+    andNot: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public notRecentCompositions: Composition[]
 
@@ -227,7 +227,7 @@ export default class User extends ApplicationModel {
   @deco.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public firstPetFromUuid: Pet
 
-  @deco.HasOne('Pet', { on: { name: 'Aster' } })
+  @deco.HasOne('Pet', { and: { name: 'Aster' } })
   public asterPet: Pet
 
   @deco.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })

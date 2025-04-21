@@ -20,7 +20,7 @@ describe('Query#pluck on a join query', () => {
     await EdgeNode.create({ node, edge: edge2 })
 
     const plucked = await Node.query()
-      .innerJoin('edgeNodes', 'edge', { on: { name: 'E1' } })
+      .innerJoin('edgeNodes', 'edge', { and: { name: 'E1' } })
       .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
@@ -33,7 +33,7 @@ describe('Query#pluck on a join query', () => {
     await EdgeNode.create({ node, edge: edge2 })
 
     const plucked = await Node.query()
-      .innerJoin('edgeNodes', 'edge', { on: { id: Edge.where({ name: 'E1' }).nestedSelect('id') } })
+      .innerJoin('edgeNodes', 'edge', { and: { id: Edge.where({ name: 'E1' }).nestedSelect('id') } })
       .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge1.id, edge1.name]])
   })
@@ -46,7 +46,7 @@ describe('Query#pluck on a join query', () => {
     await EdgeNode.create({ node, edge: edge2 })
 
     const plucked = await Node.query()
-      .innerJoin('edgeNodes', 'edge', { on: { name: 'E1' } })
+      .innerJoin('edgeNodes', 'edge', { and: { name: 'E1' } })
       .pluck('edge.name', 'edgeNodes.position', 'graph_nodes.name')
     expect(plucked).toEqual([['E1', 1, 'N1']])
   })
@@ -59,7 +59,7 @@ describe('Query#pluck on a join query', () => {
       await EdgeNode.create({ node, edge: edge1 })
       await EdgeNode.create({ node, edge: edge2 })
       const plucked = await Node.query()
-        .innerJoin('edgeNodes', 'edge', { on: { name: 'E1' } })
+        .innerJoin('edgeNodes', 'edge', { and: { name: 'E1' } })
         .pluck('edge.weight')
       expect(plucked[0]).toEqual(2.3)
     })
@@ -73,7 +73,7 @@ describe('Query#pluck on a join query', () => {
     await EdgeNode.create({ node, edge: edge2 })
 
     const plucked = await Node.query()
-      .innerJoin('edgeNodes', { on: { edgeId: edge2.id } }, 'edge')
+      .innerJoin('edgeNodes', { and: { edgeId: edge2.id } }, 'edge')
       .pluck('edge.id', 'edge.name')
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
@@ -87,7 +87,7 @@ describe('Query#pluck on a join query', () => {
       await Composition.create({ content: 'howyadoin', user: user2 })
 
       const plucked = await Composition.query()
-        .innerJoin('user', { on: { name: ops.similarity('jerem') } })
+        .innerJoin('user', { and: { name: ops.similarity('jerem') } })
         .pluck('user.id')
       expect(plucked).toEqual([user1.id])
     })

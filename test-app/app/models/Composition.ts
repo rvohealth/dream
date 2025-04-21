@@ -33,7 +33,7 @@ export default class Composition extends ApplicationModel {
   public compositionAssets: CompositionAsset[]
 
   @deco.HasOne('CompositionAsset', {
-    on: { primary: true },
+    and: { primary: true },
   })
   public mainCompositionAsset: CompositionAsset
 
@@ -100,21 +100,21 @@ export default class Composition extends ApplicationModel {
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    on: { locale: DreamConst.required },
+    and: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    on: { locale: DreamConst.passthrough },
+    and: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    on: { name: 'cascade delete me' },
+    and: { name: 'cascade delete me' },
     dependent: 'destroy',
   })
   public cascadeDeletableLocalizedText: LocalizedText

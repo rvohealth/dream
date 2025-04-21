@@ -1,7 +1,7 @@
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import { HasOneStatement } from '../../types/associations/hasOne.js'
 
-export default class MissingRequiredAssociationOnClause extends Error {
+export default class MissingRequiredAssociationAndClause extends Error {
   constructor(
     private association: HasManyStatement<any, any, any, any> | HasOneStatement<any, any, any, any>,
     private column: string | undefined
@@ -11,9 +11,9 @@ export default class MissingRequiredAssociationOnClause extends Error {
 
   public override get message() {
     return `
-Missing required association on clause:
+Missing required association and-clause:
 Association: ${this.association.as}
-Missing on clause for column: ${this.column}
+Missing and-clause for column: ${this.column}
 `
   }
 }

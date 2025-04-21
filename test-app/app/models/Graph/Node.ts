@@ -45,7 +45,7 @@ export default class Node extends ApplicationModel {
 
   @deco.HasMany('Graph/EdgeNode', {
     foreignKey: 'nodeId',
-    selfNotOn: { position: 'omittedEdgePosition' },
+    selfAndNot: { position: 'omittedEdgePosition' },
   })
   public nonOmittedPositionEdgeNodes: EdgeNode[]
 
@@ -55,7 +55,7 @@ export default class Node extends ApplicationModel {
   @deco.HasMany('Graph/Edge', {
     through: 'edgeNodes',
     source: 'edge',
-    selfNotOn: { name: 'name' },
+    selfAndNot: { name: 'name' },
   })
   public nonNodeNameEdgesOnThroughAssociation: GraphEdge[]
 }

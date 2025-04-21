@@ -41,7 +41,7 @@ describe('Dream.leftJoinPreload', () => {
     const composition = await Composition.create({ user, content: 'goodbye' })
 
     const reloaded = (
-      await User.leftJoinPreload('compositions', { on: { content: 'goodbye' } })
+      await User.leftJoinPreload('compositions', { and: { content: 'goodbye' } })
         .order('users.birthdate')
         .all()
     )[0]!

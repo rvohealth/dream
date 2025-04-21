@@ -296,7 +296,7 @@ may need to update the table getter in the corresponding Dream.
 
         const where =
           associationMetaData.type === 'HasMany' || associationMetaData.type === 'HasOne'
-            ? associationMetaData.on || null
+            ? associationMetaData.and || null
             : null
 
         // NOTE

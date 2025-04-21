@@ -237,26 +237,26 @@ export type AssociationTableName<
   AssociationData = MetadataForAssociation<Schema, TableName, AssociationName>,
 > = (AssociationData['tables' & keyof AssociationData] & any[])[0] & keyof Schema
 
-export type JoinOnStatements<
+export type JoinAndStatements<
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   RequiredOnClauseKeysForThisAssociation,
 > = RequiredOnClauseKeysForThisAssociation extends null
   ? {
-      on?: WhereStatement<DB, Schema, TableName>
-      notOn?: WhereStatement<DB, Schema, TableName>
-      // notOn?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-      onAny?: WhereStatement<DB, Schema, TableName>[]
-      // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
+      and?: WhereStatement<DB, Schema, TableName>
+      andNot?: WhereStatement<DB, Schema, TableName>
+      // andNot?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
+      andAny?: WhereStatement<DB, Schema, TableName>[]
+      // andAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
     }
   : RequiredOnClauseKeysForThisAssociation extends string[]
     ? {
-        on: OnStatementForAssociation<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
-        notOn?: WhereStatement<DB, Schema, TableName>
-        // notOn?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-        onAny?: WhereStatement<DB, Schema, TableName>[]
-        // onAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
+        and: OnStatementForAssociation<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+        andNot?: WhereStatement<DB, Schema, TableName>
+        // andNot?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
+        andAny?: WhereStatement<DB, Schema, TableName>[]
+        // andAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
       }
     : never
 ////////////////////////////////
@@ -406,17 +406,17 @@ export type RelaxedPreloadOnStatement<DB, Schema, Depth extends number = 0> = De
   : {
       [key: string]:
         | RelaxedPreloadOnStatement<DB, Schema, Inc<Depth>>
-        | JoinOnStatements<any, any, any, any>
+        | JoinAndStatements<any, any, any, any>
         | FakeOnClauseValue
         | object
     }
 
-export type RelaxedJoinOnStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinAndStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
       [key: string]:
-        | RelaxedJoinOnStatement<DB, Schema, Inc<Depth>>
-        | JoinOnStatements<any, any, any, any>
+        | RelaxedJoinAndStatement<DB, Schema, Inc<Depth>>
+        | JoinAndStatements<any, any, any, any>
         | FakeOnClauseValue
         | object
     }

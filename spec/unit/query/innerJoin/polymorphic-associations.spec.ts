@@ -60,7 +60,7 @@ describe('Query#joins with polymorphic associations', () => {
       await HeartRating.create({ user, extraRateable: post2, body: 'goodbye' })
 
       const reloaded = await Post.query()
-        .innerJoin('heartRatings', { on: { body: ops.similarity('hello') } })
+        .innerJoin('heartRatings', { and: { body: ops.similarity('hello') } })
         .all()
 
       expect(reloaded).toMatchDreamModels([post])
@@ -110,12 +110,12 @@ describe('Query#joins with polymorphic associations', () => {
       const rating = await Rating.create({ user, rateable: post })
 
       const reloaded = await Post.query()
-        .innerJoin('ratings', { on: { id: rating.id } })
+        .innerJoin('ratings', { and: { id: rating.id } })
         .first()
       expect(reloaded).toMatchDreamModel(post)
 
       const noResults = await Post.query()
-        .innerJoin('ratings', { on: { id: parseInt(rating.id.toString()) + 1 } })
+        .innerJoin('ratings', { and: { id: parseInt(rating.id.toString()) + 1 } })
         .first()
       expect(noResults).toBeNull()
     })

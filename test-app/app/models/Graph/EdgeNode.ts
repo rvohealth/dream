@@ -45,7 +45,7 @@ export default class EdgeNode extends ApplicationModel {
   @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    selfNotOn: { id: 'id' },
+    selfAndNot: { id: 'id' },
   })
   public siblings: EdgeNode[]
 
@@ -65,21 +65,21 @@ export default class EdgeNode extends ApplicationModel {
   @deco.HasOne('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    selfOn: { id: 'id' },
+    selfAnd: { id: 'id' },
   })
   public justThisSibling: EdgeNode
 
   @deco.HasOne('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    on: { position: 1 },
+    and: { position: 1 },
   })
   public headSibling: EdgeNode
 
   @deco.HasMany('Graph/EdgeNode', {
     through: 'node',
     source: 'edgeNodes',
-    notOn: { position: 1 },
+    andNot: { position: 1 },
   })
   public tailSiblings: EdgeNode[]
 }

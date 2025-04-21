@@ -9,7 +9,7 @@ import { isObject } from '../../../helpers/typechecks.js'
 import OpsStatement from '../../../ops/ops-statement.js'
 import { WhereStatement } from '../../../types/associations/shared.js'
 import { DbConnectionType } from '../../../types/db.js'
-import { JoinOnStatements, RelaxedJoinOnStatement, SimilarityStatement } from '../../../types/dream.js'
+import { JoinAndStatements, RelaxedJoinAndStatement, SimilarityStatement } from '../../../types/dream.js'
 import { TRIGRAM_OPERATORS } from '../../constants.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import similaritySelectSql from './similaritySelectSql.js'
@@ -22,13 +22,13 @@ export default class SimilarityBuilder<
 > extends ConnectedToDB<DreamInstance> {
   public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
   public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
-  public readonly joinOnStatements: JoinOnStatements<DB, Schema, any, any> = Object.freeze({})
+  public readonly joinAndStatements: JoinAndStatements<DB, Schema, any, any> = Object.freeze({})
 
   constructor(dreamInstance: DreamInstance, opts: SimilarityBuilderOpts<DreamInstance> = {}) {
     super(dreamInstance, opts)
     this.whereStatement = Object.freeze(opts.where || [])
     this.whereNotStatement = Object.freeze(opts.whereNot || [])
-    this.joinOnStatements = Object.freeze(opts.joinOnStatements || {})
+    this.joinAndStatements = Object.freeze(opts.joinAndStatements || {})
   }
 
   /*
@@ -88,11 +88,11 @@ export default class SimilarityBuilder<
       })
     })
 
-    this.joinOnStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
+    this.joinAndStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToSelectQuery({
         kyselyQuery,
         similarityStatement,
-        statementType: 'on',
+        statementType: 'join_and',
         index,
         bypassOrder,
       })
@@ -169,11 +169,11 @@ export default class SimilarityBuilder<
       })
     })
 
-    this.joinOnStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
+    this.joinAndStatementsWithSimilarityClauses().forEach((similarityStatement, index) => {
       kyselyQuery = this.addStatementToUpdateQuery({
         kyselyQuery,
         similarityStatement,
-        statementType: 'on',
+        statementType: 'join_and',
         index,
       })
     })
@@ -193,8 +193,11 @@ export default class SimilarityBuilder<
     return this.similarityStatementFilter(this.whereNotStatement)
   }
 
-  public joinOnStatementsWithSimilarityClauses() {
-    return this.recursiveJoinsOnFinder(removeOnFromObjectHierarchy(this.joinOnStatements), this.dreamClass)
+  public joinAndStatementsWithSimilarityClauses() {
+    return this.recursiveJoinsOnFinder(
+      removeJoinAndFromObjectHierarchy(this.joinAndStatements),
+      this.dreamClass
+    )
   }
 
   private recursiveJoinsOnFinder(obj: any, dreamClass: typeof Dream) {
@@ -246,7 +249,7 @@ export default class SimilarityBuilder<
     return [
       ...this.whereStatementsWithSimilarityClauses(),
       ...this.whereNotStatementsWithSimilarityClauses(),
-      ...this.joinOnStatementsWithSimilarityClauses(),
+      ...this.joinAndStatementsWithSimilarityClauses(),
     ]
   }
 
@@ -432,19 +435,19 @@ export interface SimilarityBuilderOpts<
 > {
   where?: WhereStatement<DB, Schema, any>[] | undefined
   whereNot?: WhereStatement<DB, Schema, any>[] | undefined
-  joinOnStatements?: RelaxedJoinOnStatement<DB, Schema> | undefined
+  joinAndStatements?: RelaxedJoinAndStatement<DB, Schema> | undefined
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
 }
 
-export const SIMILARITY_TYPES = ['where', 'on'] as const
+export const SIMILARITY_TYPES = ['where', 'join_and'] as const
 export type SimilarityStatementType = (typeof SIMILARITY_TYPES)[number]
 
 type NestedObject = {
   [key: string]: any
 }
 
-function removeOnFromObjectHierarchy(obj: NestedObject): NestedObject {
+function removeJoinAndFromObjectHierarchy(obj: NestedObject): NestedObject {
   if (obj?.isOpsStatement) return obj
 
   const result: NestedObject = {}
@@ -452,7 +455,7 @@ function removeOnFromObjectHierarchy(obj: NestedObject): NestedObject {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (isObject(obj[key])) {
-        result[key] = removeOnFromObjectHierarchy(obj[key].on || obj[key])
+        result[key] = removeJoinAndFromObjectHierarchy(obj[key].and || obj[key])
       } else {
         result[key] = obj[key]
       }

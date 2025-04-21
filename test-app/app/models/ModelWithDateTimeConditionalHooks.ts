@@ -20,15 +20,11 @@ export default class ModelWithDateTimeConditionalHooks extends ApplicationModel 
 
   @deco.AfterSaveCommit({ ifChanged: ['somethingHappenedAt'] })
   public async incrementCounter(this: ModelWithDateTimeConditionalHooks) {
-    // console.debug(this.changes())
-    // console.debug({ counter: this.counter })
     await this.update({ counter: this.counter + 1 })
   }
 
   @deco.AfterSaveCommit({ ifChanged: ['somethingHappenedAt'] })
   public async incrementCounterInATransaction(this: ModelWithDateTimeConditionalHooks) {
-    // console.debug(this.changes())
-    // console.debug({ counter: this.counter })
     await ApplicationModel.transaction(async txn => await this.txn(txn).update({ counter: this.counter + 1 }))
   }
 }

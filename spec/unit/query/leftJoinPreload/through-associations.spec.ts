@@ -33,7 +33,7 @@ describe('Query#leftJoinPreload through', () => {
       expect(reloaded.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
     })
 
-    it('supports on-clauses', async () => {
+    it('supports and-clauses', async () => {
       const balloon = await Latex.create()
       const balloon2 = await Latex.create()
       const balloonSpotter = await BalloonSpotter.create()
@@ -41,13 +41,13 @@ describe('Query#leftJoinPreload through', () => {
       const balloonSpotterBalloon2 = await BalloonSpotterBalloon.create({ balloonSpotter, balloon: balloon2 })
 
       const reloaded = await BalloonSpotter.query()
-        .leftJoinPreload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon2.id } }, 'balloon')
+        .leftJoinPreload('balloonSpotterBalloons', { and: { id: balloonSpotterBalloon2.id } }, 'balloon')
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons).toMatchDreamModels([balloonSpotterBalloon2])
       expect(reloaded.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon2)
     })
 
-    context('supports notOn-clauses', () => {
+    context('supports andNot-clauses', () => {
       it('negates the logic of all the clauses ANDed together', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
@@ -56,7 +56,7 @@ describe('Query#leftJoinPreload through', () => {
         const greenLatexBalloon = await Latex.create({ user, color: 'green' })
 
         const reloaded = await User.leftJoinPreload('balloons', {
-          notOn: { color: 'red', type: 'Latex' },
+          andNot: { color: 'red', type: 'Latex' },
         }).firstOrFail()
         expect(reloaded.balloons).toMatchDreamModels([redMylarBalloon, greenLatexBalloon])
       })
@@ -68,14 +68,14 @@ describe('Query#leftJoinPreload through', () => {
       const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
 
       const reloaded = await BalloonSpotter.query()
-        .leftJoinPreload('balloonSpotterBalloons', { on: { id: balloonSpotterBalloon.id } }, 'balloon', {
-          on: { color: 'red' },
+        .leftJoinPreload('balloonSpotterBalloons', { and: { id: balloonSpotterBalloon.id } }, 'balloon', {
+          and: { color: 'red' },
         })
         .firstOrFail()
       expect(reloaded.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
 
       const reloaded2 = await BalloonSpotter.query()
-        .leftJoinPreload('balloonSpotterBalloons', 'balloon', { on: { color: 'blue' } })
+        .leftJoinPreload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
         .firstOrFail()
       expect(reloaded2.balloonSpotterBalloons[0]!.balloon).toBeNull()
     })
@@ -99,7 +99,7 @@ describe('Query#leftJoinPreload through', () => {
       await BalloonSpotterBalloon.create({ balloonSpotter, balloon: redBalloon })
 
       const reloaded = await BalloonSpotter.query()
-        .leftJoinPreload('balloons', { on: { color: 'red' } })
+        .leftJoinPreload('balloons', { and: { color: 'red' } })
         .firstOrFail()
       expect(reloaded.balloons).toMatchDreamModels([redBalloon])
     })
@@ -590,8 +590,8 @@ describe('Query#leftJoinPreload through', () => {
       await pet.createAssociation('collars', { balloon: redBalloon })
       await pet.createAssociation('collars', { balloon: greenBalloon })
 
-      const reloaded = await Pet.leftJoinPreload('where_red').firstOrFail()
-      expect(reloaded.where_red).toMatchDreamModels([redBalloon])
+      const reloaded = await Pet.leftJoinPreload('and_red').firstOrFail()
+      expect(reloaded.and_red).toMatchDreamModels([redBalloon])
     })
 
     context('when no association matches the where clause', () => {
@@ -601,8 +601,8 @@ describe('Query#leftJoinPreload through', () => {
 
         await pet.createAssociation('collars', { balloon: greenBalloon })
 
-        const reloaded = await Pet.leftJoinPreload('where_red').firstOrFail()
-        expect(reloaded.where_red).toEqual([])
+        const reloaded = await Pet.leftJoinPreload('and_red').firstOrFail()
+        expect(reloaded.and_red).toEqual([])
       })
     })
   })
@@ -618,8 +618,8 @@ describe('Query#leftJoinPreload through', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: blueBalloon })
 
-      const reloaded = await Pet.leftJoinPreload('whereNot_red').firstOrFail()
-      expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon, blueBalloon])
+      const reloaded = await Pet.leftJoinPreload('andNot_red').firstOrFail()
+      expect(reloaded.andNot_red).toMatchDreamModels([greenBalloon, blueBalloon])
     })
 
     context('through a BelongsTo', () => {
@@ -672,11 +672,11 @@ describe('Query#leftJoinPreload through', () => {
       await Collar.create({ pet, balloon })
 
       const unscopedReloadedUser = await User.removeAllDefaultScopes()
-        .leftJoinPreload('pets', 'where_red')
+        .leftJoinPreload('pets', 'and_red')
         .firstOrFail()
       expect(unscopedReloadedUser).toMatchDreamModel(user)
       expect(unscopedReloadedUser.pets).toMatchDreamModels([pet])
-      expect(unscopedReloadedUser.pets[0]!.where_red).toMatchDreamModels([balloon])
+      expect(unscopedReloadedUser.pets[0]!.and_red).toMatchDreamModels([balloon])
     })
   })
 

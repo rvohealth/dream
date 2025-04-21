@@ -39,7 +39,7 @@ describe('Query#preload with polymorphic associations', () => {
       const postRating = await Rating.create({ user, rateable: post, rating: 7 })
 
       const reloaded = await Post.where({ id: post.id })
-        .preload('ratings', { on: { rating: 7 } })
+        .preload('ratings', { and: { rating: 7 } })
         .first()
       expect(reloaded!.ratings).toMatchDreamModels([postRating])
     })

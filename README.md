@@ -360,7 +360,7 @@ class B extends A {
 
 @STI(A)
 class C extends A {
-  @deco.HasMany('X', { on: { something: true } })
+  @deco.HasMany('X', { and: { something: true } })
   public xx: X[]
 }
 

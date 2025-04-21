@@ -48,52 +48,52 @@ describe('Query#preload with simple associations', () => {
       expect(reloadedUser!.mainComposition).toMatchDreamModel(composition)
     })
 
-    it('supports on clauses', async () => {
+    it('supports and-clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, content: 'Hello' })
 
       const reloadedUser = await User.query()
-        .preload('compositions', { on: { content: 'Goodbye' } })
+        .preload('compositions', { and: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.compositions).toEqual([])
 
       const reloadedUser2 = await User.query()
-        .preload('compositions', { on: { content: 'Hello' } })
+        .preload('compositions', { and: { content: 'Hello' } })
         .firstOrFail()
       expect(reloadedUser2.compositions).toMatchDreamModels([composition])
     })
 
-    it('supports notOn clauses', async () => {
+    it('supports andNot clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, content: 'Hello' })
 
       const reloadedUser = await User.query()
-        .preload('compositions', { notOn: { content: 'Goodbye' } })
+        .preload('compositions', { andNot: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.compositions).toMatchDreamModels([composition])
 
       const reloadedUser2 = await User.query()
-        .preload('compositions', { notOn: { content: 'Hello' } })
+        .preload('compositions', { andNot: { content: 'Hello' } })
         .firstOrFail()
       expect(reloadedUser2.compositions).toEqual([])
     })
 
-    it('supports onAny clauses', async () => {
+    it('supports andAny clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, content: 'Hello' })
 
       const reloadedUser = await User.query()
-        .preload('compositions', { onAny: [{ content: 'Goodbye' }] })
+        .preload('compositions', { andAny: [{ content: 'Goodbye' }] })
         .firstOrFail()
       expect(reloadedUser.compositions).toEqual([])
 
       const reloadedUser2 = await User.query()
-        .preload('compositions', { onAny: [{ content: 'Goodbye' }, { content: 'Hello' }] })
+        .preload('compositions', { andAny: [{ content: 'Goodbye' }, { content: 'Hello' }] })
         .firstOrFail()
       expect(reloadedUser2.compositions).toMatchDreamModels([composition])
     })
 
-    it('supports onAny clauses with multiple terms', async () => {
+    it('supports andAny clauses with multiple terms', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const compositionX = await Composition.create({
         userId: user.id,
@@ -107,13 +107,13 @@ describe('Query#preload with simple associations', () => {
       })
 
       const reloadedUser1 = await User.query()
-        .preload('compositions', { onAny: [{ content: 'Goodbye' }, { content: 'Hello' }] })
+        .preload('compositions', { andAny: [{ content: 'Goodbye' }, { content: 'Hello' }] })
         .firstOrFail()
       expect(reloadedUser1.compositions).toMatchDreamModels([compositionX, compositionY])
 
       const reloadedUser2 = await User.query()
         .preload('compositions', {
-          onAny: [{ content: 'Goodbye' }, { content: 'Hello', metadata: { hello: 'world' } }],
+          andAny: [{ content: 'Goodbye' }, { content: 'Hello', metadata: { hello: 'world' } }],
         })
         .firstOrFail()
       expect(reloadedUser2.compositions).toMatchDreamModels([compositionY])
@@ -155,7 +155,7 @@ describe('Query#preload with simple associations', () => {
       const composition2 = await Composition.create({ user, content: 'Goodbye' })
 
       const reloadedUser = await User.query()
-        .preload('compositions', { on: { content: 'Goodbye' } })
+        .preload('compositions', { and: { content: 'Goodbye' } })
         .first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition2])
     })

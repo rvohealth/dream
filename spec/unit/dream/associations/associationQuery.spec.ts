@@ -1,5 +1,5 @@
 import CannotAssociationQueryOnUnpersistedDream from '../../../../src/errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
-import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
+import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
@@ -18,7 +18,7 @@ describe('Dream#associationQuery', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
-        async () => await user.associationQuery('pets', { on: { name: undefined as any } }).all()
+        async () => await user.associationQuery('pets', { and: { name: undefined as any } }).all()
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
@@ -69,7 +69,7 @@ describe('Dream#associationQuery', () => {
 
         await expect(
           async () => await (composition.associationQuery as any)('requiredCurrentLocalizedText').all()
-        ).rejects.toThrow(MissingRequiredAssociationOnClause)
+        ).rejects.toThrow(MissingRequiredAssociationAndClause)
       })
     })
 
@@ -82,7 +82,7 @@ describe('Dream#associationQuery', () => {
 
         expect(
           await composition
-            .associationQuery('requiredCurrentLocalizedText', { on: { locale: 'es-ES' } })
+            .associationQuery('requiredCurrentLocalizedText', { and: { locale: 'es-ES' } })
             .first()
         ).toMatchDreamModel(localizedText)
       })
@@ -94,7 +94,7 @@ describe('Dream#associationQuery', () => {
 
         expect(
           await composition
-            .associationQuery('requiredCurrentLocalizedText', { on: { locale: ['es-ES', 'de-DE'] } })
+            .associationQuery('requiredCurrentLocalizedText', { and: { locale: ['es-ES', 'de-DE'] } })
             .first()
         ).toMatchDreamModel(localizedText)
       })
@@ -262,14 +262,14 @@ describe('Dream#associationQuery', () => {
       expect(
         await user
           .associationQuery('compositions')
-          .innerJoin('compositionAssets', { on: { score: 3 } })
+          .innerJoin('compositionAssets', { and: { score: 3 } })
           .first()
       ).toMatchDreamModel(composition)
 
       expect(
         await user
           .associationQuery('compositions')
-          .innerJoin('compositionAssets', { on: { score: 7 } })
+          .innerJoin('compositionAssets', { and: { score: 7 } })
           .first()
       ).toBeNull()
 
@@ -362,7 +362,7 @@ describe('Dream#associationQuery', () => {
           expect(
             await composition
               .txn(txn)
-              .associationQuery('requiredCurrentLocalizedText', { on: { locale: 'es-ES' } })
+              .associationQuery('requiredCurrentLocalizedText', { and: { locale: 'es-ES' } })
               .first()
           ).toMatchDreamModel(localizedText)
         })
@@ -377,7 +377,7 @@ describe('Dream#associationQuery', () => {
           expect(
             await composition
               .txn(txn)
-              .associationQuery('requiredCurrentLocalizedText', { on: { locale: ['es-ES', 'de-DE'] } })
+              .associationQuery('requiredCurrentLocalizedText', { and: { locale: ['es-ES', 'de-DE'] } })
               .first()
           ).toMatchDreamModel(localizedText)
         })
@@ -409,7 +409,7 @@ describe('Dream#associationQuery', () => {
       const notRedBalloon = await Latex.create({ color: 'blue' })
       await Collar.create({ pet, balloon: notRedBalloon })
 
-      expect(await pet.associationQuery('where_red').where(null).all()).toMatchDreamModels([redBalloon])
+      expect(await pet.associationQuery('and_red').where(null).all()).toMatchDreamModels([redBalloon])
     })
   })
 

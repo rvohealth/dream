@@ -4,7 +4,7 @@ import { DreamConst } from '../../../dream/constants.js'
 import { checkForeignKey } from '../../../errors/associations/InvalidComputedForeignKey.js'
 import NonLoadedAssociation from '../../../errors/associations/NonLoadedAssociation.js'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
-import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
+import CannotDefineAssociationWithBothDependentAndRequiredAndClause from '../../../errors/CannotDefineAssociationWithBothDependentAndRequiredAndClause.js'
 import camelize from '../../../helpers/camelize.js'
 import {
   AssociationStatementsMap,
@@ -172,17 +172,17 @@ export function validateHasStatementArgs({
   dreamClass,
   dependent,
   methodName,
-  on,
+  and,
 }: {
   dreamClass: typeof Dream
   dependent: DependentOptions | null
   methodName: string
-  on: object | null
+  and: object | null
 }) {
-  const hasPassthroughOn = Object.values(on || {}).find(val => val === DreamConst.passthrough)
-  const hasRequiredOn = Object.values(on || {}).find(val => val === DreamConst.required)
-  if (dependent && hasPassthroughOn)
+  const hasPassthroughAnd = Object.values(and || {}).find(val => val === DreamConst.passthrough)
+  const hasRequiredAnd = Object.values(and || {}).find(val => val === DreamConst.required)
+  if (dependent && hasPassthroughAnd)
     throw new CannotDefineAssociationWithBothDependentAndPassthrough(dreamClass, methodName)
-  if (dependent && hasRequiredOn)
-    throw new CannotDefineAssociationWithBothDependentAndRequiredOnClause(dreamClass, methodName)
+  if (dependent && hasRequiredAnd)
+    throw new CannotDefineAssociationWithBothDependentAndRequiredAndClause(dreamClass, methodName)
 }

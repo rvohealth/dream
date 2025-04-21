@@ -66,14 +66,14 @@ export default class CompositionAsset extends ApplicationModel {
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    on: { locale: DreamConst.required },
+    and: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
     foreignKey: 'localizableId',
-    on: { locale: DreamConst.passthrough },
+    and: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 

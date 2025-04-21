@@ -27,7 +27,7 @@ describe('Query#innerJoin with aliased associations', () => {
 
   context('with aliased associations', () => {
     context('HasOne/HasMany association', () => {
-      it('includes on clauses when aliased', async () => {
+      it('includes and-clauses when aliased', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({ user, content: 'chalupas' })
 
@@ -35,14 +35,14 @@ describe('Query#innerJoin with aliased associations', () => {
         await Composition.create({ user: otherUser, content: 'chalupaz' })
 
         const matching = await User.query()
-          .innerJoin('compositions as c1', { on: { content: 'chalupas' } })
+          .innerJoin('compositions as c1', { and: { content: 'chalupas' } })
           .all()
         expect(matching).toMatchDreamModels([user])
       })
     })
 
     context('BelongsTo association', () => {
-      it('includes on clauses when aliased', async () => {
+      it('includes and-clauses when aliased', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user, content: 'chalupas' })
 
@@ -50,7 +50,7 @@ describe('Query#innerJoin with aliased associations', () => {
         await Composition.create({ user: otherUser, content: 'chalupaz' })
 
         const matching = await Composition.query()
-          .innerJoin('user as u', { on: { email: 'fred@frewd' } })
+          .innerJoin('user as u', { and: { email: 'fred@frewd' } })
           .all()
         expect(matching).toMatchDreamModels([composition])
       })

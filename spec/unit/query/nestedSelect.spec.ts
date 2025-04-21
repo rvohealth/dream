@@ -64,7 +64,7 @@ describe('Query#nestedSelect', () => {
 
       const edges = await Edge.where({
         id: Node.where({ id: node.id })
-          .innerJoin('edges', { on: { name: ops.similarity('yedge') } })
+          .innerJoin('edges', { and: { name: ops.similarity('yedge') } })
           .nestedSelect('edges.id'),
       }).all()
       expect(edges).toMatchDreamModels([edge1])

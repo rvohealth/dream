@@ -295,9 +295,9 @@ export interface HasStatement<
   foreignKey: () => keyof DB[ForeignTableName] & string
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   globalAssociationNameOrNames: string[]
-  on?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
-  notOn?: WhereStatement<DB, Schema, ForeignTableName>
-  onAny?: WhereStatement<DB, Schema, ForeignTableName>[]
+  and?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
+  andNot?: WhereStatement<DB, Schema, ForeignTableName>
+  andAny?: WhereStatement<DB, Schema, ForeignTableName>[]
   // ATTENTION
   //
   // Using `order` with HasOne is tempting as an elegant API
@@ -313,13 +313,14 @@ export interface HasStatement<
   primaryKey: (associationInstance?: Dream) => DreamColumnNames<BaseInstance>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
   primaryKeyValue: (associationInstance: Dream) => any
-  selfOn?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
-  selfNotOn?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
+  selfAnd?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
+  selfAndNot?: SelfOnStatement<BaseInstance, DB, Schema, ForeignTableName>
   source: string
   through?: string
   type: HasType
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
+
 interface HasOptionsBase<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
@@ -331,7 +332,7 @@ interface HasOptionsBase<
   dependent?: DependentOptions
   foreignKey?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
 
-  on?: OnStatementForAssociationDefinition<
+  and?: OnStatementForAssociationDefinition<
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &
@@ -339,7 +340,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  notOn?: WhereStatement<
+  andNot?: WhereStatement<
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &
@@ -347,7 +348,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  onAny?: WhereStatement<
+  andAny?: WhereStatement<
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &
@@ -359,7 +360,7 @@ interface HasOptionsBase<
   preloadThroughColumns?: string[] | Record<string, string>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
 
-  selfOn?: SelfOnStatement<
+  selfAnd?: SelfOnStatement<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -368,7 +369,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  selfNotOn?: SelfOnStatement<
+  selfAndNot?: SelfOnStatement<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -431,10 +432,11 @@ type hasOneManySpecificFields =
   | 'source'
   | 'through'
   | 'preloadThroughColumns'
-  | 'on'
-  | 'notOn'
-  | 'selfOn'
-  | 'selfNotOn'
+  | 'and'
+  | 'andNot'
+  | 'andAny'
+  | 'selfAnd'
+  | 'selfAndNot'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =

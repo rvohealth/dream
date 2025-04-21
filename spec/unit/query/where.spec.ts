@@ -84,10 +84,10 @@ describe('Query#where', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: noColorBalloon })
 
-      const reloaded = await Pet.leftJoinPreload('whereNot_red')
-        .where({ 'whereNot_red.color': ['red', 'green'] })
+      const reloaded = await Pet.leftJoinPreload('andNot_red')
+        .where({ 'andNot_red.color': ['red', 'green'] })
         .firstOrFail()
-      expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon])
+      expect(reloaded.andNot_red).toMatchDreamModels([greenBalloon])
     })
 
     it('implicitly namespaces un-namespaced columns to the base model’s table', async () => {
@@ -100,8 +100,8 @@ describe('Query#where', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: noColorBalloon })
 
-      const reloaded = await Pet.leftJoinPreload('whereNot_red').where({ id: pet.id }).firstOrFail()
-      expect(reloaded.whereNot_red).toMatchDreamModels([greenBalloon, noColorBalloon])
+      const reloaded = await Pet.leftJoinPreload('andNot_red').where({ id: pet.id }).firstOrFail()
+      expect(reloaded.andNot_red).toMatchDreamModels([greenBalloon, noColorBalloon])
     })
   })
 

@@ -1,4 +1,4 @@
-import MissingRequiredPassthroughForAssociationOnClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationOnClause.js'
+import MissingRequiredPassthroughForAssociationAndClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
@@ -74,7 +74,7 @@ describe('Query#passthrough', () => {
       it('throws MissingRequiredPassthroughForAssociationWhereClause', async () => {
         await expect(
           User.query().innerJoin('compositions', 'passthroughCurrentLocalizedText').first()
-        ).rejects.toThrow(MissingRequiredPassthroughForAssociationOnClause)
+        ).rejects.toThrow(MissingRequiredPassthroughForAssociationAndClause)
       })
     })
   })

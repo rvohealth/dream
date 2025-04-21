@@ -3,7 +3,7 @@ import { HasManyStatement } from '../../../types/associations/hasMany.js'
 import {
   AssociationNameToDream,
   DreamAssociationNames,
-  JoinOnStatements,
+  JoinAndStatements,
   TableOrAssociationName,
 } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
@@ -23,11 +23,11 @@ export default function associationQuery<
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   {
-    joinOnStatements,
+    joinAndStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   }: {
-    joinOnStatements: JoinOnStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements: JoinAndStatements<DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
   }
@@ -47,8 +47,8 @@ export default function associationQuery<
     [dream.primaryKey]: dream.primaryKeyValue,
   })
 
-  if (joinOnStatements && (joinOnStatements.on || joinOnStatements.notOn || joinOnStatements.onAny))
-    baseSelectQuery = baseSelectQuery.innerJoin(association.as, joinOnStatements)
+  if (joinAndStatements && (joinAndStatements.and || joinAndStatements.andNot || joinAndStatements.andAny))
+    baseSelectQuery = baseSelectQuery.innerJoin(association.as, joinAndStatements)
   else baseSelectQuery = baseSelectQuery.innerJoin(association.as)
 
   let query = txn ? associationClass.txn(txn).queryInstance() : associationClass.query()

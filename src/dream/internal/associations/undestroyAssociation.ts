@@ -1,5 +1,5 @@
 import Dream from '../../../Dream.js'
-import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../../types/dream.js'
+import { AssociationNameToDream, DreamAssociationNames, JoinAndStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import associationUpdateQuery from './associationUpdateQuery.js'
 
@@ -15,13 +15,13 @@ export default async function undestroyAssociation<
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   {
-    joinOnStatements,
+    joinAndStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
     cascade,
     skipHooks,
   }: {
-    joinOnStatements: JoinOnStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements: JoinAndStatements<DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
     cascade: boolean
@@ -29,7 +29,7 @@ export default async function undestroyAssociation<
   }
 ): Promise<number> {
   const query = associationUpdateQuery(dream, txn, associationName, {
-    joinOnStatements,
+    joinAndStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   })

@@ -51,17 +51,17 @@ describe('Query#leftJoinPreload with simple associations', () => {
       expect(reloadedUser.mainComposition).toMatchDreamModel(composition)
     })
 
-    it('supports on-clauses', async () => {
+    it('supports and-clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ userId: user.id, primary: true, content: 'Hello' })
 
       const reloadedUser = await User.query()
-        .leftJoinPreload('mainComposition', { on: { content: 'Goodbye' } })
+        .leftJoinPreload('mainComposition', { and: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.mainComposition).toBeNull()
 
       const reloadedUser2 = await User.query()
-        .leftJoinPreload('mainComposition', { on: { content: 'Hello' } })
+        .leftJoinPreload('mainComposition', { and: { content: 'Hello' } })
         .firstOrFail()
       expect(reloadedUser2.mainComposition).toMatchDreamModel(composition)
     })
@@ -96,13 +96,13 @@ describe('Query#leftJoinPreload with simple associations', () => {
       expect(reloadedUser.compositions).toMatchDreamModels([composition1, composition2])
     })
 
-    it('supports on-clauses', async () => {
+    it('supports and-clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user, content: 'Hello' })
       const composition2 = await Composition.create({ user, content: 'Goodbye' })
 
       const reloadedUser = await User.query()
-        .leftJoinPreload('compositions', { on: { content: 'Goodbye' } })
+        .leftJoinPreload('compositions', { and: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.compositions).toMatchDreamModels([composition2])
     })
@@ -188,7 +188,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
   })
 
   context('HasMany', () => {
-    context('with matching on-clause-on-the-association', () => {
+    context('with matching and-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({
@@ -219,7 +219,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with NON-matching on-clause-on-the-association', () => {
+    context('with NON-matching and-clause-on-the-association', () => {
       it('does not load the object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
@@ -278,7 +278,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with matching notOn-clause-on-the-association', () => {
+    context('with matching andNot-clause-on-the-association', () => {
       it('does not load the object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         await Composition.create({
@@ -291,7 +291,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with NON-matching notOn-clause-on-the-association', () => {
+    context('with NON-matching andNot-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({
@@ -306,7 +306,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
   })
 
   context('HasOne', () => {
-    context('with matching on-clause-on-the-association', () => {
+    context('with matching and-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -321,7 +321,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with NON-matching on-clause-on-the-association', () => {
+    context('with NON-matching and-clause-on-the-association', () => {
       it('does not load the object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -333,7 +333,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with matching notOn-clause-on-the-association', () => {
+    context('with matching andNot-clause-on-the-association', () => {
       it('does not load the associated object', async () => {
         const pet = await Pet.create()
         await pet.createAssociation('collars', {
@@ -345,7 +345,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with NON-matching notOn-clause-on-the-association', () => {
+    context('with NON-matching andNot-clause-on-the-association', () => {
       it('loads the associated object', async () => {
         const pet = await Pet.create()
         const notLostCollar = await pet.createAssociation('collars', {

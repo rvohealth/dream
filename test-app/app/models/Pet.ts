@@ -68,11 +68,11 @@ export default class Pet extends ApplicationModel {
   @deco.HasMany('Collar', { dependent: 'destroy' })
   public collars: Collar[]
 
-  @deco.HasOne('Collar', { on: { lost: false } })
+  @deco.HasOne('Collar', { and: { lost: false } })
   public currentCollar: Collar
 
   // begin: totally contrived for testing purposes
-  @deco.HasOne('Collar', { notOn: { lost: true } })
+  @deco.HasOne('Collar', { andNot: { lost: true } })
   public notLostCollar: Collar
 
   @deco.HasMany('Collar', { distinct: 'tagName' })
@@ -85,296 +85,296 @@ export default class Pet extends ApplicationModel {
   public distinctBalloons: Balloon
 
   // on
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: null } })
-  public where_null: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: null } })
+  public and_null: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.equal(null) } })
-  public where_opsEqual_null: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.equal(null) } })
+  public and_opsEqual_null: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.not.equal(null) } })
-  public where_opsNotEqual_null: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.not.equal(null) } })
+  public and_opsNotEqual_null: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: 'red' } })
-  public where_red: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: 'red' } })
+  public and_red: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.equal('red') } })
-  public where_opsEqual_red: Balloon
-
-  @deco.HasMany('Balloon', {
-    through: 'collars',
-    source: 'balloon',
-    on: { color: ops.not.equal('red') },
-  })
-  public where_opsNotEqual_red: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ['red'] } })
-  public where_redArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.in(['red']) } })
-  public where_opsIn_redArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.not.in(['red']) } })
-  public where_opsNotIn_redArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: [] } })
-  public where_emptyArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.in([]) } })
-  public where_opsIn_emptyArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.not.in([]) } })
-  public where_opsNotIn_emptyArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: [null as any] } })
-  public where_arrayWithNull: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.in([null]) } })
-  public where_opsIn_arrayWithNull: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', on: { color: ops.not.in([null]) } })
-  public where_opsNotIn_arrayWithNull: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.equal('red') } })
+  public and_opsEqual_red: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    on: { color: [null as any, 'red'] },
+    and: { color: ops.not.equal('red') },
   })
-  public where_arrayWithNullAndRed: Balloon
+  public and_opsNotEqual_red: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ['red'] } })
+  public and_redArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.in(['red']) } })
+  public and_opsIn_redArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.not.in(['red']) } })
+  public and_opsNotIn_redArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: [] } })
+  public and_emptyArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.in([]) } })
+  public and_opsIn_emptyArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.not.in([]) } })
+  public and_opsNotIn_emptyArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: [null as any] } })
+  public and_arrayWithNull: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.in([null]) } })
+  public and_opsIn_arrayWithNull: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', and: { color: ops.not.in([null]) } })
+  public and_opsNotIn_arrayWithNull: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    on: { color: ops.in([null, 'red']) },
+    and: { color: [null as any, 'red'] },
   })
-  public where_opsIn_arrayWithNullAndRed: Balloon
+  public and_arrayWithNullAndRed: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    on: { color: ops.not.in([null, 'red']) },
+    and: { color: ops.in([null, 'red']) },
   })
-  public where_opsNotIn_arrayWithNullAndRed: Balloon
+  public and_opsIn_arrayWithNullAndRed: Balloon
+
+  @deco.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    and: { color: ops.not.in([null, 'red']) },
+  })
+  public and_opsNotIn_arrayWithNullAndRed: Balloon
   // end: on
 
-  // notOn
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: null } })
-  public whereNot_null: Balloon
+  // andNot
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: null } })
+  public andNot_null: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.equal(null) } })
-  public whereNot_opsEqual_null: Balloon
-
-  @deco.HasMany('Balloon', {
-    through: 'collars',
-    source: 'balloon',
-    notOn: { color: ops.not.equal(null) },
-  })
-  public whereNot_opsNotEqual_null: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: 'red' } })
-  public whereNot_red: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ops.equal(null) } })
+  public andNot_opsEqual_null: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: 'red', type: 'Latex' },
+    andNot: { color: ops.not.equal(null) },
   })
-  public whereNot_multipleClauses: Balloon
+  public andNot_opsNotEqual_null: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.equal('red') } })
-  public whereNot_opsEqual_red: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: 'red' } })
+  public andNot_red: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: ops.not.equal('red') },
+    andNot: { color: 'red', type: 'Latex' },
   })
-  public whereNot_opsNotEqual_red: Balloon
+  public andNot_multipleClauses: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ['red'] } })
-  public whereNot_redArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.in(['red']) } })
-  public whereNot_opsIn_redArray: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ops.equal('red') } })
+  public andNot_opsEqual_red: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: ops.not.in(['red']) },
+    andNot: { color: ops.not.equal('red') },
   })
-  public whereNot_opsNotIn_redArray: Balloon
+  public andNot_opsNotEqual_red: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: [] } })
-  public whereNot_emptyArray: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ['red'] } })
+  public andNot_redArray: Balloon
 
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.in([]) } })
-  public whereNot_opsIn_emptyArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.not.in([]) } })
-  public whereNot_opsNotIn_emptyArray: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: [null as any] } })
-  public whereNot_arrayWithNull: Balloon
-
-  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', notOn: { color: ops.in([null]) } })
-  public whereNot_opsIn_arrayWithNull: Balloon
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ops.in(['red']) } })
+  public andNot_opsIn_redArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: ops.not.in([null]) },
+    andNot: { color: ops.not.in(['red']) },
   })
-  public whereNot_opsNotIn_arrayWithNull: Balloon
+  public andNot_opsNotIn_redArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: [] } })
+  public andNot_emptyArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ops.in([]) } })
+  public andNot_opsIn_emptyArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ops.not.in([]) } })
+  public andNot_opsNotIn_emptyArray: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: [null as any] } })
+  public andNot_arrayWithNull: Balloon
+
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', andNot: { color: ops.in([null]) } })
+  public andNot_opsIn_arrayWithNull: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: [null as any, 'red'] },
+    andNot: { color: ops.not.in([null]) },
   })
-  public whereNot_arrayWithNullAndRed: Balloon
+  public andNot_opsNotIn_arrayWithNull: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: ops.in([null, 'red']) },
+    andNot: { color: [null as any, 'red'] },
   })
-  public whereNot_opsIn_arrayWithNullAndRed: Balloon
+  public andNot_arrayWithNullAndRed: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    notOn: { color: ops.not.in([null, 'red']) },
+    andNot: { color: ops.in([null, 'red']) },
   })
-  public whereNot_opsNotIn_arrayWithNullAndRed: Balloon
-
-  // end: notOn
-
-  // onAny
-  @deco.HasMany('Balloon', {
-    through: 'collars',
-    source: 'balloon',
-    onAny: [{ color: null }, { positionAlpha: null }],
-  })
-  public onAny_null: Balloon
+  public andNot_opsIn_arrayWithNullAndRed: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.equal(null) }, { positionAlpha: null }],
+    andNot: { color: ops.not.in([null, 'red']) },
   })
-  public onAny_opsEqual_null: Balloon
+  public andNot_opsNotIn_arrayWithNullAndRed: Balloon
+
+  // end: andNot
+
+  // andAny
+  @deco.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    andAny: [{ color: null }, { positionAlpha: null }],
+  })
+  public andAny_null: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.not.equal(null) }, { positionAlpha: null }],
+    andAny: [{ color: ops.equal(null) }, { positionAlpha: null }],
   })
-  public onAny_opsNotEqual_null: Balloon
+  public andAny_opsEqual_null: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: 'red' }, { positionAlpha: null }],
+    andAny: [{ color: ops.not.equal(null) }, { positionAlpha: null }],
   })
-  public onAny_red: Balloon
+  public andAny_opsNotEqual_null: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.equal('red') }, { positionAlpha: null }],
+    andAny: [{ color: 'red' }, { positionAlpha: null }],
   })
-  public onAny_opsEqual_red: Balloon
+  public andAny_red: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.not.equal('red') }, { positionAlpha: null }],
+    andAny: [{ color: ops.equal('red') }, { positionAlpha: null }],
   })
-  public onAny_opsNotEqual_red: Balloon
+  public andAny_opsEqual_red: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ['red'] }, { positionAlpha: null }],
+    andAny: [{ color: ops.not.equal('red') }, { positionAlpha: null }],
   })
-  public onAny_redArray: Balloon
+  public andAny_opsNotEqual_red: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.in(['red']) }, { positionAlpha: null }],
+    andAny: [{ color: ['red'] }, { positionAlpha: null }],
   })
-  public onAny_opsIn_redArray: Balloon
+  public andAny_redArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.not.in(['red']) }, { positionAlpha: null }],
+    andAny: [{ color: ops.in(['red']) }, { positionAlpha: null }],
   })
-  public onAny_opsNotIn_redArray: Balloon
+  public andAny_opsIn_redArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: [] }, { positionAlpha: null }],
+    andAny: [{ color: ops.not.in(['red']) }, { positionAlpha: null }],
   })
-  public onAny_emptyArray: Balloon
+  public andAny_opsNotIn_redArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.in([]) }, { positionAlpha: null }],
+    andAny: [{ color: [] }, { positionAlpha: null }],
   })
-  public onAny_opsIn_emptyArray: Balloon
+  public andAny_emptyArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.not.in([]) }, { positionAlpha: null }],
+    andAny: [{ color: ops.in([]) }, { positionAlpha: null }],
   })
-  public onAny_opsNotIn_emptyArray: Balloon
+  public andAny_opsIn_emptyArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: [null as any] }, { positionAlpha: null }],
+    andAny: [{ color: ops.not.in([]) }, { positionAlpha: null }],
   })
-  public onAny_arrayWithNull: Balloon
+  public andAny_opsNotIn_emptyArray: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.in([null]) }, { positionAlpha: null }],
+    andAny: [{ color: [null as any] }, { positionAlpha: null }],
   })
-  public onAny_opsIn_arrayWithNull: Balloon
+  public andAny_arrayWithNull: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.not.in([null]) }, { positionAlpha: null }],
+    andAny: [{ color: ops.in([null]) }, { positionAlpha: null }],
   })
-  public onAny_opsNotIn_arrayWithNull: Balloon
+  public andAny_opsIn_arrayWithNull: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: [null as any, 'red'] }, { positionAlpha: null }],
+    andAny: [{ color: ops.not.in([null]) }, { positionAlpha: null }],
   })
-  public onAny_arrayWithNullAndRed: Balloon
+  public andAny_opsNotIn_arrayWithNull: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.in([null, 'red']) }, { positionAlpha: null }],
+    andAny: [{ color: [null as any, 'red'] }, { positionAlpha: null }],
   })
-  public onAny_opsIn_arrayWithNullAndRed: Balloon
+  public andAny_arrayWithNullAndRed: Balloon
 
   @deco.HasMany('Balloon', {
     through: 'collars',
     source: 'balloon',
-    onAny: [{ color: ops.not.in([null, 'red']) }, { positionAlpha: null }],
+    andAny: [{ color: ops.in([null, 'red']) }, { positionAlpha: null }],
   })
-  public onAny_opsNotIn_arrayWithNullAndRed: Balloon
-  // end: onAny
+  public andAny_opsIn_arrayWithNullAndRed: Balloon
+
+  @deco.HasMany('Balloon', {
+    through: 'collars',
+    source: 'balloon',
+    andAny: [{ color: ops.not.in([null, 'red']) }, { positionAlpha: null }],
+  })
+  public andAny_opsNotIn_arrayWithNullAndRed: Balloon
+  // end: andAny
 
   @deco.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]

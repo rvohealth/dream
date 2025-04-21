@@ -82,7 +82,7 @@ import {
   DreamParamSafeColumnNames,
   DreamSerializeOptions,
   IdType,
-  JoinOnStatements,
+  JoinAndStatements,
   NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
@@ -3115,7 +3115,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<I> &
-      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async destroyAssociation<
@@ -3128,7 +3128,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<I> & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3141,7 +3141,9 @@ export default class Dream {
    *
    * @param associationName - The name of the association to destroy
    * @param options - Options for destroying the association
-   * @param options.on - Optional where statement to apply to query before destroying
+   * @param options.and - Optional and statement to apply to query before destroying
+   * @param options.andNot - Optional andNot statement to apply to query before destroying
+   * @param options.andAny - Optional andAny statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
@@ -3157,10 +3159,10 @@ export default class Dream {
 
     return await destroyAssociation(this, null, associationName, {
       ...destroyOptions<I>(options as any),
-      joinOnStatements: {
-        on: (options as any)?.on,
-        notOn: (options as any)?.notOn,
-        onAny: (options as any)?.onAny,
+      joinAndStatements: {
+        and: (options as any)?.and,
+        andNot: (options as any)?.andNot,
+        andAny: (options as any)?.andAny,
       },
     })
   }
@@ -3184,7 +3186,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<I> &
-      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async reallyDestroyAssociation<
@@ -3197,7 +3199,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<I> & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3215,7 +3217,9 @@ export default class Dream {
    *
    * @param associationName - The name of the association to destroy
    * @param options - Options for destroying the association
-   * @param options.on - Optional where statement to apply to query before destroying
+   * @param options.and - Optional and statement to apply to query before destroying
+   * @param options.andNot - Optional andNot statement to apply to query before destroying
+   * @param options.andAny - Optional andAny statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
@@ -3231,10 +3235,10 @@ export default class Dream {
 
     return await destroyAssociation(this, null, associationName, {
       ...reallyDestroyOptions<I>(options as any),
-      joinOnStatements: {
-        on: (options as any)?.on,
-        notOn: (options as any)?.notOn,
-        onAny: (options as any)?.onAny,
+      joinAndStatements: {
+        and: (options as any)?.and,
+        andNot: (options as any)?.andNot,
+        andAny: (options as any)?.andAny,
       },
     })
   }
@@ -3258,7 +3262,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<I> &
-      JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async undestroyAssociation<
@@ -3271,7 +3275,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<I> & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3286,7 +3290,9 @@ export default class Dream {
    *
    * @param associationName - The name of the association to undestroy
    * @param options - Options for undestroying the association
-   * @param options.on - Optional where statement to apply to query before undestroying
+   * @param options.and - Optional and statement to apply to query before undestroying
+   * @param options.andNot - Optional andNot statement to apply to query before undestroying
+   * @param options.andAny - Optional andAny statement to apply to query before undestroying
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false
@@ -3300,10 +3306,10 @@ export default class Dream {
   ): Promise<number> {
     return await undestroyAssociation(this, null, associationName, {
       ...undestroyOptions<I>(options as any),
-      joinOnStatements: {
-        on: (options as any)?.on,
-        notOn: (options as any)?.notOn,
-        onAny: (options as any)?.onAny,
+      joinAndStatements: {
+        and: (options as any)?.and,
+        andNot: (options as any)?.andNot,
+        andAny: (options as any)?.andAny,
       },
     })
   }
@@ -3327,7 +3333,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    joinOnStatements: JoinOnStatements<
+    joinAndStatements: JoinAndStatements<
       DB,
       Schema,
       AssociationTableName,
@@ -3345,7 +3351,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    joinOnStatements?: JoinOnStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements?: JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   /**
@@ -3363,12 +3369,12 @@ export default class Dream {
   public associationQuery<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
-    joinOnStatements?: unknown
+    joinAndStatements?: unknown
   ): unknown {
     if (this.isNewRecord) throw new CannotAssociationQueryOnUnpersistedDream(this, associationName)
 
     return associationQuery(this, null, associationName, {
-      joinOnStatements: joinOnStatements as any,
+      joinAndStatements: joinAndStatements as any,
       bypassAllDefaultScopes: DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass: DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
     })
@@ -3397,7 +3403,7 @@ export default class Dream {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
-    } & JoinOnStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+    } & JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async updateAssociation<
@@ -3415,7 +3421,7 @@ export default class Dream {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
-    } & JoinOnStatements<DB, Schema, AssociationTableName, null>
+    } & JoinAndStatements<DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3427,14 +3433,14 @@ export default class Dream {
    * ```ts
    * await user.createAssociation('posts', { body: 'hello world' })
    * await user.createAssociation('posts', { body: 'howyadoin' })
-   * await user.updateAssociation('posts', { body: 'goodbye world' }, { on: { body: 'hello world' }})
+   * await user.updateAssociation('posts', { body: 'goodbye world' }, { and: { body: 'hello world' }})
    * // 1
    * ```
    *
    * @param associationName - The name of the association to update
    * @param attributes - The attributes to update on the association
    * @param options - Options for updating the association
-   * @param options.on - Optional on statement to apply to query before updating
+   * @param options.and - Optional on statement to apply to query before updating
    * @param options.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
    * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when updating the association. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
@@ -3449,10 +3455,10 @@ export default class Dream {
     if (this.isNewRecord) throw new CannotUpdateAssociationOnUnpersistedDream(this, associationName)
 
     return associationUpdateQuery(this, null, associationName, {
-      joinOnStatements: {
-        on: (updateAssociationOptions as any)?.on,
-        notOn: (updateAssociationOptions as any)?.notOn,
-        onAny: (updateAssociationOptions as any)?.onAny,
+      joinAndStatements: {
+        and: (updateAssociationOptions as any)?.and,
+        andNot: (updateAssociationOptions as any)?.andNot,
+        andAny: (updateAssociationOptions as any)?.andAny,
       },
 
       bypassAllDefaultScopes:

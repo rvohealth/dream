@@ -1,6 +1,6 @@
 import Dream from '../Dream.js'
 
-export default class CannotDefineAssociationWithBothDependentAndRequiredOnClause extends Error {
+export default class CannotDefineAssociationWithBothDependentAndRequiredAndClause extends Error {
   constructor(
     private dreamClass: typeof Dream,
     private associationName: string

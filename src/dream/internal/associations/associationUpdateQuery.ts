@@ -1,7 +1,7 @@
 import Dream from '../../../Dream.js'
 import UnexpectedUndefined from '../../../errors/UnexpectedUndefined.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
-import { AssociationNameToDream, DreamAssociationNames, JoinOnStatements } from '../../../types/dream.js'
+import { AssociationNameToDream, DreamAssociationNames, JoinAndStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import Query from '../../Query.js'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js'
@@ -19,11 +19,11 @@ export default function associationUpdateQuery<
   txn: DreamTransaction<Dream> | null = null,
   associationName: AssociationName,
   {
-    joinOnStatements,
+    joinAndStatements,
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   }: {
-    joinOnStatements: JoinOnStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements: JoinAndStatements<DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
   }
@@ -47,8 +47,8 @@ export default function associationUpdateQuery<
     defaultScopesToBypass,
   })
 
-  if (joinOnStatements && (joinOnStatements.on || joinOnStatements.notOn || joinOnStatements.onAny))
-    nestedScope = nestedScope.innerJoin(association.as, joinOnStatements)
+  if (joinAndStatements && (joinAndStatements.and || joinAndStatements.andNot || joinAndStatements.andAny))
+    nestedScope = nestedScope.innerJoin(association.as, joinAndStatements)
   else nestedScope = nestedScope.innerJoin(association.as)
 
   const nestedSelect = nestedScope

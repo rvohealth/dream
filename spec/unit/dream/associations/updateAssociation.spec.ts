@@ -1,5 +1,5 @@
 import CannotUpdateAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
-import MissingRequiredAssociationOnClause from '../../../../src/errors/associations/MissingRequiredAssociationOnClause.js'
+import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
@@ -11,13 +11,13 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#updateAssociation', () => {
-  context('with an on-clause', () => {
-    it('limits the update to the on-clause', async () => {
+  context('with an and-clause', () => {
+    it('limits the update to the and-clause', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const aster = await Pet.create({ user, name: 'Aster', species: 'cat' })
       const violet = await Pet.create({ user, name: 'Violet', species: 'frog' })
 
-      await user.updateAssociation('pets', { species: 'dog' }, { on: { id: violet.id } })
+      await user.updateAssociation('pets', { species: 'dog' }, { and: { id: violet.id } })
 
       await aster.reload()
       await violet.reload()
@@ -33,7 +33,7 @@ describe('Dream#updateAssociation', () => {
       const user2 = await User.create({ email: 'frewd@fred', password: 'howyadoin' })
       const violet = await Pet.create({ user: user2, name: 'Violet', species: 'frog' })
 
-      await user1.updateAssociation('pets', { species: 'dog' }, { on: { id: violet.id } })
+      await user1.updateAssociation('pets', { species: 'dog' }, { and: { id: violet.id } })
 
       await aster.reload()
       await violet.reload()
@@ -43,17 +43,17 @@ describe('Dream#updateAssociation', () => {
     })
   })
 
-  context('with undefined passed in an on-clause', () => {
+  context('with undefined passed in an and-clause', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await expect(
         async () =>
-          await user.updateAssociation('pets', { name: 'howyadoin' }, { on: { name: undefined as any } })
+          await user.updateAssociation('pets', { name: 'howyadoin' }, { and: { name: undefined as any } })
       ).rejects.toThrowError(CannotPassUndefinedAsAValueToAWhereClause)
     })
 
     context('when undefined is applied at the association level', () => {
-      context('on-clause has an undefined value', () => {
+      context('and-clause has an undefined value', () => {
         it('raises an exception', async () => {
           const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
           const post = await user.createAssociation('posts')
@@ -143,7 +143,7 @@ describe('Dream#updateAssociation', () => {
       })
     })
 
-    context('when a required on-clause isn’t passed', () => {
+    context('when a required and-clause isn’t passed', () => {
       it('throws MissingRequiredAssociationWhereClause', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
@@ -152,12 +152,12 @@ describe('Dream#updateAssociation', () => {
           (composition.updateAssociation as any)('requiredCurrentLocalizedText', {
             name: 'Name was updated',
           })
-        ).rejects.toThrow(MissingRequiredAssociationOnClause)
+        ).rejects.toThrow(MissingRequiredAssociationAndClause)
       })
     })
 
-    context('when a required on-clause is passed', () => {
-      it('applies the on-clause to the association', async () => {
+    context('when a required and-clause is passed', () => {
+      it('applies the and-clause to the association', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
         const localizedTextToLeaveAlone = await LocalizedText.create({
@@ -176,7 +176,7 @@ describe('Dream#updateAssociation', () => {
           {
             name: 'Name was updated',
           },
-          { on: { locale: 'es-ES' } }
+          { and: { locale: 'es-ES' } }
         )
 
         await localizedTextToLeaveAlone.reload()

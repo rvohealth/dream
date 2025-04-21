@@ -1,5 +1,5 @@
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
-import CannotDefineAssociationWithBothDependentAndRequiredOnClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredOnClause.js'
+import CannotDefineAssociationWithBothDependentAndRequiredAndClause from '../../../../../src/errors/CannotDefineAssociationWithBothDependentAndRequiredAndClause.js'
 import { Decorators, DreamConst } from '../../../../../src/index.js'
 import Post from '../../../../../test-app/app/models/Post.js'
 import User from '../../../../../test-app/app/models/User.js'
@@ -13,7 +13,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         class User2 extends User {
           @deco.HasMany('Post', {
             dependent: 'destroy',
-            on: { body: DreamConst.passthrough },
+            and: { body: DreamConst.passthrough },
           })
           public testAssociation: Post
         }
@@ -30,14 +30,14 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         class User2 extends User {
           @deco.HasMany('Post', {
             dependent: 'destroy',
-            on: { body: DreamConst.required },
+            and: { body: DreamConst.required },
           })
           public testAssociation: Post
         }
 
         expect(() => {
           processDynamicallyDefinedModels(User2)
-        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredOnClause)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredAndClause)
       })
     })
   })
@@ -49,7 +49,7 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         class User2 extends User {
           @deco.HasOne('Post', {
             dependent: 'destroy',
-            on: { body: DreamConst.passthrough },
+            and: { body: DreamConst.passthrough },
           })
           public testAssociation: Post
         }
@@ -66,14 +66,14 @@ describe('Invalid dependent set within HasOne/HasMany associations', () => {
         class User2 extends User {
           @deco.HasOne('Post', {
             dependent: 'destroy',
-            on: { body: DreamConst.required },
+            and: { body: DreamConst.required },
           })
           public testAssociation: Post
         }
 
         expect(() => {
           processDynamicallyDefinedModels(User2)
-        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredOnClause)
+        }).toThrow(CannotDefineAssociationWithBothDependentAndRequiredAndClause)
       })
     })
   })

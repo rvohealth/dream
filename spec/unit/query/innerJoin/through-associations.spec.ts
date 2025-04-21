@@ -128,12 +128,12 @@ describe('Query#joins through with simple associations', () => {
         })
 
         const reloadedUsers = await User.query()
-          .innerJoin('mainCompositionAsset', { on: { id: compositionAsset.id } })
+          .innerJoin('mainCompositionAsset', { and: { id: compositionAsset.id } })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .innerJoin('mainCompositionAsset', { on: { id: parseInt(compositionAsset.id.toString()) + 1 } })
+          .innerJoin('mainCompositionAsset', { and: { id: parseInt(compositionAsset.id.toString()) + 1 } })
           .all()
         expect(noResults).toEqual([])
       })
@@ -165,7 +165,7 @@ describe('Query#joins through with simple associations', () => {
           })
 
           const reloadedUsers = await User.query()
-            .innerJoin('mainCompositionAsset', { on: { name: ops.similarity('hell') } })
+            .innerJoin('mainCompositionAsset', { and: { name: ops.similarity('hell') } })
             .all()
           expect(reloadedUsers).toMatchDreamModels([user])
         })
@@ -182,14 +182,14 @@ describe('Query#joins through with simple associations', () => {
           })
 
           const reloadedUsers = await User.query()
-            .innerJoin('compositions', { on: { id: composition.id } }, 'compositionAssets')
+            .innerJoin('compositions', { and: { id: composition.id } }, 'compositionAssets')
             .all()
           expect(reloadedUsers).toMatchDreamModels([user])
 
           const noResults = await User.query()
             .innerJoin(
               'compositions',
-              { on: { id: parseInt(composition.id.toString()) + 1 } },
+              { and: { id: parseInt(composition.id.toString()) + 1 } },
               'compositionAssets'
             )
             .all()
@@ -209,12 +209,12 @@ describe('Query#joins through with simple associations', () => {
         const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedCompositionAssets = await CompositionAsset.query()
-          .innerJoin('user', { on: { id: user.id } })
+          .innerJoin('user', { and: { id: user.id } })
           .all()
         expect(reloadedCompositionAssets).toMatchDreamModels([compositionAsset])
 
         const noResults = await CompositionAsset.query()
-          .innerJoin('user', { on: { id: parseInt(user.id.toString()) + 1 } })
+          .innerJoin('user', { and: { id: parseInt(user.id.toString()) + 1 } })
           .all()
         expect(noResults).toEqual([])
       })
@@ -228,12 +228,12 @@ describe('Query#joins through with simple associations', () => {
         const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
 
         const reloadedUsers = await User.query()
-          .innerJoin('compositionAssets', { on: { id: compositionAsset.id } })
+          .innerJoin('compositionAssets', { and: { id: compositionAsset.id } })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .innerJoin('compositionAssets', { on: { id: parseInt(compositionAsset.id.toString()) + 1 } })
+          .innerJoin('compositionAssets', { and: { id: parseInt(compositionAsset.id.toString()) + 1 } })
           .all()
         expect(noResults).toEqual([])
       })
@@ -250,13 +250,13 @@ describe('Query#joins through with simple associations', () => {
         })
 
         const reloadedUsers = await User.query()
-          .innerJoin('compositionAssetAudits', { on: { id: compositionAssetAudit.id } })
+          .innerJoin('compositionAssetAudits', { and: { id: compositionAssetAudit.id } })
           .all()
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
           .innerJoin('compositionAssetAudits', {
-            on: { id: parseInt(compositionAssetAudit.id.toString()) + 1 },
+            and: { id: parseInt(compositionAssetAudit.id.toString()) + 1 },
           })
           .all()
         expect(noResults).toEqual([])
@@ -277,7 +277,7 @@ describe('Query#joins through with simple associations', () => {
           })
 
           const reloadedUser = await User.innerJoin('recentCompositions', 'compositionAssets', {
-            on: { name: compositionAsset.name },
+            and: { name: compositionAsset.name },
           }).first()
           expect(reloadedUser).toMatchDreamModel(user)
         })
@@ -308,7 +308,7 @@ describe('Query#joins through with simple associations', () => {
 
             const reloadedUsers = await User.query()
               .innerJoin('compositions', 'compositionAssets', 'compositionAssetAudits', {
-                on: { notes: ops.similarity('hallo') },
+                and: { notes: ops.similarity('hallo') },
               })
               .all()
             expect(reloadedUsers).toMatchDreamModels([user1])
@@ -344,10 +344,10 @@ describe('Query#joins through with simple associations', () => {
                 .innerJoin(
                   'compositions',
                   'compositionAssets',
-                  { on: { name: ops.similarity('hallo') } },
+                  { and: { name: ops.similarity('hallo') } },
                   'compositionAssetAudits',
                   {
-                    on: { notes: ops.similarity('hallo') },
+                    and: { notes: ops.similarity('hallo') },
                   }
                 )
                 .all()
@@ -371,7 +371,7 @@ describe('Query#joins through with simple associations', () => {
           })
 
           const reloadedUser = await User.innerJoin('recentCompositions', 'compositionAssets', {
-            on: { name: compositionAsset.name },
+            and: { name: compositionAsset.name },
           }).first()
           expect(reloadedUser).toBeNull()
         })
@@ -390,7 +390,7 @@ describe('Query#joins through with simple associations', () => {
           })
 
           const reloadedUser = await User.innerJoin('recentCompositionAssets', {
-            on: { name: 'Hello' },
+            and: { name: 'Hello' },
           }).first()
           expect(reloadedUser).toMatchDreamModel(user)
         })
@@ -407,7 +407,7 @@ describe('Query#joins through with simple associations', () => {
             })
 
             const reloadedUser = await User.innerJoin('recentCompositionAssets', {
-              on: { name: 'Hello' },
+              and: { name: 'Hello' },
             }).first()
             expect(reloadedUser).toMatchDreamModel(user)
           })
@@ -428,7 +428,7 @@ describe('Query#joins through with simple associations', () => {
           })
 
           const reloadedUser = await User.innerJoin('recentCompositionAssets', {
-            on: { name: 'World' },
+            and: { name: 'World' },
           }).first()
           expect(reloadedUser).toBeNull()
         })
@@ -448,7 +448,7 @@ describe('Query#joins through with simple associations', () => {
             })
 
             const reloadedUser = await User.innerJoin('recentCompositionAssets', {
-              on: { name: 'World' },
+              and: { name: 'World' },
             }).first()
             expect(reloadedUser).toBeNull()
           })
@@ -466,7 +466,7 @@ describe('Query#joins through with simple associations', () => {
       await pet.createAssociation('collars', { balloon: redBalloon })
       await pet.createAssociation('collars', { balloon: greenBalloon })
 
-      const ids = await pet.associationQuery('where_red').pluck('id')
+      const ids = await pet.associationQuery('and_red').pluck('id')
       expect(ids).toEqual([redBalloon.id])
     })
   })
@@ -531,7 +531,7 @@ describe('Query#joins through with simple associations', () => {
       await pet.createAssociation('collars', { balloon: greenBalloon })
       await pet.createAssociation('collars', { balloon: blueBalloon })
 
-      const ids = await pet.associationQuery('whereNot_red').pluck('id')
+      const ids = await pet.associationQuery('andNot_red').pluck('id')
       expect(ids).toEqual([greenBalloon.id, blueBalloon.id])
     })
   })
