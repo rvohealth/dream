@@ -955,11 +955,14 @@ export default class Dream {
 
   /**
    * Returns a new instance of Query scoped to the given
-   * model class
+   * model class. Especially useful with {@link Query#toKysely}.
    *
    * ```ts
-   * await User.query().all()
-   * // [User{id: 1}, User{id: 2}, ...]
+   *  await Balloon.query().toKysely('update').
+   *  .set({
+   *    multicolor: sql`array_remove(multicolor, ${colorToRemoveFromAllBalloons})`,
+   *  })
+   *  .execute()
    * ```
    *
    * @returns A new Query instance scoped to this Dream class
@@ -970,20 +973,21 @@ export default class Dream {
   }
 
   /**
-   * @internal
-   *
    * Returns a new instance of Query scoped to the given
-   * Dream instance
+   * model class. Especially useful with {@link Query#toKysely}.
    *
    * ```ts
-   * await user = User.first()
-   * await user.query()
+   *  await balloon.query().toKysely('update')
+   *  .set({
+   *    multicolor: sql`array_append(multicolor, 'red')`,
+   *  })
+   *  .execute()
    * ```
    *
-   * @returns A new Query instance scoped to this Dream instance
+   * @returns A new Query instance scoped to this Dream class
    *
    */
-  private query<I extends Dream>(this: I): Query<I> {
+  public query<I extends Dream>(this: I): Query<I> {
     const dreamClass = this.constructor as DreamConstructorType<I>
     return dreamClass.where({ [this.primaryKey]: this.primaryKeyValue } as any)
   }
