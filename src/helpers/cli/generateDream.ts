@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises'
+import * as fs from 'node:fs/promises'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'

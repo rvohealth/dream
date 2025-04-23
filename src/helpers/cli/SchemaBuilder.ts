@@ -1,6 +1,6 @@
-import * as fs from 'fs/promises'
 import { sql } from 'kysely'
-import * as path from 'path'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 import { isPrimitiveDataType } from '../../db/dataTypes.js'
 import _db from '../../db/index.js'
 import DreamApplication from '../../dream-application/index.js'

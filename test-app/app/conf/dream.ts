@@ -2,8 +2,10 @@ import { DreamApplication } from '../../../src/index.js'
 import srcPath from '../system/srcPath.js'
 import AppEnv from './AppEnv.js'
 import inflections from './inflections.js'
+import logger from './logger.js'
 
 export default async function (dreamApp: DreamApplication) {
+  const projectRoot = srcPath('..')
   await dreamApp.load('models', srcPath('app', 'models'), async path => (await import(path)).default)
   await dreamApp.load('serializers', srcPath('app', 'serializers'), async path => await import(path))
 
@@ -20,27 +22,11 @@ export default async function (dreamApp: DreamApplication) {
     },
   })
 
-  dreamApp.set('projectRoot', srcPath('..'))
+  dreamApp.set('projectRoot', projectRoot)
   dreamApp.set('primaryKeyType', 'bigserial')
   dreamApp.set('inflections', inflections)
 
-  dreamApp.set(
-    'logger',
-    console
-    // winston.createLogger({
-    //   level: 'info',
-    //   format: winston.format.json(),
-    //   defaultMeta: { service: 'user-service' },
-    //   transports: [
-    //     //
-    //     // - Write all logs with importance level of `error` or less to `error.log`
-    //     // - Write all logs with importance level of `info` or less to `combined.log`
-    //     //
-    //     new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    //     new winston.transports.File({ filename: 'combined.log' }),
-    //   ],
-    // })
-  )
+  dreamApp.set('logger', logger(projectRoot))
 
   // provides a list of path overrides for your app. This is optional, and will default
   // to the paths expected for a typical psychic application.

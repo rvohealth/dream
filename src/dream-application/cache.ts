@@ -7,6 +7,9 @@ export function cacheDreamApplication(dreamconf: DreamApplication) {
 }
 
 export function getCachedDreamApplicationOrFail() {
-  if (!_dreamApp) throw new Error('must call `cacheDreamconf` before loading cached dreamconf')
+  if (!_dreamApp)
+    throw new Error(
+      'Must call `initializeDreamApplication` or `initializePsychicApplication` before loading cached DreamApplication.getOrFail()'
+    )
   return _dreamApp
 }

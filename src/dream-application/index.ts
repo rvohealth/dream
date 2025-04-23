@@ -28,13 +28,13 @@ import {
 import { Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import DreamSerializer from '../serializer/index.js'
+import { DbConnectionType } from '../types/db.js'
 import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js'
 import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
 import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
-import { DbConnectionType } from '../types/db.js'
 
 const pgTypes = pg.types
 
@@ -194,11 +194,15 @@ Try setting it to something valid, like:
   }
 
   public static log(...args: any[]) {
-    this.getOrFail().logger.info(...args)
+    this.getOrFail().logger.info(this.argsToString(args))
   }
 
   public static logWithLevel(level: DreamLogLevel, ...args: any[]) {
-    this.getOrFail().logger[level](...args)
+    this.getOrFail().logger[level](this.argsToString(args))
+  }
+
+  private static argsToString(args: any[]) {
+    return args.map(str => `${str}`).join(' ')
   }
 
   private _specialHooks: DreamApplicationSpecialHooks = {
