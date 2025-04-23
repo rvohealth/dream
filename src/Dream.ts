@@ -818,7 +818,10 @@ export default class Dream {
    * @param attributes - attributes or belongs to associations you wish to set on this model before persisting
    * @returns A newly persisted dream instance
    */
-  public static async create<T extends typeof Dream>(this: T, attributes?: UpdateablePropertiesForClass<T>) {
+  public static async create<T extends typeof Dream>(
+    this: T,
+    attributes?: UpdateablePropertiesForClass<T>
+  ): Promise<InstanceType<T>> {
     const dreamModel = this.new(attributes)
     await dreamModel.save()
     return dreamModel
@@ -846,7 +849,7 @@ export default class Dream {
   public static async createOrFindBy<T extends typeof Dream>(
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
-    extraOpts: CreateOrFindByExtraOps<T> = {}
+    extraOpts: CreateOrFindByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
     try {
       const dreamModel = this.new({
@@ -863,6 +866,42 @@ export default class Dream {
       }
       throw err
     }
+  }
+
+  /**
+   * Attempt to update the model with the given attributes.
+   * If no record is found, then a new record is created.
+   * All lifecycle hooks are run for whichever action is taken.
+   *
+   * ```ts
+   * const user = await User.updateOrCreateBy({ email }, { with: { name: 'Alice' })
+   * ```
+   *
+   * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
+   * @returns A dream instance
+   */
+  public static async updateOrCreateBy<T extends typeof Dream>(
+    this: T,
+    attributes: UpdateablePropertiesForClass<T>,
+    extraOpts: UpdateOrCreateByExtraOpts<T> = {}
+  ): Promise<InstanceType<T>> {
+    const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
+    if (existingRecord) {
+      const { with: attrs, ...otherOpts } = extraOpts
+      if (attrs) {
+        return await existingRecord.update(attrs, otherOpts)
+      } else {
+        throw new Error('TODO no attrs')
+      }
+    }
+
+    const dreamModel = this.new({
+      ...attributes,
+      ...(extraOpts?.with || {}),
+    })
+
+    return await dreamModel.save()
   }
 
   /**
@@ -1047,7 +1086,7 @@ export default class Dream {
   public static async findOrCreateBy<T extends typeof Dream>(
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
-    extraOpts: CreateOrFindByExtraOps<T> = {}
+    extraOpts: CreateOrFindByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
     if (existingRecord) return existingRecord
@@ -3744,8 +3783,8 @@ export default class Dream {
    * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
-  public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<void> {
-    await saveDream(this, null, skipHooks ? { skipHooks } : undefined)
+  public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<I> {
+    return await saveDream(this, null, skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -3790,10 +3829,10 @@ export default class Dream {
     this: I,
     attributes: UpdateableProperties<I>,
     { skipHooks }: { skipHooks?: boolean } = {}
-  ): Promise<void> {
+  ): Promise<I> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
-    await this.save(skipHooks ? { skipHooks } : undefined)
+    return await this.save(skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -3881,8 +3920,13 @@ export default class Dream {
   private _preventDeletion: boolean = false
 }
 
-export interface CreateOrFindByExtraOps<T extends typeof Dream> {
+export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
   createWith?:
     | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']>
     | UpdateablePropertiesForClass<T>
+}
+
+export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
+  with?: UpdateablePropertiesForClass<T>
+  skipHooks?: boolean
 }
