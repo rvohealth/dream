@@ -12,7 +12,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   dream: DreamInstance,
   txn: DreamTransaction<Dream> | null = null,
   { skipHooks = false }: { skipHooks?: boolean } = {}
-) {
+): Promise<DreamInstance> {
   const db = txn?.kyselyTransaction || _db('primary')
 
   const alreadyPersisted = dream.isPersisted
