@@ -1,10 +1,10 @@
-import { DreamApplication } from '../../../src/index.js'
+import { DreamApp } from '../../../src/index.js'
 import srcPath from '../system/srcPath.js'
 import AppEnv from './AppEnv.js'
 import inflections from './inflections.js'
 import logger from './logger.js'
 
-export default async function (dreamApp: DreamApplication) {
+export default async function (dreamApp: DreamApp) {
   const projectRoot = srcPath('..')
   await dreamApp.load('models', srcPath('app', 'models'), async path => (await import(path)).default)
   await dreamApp.load('serializers', srcPath('app', 'serializers'), async path => await import(path))

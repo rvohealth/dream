@@ -16,7 +16,7 @@ import '../app/conf/loadEnv.js'
 
 import { Command } from 'commander'
 import { DreamBin, DreamCLI } from '../../src/index.js'
-import initializeDreamApplication from './helpers/initializeDreamApplication.js'
+import initializeDreamApp from './helpers/initializeDreamApp.js'
 
 const program = new Command()
 
@@ -29,7 +29,7 @@ program
   })
 
 DreamCLI.provide(program, {
-  initializeDreamApplication,
+  initializeDreamApp,
   seedDb: async () => {},
 })
 

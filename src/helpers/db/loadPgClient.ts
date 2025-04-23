@@ -8,10 +8,10 @@
 // @ts-ignore
 import pg from 'pg'
 
-import DreamApplication from '../../dream-application/index.js'
+import DreamApp from '../../dream-app/index.js'
 
 export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
-  const dreamconf = DreamApplication.getOrFail()
+  const dreamconf = DreamApp.getOrFail()
   const creds = dreamconf.dbCredentials.primary
 
   const client = new pg.Client({

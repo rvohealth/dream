@@ -1,15 +1,15 @@
-import { cacheDreamApplication } from '../../../src/dream-application/cache.js'
-import DreamApplication, { SingleDbCredential } from '../../../src/dream-application/index.js'
+import { cacheDreamApp } from '../../../src/dream-app/cache.js'
+import DreamApp, { SingleDbCredential } from '../../../src/dream-app/index.js'
 import { DbConnectionType } from '../../../src/types/db.js'
 
-describe('DreamApplication#getConnectionConf', () => {
+describe('DreamApp#getConnectionConf', () => {
   const updateDbCredentials = () => {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     dreamApp.set('db', {
       primary: primaryConfig,
       replica: replicaConfig,
     })
-    cacheDreamApplication(dreamApp)
+    cacheDreamApp(dreamApp)
     return dreamApp
   }
 
@@ -39,7 +39,7 @@ describe('DreamApplication#getConnectionConf', () => {
 
   const subject = () => {
     updateDbCredentials()
-    return DreamApplication.getOrFail().dbConnectionConfig(connection)
+    return DreamApp.getOrFail().dbConnectionConfig(connection)
   }
 
   context('with no connection passed', () => {

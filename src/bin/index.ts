@@ -1,5 +1,5 @@
 import DreamCLI from '../cli/index.js'
-import DreamApplication from '../dream-application/index.js'
+import DreamApp from '../dream-app/index.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import SchemaBuilder from '../helpers/cli/SchemaBuilder.js'
 import generateDream from '../helpers/cli/generateDream.js'
@@ -31,7 +31,7 @@ export default class DreamBin {
   }
 
   public static async dbCreate() {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
 
     DreamCLI.logger.logStartProgress(`creating ${primaryDbConf.name}...`)
@@ -49,7 +49,7 @@ export default class DreamBin {
   }
 
   public static async dbDrop() {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
 
     DreamCLI.logger.logStartProgress(`dropping ${primaryDbConf.name}...`)
@@ -67,7 +67,7 @@ export default class DreamBin {
   }
 
   public static async dbMigrate() {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
     DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
 
@@ -78,7 +78,7 @@ export default class DreamBin {
   }
 
   public static async dbRollback(opts: { steps: number }) {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
     DreamCLI.logger.logStartProgress(`rolling back ${primaryDbConf.name}...`)
 
@@ -123,7 +123,7 @@ export default class DreamBin {
   }
 
   private static async duplicateDatabase() {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const parallelTests = dreamApp.parallelTests
     if (!parallelTests) return
 

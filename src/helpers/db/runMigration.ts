@@ -5,7 +5,7 @@ import DreamCLI from '../../cli/index.js'
 import colorize from '../../cli/logger/loggable/colorize.js'
 import DreamDbConnection from '../../db/DreamDbConnection.js'
 import db from '../../db/index.js'
-import DreamApplication from '../../dream-application/index.js'
+import DreamApp from '../../dream-app/index.js'
 
 type MigrationModes = 'migrate' | 'rollback'
 
@@ -14,7 +14,7 @@ interface MigrationOpts {
 }
 
 export default async function runMigration({ mode = 'migrate' }: MigrationOpts = {}) {
-  const dreamApp = DreamApplication.getOrFail()
+  const dreamApp = DreamApp.getOrFail()
   const migrationFolder = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
 
   const kyselyDb = db('primary')
@@ -107,8 +107,8 @@ async function rollback(migrator: Migrator) {
 
 async function handleError(error: any, mode: MigrationModes) {
   await DreamDbConnection.dropAllConnections()
-  DreamApplication.logWithLevel('error', `failed to ${migratedActionCurrentTense(mode)}`)
-  DreamApplication.logWithLevel('error', error)
+  DreamApp.logWithLevel('error', `failed to ${migratedActionCurrentTense(mode)}`)
+  DreamApp.logWithLevel('error', error)
   process.exit(1)
 }
 

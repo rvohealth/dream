@@ -5,7 +5,7 @@ export default class MissingColumnEncryptionOpts extends Error {
       encryption keys must be provided to dream:
 
         // conf/dream.ts
-        export default (dream: DreamApplication) => {
+        export default (dream: DreamApp) => {
           dream.set('encryption', {
             column: {
               current: {

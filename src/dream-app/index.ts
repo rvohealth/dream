@@ -15,8 +15,8 @@ import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
 import { primaryKeyTypes } from '../dream/constants.js'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
-import DreamApplicationInitMissingCallToLoadModels from '../errors/dream-application/DreamApplicationInitMissingCallToLoadModels.js'
-import DreamApplicationInitMissingMissingProjectRoot from '../errors/dream-application/DreamApplicationInitMissingMissingProjectRoot.js'
+import DreamAppInitMissingCallToLoadModels from '../errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
+import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -29,7 +29,7 @@ import { Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import DreamSerializer from '../serializer/index.js'
 import { DbConnectionType } from '../types/db.js'
-import { cacheDreamApplication, getCachedDreamApplicationOrFail } from './cache.js'
+import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
 import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
 import importSerializers, {
   getSerializersOrFail,
@@ -41,7 +41,7 @@ const pgTypes = pg.types
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
 
-export default class DreamApplication {
+export default class DreamApp {
   /**
    * initializes a new dream application and caches it for use
    * within this processes lifecycle.
@@ -50,16 +50,16 @@ export default class DreamApplication {
    * to be able to serve routes, perform serializer lookups,
    * generate files, connect to the database, etc...
    *
-   * In order for this to work properly, the DreamApplication#init
+   * In order for this to work properly, the DreamApp#init
    * function must be called before anything else is called within
    * Dream.
    */
   public static async init(
-    cb: (dreamApp: DreamApplication) => void | Promise<void>,
-    opts: Partial<DreamApplicationOpts> & DreamApplicationInitOptions = {},
-    deferCb?: (dreamApp: DreamApplication) => Promise<void> | void
+    cb: (dreamApp: DreamApp) => void | Promise<void>,
+    opts: Partial<DreamAppOpts> & DreamAppInitOptions = {},
+    deferCb?: (dreamApp: DreamApp) => Promise<void> | void
   ) {
-    const dreamApp = new DreamApplication(opts)
+    const dreamApp = new DreamApp(opts)
     await cb(dreamApp)
 
     await dreamApp.inflections?.()
@@ -70,13 +70,13 @@ export default class DreamApplication {
       await plugin(dreamApp)
     }
 
-    dreamApp.validateApplicationBuildIntegrity({
+    dreamApp.validateAppBuildIntegrity({
       bypassModelIntegrityCheck: opts.bypassModelIntegrityCheck || false,
     })
 
     if (!dreamApp.serializers) setCachedSerializers({})
 
-    cacheDreamApplication(dreamApp)
+    cacheDreamApp(dreamApp)
 
     if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
 
@@ -90,11 +90,11 @@ export default class DreamApplication {
    * that would render it in an invalid state
    *
    */
-  private validateApplicationBuildIntegrity({ bypassModelIntegrityCheck }: DreamApplicationInitOptions) {
-    if (!this.projectRoot) throw new DreamApplicationInitMissingMissingProjectRoot()
-    if (!this.loadedModels) throw new DreamApplicationInitMissingCallToLoadModels()
+  private validateAppBuildIntegrity({ bypassModelIntegrityCheck }: DreamAppInitOptions) {
+    if (!this.projectRoot) throw new DreamAppInitMissingMissingProjectRoot()
+    if (!this.loadedModels) throw new DreamAppInitMissingCallToLoadModels()
     if (this.encryption?.columns?.current)
-      DreamApplication.checkKey(
+      DreamApp.checkKey(
         'columns',
         this.encryption.columns.current.key,
         this.encryption.columns.current.algorithm
@@ -184,13 +184,13 @@ Try setting it to something valid, like:
    * Returns the cached dream application if it has been set.
    * If it has not been set, an exception is raised.
    *
-   * The dream application can be set by calling DreamApplication#init,
+   * The dream application can be set by calling DreamApp#init,
    * or alternatively, if you are using Psychic along with Dream,
-   * it can be set during PsychicApplication#init, which will set caches
+   * it can be set during PsychicApp#init, which will set caches
    * for both the dream and psychic applications at once.
    */
   public static getOrFail() {
-    return getCachedDreamApplicationOrFail()
+    return getCachedDreamAppOrFail()
   }
 
   public static log(...args: any[]) {
@@ -205,7 +205,7 @@ Try setting it to something valid, like:
     return args.map(str => `${str}`).join(' ')
   }
 
-  private _specialHooks: DreamApplicationSpecialHooks = {
+  private _specialHooks: DreamAppSpecialHooks = {
     dbLog: [],
     replStart: [],
   }
@@ -218,7 +218,7 @@ Try setting it to something valid, like:
     return this._dbCredentials
   }
 
-  private _encryption: DreamApplicationEncryptionOptions
+  private _encryption: DreamAppEncryptionOptions
   public get encryption() {
     return this._encryption
   }
@@ -258,14 +258,14 @@ Try setting it to something valid, like:
     return this._inflections
   }
 
-  private _plugins: ((app: DreamApplication) => void | Promise<void>)[] = []
+  private _plugins: ((app: DreamApp) => void | Promise<void>)[] = []
   public get plugins() {
     return this._plugins
   }
 
   protected loadedModels: boolean = false
 
-  constructor(opts?: Partial<DreamApplicationOpts>) {
+  constructor(opts?: Partial<DreamAppOpts>) {
     if (opts?.db) this._dbCredentials = opts.db
     if (opts?.primaryKeyType) this._primaryKeyType = opts.primaryKeyType
     if (opts?.projectRoot) this._projectRoot = opts.projectRoot
@@ -339,16 +339,16 @@ Try setting it to something valid, like:
     }
   }
 
-  public plugin(cb: (app: DreamApplication) => void | Promise<void>) {
+  public plugin(cb: (app: DreamApp) => void | Promise<void>) {
     this._plugins.push(cb)
   }
 
-  public set<ApplyOpt extends DreamApplicationSetOption>(
+  public set<ApplyOpt extends DreamAppSetOption>(
     applyOption: ApplyOpt,
     options: ApplyOpt extends 'db'
       ? DreamDbCredentialOptions
       : ApplyOpt extends 'encryption'
-        ? DreamApplicationEncryptionOptions
+        ? DreamAppEncryptionOptions
         : ApplyOpt extends 'primaryKeyType'
           ? (typeof primaryKeyTypes)[number]
           : ApplyOpt extends 'logger'
@@ -369,7 +369,7 @@ Try setting it to something valid, like:
         break
 
       case 'encryption':
-        this._encryption = options as DreamApplicationEncryptionOptions
+        this._encryption = options as DreamAppEncryptionOptions
         break
 
       case 'primaryKeyType':
@@ -432,7 +432,7 @@ Try setting it to something valid, like:
 
 export type DreamHookEventType = 'db:log' | 'repl:start'
 
-export interface DreamApplicationOpts {
+export interface DreamAppOpts {
   projectRoot: string
   primaryKeyType: (typeof primaryKeyTypes)[number]
   db: DreamDbCredentialOptions
@@ -442,7 +442,7 @@ export interface DreamApplicationOpts {
   parallelTests: number | undefined
 }
 
-export type DreamApplicationSetOption =
+export type DreamAppSetOption =
   | 'db'
   | 'encryption'
   | 'inflections'
@@ -486,7 +486,7 @@ export type DreamLogger = {
 export type DreamLogLevel = 'info' | 'warn' | 'debug' | 'error'
 export type DreamSerializerCasing = 'snake' | 'camel'
 
-export interface DreamApplicationEncryptionOptions {
+export interface DreamAppEncryptionOptions {
   columns: SegmentedEncryptionOptions
 }
 interface SegmentedEncryptionOptions {
@@ -494,12 +494,12 @@ interface SegmentedEncryptionOptions {
   legacy?: EncryptOptions
 }
 
-export interface DreamApplicationSpecialHooks {
+export interface DreamAppSpecialHooks {
   dbLog: ((event: KyselyLogEvent) => void)[]
   replStart: ((context: Context) => void | Promise<void>)[]
 }
 
-export interface DreamApplicationInitOptions {
+export interface DreamAppInitOptions {
   bypassModelIntegrityCheck?: boolean
 }
 

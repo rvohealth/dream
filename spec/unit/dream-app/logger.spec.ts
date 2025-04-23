@@ -1,65 +1,65 @@
 import { MockInstance } from 'vitest'
-import { CalendarDate, DateTime, DreamApplication } from '../../../src/index.js'
+import { CalendarDate, DateTime, DreamApp } from '../../../src/index.js'
 
 describe('log functions', () => {
   let logSpy: MockInstance
   let warnSpy: MockInstance
 
   beforeEach(() => {
-    logSpy = vi.spyOn(DreamApplication.getOrFail()['logger'] as any, 'info')
-    warnSpy = vi.spyOn(DreamApplication.getOrFail()['logger'] as any, 'warn')
+    logSpy = vi.spyOn(DreamApp.getOrFail()['logger'] as any, 'info')
+    warnSpy = vi.spyOn(DreamApp.getOrFail()['logger'] as any, 'warn')
   })
 
   describe('log', () => {
     it('works with a string', () => {
-      DreamApplication.log('hello world')
+      DreamApp.log('hello world')
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('hello world'))
     })
 
     it('works with strings', () => {
-      DreamApplication.log('hello', 'world')
+      DreamApp.log('hello', 'world')
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('hello world'))
     })
 
     it('works with null', () => {
-      DreamApplication.log(null)
+      DreamApp.log(null)
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('null'))
     })
 
     it('works with undefined', () => {
-      DreamApplication.log(undefined)
+      DreamApp.log(undefined)
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('undefined'))
     })
 
     it('works with a number', () => {
-      DreamApplication.log(7)
+      DreamApp.log(7)
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('7'))
     })
 
     it('doesn’t throw an error with an object', () => {
-      DreamApplication.log({ hello: 'world' })
+      DreamApp.log({ hello: 'world' })
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[object Object]'))
     })
 
     it('works with a DateTime', () => {
       const now = DateTime.now()
-      DreamApplication.log(now)
+      DreamApp.log(now)
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining(now.toISO()))
     })
 
     it('works with a CalendarDate', () => {
       const today = CalendarDate.today()
-      DreamApplication.log(today)
+      DreamApp.log(today)
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining(today.toISO()!))
     })
 
     it('works with an Error', () => {
-      DreamApplication.log(new Error('with an error'))
+      DreamApp.log(new Error('with an error'))
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('with an error'))
     })
 
     it('works with an Error followed by a string', () => {
-      DreamApplication.log(new Error('Error followed by a string'), 'string following the error')
+      DreamApp.log(new Error('Error followed by a string'), 'string following the error')
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Error followed by a string'))
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('string following the error'))
     })
@@ -67,58 +67,54 @@ describe('log functions', () => {
 
   describe('logWithLevel', () => {
     it('works with a string', () => {
-      DreamApplication.logWithLevel('warn', 'hello world')
+      DreamApp.logWithLevel('warn', 'hello world')
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('hello world'))
     })
 
     it('works with strings', () => {
-      DreamApplication.logWithLevel('warn', 'hello', 'world')
+      DreamApp.logWithLevel('warn', 'hello', 'world')
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('hello world'))
     })
 
     it('works with null', () => {
-      DreamApplication.logWithLevel('warn', null)
+      DreamApp.logWithLevel('warn', null)
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('null'))
     })
 
     it('works with undefined', () => {
-      DreamApplication.logWithLevel('warn', undefined)
+      DreamApp.logWithLevel('warn', undefined)
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('undefined'))
     })
 
     it('works with a number', () => {
-      DreamApplication.logWithLevel('warn', 7)
+      DreamApp.logWithLevel('warn', 7)
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('7'))
     })
 
     it('doesn’t throw an error with an object', () => {
-      DreamApplication.logWithLevel('warn', { hello: 'world' })
+      DreamApp.logWithLevel('warn', { hello: 'world' })
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('[object Object]'))
     })
 
     it('works with a DateTime', () => {
       const now = DateTime.now()
-      DreamApplication.logWithLevel('warn', now)
+      DreamApp.logWithLevel('warn', now)
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining(now.toISO()))
     })
 
     it('works with a CalendarDate', () => {
       const today = CalendarDate.today()
-      DreamApplication.logWithLevel('warn', today)
+      DreamApp.logWithLevel('warn', today)
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining(today.toISO()!))
     })
 
     it('works with an Error', () => {
-      DreamApplication.logWithLevel('warn', new Error('with an error'))
+      DreamApp.logWithLevel('warn', new Error('with an error'))
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('with an error'))
     })
 
     it('works with an Error followed by a string', () => {
-      DreamApplication.logWithLevel(
-        'warn',
-        new Error('Error followed by a string'),
-        'string following the error'
-      )
+      DreamApp.logWithLevel('warn', new Error('Error followed by a string'), 'string following the error')
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Error followed by a string'))
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('string following the error'))
     })

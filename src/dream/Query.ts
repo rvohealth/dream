@@ -577,7 +577,7 @@ export default class Query<
    *
    * ```ts
    * await User.order('id').findEach(user => {
-   *   DreamApplication.log(user)
+   *   DreamApp.log(user)
    * })
    * // User{id: 1}
    * // User{id: 2}

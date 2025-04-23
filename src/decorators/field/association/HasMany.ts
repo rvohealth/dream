@@ -1,4 +1,4 @@
-import lookupModelByGlobalNameOrNames from '../../../dream-application/helpers/lookupModelByGlobalNameOrNames.js'
+import lookupModelByGlobalNameOrNames from '../../../dream-app/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
 import {
   HasManyOptions,

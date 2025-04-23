@@ -48,7 +48,7 @@ import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
-import GlobalNameNotSet from './errors/dream-application/GlobalNameNotSet.js'
+import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import MissingSerializer from './errors/MissingSerializersDefinition.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
@@ -518,7 +518,7 @@ export default class Dream {
   /**
    * @internal
    *
-   * Used by DreamApplication during the load process
+   * Used by DreamApp during the load process
    * for models and serializers to assign
    * unique global names to each model based on the file
    * name of that model.

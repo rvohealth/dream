@@ -1,4 +1,4 @@
-import DreamApplication from '../../dream-application/index.js'
+import DreamApp from '../../dream-app/index.js'
 import { DbConnectionType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
@@ -8,7 +8,7 @@ export default async function createDb(connection: DbConnectionType, dbName?: st
   // so there is no way to drop in production
   if (EnvInternal.isProduction) return false
 
-  const dreamApp = DreamApplication.getOrFail()
+  const dreamApp = DreamApp.getOrFail()
   const dbConf = dreamApp.dbConnectionConfig(connection)
 
   dbName ||= dbConf.name || null

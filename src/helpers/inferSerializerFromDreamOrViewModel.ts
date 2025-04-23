@@ -1,5 +1,5 @@
 import Dream from '../Dream.js'
-import DreamApplication from '../dream-application/index.js'
+import DreamApp from '../dream-app/index.js'
 import { SerializableDreamClassOrViewModelClass, SerializableDreamOrViewModel } from '../types/dream.js'
 
 export default function inferSerializerFromDreamOrViewModel(
@@ -10,7 +10,7 @@ export default function inferSerializerFromDreamOrViewModel(
     (obj as SerializableDreamOrViewModel)?.['serializers']?.[serializerKey || 'default'] || null
 
   if (globalName) {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     return dreamApp.serializers[globalName] || null
   }
 

@@ -1,4 +1,4 @@
-import DreamApplication from '../../dream-application/index.js'
+import DreamApp from '../../dream-app/index.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 
 export default async function executeDatabaseQuery<
@@ -18,7 +18,7 @@ export default async function executeDatabaseQuery<
       const sqlString = kyselyQuery.compile().sql
       const paramsString = kyselyQuery.compile().parameters.join(', ')
 
-      DreamApplication.logWithLevel(
+      DreamApp.logWithLevel(
         'error',
         `Error executing the following SQL:
 ${(error as Error).message}

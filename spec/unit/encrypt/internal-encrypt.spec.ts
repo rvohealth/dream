@@ -1,6 +1,6 @@
 import Encrypt from '../../../src/encrypt/index.js'
 import InternalEncrypt from '../../../src/encrypt/InternalEncrypt.js'
-import initializeDreamApplication from '../../../test-app/cli/helpers/initializeDreamApplication.js'
+import initializeDreamApp from '../../../test-app/cli/helpers/initializeDreamApp.js'
 
 describe('InternalEncrypt', () => {
   describe('#encryptColumn, #decryptColumn', () => {
@@ -8,14 +8,14 @@ describe('InternalEncrypt', () => {
 
     beforeEach(async () => {
       originalEncryptionKey = process.env.APP_ENCRYPTION_KEY!
-      await initializeDreamApplication()
+      await initializeDreamApp()
     })
 
     afterEach(async () => {
       originalEncryptionKey === undefined
         ? delete process.env.APP_ENCRYPTION_KEY
         : (process.env.APP_ENCRYPTION_KEY = originalEncryptionKey)
-      await initializeDreamApplication()
+      await initializeDreamApp()
     })
 
     context('when current encryption key is valid', () => {

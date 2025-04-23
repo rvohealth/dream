@@ -11,15 +11,15 @@ export { default as SoftDelete } from './decorators/class/SoftDelete.js'
 export { default as STI } from './decorators/class/STI.js'
 export { type DecoratorContext } from './decorators/DecoratorContextType.js'
 export { default as Decorators } from './decorators/Decorators.js'
-export { default as DreamImporter } from './dream-application/helpers/DreamImporter.js'
-export { default as lookupClassByGlobalName } from './dream-application/helpers/lookupClassByGlobalName.js'
+export { default as DreamImporter } from './dream-app/helpers/DreamImporter.js'
+export { default as lookupClassByGlobalName } from './dream-app/helpers/lookupClassByGlobalName.js'
 export {
-  default as DreamApplication,
-  type DreamApplicationInitOptions,
-  type DreamApplicationOpts,
+  default as DreamApp,
+  type DreamAppInitOptions,
+  type DreamAppOpts,
   type DreamLogger,
   type DreamLogLevel,
-} from './dream-application/index.js'
+} from './dream-app/index.js'
 export { default as Dream } from './Dream.js'
 export {
   DreamConst,
@@ -33,7 +33,7 @@ export { default as Query } from './dream/Query.js'
 export { default as Encrypt, type EncryptAlgorithm, type EncryptOptions } from './encrypt/index.js'
 export { default as NonLoadedAssociation } from './errors/associations/NonLoadedAssociation.js'
 export { default as CreateOrFindByFailedToCreateAndFind } from './errors/CreateOrFindByFailedToCreateAndFind.js'
-export { default as GlobalNameNotSet } from './errors/dream-application/GlobalNameNotSet.js'
+export { default as GlobalNameNotSet } from './errors/dream-app/GlobalNameNotSet.js'
 export { default as RecordNotFound } from './errors/RecordNotFound.js'
 export { default as ValidationError } from './errors/ValidationError.js'
 export { default as Benchmark } from './helpers/benchmark.js'

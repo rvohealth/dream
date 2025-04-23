@@ -1,4 +1,4 @@
-import SerializerNameConflict from '../../../errors/dream-application/SerializerNameConflict.js'
+import SerializerNameConflict from '../../../errors/dream-app/SerializerNameConflict.js'
 import DreamSerializer from '../../../serializer/index.js'
 import DreamImporter from '../DreamImporter.js'
 import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js'

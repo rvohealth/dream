@@ -1,4 +1,4 @@
-import DreamApplication from '../dream-application/index.js'
+import DreamApp from '../dream-app/index.js'
 import Encrypt from '../encrypt/index.js'
 import ops from '../ops/index.js'
 import CalendarDate from './CalendarDate.js'
@@ -18,7 +18,7 @@ import uncapitalize from './uncapitalize.js'
 import uniq from './uniq.js'
 
 export default async function loadRepl(context: Record<string, unknown>) {
-  const dreamApp = DreamApplication.getOrFail()
+  const dreamApp = DreamApp.getOrFail()
 
   context.CalendarDate = CalendarDate
   context.DateTime = DateTime

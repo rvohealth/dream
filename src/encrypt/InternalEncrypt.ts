@@ -1,10 +1,10 @@
-import DreamApplication from '../dream-application/index.js'
+import DreamApp from '../dream-app/index.js'
 import MissingColumnEncryptionOpts from '../errors/encrypt/MissingColumnEncryptionOpts.js'
 import Encrypt, { DecryptOptions, EncryptOptions } from './index.js'
 
 export default class InternalEncrypt {
   public static encryptColumn(data: any) {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const encryptOpts = dreamApp.encryption?.columns
     if (!encryptOpts) throw new MissingColumnEncryptionOpts()
 
@@ -14,7 +14,7 @@ export default class InternalEncrypt {
   }
 
   public static decryptColumn(data: any) {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const encryptOpts = dreamApp.encryption?.columns
     if (!encryptOpts) throw new MissingColumnEncryptionOpts()
 

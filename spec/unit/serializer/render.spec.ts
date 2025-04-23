@@ -1,7 +1,7 @@
 import { DreamConst } from '../../../src/dream/constants.js'
 import MissingSerializer from '../../../src/errors/MissingSerializersDefinition.js'
 import FailedToRenderThroughAssociationForSerializer from '../../../src/errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
-import { CalendarDate, DateTime, DreamApplication, NonLoadedAssociation } from '../../../src/index.js'
+import { CalendarDate, DateTime, DreamApp, NonLoadedAssociation } from '../../../src/index.js'
 import RendersMany from '../../../src/serializer/decorators/associations/RendersMany.js'
 import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
@@ -752,9 +752,9 @@ describe('DreamSerializer#render', () => {
           processDynamicallyDefinedSerializers(UserSerializerWithSource, HelloSerializer, HowdySerializer)
 
           beforeEach(() => {
-            const dreamApp = DreamApplication.getOrFail()
+            const dreamApp = DreamApp.getOrFail()
             dreamApp.serializers['HowdySerializer'] = HowdySerializer
-            vi.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
+            vi.spyOn(DreamApp, 'getOrFail').mockReturnValue(dreamApp)
           })
 
           it('serializes the passthrough data', async () => {
@@ -1176,9 +1176,9 @@ describe('DreamSerializer#render', () => {
           processDynamicallyDefinedSerializers(UserSerializerWithSource, HelloSerializer, HowdySerializer)
 
           beforeEach(() => {
-            const dreamApp = DreamApplication.getOrFail()
+            const dreamApp = DreamApp.getOrFail()
             dreamApp.serializers['HowdySerializer'] = HowdySerializer
-            vi.spyOn(DreamApplication, 'getOrFail').mockReturnValue(dreamApp)
+            vi.spyOn(DreamApp, 'getOrFail').mockReturnValue(dreamApp)
           })
 
           it('serializes the passthrough data', async () => {

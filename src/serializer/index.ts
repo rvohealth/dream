@@ -1,7 +1,7 @@
-import DreamApplication from '../dream-application/index.js'
+import DreamApp from '../dream-app/index.js'
 import Dream from '../Dream.js'
 import { DreamConst } from '../dream/constants.js'
-import GlobalNameNotSet from '../errors/dream-application/GlobalNameNotSet.js'
+import GlobalNameNotSet from '../errors/dream-app/GlobalNameNotSet.js'
 import MissingSerializer from '../errors/MissingSerializersDefinition.js'
 import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
 import CalendarDate from '../helpers/CalendarDate.js'
@@ -167,7 +167,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   public render(): { [key: string]: any } {
     if (!this._casing) {
-      const dreamApp = DreamApplication.getOrFail()
+      const dreamApp = DreamApp.getOrFail()
       this._casing = dreamApp.serializerCasing || 'camel'
     }
 

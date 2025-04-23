@@ -1,6 +1,6 @@
-import { DreamHookEventType } from '../../../src/dream-application/index.js'
+import { DreamHookEventType } from '../../../src/dream-app/index.js'
 
-describe('DreamApplication hooks', () => {
+describe('DreamApp hooks', () => {
   function expectHookCalled(hookEventType: DreamHookEventType) {
     expect((process.env as any).__DREAM_HOOKS_TEST_CACHE.split(',')).toEqual(
       expect.arrayContaining([hookEventType])

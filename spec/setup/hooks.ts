@@ -3,18 +3,18 @@ import 'luxon-jest-matchers'
 
 import { provideDreamViteMatchers, truncate } from '@rvoh/dream-spec-helpers'
 import { toBeOneOf } from 'jest-extended'
-import { DreamApplication } from '../../src/index.js'
-import initializeDreamApplication from '../../test-app/cli/helpers/initializeDreamApplication.js'
+import { DreamApp } from '../../src/index.js'
+import initializeDreamApp from '../../test-app/cli/helpers/initializeDreamApp.js'
 
 provideDreamViteMatchers()
 expect.extend({ toBeOneOf } as any)
 
 beforeEach(async () => {
   try {
-    await initializeDreamApplication()
+    await initializeDreamApp()
   } catch (err) {
     console.error(err)
     throw err
   }
-  await truncate(DreamApplication)
+  await truncate(DreamApp)
 }, 15000)

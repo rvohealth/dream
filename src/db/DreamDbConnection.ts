@@ -9,14 +9,14 @@
 import pg from 'pg'
 
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
-import DreamApplication, { KyselyLogEvent, SingleDbCredential } from '../dream-application/index.js'
+import DreamApp, { KyselyLogEvent, SingleDbCredential } from '../dream-app/index.js'
 import { DbConnectionType } from '../types/db.js'
 
 let connections = {} as { [key: string]: Kysely<any> }
 
 export default class DreamDbConnection {
   public static getConnection<DB>(connectionType: DbConnectionType): Kysely<DB> {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const connectionName = this.getConnectionTypeName(connectionType)
     const connection = connections[connectionName]
     if (connection) {
@@ -27,7 +27,7 @@ export default class DreamDbConnection {
 
     const dbConn = new Kysely<DB>({
       log(event) {
-        const dreamApp = DreamApplication.getOrFail()
+        const dreamApp = DreamApp.getOrFail()
         dreamApp.specialHooks.dbLog.forEach(fn => {
           fn(event as KyselyLogEvent)
         })
@@ -59,7 +59,7 @@ export default class DreamDbConnection {
   }
 
   private static getConnectionTypeName(connectionType: DbConnectionType): string {
-    return DreamApplication.getOrFail().parallelDatabasesEnabled
+    return DreamApp.getOrFail().parallelDatabasesEnabled
       ? `${connectionType}_${process.env.VITEST_POOL_ID}`
       : connectionType
   }

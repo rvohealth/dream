@@ -1,14 +1,14 @@
-import { cacheDreamApplication } from '../../../src/dream-application/cache.js'
-import DreamApplication, { SingleDbCredential } from '../../../src/dream-application/index.js'
+import { cacheDreamApp } from '../../../src/dream-app/cache.js'
+import DreamApp, { SingleDbCredential } from '../../../src/dream-app/index.js'
 
-describe('DreamApplication#hasReplicaConfig', () => {
+describe('DreamApp#hasReplicaConfig', () => {
   const updateDbCredentials = () => {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     dreamApp.set('db', {
       primary: primaryConfig,
       replica: replicaConfig,
     })
-    cacheDreamApplication(dreamApp)
+    cacheDreamApp(dreamApp)
     return dreamApp
   }
 
@@ -36,7 +36,7 @@ describe('DreamApplication#hasReplicaConfig', () => {
 
   const subject = () => {
     updateDbCredentials()
-    return DreamApplication.getOrFail().hasReplicaConfig
+    return DreamApp.getOrFail().hasReplicaConfig
   }
 
   context('when replica config is present', () => {

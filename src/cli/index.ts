@@ -1,7 +1,7 @@
 import { SpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
-import DreamApplication, { DreamApplicationInitOptions } from '../dream-application/index.js'
+import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
@@ -14,10 +14,10 @@ export default class DreamCLI {
   public static provide(
     program: Command,
     {
-      initializeDreamApplication,
+      initializeDreamApp,
       seedDb,
     }: {
-      initializeDreamApplication: (opts?: DreamApplicationInitOptions) => Promise<DreamApplication>
+      initializeDreamApp: (opts?: DreamAppInitOptions) => Promise<DreamApp>
       seedDb: () => Promise<void> | void
     }
   ) {
@@ -27,13 +27,17 @@ export default class DreamCLI {
         'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
       )
       .action(async () => {
-        await initializeDreamApplication()
+        await initializeDreamApp()
         await DreamBin.sync(() => {})
 
         process.exit()
       })
 
-    this.generateDreamCli(program, { initializeDreamApplication, seedDb, onSync: () => {} })
+    this.generateDreamCli(program, {
+      initializeDreamApp,
+      seedDb,
+      onSync: () => {},
+    })
   }
 
   /**
@@ -42,12 +46,12 @@ export default class DreamCLI {
   public static generateDreamCli(
     program: Command,
     {
-      initializeDreamApplication,
+      initializeDreamApp,
       seedDb,
       onSync,
     }: {
-      // uses Promise<any> because a PsychicApplication can also be returned here
-      initializeDreamApplication: (opts?: DreamApplicationInitOptions) => Promise<any>
+      // uses Promise<any> because a PsychicApp can also be returned here
+      initializeDreamApp: (opts?: DreamAppInitOptions) => Promise<any>
       seedDb: () => Promise<void> | void
       onSync: () => Promise<void> | void
     }
@@ -62,7 +66,7 @@ export default class DreamCLI {
         'properties of the model column1:text/string/enum/etc. column2:text/string/enum/etc. ... columnN:text/string/enum/etc.'
       )
       .action(async (migrationName: string, columnsWithTypes: string[]) => {
-        await initializeDreamApplication()
+        await initializeDreamApp()
         await DreamBin.generateMigration(migrationName, columnsWithTypes)
         process.exit()
       })
@@ -83,7 +87,7 @@ export default class DreamCLI {
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
       .action(async (modelName: string, columnsWithTypes: string[], options: { serializer: boolean }) => {
-        await initializeDreamApplication()
+        await initializeDreamApp()
         await DreamBin.generateDream(modelName, columnsWithTypes, options)
         process.exit()
       })
@@ -113,7 +117,7 @@ export default class DreamCLI {
           columnsWithTypes: string[],
           options: { serializer: boolean }
         ) => {
-          await initializeDreamApplication()
+          await initializeDreamApp()
           if (extendsWord !== 'extends')
             throw new Error('Expecting: `<child-name> extends <parent-name> <columns-and-types>')
           await DreamBin.generateStiChild(childModelName, parentModelName, columnsWithTypes, options)
@@ -129,7 +133,7 @@ export default class DreamCLI {
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
 
-        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassModelIntegrityCheck: true })
         await DreamBin.dbCreate()
         process.exit()
       })
@@ -139,7 +143,7 @@ export default class DreamCLI {
       .description('db:migrate runs any outstanding database migrations')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ skipSync }: { skipSync: boolean }) => {
-        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassModelIntegrityCheck: true })
 
         await DreamBin.dbMigrate()
 
@@ -156,7 +160,7 @@ export default class DreamCLI {
       .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
-        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassModelIntegrityCheck: true })
         await DreamBin.dbRollback({ steps })
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
@@ -173,7 +177,7 @@ export default class DreamCLI {
       )
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassModelIntegrityCheck: true })
         await DreamBin.dbDrop()
         process.exit()
       })
@@ -183,13 +187,13 @@ export default class DreamCLI {
       .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassModelIntegrityCheck: true })
 
         await DreamBin.dbDrop()
         await DreamBin.dbCreate()
 
         EnvInternal.unsetBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApplication({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassModelIntegrityCheck: true })
 
         await DreamBin.dbMigrate()
         await DreamBin.sync(onSync)
@@ -206,7 +210,7 @@ export default class DreamCLI {
           return
         }
 
-        await initializeDreamApplication()
+        await initializeDreamApp()
         await seedDb()
         process.exit()
       })

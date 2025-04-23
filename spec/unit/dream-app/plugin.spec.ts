@@ -1,7 +1,7 @@
-import * as LoadModelsModule from '../../../src/dream-application/helpers/importers/importModels.js'
-import { DreamApplication } from '../../../src/index.js'
+import * as LoadModelsModule from '../../../src/dream-app/helpers/importers/importModels.js'
+import { DreamApp } from '../../../src/index.js'
 
-describe('DreamApplication#plugin', () => {
+describe('DreamApp#plugin', () => {
   const dbCredentials = {
     primary: {
       user: process.env.DB_USER!,
@@ -17,22 +17,22 @@ describe('DreamApplication#plugin', () => {
     vi.spyOn(LoadModelsModule, 'default').mockResolvedValue({} as any)
   })
 
-  const defaultBehavior = async (app: DreamApplication) => {
+  const defaultBehavior = async (app: DreamApp) => {
     app.set('projectRoot', 'how/yadoin')
     app.set('db', dbCredentials)
     await app.load('models', 'how/yadoin', async path => (await import(path)).default)
   }
 
   it('calls plugin callbacks, providing the dream application', async () => {
-    let cachedApp: DreamApplication | undefined = undefined
+    let cachedApp: DreamApp | undefined = undefined
 
-    await DreamApplication.init(async app => {
+    await DreamApp.init(async app => {
       await defaultBehavior(app)
       app.plugin(_app => {
         cachedApp = _app
       })
     })
 
-    expect(cachedApp! instanceof DreamApplication).toBe(true)
+    expect(cachedApp! instanceof DreamApp).toBe(true)
   })
 })

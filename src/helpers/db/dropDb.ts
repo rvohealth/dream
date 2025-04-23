@@ -1,16 +1,16 @@
 import { Client } from 'pg'
-import DreamApplication from '../../dream-application/index.js'
+import DreamCLI from '../../cli/index.js'
+import DreamApp from '../../dream-app/index.js'
 import { DbConnectionType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
-import DreamCLI from '../../cli/index.js'
 
 export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
   // this was only ever written to clear the db between tests or in development,
   // so there is no way to drop in production
   if (EnvInternal.isProduction) return false
 
-  const dreamApp = DreamApplication.getOrFail()
+  const dreamApp = DreamApp.getOrFail()
   const dbConf = dreamApp.dbConnectionConfig(connection)
 
   dbName ||= dbConf.name || null
@@ -26,7 +26,7 @@ export default async function dropDb(connection: DbConnectionType, dbName?: stri
 }
 
 async function maybeDropDuplicateDatabases(client: Client, dbName: string) {
-  const parallelTests = DreamApplication.getOrFail().parallelTests
+  const parallelTests = DreamApp.getOrFail().parallelTests
   if (!parallelTests) return
 
   if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {

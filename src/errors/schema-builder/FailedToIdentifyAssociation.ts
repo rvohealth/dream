@@ -1,5 +1,5 @@
 import Dream from '../../Dream.js'
-import DreamApplication from '../../dream-application/index.js'
+import DreamApp from '../../dream-app/index.js'
 
 export default class FailedToIdentifyAssociation extends Error {
   constructor(
@@ -12,7 +12,7 @@ export default class FailedToIdentifyAssociation extends Error {
   }
 
   public override get message() {
-    const dreamApp = DreamApplication.getOrFail()
+    const dreamApp = DreamApp.getOrFail()
     const attemptedName = Array.isArray(this.globalAssociationNameOrNames)
       ? this.globalAssociationNameOrNames[0]
       : this.globalAssociationNameOrNames
