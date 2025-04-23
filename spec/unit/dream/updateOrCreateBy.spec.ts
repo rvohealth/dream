@@ -5,7 +5,6 @@ describe('Dream.updateOrCreateBy', () => {
   context('no underlying conflicts to prevent save', () => {
     it('creates the underlying model in the db', async () => {
       const u = await User.updateOrCreateBy({ email: 'trace@frewd' }, { with: { password: 'howyadoin' } })
-      // attributes consistently or attributes here / createWith on findOrCreateBy
       const user = await User.find(u.id)
       expect(user!.email).toEqual('trace@frewd')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
