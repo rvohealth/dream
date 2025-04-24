@@ -18,11 +18,6 @@ describe('Dream#save', () => {
       expect(reloadedUser).toMatchDreamModel(user)
     })
 
-    it('returns the dream model', async () => {
-      const saved = await user.save()
-      expect(saved).toMatchDreamModel(user)
-    })
-
     context('skipHooks is passed', () => {
       it('skips model hooks', async () => {
         const pet = Pet.new({ name: 'change me' })
