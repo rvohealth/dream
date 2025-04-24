@@ -1,4 +1,5 @@
 import Composition from '../../../test-app/app/models/Composition.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.updateOrCreateBy', () => {
@@ -41,11 +42,22 @@ describe('Dream.updateOrCreateBy', () => {
       )
       expect(composition.userId).toEqual(user.id)
     })
+
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        await Pet.updateOrCreateBy({ species: 'dog' }, { with: { name: 'change me' }, skipHooks: true })
+        const pet = await Pet.first()
+        expect(pet!.name).toEqual('change me')
+        expect(await Pet.count()).toEqual(1)
+      })
+    })
   })
 
   context('when a conflicting record already exists in the db', () => {
+    let user: User
+
     beforeEach(async () => {
-      await User.create({ email: 'trace@trace', password: 'howyadoin' })
+      user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
     })
 
     it('updates the existing record', async () => {
@@ -54,49 +66,62 @@ describe('Dream.updateOrCreateBy', () => {
       expect(user!.email).toEqual('trace@trace')
       expect(await user!.checkPassword('newpassword')).toEqual(true)
     })
-  })
 
-  it('respects associations in primary opts with user', async () => {
-    const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
-    await Composition.create({ user, content: 'howyadoin' })
+    it('returns the existing record if there are no updates to with', async () => {
+      await user.update({ favoriteWord: 'hi' })
+      const u = await User.updateOrCreateBy({ email: 'trace@trace', favoriteWord: 'hi' })
+      expect(u.email).toEqual('trace@trace')
+      expect(u.favoriteWord).toEqual('hi')
+    })
 
-    const composition = await Composition.updateOrCreateBy({ user }, { with: { content: 'newcontent' } })
+    it('respects associations in primary opts with user', async () => {
+      await Composition.create({ user, content: 'howyadoin' })
 
-    expect(composition.userId).toEqual(user.id)
-    expect(composition.content).toEqual('newcontent')
-  })
+      const composition = await Composition.updateOrCreateBy({ user }, { with: { content: 'newcontent' } })
 
-  it('respects associations in primary opts with userId', async () => {
-    const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
-    await Composition.create({ user, content: 'howyadoin' })
+      expect(composition.userId).toEqual(user.id)
+      expect(composition.content).toEqual('newcontent')
+    })
 
-    const composition = await Composition.updateOrCreateBy(
-      { userId: user.id },
-      { with: { content: 'newcontent' } }
-    )
+    it('respects associations in primary opts with userId', async () => {
+      await Composition.create({ user, content: 'howyadoin' })
 
-    expect(composition.userId).toEqual(user.id)
-    expect(composition.content).toEqual('newcontent')
-  })
+      const composition = await Composition.updateOrCreateBy(
+        { userId: user.id },
+        { with: { content: 'newcontent' } }
+      )
 
-  it('respects associations in secondary opts with user', async () => {
-    const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
-    const otherUser = await User.create({ email: 'trace@hi', password: 'notbad' })
-    await Composition.create({ content: 'howyadoin', user: otherUser })
+      expect(composition.userId).toEqual(user.id)
+      expect(composition.content).toEqual('newcontent')
+    })
 
-    const composition = await Composition.updateOrCreateBy({ content: 'howyadoin' }, { with: { user } })
-    expect(composition.userId).toEqual(user.id)
-  })
+    it('respects associations in secondary opts with user', async () => {
+      const otherUser = await User.create({ email: 'trace@hi', password: 'notbad' })
+      await Composition.create({ content: 'howyadoin', user: otherUser })
 
-  it('respects associations in secondary opts with userId', async () => {
-    const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
-    const otherUser = await User.create({ email: 'new@trace', password: 'notbad' })
-    await Composition.create({ content: 'howyadoin', user: otherUser })
+      const composition = await Composition.updateOrCreateBy({ content: 'howyadoin' }, { with: { user } })
+      expect(composition.userId).toEqual(user.id)
+    })
 
-    const composition = await Composition.updateOrCreateBy(
-      { content: 'howyadoin' },
-      { with: { userId: user.id } }
-    )
-    expect(composition.userId).toEqual(user.id)
+    it('respects associations in secondary opts with userId', async () => {
+      const otherUser = await User.create({ email: 'new@trace', password: 'notbad' })
+      await Composition.create({ content: 'howyadoin', user: otherUser })
+
+      const composition = await Composition.updateOrCreateBy(
+        { content: 'howyadoin' },
+        { with: { userId: user.id } }
+      )
+      expect(composition.userId).toEqual(user.id)
+    })
+
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        const { species } = await Pet.create()
+        await Pet.updateOrCreateBy({ species }, { with: { name: 'change me' }, skipHooks: true })
+        const pet = await Pet.first()
+        expect(pet!.name).toEqual('change me')
+        expect(await Pet.count()).toEqual(1)
+      })
+    })
   })
 })

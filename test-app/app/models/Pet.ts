@@ -393,4 +393,11 @@ export default class Pet extends ApplicationModel {
       this.name = 'changed by update hook'
     }
   }
+
+  @deco.BeforeCreate()
+  public markRecordCreated() {
+    if (this.name === 'change me') {
+      this.name = 'changed by create hook'
+    }
+  }
 }
