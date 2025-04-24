@@ -36,6 +36,15 @@ describe('Dream.create', () => {
     expect(reloadedUser!.updatedAt.toSeconds()).toBeWithin(1, DateTime.now().toSeconds())
   })
 
+  context('skipHooks is passed', () => {
+    it('skips model hooks', async () => {
+      await Pet.create({ species: 'dog', name: 'change me' }, { skipHooks: true })
+      const pet = await Pet.first()
+      expect(pet!.name).toEqual('change me')
+      expect(await Pet.count()).toEqual(1)
+    })
+  })
+
   context('given a transaction', () => {
     it('saves the record', async () => {
       let user: User | null = null

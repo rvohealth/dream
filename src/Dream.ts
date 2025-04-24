@@ -816,14 +816,16 @@ export default class Dream {
    * ```
    *
    * @param attributes - attributes or belongs to associations you wish to set on this model before persisting
+   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A newly persisted dream instance
    */
   public static async create<T extends typeof Dream>(
     this: T,
-    attributes?: UpdateablePropertiesForClass<T>
+    attributes?: UpdateablePropertiesForClass<T>,
+    { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<InstanceType<T>> {
     const dreamModel = this.new(attributes)
-    await dreamModel.save()
+    await dreamModel.save(skipHooks ? { skipHooks } : undefined)
     return dreamModel
   }
 
@@ -879,6 +881,7 @@ export default class Dream {
    *
    * @param attributes - The base attributes for finding, but also the attributes to use when creating
    * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
+   * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
    */
   public static async updateOrCreateBy<T extends typeof Dream>(
@@ -887,21 +890,24 @@ export default class Dream {
     extraOpts: UpdateOrCreateByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
     const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
+    const { with: attrs, skipHooks } = extraOpts
+
     if (existingRecord) {
-      const { with: attrs, ...otherOpts } = extraOpts
       if (attrs) {
-        return await existingRecord.update(attrs, otherOpts)
+        existingRecord.assignAttributes(attrs)
+        return await saveDream(existingRecord, null, skipHooks ? { skipHooks } : undefined)
       } else {
-        throw new Error('TODO no attrs')
+        return existingRecord
       }
     }
 
-    const dreamModel = this.new({
-      ...attributes,
-      ...(extraOpts?.with || {}),
-    })
-
-    return await dreamModel.save()
+    return this.create(
+      {
+        ...attributes,
+        ...(extraOpts?.with || {}),
+      },
+      skipHooks ? { skipHooks } : undefined
+    )
   }
 
   /**
@@ -3783,8 +3789,8 @@ export default class Dream {
    * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
-  public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<I> {
-    return await saveDream(this, null, skipHooks ? { skipHooks } : undefined)
+  public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<void> {
+    await saveDream(this, null, skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -3829,10 +3835,10 @@ export default class Dream {
     this: I,
     attributes: UpdateableProperties<I>,
     { skipHooks }: { skipHooks?: boolean } = {}
-  ): Promise<I> {
+  ): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
-    return await this.save(skipHooks ? { skipHooks } : undefined)
+    await this.save(skipHooks ? { skipHooks } : undefined)
   }
 
   /**
