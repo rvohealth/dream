@@ -49,11 +49,28 @@ describe('Query#where', () => {
     expect(reloadedUser).toMatchDreamModel(user)
   })
 
+  it('supports querying by CalendarDate array', async () => {
+    const birthdate = CalendarDate.fromISO('1977-05-04')
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
+
+    const reloadedUser = await User.where({ birthdate: [birthdate.plus({ day: 1 }), birthdate] }).first()
+    expect(reloadedUser).toMatchDreamModel(user)
+  })
+
   it('supports querying by DateTime', async () => {
     const birthdate = DateTime.fromISO('1977-05-04')
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
 
     const reloadedUser = await User.where({ birthdate }).first()
+    expect(reloadedUser).toMatchDreamModel(user)
+  })
+
+  it('supports querying by DateTime array', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+    const reloadedUser = await User.where({
+      createdAt: [user.createdAt.plus({ day: 1 }), user.createdAt],
+    }).first()
     expect(reloadedUser).toMatchDreamModel(user)
   })
 

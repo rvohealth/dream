@@ -3517,7 +3517,7 @@ export default class Query<
     } else if (Array.isArray(val)) {
       a = attr
       b = 'in'
-      c = val
+      c = val.map(v => (v instanceof DateTime || v instanceof CalendarDate ? v.toSQL() : v))
     } else if (val instanceof CurriedOpsStatement) {
       val = val.toOpsStatement(this.dreamClass, attr)
       a = attr
@@ -3554,8 +3554,8 @@ export default class Query<
       c = val
     }
 
-    if (c instanceof DateTime || c instanceof CalendarDate) c = c.toJSDate()
-    if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toJSDate()
+    if (c instanceof DateTime || c instanceof CalendarDate) c = c.toSQL()
+    if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toSQL()
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
