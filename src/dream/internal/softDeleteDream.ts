@@ -1,14 +1,14 @@
 import Dream from '../../Dream.js'
 import MissingDeletedAtFieldForSoftDelete from '../../errors/MissingDeletedAtFieldForSoftDelete.js'
 import { DateTime } from '../../helpers/DateTime.js'
-import isDateTimeColumn from '../../helpers/db/types/isDateTimeColumn.js'
+import isDatetimeOrDatetimeArrayColumn from '../../helpers/db/types/isDatetimeOrDatetimeArrayColumn.js'
 import DreamTransaction from '../DreamTransaction.js'
 
 export default async function softDeleteDream(dream: Dream, txn: DreamTransaction<any>) {
   const deletedAtField = dream.deletedAtField
   const dreamClass = dream.constructor as typeof Dream
 
-  if (!isDateTimeColumn(dreamClass, deletedAtField)) {
+  if (!isDatetimeOrDatetimeArrayColumn(dreamClass, deletedAtField)) {
     throw new MissingDeletedAtFieldForSoftDelete(dream.constructor as typeof Dream)
   }
 

@@ -1,7 +1,9 @@
 import Dream from '../Dream.js'
 import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
-import isDateTimeColumn from './db/types/isDateTimeColumn.js'
+import isDatetimeOrDatetimeArrayColumn from './db/types/isDatetimeOrDatetimeArrayColumn.js'
+import isTextOrTextArrayColumn from './db/types/isTextOrTextArrayColumn.js'
+import normalizeString from './normalizeString.js'
 import { isString } from './typechecks.js'
 
 export default function sqlAttributes(dream: Dream) {
@@ -14,9 +16,11 @@ export default function sqlAttributes(dream: Dream) {
       if (val === undefined) return result
 
       if (Array.isArray(val)) {
-        if (isDateTimeColumn(dreamClass, key)) val = val.map(valueToDateTimeColumnValue)
+        if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = val.map(valueToDatetime)
+        else if (isTextOrTextArrayColumn(dreamClass, key)) val = val.map(normalizeString)
       } else {
-        if (isDateTimeColumn(dreamClass, key)) val = valueToDateTimeColumnValue(val)
+        if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = valueToDatetime(val)
+        else if (isTextOrTextArrayColumn(dreamClass, key)) val = normalizeString(val)
       }
 
       if (val instanceof DateTime || val instanceof CalendarDate) {
@@ -37,6 +41,6 @@ export default function sqlAttributes(dream: Dream) {
   )
 }
 
-function valueToDateTimeColumnValue(val: any) {
+function valueToDatetime(val: any) {
   return isString(val) ? DateTime.fromISO(val, { zone: 'UTC' }) : val
 }

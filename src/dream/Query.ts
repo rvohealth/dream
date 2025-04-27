@@ -41,6 +41,7 @@ import compact from '../helpers/compact.js'
 import { DateTime } from '../helpers/DateTime.js'
 import isEmpty from '../helpers/isEmpty.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
+import normalizeString from '../helpers/normalizeString.js'
 import objectPathsToArrays from '../helpers/objectPathsToArrays.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { Range } from '../helpers/range.js'
@@ -3517,7 +3518,9 @@ export default class Query<
     } else if (Array.isArray(val)) {
       a = attr
       b = 'in'
-      c = val.map(v => (v instanceof DateTime || v instanceof CalendarDate ? v.toSQL() : v))
+      c = val.map(v =>
+        v instanceof DateTime || v instanceof CalendarDate ? v.toSQL() : isString(v) ? normalizeString(v) : v
+      )
     } else if (val instanceof CurriedOpsStatement) {
       val = val.toOpsStatement(this.dreamClass, attr)
       a = attr
@@ -3555,7 +3558,10 @@ export default class Query<
     }
 
     if (c instanceof DateTime || c instanceof CalendarDate) c = c.toSQL()
+    else if (isString(c)) c = normalizeString(c)
+
     if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toSQL()
+    else if (isString(c2)) c2 = normalizeString(c2)
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)

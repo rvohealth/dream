@@ -228,6 +228,11 @@ Try setting it to something valid, like:
     return process.env.NODE_ENV === 'test' ? this._parallelTests : undefined
   }
 
+  private _unicodeNormalization: UnicodeNormalizationForm = 'NFC'
+  public get unicodeNormalization() {
+    return this._unicodeNormalization
+  }
+
   private _primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public get primaryKeyType() {
     return this._primaryKeyType
@@ -361,7 +366,9 @@ Try setting it to something valid, like:
                   ? DreamDirectoryPaths
                   : ApplyOpt extends 'parallelTests'
                     ? number
-                    : never
+                    : ApplyOpt extends 'unicodeNormalization'
+                      ? UnicodeNormalizationForm
+                      : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -403,6 +410,10 @@ Try setting it to something valid, like:
         if (process.env.NODE_ENV === 'test' && !Number.isNaN(Number(options)) && Number(options) > 1) {
           this._parallelTests = options as number
         }
+        break
+
+      case 'unicodeNormalization':
+        this._unicodeNormalization = options as UnicodeNormalizationForm
         break
 
       default:
@@ -452,6 +463,7 @@ export type DreamAppSetOption =
   | 'projectRoot'
   | 'serializerCasing'
   | 'parallelTests'
+  | 'unicodeNormalization'
 
 export interface DreamDirectoryPaths {
   models?: string
@@ -467,6 +479,8 @@ export interface DreamDbCredentialOptions {
   primary: SingleDbCredential
   replica?: SingleDbCredential | undefined
 }
+
+type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'
 
 export interface SingleDbCredential {
   user: string
