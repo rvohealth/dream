@@ -6,13 +6,18 @@ import { isString } from './typechecks.js'
 
 export default function sqlAttributes(dream: Dream) {
   const attributes = dream.dirtyAttributes()
+  const dreamClass = dream.constructor as typeof Dream
 
   return Object.keys(attributes).reduce(
     (result, key) => {
       let val = attributes[key]
+      if (val === undefined) return result
 
-      if (isString(val) && isDateTimeColumn(dream.constructor as typeof Dream, key))
-        val = DateTime.fromISO(val, { zone: 'UTC' })
+      if (Array.isArray(val)) {
+        if (isDateTimeColumn(dreamClass, key)) val = val.map(valueToDateTimeColumnValue)
+      } else {
+        if (isDateTimeColumn(dreamClass, key)) val = valueToDateTimeColumnValue(val)
+      }
 
       if (val instanceof DateTime || val instanceof CalendarDate) {
         // Converting toJSDate resulted in the correct timezone, but even with process.env.TZ=UTC,
@@ -22,7 +27,7 @@ export default function sqlAttributes(dream: Dream) {
         // handing off to Kysely, we bypass Javascript dates altogether, sending the string into the
         // database for storage as a date or datetime.
         result[key] = val.toSQL()
-      } else if (val !== undefined) {
+      } else {
         result[key] = val
       }
 
@@ -30,4 +35,8 @@ export default function sqlAttributes(dream: Dream) {
     },
     {} as { [key: string]: any }
   )
+}
+
+function valueToDateTimeColumnValue(val: any) {
+  return isString(val) ? DateTime.fromISO(val, { zone: 'UTC' }) : val
 }

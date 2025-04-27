@@ -6,6 +6,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
@@ -335,8 +336,9 @@ describe('Dream#update', () => {
     })
   })
 
-  context('datetime field', () => {
+  context('datetime column', () => {
     let user: User
+    const newTime = DateTime.now().minus({ days: 7 })
 
     beforeEach(async () => {
       user = await User.create({
@@ -346,18 +348,16 @@ describe('Dream#update', () => {
     })
 
     it('updates to the date', async () => {
-      const newTime = DateTime.now().minus({ days: 7 })
       await user.update({ deletedAt: newTime })
-      const reloaded = await User.removeAllDefaultScopes().find(user.id)
-      expect(reloaded!.deletedAt).toEqualDateTime(newTime)
+      const reloaded = await User.removeAllDefaultScopes().findOrFail(user.id)
+      expect(reloaded.deletedAt).toEqualDateTime(newTime)
     })
 
     context('with a string representation of a datetime', () => {
       it('updates to the datetime', async () => {
-        const newTime = DateTime.now().minus({ days: 7 })
         await user.update({ deletedAt: newTime.setZone('America/Chicago').toISO() as any })
-        const reloaded = await User.removeAllDefaultScopes().find(user.id)
-        expect(reloaded!.deletedAt).toEqualDateTime(newTime)
+        const reloaded = await User.removeAllDefaultScopes().findOrFail(user.id)
+        expect(reloaded.deletedAt).toEqualDateTime(newTime)
       })
     })
 
@@ -365,15 +365,50 @@ describe('Dream#update', () => {
       it('updates to the date', async () => {
         const newTime = CalendarDate.today().minus({ days: 7 })
         await user.update({ deletedAt: newTime })
-        const reloaded = await User.removeAllDefaultScopes().find(user.id)
-        expect(reloaded!.deletedAt?.toISODate()).toEqual(newTime.toISODate())
+        const reloaded = await User.removeAllDefaultScopes().findOrFail(user.id)
+        expect(reloaded.deletedAt).toEqualDateTime(newTime.toDateTime())
       })
     })
   })
 
-  context('date field', () => {
+  context('datetime array column', () => {
+    let model: ModelForOpenapiTypeSpecs
+    const newTime = DateTime.now().minus({ days: 7 })
+
+    beforeEach(async () => {
+      model = await ModelForOpenapiTypeSpecs.create({
+        email: 'charlie@peanuts.com',
+        passwordDigest: 'xxxxxxxxxxxxx',
+      })
+    })
+
+    it('updates to the date', async () => {
+      await model.update({ favoriteDatetimes: [newTime] })
+      const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+      expect(reloaded.favoriteDatetimes?.[0]).toEqualDateTime(newTime)
+    })
+
+    context('with a string representation of a datetime', () => {
+      it('updates to the datetime', async () => {
+        await model.update({ favoriteDatetimes: [newTime.setZone('America/Chicago').toISO() as any] })
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.favoriteDatetimes?.[0]).toEqualDateTime(newTime)
+      })
+    })
+
+    context('update with a CalendarDate', () => {
+      it('updates to the date', async () => {
+        const newTime = CalendarDate.today().minus({ days: 7 })
+        await model.update({ favoriteDatetimes: [newTime] })
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.favoriteDatetimes?.[0]).toEqualDateTime(newTime.toDateTime())
+      })
+    })
+  })
+
+  context('date column', () => {
     let user: User
-    const dateString = '1980-10-13'
+    const newDate = CalendarDate.fromISO('1980-10-13')
 
     beforeEach(async () => {
       user = await User.create({
@@ -383,26 +418,59 @@ describe('Dream#update', () => {
     })
 
     it('updates to the date', async () => {
-      const newDate = CalendarDate.fromISO(dateString)
       await user.update({ birthdate: newDate })
-      const reloaded = await User.removeAllDefaultScopes().find(user.id)
-      expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
+      const reloaded = await User.removeAllDefaultScopes().findOrFail(user.id)
+      expect(reloaded.birthdate).toEqualCalendarDate(newDate)
     })
 
     context('with a string representation of a date', () => {
       it('updates to the date', async () => {
-        await user.update({ birthdate: dateString as any })
-        const reloaded = await User.removeAllDefaultScopes().find(user.id)
-        expect(reloaded!.birthdate!.toISODate()).toEqual(dateString)
+        await user.update({ birthdate: newDate.toISO() as any })
+        const reloaded = await User.removeAllDefaultScopes().findOrFail(user.id)
+        expect(reloaded.birthdate).toEqualCalendarDate(newDate)
       })
     })
 
     context('update with a DateTime', () => {
       it('updates to the date', async () => {
-        const newDate = DateTime.fromISO(dateString)
-        await user.update({ birthdate: newDate })
-        const reloaded = await User.removeAllDefaultScopes().find(user.id)
-        expect(reloaded!.birthdate!.toISO()).toEqual(dateString)
+        await user.update({ birthdate: newDate.toISODate() as any })
+        const reloaded = await User.removeAllDefaultScopes().findOrFail(user.id)
+        expect(reloaded.birthdate).toEqualCalendarDate(newDate)
+      })
+    })
+  })
+
+  context('date array column', () => {
+    let model: ModelForOpenapiTypeSpecs
+    const dateString = '1980-10-13'
+    const newDate = CalendarDate.fromISO(dateString)
+
+    beforeEach(async () => {
+      model = await ModelForOpenapiTypeSpecs.create({
+        email: 'charlie@peanuts.com',
+        passwordDigest: 'xxxxxxxxxxxxx',
+      })
+    })
+
+    it('updates to the dates', async () => {
+      await model.update({ favoriteDates: [newDate] })
+      const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+      expect(reloaded.favoriteDates?.[0]).toEqualCalendarDate(newDate)
+    })
+
+    context('with a string representation of dates', () => {
+      it('updates to the date', async () => {
+        await model.update({ favoriteDates: [newDate.toISO() as any] })
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.favoriteDates?.[0]).toEqualCalendarDate(newDate)
+      })
+    })
+
+    context('update with DateTimes', () => {
+      it('updates to the date', async () => {
+        await model.update({ favoriteDates: [DateTime.fromISO(dateString)] })
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.favoriteDates?.[0]).toEqualCalendarDate(newDate)
       })
     })
   })
