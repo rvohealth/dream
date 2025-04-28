@@ -3927,9 +3927,7 @@ export default class Dream {
 }
 
 export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
-  createWith?:
-    | WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']>
-    | UpdateablePropertiesForClass<T>
+  createWith?: UpdateablePropertiesForClass<T>
 }
 
 export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
