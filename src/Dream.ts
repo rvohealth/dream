@@ -2742,7 +2742,7 @@ export default class Dream {
 
     ;(this.constructor as typeof Dream).columns().forEach(column => {
       const was = this.previousValueForAttribute(column as any)
-      const now = (this as any)[column]
+      const now = this.getAttribute(column as any)
       if (notEqual(was, now)) (obj as any)[column] = { was, now }
     })
     return obj
@@ -2868,7 +2868,7 @@ export default class Dream {
 
     this.columns().forEach(column => {
       // TODO: clean up types
-      if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.getAttributes() as any)[column]
+      if (this.attributeIsDirty(column as any)) (obj as any)[column] = this.getAttribute(column as any)
     })
 
     return obj
@@ -2881,7 +2881,7 @@ export default class Dream {
    */
   private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
-    const currentValue = (this.getAttributes() as any)[attribute]
+    const currentValue = this.getAttribute(attribute)
 
     if (this.isNewRecord) return true
 
