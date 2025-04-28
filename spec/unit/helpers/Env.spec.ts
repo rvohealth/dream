@@ -3,7 +3,6 @@ import { Env } from '../../../src/index.js'
 
 describe('Env', () => {
   const originalNodeEnv = process.env.NODE_ENV
-  const originalDebug = process.env.DEBUG
   const TestEnv = new Env<{
     string: 'ENV_STRING_TEST'
     integer: 'ENV_INTEGER_TEST'
@@ -12,7 +11,6 @@ describe('Env', () => {
 
   afterEach(() => {
     originalNodeEnv === undefined ? delete process.env.NODE_ENV : (process.env.NODE_ENV = originalNodeEnv)
-    originalDebug === undefined ? delete process.env.DEBUG : (process.env.NODE_ENV = originalDebug)
   })
 
   describe('#isProduction', () => {
@@ -85,29 +83,6 @@ describe('Env', () => {
       it('is "production"', () => {
         delete process.env.NODE_ENV
         expect(TestEnv.nodeEnv).toEqual('production')
-      })
-    })
-  })
-
-  describe('#isDebug', () => {
-    context('when DEBUG is "1"', () => {
-      it('is true', () => {
-        process.env.DEBUG = '1'
-        expect(TestEnv.isDebug).toBe(true)
-      })
-    })
-
-    context('when DEBUG is "0"', () => {
-      it('is false', () => {
-        process.env.DEBUG = '0'
-        expect(TestEnv.isDebug).toBe(false)
-      })
-    })
-
-    context('when DEBUG is undefined', () => {
-      it('is false', () => {
-        delete process.env.DEBUG
-        expect(TestEnv.isDebug).toBe(false)
       })
     })
   })

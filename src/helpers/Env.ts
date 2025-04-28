@@ -27,10 +27,6 @@ export default class Env<
     }
   }
 
-  public get isDebug(): boolean {
-    return this.optional('DEBUG') === '1'
-  }
-
   public get isTest() {
     return this.optional('NODE_ENV') === 'test'
   }

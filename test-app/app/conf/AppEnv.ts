@@ -1,14 +1,7 @@
 import { Env } from '../../../src/index.js'
 
 class AppEnvClass extends Env<{
-  boolean:
-    | 'CONSOLE_SERVICE'
-    | 'CLIENT'
-    | 'DB_NO_SSL'
-    | 'DEBUG'
-    | 'REQUEST_LOGGING'
-    | 'WEB_SERVICE'
-    | 'WORKER_SERVICE'
+  boolean: 'CONSOLE_SERVICE' | 'CLIENT' | 'DB_NO_SSL' | 'REQUEST_LOGGING' | 'WEB_SERVICE' | 'WORKER_SERVICE'
 
   integer: 'BG_JOBS_REDIS_PORT' | 'DB_PORT' | 'DREAM_PARALLEL_TESTS' | 'REPLICA_DB_PORT' | 'WS_REDIS_PORT'
 

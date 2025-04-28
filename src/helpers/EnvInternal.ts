@@ -4,7 +4,6 @@ const EnvInternal = new Env<{
   string: 'DREAM_CORE_DEVELOPMENT' | 'TZ'
   boolean:
     | 'ALLOW_BENCHMARKS'
-    | 'DEBUG'
     | 'DREAM_CORE_DEVELOPMENT'
     | 'DREAM_CORE_SPEC_RUN'
     | 'PSYCHIC_CORE_DEVELOPMENT'
