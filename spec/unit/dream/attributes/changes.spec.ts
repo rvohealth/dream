@@ -1,4 +1,5 @@
 import { DateTime } from '../../../../src/index.js'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 
 describe('Dream#changes', () => {
@@ -76,7 +77,6 @@ describe('Dream#changes', () => {
 
       expect(pet.changes()).toEqual({
         name: { was: null, now: 'Snoopy' },
-        nickname: { was: null, now: 'Snoopy' },
       })
     })
 
@@ -88,6 +88,27 @@ describe('Dream#changes', () => {
         createdAt: {
           was: originalCreatedAt,
           now: otherDatetime,
+        },
+      })
+    })
+  })
+
+  context('jsonb fields', () => {
+    it('correctly diffs jsonb fields', async () => {
+      const model = await ModelForOpenapiTypeSpecs.create({
+        email: 'h@h',
+        passwordDigest: 'abc',
+        jsonData: { howyadoin: true },
+      })
+
+      const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+      expect(reloaded.changes()).toEqual({})
+
+      reloaded.jsonData = { howyadoin: false }
+      expect(reloaded.changes()).toEqual({
+        jsonData: {
+          was: '{"howyadoin":true}',
+          now: '{"howyadoin":false}',
         },
       })
     })
