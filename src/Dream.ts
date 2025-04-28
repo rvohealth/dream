@@ -901,7 +901,7 @@ export default class Dream {
       }
     }
 
-    return this.create(
+    return await this.create(
       {
         ...attributes,
         ...(extraOpts?.with || {}),
