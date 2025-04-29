@@ -113,6 +113,7 @@ import {
   VariadicLoadArgs,
 } from './types/variadic.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
+import updateOrCreateBy from './dream/internal/updateOrCreateBy.js'
 
 export default class Dream {
   public DB: any
@@ -892,25 +893,7 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     extraOpts: UpdateOrCreateByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
-    const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
-    const { with: attrs, skipHooks } = extraOpts
-
-    if (existingRecord) {
-      if (attrs) {
-        existingRecord.assignAttributes(attrs)
-        return await saveDream(existingRecord, null, skipHooks ? { skipHooks } : undefined)
-      } else {
-        return existingRecord
-      }
-    }
-
-    return await this.create(
-      {
-        ...attributes,
-        ...(extraOpts?.with || {}),
-      },
-      skipHooks ? { skipHooks } : undefined
-    )
+    return await updateOrCreateBy(this, null, attributes, extraOpts)
   }
 
   /**
