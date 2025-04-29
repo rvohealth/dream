@@ -56,6 +56,8 @@ import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
+import castAttribute from './helpers/db/castAttribute.js'
+import columnValuesAreNotEqual from './helpers/db/columnValuesAreNotEqual.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import notEqual from './helpers/notEqual.js'
@@ -110,8 +112,6 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
-import columnValuesAreNotEqual from './helpers/db/columnValuesAreNotEqual.js'
-import castAttribute from './helpers/db/castAttribute.js'
 
 export default class Dream {
   public DB: any
@@ -2873,7 +2873,7 @@ export default class Dream {
 
     this.columns().forEach(column => {
       // TODO: clean up types
-      if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.getAttributes() as any)[column]
+      if (this.attributeIsDirty(column as any)) (obj as any)[column] = this.getAttribute(column as any)
     })
 
     return obj
