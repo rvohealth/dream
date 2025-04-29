@@ -1,0 +1,161 @@
+import CreateOrUpdateByFailedToCreateAndUpdate from '../../../src/errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import Pet from '../../../test-app/app/models/Pet.js'
+import User from '../../../test-app/app/models/User.js'
+
+describe('Dream.createOrUpdateBy', () => {
+  context('no underlying conflicts to prevent save', () => {
+    it('creates the underlying model in the db', async () => {
+      const u = await User.createOrUpdateBy({ email: 'trace@trace' }, { with: { password: 'howyadoin' } })
+
+      const user = await User.find(u.id)
+      expect(user!.email).toEqual('trace@trace')
+      expect(await user!.checkPassword('howyadoin')).toEqual(true)
+    })
+
+    it('respects associations in primary opts with user', async () => {
+      const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
+      const composition = await Composition.createOrUpdateBy({ user }, { with: { content: 'howyadoin' } })
+
+      expect(composition.userId).toEqual(user.id)
+      expect(composition.content).toEqual('howyadoin')
+    })
+
+    it('respects associations in primary opts with userId', async () => {
+      const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
+      const composition = await Composition.createOrUpdateBy(
+        { userId: user.id },
+        { with: { content: 'howyadoin' } }
+      )
+
+      expect(composition.userId).toEqual(user.id)
+      expect(composition.content).toEqual('howyadoin')
+    })
+
+    it('respects associations in secondary opts with user', async () => {
+      const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
+      const composition = await Composition.createOrUpdateBy({ content: 'howyadoin' }, { with: { user } })
+
+      expect(composition.userId).toEqual(user.id)
+    })
+
+    it('respects associations in secondary opts with userId', async () => {
+      const user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
+      const composition = await Composition.createOrUpdateBy(
+        { content: 'howyadoin' },
+        { with: { userId: user.id } }
+      )
+
+      expect(composition.userId).toEqual(user.id)
+    })
+
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        await Pet.createOrUpdateBy({ species: 'dog' }, { with: { name: 'change me' }, skipHooks: true })
+
+        const pet = await Pet.first()
+        expect(pet!.name).toEqual('change me')
+        expect(await Pet.count()).toEqual(1)
+      })
+    })
+  })
+
+  context('when a conflicting record already exists in the db', () => {
+    let user: User
+
+    beforeEach(async () => {
+      user = await User.create({ email: 'trace@trace', password: 'howyadoin' })
+    })
+
+    it('updates the existing record', async () => {
+      const u = await User.createOrUpdateBy({ email: 'trace@trace' }, { with: { password: 'newpassword' } })
+      const user = await User.find(u.id)
+      expect(user!.email).toEqual('trace@trace')
+      expect(await user!.checkPassword('newpassword')).toEqual(true)
+    })
+
+    it('returns the existing record if there are no updates to with', async () => {
+      await Pet.create({ species: 'dog', name: 'Baron' })
+
+      const p = await Pet.createOrUpdateBy({
+        species: 'dog',
+        name: 'Baron',
+      })
+
+      expect(p.species).toEqual('dog')
+      expect(p.name).toEqual('Baron')
+    })
+
+    it('respects associations in primary opts with user', async () => {
+      await Composition.create({ user, content: 'howyadoin' })
+      const composition = await Composition.createOrUpdateBy({ user }, { with: { content: 'newcontent' } })
+
+      expect(composition.userId).toEqual(user.id)
+      expect(composition.content).toEqual('newcontent')
+    })
+
+    it('respects associations in primary opts with userId', async () => {
+      await Composition.create({ user, content: 'howyadoin' })
+      const composition = await Composition.createOrUpdateBy(
+        { userId: user.id },
+        { with: { content: 'newcontent' } }
+      )
+
+      expect(composition.userId).toEqual(user.id)
+      expect(composition.content).toEqual('newcontent')
+    })
+
+    it('respects associations in secondary opts with user', async () => {
+      const otherUser = await User.create({ email: 'trace@hi', password: 'notbad' })
+      await Composition.create({ content: 'howyadoin', user: otherUser })
+
+      const composition = await Composition.createOrUpdateBy({ content: 'howyadoin' }, { with: { user } })
+
+      expect(composition.userId).toEqual(user.id)
+    })
+
+    it('respects associations in secondary opts with userId', async () => {
+      const otherUser = await User.create({ email: 'new@trace', password: 'notbad' })
+      await Composition.create({ content: 'howyadoin', user: otherUser })
+
+      const composition = await Composition.createOrUpdateBy(
+        { content: 'howyadoin' },
+        { with: { userId: user.id } }
+      )
+
+      expect(composition.userId).toEqual(user.id)
+    })
+
+    context('skipHooks is passed', () => {
+      it('skips model hooks', async () => {
+        await Pet.createOrUpdateBy({ species: 'dog' }, { with: { name: 'change me' }, skipHooks: true })
+
+        const pet = await Pet.first()
+        expect(pet!.name).toEqual('change me')
+        expect(await Pet.count()).toEqual(1)
+      })
+    })
+  })
+
+  context(
+    'when createOrUpdateBy attribute doesn’t match an existing record, but a `with` field conflicts with an existing record',
+    () => {
+      beforeEach(async () => {
+        await User.create({
+          email: 'fred@fred',
+          socialSecurityNumber: '1234567890',
+          password: 'howyadoin',
+        })
+      })
+
+      it('throws CreateOrUpdateByFailedToCreateAndUpdate', async () => {
+        await expect(
+          User.createOrUpdateBy(
+            { email: 'howya@doin' },
+            { with: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+          )
+        ).rejects.toThrow(CreateOrUpdateByFailedToCreateAndUpdate)
+      })
+    }
+  )
+})
