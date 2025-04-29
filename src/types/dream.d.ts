@@ -309,6 +309,19 @@ export type UpdateableProperties<
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 
+export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
+  createWith?: UpdateablePropertiesForClass<T>
+}
+
+export interface CreateOrFindByExtraOptsForDreamInstance<T extends Dream> {
+  createWith?: UpdateableProperties<T>
+}
+
+export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
+  with?: UpdateablePropertiesForClass<T>
+  skipHooks?: boolean
+}
+
 // Model global names and tables
 export type TableNameForGlobalModelName<
   I extends Dream,

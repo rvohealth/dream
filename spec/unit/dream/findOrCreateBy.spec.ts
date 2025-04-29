@@ -38,4 +38,13 @@ describe('Dream.findOrCreateBy', () => {
     const composition = await Composition.findOrCreateBy({ content: 'howyadoin' }, { createWith: { user } })
     expect(composition.userId).toEqual(user.id)
   })
+
+  it('respects associations in secondary opts with userId', async () => {
+    const user = await User.create({ email: 'fred@fred.fred', password: 'howyadoin' })
+    const composition = await Composition.findOrCreateBy(
+      { content: 'howyadoin' },
+      { createWith: { userId: user.id } }
+    )
+    expect(composition.userId).toEqual(user.id)
+  })
 })

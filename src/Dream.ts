@@ -73,6 +73,7 @@ import {
   AllDefaultScopeNames,
   AssociationNameToDream,
   AttributeKeys,
+  CreateOrFindByExtraOpts,
   DefaultOrNamedScopeName,
   DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredOnClauses,
@@ -92,6 +93,7 @@ import {
   UpdateableAssociationProperties,
   UpdateableProperties,
   UpdateablePropertiesForClass,
+  UpdateOrCreateByExtraOpts,
 } from './types/dream.js'
 import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
@@ -110,6 +112,7 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
+import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 
 export default class Dream {
   public DB: any
@@ -1094,17 +1097,7 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
-    const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
-    if (existingRecord) return existingRecord
-
-    const dreamModel = this.new({
-      ...attributes,
-      ...(extraOpts?.createWith || {}),
-    })
-
-    await dreamModel.save()
-
-    return dreamModel
+    return await findOrCreateBy(this, null, attributes, extraOpts)
   }
 
   /**
@@ -1641,8 +1634,8 @@ export default class Dream {
   public static txn<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
     txn: DreamTransaction<I>
-  ): DreamClassTransactionBuilder<I> {
-    return new DreamClassTransactionBuilder<I>(this.prototype as I, txn)
+  ): DreamClassTransactionBuilder<T, I> {
+    return new DreamClassTransactionBuilder<T, I>(this, txn)
   }
 
   /**
@@ -3924,13 +3917,4 @@ export default class Dream {
     return this
   }
   private _preventDeletion: boolean = false
-}
-
-export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
-  createWith?: UpdateablePropertiesForClass<T>
-}
-
-export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
-  with?: UpdateablePropertiesForClass<T>
-  skipHooks?: boolean
 }
