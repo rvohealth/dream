@@ -1,3 +1,4 @@
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -46,5 +47,22 @@ describe('Dream.findOrCreateBy', () => {
       { createWith: { userId: user.id } }
     )
     expect(composition.userId).toEqual(user.id)
+  })
+
+  context('given a transaction', () => {
+    it('creates the underlying model in the db', async () => {
+      let u: User | null = null
+
+      await ApplicationModel.transaction(async txn => {
+        u = await User.txn(txn).findOrCreateBy(
+          { email: 'fred@frewd' },
+          { createWith: { password: 'howyadoin' } }
+        )
+      })
+
+      const user = await User.find(u!.id)
+      expect(user!.email).toEqual('fred@frewd')
+      expect(await user!.checkPassword('howyadoin')).toEqual(true)
+    })
   })
 })
