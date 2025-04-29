@@ -1,8 +1,9 @@
 import { SelectArg, SelectExpression, Updateable } from 'kysely'
-import Dream from '../Dream.js'
+import Dream, { CreateOrFindByExtraOpts } from '../Dream.js'
 import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
 import { AssociationTableNames } from '../types/db.js'
 import {
+  CreateOrFindByExtraOptsForDreamInstance,
   DefaultScopeName,
   DreamColumnNames,
   OrderDir,
@@ -11,6 +12,7 @@ import {
   PrimaryKeyForFind,
   TableColumnNames,
   UpdateableProperties,
+  UpdateablePropertiesForClass,
 } from '../types/dream.js'
 import {
   BaseModelColumnTypes,
@@ -28,8 +30,15 @@ import {
 import DreamTransaction from './DreamTransaction.js'
 import saveDream from './internal/saveDream.js'
 import Query from './Query.js'
+import findOrCreateBy from './internal/findOrCreateBy.js'
+import ApplicationModel from '../../test-app/app/models/ApplicationModel.js'
 
-export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
+export default class DreamClassTransactionBuilder<
+  DreamClass extends typeof Dream,
+  DreamInstance extends Dream,
+> {
+  public dreamInstance: DreamInstance
+
   /**
    * Constructs a new DreamClassTransactionBuilder.
    *
@@ -37,9 +46,11 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param txn - The DreamTransaction instance
    */
   constructor(
-    public dreamInstance: DreamInstance,
+    public dreamClass: DreamClass,
     public dreamTransaction: DreamTransaction<Dream>
-  ) {}
+  ) {
+    this.dreamInstance = dreamClass.prototype as DreamInstance
+  }
 
   /**
    * Retrieves an array containing all records corresponding to
@@ -57,7 +68,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param options.columns - Columns to select
    * @returns An array of dreams
    */
-  public async all<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async all<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     options: {
       columns?: DreamColumnNames<DreamInstance>[]
@@ -72,7 +83,9 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns The number of records corresponding to this model
    */
-  public async count<I extends DreamClassTransactionBuilder<DreamInstance>>(this: I): Promise<number> {
+  public async count<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I
+  ): Promise<number> {
     return this.queryInstance().count()
   }
 
@@ -89,7 +102,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param limit - The number of records to limit the query to
    * @returns A Query for this model with the limit clause applied
    */
-  public limit<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public limit<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     limit: number | null
   ): Query<DreamInstance> {
@@ -109,7 +122,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param offset - The number of records to offset the query by
    * @returns A Query for this model with the offset clause applied
    */
-  public offset<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public offset<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     offset: number | null
   ): Query<DreamInstance> {
@@ -131,7 +144,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns The max value of the specified column for this model's records
    */
   public async max<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     T extends DreamColumnNames<DreamInstance>,
   >(this: I, columnName: T) {
     return this.queryInstance().max(columnName)
@@ -152,7 +165,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns The min value of the specified column for this model's records
    */
   public async min<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     T extends DreamColumnNames<DreamInstance>,
   >(this: I, columnName: T) {
     return this.queryInstance().min(columnName)
@@ -171,7 +184,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param attributes - Attributes or belongs to associations you wish to set on this model before persisting
    * @returns A newly persisted dream instance
    */
-  public async create<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async create<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     attributes?: UpdateableProperties<DreamInstance>
   ): Promise<DreamInstance> {
@@ -193,7 +206,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param primaryKey - The primary key of the record to look up
    * @returns Either the found record, or else null
    */
-  public async find<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async find<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     primaryKey: PrimaryKeyForFind<DreamInstance>
   ): Promise<DreamInstance | null> {
@@ -214,7 +227,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param primaryKey - The primary key of the record to look up
    * @returns The found record
    */
-  public async findOrFail<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async findOrFail<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     primaryKey: PrimaryKeyForFind<DreamInstance>
   ): Promise<DreamInstance> {
@@ -236,9 +249,9 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param attributes - The where statement used to locate the record
    * @returns Either the first model found matching the whereStatement, or else null
    */
-  public async findBy<I extends DreamClassTransactionBuilder<DreamInstance>, DB extends DreamInstance['DB']>(
+  public async findBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    attributes: Updateable<DB[DreamInstance['table']]>
+    attributes: WhereStatement<DreamInstance['DB'], DreamInstance['schema'], DreamInstance['table']>
   ): Promise<DreamInstance | null> {
     return await this.queryInstance().findBy(attributes as any)
   }
@@ -258,11 +271,33 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param whereStatement - The where statement used to locate the record
    * @returns The first model found matching the whereStatement
    */
-  public async findOrFailBy<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async findOrFailBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     whereStatement: WhereStatement<DreamInstance['DB'], DreamInstance['schema'], DreamInstance['table']>
   ): Promise<DreamInstance> {
     return await this.queryInstance().findOrFailBy(whereStatement)
+  }
+
+  /**
+   * Attempt to find the model with the given attributes.
+   * If no record is found, then a new record is created.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).findOrCreateBy({ email }, { createWith: params })
+   * })
+   * ```
+   *
+   * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
+   * @returns A dream instance
+   */
+  public async findOrCreateBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I,
+    attributes: UpdateablePropertiesForClass<DreamClass>,
+    extraOpts: CreateOrFindByExtraOptsForDreamInstance<DreamInstance> = {}
+  ): Promise<InstanceType<DreamClass>> {
+    return await findOrCreateBy(this.dreamClass, this.dreamTransaction, attributes, extraOpts)
   }
 
   /**
@@ -286,7 +321,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param options.batchSize - The batch size you wish to collect records in. If not provided, it will default to 1000
    * @returns void
    */
-  public async findEach<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async findEach<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     cb: (instance: DreamInstance) => void | Promise<void>,
     options?: FindEachOpts
@@ -307,7 +342,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns First record, or null if no record exists
    */
-  public async first<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async first<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I
   ): Promise<DreamInstance | null> {
     return this.queryInstance().first()
@@ -327,7 +362,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns First record
    */
-  public async firstOrFail<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async firstOrFail<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I
   ): Promise<DreamInstance> {
     return this.queryInstance().firstOrFail()
@@ -351,7 +386,9 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns boolean
    */
-  public async exists<I extends DreamClassTransactionBuilder<DreamInstance>>(this: I): Promise<boolean> {
+  public async exists<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I
+  ): Promise<boolean> {
     return this.queryInstance().exists()
   }
 
@@ -377,7 +414,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A query for this model with the include statement applied
    */
   public leftJoinPreload<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
@@ -420,7 +457,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A query for this model with the preload statement applied
    */
   public preload<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
@@ -443,7 +480,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Query for this model with the inner join clause applied
    */
   public innerJoin<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
@@ -478,7 +515,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Query for this model with the left join clause applied
    */
   public leftJoin<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
@@ -511,7 +548,9 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns A new Query instance
    */
-  public queryInstance<I extends DreamClassTransactionBuilder<DreamInstance>>(this: I): Query<DreamInstance> {
+  public queryInstance<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I
+  ): Query<DreamInstance> {
     return new Query<DreamInstance>(this.dreamInstance).txn(this.dreamTransaction)
   }
 
@@ -520,7 +559,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns A query for this model which disregards default scopes
    */
-  public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I
   ): Query<DreamInstance> {
     return this.queryInstance().removeAllDefaultScopes()
@@ -532,7 +571,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns A new Query which will prevent a specific default scope from applying
    */
-  public removeDefaultScope<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public removeDefaultScope<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     scopeName: DefaultScopeName<DreamInstance>
   ): Query<DreamInstance> {
@@ -552,7 +591,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns Last record, or null if no record exists
    */
-  public async last<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async last<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I
   ): Promise<DreamInstance | null> {
     return this.queryInstance().last()
@@ -572,7 +611,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    *
    * @returns Last record
    */
-  public async lastOrFail<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public async lastOrFail<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I
   ): Promise<DreamInstance> {
     return this.queryInstance().lastOrFail()
@@ -595,7 +634,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Kysely SelectQueryBuilder instance
    */
   public nestedSelect<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     SE extends SelectExpression<DB, DreamInstance['table']>,
   >(this: I, selection: SelectArg<DB, DreamInstance['table'], SE>) {
@@ -623,7 +662,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @param orderStatement - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
    * @returns A query for this model with the order clause applied
    */
-  public order<I extends DreamClassTransactionBuilder<DreamInstance>>(
+  public order<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     arg: DreamColumnNames<DreamInstance> | Partial<Record<DreamColumnNames<DreamInstance>, OrderDir>> | null
   ) {
@@ -654,7 +693,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns An array of pluck results
    */
   public async pluck<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     ColumnNames extends TableColumnNames<DreamInstance['DB'], DreamInstance['table']>[],
     ReturnValue extends ColumnNames['length'] extends 1
       ? BaseModelColumnTypes<ColumnNames, DreamInstance>[0][]
@@ -682,7 +721,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns void
    */
   public async pluckEach<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     ColumnName extends keyof UpdateableProperties<DreamInstance>,
     ColumnNames extends ColumnName[],
     CbArgTypes extends BaseModelColumnTypes<ColumnNames, DreamInstance>,
@@ -716,7 +755,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Query for this model with the passthrough data
    */
   public passthrough<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     PassthroughColumns extends PassthroughColumnNames<DreamInstance>,
   >(this: I, passthroughWhereStatement: PassthroughOnClause<PassthroughColumns>): Query<DreamInstance> {
     return this.queryInstance().passthrough(passthroughWhereStatement as any)
@@ -737,7 +776,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Query for this model with the where clause applied
    */
   public where<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
@@ -760,7 +799,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Query for this model with the whereAny clause applied
    */
   public whereAny<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
@@ -783,7 +822,7 @@ export default class DreamClassTransactionBuilder<DreamInstance extends Dream> {
    * @returns A Query for this model with the whereNot clause applied
    */
   public whereNot<
-    I extends DreamClassTransactionBuilder<DreamInstance>,
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
