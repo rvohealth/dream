@@ -2327,7 +2327,7 @@ export default class Dream {
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
       if (!dreamInstance) return
 
-      if (bypassUserDefinedSetters) {
+      if (bypassUserDefinedSetters && !isJsonColumn(this, attr)) {
         dreamInstance.setAttribute(attr, value)
       } else {
         dreamInstance.assignAttribute(attr, value)
@@ -2394,9 +2394,10 @@ export default class Dream {
           // handle JSON columns
           Object.defineProperty(dreamPrototype, column, {
             get() {
-              if ([undefined, null].includes(this.currentAttributes[column]))
-                return this.currentAttributes[column]
-              return JSON.parse(this.currentAttributes[column])
+              const val = this.currentAttributes[column]
+              if (val === null) return null
+              if (val === undefined) return undefined
+              return JSON.parse(val)
             },
 
             set(val: any) {
@@ -2414,7 +2415,14 @@ export default class Dream {
                *
                */
               if (this.columnSetterGuardActivated) return
-              this.currentAttributes[column] = isString(val) ? val : JSON.stringify(val)
+              this.currentAttributes[column] =
+                val === null
+                  ? null
+                  : val === undefined
+                    ? undefined
+                    : isString(val)
+                      ? val
+                      : JSON.stringify(val)
             },
 
             configurable: true,
@@ -2575,18 +2583,7 @@ export default class Dream {
     attr: Key & string,
     val: any
   ): void {
-    const columns = (this.constructor as typeof Dream).columns()
-    const self = this as any
-
-    if (columns.has(attr)) {
-      self.currentAttributes[attr] = isJsonColumn(this.constructor as typeof Dream, attr)
-        ? isString(val)
-          ? val
-          : JSON.stringify(val)
-        : val
-    } else {
-      self.currentAttributes[attr] = val
-    }
+    ;(this as any).currentAttributes[attr] = val
   }
 
   /**
@@ -2784,7 +2781,7 @@ export default class Dream {
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
   >(this: I, columnName: ColumnName): Updateable<Table>[ColumnName] {
-    if (notEqual(this.frozenAttributes[columnName], (this as any)[columnName]))
+    if (notEqual(this.frozenAttributes[columnName], this.getAttribute(columnName as any)))
       return this.frozenAttributes[columnName]
     return (this.attributesFromBeforeLastSave as any)[columnName]
   }
@@ -2799,8 +2796,8 @@ export default class Dream {
    */
   public savedChangeToAttribute<I extends Dream>(this: I, columnName: DreamColumnNames<I>): boolean {
     const changes = this.changes()
-    const now = (changes as any)?.[columnName]?.now
     const was = (changes as any)?.[columnName]?.was
+    const now = (changes as any)?.[columnName]?.now
     return this.isPersisted && notEqual(now, was)
   }
 
