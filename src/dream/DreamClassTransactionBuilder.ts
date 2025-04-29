@@ -295,7 +295,7 @@ export default class DreamClassTransactionBuilder<
   public async findOrCreateBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
     attributes: UpdateablePropertiesForClass<DreamClass>,
-    extraOpts: CreateOrFindByExtraOptsForDreamInstance<DreamInstance> = {}
+    extraOpts: CreateOrFindByExtraOpts<DreamClass> = {}
   ): Promise<InstanceType<DreamClass>> {
     return await findOrCreateBy(this.dreamClass, this.dreamTransaction, attributes, extraOpts)
   }
