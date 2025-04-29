@@ -8,33 +8,29 @@ export default async function findOrCreateBy<T extends typeof Dream>(
   attributes: UpdateablePropertiesForClass<T>,
   extraOpts: CreateOrFindByExtraOpts<T> = {}
 ): Promise<InstanceType<T>> {
+  let existingRecord: InstanceType<T> | null
   if (txn) {
-    const existingRecord = await dreamClass
+    existingRecord = await dreamClass
       .txn(txn)
       .findBy(dreamClass['extractAttributesFromUpdateableProperties'](attributes))
-    if (existingRecord) return existingRecord
-
-    const dreamModel = dreamClass.new({
-      ...attributes,
-      ...(extraOpts?.createWith || {}),
-    })
-
-    await dreamModel.txn(txn).save()
-
-    return dreamModel
   } else {
-    const existingRecord = await dreamClass.findBy(
+    existingRecord = await dreamClass.findBy(
       dreamClass['extractAttributesFromUpdateableProperties'](attributes)
     )
-    if (existingRecord) return existingRecord
-
-    const dreamModel = dreamClass.new({
-      ...attributes,
-      ...(extraOpts?.createWith || {}),
-    })
-
-    await dreamModel.save()
-
-    return dreamModel
   }
+
+  if (existingRecord) return existingRecord
+
+  const dreamModel = dreamClass.new({
+    ...attributes,
+    ...(extraOpts?.createWith || {}),
+  })
+
+  if (txn) {
+    await dreamModel.txn(txn).save()
+  } else {
+    await dreamModel.save()
+  }
+
+  return dreamModel
 }

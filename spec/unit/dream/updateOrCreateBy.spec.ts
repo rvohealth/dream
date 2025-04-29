@@ -1,3 +1,4 @@
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -55,6 +56,23 @@ describe('Dream.updateOrCreateBy', () => {
         const pet = await Pet.first()
         expect(pet!.name).toEqual('change me')
         expect(await Pet.count()).toEqual(1)
+      })
+    })
+
+    context('given a transaction', () => {
+      it('creates the underlying model in the db', async () => {
+        let u: User | null = null
+
+        await ApplicationModel.transaction(async txn => {
+          u = await User.txn(txn).updateOrCreateBy(
+            { email: 'trace@trace' },
+            { with: { password: 'howyadoin' } }
+          )
+        })
+
+        const user = await User.find(u!.id)
+        expect(user!.email).toEqual('trace@trace')
+        expect(await user!.checkPassword('howyadoin')).toEqual(true)
       })
     })
   })
@@ -129,6 +147,23 @@ describe('Dream.updateOrCreateBy', () => {
         const pet = await Pet.first()
         expect(pet!.name).toEqual('change me')
         expect(await Pet.count()).toEqual(1)
+      })
+    })
+
+    context('given a transaction', () => {
+      it('creates the underlying model in the db', async () => {
+        let u: User | null = null
+
+        await ApplicationModel.transaction(async txn => {
+          u = await User.txn(txn).updateOrCreateBy(
+            { email: 'trace@trace' },
+            { with: { password: 'newpassword' } }
+          )
+        })
+
+        const user = await User.find(u!.id)
+        expect(user!.email).toEqual('trace@trace')
+        expect(await user!.checkPassword('newpassword')).toEqual(true)
       })
     })
   })

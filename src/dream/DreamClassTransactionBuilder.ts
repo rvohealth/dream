@@ -13,6 +13,7 @@ import {
   TableColumnNames,
   UpdateableProperties,
   UpdateablePropertiesForClass,
+  UpdateOrCreateByExtraOpts,
 } from '../types/dream.js'
 import {
   BaseModelColumnTypes,
@@ -32,6 +33,7 @@ import saveDream from './internal/saveDream.js'
 import Query from './Query.js'
 import findOrCreateBy from './internal/findOrCreateBy.js'
 import ApplicationModel from '../../test-app/app/models/ApplicationModel.js'
+import updateOrCreateBy from './internal/updateOrCreateBy.js'
 
 export default class DreamClassTransactionBuilder<
   DreamClass extends typeof Dream,
@@ -186,10 +188,11 @@ export default class DreamClassTransactionBuilder<
    */
   public async create<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    attributes?: UpdateableProperties<DreamInstance>
+    attributes?: UpdateableProperties<DreamInstance>,
+    { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<DreamInstance> {
     const dream = (this.dreamInstance.constructor as typeof Dream).new(attributes) as DreamInstance
-    return saveDream<DreamInstance>(dream, this.dreamTransaction)
+    return saveDream<DreamInstance>(dream, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
   }
 
   /**
@@ -298,6 +301,30 @@ export default class DreamClassTransactionBuilder<
     extraOpts: CreateOrFindByExtraOpts<DreamClass> = {}
   ): Promise<InstanceType<DreamClass>> {
     return await findOrCreateBy(this.dreamClass, this.dreamTransaction, attributes, extraOpts)
+  }
+
+  /**
+   * Attempt to update the model with the given attributes.
+   * If no record is found, then a new record is created.
+   * All lifecycle hooks are run for whichever action is taken.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).updateOrCreateBy({ email }, { with: { name: 'Alice' })
+   * })
+   * ```
+   *
+   * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
+   * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @returns A dream instance
+   */
+  public async updateOrCreateBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I,
+    attributes: UpdateablePropertiesForClass<DreamClass>,
+    extraOpts: UpdateOrCreateByExtraOpts<DreamClass> = {}
+  ): Promise<InstanceType<DreamClass>> {
+    return await updateOrCreateBy(this.dreamClass, this.dreamTransaction, attributes, extraOpts)
   }
 
   /**
