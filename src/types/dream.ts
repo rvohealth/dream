@@ -318,10 +318,6 @@ export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
   createWith?: UpdateablePropertiesForClass<T>
 }
 
-export interface CreateOrFindByExtraOptsForDreamInstance<T extends Dream> {
-  createWith?: UpdateableProperties<T>
-}
-
 export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
   with?: UpdateablePropertiesForClass<T>
   skipHooks?: boolean
