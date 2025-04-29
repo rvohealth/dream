@@ -883,7 +883,7 @@ export default class Dream {
    * const user = await User.updateOrCreateBy({ email }, { with: { name: 'Alice' })
    * ```
    *
-   * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param attributes - The base attributes for finding which record to update, also used when creating
    * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
    * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
@@ -894,6 +894,57 @@ export default class Dream {
     extraOpts: UpdateOrCreateByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
     return await updateOrCreateBy(this, null, attributes, extraOpts)
+  }
+
+  /**
+   *
+   * If creation fails due to uniqueness constraint, then find
+   * the existing model. All lifecycle hooks are run for whichever
+   * action is taken.
+   *
+   * This is useful in situations where we want to avoid
+   * a race condition creating duplicate records.
+   *
+   *
+   * IMPORTANT: A unique index/uniqueness constraint must exist on
+   * at least one of the provided attributes
+   *
+   * @param attributes - The base attributes for finding which record to update, also used when creating
+   * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
+   * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @returns A dream instance
+   */
+  public static async createOrUpdateBy<T extends typeof Dream>(
+    this: T,
+    attributes: UpdateablePropertiesForClass<T>,
+    extraOpts: UpdateOrCreateByExtraOpts<T> = {}
+  ): Promise<InstanceType<T>> {
+    const { skipHooks } = extraOpts
+
+    try {
+      return await this.create(
+        {
+          ...attributes,
+          ...(extraOpts?.with || {}),
+        },
+        skipHooks ? { skipHooks } : undefined
+      )
+    } catch (err) {
+      if (pgErrorType(err) === 'UNIQUE_CONSTRAINT_VIOLATION') {
+        const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
+        const { with: attrs } = extraOpts
+
+        if (existingRecord) {
+          if (attrs) {
+            existingRecord.assignAttributes(attrs)
+            return await saveDream(existingRecord, null, skipHooks ? { skipHooks } : undefined)
+          } else {
+            return existingRecord
+          }
+        }
+      }
+      throw err
+    }
   }
 
   /**
