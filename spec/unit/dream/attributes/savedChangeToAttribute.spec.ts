@@ -1,3 +1,5 @@
+import { UpdateableProperties } from '../../../../src/index.js'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 
 describe('Dream#savedChangeToAttribute', () => {
@@ -25,6 +27,33 @@ describe('Dream#savedChangeToAttribute', () => {
 
       await pet.update({ name: 'my little pony' })
       expect(pet.savedChangeToAttribute('species')).toEqual(false)
+    })
+
+    context('datatypes', () => {
+      const defaultAttrs: UpdateableProperties<ModelForOpenapiTypeSpecs> = {
+        email: 'a@a',
+        passwordDigest: 'abc',
+      }
+
+      context('json', () => {
+        it.only('returns the values from the most recent save', async () => {
+          let record = await ModelForOpenapiTypeSpecs.create({
+            ...defaultAttrs,
+          })
+          record = (await ModelForOpenapiTypeSpecs.find(record.id))!
+          expect(record.savedChangeToAttribute('jsonData')).toEqual(false)
+
+          console.log('BEFORE UPDATE')
+          await record.update({ jsonData: { hello: 'world' } })
+          expect(record.savedChangeToAttribute('jsonData')).toEqual(true)
+
+          await record.update({ jsonData: { goodbye: 'world' } })
+          expect(record.savedChangeToAttribute('jsonData')).toEqual(true)
+
+          await record.update({ email: 'b@b' })
+          expect(record.savedChangeToAttribute('species')).toEqual(false)
+        })
+      })
     })
   })
 })

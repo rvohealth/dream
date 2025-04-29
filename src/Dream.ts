@@ -110,6 +110,8 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
+import columnValuesAreNotEqual from './helpers/db/columnValuesAreNotEqual.js'
+import castAttribute from './helpers/db/castAttribute.js'
 
 export default class Dream {
   public DB: any
@@ -2741,9 +2743,10 @@ export default class Dream {
     const obj: RetType = {} as RetType
 
     ;(this.constructor as typeof Dream).columns().forEach(column => {
+      const dbType = this.schema[this.table]?.columns?.[column]?.dbType
       const was = this.previousValueForAttribute(column as any)
-      const now = this.getAttribute(column as any)
-      if (notEqual(was, now)) (obj as any)[column] = { was, now }
+      const now = castAttribute(this.getAttribute(column as any), dbType)
+      if (columnValuesAreNotEqual(was, now, dbType)) (obj as any)[column] = { was, now }
     })
     return obj
   }
@@ -2784,8 +2787,10 @@ export default class Dream {
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
   >(this: I, columnName: ColumnName): Updateable<Table>[ColumnName] {
-    if (notEqual(this.frozenAttributes[columnName], (this as any)[columnName]))
-      return this.frozenAttributes[columnName]
+    const dbType = this.schema[this.table]?.columns?.[columnName]?.dbType
+
+    if (columnValuesAreNotEqual(this.frozenAttributes[columnName], (this as any)[columnName], dbType))
+      return castAttribute(this.frozenAttributes[columnName], dbType)
     return (this.attributesFromBeforeLastSave as any)[columnName]
   }
 
@@ -2868,7 +2873,7 @@ export default class Dream {
 
     this.columns().forEach(column => {
       // TODO: clean up types
-      if (this.attributeIsDirty(column as any)) (obj as any)[column] = this.getAttribute(column as any)
+      if (this.attributeIsDirty(column as any)) (obj as any)[column] = (this.getAttributes() as any)[column]
     })
 
     return obj
@@ -2881,7 +2886,8 @@ export default class Dream {
    */
   private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
     const frozenValue = (this.frozenAttributes as any)[attribute]
-    const currentValue = this.getAttribute(attribute)
+    const currentValue = (this.getAttributes() as any)[attribute]
+    // const currentValue = this.getAttribute(attribute)
 
     if (this.isNewRecord) return true
 

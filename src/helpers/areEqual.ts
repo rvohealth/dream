@@ -3,7 +3,13 @@ import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
 
 export default function areEqual(a: any, b: any): boolean {
-  return areEqualOrUndefined(a, b) ?? areEqualOrUndefined(b, a) ?? JSON.stringify(a) === JSON.stringify(b)
+  return areEqualOrUndefined(a, b) ?? areEqualOrUndefined(b, a) ?? jsonAreEqual(a, b)
+}
+
+export function jsonAreEqual(a: any, b: any): boolean {
+  const jsonA = typeof a === 'string' ? a : JSON.stringify(a)
+  const jsonB = typeof b === 'string' ? b : JSON.stringify(b)
+  return jsonA === jsonB
 }
 
 function areEqualOrUndefined(a: any, b: any): boolean | undefined {

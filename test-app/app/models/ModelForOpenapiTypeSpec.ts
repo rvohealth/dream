@@ -1,7 +1,7 @@
-import { DreamColumn } from '../../../src/index.js'
+import { Decorators, DreamColumn } from '../../../src/index.js'
 import ApplicationModel from './ApplicationModel.js'
 
-// const deco = new Decorators<typeof ModelForOpenapiTypeSpecs>()
+const deco = new Decorators<typeof ModelForOpenapiTypeSpecs>()
 
 export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public override get table() {
@@ -68,4 +68,7 @@ export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public createdOn: DreamColumn<ModelForOpenapiTypeSpecs, 'createdOn'>
   public createdAt: DreamColumn<ModelForOpenapiTypeSpecs, 'createdAt'>
   public updatedAt: DreamColumn<ModelForOpenapiTypeSpecs, 'updatedAt'>
+
+  @deco.AfterSaveCommit({ ifChanged: ['jsonData'] })
+  public conditionalAfterSaveJsonDataCommitHook() {}
 }

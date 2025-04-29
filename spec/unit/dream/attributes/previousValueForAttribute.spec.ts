@@ -1,3 +1,4 @@
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 
 describe('Dream#previousValueForAttribute', () => {
@@ -32,6 +33,28 @@ describe('Dream#previousValueForAttribute', () => {
 
       await pet.update({ species: 'cat' })
       expect(pet.previousValueForAttribute('species')).toEqual('dog')
+    })
+  })
+
+  context('jsonb fields', () => {
+    it('correctly diffs jsonb fields', async () => {
+      const model = await ModelForOpenapiTypeSpecs.create({
+        email: 'h@h',
+        passwordDigest: 'abc',
+        jsonData: { howyadoin: true },
+      })
+      expect(model.previousValueForAttribute('email')).toEqual(undefined)
+      expect(model.previousValueForAttribute('jsonData')).toEqual(undefined)
+
+      const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+      reloaded.jsonData = { howyadoin: false }
+      expect(reloaded.previousValueForAttribute('jsonData')).toEqual({ howyadoin: true })
+
+      await reloaded.save()
+
+      const reloaded2 = await ModelForOpenapiTypeSpecs.findOrFail(reloaded.id)
+      await reloaded2.update({ jsonData: { howyadoin: true }, email: 'b@b' })
+      expect(reloaded2.previousValueForAttribute('jsonData')).toEqual({ howyadoin: false })
     })
   })
 })

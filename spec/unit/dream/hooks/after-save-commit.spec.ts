@@ -1,7 +1,8 @@
-import { DateTime } from '../../../../src/index.js'
+import { DateTime, UpdateableProperties } from '../../../../src/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import ModelWithDateTimeConditionalHooks from '../../../../test-app/app/models/ModelWithDateTimeConditionalHooks.js'
 import Sandbag from '../../../../test-app/app/models/Sandbag.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -111,6 +112,65 @@ describe('Dream AfterSaveCommit decorator', () => {
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(Sandbag.prototype.conditionalAfterSaveCommitHook).not.toHaveBeenCalled()
+        })
+      })
+    })
+
+    context('datatypes', () => {
+      context('jsonb', () => {
+        const defaultAttrs: UpdateableProperties<ModelForOpenapiTypeSpecs> = {
+          email: 'a@a',
+          passwordDigest: 'abc',
+        }
+
+        context('for a newly-created record', () => {
+          it('fires hooks when jsonb fields are changing', async () => {
+            const spy = vi.spyOn(ModelForOpenapiTypeSpecs.prototype, 'conditionalAfterSaveJsonDataCommitHook')
+            await ApplicationModel.transaction(async txn => {
+              await ModelForOpenapiTypeSpecs.txn(txn).create({
+                ...defaultAttrs,
+                jsonData: { hello: 'world' },
+              })
+            })
+            expect(spy).toHaveBeenCalled()
+          })
+
+          it('does not fire hooks when jsonb fields are not changing', async () => {
+            const spy = vi.spyOn(ModelForOpenapiTypeSpecs.prototype, 'conditionalAfterSaveJsonDataCommitHook')
+            await ApplicationModel.transaction(async txn => {
+              await ModelForOpenapiTypeSpecs.txn(txn).create({
+                ...defaultAttrs,
+              })
+            })
+            expect(spy).not.toHaveBeenCalled()
+          })
+        })
+
+        context('for an existing record being updated', () => {
+          it.only('fires hooks when jsonb fields are changing', async () => {
+            const record = await ModelForOpenapiTypeSpecs.create({
+              ...defaultAttrs,
+              jsonData: { hello: 'world' },
+            })
+
+            const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(record.id)
+            const spy = vi.spyOn(reloaded, 'conditionalAfterSaveJsonDataCommitHook')
+            await ApplicationModel.transaction(
+              async txn => await reloaded.txn(txn).update({ jsonData: { goodbye: 'world' } })
+            )
+            expect(spy).toHaveBeenCalled()
+          })
+
+          it('does not fire hooks when jsonb fields are not changing', async () => {
+            const record = await ModelForOpenapiTypeSpecs.create({
+              ...defaultAttrs,
+            })
+
+            const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(record.id)
+            const spy = vi.spyOn(reloaded, 'conditionalAfterSaveJsonDataCommitHook')
+            await ApplicationModel.transaction(async txn => await reloaded.txn(txn).update({ email: 'b@b' }))
+            expect(spy).not.toHaveBeenCalled()
+          })
         })
       })
     })

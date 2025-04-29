@@ -93,23 +93,144 @@ describe('Dream#changes', () => {
     })
   })
 
-  context('jsonb fields', () => {
-    it('correctly diffs jsonb fields', async () => {
-      const model = await ModelForOpenapiTypeSpecs.create({
-        email: 'h@h',
-        passwordDigest: 'abc',
-        jsonData: { howyadoin: true },
+  context('datatypes', () => {
+    context('json', () => {
+      it('correctly diffs json fields', async () => {
+        const model = await ModelForOpenapiTypeSpecs.create({
+          email: 'h@h',
+          passwordDigest: 'abc',
+          jsonData: { howyadoin: true },
+        })
+
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.changes()).toEqual({})
+
+        reloaded.jsonData = { howyadoin: false }
+        expect(reloaded.changes()).toEqual({
+          jsonData: {
+            was: { howyadoin: true },
+            now: { howyadoin: false },
+          },
+        })
+
+        await reloaded.save()
+
+        const reloaded2 = await ModelForOpenapiTypeSpecs.findOrFail(reloaded.id)
+        await reloaded2.update({ jsonData: { howyadoin: true } })
+
+        expect(reloaded2.changes()).toEqual(
+          expect.objectContaining({
+            jsonData: {
+              was: { howyadoin: false },
+              now: { howyadoin: true },
+            },
+          })
+        )
       })
+    })
 
-      const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
-      expect(reloaded.changes()).toEqual({})
+    context('jsonb', () => {
+      it('correctly diffs jsonb fields', async () => {
+        const model = await ModelForOpenapiTypeSpecs.create({
+          email: 'h@h',
+          passwordDigest: 'abc',
+          jsonbData: { howyadoin: true },
+        })
 
-      reloaded.jsonData = { howyadoin: false }
-      expect(reloaded.changes()).toEqual({
-        jsonData: {
-          was: '{"howyadoin":true}',
-          now: '{"howyadoin":false}',
-        },
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.changes()).toEqual({})
+
+        reloaded.jsonbData = { howyadoin: false }
+        expect(reloaded.changes()).toEqual({
+          jsonbData: {
+            was: { howyadoin: true },
+            now: { howyadoin: false },
+          },
+        })
+
+        await reloaded.save()
+
+        const reloaded2 = await ModelForOpenapiTypeSpecs.findOrFail(reloaded.id)
+        await reloaded2.update({ jsonbData: { howyadoin: true } })
+
+        expect(reloaded2.changes()).toEqual(
+          expect.objectContaining({
+            jsonbData: {
+              was: { howyadoin: false },
+              now: { howyadoin: true },
+            },
+          })
+        )
+      })
+    })
+
+    context('json[]', () => {
+      it('correctly diffs jsonb fields', async () => {
+        const model = await ModelForOpenapiTypeSpecs.create({
+          email: 'h@h',
+          passwordDigest: 'abc',
+          favoriteJsons: [{ howyadoin: true }],
+        })
+
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.changes()).toEqual({})
+
+        reloaded.favoriteJsons = [{ howyadoin: false }]
+        expect(reloaded.changes()).toEqual({
+          favoriteJsons: {
+            was: [{ howyadoin: true }],
+            now: [{ howyadoin: false }],
+          },
+        })
+
+        await reloaded.save()
+
+        const reloaded2 = await ModelForOpenapiTypeSpecs.findOrFail(reloaded.id)
+        await reloaded2.update({ favoriteJsons: [{ howyadoin: true }] })
+
+        expect(reloaded2.changes()).toEqual(
+          expect.objectContaining({
+            favoriteJsons: {
+              was: [{ howyadoin: false }],
+              now: [{ howyadoin: true }],
+            },
+          })
+        )
+      })
+    })
+
+    context('jsonb[]', () => {
+      it('correctly diffs jsonb fields', async () => {
+        const model = await ModelForOpenapiTypeSpecs.create({
+          email: 'h@h',
+          passwordDigest: 'abc',
+          favoriteJsonbs: [{ howyadoin: true }],
+        })
+
+        const reloaded = await ModelForOpenapiTypeSpecs.findOrFail(model.id)
+        expect(reloaded.changes()).toEqual({})
+
+        reloaded.favoriteJsonbs = [{ howyadoin: false }]
+        expect(reloaded.changes()).toEqual({
+          favoriteJsonbs: {
+            was: [{ howyadoin: true }],
+            now: [{ howyadoin: false }],
+          },
+        })
+
+        await reloaded.save()
+
+        const reloaded2 = await ModelForOpenapiTypeSpecs.findOrFail(reloaded.id)
+        await reloaded2.update({ favoriteJsonbs: [{ howyadoin: true }] })
+
+        expect(reloaded2.changes()).toEqual(
+          expect.objectContaining({
+            favoriteJsonbs: {
+              was: [{ howyadoin: false }],
+              now: [{ howyadoin: true }],
+            },
+          })
+        )
       })
     })
   })
