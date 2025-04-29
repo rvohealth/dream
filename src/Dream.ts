@@ -2325,12 +2325,23 @@ export default class Dream {
     const returnValues: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
-      if (!dreamInstance) return
+      if (!dreamInstance) return value
 
-      if (bypassUserDefinedSetters && !isJsonColumn(this, attr)) {
+      if (!dreamInstance.columns().has(attr)) {
+        // not a column. set via the setter and return the getter value
+        ;(dreamInstance as any)[attr] = value
+        return (dreamInstance as any)[attr]
+        //
+      } else if (bypassUserDefinedSetters && !isJsonColumn(this, attr)) {
+        // bypass user defined setters, and this field is not json, so set
+        // the attribute directly and return the attribute
         dreamInstance.setAttribute(attr, value)
+        return dreamInstance.getAttribute(attr)
       } else {
+        // don't bypass user defined setters, or this field is json, so set
+        // the attribute directly and return the attribute
         dreamInstance.assignAttribute(attr, value)
+        return dreamInstance.getAttribute(attr)
       }
     }
 
@@ -2365,8 +2376,7 @@ export default class Dream {
           setAttributeOnDreamInstance(foreignKeyTypeField, returnValues[foreignKeyTypeField])
         }
       } else {
-        returnValues[attr] = (attributes as any)[attr]
-        setAttributeOnDreamInstance(attr, returnValues[attr])
+        returnValues[attr] = setAttributeOnDreamInstance(attr, (attributes as any)[attr])
       }
     })
 
@@ -2387,14 +2397,14 @@ export default class Dream {
     columns.forEach(column => {
       // this ensures that the currentAttributes object will contain keys
       // for each of the properties
-      if (this.currentAttributes[column] === undefined) this.currentAttributes[column] = undefined
+      if (this.getAttribute(column as any) === undefined) this.setAttribute(column as any, undefined)
 
       if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
         if (isJsonColumn(this.constructor as typeof Dream, column)) {
           // handle JSON columns
           Object.defineProperty(dreamPrototype, column, {
             get() {
-              const val = this.currentAttributes[column]
+              const val = this.getAttribute(column)
               if (val === null) return null
               if (val === undefined) return undefined
               return JSON.parse(val)
@@ -2415,7 +2425,9 @@ export default class Dream {
                *
                */
               if (this.columnSetterGuardActivated) return
-              this.currentAttributes[column] =
+
+              this.setAttribute(
+                column,
                 val === null
                   ? null
                   : val === undefined
@@ -2423,6 +2435,7 @@ export default class Dream {
                     : isString(val)
                       ? val
                       : JSON.stringify(val)
+              )
             },
 
             configurable: true,
@@ -2431,7 +2444,7 @@ export default class Dream {
           // handle all other columns
           Object.defineProperty(dreamPrototype, column, {
             get() {
-              return this.currentAttributes[column]
+              return this.getAttribute(column)
             },
 
             set(val: any) {
@@ -2449,7 +2462,7 @@ export default class Dream {
                *
                */
               if (this.columnSetterGuardActivated) return
-              this.currentAttributes[column] = val
+              this.setAttribute(column, val)
             },
 
             configurable: true,
@@ -2564,8 +2577,7 @@ export default class Dream {
     attr: Key & string,
     val: any
   ): void {
-    const self = this as any
-    self[attr] = val
+    ;(this as any)[attr] = val
   }
 
   /**
@@ -2580,10 +2592,10 @@ export default class Dream {
    */
   public setAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
-    attr: Key & string,
+    column: Key & string,
     val: any
   ): void {
-    ;(this as any).currentAttributes[attr] = val
+    ;(this as any).currentAttributes[column] = val
   }
 
   /**
@@ -2597,16 +2609,9 @@ export default class Dream {
    */
   public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
-    columnName: Key & string
+    column: Key & string
   ): DreamAttributes<I>[Key] {
-    const columns = (this.constructor as typeof Dream).columns()
-    const self = this as any
-
-    if (columns.has(columnName)) {
-      return self.currentAttributes[columnName]
-    } else {
-      return self[columnName]
-    }
+    return (this as any).currentAttributes[column]
   }
 
   /**
