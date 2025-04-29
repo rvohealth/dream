@@ -1,12 +1,12 @@
 import Dream from '../../Dream.js'
-import { CreateOrFindByExtraOptsForDreamInstance, UpdateablePropertiesForClass } from '../../types/dream.js'
+import { CreateOrFindByExtraOpts, UpdateablePropertiesForClass } from '../../types/dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 
 export default async function findOrCreateBy<T extends typeof Dream>(
   dreamClass: T,
   txn: DreamTransaction<InstanceType<T>> | null = null,
   attributes: UpdateablePropertiesForClass<T>,
-  extraOpts: CreateOrFindByExtraOptsForDreamInstance<InstanceType<T>> = {}
+  extraOpts: CreateOrFindByExtraOpts<T> = {}
 ): Promise<InstanceType<T>> {
   if (txn) {
     const existingRecord = await dreamClass
