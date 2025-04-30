@@ -3,13 +3,13 @@ import {
   SelectQueryBuilder,
   Updateable,
 } from 'kysely'
-import Dream from '../../Dream.ts'
-import { DreamConst } from '../../dream/constants.ts'
-import CalendarDate from '../../helpers/CalendarDate.ts'
-import { DateTime } from '../../helpers/DateTime.ts'
-import { Range } from '../../helpers/range.ts'
-import CurriedOpsStatement from '../../ops/curried-ops-statement.ts'
-import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.ts'
+import Dream from '../../Dream.js'
+import { DreamConst } from '../../dream/constants.js'
+import CalendarDate from '../../helpers/CalendarDate.js'
+import { DateTime } from '../../helpers/DateTime.js'
+import { Range } from '../../helpers/range.js'
+import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
+import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
 import { AssociationTableNames } from '../db.js'
 import {
   DefaultScopeName,
@@ -25,11 +25,11 @@ import {
   TableNameForGlobalModelName,
   TrigramOperator,
 } from '../dream.js'
-import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../utils.ts'
+import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../utils.js'
 import { JoinedAssociation } from '../variadic.js'
-import { BelongsToStatement } from './belongsTo.ts'
-import { HasManyStatement } from './hasMany.ts'
-import { HasOneStatement } from './hasOne.ts'
+import { BelongsToStatement } from './belongsTo.js'
+import { HasManyStatement } from './hasMany.js'
+import { HasOneStatement } from './hasOne.js'
 
 export type MAX_JOINED_TABLES_DEPTH = 25
 

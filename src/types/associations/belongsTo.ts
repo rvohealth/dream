@@ -1,4 +1,4 @@
-import Dream from '../../Dream.ts'
+import Dream from '../../Dream.js'
 import { AssociationTableNames } from '../db.js'
 import {
   DefaultScopeName,

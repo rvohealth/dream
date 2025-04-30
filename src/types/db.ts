@@ -1,4 +1,4 @@
-import { postgresDatatypes } from '../db/dataTypes.ts'
+import { postgresDatatypes } from '../db/dataTypes.js'
 
 export type DbConnectionType = 'primary' | 'replica'
 

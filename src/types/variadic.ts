@@ -1,4 +1,4 @@
-import { Camelized } from '../helpers/stringCasing.ts'
+import { Camelized } from '../helpers/stringCasing.js'
 import { AssociationTableNames } from './db.js'
 import {
   AssociationNamesForTable,
@@ -6,7 +6,7 @@ import {
   JoinAndStatements,
   MAX_VARIADIC_DEPTH,
 } from './dream.js'
-import { Inc, ReadonlyTail } from './utils.ts'
+import { Inc, ReadonlyTail } from './utils.js'
 
 type VALID = 'valid'
 type INVALID = 'invalid'

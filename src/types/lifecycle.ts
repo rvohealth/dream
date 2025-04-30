@@ -1,4 +1,4 @@
-import Dream from '../Dream.ts'
+import Dream from '../Dream.js'
 import { DreamColumnNames } from './dream.js'
 
 export type HookType =

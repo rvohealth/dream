@@ -1,16 +1,21 @@
 import { ColumnType, Updateable } from 'kysely'
-import { STI_SCOPE_NAME } from '../decorators/class/STI.ts'
-import Dream from '../Dream.ts'
-import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.ts'
-import CalendarDate from '../helpers/CalendarDate.ts'
-import { DateTime } from '../helpers/DateTime.ts'
-import OpsStatement from '../ops/ops-statement.ts'
-import DreamSerializer from '../serializer/index.ts'
-import { AssociatedModelParam, OnStatementForAssociation, WhereStatement } from './associations/shared.ts'
+import { STI_SCOPE_NAME } from '../decorators/class/STI.js'
+import Dream from '../Dream.js'
+import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
+import CalendarDate from '../helpers/CalendarDate.js'
+import { DateTime } from '../helpers/DateTime.js'
+import OpsStatement from '../ops/ops-statement.js'
+import DreamSerializer from '../serializer/index.js'
+import {
+  AssociatedModelParam,
+  AssociationStatement,
+  OnStatementForAssociation,
+  WhereStatement,
+} from './associations/shared.js'
 import { AssociationTableNames } from './db.js'
-import { FindEachOpts } from './query.ts'
-import { FilterInterface, Inc } from './utils.ts'
-import { AliasedSchemaAssociation } from './variadic.ts'
+import { FindEachOpts } from './query.js'
+import { FilterInterface, Inc } from './utils.js'
+import { AliasedSchemaAssociation } from './variadic.js'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
@@ -383,12 +388,12 @@ export type PreloadArgumentTypeAssociatedTableNames<
 // end:preload
 
 export type AssociationNameToDreamClassMap = Record<string, typeof Dream>
-export type AssociationNameToAssociationMap = Record<string, AssociationMetadata>
+export type AssociationNameToAssociationMap = Record<string, AssociationStatement>
 export type AssociationNameToAssociationDataAndDreamClassMap = Record<
   string,
   {
     dreamClass: typeof Dream
-    association: AssociationMetadata
+    association: AssociationStatement
   }
 >
 
