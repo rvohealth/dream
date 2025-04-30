@@ -10,7 +10,9 @@ import { UpdateableProperties } from '@rvoh/dream'
 import User from '../../app/models/User.js'
 
 export default async function createUser(attrs: UpdateableProperties<User> = {}) {
-  return await User.create(attrs)
+  return await User.create({
+    ...attrs,
+  })
 }
 `
       )
@@ -36,11 +38,13 @@ import Post from '../../app/models/Post.js'
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.name ??= \`Post name \${++counter}\`
-  attrs.title ??= \`Post title \${counter}\`
-  attrs.body ??= \`Post body \${counter}\`
-  attrs.type ??= 'WeeklyPost'
-  return await Post.create(attrs)
+  return await Post.create({
+    name: \`Post name \${++counter}\`,
+    title: \`Post title \${counter}\`,
+    body: \`Post body \${counter}\`,
+    type: 'WeeklyPost',
+    ...attrs,
+  })
 }
 `
       )
@@ -61,7 +65,9 @@ import { UpdateableProperties } from '@rvoh/dream'
 import Post from '../../app/models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  return await Post.create(attrs)
+  return await Post.create({
+    ...attrs,
+  })
 }
 `
         )
@@ -78,7 +84,9 @@ import { UpdateableProperties } from '@rvoh/dream'
 import MyNestedUser from '../../../../app/models/My/Nested/User.js'
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
-  return await MyNestedUser.create(attrs)
+  return await MyNestedUser.create({
+    ...attrs,
+  })
 }
 `
       )
@@ -100,9 +108,11 @@ import createUser from './UserFactory.js'
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
-  attrs.user ??= await createUser()
-  attrs.name ??= \`Post name \${++counter}\`
-  return await Post.create(attrs)
+  return await Post.create({
+    user: await createUser(),
+    name: \`Post name \${++counter}\`,
+    ...attrs,
+  })
 }
 `
       )
@@ -123,9 +133,11 @@ import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationF
 let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
-  attrs.myNestedDoubleNestedOrganization ??= await createMyNestedDoubleNestedOrganization()
-  attrs.name ??= \`My/Nested/User name \${++counter}\`
-  return await MyNestedUser.create(attrs)
+  return await MyNestedUser.create({
+    myNestedDoubleNestedOrganization: await createMyNestedDoubleNestedOrganization(),
+    name: \`My/Nested/User name \${++counter}\`,
+    ...attrs,
+  })
 }
 `
         )

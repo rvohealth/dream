@@ -42,23 +42,21 @@ export default function generateFactoryContent({
         belongsToNames.push(associationName)
         belongsToTypedNames.push(`${associationName}: ${associationModelName}`)
         additionalImports.push(associationFactoryImportStatement)
-        associationCreationStatements.push(
-          `attrs.${associationName} ??= await create${associationModelName}()`
-        )
+        associationCreationStatements.push(`${associationName}: await create${associationModelName}(),`)
         break
 
       case 'string':
       case 'text':
       case 'citext':
         stringAttributes.push(
-          `attrs.${camelize(attributeName)} ??= \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\``
+          `${camelize(attributeName)}: \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\`,`
         )
         firstStringAttr = false
         break
 
       case 'enum':
         stringAttributes.push(
-          `attrs.${camelize(attributeName)} ??= '${(descriptors[descriptors.length - 1] || '<tbd>').split(',')[0]}'`
+          `${camelize(attributeName)}: '${(descriptors[descriptors.length - 1] || '<tbd>').split(',')[0]}',`
         )
         break
 
@@ -77,9 +75,11 @@ import ${modelClassName} from '${relativePath}'${
   }
 ${stringAttributes.length ? '\nlet counter = 0\n' : ''}
 export default async function create${modelClassName}(attrs: UpdateableProperties<${modelClassName}> = {}) {
-  ${associationCreationStatements.length ? associationCreationStatements.join('\n  ') + '\n  ' : ''}${
-    stringAttributes.length ? stringAttributes.join('\n  ') + '\n  ' : ''
-  }return await ${modelClassName}.create(attrs)
+  return await ${modelClassName}.create({
+    ${associationCreationStatements.length ? associationCreationStatements.join('\n    ') + '\n    ' : ''}${
+      stringAttributes.length ? stringAttributes.join('\n    ') + '\n    ' : ''
+    }...attrs,
+  })
 }
 `
 }
