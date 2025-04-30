@@ -898,14 +898,13 @@ export default class Dream {
   }
 
   /**
-   *
-   * If creation fails due to uniqueness constraint, then find
+   * Attempt to create the model with the given attributes.
+   * If creation fails due to uniqueness constraint, then find and update
    * the existing model. All lifecycle hooks are run for whichever
    * action is taken.
    *
    * This is useful in situations where we want to avoid
    * a race condition creating duplicate records.
-   *
    *
    * IMPORTANT: A unique index/uniqueness constraint must exist on
    * at least one of the provided attributes
