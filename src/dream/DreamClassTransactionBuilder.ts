@@ -1,9 +1,8 @@
-import { SelectArg, SelectExpression, Updateable } from 'kysely'
+import { SelectArg, SelectExpression } from 'kysely'
 import Dream, { CreateOrFindByExtraOpts } from '../Dream.js'
 import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
 import { AssociationTableNames } from '../types/db.js'
 import {
-  CreateOrFindByExtraOptsForDreamInstance,
   DefaultScopeName,
   DreamColumnNames,
   OrderDir,
@@ -32,7 +31,6 @@ import DreamTransaction from './DreamTransaction.js'
 import saveDream from './internal/saveDream.js'
 import Query from './Query.js'
 import findOrCreateBy from './internal/findOrCreateBy.js'
-import ApplicationModel from '../../test-app/app/models/ApplicationModel.js'
 import updateOrCreateBy from './internal/updateOrCreateBy.js'
 
 export default class DreamClassTransactionBuilder<
