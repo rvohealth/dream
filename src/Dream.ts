@@ -936,12 +936,8 @@ export default class Dream {
         const { with: attrs } = extraOpts
 
         if (existingRecord) {
-          if (attrs) {
-            existingRecord.assignAttributes(attrs)
-            return await saveDream(existingRecord, null, skipHooks ? { skipHooks } : undefined)
-          } else {
-            return existingRecord
-          }
+          existingRecord.assignAttributes(attrs ?? {})
+          return await saveDream(existingRecord, null, skipHooks ? { skipHooks } : undefined)
         }
       }
       throw err
