@@ -1,5 +1,5 @@
 import { SelectArg, SelectExpression } from 'kysely'
-import Dream, { CreateOrFindByExtraOpts } from '../Dream.js'
+import Dream from '../Dream.js'
 import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
 import { AssociationTableNames } from '../types/db.js'
 import {
