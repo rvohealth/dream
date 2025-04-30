@@ -3,6 +3,7 @@ import Dream from '../Dream.js'
 import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
 import { AssociationTableNames } from '../types/db.js'
 import {
+  CreateOrFindByExtraOpts,
   DefaultScopeName,
   DreamColumnNames,
   OrderDir,
