@@ -75,11 +75,15 @@ describe('Dream.createOrUpdateBy', () => {
     })
 
     it('returns the existing record if there are no updates to with', async () => {
-      await user.update({ favoriteWord: 'hi' })
-      const u = await User.createOrUpdateBy({ email: 'trace@trace', favoriteWord: 'hi', password: 'hi' })
+      await Pet.create({ species: 'dog', name: 'Baron' })
 
-      expect(u.email).toEqual('trace@trace')
-      expect(u.favoriteWord).toEqual('hi')
+      const p = await Pet.createOrUpdateBy({
+        species: 'dog',
+        name: 'Baron',
+      })
+
+      expect(p.species).toEqual('dog')
+      expect(p.name).toEqual('Baron')
     })
 
     it('respects associations in primary opts with user', async () => {
