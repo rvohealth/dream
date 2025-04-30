@@ -1,3 +1,4 @@
+import CreateOrUpdateByFailedToCreateAndUpdate from '../../../src/errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -73,9 +74,9 @@ describe('Dream.createOrUpdateBy', () => {
       expect(await user!.checkPassword('newpassword')).toEqual(true)
     })
 
-    it.only('returns the existing record if there are no updates to with', async () => {
+    it('returns the existing record if there are no updates to with', async () => {
       await user.update({ favoriteWord: 'hi' })
-      const u = await User.createOrUpdateBy({ email: 'trace@trace', favoriteWord: 'hi' })
+      const u = await User.createOrUpdateBy({ email: 'trace@trace', favoriteWord: 'hi', password: 'hi' })
 
       expect(u.email).toEqual('trace@trace')
       expect(u.favoriteWord).toEqual('hi')
@@ -131,4 +132,26 @@ describe('Dream.createOrUpdateBy', () => {
       })
     })
   })
+
+  context(
+    'when createOrUpdateBy attribute doesn’t match an existing record, but a `with` field conflicts with an existing record',
+    () => {
+      beforeEach(async () => {
+        await User.create({
+          email: 'fred@fred',
+          socialSecurityNumber: '1234567890',
+          password: 'howyadoin',
+        })
+      })
+
+      it('throws CreateOrUpdateByFailedToCreateAndUpdate', async () => {
+        await expect(
+          User.createOrUpdateBy(
+            { email: 'howya@doin' },
+            { with: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+          )
+        ).rejects.toThrow(CreateOrUpdateByFailedToCreateAndUpdate)
+      })
+    }
+  )
 })

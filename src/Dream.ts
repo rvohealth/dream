@@ -114,6 +114,7 @@ import {
 } from './types/variadic.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 import updateOrCreateBy from './dream/internal/updateOrCreateBy.js'
+import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 
 export default class Dream {
   public DB: any
@@ -932,6 +933,7 @@ export default class Dream {
     } catch (err) {
       if (pgErrorType(err) === 'UNIQUE_CONSTRAINT_VIOLATION') {
         const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
+        if (!existingRecord) throw new CreateOrUpdateByFailedToCreateAndUpdate(this)
         const { with: attrs } = extraOpts
 
         if (existingRecord) {
