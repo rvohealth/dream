@@ -13,15 +13,14 @@ export default async function saveDream<DreamInstance extends Dream>(
   txn: DreamTransaction<Dream> | null = null,
   { skipHooks = false }: { skipHooks?: boolean } = {}
 ): Promise<DreamInstance> {
-  const db = txn?.kyselyTransaction || _db('primary')
+  const db = txn?.kyselyTransaction ?? _db('primary')
 
   const alreadyPersisted = dream.isPersisted
 
   if (!skipHooks) {
-    if (alreadyPersisted)
-      await runHooksFor('beforeUpdate', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
-    else await runHooksFor('beforeCreate', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
-    await runHooksFor('beforeSave', dream, alreadyPersisted, null, txn as DreamTransaction<any>)
+    if (alreadyPersisted) await runHooksFor('beforeUpdate', dream, alreadyPersisted, null, txn)
+    else await runHooksFor('beforeCreate', dream, alreadyPersisted, null, txn)
+    await runHooksFor('beforeSave', dream, alreadyPersisted, null, txn)
   }
 
   const beforeSaveChanges = dream.changes()
@@ -65,39 +64,19 @@ export default async function saveDream<DreamInstance extends Dream>(
   dream['originalAttributes'] = dream.getAttributes()
 
   if (!skipHooks) {
-    await runHooksFor('afterSave', dream, alreadyPersisted, beforeSaveChanges, txn as DreamTransaction<any>)
-    if (alreadyPersisted)
-      await runHooksFor(
-        'afterUpdate',
-        dream,
-        alreadyPersisted,
-        beforeSaveChanges,
-        txn as DreamTransaction<any>
-      )
-    else
-      await runHooksFor(
-        'afterCreate',
-        dream,
-        alreadyPersisted,
-        beforeSaveChanges,
-        txn as DreamTransaction<any>
-      )
+    await runHooksFor('afterSave', dream, alreadyPersisted, beforeSaveChanges, txn)
+    if (alreadyPersisted) await runHooksFor('afterUpdate', dream, alreadyPersisted, beforeSaveChanges, txn)
+    else await runHooksFor('afterCreate', dream, alreadyPersisted, beforeSaveChanges, txn)
 
     await runHooksFor(
       alreadyPersisted ? 'afterUpdateCommit' : 'afterCreateCommit',
       dream,
       alreadyPersisted,
       beforeSaveChanges,
-      txn as DreamTransaction<any>
+      txn
     )
 
-    await runHooksFor(
-      'afterSaveCommit',
-      dream,
-      alreadyPersisted,
-      beforeSaveChanges,
-      txn as DreamTransaction<any>
-    )
+    await runHooksFor('afterSaveCommit', dream, alreadyPersisted, beforeSaveChanges, txn)
   }
 
   return dream

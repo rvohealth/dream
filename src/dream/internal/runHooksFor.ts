@@ -7,7 +7,7 @@ export default async function runHooksFor<T extends Dream>(
   dream: T,
   alreadyPersisted: boolean,
   beforeSaveChanges: Partial<Record<string, { was: any; now: any }>> | null,
-  txn?: DreamTransaction<any>
+  txn: DreamTransaction<any> | null
 ): Promise<void> {
   const Base = dream.constructor as typeof Dream
   for (const hook of Base['hooks'][key]) {
@@ -49,7 +49,7 @@ export default async function runHooksFor<T extends Dream>(
         case 'afterCreateCommit':
           if (shouldRunAfterCreateHook(dream, hook, beforeSaveChanges)) {
             if (txn) txn.addCommitHook(hook, dream)
-            else await runHook(hook, dream)
+            else await runHook(hook, dream, null)
           }
           break
 
@@ -68,7 +68,7 @@ export default async function runHooksFor<T extends Dream>(
             (!alreadyPersisted && shouldRunAfterCreateHook(dream, hook, beforeSaveChanges))
           ) {
             if (txn) txn.addCommitHook(hook, dream)
-            else await runHook(hook, dream)
+            else await runHook(hook, dream, null)
           }
           break
 
@@ -81,7 +81,7 @@ export default async function runHooksFor<T extends Dream>(
         case 'afterUpdateCommit':
           if (shouldRunAfterUpdateHook(dream, hook)) {
             if (txn) txn.addCommitHook(hook, dream)
-            else await runHook(hook, dream)
+            else await runHook(hook, dream, null)
           }
 
           break
@@ -96,7 +96,7 @@ export default async function runHooksFor<T extends Dream>(
         case 'afterUpdateCommit':
         case 'afterDestroyCommit':
           if (txn) txn.addCommitHook(hook, dream)
-          else await runHook(hook, dream)
+          else await runHook(hook, dream, null)
           break
 
         default:
@@ -109,7 +109,7 @@ export default async function runHooksFor<T extends Dream>(
 export async function runHook<T extends Dream>(
   statement: HookStatement,
   dream: T,
-  txn?: DreamTransaction<any>
+  txn: DreamTransaction<any> | null
 ) {
   if (typeof (dream as any)[statement.method] !== 'function') {
     throw new Error(

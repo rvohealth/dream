@@ -60,7 +60,7 @@ async function destroyDreamWithTransaction<I extends Dream>(
   await maybeDestroyDream(dream, txn, reallyDestroy)
 
   if (!skipHooks) {
-    await runHooksFor('afterDestroy', dream, true, null, txn || undefined)
+    await runHooksFor('afterDestroy', dream, true, null, txn)
     await runHooksFor('afterDestroyCommit', dream, true, null, txn)
   }
 
