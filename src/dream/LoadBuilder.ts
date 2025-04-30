@@ -8,7 +8,6 @@ import Query from './Query.js'
 
 export default class LoadBuilder<DreamInstance extends Dream> {
   private dream: Dream
-  private dreamTransaction: DreamTransaction<any> | undefined
   private query: QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload<Query<DreamInstance>>
 
   /**
@@ -21,7 +20,10 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    * await user.load('settings').execute()
    * ```
    */
-  constructor(dream: Dream, txn?: DreamTransaction<any>) {
+  constructor(
+    dream: Dream,
+    private dreamTransaction?: DreamTransaction<any> | null
+  ) {
     this.dream = dream['clone']()
 
     // Load queries start from the table corresponding to an instance
@@ -31,7 +33,6 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     // to other associations (thus the use of `removeAllDefaultScopesExceptOnAssociations`
     // instead of `removeAllDefaultScopes`).
     this.query = (this.dream as any).query()['removeAllDefaultScopesExceptOnAssociations']()
-    this.dreamTransaction = txn
   }
 
   public passthrough<

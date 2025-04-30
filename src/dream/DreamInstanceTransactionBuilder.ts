@@ -49,19 +49,16 @@ import LoadBuilder from './LoadBuilder.js'
 import Query from './Query.js'
 
 export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream> {
-  public dreamInstance: DreamInstance
-  public dreamTransaction: DreamTransaction<Dream>
-
   /**
    * Constructs a new DreamInstanceTransactionBuilder.
    *
    * @param dreamInstance - The Dream instance to build the transaction for
    * @param txn - The DreamTransaction instance
    */
-  constructor(dreamInstance: DreamInstance, txn: DreamTransaction<Dream>) {
-    this.dreamInstance = dreamInstance
-    this.dreamTransaction = txn
-  }
+  constructor(
+    private dreamInstance: DreamInstance,
+    private dreamTransaction: DreamTransaction<Dream> | null
+  ) {}
 
   /**
    * Loads the requested associations upon execution

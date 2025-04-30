@@ -1493,7 +1493,7 @@ export default class Query<
    * @returns A cloned Query with the transaction applied
    *
    */
-  public txn(dreamTransaction: DreamTransaction<Dream>) {
+  public txn(dreamTransaction: DreamTransaction<Dream> | null) {
     return this.clone({ transaction: dreamTransaction })
   }
 

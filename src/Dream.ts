@@ -26,6 +26,7 @@ import {
 } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
 import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js'
+import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 import reload from './dream/internal/reload.js'
 import runValidations from './dream/internal/runValidations.js'
 import saveDream from './dream/internal/saveDream.js'
@@ -35,6 +36,7 @@ import {
   DEFAULT_SKIP_HOOKS,
 } from './dream/internal/scopeHelpers.js'
 import undestroyDream from './dream/internal/undestroyDream.js'
+import updateOrCreateBy from './dream/internal/updateOrCreateBy.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
 import LoadBuilder from './dream/LoadBuilder.js'
 import Query from './dream/Query.js'
@@ -48,6 +50,7 @@ import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import MissingSerializer from './errors/MissingSerializersDefinition.js'
@@ -112,9 +115,6 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
-import findOrCreateBy from './dream/internal/findOrCreateBy.js'
-import updateOrCreateBy from './dream/internal/updateOrCreateBy.js'
-import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 
 export default class Dream {
   public DB: any
@@ -1664,7 +1664,7 @@ export default class Dream {
    */
   public static txn<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    txn: DreamTransaction<I>
+    txn: DreamTransaction<I> | null
   ): DreamClassTransactionBuilder<T, I> {
     return new DreamClassTransactionBuilder<T, I>(this, txn)
   }
@@ -3830,7 +3830,10 @@ export default class Dream {
    * @param txn - A DreamTransaction instance (collected by calling `ApplicationModel.transaction`)
    * @returns A Query scoped to this model with the transaction applied
    */
-  public txn<I extends Dream>(this: I, txn: DreamTransaction<Dream>): DreamInstanceTransactionBuilder<I> {
+  public txn<I extends Dream>(
+    this: I,
+    txn: DreamTransaction<Dream> | null
+  ): DreamInstanceTransactionBuilder<I> {
     return new DreamInstanceTransactionBuilder<I>(this, txn)
   }
 
