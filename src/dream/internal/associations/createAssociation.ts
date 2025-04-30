@@ -53,11 +53,8 @@ export default async function createAssociation<
         modifiedOpts[hasAssociation.foreignKeyTypeField()] = dream['stiBaseClassOrOwnClassName']
       }
 
-      if (txn) {
-        hasresult = await associationClass.txn(txn).create(modifiedOpts)
-      } else {
-        hasresult = await associationClass.create(modifiedOpts)
-      }
+      hasresult = await associationClass.txn(txn).create(modifiedOpts)
+
       return hasresult! as NonNullable<AssociationType>
 
     case 'BelongsTo':

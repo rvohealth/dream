@@ -17,6 +17,17 @@ describe('ApplicationModel.transaction', () => {
     expect(user.email).toEqual('fred@fishman')
   })
 
+  it('txn can receive null', async () => {
+    const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+
+    await Composition.txn(null).create({ user })
+    await user.txn(null).update({ email: 'fred@fishman' })
+
+    expect(await Composition.count()).toEqual(1)
+    await User.find(user.id)
+    expect(user.email).toEqual('fred@fishman')
+  })
+
   it('returns whatever was returned in the underlying callback', async () => {
     const res = await ApplicationModel.transaction(async txn => {
       await User.txn(txn).first()

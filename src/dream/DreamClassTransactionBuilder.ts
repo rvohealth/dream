@@ -29,10 +29,10 @@ import {
   VariadicLoadArgs,
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
-import saveDream from './internal/saveDream.js'
-import Query from './Query.js'
 import findOrCreateBy from './internal/findOrCreateBy.js'
+import saveDream from './internal/saveDream.js'
 import updateOrCreateBy from './internal/updateOrCreateBy.js'
+import Query from './Query.js'
 
 export default class DreamClassTransactionBuilder<
   DreamClass extends typeof Dream,
@@ -47,8 +47,8 @@ export default class DreamClassTransactionBuilder<
    * @param txn - The DreamTransaction instance
    */
   constructor(
-    public dreamClass: DreamClass,
-    public dreamTransaction: DreamTransaction<Dream>
+    private dreamClass: DreamClass,
+    private dreamTransaction: DreamTransaction<Dream> | null
   ) {
     this.dreamInstance = dreamClass.prototype as DreamInstance
   }
