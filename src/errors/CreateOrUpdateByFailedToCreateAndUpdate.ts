@@ -10,9 +10,9 @@ export default class CreateOrUpdateByFailedToCreateAndUpdate extends Error {
 
   public override get message() {
     return `
-Failed to create instance of ${this.dreamClass.sanitizedName} and no matching model exists.
+Failed to create instance of ${this.dreamClass.sanitizedName} and no matching model exists to update.
 
-The likely cause is that one of the \`createWith\` fields violates
+The likely cause is that one of the \`with\` fields violates
 a uniqueness constraint.
     `
   }
