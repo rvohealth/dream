@@ -24,12 +24,8 @@ export default async function updateOrCreateBy<T extends typeof Dream>(
   const { with: attrs, skipHooks } = extraOpts
 
   if (existingRecord) {
-    if (attrs) {
-      existingRecord.assignAttributes(attrs)
-      return await saveDream(existingRecord, txn, skipHooks ? { skipHooks } : undefined)
-    } else {
-      return existingRecord
-    }
+    existingRecord.assignAttributes(attrs ?? {})
+    return await saveDream(existingRecord, txn, skipHooks ? { skipHooks } : undefined)
   }
 
   if (txn) {
