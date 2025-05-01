@@ -31,7 +31,9 @@ import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import DreamSerializer from '../serializer/index.js'
 import { DbConnectionType } from '../types/db.js'
+import { DreamApplicationLoadable } from '../types/dream-app.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
+import importInitializers, { getInitializersOrBlank } from './helpers/importers/importInitializers.js'
 import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
 import importSerializers, {
   getSerializersOrFail,
@@ -67,6 +69,10 @@ export default class DreamApp {
     await dreamApp.inflections?.()
 
     await deferCb?.(dreamApp)
+
+    for (const initializerCb of Object.values(DreamApp.getInitializersOrBlank())) {
+      await initializerCb(dreamApp)
+    }
 
     for (const plugin of dreamApp.plugins) {
       await plugin(dreamApp)
@@ -193,6 +199,10 @@ Try setting it to something valid, like:
    */
   public static getOrFail() {
     return getCachedDreamAppOrFail()
+  }
+
+  public static getInitializersOrBlank() {
+    return getInitializersOrBlank()
   }
 
   public static log(...args: any[]) {
@@ -329,7 +339,7 @@ Try setting it to something valid, like:
     )
   }
 
-  public async load<RT extends 'models' | 'serializers'>(
+  public async load<RT extends DreamApplicationLoadable>(
     resourceType: RT,
     resourcePath: string,
     importCb: (path: string) => Promise<any>
@@ -342,6 +352,10 @@ Try setting it to something valid, like:
 
       case 'serializers':
         await importSerializers(resourcePath, importCb)
+        break
+
+      case 'initializers':
+        await importInitializers(resourcePath, importCb)
         break
     }
   }

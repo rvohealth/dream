@@ -8,6 +8,11 @@ export default async function (dreamApp: DreamApp) {
   const projectRoot = srcPath('..')
   await dreamApp.load('models', srcPath('app', 'models'), async path => (await import(path)).default)
   await dreamApp.load('serializers', srcPath('app', 'serializers'), async path => await import(path))
+  await dreamApp.load(
+    'initializers',
+    srcPath('app', 'conf', 'initializers'),
+    async path => (await import(path)).default
+  )
 
   dreamApp.set('encryption', {
     columns: {
