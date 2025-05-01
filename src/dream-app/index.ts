@@ -9,6 +9,7 @@
 import pg from 'pg'
 
 import { CompiledQuery } from 'kysely'
+import * as util from 'node:util'
 import { Context } from 'node:vm'
 import db from '../db/index.js'
 import validateTable from '../db/validators/validateTable.js'
@@ -17,6 +18,7 @@ import { primaryKeyTypes } from '../dream/constants.js'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
 import DreamAppInitMissingCallToLoadModels from '../errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
+import CalendarDate from '../helpers/CalendarDate.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -25,7 +27,7 @@ import {
   parsePostgresDatetime,
   parsePostgresDecimal,
 } from '../helpers/customPgParsers.js'
-import { Settings } from '../helpers/DateTime.js'
+import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import DreamSerializer from '../serializer/index.js'
 import { DbConnectionType } from '../types/db.js'
@@ -202,7 +204,7 @@ Try setting it to something valid, like:
   }
 
   private static argsToString(args: any[]) {
-    return args.map(str => `${str}`).join(' ')
+    return args.map(argToString).join(' ')
   }
 
   private _specialHooks: DreamAppSpecialHooks = {
@@ -439,6 +441,14 @@ Try setting it to something valid, like:
         break
     }
   }
+}
+
+function argToString(arg: any) {
+  if (typeof arg === 'string') return arg
+  if (typeof arg === 'number') return arg
+  if (typeof arg === 'boolean') return arg
+  if (arg instanceof DateTime || arg instanceof CalendarDate) return arg.toISO()
+  return util.inspect(arg, { depth: 3 })
 }
 
 export type DreamHookEventType = 'db:log' | 'repl:start'

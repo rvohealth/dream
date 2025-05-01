@@ -1,6 +1,5 @@
-import { DateTime } from 'luxon'
 import areEqual from '../../../src/helpers/areEqual.js'
-import { CalendarDate } from '../../../src/index.js'
+import { CalendarDate, DateTime } from '../../../src/index.js'
 import GraphNode from '../../../test-app/app/models/Graph/Node.js'
 
 describe('areEqual', () => {
