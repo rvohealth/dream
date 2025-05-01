@@ -39,6 +39,7 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
+import { Command } from 'commander'
 
 const pgTypes = pg.types
 
@@ -220,6 +221,7 @@ Try setting it to something valid, like:
   private _specialHooks: DreamAppSpecialHooks = {
     dbLog: [],
     replStart: [],
+    cliStart: [],
   }
   public get specialHooks() {
     return this._specialHooks
@@ -443,7 +445,9 @@ Try setting it to something valid, like:
       ? (event: KyselyLogEvent) => void
       : T extends 'repl:start'
         ? (context: Context) => void | Promise<void>
-        : never
+        : T extends 'cli:start'
+          ? (program: Command) => void | Promise<void>
+          : never
   ) {
     switch (hookEventType) {
       case 'db:log':
@@ -452,6 +456,10 @@ Try setting it to something valid, like:
 
       case 'repl:start':
         this._specialHooks.replStart.push(cb as (context: Context) => void | Promise<void>)
+        break
+
+      case 'cli:start':
+        this._specialHooks.cliStart.push(cb as (program: Command) => void | Promise<void>)
         break
     }
   }
@@ -465,7 +473,7 @@ function argToString(arg: any) {
   return util.inspect(arg, { depth: 3 })
 }
 
-export type DreamHookEventType = 'db:log' | 'repl:start'
+export type DreamHookEventType = 'db:log' | 'repl:start' | 'cli:start'
 
 export interface DreamAppOpts {
   projectRoot: string
@@ -535,6 +543,7 @@ interface SegmentedEncryptionOptions {
 export interface DreamAppSpecialHooks {
   dbLog: ((event: KyselyLogEvent) => void)[]
   replStart: ((context: Context) => void | Promise<void>)[]
+  cliStart: ((program: Command) => void | Promise<void>)[]
 }
 
 export interface DreamAppInitOptions {

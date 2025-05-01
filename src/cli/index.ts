@@ -11,7 +11,7 @@ export default class DreamCLI {
    * use this method for initializing a standalone dream application. If using Psychic and Dream together,
    * a different pattern is used, which leverages the `generateDreamCli` method instead.
    */
-  public static provide(
+  public static async provide(
     program: Command,
     {
       initializeDreamApp,
@@ -38,6 +38,10 @@ export default class DreamCLI {
       seedDb,
       onSync: () => {},
     })
+
+    for (const hook of DreamApp.getOrFail().specialHooks.cliStart) {
+      await hook(program)
+    }
   }
 
   /**

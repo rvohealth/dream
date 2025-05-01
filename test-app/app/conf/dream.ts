@@ -93,6 +93,16 @@ export default async function (dreamApp: DreamApp) {
   dreamApp.on('repl:start', context => {
     context.__REPL_HOOK_TEST = true
   })
+
+  dreamApp.on('cli:start', program => {
+    program
+      .command('cli-start-hooks:test')
+      .description('this is a test of out cli:start hooks')
+      .action(() => {
+        console.log('cli:start hooks are working!')
+        process.exit()
+      })
+  })
 }
 
 function maskPII(data: unknown) {

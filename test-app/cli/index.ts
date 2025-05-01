@@ -20,17 +20,23 @@ import initializeDreamApp from './helpers/initializeDreamApp.js'
 
 const program = new Command()
 
-program
-  .command('build:docs')
-  .description('builds docs for the dream repository')
-  .action(async () => {
-    await DreamBin['buildDocs']()
-    process.exit()
+async function buildProgram() {
+  await initializeDreamApp()
+
+  program
+    .command('build:docs')
+    .description('builds docs for the dream repository')
+    .action(async () => {
+      await DreamBin['buildDocs']()
+      process.exit()
+    })
+
+  await DreamCLI.provide(program, {
+    initializeDreamApp,
+    seedDb: async () => {},
   })
 
-DreamCLI.provide(program, {
-  initializeDreamApp,
-  seedDb: async () => {},
-})
+  program.parse(process.argv)
+}
 
-program.parse(process.argv)
+void buildProgram()
