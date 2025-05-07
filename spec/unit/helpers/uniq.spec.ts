@@ -3,7 +3,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import GraphNode from '../../../test-app/app/models/Graph/Node.js'
 
 describe('uniq', () => {
-  context('when the first element is a Dream', () => {
+  context('comparing Dream models', () => {
     beforeEach(async () => {})
 
     it('uses the custom Dream comparator', async () => {
@@ -41,7 +41,7 @@ describe('uniq', () => {
     })
   })
 
-  context('when the first element is not a Dream', () => {
+  context('when the elements are strings', () => {
     it('it compares the items directly', () => {
       expect(uniq(['world', 'hello', 'hello'])).toEqual(['world', 'hello'])
     })

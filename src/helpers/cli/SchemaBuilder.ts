@@ -10,6 +10,7 @@ import { SerializableDreamClassOrViewModelClass } from '../../types/dream.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
 import EnvInternal from '../EnvInternal.js'
+import intersection from '../intersection.js'
 import pascalize from '../pascalize.js'
 import sortBy from '../sortBy.js'
 import uniq from '../uniq.js'
@@ -176,10 +177,10 @@ ${tableName}: {
 
   private async tableData(tableName: string) {
     const dreamApp = DreamApp.getOrFail()
-    const models = Object.values(dreamApp.models)
-    const model = models.find(model => model.table === tableName)
+    const models = Object.values(dreamApp.models).filter(model => model.table === tableName)
+    const maybeModel = models[0]
 
-    if (!model)
+    if (!maybeModel)
       throw new Error(`
 Could not find a Dream model with table "${tableName}".
 
@@ -187,28 +188,48 @@ If you recently changed the name of a table in a migration, you
 may need to update the table getter in the corresponding Dream.
 `)
 
+    const baseModel = maybeModel['stiBaseClassOrOwnClass']
+
     const associationData = this.getAssociationData(tableName)
-    let serializers: any
-    try {
-      serializers =
-        (model as unknown as SerializableDreamClassOrViewModelClass)?.prototype?.['serializers'] || {}
-    } catch {
-      serializers = {}
-    }
+    const allStiChildren = models.filter(model => model['isSTIChild'])
+    const modelsToCheck = allStiChildren.length ? allStiChildren : [baseModel]
+
+    // If a table is STI, then we look only at the serializers attached to
+    // all STI children (not the STI base model because the base model may not have any serializers)
+    const eachModelSerializerKeys = modelsToCheck.map(model => {
+      let serializers: Record<string, string> = {}
+
+      try {
+        serializers =
+          (model as unknown as SerializableDreamClassOrViewModelClass)?.prototype?.['serializers'] || {}
+      } catch {
+        // no-op
+      }
+
+      return Object.keys(serializers)
+    })
+
+    const serializerKeys = intersection(...eachModelSerializerKeys)
 
     return {
-      primaryKey: model.prototype.primaryKey,
-      createdAtField: model.prototype.createdAtField,
-      updatedAtField: model.prototype.updatedAtField,
-      deletedAtField: model.prototype.deletedAtField,
+      primaryKey: baseModel.prototype.primaryKey,
+      createdAtField: baseModel.prototype.createdAtField,
+      updatedAtField: baseModel.prototype.updatedAtField,
+      deletedAtField: baseModel.prototype.deletedAtField,
       scopes: {
-        default: model['scopes'].default.map(scopeStatement => scopeStatement.method),
-        named: model['scopes'].named.map(scopeStatement => scopeStatement.method),
+        default: uniq(
+          models.flatMap(model => model['scopes'].default.map(scopeStatement => scopeStatement.method))
+        ),
+        named: uniq(
+          models.flatMap(model => model['scopes'].named.map(scopeStatement => scopeStatement.method))
+        ),
       },
       columns: await this.getColumnData(tableName, associationData),
-      virtualColumns: this.getVirtualColumns(tableName),
+      virtualColumns: uniq(
+        models.flatMap(model => model['virtualAttributes'].map(prop => prop.property) || [])
+      ),
       associations: associationData,
-      serializerKeys: Object.keys(serializers),
+      serializerKeys,
     }
   }
 
@@ -251,13 +272,6 @@ may need to update the table getter in the corresponding Dream.
   private enumType(row: InformationSchemaRow) {
     const enumName = pascalize(row.udtName.replace(/\[\]$/, ''))
     return enumName
-  }
-
-  private getVirtualColumns(tableName: string) {
-    const dreamApp = DreamApp.getOrFail()
-    const models = sortBy(Object.values(dreamApp.models), m => m.table)
-    const model = models.find(model => model.table === tableName)
-    return model?.['virtualAttributes']?.map(prop => prop.property) || []
   }
 
   private async getSchemaData() {

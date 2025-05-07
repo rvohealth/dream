@@ -147,6 +147,15 @@ describe('SchemaBuilder', () => {
       it('sets the serializerKeys', () => {
         expect(User.prototype.schema.users.serializerKeys).toEqual(['default', 'summary'])
       })
+
+      context('on an STI table name', () => {
+        it('is all the serializers available across all STI children', () => {
+          expect(User.prototype.schema.beautiful_balloons.serializerKeys).toEqual([
+            'allBalloonStiChildren',
+            'default',
+          ])
+        })
+      })
     })
 
     context('updatedAtField', () => {

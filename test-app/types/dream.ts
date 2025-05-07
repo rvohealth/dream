@@ -324,7 +324,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['allBalloonStiChildren', 'default'],
     scopes: {
       default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],
@@ -1048,7 +1048,7 @@ export const schema = {
     deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
-      default: [],
+      default: ['dream:STI'],
       named: [],
     },
     columns: {

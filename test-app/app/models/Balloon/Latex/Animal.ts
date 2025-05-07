@@ -1,4 +1,5 @@
 import STI from '../../../../../src/decorators/class/STI.js'
+import { DreamSerializers } from '../../../../../src/types/dream.js'
 import { BalloonTypesEnum } from '../../../../types/db.js'
 import Latex from '../Latex.js'
 
@@ -10,5 +11,12 @@ export default class Animal extends Latex {
 
   public override set type(newType: BalloonTypesEnum) {
     ;(this as Animal).setAttribute('type', 'Animal')
+  }
+
+  public override get serializers(): DreamSerializers<Latex> {
+    return {
+      default: 'BalloonSummarySerializer',
+      allBalloonStiChildren: 'BalloonSummarySerializer',
+    }
   }
 }

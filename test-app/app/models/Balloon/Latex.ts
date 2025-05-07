@@ -1,4 +1,5 @@
 import STI from '../../../../src/decorators/class/STI.js'
+import { DreamSerializers } from '../../../../src/types/dream.js'
 import Balloon from '../Balloon.js'
 
 // esbuild will sometimes translate class definitions to have a prefixing
@@ -9,4 +10,12 @@ import Balloon from '../Balloon.js'
 //
 // see https://github.com/evanw/esbuild/issues/1260 for more info
 @STI(Balloon)
-export default class _Latex extends Balloon {}
+export default class _Latex extends Balloon {
+  public get serializers(): DreamSerializers<Balloon> {
+    return {
+      default: 'BalloonSummarySerializer',
+      latexOnly: 'BalloonSummarySerializer',
+      allBalloonStiChildren: 'BalloonSummarySerializer',
+    }
+  }
+}
