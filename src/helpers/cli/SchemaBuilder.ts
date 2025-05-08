@@ -6,7 +6,6 @@ import _db from '../../db/index.js'
 import DreamApp from '../../dream-app/index.js'
 import { DreamConst } from '../../dream/constants.js'
 import FailedToIdentifyAssociation from '../../errors/schema-builder/FailedToIdentifyAssociation.js'
-import { SerializableDreamClassOrViewModelClass } from '../../types/dream.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
 import EnvInternal from '../EnvInternal.js'
@@ -200,8 +199,7 @@ may need to update the table getter in the corresponding Dream.
       let serializers: Record<string, string> = {}
 
       try {
-        serializers =
-          (model as unknown as SerializableDreamClassOrViewModelClass)?.prototype?.['serializers'] || {}
+        serializers = (model as any)?.prototype?.['serializers'] || {}
       } catch {
         // no-op
       }

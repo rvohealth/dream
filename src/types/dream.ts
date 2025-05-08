@@ -356,20 +356,10 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 export type ViewModel = { serializers: Record<string, string> }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
-export type SerializableDreamOrViewModel = ViewModel
-export type SerializableDreamClassOrViewModelClass = abstract new (
-  ...args: any
-) => SerializableDreamOrViewModel
-
 export type DreamSerializerCallback = () => typeof DreamSerializer
-export type SerializableClassOrSerializerCallback =
-  | SerializableDreamClassOrViewModelClass
-  | DreamSerializerCallback
+export type SerializableClassOrSerializerCallback = ViewModelClass | DreamSerializerCallback
 
-export type SerializableClassOrClasses =
-  | DreamSerializerCallback
-  | SerializableDreamClassOrViewModelClass
-  | SerializableDreamClassOrViewModelClass[]
+export type SerializableClassOrClasses = DreamSerializerCallback | ViewModelClass | ViewModelClass[]
 
 // preload
 export type NextPreloadArgumentType<
@@ -447,15 +437,36 @@ export type DreamSerializeOptions<T> = {
   casing?: 'camel' | 'snake' | null
 }
 
+export type DreamOrViewModelClassSerializerKey<T> = T extends typeof Dream
+  ? DreamSerializerKey<InstanceType<T>>
+  : T extends ViewModelClass
+    ? ViewModelSerializerKey<InstanceType<T>>
+    : never
+
 export type DreamOrViewModelSerializerKey<T> = T extends Dream
   ? DreamSerializerKey<T>
   : ViewModelSerializerKey<T>
 
+export type DreamSerializable = typeof Dream | ViewModelClass | typeof DreamSerializer
+
+export type DreamSerializableArray<
+  StartingArray extends readonly DreamSerializable[] = [],
+  Depth extends number = 0,
+> = Depth extends 20
+  ? StartingArray
+  : StartingArray | DreamSerializableArray<[DreamSerializable, ...StartingArray], Inc<Depth>>
+
+export type DreamOrViewModelClassSerializerArrayKeys<T extends DreamSerializableArray> = T['length'] extends 0
+  ? string
+  : T[0] extends typeof Dream | ViewModelClass
+    ? DreamOrViewModelClassSerializerKey<T[0]> &
+        DreamOrViewModelClassSerializerArrayKeys<T extends [any, ...infer Rest] ? Rest : never>
+    : DreamOrViewModelClassSerializerArrayKeys<T extends [any, ...infer Rest] ? Rest : never>
+
 export type DreamSerializerKey<
   T,
-  U = T extends (infer R)[] ? R : T,
-  Table = U['table' & keyof U] extends string ? U['table' & keyof U] : never,
-  Schema = U['schema' & keyof U] extends object ? U['schema' & keyof U] : never,
+  Table = T['table' & keyof T] extends string ? T['table' & keyof T] : never,
+  Schema = T['schema' & keyof T] extends object ? T['schema' & keyof T] : never,
   TableSchema = Table extends never ? never : Schema extends never ? never : Schema[Table & keyof Schema],
   SerializerKeys = TableSchema extends never
     ? never
@@ -465,11 +476,10 @@ export type DreamSerializerKey<
 
 export type ViewModelSerializerKey<
   T,
-  U = T extends (infer R)[] ? R : T,
-  SerializerType = U extends null
+  SerializerType = T extends null
     ? never
-    : U['serializers' & keyof U] extends object
-      ? keyof U['serializers' & keyof U]
+    : T['serializers' & keyof T] extends object
+      ? keyof T['serializers' & keyof T]
       : never,
 > = SerializerType
 

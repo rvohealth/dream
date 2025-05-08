@@ -13,11 +13,7 @@ import inferSerializerFromDreamOrViewModel, {
 } from '../helpers/inferSerializerFromDreamOrViewModel.js'
 import round, { RoundingPrecision } from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
-import {
-  SerializableClassOrSerializerCallback,
-  SerializableDreamClassOrViewModelClass,
-  SerializableDreamOrViewModel,
-} from '../types/dream.js'
+import { SerializableClassOrSerializerCallback, ViewModel, ViewModelClass } from '../types/dream.js'
 import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
 import { AttributeStatement } from './decorators/attribute.js'
 import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
@@ -83,7 +79,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
     return compact(
       classOrClasses.map(klass =>
         inferSerializerFromDreamClassOrViewModelClass(
-          klass as SerializableDreamClassOrViewModelClass,
+          klass as ViewModelClass,
           associationStatement.serializerKey
         )
       )
@@ -91,7 +87,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private static getAssociatedSerializerDuringRender(
-    associatedData: SerializableDreamOrViewModel,
+    associatedData: ViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ): typeof DreamSerializer<any, any> | null {
     const dreamSerializerCallbackFunctionOrNull = maybeSerializableToDreamSerializerCallbackFunction(
@@ -255,7 +251,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   }
 
   private renderAssociation(
-    associatedData: SerializableDreamOrViewModel,
+    associatedData: ViewModel,
     associationStatement: DreamSerializerAssociationStatement
   ) {
     const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(

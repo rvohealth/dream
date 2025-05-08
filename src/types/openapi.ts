@@ -1,6 +1,6 @@
 import { openapiPrimitiveTypes, openapiShorthandPrimitiveTypes } from '../dream/constants.js'
 import DreamSerializer from '../serializer/index.js'
-import { SerializableDreamClassOrViewModelClass } from './dream.js'
+import { ViewModelClass } from './dream.js'
 
 export type OpenapiSchemaBody =
   | OpenapiSchemaBase
@@ -50,7 +50,7 @@ export type OpenapiSchemaShorthandExpressionSerializerRef = {
 }
 
 export type OpenapiSchemaShorthandExpressionSerializableRef = {
-  $serializable: SerializableDreamClassOrViewModelClass
+  $serializable: ViewModelClass
   key?: string
   many?: boolean
   maybeNull?: boolean
