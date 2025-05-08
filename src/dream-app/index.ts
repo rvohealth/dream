@@ -281,7 +281,7 @@ Try setting it to something valid, like:
     if (opts?.parallelTests) this._parallelTests = opts.parallelTests
 
     this._paths = {
-      conf: opts?.paths?.conf || 'src/app/conf',
+      conf: opts?.paths?.conf || 'src/conf',
       db: opts?.paths?.db || 'src/db',
       factories: opts?.paths?.factories || 'spec/factories',
       models: opts?.paths?.models || 'src/app/models',
