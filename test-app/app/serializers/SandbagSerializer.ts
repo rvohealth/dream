@@ -1,73 +1,76 @@
-import { DateTime } from '../../../src/index.js'
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
+import Sandbag from '../models/Sandbag.js'
 
-export default class SandbagSerializer extends DreamSerializer {
-  @Attribute()
-  public weight: number
-
-  @Attribute('date-time')
-  public updatedAt: DateTime
-
-  @Attribute({
-    type: 'object',
-    properties: {
-      label: {
-        type: 'string',
-      },
-      value: {
+export default (data: Sandbag) =>
+  DreamSerializer(Sandbag, data)
+    .attribute('weight')
+    .attribute('updatedAt')
+    .customAttribute('answer', () => null, {
+      openapi: {
         type: 'object',
         properties: {
-          unit: 'string',
-          value: 'number',
+          label: {
+            type: 'string',
+          },
+          value: {
+            type: 'object',
+            properties: {
+              unit: 'string',
+              value: 'number',
+            },
+          },
         },
       },
-    },
-  })
-  public answer() {}
+    })
 
-  @Attribute({
-    anyOf: [
-      {
-        type: ['date-time', 'null'],
+    .customAttribute('dateOrDatetime', () => null, {
+      openapi: {
+        anyOf: [
+          {
+            type: ['date-time', 'null'],
+          },
+          {
+            type: ['date', 'null'],
+          },
+        ],
       },
-      {
-        type: ['date', 'null'],
+    })
+
+    .customAttribute('refTest', () => null, {
+      openapi: {
+        anyOf: [
+          {
+            type: ['date', 'null'],
+          },
+          {
+            $ref: 'components/schemas/Howyadoin',
+          },
+        ],
       },
-    ],
-  })
-  public dateOrDatetime() {}
+    })
 
-  @Attribute({
-    anyOf: [
-      {
-        type: ['date', 'null'],
+    .customAttribute('enumTest', () => null, {
+      openapi: {
+        type: 'string',
+        enum: ['hello', 'world'],
       },
-      {
-        $ref: 'components/schemas/Howyadoin',
+    })
+
+    .attribute('history' as any, { openapi: { type: 'object', additionalProperties: 'number' } })
+
+    .attribute('nullableHistory' as any, {
+      openapi: {
+        type: 'object',
+        additionalProperties: { type: ['number', 'null'] },
       },
-    ],
-  })
-  public refTest() {}
+    })
 
-  @Attribute({
-    type: 'string',
-    enum: ['hello', 'world'],
-  })
-  public enumTest() {}
-
-  @Attribute({ type: 'object', additionalProperties: 'number' })
-  public history: Record<string, number>
-
-  @Attribute({ type: 'object', additionalProperties: { type: ['number', 'null'] } })
-  public nullableHistory: Record<string, number>
-
-  @Attribute({
-    type: 'object',
-    additionalProperties: {
-      type: 'object',
-      properties: { code: { type: 'integer' }, text: { type: 'string' } },
-    },
-  })
-  public howyadoin: Record<string, { code: string; text: string }>
-}
+    .attribute('howyadoin' as any, {
+      openapi: {
+        type: 'object',
+        additionalProperties: {
+          type: 'object',
+          properties: { code: { type: 'integer' }, text: { type: 'string' } },
+        },
+      },
+    })

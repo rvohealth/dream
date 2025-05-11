@@ -1,7 +1,7 @@
+import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
-import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
 
@@ -9,40 +9,33 @@ export default function generateSerializerContent({
   fullyQualifiedModelName,
   columnsWithTypes = [],
   fullyQualifiedParentName,
+  stiBaseSerializer = false,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes?: string[] | undefined
   fullyQualifiedParentName?: string | undefined
+  stiBaseSerializer?: boolean
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
-  let relatedModelImport = ''
-  let modelClassName = ''
-  let dataTypeCapture = ''
   const dreamImports: string[] = []
-  let dreamSerializerTypeArgs = ''
   const isSTI = !!fullyQualifiedParentName
 
   if (isSTI) {
     fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
     additionalImports.push(importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName))
   } else {
-    dreamImports.push('Attribute')
-    dreamImports.push('DreamColumn')
     dreamImports.push('DreamSerializer')
   }
 
-  relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-  modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  dataTypeCapture = `<
-  DataType extends ${modelClassName},
-  Passthrough extends object,
->`
-  dreamSerializerTypeArgs = `<DataType, Passthrough>`
-
-  const defaultSerialzerClassName = serializerNameFromFullyQualifiedModelName(
-    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
-  )
+  const relatedModelImport = importStatementForModel(fullyQualifiedModelName)
+  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelInstanceName = camelize(modelClassName)
+  const modelSerializerSignature = stiBaseSerializer
+    ? `<T extends ${modelClassName}>(${modelInstanceName}: T)`
+    : `(${modelInstanceName}: ${modelClassName})`
+  const modelSerializerArgs = `${modelInstanceName}`
+  const dreamSerializerArgs = `${modelClassName}, ${modelInstanceName}`
 
   const summarySerialzerClassName = serializerNameFromFullyQualifiedModelName(
     fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName),
@@ -50,78 +43,54 @@ export default function generateSerializerContent({
   )
 
   const defaultSerialzerExtends = isSTI
-    ? serializerNameFromFullyQualifiedModelName(
+    ? `${serializerNameFromFullyQualifiedModelName(
         fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!)
-      )
-    : summarySerialzerClassName
+      )}(${modelSerializerArgs})`
+    : `${summarySerialzerClassName}(${modelSerializerArgs})`
 
   const summarySerialzerExtends = isSTI
-    ? serializerNameFromFullyQualifiedModelName(
+    ? `${serializerNameFromFullyQualifiedModelName(
         fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!),
         'summary'
-      )
-    : 'DreamSerializer'
+      )}(${modelSerializerArgs})`
+    : `DreamSerializer(${dreamSerializerArgs})`
 
   const additionalModelImports: string[] = []
-  columnsWithTypes.forEach(attr => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [name, type] = attr.split(':')
 
-    switch (type) {
-      case 'belongs_to':
-      case 'has_one':
-      case 'has_many':
-        break
+  const dreamImport = dreamImports.length
+    ? `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'\n`
+    : ''
 
-      default:
-        dreamImports.push('Attribute')
-        dreamImports.push('DreamColumn')
-    }
-  })
+  const additionalImportsStr = uniq(additionalImports).join('')
 
-  let dreamImport = ''
-  if (dreamImports.length) {
-    dreamImport = `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'`
-  }
+  return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
+export const ${summarySerialzerClassName} = ${modelSerializerSignature} =>
+  ${summarySerialzerExtends}${isSTI ? '' : `\n    .attribute('id')`}
 
-  const additionalImportsStr = additionalImports.length ? uniq(additionalImports).join('') : ''
+export default ${modelSerializerSignature} =>
+  ${defaultSerialzerExtends}${columnsWithTypes
+    .map(attr => {
+      const [name, type] = attr.split(':')
+      if (name === undefined) return ''
+      if (['belongs_to', 'has_one', 'has_many'].includes(type as any)) return ''
 
-  return `\
-${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
-
-export class ${summarySerialzerClassName}${dataTypeCapture} extends ${summarySerialzerExtends}${dreamSerializerTypeArgs} {
-${
-  isSTI
-    ? ''
-    : `  @Attribute(${modelClassName})
-  public id: DreamColumn<${modelClassName}, 'id'>
+      return `\n    ${attribute(name, type, attr)}`
+    })
+    .join('\n\n  ')}
 `
-}}
-
-export default class ${defaultSerialzerClassName}${dataTypeCapture} extends ${defaultSerialzerExtends}${dreamSerializerTypeArgs} {
-${columnsWithTypes
-  .map(attr => {
-    const [name, type] = attr.split(':')
-    if (name === undefined) return ''
-
-    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(name)
-    const associatedModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
-    const propertyName = camelize(associatedModelName)
-
-    switch (type) {
-      case 'belongs_to':
-      case 'has_one':
-      case 'has_many':
-        return ''
-
-      default:
-        return `  @Attribute(${modelClassName}${attributeOptionsSpecifier(type, attr)})
-  public ${propertyName}: ${`DreamColumn<${modelClassName}, '${propertyName}'>`}`
-    }
-  })
-  .join('\n\n  ')}
 }
-`
+
+function attribute(name: string, type: string | undefined, attr: string) {
+  switch (type) {
+    case 'json':
+    case 'jsonb':
+    case 'json[]':
+    case 'jsonb[]':
+      return `.jsonAttribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
+
+    default:
+      return `.attribute('${camelize(name)}'${attributeOptionsSpecifier(type, attr)})`
+  }
 }
 
 function attributeOptionsSpecifier(type: string | undefined, attr: string) {
@@ -150,14 +119,14 @@ function importStatementForSerializer(originModelName: string, destinationModelN
 
   const importFrom = relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)
 
-  return `\nimport ${defaultSerializer}, { ${summarySerializer} } from '${importFrom}'`
+  return `import ${defaultSerializer}, { ${summarySerializer} } from '${importFrom}'\n`
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
   const modelName = globalClassNameFromFullyQualifiedModelName(destinationModelName)
   const importFrom = relativeDreamPath('serializers', 'models', originModelName, destinationModelName)
 
-  return `\nimport ${modelName} from '${importFrom}'`
+  return `import ${modelName} from '${importFrom}'\n`
 }
 
 function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {

@@ -11,24 +11,41 @@ describe('dream generate:serializer <name> [...attributes]', () => {
 
         expect(res).toEqual(
           `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
+import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
 
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public loggedInAt: DreamColumn<User, 'loggedInAt'>
-}
+export default (user: User) =>
+  UserSummarySerializer(user)
+    .attribute('loggedInAt')
+`
+        )
+      })
+    })
+
+    context('when stiBaseSerializer: true', () => {
+      it('alters the serializer to include a generic', () => {
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'Balloon',
+          columnsWithTypes: ['hello'],
+          stiBaseSerializer: true,
+        })
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer } from '@rvoh/dream'
+import Balloon from '../models/Balloon.js'
+
+export const BalloonSummarySerializer = <T extends Balloon>(balloon: T) =>
+  DreamSerializer(Balloon, balloon)
+    .attribute('id')
+
+export default <T extends Balloon>(balloon: T) =>
+  BalloonSummarySerializer(balloon)
+    .attribute('hello')
 `
         )
       })
@@ -44,23 +61,15 @@ export default class UserSerializer<
 
         expect(res).toEqual(
           `\
-import { Attribute, DreamColumn } from '@rvoh/dream'
 import BarSerializer, { BarSummarySerializer } from '../BarSerializer.js'
 import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
 
-export class BazSummarySerializer<
-  DataType extends FooBarBaz,
-  Passthrough extends object,
-> extends BarSummarySerializer<DataType, Passthrough> {
-}
+export const BazSummarySerializer = (fooBarBaz: FooBarBaz) =>
+  BarSummarySerializer(fooBarBaz)
 
-export default class BazSerializer<
-  DataType extends FooBarBaz,
-  Passthrough extends object,
-> extends BarSerializer<DataType, Passthrough> {
-  @Attribute(FooBarBaz)
-  public hello: DreamColumn<FooBarBaz, 'hello'>
-}
+export default (fooBarBaz: FooBarBaz) =>
+  BarSerializer(fooBarBaz)
+    .attribute('hello')
 `
         )
       })
@@ -77,23 +86,15 @@ export default class BazSerializer<
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
+import { DreamSerializer } from '@rvoh/dream'
 import UserAdmin from '../../models/User/Admin.js'
 
-export class AdminSummarySerializer<
-  DataType extends UserAdmin,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(UserAdmin)
-  public id: DreamColumn<UserAdmin, 'id'>
-}
+export const AdminSummarySerializer = (userAdmin: UserAdmin) =>
+  DreamSerializer(UserAdmin, userAdmin)
+    .attribute('id')
 
-export default class AdminSerializer<
-  DataType extends UserAdmin,
-  Passthrough extends object,
-> extends AdminSummarySerializer<DataType, Passthrough> {
-
-}
+export default (userAdmin: UserAdmin) =>
+  AdminSummarySerializer(userAdmin)
 `
             )
           }
@@ -109,14 +110,14 @@ export default class AdminSerializer<
       })
 
       context('one of those attributes is json', () => {
-        it('adds a number type to the field', () => {
-          expectAttributeType('json')
+        it('renders it using jsonAttribute', () => {
+          expectJsonAttributeType('json')
         })
       })
 
       context('one of those attributes is jsonb', () => {
-        it('adds a number type to the field', () => {
-          expectAttributeType('jsonb')
+        it('renders it using jsonAttribute', () => {
+          expectJsonAttributeType('jsonb')
         })
       })
 
@@ -135,24 +136,16 @@ export default class AdminSerializer<
 
           expect(res).toEqual(
             `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
+import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
 
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute(User, { precision: 2 })
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}
+export default (user: User) =>
+  UserSummarySerializer(user)
+    .attribute('howyadoin', { precision: 2 })
 `
           )
         })
@@ -208,33 +201,7 @@ export default class UserSerializer<
 
       context('one of those attributes is an enum', () => {
         it('adds an enum type to the Attribute call', () => {
-          const res = generateSerializerContent({
-            fullyQualifiedModelName: 'User',
-            columnsWithTypes: ['topping:enum:topping:cheese,baja_sauce'],
-          })
-
-          expect(res).toEqual(
-            `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public topping: DreamColumn<User, 'topping'>
-}
-`
-          )
+          expectAttributeType('enum:topping:cheese,baja_sauce')
         })
       })
 
@@ -248,116 +215,15 @@ export default class UserSerializer<
 
             expect(res).toEqual(
               `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
+import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
 
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-
-}
-`
-            )
-          })
-
-          context('optional', () => {
-            it('omits it from the attributes', () => {
-              const res = generateSerializerContent({
-                fullyQualifiedModelName: 'user',
-                columnsWithTypes: ['organization:belongs_to:optional'],
-              })
-
-              expect(res).toEqual(
-                `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-
-}
-`
-              )
-            })
-          })
-        })
-
-        context('has_one', () => {
-          it('omits it from the attributes', () => {
-            const res = generateSerializerContent({
-              fullyQualifiedModelName: 'user',
-              columnsWithTypes: ['organization:has_one'],
-            })
-
-            expect(res).toEqual(
-              `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-
-}
-`
-            )
-          })
-        })
-
-        context('has_many', () => {
-          it('omits it from the attributes', () => {
-            const res = generateSerializerContent({
-              fullyQualifiedModelName: 'user',
-              columnsWithTypes: ['organization:has_many'],
-            })
-
-            expect(res).toEqual(
-              `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
-
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
-}
-
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-
-}
+export default (user: User) =>
+  UserSummarySerializer(user)
 `
             )
           })
@@ -374,24 +240,37 @@ function expectAttributeType(startingAttributeType: string) {
   })
   expect(res).toEqual(
     `\
-import { Attribute, DreamColumn, DreamSerializer } from '@rvoh/dream'
+import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export class UserSummarySerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends DreamSerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public id: DreamColumn<User, 'id'>
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
+
+export default (user: User) =>
+  UserSummarySerializer(user)
+    .attribute('howyadoin')
+`
+  )
 }
 
-export default class UserSerializer<
-  DataType extends User,
-  Passthrough extends object,
-> extends UserSummarySerializer<DataType, Passthrough> {
-  @Attribute(User)
-  public howyadoin: DreamColumn<User, 'howyadoin'>
-}
+function expectJsonAttributeType(startingAttributeType: 'json' | 'jsonb' | 'json[]' | 'jsonb[]') {
+  const res = generateSerializerContent({
+    fullyQualifiedModelName: 'User',
+    columnsWithTypes: [`howyadoin:${startingAttributeType}`],
+  })
+  expect(res).toEqual(
+    `\
+import { DreamSerializer } from '@rvoh/dream'
+import User from '../models/User.js'
+
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
+
+export default (user: User) =>
+  UserSummarySerializer(user)
+    .jsonAttribute('howyadoin', { openapi: { type: 'object', properties: { } } })
 `
   )
 }

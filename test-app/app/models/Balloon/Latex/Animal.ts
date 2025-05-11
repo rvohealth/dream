@@ -1,9 +1,10 @@
 import STI from '../../../../../src/decorators/class/STI.js'
 import { DreamSerializers } from '../../../../../src/types/dream.js'
 import { BalloonTypesEnum } from '../../../../types/db.js'
+import Balloon from '../../Balloon.js'
 import Latex from '../Latex.js'
 
-@STI(Latex)
+@STI(Balloon)
 export default class Animal extends Latex {
   public override get type() {
     return (this as Animal).getAttribute('type')
@@ -15,7 +16,7 @@ export default class Animal extends Latex {
 
   public override get serializers(): DreamSerializers<Latex> {
     return {
-      default: 'BalloonSummarySerializer',
+      default: 'Balloon/Latex/AnimalSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
     }
   }

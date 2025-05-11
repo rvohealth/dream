@@ -15,6 +15,7 @@ import pluralize from 'pluralize-esm'
 import ConnectedToDB from '../db/ConnectedToDB.js'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
+import DreamApp from '../dream-app/index.js'
 import Dream from '../Dream.js'
 import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
 import CannotAssociateThroughPolymorphic from '../errors/associations/CannotAssociateThroughPolymorphic.js'
@@ -32,6 +33,8 @@ import LeftJoinPreloadIncompatibleWithFindEach from '../errors/LeftJoinPreloadIn
 import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequiredCallbackFunctionToPluckEach.js'
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
+import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimit.js'
+import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
 import RecordNotFound from '../errors/RecordNotFound.js'
 import UnexpectedUndefined from '../errors/UnexpectedUndefined.js'
 import CalendarDate from '../helpers/CalendarDate.js'
@@ -109,16 +112,13 @@ import {
 } from '../types/variadic.js'
 import { DreamConst } from './constants.js'
 import DreamTransaction from './DreamTransaction.js'
+import computedPaginatePage from './internal/computedPaginatePage.js'
 import executeDatabaseQuery from './internal/executeDatabaseQuery.js'
 import extractAssociationMetadataFromAssociationName from './internal/extractAssociationMetadataFromAssociationName.js'
 import orderByDirection from './internal/orderByDirection.js'
 import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder.js'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance.js'
-import DreamApp from '../dream-app/index.js'
-import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimit.js'
-import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
-import computedPaginatePage from './internal/computedPaginatePage.js'
 
 export default class Query<
   DreamInstance extends Dream,
@@ -445,7 +445,7 @@ export default class Query<
       baseSelectQuery: opts.baseSelectQuery || this.baseSelectQuery,
       passthroughOnStatement: {
         ...this.passthroughOnStatement,
-        ...(opts.passthroughOnStatement || {}),
+        ...opts.passthroughOnStatement,
       },
 
       where: opts.where === null ? [] : [...this.whereStatements, ...(opts.where || [])],
@@ -1481,8 +1481,11 @@ export default class Query<
 
       // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
       // the query class for some reason.
-      default:
-        throw new Error('never')
+      default: {
+        // protection so that if a new QueryType is ever added, this will throw a type error at build time
+        const _never: never = type
+        throw new Error(`Unhandled QueryType: ${_never as string}`)
+      }
     }
   }
 

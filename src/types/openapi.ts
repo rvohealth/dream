@@ -1,6 +1,7 @@
+import Dream from '../Dream.js'
 import { openapiPrimitiveTypes, openapiShorthandPrimitiveTypes } from '../dream/constants.js'
-import DreamSerializer from '../serializer/index.js'
 import { ViewModelClass } from './dream.js'
+import { DreamModelSerializerType, SimpleObjectSerializerType } from './serializer.js'
 
 export type OpenapiSchemaBody =
   | OpenapiSchemaBase
@@ -44,13 +45,13 @@ export type OpenapiSchemaShorthandExpressionAllOf = {
 }
 
 export type OpenapiSchemaShorthandExpressionSerializerRef = {
-  $serializer: typeof DreamSerializer
+  $serializer: DreamModelSerializerType | SimpleObjectSerializerType
   many?: boolean
   maybeNull?: boolean
 }
 
 export type OpenapiSchemaShorthandExpressionSerializableRef = {
-  $serializable: ViewModelClass
+  $serializable: typeof Dream | ViewModelClass
   key?: string
   many?: boolean
   maybeNull?: boolean
@@ -224,13 +225,26 @@ export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
-type OpenapiPrimitiveBaseTypes = (typeof openapiPrimitiveTypes)[number]
+export interface OpenapiDescription {
+  description?: string
+}
+
+export type DecimalOpenapiTypes =
+  | 'decimal'
+  | 'decimal[]'
+  | readonly ['decimal', 'null']
+  | readonly ['decimal[]', 'null']
+
+export type DecimalOpenapiTypesIncludingDbTypes = DecimalOpenapiTypes | 'numeric' | 'numeric[]'
+
+export type OpenapiPrimitiveBaseTypes = (typeof openapiPrimitiveTypes)[number]
 export type OpenapiPrimitiveTypes =
   | OpenapiPrimitiveBaseTypes
   | [OpenapiPrimitiveBaseTypes, 'null']
   | ['null', OpenapiPrimitiveBaseTypes]
 
 export type OpenapiShorthandPrimitiveBaseTypes = (typeof openapiShorthandPrimitiveTypes)[number]
+
 export type OpenapiShorthandPrimitiveTypes =
   | OpenapiShorthandPrimitiveBaseTypes
   | [OpenapiShorthandPrimitiveBaseTypes, 'null']

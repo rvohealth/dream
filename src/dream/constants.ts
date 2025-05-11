@@ -13,26 +13,24 @@ export const DreamConst = {
 }
 
 export const openapiPrimitiveTypes = [
-  'string',
   'boolean',
-  'number',
-  'date',
   'date-time',
-  'double',
+  'date',
   'integer',
   'null',
+  'number',
+  'string',
 ] as const
 
 export const openapiShorthandPrimitiveTypes = [
   ...openapiPrimitiveTypes,
-  'decimal',
-  'string[]',
   'boolean[]',
-  'number[]',
-  'date[]',
   'date-time[]',
+  'date[]',
+  'decimal',
   'decimal[]',
-  'double[]',
   'integer[]',
   'json',
+  'number[]',
+  'string[]',
 ] as const

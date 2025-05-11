@@ -1,8 +1,8 @@
 import Dream from '../../Dream.js'
-import { SerializableTypes } from '../../serializer/decorators/attribute.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 
-export default function Virtual(type?: SerializableTypes): any {
+export default function Virtual(type?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
 
@@ -33,5 +33,5 @@ export default function Virtual(type?: SerializableTypes): any {
 
 export interface VirtualAttributeStatement {
   property: string
-  type: SerializableTypes | undefined
+  type: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand | undefined
 }

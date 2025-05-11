@@ -14,8 +14,11 @@ export default class Encrypt {
       case 'aes-128-gcm':
         return encryptAESGCM(algorithm, data, key)
 
-      default:
-        throw new Error(`unrecognized algorith provided to encrypt: ${algorithm as string}`)
+      default: {
+        // protection so that if a new EncryptAlgorithm is ever added, this will throw a type error at build time
+        const _never: never = algorithm
+        throw new Error(`Unhandled EncryptAlgorithm: ${_never as string}`)
+      }
     }
   }
 
@@ -39,8 +42,11 @@ export default class Encrypt {
           return null
         }
 
-      default:
-        throw new Error(`unrecognized algorith provided to decrypt: ${algorithm as string}`)
+      default: {
+        // protection so that if a new EncryptAlgorithm is ever added, this will throw a type error at build time
+        const _never: never = algorithm
+        throw new Error(`Unhandled EncryptAlgorithm: ${_never as string}`)
+      }
     }
   }
 
@@ -66,8 +72,11 @@ export default class Encrypt {
       case 'aes-128-gcm':
         return generateKeyAESGCM(128)
 
-      default:
-        throw new Error(`unrecognized algorithm provided to generateKey: ${algorithm as string}`)
+      default: {
+        // protection so that if a new EncryptAlgorithm is ever added, this will throw a type error at build time
+        const _never: never = algorithm
+        throw new Error(`Unhandled EncryptAlgorithm: ${_never as string}`)
+      }
     }
   }
 
@@ -82,8 +91,11 @@ export default class Encrypt {
       case 'aes-128-gcm':
         return validateKeyAESGCM(base64EncodedKey, 128)
 
-      default:
-        throw new Error(`unrecognized algorith provided to validateKey: ${algorithm as string}`)
+      default: {
+        // protection so that if a new EncryptAlgorithm is ever added, this will throw a type error at build time
+        const _never: never = algorithm
+        throw new Error(`Unhandled EncryptAlgorithm: ${_never as string}`)
+      }
     }
   }
 }

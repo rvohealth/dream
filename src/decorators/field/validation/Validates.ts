@@ -87,8 +87,11 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
     case 'requiredBelongsTo':
       return {}
 
-    default:
-      throw new Error(`Unhandled validation type when caching options: ${type as string}`)
+    default: {
+      // protection so that if a new ValidationType is ever added, this will throw a type error at build time
+      const _never: never = type
+      throw new Error(`Unhandled ValidationType: ${_never as string}`)
+    }
   }
 }
 

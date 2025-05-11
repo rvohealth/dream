@@ -13,8 +13,8 @@ import Balloon from '../Balloon.js'
 export default class _Latex extends Balloon {
   public get serializers(): DreamSerializers<Balloon> {
     return {
-      default: 'BalloonSummarySerializer',
-      latexOnly: 'BalloonSummarySerializer',
+      default: 'Balloon/LatexSerializer',
+      latexOnly: 'Balloon/LatexSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
     }
   }

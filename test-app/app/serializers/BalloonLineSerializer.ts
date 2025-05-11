@@ -1,13 +1,5 @@
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
+import BalloonLine from '../models/BalloonLine.js'
 
-export default class BalloonLineSerializer extends DreamSerializer {
-  @Attribute()
-  public balloon: any
-
-  @Attribute()
-  public material: any
-
-  @Attribute('date')
-  public createdAt: any
-}
+export default (data: BalloonLine) =>
+  DreamSerializer(BalloonLine, data).rendersOne('balloon').attribute('material').attribute('createdAt')

@@ -77,6 +77,10 @@ export default class DreamCLI {
       .alias('generate:dream')
       .alias('g:dream')
       .option('--no-serializer')
+      .option(
+        '--sti-base-serializer',
+        'Omits the serializer from the dream model, but does create the serializer so it can be extended by STI children'
+      )
       .description('create a new Dream model')
       .argument(
         '<modelName>',
@@ -86,11 +90,17 @@ export default class DreamCLI {
         '[columnsWithTypes...]',
         'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
       )
-      .action(async (modelName: string, columnsWithTypes: string[], options: { serializer: boolean }) => {
-        await initializeDreamApp()
-        await DreamBin.generateDream(modelName, columnsWithTypes, options)
-        process.exit()
-      })
+      .action(
+        async (
+          modelName: string,
+          columnsWithTypes: string[],
+          options: { serializer: boolean; stiBaseSerializer: boolean }
+        ) => {
+          await initializeDreamApp()
+          await DreamBin.generateDream(modelName, columnsWithTypes, options)
+          process.exit()
+        }
+      )
 
     program
       .command('generate:sti-child')

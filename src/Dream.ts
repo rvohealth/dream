@@ -53,14 +53,12 @@ import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedTo
 import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
-import MissingSerializer from './errors/MissingSerializersDefinition.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
-import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import notEqual from './helpers/notEqual.js'
 import { isString } from './helpers/typechecks.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
@@ -84,7 +82,6 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
-  DreamSerializeOptions,
   IdType,
   JoinAndStatements,
   NextPreloadArgumentType,
@@ -621,6 +618,18 @@ export default class Dream {
   /**
    * @internal
    *
+   * Returns true if the column is a column in the database
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
+  public static isColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
+    return this.prototype.isColumn(columnName)
+  }
+
+  /**
+   * @internal
+   *
    * Returns true if the column is virtual (set using the Virtual decorator)
    *
    * @param columnName - the name of the property you are checking for
@@ -897,7 +906,7 @@ export default class Dream {
     try {
       const dreamModel = this.new({
         ...attributes,
-        ...(extraOpts?.createWith || {}),
+        ...extraOpts?.createWith,
       })
       await dreamModel.save()
       return dreamModel
@@ -961,7 +970,7 @@ export default class Dream {
       return await this.create(
         {
           ...attributes,
-          ...(extraOpts?.with || {}),
+          ...extraOpts?.with,
         },
         skipHooks ? { skipHooks } : undefined
       )
@@ -2618,6 +2627,18 @@ export default class Dream {
   }
 
   /**
+   * @internal
+   *
+   * Returns true if the column is a column in the database
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
+  public isColumn<T extends Dream>(this: T, columnName: string): boolean {
+    return this.columns().has(columnName)
+  }
+
+  /**
    * Returns true if the columnName passed is marked by a
    * Virtual attribute decorator
    *
@@ -2625,9 +2646,7 @@ export default class Dream {
    * @returns A boolean
    */
   public isVirtualColumn<T extends Dream>(this: T, columnName: string): boolean {
-    return (this.constructor as typeof Dream).virtualAttributes
-      .map(attr => attr.property)
-      .includes(columnName)
+    return !!(this.constructor as typeof Dream).virtualAttributes.find(attr => attr.property === columnName)
   }
 
   /**
@@ -3741,34 +3760,6 @@ export default class Dream {
    */
   public async reload<I extends Dream>(this: I) {
     await reload(this)
-  }
-
-  /**
-   * Serializes an instance. You can specify a serializer key,
-   * or else the default will be used
-   *
-   * ```ts
-   * // uses the default serializer provided in the model's `serializers` getter
-   * await user.serialize()
-   *
-   * // uses the summary serializer provided in the model's `serializers` getter
-   * await user.serialize({ serializerKey: 'summary' })
-   * ```
-   *
-   * @param args.casing - Which casing to use when serializing (camel or snake, default camel)
-   * @param args.serializerKey - The key to use when referencing the object returned by the `serializers` getter on the given model instance (defaults to "default")
-   * @returns A serialized representation of the model
-   */
-  public serialize<I extends Dream>(
-    this: I,
-    { casing = null, serializerKey }: DreamSerializeOptions<I> = {}
-  ) {
-    const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey?.toString())
-    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
-
-    const serializer = new serializerClass(this)
-    if (casing) serializer.casing(casing)
-    return serializer.render()
   }
 
   /**

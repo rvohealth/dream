@@ -95,7 +95,7 @@ export default class DreamBin {
   public static async generateDream(
     fullyQualifiedModelName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean }
+    options: { serializer: boolean; stiBaseSerializer: boolean }
   ) {
     await generateDream({ fullyQualifiedModelName, columnsWithTypes, options })
   }
@@ -106,7 +106,12 @@ export default class DreamBin {
     columnsWithTypes: string[],
     options: { serializer: boolean }
   ) {
-    await generateDream({ fullyQualifiedModelName, columnsWithTypes, options, fullyQualifiedParentName })
+    await generateDream({
+      fullyQualifiedModelName,
+      columnsWithTypes,
+      options: { ...options, stiBaseSerializer: false },
+      fullyQualifiedParentName,
+    })
   }
 
   public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {

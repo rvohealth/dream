@@ -5,7 +5,6 @@ import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
 import OpsStatement from '../ops/ops-statement.js'
-import DreamSerializer from '../serializer/index.js'
 import {
   AssociatedModelParam,
   AssociationStatement,
@@ -14,6 +13,7 @@ import {
 } from './associations/shared.js'
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
+import { DreamModelSerializerType, SimpleObjectSerializerType } from './serializer.js'
 import { FilterInterface, Inc } from './utils.js'
 import { AliasedSchemaAssociation } from './variadic.js'
 
@@ -356,11 +356,6 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 export type ViewModel = { serializers: Record<string, string> }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
-export type DreamSerializerCallback = () => typeof DreamSerializer
-export type SerializableClassOrSerializerCallback = ViewModelClass | DreamSerializerCallback
-
-export type SerializableClassOrClasses = DreamSerializerCallback | ViewModelClass | ViewModelClass[]
-
 // preload
 export type NextPreloadArgumentType<
   Schema,
@@ -447,7 +442,18 @@ export type DreamOrViewModelSerializerKey<T> = T extends Dream
   ? DreamSerializerKey<T>
   : ViewModelSerializerKey<T>
 
-export type DreamSerializable = typeof Dream | ViewModelClass | typeof DreamSerializer
+// export type DreamOrViewModelArray<
+//   StartingArray extends readonly DreamOrViewModel[] = [],
+//   Depth extends number = 0,
+// > = Depth extends 20
+//   ? StartingArray
+//   : StartingArray | DreamOrViewModelArray<[DreamOrViewModel, ...StartingArray], Inc<Depth>>
+
+export type DreamSerializable =
+  | typeof Dream
+  | ViewModelClass
+  | DreamModelSerializerType
+  | SimpleObjectSerializerType
 
 export type DreamSerializableArray<
   StartingArray extends readonly DreamSerializable[] = [],

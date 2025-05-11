@@ -1,5 +1,4 @@
 import 'jest-extended'
-import 'luxon-jest-matchers'
 
 import { provideDreamViteMatchers, truncate } from '@rvoh/dream-spec-helpers'
 import { toBeOneOf } from 'jest-extended'

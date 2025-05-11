@@ -29,8 +29,8 @@ import {
 } from '../helpers/customPgParsers.js'
 import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
-import DreamSerializer from '../serializer/index.js'
 import { DbConnectionType } from '../types/db.js'
+import { DreamModelSerializerType, SimpleObjectSerializerType } from '../types/serializer.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
 import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
 import importSerializers, {
@@ -300,7 +300,7 @@ Try setting it to something valid, like:
     return getModelsOrFail()
   }
 
-  public get serializers(): Record<string, typeof DreamSerializer> {
+  public get serializers(): Record<string, DreamModelSerializerType | SimpleObjectSerializerType> {
     return getSerializersOrFail()
   }
 
@@ -429,8 +429,11 @@ Try setting it to something valid, like:
         this._paginationPageSize = options as number
         break
 
-      default:
-        throw new Error(`Unhandled applyOption encountered in Dreamconf: ${applyOption}`)
+      default: {
+        // protection so that if a new ApplyOpt is ever added, this will throw a type error at build time
+        const _never: never = applyOption
+        throw new Error(`Unhandled ApplyOpt: ${_never as string}`)
+      }
     }
   }
 

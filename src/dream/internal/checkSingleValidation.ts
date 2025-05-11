@@ -63,10 +63,11 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
 
       return !!(value || (dream as any)[associationMetadata.foreignKey()])
 
-    default:
-      throw new Error(
-        `Unhandled validation type found while running validations: ${validation.type as string}`
-      )
+    default: {
+      // protection so that if a new ValidationType is ever added, this will throw a type error at build time
+      const _never: never = validation.type
+      throw new Error(`Unhandled ValidationType: ${_never as string}`)
+    }
   }
 }
 
