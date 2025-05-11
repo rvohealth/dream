@@ -1,13 +1,12 @@
 import { DreamConst } from '../../../src/dream/constants.js'
 import MissingSerializer from '../../../src/errors/MissingSerializersDefinition.js'
-import FailedToRenderThroughAssociationForSerializer from '../../../src/errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
+import DelegationTargetDoesNotExist from '../../../src/errors/serializers/DelegationTargetDoesNotExist.js'
 import { CalendarDate, DateTime, DreamApp, NonLoadedAssociation } from '../../../src/index.js'
 import RendersMany from '../../../src/serializer/decorators/associations/RendersMany.js'
 import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
 import Attribute from '../../../src/serializer/decorators/attribute.js'
 import DreamSerializer from '../../../src/serializer/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
-import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
@@ -740,16 +739,11 @@ describe('DreamSerializer#render', () => {
             public howdys: Howdy[]
           }
 
-          class HelloSerializer extends DreamSerializer {
-            @RendersMany({ source: DreamConst.passthrough, through: 'hello' })
-            public howdys: Howdy[]
-          }
-
           class HowdySerializer extends DreamSerializer {
             @Attribute()
             public greeting: string
           }
-          processDynamicallyDefinedSerializers(UserSerializerWithSource, HelloSerializer, HowdySerializer)
+          processDynamicallyDefinedSerializers(UserSerializerWithSource, HowdySerializer)
 
           beforeEach(() => {
             const dreamApp = DreamApp.getOrFail()
@@ -763,109 +757,6 @@ describe('DreamSerializer#render', () => {
 
             const serializer = new UserSerializerWithSource(user).passthrough({ howdys })
             expect(serializer.render()).toEqual({ howdys: [{ greeting: 'world' }] })
-          })
-
-          it('supports "through"', async () => {
-            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            const howdys = [new Howdy('world')]
-
-            const serializer = new HelloSerializer(user).passthrough({ hello: { howdys } })
-            expect(serializer.render()).toEqual({ howdys: [{ greeting: 'world' }] })
-          })
-        })
-      })
-
-      context('when the through option is passed', () => {
-        class ChalupaSerializer extends DreamSerializer {
-          @Attribute()
-          public deliciousness: number
-        }
-
-        class PersonSerializer extends DreamSerializer {
-          @RendersMany(() => ChalupaSerializer, { through: 'chalupatown' })
-          public chalupas: any[]
-        }
-        processDynamicallyDefinedSerializers(ChalupaSerializer, PersonSerializer)
-
-        it('correctly serializes based on source', () => {
-          const serializer = new PersonSerializer({
-            chalupatown: { chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }] },
-          })
-          expect(serializer.render()).toEqual({
-            chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }],
-          })
-        })
-
-        context('with an attribute that is not present in the serializer data passed as a through', () => {
-          class PersonSerializer extends DreamSerializer {
-            @RendersMany(() => ChalupaSerializer, { through: 'a.b' })
-            public chalupas: any[]
-          }
-          processDynamicallyDefinedSerializers(PersonSerializer)
-
-          it('raises a targeted exception', () => {
-            const serializer = new PersonSerializer({
-              a: { chalupas: [{ deliciousness: 5000 }, { deliciousness: 7000 }] },
-            })
-
-            expect(() => serializer.render()).toThrow(FailedToRenderThroughAssociationForSerializer)
-          })
-        })
-
-        context('when traveling through nested associations', () => {
-          context('when it is traveling through nested BelongsTo/HasOne statement', () => {
-            class CollarSerializer2 extends DreamSerializer {
-              @Attribute()
-              public tagName: string
-            }
-
-            class UserSerializer extends DreamSerializer {
-              @RendersMany(() => CollarSerializer2, { through: 'asterPet' })
-              public collars: any[]
-            }
-            processDynamicallyDefinedSerializers(CollarSerializer2, UserSerializer)
-
-            it('correctly traverses nested objects to reach through target', async () => {
-              let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-              const pet = await Pet.create({ user, name: 'Aster' })
-              await Collar.create({ pet, tagName: 'collar 1' })
-              await Collar.create({ pet, tagName: 'collar 2' })
-
-              user = await user.load('asterPet', 'collars').execute()
-
-              const serializer = new UserSerializer(user)
-              expect(serializer.render()).toEqual({
-                collars: [{ tagName: 'collar 1' }, { tagName: 'collar 2' }],
-              })
-            })
-          })
-
-          context('when it is traveling through nested HasMany statement', () => {
-            class CollarSerializer2 extends DreamSerializer {
-              @Attribute()
-              public tagName: string
-            }
-
-            class UserSerializer extends DreamSerializer {
-              @RendersMany(() => CollarSerializer2, { through: 'pets' })
-              public collars: any[]
-            }
-            processDynamicallyDefinedSerializers(CollarSerializer2, UserSerializer)
-
-            it('correctly traverses nested objects to reach through target', async () => {
-              let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-              const pet1 = await Pet.create({ user })
-              await Collar.create({ pet: pet1, tagName: 'collar 1' })
-              const pet2 = await Pet.create({ user })
-              await Collar.create({ pet: pet2, tagName: 'collar 2' })
-
-              user = await user.load('pets', 'collars').execute()
-
-              const serializer = new UserSerializer(user)
-              expect(serializer.render()).toEqual({
-                collars: [{ tagName: 'collar 1' }, { tagName: 'collar 2' }],
-              })
-            })
           })
         })
       })
@@ -951,8 +842,11 @@ describe('DreamSerializer#render', () => {
       })
 
       context('when a config is passed as the first argument', () => {
-        class UserSerializer extends DreamSerializer {
-          @RendersMany({ through: 'howyadoin' })
+        class UserSerializer<Nothing extends null, PassthroughData> extends DreamSerializer<
+          Nothing,
+          PassthroughData
+        > {
+          @RendersMany({ source: DreamConst.passthrough })
           public pets: Pet[]
         }
         processDynamicallyDefinedSerializers(UserSerializer)
@@ -962,7 +856,7 @@ describe('DreamSerializer#render', () => {
           let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
           pet = await pet.load('ratings').execute()
 
-          const serializer = new UserSerializer({ howyadoin: { pets: [pet] } })
+          const serializer = new UserSerializer(null).passthrough({ pets: [pet] })
           expect(serializer.render()).toEqual({
             pets: [{ id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null }],
           })
@@ -1164,16 +1058,11 @@ describe('DreamSerializer#render', () => {
             public howdy: Howdy
           }
 
-          class HelloSerializer extends DreamSerializer {
-            @RendersOne({ source: DreamConst.passthrough, through: 'hello' })
-            public howdy: Howdy
-          }
-
           class HowdySerializer extends DreamSerializer {
             @Attribute()
             public greeting: string
           }
-          processDynamicallyDefinedSerializers(UserSerializerWithSource, HelloSerializer, HowdySerializer)
+          processDynamicallyDefinedSerializers(UserSerializerWithSource, HowdySerializer)
 
           beforeEach(() => {
             const dreamApp = DreamApp.getOrFail()
@@ -1188,39 +1077,6 @@ describe('DreamSerializer#render', () => {
             const serializer = new UserSerializerWithSource(user).passthrough({ howdy })
             expect(serializer.render()).toEqual({ howdy: { greeting: 'world' } })
           })
-
-          it('supports "through"', async () => {
-            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            const howdy = new Howdy('world')
-
-            const serializer = new HelloSerializer(user).passthrough({ hello: { howdy } })
-            expect(serializer.render()).toEqual({ howdy: { greeting: 'world' } })
-          })
-        })
-      })
-
-      context('when the through option is passed', () => {
-        class HappinessSerializer extends DreamSerializer {
-          @Attribute()
-          public level: number
-        }
-
-        class PersonSerializer extends DreamSerializer {
-          @RendersOne(() => HappinessSerializer, { through: 'cat' })
-          public happiness: any
-        }
-        processDynamicallyDefinedSerializers(HappinessSerializer, PersonSerializer)
-
-        it('correctly serializes based on source', () => {
-          const serializer = new PersonSerializer({
-            cat: {
-              happiness: {
-                id: 1,
-                level: 5000,
-              },
-            },
-          })
-          expect(serializer.render()).toEqual({ happiness: { level: 5000 } })
         })
       })
 
@@ -1348,6 +1204,22 @@ describe('DreamSerializer#render', () => {
         expect(serializer.render()).toEqual({ email: 'how@yadoin' })
       })
 
+      context('when the specified delegation target does not exist', () => {
+        it('throws DelegationTargetDoesNotExist', async () => {
+          class PetSerializer extends DreamSerializer {
+            @Attribute('string', { delegate: 'user2' })
+            public email: string
+          }
+          processDynamicallyDefinedSerializers(PetSerializer)
+
+          const pet = await Pet.create({ name: 'aster', species: 'cat' })
+
+          const serializer = new PetSerializer(pet)
+
+          expect(() => serializer.render()).toThrowError(DelegationTargetDoesNotExist)
+        })
+      })
+
       context('with casing', () => {
         it('returns the delegated attributes in the correct casing in the payload', async () => {
           class PetSerializer extends DreamSerializer {
@@ -1400,69 +1272,23 @@ describe('DreamSerializer#render', () => {
     })
 
     context('when a config is passed as the first argument', () => {
-      context('through option is specified', () => {
-        context('through argument points to an arbitrary field', () => {
-          class UserSerializer extends DreamSerializer {
-            @RendersOne({ through: 'howyadoin' })
-            public pet: Pet
-          }
-          processDynamicallyDefinedSerializers(UserSerializer)
+      class UserSerializer<Nothing extends null, PassthroughData> extends DreamSerializer<
+        Nothing,
+        PassthroughData
+      > {
+        @RendersOne({ source: DreamConst.passthrough })
+        public pet: Pet
+      }
+      processDynamicallyDefinedSerializers(UserSerializer)
 
-          it('leverages the default serializer and applies the config', async () => {
-            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-            pet = await pet.load('ratings').execute()
+      it('leverages the default serializer and applies the config', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        let pet = await Pet.create({ user, name: 'aster', species: 'cat' })
+        pet = await pet.load('ratings').execute()
 
-            const serializer = new UserSerializer({ howyadoin: { pet } })
-            expect(serializer.render()).toEqual({
-              pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null },
-            })
-          })
-        })
-
-        context('through argument points to a HasOne association', () => {
-          class UserSerializer extends DreamSerializer {
-            @RendersOne({ through: 'asterPet' })
-            public currentCollar: Collar
-          }
-          processDynamicallyDefinedSerializers(UserSerializer)
-
-          it('correctly traverses nested objects to reach through target', async () => {
-            let user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            const pet = await Pet.create({ user, name: 'Aster', species: 'cat' })
-            const collar = await pet.createAssociation('collars', { lost: false })
-            user = await user.load('asterPet', 'currentCollar', 'pet', 'ratings').execute()
-
-            const serializer = new UserSerializer(user)
-            expect(serializer.render()).toEqual({
-              currentCollar: expect.objectContaining({ id: collar.id, lost: false }),
-            })
-          })
-        })
-
-        context('through argument points to a BelongsTo association', () => {
-          class UserSerializer extends DreamSerializer {
-            @Attribute()
-            public email: string
-          }
-
-          class CollarSerializer extends DreamSerializer {
-            @RendersOne(() => UserSerializer, { through: 'pet' })
-            public user: User
-          }
-          processDynamicallyDefinedSerializers(UserSerializer, CollarSerializer)
-
-          it('correctly traverses nested objects to reach through target', async () => {
-            const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-            const pet = await Pet.create({ user, name: 'aster', species: 'cat' })
-            let collar = await pet.createAssociation('collars', { lost: false })
-            collar = await collar.load('pet', 'user').execute()
-
-            const serializer = new CollarSerializer(collar)
-            expect(serializer.render()).toEqual({
-              user: { email: 'how@yadoin' },
-            })
-          })
+        const serializer = new UserSerializer(null).passthrough({ pet: pet })
+        expect(serializer.render()).toEqual({
+          pet: { id: pet.id, name: 'aster', species: 'cat', ratings: [], favoriteDaysOfWeek: null },
         })
       })
     })

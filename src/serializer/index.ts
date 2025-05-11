@@ -3,7 +3,7 @@ import Dream from '../Dream.js'
 import { DreamConst } from '../dream/constants.js'
 import GlobalNameNotSet from '../errors/dream-app/GlobalNameNotSet.js'
 import MissingSerializer from '../errors/MissingSerializersDefinition.js'
-import FailedToRenderThroughAssociationForSerializer from '../errors/serializers/FailedToRenderThroughAssociationForSerializer.js'
+import DelegationTargetDoesNotExist from '../errors/serializers/DelegationTargetDoesNotExist.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import camelize from '../helpers/camelize.js'
 import compact from '../helpers/compact.js'
@@ -265,21 +265,7 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
 
   private associatedData(associationStatement: DreamSerializerAssociationStatement) {
     const delegateToPassthroughData = associationStatement.source === DreamConst.passthrough
-    let self = (delegateToPassthroughData ? this.$passthroughData : this.$data) as any
-
-    if (associationStatement.through) {
-      const throughField = associationStatement.through
-
-      if (Array.isArray(self)) {
-        self = self.flatMap(singleField => singleField[throughField])
-      } else {
-        self = self[throughField]
-      }
-
-      if (self === undefined) {
-        throw new FailedToRenderThroughAssociationForSerializer(this.constructor.name, throughField)
-      }
-    }
+    const self = (delegateToPassthroughData ? this.$passthroughData : this.$data) as any
 
     if (Array.isArray(self)) {
       return self.flatMap(item => {
@@ -298,13 +284,16 @@ export default class DreamSerializer<DataType = any, PassthroughDataType = any> 
   private getAttributeValue(attributeStatement: AttributeStatement) {
     const { field } = attributeStatement
 
-    let pathToValue: any = this as any
+    let targetObject: any = this as any
+
     if (attributeStatement.renderOptions?.delegate) {
+      const $data = this.$data as any
       const delegateField = attributeStatement.renderOptions?.delegate
-      pathToValue = (this as any).$data?.[delegateField] || null
+      if ($data && !(delegateField in $data)) throw new DelegationTargetDoesNotExist(delegateField)
+      targetObject = $data?.[delegateField] || null
     }
 
-    const valueOrCb = pathToValue[field]
+    const valueOrCb = targetObject[field]
 
     if (attributeStatement.functional) {
       return valueOrCb.call(this, this.$data)

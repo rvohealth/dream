@@ -11,7 +11,6 @@ export interface DreamSerializerAssociationStatement {
   optional: boolean
   dreamOrSerializerClass: SerializableClassOrClasses | null
   source: string | typeof DreamConst.passthrough
-  through: string | null
   type: SerializableAssociationType
   path: string | null
   exportedAs: string | null
@@ -21,7 +20,6 @@ export interface DreamSerializerAssociationStatement {
 export interface RendersOneOrManyOpts {
   optional?: boolean
   source?: string | typeof DreamConst.passthrough
-  through?: string
   path?: string
   exportedAs?: string
   serializerKey?: string
