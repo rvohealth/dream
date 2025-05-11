@@ -23,7 +23,7 @@ export default async function updateOrCreateBy<T extends typeof Dream>(
   return await dreamClass.txn(txn).create(
     {
       ...attributes,
-      ...(extraOpts?.with || {}),
+      ...extraOpts?.with,
     },
     skipHooks ? { skipHooks } : undefined
   )

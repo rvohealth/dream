@@ -1,8 +1,8 @@
 import pluralize from 'pluralize-esm'
+import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
-import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
@@ -100,7 +100,7 @@ import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImport
 
 const deco = new Decorators<typeof ${modelClassName}>()
 
-${isSTI ? `\n@STI(${parentModelClassName})` : ''}
+${isSTI ? '\n@STI()' : ''}
 export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {
 ${
   isSTI

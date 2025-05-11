@@ -16,7 +16,7 @@ export default async function findOrCreateBy<T extends typeof Dream>(
 
   const dreamModel = dreamClass.new({
     ...attributes,
-    ...(extraOpts?.createWith || {}),
+    ...extraOpts?.createWith,
   })
 
   await dreamModel.txn(txn).save()

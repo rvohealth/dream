@@ -352,13 +352,13 @@ const pets = await user
 - STI descendants of the same root model that define the same association must define that association identically if they are used in joins, preload, or load. For example, the following will not work properly:
 
 ```ts
-@STI(A)
+@STI()
 class B extends A {
   @deco.HasMany('X')
   public xx: X[]
 }
 
-@STI(A)
+@STI()
 class C extends A {
   @deco.HasMany('X', { and: { something: true } })
   public xx: X[]

@@ -1,6 +1,4 @@
 import { openapiPrimitiveTypes, openapiShorthandPrimitiveTypes } from '../dream/constants.js'
-import DreamSerializer from '../serializer/index.js'
-import { ViewModelClass } from './dream.js'
 
 export type OpenapiSchemaBody =
   | OpenapiSchemaBase
@@ -21,8 +19,8 @@ export type OpenapiSchemaBodyShorthand =
   | OpenapiSchemaArrayShorthand
   | OpenapiSchemaNull // no shorthand for type: null
   | OpenapiSchemaExpressionRefSchemaShorthand
-  | OpenapiSchemaShorthandExpressionSerializerRef
-  | OpenapiSchemaShorthandExpressionSerializableRef
+// | OpenapiSchemaShorthandExpressionSerializerRef
+// | OpenapiSchemaShorthandExpressionSerializableRef
 
 export type OpenapiSchemaBase =
   | OpenapiSchemaString
@@ -43,18 +41,20 @@ export type OpenapiSchemaShorthandExpressionAllOf = {
   allOf: OpenapiSchemaBodyShorthand[]
 }
 
-export type OpenapiSchemaShorthandExpressionSerializerRef = {
-  $serializer: typeof DreamSerializer
-  many?: boolean
-  maybeNull?: boolean
-}
+// TODO: see if can remove this
+// export type OpenapiSchemaShorthandExpressionSerializerRef = {
+//   $serializer: typeof DreamSerializer
+//   many?: boolean
+//   maybeNull?: boolean
+// }
 
-export type OpenapiSchemaShorthandExpressionSerializableRef = {
-  $serializable: ViewModelClass
-  key?: string
-  many?: boolean
-  maybeNull?: boolean
-}
+// TODO: see if can remove this
+// export type OpenapiSchemaShorthandExpressionSerializableRef = {
+//   $serializable: ViewModelClass
+//   key?: string
+//   many?: boolean
+//   maybeNull?: boolean
+// }
 
 export type OpenapiSchemaExpressionRef = {
   $ref: string
@@ -157,16 +157,16 @@ export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaShorthandExpressionOneOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionAllOf
-    | OpenapiSchemaShorthandExpressionSerializerRef
-    | OpenapiSchemaShorthandExpressionSerializableRef
+  // | OpenapiSchemaShorthandExpressionSerializerRef
+  // | OpenapiSchemaShorthandExpressionSerializableRef
   additionalProperties?:
     | OpenapiShorthandPrimitiveTypes
     | OpenapiSchemaBodyShorthand
     | OpenapiSchemaShorthandExpressionOneOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionAllOf
-    | OpenapiSchemaShorthandExpressionSerializerRef
-    | OpenapiSchemaShorthandExpressionSerializableRef
+  // | OpenapiSchemaShorthandExpressionSerializerRef
+  // | OpenapiSchemaShorthandExpressionSerializableRef
 }>
 
 export type OpenapiSchemaObjectOneOfShorthand = CommonOpenapiSchemaObjectFields<{
@@ -204,8 +204,8 @@ export type OpenapiSchemaArrayShorthand = OpenapiSchemaCommonFields<{
     | OpenapiSchemaShorthandExpressionAllOf
     | OpenapiSchemaShorthandExpressionAnyOf
     | OpenapiSchemaShorthandExpressionOneOf
-    | OpenapiSchemaShorthandExpressionSerializerRef
-    | OpenapiSchemaShorthandExpressionSerializableRef
+  // | OpenapiSchemaShorthandExpressionSerializerRef
+  // | OpenapiSchemaShorthandExpressionSerializableRef
 }>
 
 export interface OpenapiSchemaProperties {
@@ -224,6 +224,18 @@ export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
+export interface OpenapiDescription {
+  description?: string
+}
+
+export type DecimalOpenapiTypes =
+  | 'decimal'
+  | 'decimal[]'
+  | readonly ['decimal', 'null']
+  | readonly ['decimal[]', 'null']
+
+export type DecimalOpenapiTypesIncludingDbTypes = DecimalOpenapiTypes | 'numeric' | 'numeric[]'
+
 type OpenapiPrimitiveBaseTypes = (typeof openapiPrimitiveTypes)[number]
 export type OpenapiPrimitiveTypes =
   | OpenapiPrimitiveBaseTypes
@@ -231,6 +243,7 @@ export type OpenapiPrimitiveTypes =
   | ['null', OpenapiPrimitiveBaseTypes]
 
 export type OpenapiShorthandPrimitiveBaseTypes = (typeof openapiShorthandPrimitiveTypes)[number]
+
 export type OpenapiShorthandPrimitiveTypes =
   | OpenapiShorthandPrimitiveBaseTypes
   | [OpenapiShorthandPrimitiveBaseTypes, 'null']

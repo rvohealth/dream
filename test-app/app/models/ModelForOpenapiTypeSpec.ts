@@ -14,6 +14,7 @@ export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public requiredNicknames: DreamColumn<ModelForOpenapiTypeSpecs, 'requiredNicknames'>
   public email: DreamColumn<ModelForOpenapiTypeSpecs, 'email'>
   public birthdate: DreamColumn<ModelForOpenapiTypeSpecs, 'birthdate'>
+  public aDatetime: DreamColumn<ModelForOpenapiTypeSpecs, 'aDatetime'>
 
   public volume: DreamColumn<ModelForOpenapiTypeSpecs, 'volume'>
 

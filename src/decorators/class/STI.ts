@@ -1,18 +1,14 @@
 import Dream from '../../Dream.js'
-import StiChildCannotDefineNewAssociations from '../../errors/sti/StiChildCannotDefineNewAssociations.js'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
 import { scopeImplementation } from '../static-method/Scope.js'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 
-export default function STI(dreamClass: typeof Dream, { value }: { value?: string } = {}): ClassDecorator {
+export default function STI({ value }: { value?: string } = {}): ClassDecorator {
   return function (target: any) {
     const stiChildClass = target as typeof Dream
-    const baseClass = dreamClass['sti'].baseClass || dreamClass
-
-    if (Object.getOwnPropertyDescriptor(stiChildClass, 'associationMetadataByType'))
-      throw new StiChildCannotDefineNewAssociations(baseClass, stiChildClass)
+    const baseClass = findStiBaseClass(stiChildClass)
 
     if (Object.getOwnPropertyDescriptor(stiChildClass, 'replicaSafe'))
       throw new StiChildIncompatibleWithReplicaSafeDecorator(stiChildClass)
@@ -20,9 +16,8 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
     if (Object.getOwnPropertyDescriptor(stiChildClass, 'softDelete'))
       throw new StiChildIncompatibleWithSoftDeleteDecorator(stiChildClass)
 
-    if (!Object.getOwnPropertyDescriptor(stiChildClass, 'extendedBy')) stiChildClass['extendedBy'] = []
-    if (!Object.getOwnPropertyDescriptor(dreamClass, 'extendedBy')) dreamClass['extendedBy'] = []
-    dreamClass['extendedBy']!.push(stiChildClass)
+    if (!Object.getOwnPropertyDescriptor(baseClass, 'extendedBy')) baseClass['extendedBy'] = []
+    baseClass['extendedBy']!.push(stiChildClass)
 
     stiChildClass['sti'] = {
       active: true,
@@ -35,4 +30,23 @@ export default function STI(dreamClass: typeof Dream, { value }: { value?: strin
 
     scopeImplementation(stiChildClass, STI_SCOPE_NAME, { default: true })
   }
+}
+
+function findStiBaseClass(
+  originalClass: typeof Dream,
+  currentClass: typeof Dream = originalClass,
+  previousClass?: typeof Dream,
+  previousPreviousClass?: typeof Dream
+): typeof Dream {
+  if (currentClass === Dream) {
+    if (previousPreviousClass === undefined)
+      throw new Error(`Called \`findStiBaseClass\` on Dream or ApplicationModel`)
+    return previousPreviousClass
+  }
+
+  const parentClass = Object.getPrototypeOf(currentClass)
+  if (!parentClass || parentClass === Function.prototype)
+    throw new Error(`${originalClass.name} does not extend a Dream class`)
+
+  return findStiBaseClass(originalClass, parentClass, currentClass, previousClass)
 }
