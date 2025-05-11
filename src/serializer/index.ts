@@ -1,4 +1,4 @@
-export default ($data: unknown, $passthroughData: unknown) =>
+export default ($data: object, $passthroughData: object) =>
   new DreamSerializerBuilder($data, $passthroughData)
 
 export interface Attribute {
@@ -26,7 +26,7 @@ export interface RendersMany {
   openapi: object
 }
 
-export class DreamSerializerBuilder<DataType = unknown, PassthroughDataType = unknown> {
+export class DreamSerializerBuilder<DataType = object, PassthroughDataType = object> {
   private attributes: Attribute[] = []
   private attributeFunctions: AttributeFunction[] = []
   private rendersOnes: RendersOne[] = []
@@ -52,7 +52,7 @@ export class DreamSerializerBuilder<DataType = unknown, PassthroughDataType = un
   }
 
   public attributeFunction(
-    name: keyof DataType & string,
+    name: string,
     fn: (x: DataType, y?: PassthroughDataType | undefined) => unknown,
     options?: object | undefined,
     openapi?: object | undefined
