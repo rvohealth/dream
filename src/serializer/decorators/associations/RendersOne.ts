@@ -83,7 +83,6 @@ export default function RendersOne(
           dreamOrSerializerClass: serializableClassOrClasses,
           serializerKey: opts.serializerKey,
           source: opts.source || key,
-          through: opts.through || null,
           path: opts.path || null,
           exportedAs: opts.exportedAs || null,
         } as DreamSerializerAssociationStatement,
