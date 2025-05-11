@@ -1,357 +1,97 @@
-import DreamApp from '../dream-app/index.js'
-import Dream from '../Dream.js'
-import { DreamConst } from '../dream/constants.js'
-import GlobalNameNotSet from '../errors/dream-app/GlobalNameNotSet.js'
-import MissingSerializer from '../errors/MissingSerializersDefinition.js'
-import DelegationTargetDoesNotExist from '../errors/serializers/DelegationTargetDoesNotExist.js'
-import CalendarDate from '../helpers/CalendarDate.js'
-import camelize from '../helpers/camelize.js'
-import compact from '../helpers/compact.js'
-import { DateTime } from '../helpers/DateTime.js'
-import inferSerializerFromDreamOrViewModel, {
-  inferSerializerFromDreamClassOrViewModelClass,
-} from '../helpers/inferSerializerFromDreamOrViewModel.js'
-import round, { RoundingPrecision } from '../helpers/round.js'
-import snakeify from '../helpers/snakeify.js'
-import { SerializableClassOrSerializerCallback, ViewModel, ViewModelClass } from '../types/dream.js'
-import { DreamSerializerAssociationStatement } from './decorators/associations/shared.js'
-import { AttributeStatement } from './decorators/attribute.js'
-import maybeSerializableToDreamSerializerCallbackFunction from './decorators/helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
+export default ($data: unknown, $passthroughData: unknown) =>
+  new DreamSerializerBuilder($data, $passthroughData)
 
-export default class DreamSerializer<DataType = any, PassthroughDataType = any> {
-  public static attributeStatements: AttributeStatement[] = []
-  public static associationStatements: DreamSerializerAssociationStatement[] = []
-  public static readonly isDreamSerializer = true
+export interface Attribute {
+  name: string
+  options: object
+  openapi: object
+}
 
-  private static _globalName: string
+export interface AttributeFunction {
+  name: string
+  fn: (x: any, y?: any) => any
+  options: object
+  openapi: object
+}
 
-  /**
-   * @internal
-   *
-   * Certain features (e.g. building OpenAPI specs from Attribute and RendersOne/Many decorators)
-   * need static access to things set up by decorators. Stage 3 Decorators change the context that is available
-   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on DreamSerializer, and all serializers are instantiated.
-   *
-   */
-  private static globallyInitializingDecorators: boolean = false
+export interface RendersOne {
+  name: string
+  options: object
+  openapi: object
+}
 
-  public static get globalName(): string {
-    if (!this._globalName) throw new GlobalNameNotSet(this)
-    return this._globalName
-  }
+export interface RendersMany {
+  name: string
+  options: object
+  openapi: object
+}
 
-  private static setGlobalName(globalName: string) {
-    this._globalName = globalName
-  }
+export class DreamSerializerBuilder<DataType = unknown, PassthroughDataType = unknown> {
+  private attributes: Attribute[] = []
+  private attributeFunctions: AttributeFunction[] = []
+  private rendersOnes: RendersOne[] = []
+  private rendersManys: RendersMany[] = []
 
-  public static get openapiName(): string {
-    // TODO: make this customizable by the user
-    const pathDelimiter = '_'
+  constructor(
+    protected $data: DataType,
+    protected $passthroughData: PassthroughDataType
+  ) {}
 
-    return this.name.replace(/Serializer$/, '').replace(/\//g, pathDelimiter)
-  }
-
-  public static render(data: any, opts: DreamSerializerStaticRenderOpts = {}) {
-    return new this(data).passthrough(opts.passthrough).render()
-  }
-
-  public static renderArray(dataArr: any[], opts: DreamSerializerStaticRenderOpts = {}) {
-    return dataArr.map(data => this.render(data, opts))
-  }
-
-  public static getAssociatedSerializersForOpenapi(
-    associationStatement: DreamSerializerAssociationStatement
-  ): (typeof DreamSerializer<any, any>)[] | null {
-    const serializer = maybeSerializableToDreamSerializerCallbackFunction(
-      associationStatement.dreamOrSerializerClass
-    )
-    if (serializer) return [serializer()]
-
-    let classOrClasses =
-      associationStatement.dreamOrSerializerClass as SerializableClassOrSerializerCallback[]
-    if (!classOrClasses) return null
-
-    if (!Array.isArray(classOrClasses)) {
-      classOrClasses = [classOrClasses]
-    }
-
-    return compact(
-      classOrClasses.map(klass =>
-        inferSerializerFromDreamClassOrViewModelClass(
-          klass as ViewModelClass,
-          associationStatement.serializerKey
-        )
-      )
-    )
-  }
-
-  private static getAssociatedSerializerDuringRender(
-    associatedData: ViewModel,
-    associationStatement: DreamSerializerAssociationStatement
-  ): typeof DreamSerializer<any, any> | null {
-    const dreamSerializerCallbackFunctionOrNull = maybeSerializableToDreamSerializerCallbackFunction(
-      associationStatement.dreamOrSerializerClass
-    )
-
-    if (dreamSerializerCallbackFunctionOrNull) return dreamSerializerCallbackFunctionOrNull()
-    return inferSerializerFromDreamOrViewModel(associatedData, associationStatement.serializerKey)
-  }
-
-  private _data: DataType
-  private _casing: 'snake' | 'camel' | null = null
-  public readonly isDreamSerializerInstance = true
-
-  constructor(data: DataType) {
-    this._data = data
-
-    const serializerPrototype = Object.getPrototypeOf(this)
-    const attributeStatements = [...(this.constructor as typeof DreamSerializer).attributeStatements]
-
-    attributeStatements.forEach(attributeStatement => {
-      if (!attributeStatement.functional) {
-        if (!Object.getOwnPropertyDescriptor(serializerPrototype, attributeStatement.field)?.get) {
-          Object.defineProperty(serializerPrototype, attributeStatement.field, {
-            get() {
-              return this.$data[attributeStatement.field]
-            },
-
-            set(val: any) {
-              this.$data[attributeStatement.field] = val
-            },
-          })
-        }
-      }
-    })
-  }
-
-  public get $data() {
-    return this._data
-  }
-
-  public get attributes() {
-    const attributes = [...(this.constructor as typeof DreamSerializer).attributeStatements.map(s => s.field)]
-
-    switch (this._casing) {
-      case 'camel':
-        return attributes.map(attr => camelize(attr))
-      case 'snake':
-        return attributes.map(attr => snakeify(attr))
-      default:
-        return attributes
-    }
-  }
-
-  public casing(casing: 'snake' | 'camel') {
-    this._casing = casing
-    return this
-  }
-
-  protected $passthroughData: PassthroughDataType = {} as any
-  public passthrough(obj: PassthroughDataType) {
-    this.$passthroughData = {
-      ...this.$passthroughData,
-      ...obj,
-    }
-    return this
-  }
-
-  public absorbPassthrough(serializer: DreamSerializer) {
-    this.passthrough(serializer.$passthroughData)
-    return this
-  }
-
-  public render(): { [key: string]: any } {
-    if (!this._casing) {
-      const dreamApp = DreamApp.getOrFail()
-      this._casing = dreamApp.serializerCasing || 'camel'
-    }
-
-    return this.renderOne()
-  }
-
-  public renderOne() {
-    let returnObj: { [key: string]: any } = {}
-    for (const associationStatement of (this.constructor as typeof DreamSerializer).associationStatements) {
-      if (associationStatement.flatten) {
-        returnObj = {
-          ...returnObj,
-          ...this.applyAssociation(associationStatement),
-        }
-      } else {
-        returnObj[this.applyCasingToField(associationStatement.field)] =
-          this.applyAssociation(associationStatement)
-      }
-    }
-
-    this.attributes.forEach(attr => {
-      const attributeStatement = (this.constructor as typeof DreamSerializer).attributeStatements.find(
-        s =>
-          [attr, this.applyCasingToField(attr)].includes(s.field) ||
-          [attr, this.applyCasingToField(attr)].includes(this.applyCasingToField(s.field))
-      )
-
-      if (attributeStatement) {
-        const { field, renderAs, renderOptions } = attributeStatement
-        const fieldWithCasing = this.applyCasingToField(field)
-
-        let dateValue: CalendarDate | CalendarDate[] | DateTime | DateTime[] | null | undefined
-        let decimalValue: number | number[] | string | string[] | null | undefined
-
-        switch (renderAs) {
-          case 'date':
-          case 'date[]':
-            dateValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = Array.isArray(dateValue)
-              ? dateValue?.map(date => unknownTypeToIsoDateString(date))
-              : unknownTypeToIsoDateString(dateValue)
-            break
-
-          case 'date-time':
-          case 'date-time[]':
-            dateValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = Array.isArray(dateValue)
-              ? dateValue?.map(date => unknownTypeToIsoDatetimeString(date))
-              : unknownTypeToIsoDatetimeString(dateValue)
-            break
-
-          case 'decimal':
-          case 'decimal[]':
-            decimalValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = Array.isArray(decimalValue)
-              ? decimalValue?.map(date => unknownTypeToDecimal(date, renderOptions?.precision))
-              : unknownTypeToDecimal(decimalValue, renderOptions?.precision)
-            break
-
-          case 'integer':
-          case 'integer[]':
-            decimalValue = this.getAttributeValue(attributeStatement)
-            returnObj[fieldWithCasing] = Array.isArray(decimalValue)
-              ? decimalValue?.map(date => unknownTypeToDecimal(date, 0))
-              : unknownTypeToDecimal(decimalValue, 0)
-
-            break
-
-          default:
-            returnObj[fieldWithCasing] = this.getAttributeValue(attributeStatement)
-        }
-      }
+  public attribute(
+    name: keyof DataType & string,
+    options?: object | undefined,
+    openapi?: object | undefined
+  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+    this.attributes.push({
+      name,
+      options: { ...(options ?? {}) },
+      openapi: { ...(openapi ?? {}) },
     })
 
-    return returnObj
+    return this
   }
 
-  private applyAssociation(associationStatement: DreamSerializerAssociationStatement) {
-    const associatedData = this.associatedData(associationStatement)
+  public attributeFunction(
+    name: keyof DataType & string,
+    fn: (x: DataType, y?: PassthroughDataType | undefined) => unknown,
+    options?: object | undefined,
+    openapi?: object | undefined
+  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+    this.attributeFunctions.push({
+      name,
+      fn,
+      options: { ...(options ?? {}) },
+      openapi: { ...(openapi ?? {}) },
+    })
 
-    if (associationStatement.type === 'RendersMany' && Array.isArray(associatedData))
-      return associatedData.map(d => this.renderAssociation(d, associationStatement))
-    else if (associatedData) return this.renderAssociation(associatedData, associationStatement)
-    return associationStatement.type === 'RendersMany' ? [] : null
+    return this
   }
 
-  private renderAssociation(
-    associatedData: ViewModel,
-    associationStatement: DreamSerializerAssociationStatement
-  ) {
-    const SerializerClass = DreamSerializer.getAssociatedSerializerDuringRender(
-      associatedData,
-      associationStatement
-    )
-    if (!SerializerClass) throw new MissingSerializer(associatedData.constructor as typeof Dream)
+  public rendersOne(
+    name: keyof DataType & string,
+    options?: object | undefined,
+    openapi?: object | undefined
+  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+    this.rendersOnes.push({
+      name,
+      options: { ...(options ?? {}) },
+      openapi: { ...(openapi ?? {}) },
+    })
 
-    return new SerializerClass(associatedData).absorbPassthrough(this).render()
+    return this
   }
 
-  private associatedData(associationStatement: DreamSerializerAssociationStatement) {
-    const delegateToPassthroughData = associationStatement.source === DreamConst.passthrough
-    const self = (delegateToPassthroughData ? this.$passthroughData : this.$data) as any
+  public rendersMany(
+    name: keyof DataType & string,
+    options?: object | undefined,
+    openapi?: object | undefined
+  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+    this.rendersManys.push({
+      name,
+      options: { ...(options ?? {}) },
+      openapi: { ...(openapi ?? {}) },
+    })
 
-    if (Array.isArray(self)) {
-      return self.flatMap(item => {
-        let returnValue: any
-        if (delegateToPassthroughData) returnValue = item[associationStatement.field]
-        returnValue = item[associationStatement.source as string]
-
-        return Array.isArray(returnValue) ? returnValue.flat() : returnValue
-      })
-    } else {
-      if (delegateToPassthroughData) return self[associationStatement.field]
-      return self[associationStatement.source as string]
-    }
-  }
-
-  private getAttributeValue(attributeStatement: AttributeStatement) {
-    const { field } = attributeStatement
-
-    let targetObject: any = this as any
-
-    if (attributeStatement.renderOptions?.delegate) {
-      const $data = this.$data as any
-      const delegateField = attributeStatement.renderOptions?.delegate
-      if ($data && !(delegateField in $data)) throw new DelegationTargetDoesNotExist(delegateField)
-      targetObject = $data?.[delegateField] || null
-    }
-
-    const valueOrCb = targetObject[field]
-
-    if (attributeStatement.functional) {
-      return valueOrCb.call(this, this.$data)
-    } else {
-      return valueOrCb
-    }
-  }
-
-  private applyCasingToField(field: string) {
-    switch (this._casing) {
-      case 'camel':
-        return camelize(field)
-      case 'snake':
-        return snakeify(field)
-      default:
-        return field
-    }
+    return this
   }
 }
-
-function unknownTypeToIsoDateString(date: unknown): string | null | undefined {
-  if (date === undefined) return undefined
-  if (date === null) return null
-  if (date instanceof CalendarDate || date instanceof DateTime) return date.toISODate()
-  return date as string
-}
-
-function unknownTypeToIsoDatetimeString(dateTime: unknown): string | null | undefined {
-  if (dateTime === undefined) return undefined
-  if (dateTime === null) return null
-  if (dateTime instanceof CalendarDate) return DateTime.fromISO(dateTime.toISO()!).toISO()
-  if (dateTime instanceof DateTime) return dateTime.toISO()
-  return dateTime as string
-}
-
-function unknownTypeToDecimal(
-  decimalOrString: string | number | undefined | null,
-  precision: RoundingPrecision | undefined
-): number | null | undefined {
-  if (decimalOrString === undefined) return undefined
-  if (decimalOrString === null) return null
-  const decimalValue = typeof decimalOrString === 'number' ? decimalOrString : Number(decimalOrString)
-  return precision === undefined ? decimalValue : round(decimalValue, precision)
-}
-
-export interface DreamSerializerStaticRenderOpts {
-  passthrough?: any
-}
-
-export type SerializerPublicFields<I extends DreamSerializer> = keyof Omit<
-  I,
-  | 'render'
-  | 'passthrough'
-  | 'renderOne'
-  | 'casing'
-  | 'attributes'
-  | 'data'
-  | 'attributeTypeReflection'
-  | 'isDreamSerializerInstance'
-> &
-  string
