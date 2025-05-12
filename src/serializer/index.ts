@@ -9,7 +9,12 @@ export function DreamModelSerializer<
   DataTypeForOpenapi extends typeof Dream,
   DataType,
   PassthroughDataType = object,
->(type: DataTypeForOpenapi, $data: DataType, $passthroughData?: PassthroughDataType) {
+>(
+  type: DataTypeForOpenapi,
+  // & simply to ensure that the OpenAPI and data types are kept in sync
+  $data: DataType & InstanceType<DataTypeForOpenapi>,
+  $passthroughData?: PassthroughDataType
+) {
   return new DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>(
     type,
     $data,
