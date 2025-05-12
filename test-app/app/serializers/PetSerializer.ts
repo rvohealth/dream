@@ -4,10 +4,11 @@ import Pet from '../models/Pet.js'
 // @Serializer() // necessary to inject the name "PetSerializer" into the serializer for OpenAPI
 const PetSerializer = ($data: Pet, $passthroughData: object) =>
   DreamSerializer($data, $passthroughData)
-    .attribute('id')
+    .attribute('id', { description: 'hello' })
     .attribute('name')
     .attributeFunction('favoriteDaysOfWeek', () => ['Monday', 'Tuesday'], {
-      openapi: { description: 'The days the Pet is happiest' },
+      type: 'string[]',
+      description: 'The days the Pet is happiest',
     })
     .attribute('species')
     .rendersMany('ratings')
