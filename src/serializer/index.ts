@@ -7,13 +7,16 @@ import { RendersOneOpts } from './decorators/associations/RendersOne.js'
 
 export default function <DataType = object, PassthroughDataType = object>(
   $data: DataType,
-  $passthroughData: PassthroughDataType
+  $passthroughData?: PassthroughDataType
 ) {
   return new DreamSerializerBuilder<DataType, PassthroughDataType>($data, $passthroughData)
 }
 
-export interface Attribute<DataType> {
-  name: keyof DataType
+export interface Attribute<
+  DataType,
+  Name extends keyof Exclude<DataType, null> = keyof Exclude<DataType, null>,
+> {
+  name: Name
   openapiAndRenderOptions:
     | AutomaticOpenapiAndRenderOptions
     | OpenapiSchemaBodyShorthand
@@ -37,14 +40,22 @@ export interface AttributeFunction {
     | undefined
 }
 
-export interface RendersOne<DataType> {
-  name: keyof DataType
+export interface RendersOne<
+  DataType,
+  Name extends keyof Exclude<DataType, null> = keyof Exclude<DataType, null>,
+> {
+  name: Name
   serializableClassOrClasses: SerializableClassOrClasses | undefined
   options: RendersOneOpts | undefined
 }
 
-export interface RendersMany<DataType> {
-  name: keyof DataType
+export interface RendersMany<
+  DataType,
+  Name extends DataType extends (infer ElementType)[]
+    ? keyof ElementType
+    : never = DataType extends (infer ElementType)[] ? keyof ElementType : never,
+> {
+  name: Name
   serializableClassOrClasses: SerializableClassOrClasses | undefined
   options: RendersOneOpts | undefined
 }
@@ -70,18 +81,18 @@ type DecimalShorthandAttributeOpenapiAndRenderOptions = ShorthandAttributeOpenap
   DecimalShorthandAttributeRenderOptions
 
 export class DreamSerializerBuilder<DataType, PassthroughDataType> {
-  private attributes: Attribute<DataType>[] = []
-  private attributeFunctions: AttributeFunction[] = []
-  private rendersOnes: RendersOne<DataType>[] = []
-  private rendersManys: RendersMany<DataType>[] = []
+  protected attributes: Attribute<DataType>[] = []
+  protected attributeFunctions: AttributeFunction[] = []
+  protected rendersOnes: RendersOne<DataType>[] = []
+  protected rendersManys: RendersMany<DataType>[] = []
 
   constructor(
     protected $data: DataType,
-    protected $passthroughData: PassthroughDataType
+    protected $passthroughData: PassthroughDataType = {} as PassthroughDataType
   ) {}
 
   public attribute<
-    AttributeName extends keyof DataType,
+    AttributeName extends keyof Exclude<DataType, null>,
     OpenapiOptions extends DataType extends Dream
       ? AutomaticOpenapiAndRenderOptions
       : OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
@@ -134,7 +145,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
   }
 
   public rendersOne<
-    AttributeName extends keyof DataType,
+    AttributeName extends keyof Exclude<DataType, null>,
     SerializableClassOrClassesOrOptions extends DataType extends Dream
       ? RendersOneOpts
       : SerializableClassOrClasses,
@@ -162,7 +173,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
   }
 
   public rendersMany<
-    AttributeName extends keyof DataType,
+    AttributeName extends DataType extends (infer ElementType)[] ? keyof ElementType : never,
     SerializableClassOrClassesOrOptions extends DataType extends Dream
       ? RendersManyOpts
       : SerializableClassOrClasses,
