@@ -7,8 +7,8 @@ import {
   OpenapiShorthandPrimitiveBaseTypes,
   OpenapiShorthandPrimitiveTypes,
 } from '../../types/openapi.js'
+import { dreamAttributeOpenapiShape } from '../helpers/dreamAttributeOpenapiShape.js'
 import DreamSerializer from '../index.js'
-import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 
 export default function Attribute(): any
 

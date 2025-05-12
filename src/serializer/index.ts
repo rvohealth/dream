@@ -124,24 +124,48 @@ export class DreamSerializerBuilder<
     return this
   }
 
+  // First overload: When DataTypeForOpenapi extends typeof Dream
   public attribute<
     AttributeName extends keyof Exclude<DataType, null> & string,
-    OpenapiOptions extends DataType extends Dream
-      ? AutomaticOpenapiAndRenderOptions | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
-      : OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
-    RenderOptions extends OpenapiOptions extends undefined
+    OpenapiOptions extends
+      | AutomaticOpenapiAndRenderOptions
+      | OpenapiSchemaBodyShorthand
+      | OpenapiShorthandPrimitiveTypes,
+    RenderOptions extends OpenapiOptions extends AutomaticOpenapiAndRenderOptions
       ? never
-      : OpenapiOptions extends AutomaticOpenapiAndRenderOptions
-        ? never
-        : OpenapiOptions extends 'decimal' | 'decimal[]'
-          ? DecimalShorthandAttributeOpenapiAndRenderOptions
-          : OpenapiOptions extends OpenapiSchemaBodyShorthand
-            ? AttributeRenderOptions
-            : ShorthandAttributeOpenapiAndRenderOptions,
+      : OpenapiOptions extends 'decimal' | 'decimal[]'
+        ? DecimalShorthandAttributeOpenapiAndRenderOptions
+        : OpenapiOptions extends OpenapiSchemaBodyShorthand
+          ? AttributeRenderOptions
+          : ShorthandAttributeOpenapiAndRenderOptions,
   >(
+    this: DreamSerializerBuilder<typeof Dream, DataType, PassthroughDataType>,
     name: AttributeName,
     openapi?: OpenapiOptions,
     options?: RenderOptions
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>
+
+  // Second overload: For other cases (not Dream)
+  public attribute<
+    AttributeName extends keyof Exclude<DataType, null> & string,
+    OpenapiOptions extends OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
+    RenderOptions extends OpenapiOptions extends 'decimal' | 'decimal[]'
+      ? DecimalShorthandAttributeOpenapiAndRenderOptions
+      : OpenapiOptions extends OpenapiSchemaBodyShorthand
+        ? AttributeRenderOptions
+        : ShorthandAttributeOpenapiAndRenderOptions,
+  >(
+    this: DreamSerializerBuilder<ViewModelClass | null, DataType, PassthroughDataType>,
+    name: AttributeName,
+    openapi: OpenapiOptions,
+    options?: RenderOptions
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>
+
+  // Implementation
+  public attribute(
+    name: any,
+    openapi?: any,
+    options?: any
   ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributes.push({
       name,

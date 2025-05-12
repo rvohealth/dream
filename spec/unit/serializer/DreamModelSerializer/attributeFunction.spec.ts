@@ -27,7 +27,7 @@ describe('DreamSerializer attributeFunctions', () => {
 
     expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
       expect.objectContaining({
-        type: 'null',
+        type: 'object',
       })
     )
   })
@@ -51,7 +51,7 @@ describe('DreamSerializer attributeFunctions', () => {
 
     expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
       expect.objectContaining({
-        type: 'null',
+        type: 'object',
       })
     )
   })
@@ -59,11 +59,9 @@ describe('DreamSerializer attributeFunctions', () => {
   context('when serializing null', () => {
     it('renders the attributes as null', () => {
       const MySerializer = ($data: User | null) =>
-        DreamModelSerializer(User, $data).attributeFunction(
-          'email',
-          user => `${user.email}@peanuts.com`,
-          'string'
-        )
+        DreamModelSerializer(User, $data)
+          .maybeNull()
+          .attributeFunction('email', user => `${user.email}@peanuts.com`, 'string')
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)

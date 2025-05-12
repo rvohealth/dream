@@ -23,14 +23,14 @@ describe('DreamSerializer attributes', () => {
 
     expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
       expect.objectContaining({
-        type: 'null',
+        type: 'object',
       })
     )
   })
 
   it('can render simple object attributes', () => {
     const MySerializer = ($data: { email: string; password: string }) =>
-      SimpleObjectSerializer($data).attribute('email')
+      SimpleObjectSerializer($data).attribute('email', 'string')
 
     const serializer = MySerializer({ email: 'abc', password: '123' })
     const serializerRenderer = new SerializerRenderer(serializer)
@@ -47,7 +47,7 @@ describe('DreamSerializer attributes', () => {
 
     expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
       expect.objectContaining({
-        type: 'null',
+        type: 'object',
       })
     )
   })
