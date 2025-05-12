@@ -1,19 +1,14 @@
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import { round } from '../../../src/index.js'
+import { DreamModelSerializer } from '../../../src/serializer/index.js'
 import EdgeCaseAttribute from '../models/EdgeCaseAttribute.js'
 
-export default class EdgeCaseAttributeSerializer<
-  DataType extends EdgeCaseAttribute,
-> extends DreamSerializer<DataType> {
-  @Attribute('boolean')
-  public kPop: any
+const EdgeCaseAttributeSerializer = ($data: EdgeCaseAttribute) =>
+  DreamModelSerializer(EdgeCaseAttribute, $data)
+    .attribute('kPop', 'boolean')
+    .attribute('popK', 'string')
+    .attribute('popKPop', 'number')
+    .attributeFunction('roundedPopKPop', $data => round($data.popKPop ?? 0, 2), 'decimal', {
+      precision: 2,
+    })
 
-  @Attribute('string')
-  public popK: string
-
-  @Attribute('number')
-  public popKPop: number
-
-  @Attribute('decimal', { precision: 2 })
-  public roundedPopKPop: number
-}
+export default EdgeCaseAttributeSerializer

@@ -1,20 +1,39 @@
 import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
-import { SerializableClassOrClasses } from '../types/dream.js'
+import { SerializableClassOrClasses, ViewModelClass } from '../types/dream.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { RendersManyOpts } from './decorators/associations/RendersMany.js'
 import { RendersOneOpts } from './decorators/associations/RendersOne.js'
 
-export default function <DataType = object, PassthroughDataType = object>(
+export function DreamModelSerializer<
+  DataTypeForOpenapi extends typeof Dream,
+  DataType,
+  PassthroughDataType = object,
+>(type: DataTypeForOpenapi, $data: DataType, $passthroughData?: PassthroughDataType) {
+  return new DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>(
+    type,
+    $data,
+    $passthroughData
+  )
+}
+
+export function ViewModelSerializer<DataType, PassthroughDataType = object>(
   $data: DataType,
   $passthroughData?: PassthroughDataType
 ) {
-  return new DreamSerializerBuilder<DataType, PassthroughDataType>($data, $passthroughData)
+  return new DreamSerializerBuilder<null, DataType, PassthroughDataType>(null, $data, $passthroughData)
+}
+
+export function SimpleObjectSerializer<DataType, PassthroughDataType = object>(
+  $data: DataType,
+  $passthroughData?: PassthroughDataType
+) {
+  return new DreamSerializerBuilder<null, DataType, PassthroughDataType>(null, $data, $passthroughData)
 }
 
 export interface Attribute<
   DataType,
-  Name extends keyof Exclude<DataType, null> = keyof Exclude<DataType, null>,
+  Name extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
 > {
   name: Name
   openapiAndRenderOptions:
@@ -42,7 +61,7 @@ export interface AttributeFunction {
 
 export interface RendersOne<
   DataType,
-  Name extends keyof Exclude<DataType, null> = keyof Exclude<DataType, null>,
+  Name extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
 > {
   name: Name
   serializableClassOrClasses: SerializableClassOrClasses | undefined
@@ -51,9 +70,7 @@ export interface RendersOne<
 
 export interface RendersMany<
   DataType,
-  Name extends DataType extends (infer ElementType)[]
-    ? keyof ElementType
-    : never = DataType extends (infer ElementType)[] ? keyof ElementType : never,
+  Name extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
 > {
   name: Name
   serializableClassOrClasses: SerializableClassOrClasses | undefined
@@ -80,21 +97,26 @@ type DecimalShorthandAttributeRenderOptions = Pick<AttributeRenderOptions, 'prec
 type DecimalShorthandAttributeOpenapiAndRenderOptions = ShorthandAttributeOpenapiAndRenderOptions &
   DecimalShorthandAttributeRenderOptions
 
-export class DreamSerializerBuilder<DataType, PassthroughDataType> {
+export class DreamSerializerBuilder<
+  DataTypeForOpenapi extends typeof Dream | ViewModelClass | null,
+  DataType,
+  PassthroughDataType,
+> {
   protected attributes: Attribute<DataType>[] = []
   protected attributeFunctions: AttributeFunction[] = []
   protected rendersOnes: RendersOne<DataType>[] = []
   protected rendersManys: RendersMany<DataType>[] = []
 
   constructor(
+    protected $typeForOpenapi: DataTypeForOpenapi,
     protected $data: DataType,
     protected $passthroughData: PassthroughDataType = {} as PassthroughDataType
   ) {}
 
   public attribute<
-    AttributeName extends keyof Exclude<DataType, null>,
+    AttributeName extends keyof Exclude<DataType, null> & string,
     OpenapiOptions extends DataType extends Dream
-      ? AutomaticOpenapiAndRenderOptions
+      ? AutomaticOpenapiAndRenderOptions | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
       : OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
     RenderOptions extends OpenapiOptions extends undefined
       ? never
@@ -109,7 +131,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
     name: AttributeName,
     openapi?: OpenapiOptions,
     options?: RenderOptions
-  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributes.push({
       name,
       openapiAndRenderOptions: openapi,
@@ -130,10 +152,10 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
           : ShorthandAttributeOpenapiAndRenderOptions,
   >(
     name: string,
-    fn: (x?: DataType | undefined, y?: PassthroughDataType | undefined) => unknown,
+    fn: (x: Exclude<DataType, null>, y?: PassthroughDataType) => unknown,
     openapi?: OpenapiOptions,
     options?: RenderOptions
-  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributeFunctions.push({
       name,
       fn,
@@ -145,7 +167,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
   }
 
   public rendersOne<
-    AttributeName extends keyof Exclude<DataType, null>,
+    AttributeName extends keyof Exclude<DataType, null> & string,
     SerializableClassOrClassesOrOptions extends DataType extends Dream
       ? RendersOneOpts
       : SerializableClassOrClasses,
@@ -158,7 +180,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
     name: AttributeName,
     serializableClassOrClassesOrOptions?: SerializableClassOrClassesOrOptions,
     options?: Options
-  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.rendersOnes.push({
       name,
       serializableClassOrClasses: (this.$data as Dream)?.isDreamInstance
@@ -173,7 +195,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
   }
 
   public rendersMany<
-    AttributeName extends DataType extends (infer ElementType)[] ? keyof ElementType : never,
+    AttributeName extends keyof Exclude<DataType, null> & string,
     SerializableClassOrClassesOrOptions extends DataType extends Dream
       ? RendersManyOpts
       : SerializableClassOrClasses,
@@ -186,7 +208,7 @@ export class DreamSerializerBuilder<DataType, PassthroughDataType> {
     name: AttributeName,
     serializableClassOrClassesOrOptions?: SerializableClassOrClassesOrOptions,
     options?: Options
-  ): DreamSerializerBuilder<DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.rendersManys.push({
       name,
       serializableClassOrClasses: (this.$data as Dream)?.isDreamInstance

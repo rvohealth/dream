@@ -1,10 +1,6 @@
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import Balloon from '../models/Balloon.js'
 
-export default class BalloonSummarySerializer extends DreamSerializer {
-  @Attribute('string')
-  public type: string
+const BalloonSummarySerializer = ($data: Balloon) => DreamModelSerializer(Balloon, $data).attribute('color')
 
-  @Attribute()
-  public name: string
-}
+export default BalloonSummarySerializer
