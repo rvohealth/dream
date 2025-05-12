@@ -3,7 +3,7 @@ import { DreamSerializerBuilder } from './index.js'
 export default class SerializerRenderer {
   constructor(private serializer: DreamSerializerBuilder<any, any, any>) {}
 
-  public get renderedAttributes() {
+  private get renderedAttributes() {
     const $data = this.serializer['$data']
     if (!$data) return null
 
@@ -13,7 +13,7 @@ export default class SerializerRenderer {
     }, {} as any)
   }
 
-  public get renderedAttributeFunctions() {
+  private get renderedAttributeFunctions() {
     const $data = this.serializer['$data']
     if (!$data) return null
 

@@ -12,7 +12,7 @@ export function DreamModelSerializer<
 >(
   type: DataTypeForOpenapi,
   // & simply to ensure that the OpenAPI and data types are kept in sync
-  $data: DataType & InstanceType<DataTypeForOpenapi>,
+  $data: DataType & (InstanceType<DataTypeForOpenapi> | null),
   $passthroughData?: PassthroughDataType
 ) {
   return new DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>(
@@ -111,12 +111,18 @@ export class DreamSerializerBuilder<
   protected attributeFunctions: AttributeFunction[] = []
   protected rendersOnes: RendersOne<DataType>[] = []
   protected rendersManys: RendersMany<DataType>[] = []
+  protected _maybeNull: boolean = false
 
   constructor(
     protected $typeForOpenapi: DataTypeForOpenapi,
     protected $data: DataType,
     protected $passthroughData: PassthroughDataType = {} as PassthroughDataType
   ) {}
+
+  public maybeNull() {
+    this._maybeNull = true
+    return this
+  }
 
   public attribute<
     AttributeName extends keyof Exclude<DataType, null> & string,
@@ -158,7 +164,7 @@ export class DreamSerializerBuilder<
   >(
     name: string,
     fn: (x: Exclude<DataType, null>, y?: PassthroughDataType) => unknown,
-    openapi?: OpenapiOptions,
+    openapi: OpenapiOptions,
     options?: RenderOptions
   ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributeFunctions.push({

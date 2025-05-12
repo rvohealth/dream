@@ -1,16 +1,23 @@
 import Dream from '../Dream.js'
-import { dreamAttributeOpenapiShape } from './decorators/helpers/dreamAttributeOpenapiShape.js'
+import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   constructor(private serializer: DreamSerializerBuilder<any, any, any>) {}
 
-  public get renderedOpenapiAttributes() {
+  public get renderedOpenapi() {
+    const openapiShape = {
+      type: this.serializer['maybeNull'] ? ['object', 'null'] : 'object',
+    }
+
+    return openapiShape
+  }
+
+  private get renderedOpenapiAttributes() {
     const $typeForOpenapi = this.serializer['$typeForOpenapi']
-    if (!$typeForOpenapi) return {}
+    const dreamClass = $typeForOpenapi as typeof Dream
 
     return this.serializer['attributes'].reduce((accumulator, attribute) => {
-      const dreamClass = $typeForOpenapi as typeof Dream
       accumulator[attribute.name] = dreamClass?.isDream
         ? dreamAttributeOpenapiShape(dreamClass, attribute.name)
         : attribute.openapiAndRenderOptions
@@ -18,12 +25,9 @@ export default class SerializerOpenapiRenderer {
     }, {} as any)
   }
 
-  public get renderedAttributeFunctions() {
-    const $data = this.serializer['$data']
-    if (!$data) return null
-
+  private get renderedOpenapiAttributeFunctions() {
     return this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
-      accumulator[attribute.name] = attribute.fn($data)
+      accumulator[attribute.name] = attribute.openapiAndRenderOptions
       return accumulator
     }, {} as any)
   }
