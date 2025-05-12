@@ -1,7 +1,6 @@
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import Rating from '../models/Rating.js'
 
-export default class RatingSerializer extends DreamSerializer {
-  @Attribute()
-  public id: any
-}
+const RatingSerializer = ($data: Rating) => DreamModelSerializer(Rating, $data).attribute('id')
+
+export default RatingSerializer
