@@ -4525,7 +4525,6 @@ export const globalSchema = {
       'Graph/EdgeSerializer',
       'Graph/NodeSerializer',
       'LocalizedText/BaseSerializer',
-      'LocalizedText/thisFunctionShouldNotBePartOfClientApiExport',
       'PetSerializer',
       'PetSummarySerializer',
       'PetUnderstudyJoinModelSerializer',
