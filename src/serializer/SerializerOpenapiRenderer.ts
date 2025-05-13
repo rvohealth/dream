@@ -3,10 +3,14 @@ import { openapiShorthandPrimitiveTypes } from '../dream/constants.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { dreamAttributeOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
-import { DreamSerializerBuilder } from './index.js'
+import { NamedDreamSerializerBuilder } from './index.js'
 
 export default class SerializerOpenapiRenderer {
-  constructor(private serializer: DreamSerializerBuilder<any, any, any>) {}
+  constructor(private serializer: NamedDreamSerializerBuilder<any, any, any>) {}
+
+  public get serializerName() {
+    return this.serializer['serializerName']
+  }
 
   public get renderedOpenapi() {
     const openapiShape = {

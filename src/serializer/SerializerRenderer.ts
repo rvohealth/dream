@@ -1,8 +1,8 @@
 import round from '../helpers/round.js'
-import { DreamSerializerBuilder } from './index.js'
+import { NamedDreamSerializerBuilder } from './index.js'
 
 export default class SerializerRenderer {
-  constructor(private serializer: DreamSerializerBuilder<any, any, any>) {}
+  constructor(private serializer: NamedDreamSerializerBuilder<any, any, any>) {}
 
   private get renderedAttributes() {
     const $data = this.serializer['$data']
