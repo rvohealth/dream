@@ -1,5 +1,5 @@
 import { CalendarDate, DateTime } from '../../../../src/index.js'
-import { DreamModelSerializer, NamedDreamSerializerBuilder } from '../../../../src/serializer/index.js'
+import { DreamSerializer, NamedDreamSerializerBuilder } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
@@ -10,7 +10,7 @@ import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutMode
 describe('DreamSerializer attributes', () => {
   it('can render Dream attributes', () => {
     const MySerializer = ($data: User) =>
-      DreamModelSerializer(User, $data).openapiName('MySerializer').attribute('email')
+      DreamSerializer(User, $data).openapiName('MySerializer').attribute('email')
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
@@ -36,16 +36,11 @@ describe('DreamSerializer attributes', () => {
 
   it('can specify OpenAPI description', () => {
     const MySerializer = ($data: User) =>
-      DreamModelSerializer(User, $data)
+      DreamSerializer(User, $data)
         .openapiName('MySerializer')
         .attribute('email', { description: 'This is an email' })
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
-
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer['renderedAttributes']).toEqual({
-      email: 'abc',
-    })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
@@ -59,7 +54,7 @@ describe('DreamSerializer attributes', () => {
   context('when serializing null', () => {
     it('renderedAttributes is null', () => {
       const MySerializer = ($data: User | null) =>
-        DreamModelSerializer(User, $data).openapiName('MySerializer').maybeNull().attribute('email')
+        DreamSerializer(User, $data).openapiName('MySerializer').maybeNull().attribute('email')
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)
@@ -82,7 +77,7 @@ describe('DreamSerializer attributes', () => {
 
   it('can render attributes from serializers that "extend" other serializers', () => {
     const BaseSerializer = ($data: User) =>
-      DreamModelSerializer(User, $data).openapiName('MySerializer').attribute('name')
+      DreamSerializer(User, $data).openapiName('MySerializer').attribute('name')
     const MySerializer = ($data: User) => BaseSerializer($data).attribute('email')
 
     const serializer = MySerializer(User.new({ name: 'Snoopy', email: 'abc', password: '123' }))
@@ -113,13 +108,14 @@ describe('DreamSerializer attributes', () => {
 
   context('all Dream column types', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      DreamModelSerializer(ModelForOpenapiTypeSpecs, $data)
+      DreamSerializer(ModelForOpenapiTypeSpecs, $data)
         .openapiName('MySerializer')
         .attribute('name')
         .attribute('nicknames')
         .attribute('requiredNicknames')
         .attribute('email')
         .attribute('birthdate')
+        .attribute('aDatetime')
 
         .attribute('volume')
 
@@ -182,6 +178,7 @@ describe('DreamSerializer attributes', () => {
         .attribute('requiredCollarCountInt')
         .attribute('likesWalks')
         .attribute('likesTreats')
+        .attribute('likesTreats')
 
     let serializer: NamedDreamSerializerBuilder<
       typeof ModelForOpenapiTypeSpecs,
@@ -201,6 +198,7 @@ describe('DreamSerializer attributes', () => {
         requiredNicknames: ['Chuck'],
         email: 'charlie@peanuts.com',
         birthdate: expect.toEqualCalendarDate(CalendarDate.fromISO('1950-10-02')),
+        aDatetime: expect.toEqualDateTime(DateTime.fromISO('1950-10-02')),
 
         volume: 7.778,
 
@@ -268,6 +266,7 @@ describe('DreamSerializer attributes', () => {
         requiredNicknames: { type: 'array', items: { type: 'string' } },
         email: { type: 'string' },
         birthdate: { type: ['string', 'null'], format: 'date' },
+        aDatetime: { type: ['string', 'null'], format: 'date-time' },
 
         volume: { type: ['number', 'null'], format: 'decimal' },
 
@@ -334,7 +333,7 @@ describe('DreamSerializer attributes', () => {
   context('numeric/decimal with precision', () => {
     it('rounds to specified precision', async () => {
       const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-        DreamModelSerializer(ModelForOpenapiTypeSpecs, $data)
+        DreamSerializer(ModelForOpenapiTypeSpecs, $data)
           .openapiName('MySerializer')
           .attribute('volume', {}, { precision: 1 })
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
@@ -347,7 +346,7 @@ describe('DreamSerializer attributes', () => {
 
   context('with casing specified', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      DreamModelSerializer(ModelForOpenapiTypeSpecs, $data)
+      DreamSerializer(ModelForOpenapiTypeSpecs, $data)
         .openapiName('MySerializer')
         .attribute('requiredNicknames')
 

@@ -1,9 +1,9 @@
-import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
 import Pet from '../models/Pet.js'
 
 // @Serializer() // necessary to inject the name "PetSerializer" into the serializer for OpenAPI
 const PetSerializer = ($data: Pet, $passthroughData: object) =>
-  DreamModelSerializer(Pet, $data, $passthroughData)
+  DreamSerializer(Pet, $data, $passthroughData)
     .attribute('id', { description: 'hello' })
     .attribute('name')
     .attributeFunction('favoriteDaysOfWeek', () => ['Monday', 'Tuesday'], {
@@ -17,4 +17,4 @@ export default PetSerializer
 
 // @Serializer() // necessary to inject the name "PetSummarySerializer" into the serializer for OpenAPI
 export const PetSummarySerializer = ($data: Pet, $passthrough: object) =>
-  DreamModelSerializer(Pet, $data, $passthrough).attribute('id').attribute('favoriteTreats')
+  DreamSerializer(Pet, $data, $passthrough).attribute('id').attribute('favoriteTreats')

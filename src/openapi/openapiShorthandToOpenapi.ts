@@ -1,4 +1,4 @@
-import { OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
+import { OpenapiSchemaBody, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 
 interface Options {
   maybeNull?: boolean
@@ -7,10 +7,10 @@ interface Options {
 export default function openapiShorthandToOpenapi(
   shorthand: OpenapiShorthandPrimitiveTypes,
   options: Options = {}
-) {
+): OpenapiSchemaBody {
   const openapi = simpleOpenapiShorthandToOpenapi(shorthand)
-  if (options.maybeNull) return { ...openapi, type: [openapi.type, 'null'] }
-  return openapi
+  if (options.maybeNull) return { ...openapi, type: [openapi.type, 'null'] } as OpenapiSchemaBody
+  return openapi as OpenapiSchemaBody
 }
 
 function simpleOpenapiShorthandToOpenapi(shorthand: OpenapiShorthandPrimitiveTypes) {
@@ -22,17 +22,15 @@ function simpleOpenapiShorthandToOpenapi(shorthand: OpenapiShorthandPrimitiveTyp
     case 'number':
       return { type: 'number' }
     case 'date':
-      return { type: 'date' }
+      return { type: 'string', format: 'date' }
     case 'date-time':
-      return { type: 'date-time' }
-    case 'double':
-      return { type: 'double' }
+      return { type: 'string', format: 'date-time' }
+    case 'decimal':
+      return { type: 'number', format: 'decimal' }
     case 'integer':
       return { type: 'integer' }
     case 'null':
       return { type: 'null' }
-    case 'decimal':
-      return { type: 'decimal' }
     case 'string[]':
       return { type: 'array', items: { type: 'string' } }
     case 'boolean[]':
@@ -40,13 +38,11 @@ function simpleOpenapiShorthandToOpenapi(shorthand: OpenapiShorthandPrimitiveTyp
     case 'number[]':
       return { type: 'array', items: { type: 'number' } }
     case 'date[]':
-      return { type: 'array', items: { type: 'date' } }
+      return { type: 'array', items: { type: 'string', format: 'date' } }
     case 'date-time[]':
-      return { type: 'array', items: { type: 'date-time' } }
+      return { type: 'array', items: { type: 'string', format: 'date-time' } }
     case 'decimal[]':
-      return { type: 'array', items: { type: 'decimal' } }
-    case 'double[]':
-      return { type: 'array', items: { type: 'double' } }
+      return { type: 'array', items: { type: 'number', format: 'decimal' } }
     case 'integer[]':
       return { type: 'array', items: { type: 'integer' } }
     case 'json':

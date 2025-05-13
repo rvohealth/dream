@@ -1,9 +1,9 @@
 import { round } from '../../../src/index.js'
-import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
 import EdgeCaseAttribute from '../models/EdgeCaseAttribute.js'
 
 const EdgeCaseAttributeSerializer = ($data: EdgeCaseAttribute) =>
-  DreamModelSerializer(EdgeCaseAttribute, $data)
+  DreamSerializer(EdgeCaseAttribute, $data)
     .attribute('kPop', 'boolean')
     .attribute('popK', 'string')
     .attribute('popKPop', 'number')

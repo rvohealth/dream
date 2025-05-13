@@ -5,7 +5,7 @@ import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../t
 import { RendersManyOpts } from './decorators/associations/RendersMany.js'
 import { RendersOneOpts } from './decorators/associations/RendersOne.js'
 
-export function DreamModelSerializer<
+export function DreamSerializer<
   DataTypeForOpenapi extends typeof Dream,
   DataType extends Dream | null,
   PassthroughDataType = object,
@@ -17,14 +17,7 @@ export function DreamModelSerializer<
   )
 }
 
-export function ViewModelSerializer<DataType, PassthroughDataType = object>(
-  $data: DataType,
-  $passthroughData?: PassthroughDataType
-) {
-  return new DreamSerializerBuilder<null, DataType, PassthroughDataType>(null, $data, $passthroughData)
-}
-
-export function SimpleObjectSerializer<DataType, PassthroughDataType = object>(
+export function ObjectSerializer<DataType, PassthroughDataType = object>(
   $data: DataType,
   $passthroughData?: PassthroughDataType
 ) {
@@ -36,7 +29,7 @@ export interface Attribute<
   AttributeName extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
 > {
   name: AttributeName
-  openapiAndRenderOptions:
+  openapi:
     | ExtraOpenapiOptionsForAutomaticallySetOpenapi
     | OpenapiSchemaBodyShorthand
     | OpenapiShorthandPrimitiveTypes
@@ -184,7 +177,7 @@ export class NamedDreamSerializerBuilder<
   ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributes.push({
       name,
-      openapiAndRenderOptions: openapi,
+      openapi,
       renderOptions: { ...(renderOptions ?? {}) },
     })
 
@@ -228,7 +221,7 @@ export class NamedDreamSerializerBuilder<
   ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributes.push({
       name,
-      openapiAndRenderOptions: openapi,
+      openapi: openapi,
       renderOptions: {},
     })
 

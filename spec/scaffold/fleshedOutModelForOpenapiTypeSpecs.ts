@@ -10,6 +10,7 @@ export default async function fleshedOutModelForOpenapiTypeSpecs() {
     requiredNicknames: ['Chuck'],
     email: 'charlie@peanuts.com',
     birthdate: CalendarDate.fromISO('1950-10-02'),
+    aDatetime: DateTime.fromISO('1950-10-02'),
 
     volume: 7.77777,
 

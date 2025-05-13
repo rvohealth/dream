@@ -1,8 +1,8 @@
-import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
 import BalloonSpotter from '../models/BalloonSpotter.js'
 
 const BalloonSpotterBalloonSerializer = ($data: BalloonSpotter) =>
-  DreamModelSerializer(BalloonSpotter, $data)
+  DreamSerializer(BalloonSpotter, $data)
     .rendersMany('balloons', { serializerKey: 'summary' })
 
     // intentional bad association to make sure that our type generators

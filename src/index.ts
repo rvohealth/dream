@@ -23,6 +23,7 @@ export {
 export { default as Dream } from './Dream.js'
 export {
   DreamConst,
+  isOpenapiShorthand,
   openapiPrimitiveTypes,
   openapiShorthandPrimitiveTypes,
   type primaryKeyTypes,
@@ -68,6 +69,7 @@ export { default as standardizeFullyQualifiedModelName } from './helpers/standar
 export { type Camelized, type Hyphenized, type Pascalized, type Snakeified } from './helpers/stringCasing.js'
 export { default as uncapitalize } from './helpers/uncapitalize.js'
 export { default as uniq } from './helpers/uniq.js'
+export { default as openapiShorthandToOpenapi } from './openapi/openapiShorthandToOpenapi.js'
 export { default as ops } from './ops/index.js'
 export { default as RendersMany } from './serializer/decorators/associations/RendersMany.js'
 export { default as RendersOne } from './serializer/decorators/associations/RendersOne.js'
@@ -77,7 +79,7 @@ export {
   type AttributeStatement,
   type SerializableTypes,
 } from './serializer/decorators/attribute.js'
-export { default as DreamSerializer } from './serializer/index.js'
+export { DreamSerializer, ObjectSerializer } from './serializer/index.js'
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
 export { type DbConnectionType } from './types/db.js'
 export {

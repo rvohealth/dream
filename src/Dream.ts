@@ -619,6 +619,18 @@ export default class Dream {
   /**
    * @internal
    *
+   * Returns true if the column is a column in the database
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
+  public static isColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
+    return this.prototype.isColumn(columnName)
+  }
+
+  /**
+   * @internal
+   *
    * Returns true if the column is virtual (set using the Virtual decorator)
    *
    * @param columnName - the name of the property you are checking for
@@ -2582,6 +2594,18 @@ export default class Dream {
   }
 
   /**
+   * @internal
+   *
+   * Returns true if the column is a column in the database
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
+  public isColumn<T extends Dream>(this: T, columnName: string): boolean {
+    return columnName in (this.schema[this.table]?.columns ?? {})
+  }
+
+  /**
    * Returns true if the columnName passed is marked by a
    * Virtual attribute decorator
    *
@@ -2589,9 +2613,7 @@ export default class Dream {
    * @returns A boolean
    */
   public isVirtualColumn<T extends Dream>(this: T, columnName: string): boolean {
-    return (this.constructor as typeof Dream).virtualAttributes
-      .map(attr => attr.property)
-      .includes(columnName)
+    return !!(this.constructor as typeof Dream).virtualAttributes.find(attr => attr.property === columnName)
   }
 
   /**

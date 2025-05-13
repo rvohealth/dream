@@ -1,8 +1,8 @@
-import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
 import User from '../models/User.js'
 
 const UserSerializer = ($data: User, $passthroughData: object) =>
-  DreamModelSerializer(User, $data, $passthroughData)
+  DreamSerializer(User, $data, $passthroughData)
     .attribute('id')
     .attribute('name')
     .attribute('birthdate')
@@ -11,4 +11,4 @@ const UserSerializer = ($data: User, $passthroughData: object) =>
 export default UserSerializer
 
 export const UserSummarySerializer = ($data: User, $passthroughData: object) =>
-  DreamModelSerializer(User, $data, $passthroughData).attribute('id').attribute('favoriteWord')
+  DreamSerializer(User, $data, $passthroughData).attribute('id').attribute('favoriteWord')

@@ -1,5 +1,6 @@
 import Dream from '../../Dream.js'
-import { isObject } from '../../helpers/typechecks.js'
+import { isOpenapiShorthand } from '../../dream/constants.js'
+import openapiShorthandToOpenapi from '../../openapi/openapiShorthandToOpenapi.js'
 import { DbTypes } from '../../types/db.js'
 import { DreamClassColumnNames } from '../../types/dream.js'
 import {
@@ -16,14 +17,14 @@ interface DreamColumnInfo {
   isArray: boolean
 }
 
-export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
+export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
   column: DreamClassColumnNames<DreamClass>,
   openapi:
     | ExtraOpenapiOptionsForAutomaticallySetOpenapi
     | OpenapiSchemaBodyShorthand
     | OpenapiShorthandPrimitiveTypes = {}
-): OpenapiSchemaBody {
+): OpenapiSchemaBodyShorthand {
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]
 
@@ -36,24 +37,27 @@ export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
       throw new UseCustomOpenapiForJson()
   }
 
-  if (!isObject(openapi))
-    throw new Error(
-      `Cannot override OpenAPI shape of Dream column property. Received ${JSON.stringify(openapi)}`
-    )
-  const openapiObject = openapi as ExtraOpenapiOptionsForAutomaticallySetOpenapi
+  const openapiObject: OpenapiSchemaBodyShorthand = isOpenapiShorthand(openapi)
+    ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
+    : (openapi as OpenapiSchemaBodyShorthand)
 
   const singleType = singularAttributeOpenapiShape(dreamColumnInfo)
 
-  if (dreamColumnInfo.isArray)
-    return { type: dreamColumnInfo.allowNull ? ['array', 'null'] : 'array', items: singleType }
+  if (dreamColumnInfo.isArray) {
+    return {
+      type: dreamColumnInfo.allowNull ? ['array', 'null'] : 'array',
+      items: singleType,
+      ...(openapiObject as any),
+    }
+  } else {
+    const existingType = singleType.type
 
-  const existingType = singleType.type
-
-  return {
-    ...openapiObject,
-    ...singleType,
-    type: dreamColumnInfo.allowNull && !Array.isArray(existingType) ? [existingType, 'null'] : existingType,
-  } as OpenapiSchemaBody
+    return {
+      ...singleType,
+      type: dreamColumnInfo.allowNull && !Array.isArray(existingType) ? [existingType, 'null'] : existingType,
+      ...openapiObject,
+    } as OpenapiSchemaBodyShorthand
+  }
 }
 
 function baseDbType(dreamColumnInfo: DreamColumnInfo) {
@@ -92,8 +96,8 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo) {
     case 'smallserial':
       return { type: 'integer' } as const
 
-    case 'decimal':
     case 'numeric':
+    case 'decimal':
       return { type: 'number', format: 'decimal' } as const
 
     case 'double':

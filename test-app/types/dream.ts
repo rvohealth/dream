@@ -1788,6 +1788,15 @@ export const schema = {
       named: [],
     },
     columns: {
+      aDatetime: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
       bio: {
         coercedType: {} as string,
         enumType: null,
@@ -4503,28 +4512,6 @@ export const globalSchema = {
       'User': 'users',
       'UserSettings': 'user_settings'
     },
-    serializers: [
-      'BalloonLineSerializer',
-      'BalloonSpotterBalloonSerializer',
-      'BalloonSpotterSerializer',
-      'BalloonSummarySerializer',
-      'CollarSerializer',
-      'CompositionAlternateSerializer',
-      'CompositionSerializer',
-      'EdgeCaseAttributeSerializer',
-      'Graph/EdgeNodeSerializer',
-      'Graph/EdgeSerializer',
-      'Graph/NodeSerializer',
-      'LocalizedText/BaseSerializer',
-      'PetSerializer',
-      'PetSummarySerializer',
-      'PetUnderstudyJoinModelSerializer',
-      'PostSerializer',
-      'PostVisibilitySerializer',
-      'RatingSerializer',
-      'SandbagSerializer',
-      'UserSerializer',
-      'UserSummarySerializer'
-    ],
+    serializers: [],
   },
 } as const

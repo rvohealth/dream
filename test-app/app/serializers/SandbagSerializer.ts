@@ -1,8 +1,8 @@
-import { DreamModelSerializer } from '../../../src/serializer/index.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
 import Sandbag from '../models/Sandbag.js'
 
 const SandbagSerializer = ($data: Sandbag) =>
-  DreamModelSerializer(Sandbag, $data)
+  DreamSerializer(Sandbag, $data)
     .attribute('weight')
     .attribute('updatedAt')
     .attributeFunction('answer', () => null, {

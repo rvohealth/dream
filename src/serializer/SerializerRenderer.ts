@@ -16,25 +16,23 @@ export default class SerializerRenderer {
   private get renderedAttributes() {
     const $data = this.serializer['$data']
     if (!$data) return null
+    const $passthroughData = this.serializer['$passthroughData']
+    let renderedAttributes: Record<string, any> = {}
 
-    return this.serializer['attributes'].reduce((accumulator, attribute) => {
+    renderedAttributes = this.serializer['attributes'].reduce((accumulator, attribute) => {
       const value = $data[attribute.name]
       const precision = attribute.renderOptions?.precision
       accumulator[this.setCase(attribute.name)] =
         typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
       return accumulator
-    }, {} as any)
-  }
+    }, renderedAttributes)
 
-  private get renderedAttributeFunctions() {
-    const $data = this.serializer['$data']
-    if (!$data) return null
-    const $passthroughData = this.serializer['$passthroughData']
-
-    return this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
+    renderedAttributes = this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
       accumulator[this.setCase(attribute.name)] = attribute.fn($data, $passthroughData)
       return accumulator
-    }, {} as any)
+    }, renderedAttributes)
+
+    return renderedAttributes
   }
 
   private setCase(attr: string) {

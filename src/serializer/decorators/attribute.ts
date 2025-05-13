@@ -7,7 +7,7 @@ import {
   OpenapiShorthandPrimitiveBaseTypes,
   OpenapiShorthandPrimitiveTypes,
 } from '../../types/openapi.js'
-import { dreamAttributeOpenapiShape } from '../helpers/dreamAttributeOpenapiShape.js'
+import { dreamColumnOpenapiShape } from '../helpers/dreamAttributeOpenapiShape.js'
 import DreamSerializer from '../index.js'
 
 export default function Attribute(): any
@@ -132,7 +132,7 @@ export default function Attribute(
 
       if ((dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as typeof Dream)?.isDream) {
         openApiShape = {
-          ...dreamAttributeOpenapiShape(
+          ...dreamColumnOpenapiShape(
             dreamClass_or_shorthandAttribute_or_manualOpenapiOptions as typeof Dream,
             key
           ),

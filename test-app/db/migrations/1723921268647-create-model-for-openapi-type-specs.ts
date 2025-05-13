@@ -17,6 +17,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('email', 'varchar', col => col.notNull())
     .addColumn('notes', 'text')
     .addColumn('birthdate', 'date')
+    .addColumn('a_datetime', 'timestamp')
     .addColumn('volume', 'decimal(6, 3)')
     .addColumn('favorite_citext', sql`citext`)
     .addColumn('required_favorite_citext', sql`citext`, col => col.notNull().defaultTo('chalupas'))
