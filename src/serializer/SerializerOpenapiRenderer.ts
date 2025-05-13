@@ -24,6 +24,13 @@ export default class SerializerOpenapiRenderer {
   public get renderedOpenapi() {
     const openapiShape = {
       type: this.serializer['_maybeNull'] ? ['object', 'null'] : 'object',
+      required: [
+        ...this.serializer['attributes'].map(obj => obj.name),
+        ...this.serializer['delegatedAttributes'].map(obj => obj.name),
+        ...this.serializer['attributeFunctions'].map(obj => obj.name),
+        ...this.serializer['rendersOnes'].map(obj => obj.name),
+        ...this.serializer['rendersManys'].map(obj => obj.name),
+      ],
     }
 
     return openapiShape

@@ -29,6 +29,7 @@ describe('DreamSerializer attributes', () => {
     expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
       expect.objectContaining({
         type: 'object',
+        required: ['email'],
       })
     )
   })
@@ -105,6 +106,7 @@ describe('DreamSerializer attributes', () => {
     expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
       expect.objectContaining({
         type: 'object',
+        required: ['name', 'email'],
       })
     )
   })
