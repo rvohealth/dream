@@ -27,6 +27,15 @@ export default class SerializerRenderer {
       return accumulator
     }, renderedAttributes)
 
+    renderedAttributes = this.serializer['delegatedAttributes'].reduce((accumulator, attribute) => {
+      const target = $data[attribute.targetName]
+      const value = target[attribute.name]
+      const precision = attribute.renderOptions?.precision
+      accumulator[this.setCase(attribute.name)] =
+        typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
+      return accumulator
+    }, renderedAttributes)
+
     renderedAttributes = this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
       accumulator[this.setCase(attribute.name)] = attribute.fn($data, $passthroughData)
       return accumulator

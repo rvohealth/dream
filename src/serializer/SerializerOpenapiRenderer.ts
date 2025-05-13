@@ -2,7 +2,7 @@ import Dream from '../Dream.js'
 import { openapiShorthandPrimitiveTypes } from '../dream/constants.js'
 import snakeify from '../helpers/snakeify.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
-import { OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { dreamColumnOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 import { NamedDreamSerializerBuilder } from './index.js'
 
@@ -36,11 +36,12 @@ export default class SerializerOpenapiRenderer {
     return openapiShape
   }
 
-  private get renderedOpenapiAttributes() {
+  private get renderedOpenapiAttributes(): Record<string, OpenapiSchemaBodyShorthand> {
     const $typeForOpenapi = this.serializer['$typeForOpenapi']
     const dreamClass = $typeForOpenapi as typeof Dream
+    let renderedOpenapi: Record<string, OpenapiSchemaBodyShorthand> = {}
 
-    return [...this.serializer['attributes'], ...this.serializer['attributeFunctions']].reduce(
+    renderedOpenapi = [...this.serializer['attributes'], ...this.serializer['attributeFunctions']].reduce(
       (accumulator, attribute) => {
         const openapi = attribute.openapi
 
@@ -48,11 +49,21 @@ export default class SerializerOpenapiRenderer {
           ? dreamColumnOpenapiShape(dreamClass, attribute.name, openapi)
           : openapiShorthandPrimitiveTypes.includes(openapi as any)
             ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
-            : openapi
+            : (openapi as OpenapiSchemaBodyShorthand)
         return accumulator
       },
-      {} as any
+      renderedOpenapi
     )
+
+    renderedOpenapi = this.serializer['delegatedAttributes'].reduce((accumulator, attribute) => {
+      const openapi = attribute.openapi
+      accumulator[this.setCase(attribute.name)] = openapiShorthandPrimitiveTypes.includes(openapi as any)
+        ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
+        : (openapi as OpenapiSchemaBodyShorthand)
+      return accumulator
+    }, renderedOpenapi)
+
+    return renderedOpenapi
   }
 
   private setCase(attr: string) {
