@@ -48,10 +48,6 @@ export { default as DreamLogos } from './helpers/DreamLogos/DreamLogos.js'
 export { default as Env } from './helpers/Env.js'
 export { default as globalClassNameFromFullyQualifiedModelName } from './helpers/globalClassNameFromFullyQualifiedModelName.js'
 export { default as hyphenize } from './helpers/hyphenize.js'
-export {
-  inferSerializerFromDreamClassOrViewModelClass,
-  default as inferSerializerFromDreamOrViewModel,
-} from './helpers/inferSerializerFromDreamOrViewModel.js'
 export { default as intersection } from './helpers/intersection.js'
 export { default as isEmpty } from './helpers/isEmpty.js'
 export { default as loadRepl } from './helpers/loadRepl.js'
@@ -61,7 +57,6 @@ export { default as relativeDreamPath } from './helpers/path/relativeDreamPath.j
 export { default as sharedPathPrefix } from './helpers/path/sharedPathPrefix.js'
 export { Range, default as range } from './helpers/range.js'
 export { default as round, type RoundingPrecision } from './helpers/round.js'
-export { default as serializerNameFromFullyQualifiedModelName } from './helpers/serializerNameFromFullyQualifiedModelName.js'
 export { default as snakeify } from './helpers/snakeify.js'
 export { default as sort } from './helpers/sort.js'
 export { default as sortBy } from './helpers/sortBy.js'
@@ -79,6 +74,11 @@ export {
   type AttributeStatement,
   type SerializableTypes,
 } from './serializer/decorators/attribute.js'
+export {
+  inferSerializerFromDreamClassOrViewModelClass,
+  default as inferSerializerFromDreamOrViewModel,
+} from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 export { DreamSerializer, ObjectSerializer } from './serializer/index.js'
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
 export { type DbConnectionType } from './types/db.js'

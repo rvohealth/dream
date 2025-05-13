@@ -1,14 +1,14 @@
 import SerializerNameConflict from '../../../errors/dream-app/SerializerNameConflict.js'
-import DreamSerializer from '../../../serializer/index.js'
+import { DreamSerializerBuilder, SerializerType } from '../../../serializer/index.js'
 import DreamImporter from '../DreamImporter.js'
 import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js'
 
-let _serializers: Record<string, typeof DreamSerializer>
+let _serializers: Record<string, SerializerType>
 
 export default async function importSerializers(
   serializersPath: string,
   serializerImportCb: (path: string) => Promise<any>
-): Promise<Record<string, typeof DreamSerializer>> {
+): Promise<Record<string, SerializerType>> {
   if (_serializers) return _serializers
 
   const serializerClasses = await DreamImporter.importSerializers(serializersPath, serializerImportCb)
@@ -18,13 +18,16 @@ export default async function importSerializers(
     Object.keys(allSerializers).forEach(key => {
       const potentialSerializer = allSerializers[key]
 
-      if (potentialSerializer?.isDreamSerializer) {
+      if (
+        typeof potentialSerializer === 'function' &&
+        potentialSerializer(undefined as any, undefined as any) instanceof DreamSerializerBuilder
+      ) {
         const serializerKey = globalSerializerKeyFromPath(serializerPath, serializersPath, key)
 
         if (_serializers[serializerKey]) throw new SerializerNameConflict(serializerKey)
 
-        const serializerClass = potentialSerializer
-        serializerClass['setGlobalName'](serializerKey)
+        const serializer = potentialSerializer
+        ;(serializer as any)['globalName'] = serializerKey
 
         _serializers[serializerKey] = potentialSerializer
       }
@@ -34,12 +37,12 @@ export default async function importSerializers(
   return _serializers
 }
 
-export function setCachedSerializers(serializers: Record<string, typeof DreamSerializer>) {
+export function setCachedSerializers(serializers: Record<string, SerializerType>) {
   _serializers = serializers
 }
 
 export function getSerializersOrFail() {
-  if (!_serializers) throw new Error('Must call loadSerializers before calling getSerializersOrFail')
+  if (!_serializers) throw new Error('Must call importSerializers before calling getSerializersOrFail')
   return _serializers
 }
 

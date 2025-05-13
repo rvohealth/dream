@@ -1,5 +1,5 @@
 import { DreamConst } from '../../../src/dream/constants.js'
-import MissingSerializer from '../../../src/errors/MissingSerializersDefinition.js'
+import MissingSerializer from '../../../src/errors/serializers/MissingSerializersDefinition.js'
 import DelegationTargetDoesNotExist from '../../../src/errors/serializers/DelegationTargetDoesNotExist.js'
 import { CalendarDate, DateTime, DreamApp, NonLoadedAssociation } from '../../../src/index.js'
 import RendersMany from '../../../src/serializer/decorators/associations/RendersMany.js'
@@ -15,23 +15,6 @@ import User from '../../../test-app/app/models/User.js'
 
 
 describe('DreamSerializer#render', () => {
-
-
-
-  it('provides type helping with custom data and passthrough types set', () => {
-    class MySerializer extends DreamSerializer<{ email: string }, { howyadoin: string }> {
-      @Attribute()
-      public email: string
-
-      @Attribute()
-      public howyadoin() {
-        return this.$passthroughData.howyadoin
-      }
-    }
-
-    const serializer = new MySerializer({ email: 'abc' }).passthrough({ howyadoin: 'yay' })
-    expect(serializer.render()).toEqual({ email: 'abc', howyadoin: 'yay' })
-  })
 
   context('with decorated attributes', () => {
     context('one of the fields is a date', () => {

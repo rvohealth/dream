@@ -1,5 +1,7 @@
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
+import { ViewModel } from '../types/dream.js'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerRenderer {
@@ -38,6 +40,16 @@ export default class SerializerRenderer {
 
     renderedAttributes = this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
       accumulator[this.setCase(attribute.name)] = attribute.fn($data, $passthroughData)
+      return accumulator
+    }, renderedAttributes)
+
+    renderedAttributes = this.serializer['rendersManys'].reduce((accumulator, attribute) => {
+      const values = $data[attribute.name]
+      accumulator[this.setCase(attribute.name)] = (values as ViewModel[]).map(value => {
+        const serializer = inferSerializerFromDreamOrViewModel(value)(value as any, $passthroughData)
+        const serializerRenderer = new SerializerRenderer(serializer)
+        return serializerRenderer.renderedAttributes
+      })
       return accumulator
     }, renderedAttributes)
 

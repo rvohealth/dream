@@ -5,7 +5,7 @@ import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
 import OpsStatement from '../ops/ops-statement.js'
-import DreamSerializer from '../serializer/index.js'
+import { SerializerType } from '../serializer/index.js'
 import {
   AssociatedModelParam,
   AssociationStatement,
@@ -356,7 +356,7 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 export type ViewModel = { serializers: Record<string, string> }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
-export type DreamSerializerCallback = () => typeof DreamSerializer
+export type DreamSerializerCallback = () => SerializerType
 export type SerializableClassOrSerializerCallback = ViewModelClass | DreamSerializerCallback
 
 export type SerializableClassOrClasses = DreamSerializerCallback | ViewModelClass | ViewModelClass[]
@@ -447,8 +447,7 @@ export type DreamOrViewModelSerializerKey<T> = T extends Dream
   ? DreamSerializerKey<T>
   : ViewModelSerializerKey<T>
 
-export type DreamSerializable = typeof Dream | ViewModelClass | typeof DreamSerializer
-export type DreamSerializableInstance = Dream | ViewModel | typeof DreamSerializer
+export type DreamSerializable = typeof Dream | ViewModelClass | SerializerType
 
 export type DreamSerializableArray<
   StartingArray extends readonly DreamSerializable[] = [],

@@ -4,26 +4,23 @@ import snakeify from '../helpers/snakeify.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { dreamColumnOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
-import { DreamSerializerBuilder } from './index.js'
+import { DreamSerializerBuilder, SerializerType } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
 
-  constructor(
-    private serializer: ($data?: any, $passthroughData?: any) => DreamSerializerBuilder<any, any, any>
-  ) {}
+  constructor(private serializer: SerializerType) {}
 
   public get serializerName() {
-    const openapiName = (this.serializer as unknown as { openapiName: string }).openapiName
-    if (!openapiName)
-      throw new Error(`openapiName is not set on serializer:\n\n${this.serializer.toString()}`)
-    return openapiName
+    const globalName = (this.serializer as unknown as { globalName: string }).globalName
+    if (!globalName) throw new Error(`globalName is not set on serializer:\n\n${this.serializer.toString()}`)
+    return globalName.replace(/\//g, '_')
   }
 
   private _serializerBuilder: DreamSerializerBuilder<any, any, any>
   private get serializerBuilder(): DreamSerializerBuilder<any, any, any> {
     if (this._serializerBuilder) return this._serializerBuilder
-    this._serializerBuilder = this.serializer()
+    this._serializerBuilder = this.serializer(undefined as any, undefined as any)
     return this._serializerBuilder
   }
 

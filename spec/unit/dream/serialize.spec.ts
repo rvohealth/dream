@@ -1,4 +1,4 @@
-import MissingSerializersDefinition from '../../../src/errors/MissingSerializersDefinition.js'
+import MissingSerializersDefinition from '../../../src/errors/serializers/MissingSerializersDefinition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import User from '../../../test-app/app/models/User.js'
 

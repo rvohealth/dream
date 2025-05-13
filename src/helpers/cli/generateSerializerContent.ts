@@ -1,7 +1,7 @@
+import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
-import serializerNameFromFullyQualifiedModelName from '../serializerNameFromFullyQualifiedModelName.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
 

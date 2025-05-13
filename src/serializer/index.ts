@@ -5,6 +5,12 @@ import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../t
 import { RendersManyOpts } from './decorators/associations/RendersMany.js'
 import { RendersOneOpts } from './decorators/associations/RendersOne.js'
 
+export const DEFAULT_SERIALIZER_KEY = 'default'
+
+export type SerializerType =
+  | ((dreamClass: typeof Dream, $data: any, $passthroughData?: any) => DreamSerializerBuilder<any, any, any>)
+  | (($data: any, $passthroughData?: any) => DreamSerializerBuilder<any, any, any>)
+
 export function DreamSerializer<
   DreamClass extends typeof Dream,
   DataType extends Dream | null,
