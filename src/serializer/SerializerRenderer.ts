@@ -1,11 +1,11 @@
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
-import { NamedDreamSerializerBuilder } from './index.js'
+import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
 
-  constructor(private serializer: NamedDreamSerializerBuilder<any, any, any>) {}
+  constructor(private serializer: DreamSerializerBuilder<any, any, any>) {}
 
   public casing(casing: 'camel' | 'snake') {
     this._casing = casing

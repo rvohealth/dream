@@ -1,5 +1,5 @@
 import { CalendarDate, DateTime } from '../../../../src/index.js'
-import { DreamSerializer, NamedDreamSerializerBuilder } from '../../../../src/serializer/index.js'
+import { DreamSerializer, DreamSerializerBuilder } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
@@ -9,8 +9,7 @@ import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutMode
 
 describe('DreamSerializer attributes', () => {
   it('can render Dream attributes', () => {
-    const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).openapiName('MySerializer').attribute('email')
+    const MySerializer = ($data: User) => DreamSerializer(User, $data).attribute('email')
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
@@ -19,7 +18,7 @@ describe('DreamSerializer attributes', () => {
       email: 'abc',
     })
 
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
       email: {
         type: 'string',
@@ -36,13 +35,9 @@ describe('DreamSerializer attributes', () => {
 
   it('can specify OpenAPI description', () => {
     const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data)
-        .openapiName('MySerializer')
-        .attribute('email', { description: 'This is an email' })
+      DreamSerializer(User, $data).attribute('email', { description: 'This is an email' })
 
-    const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
       email: {
         type: 'string',
@@ -53,14 +48,13 @@ describe('DreamSerializer attributes', () => {
 
   context('when serializing null', () => {
     it('renderedAttributes is null', () => {
-      const MySerializer = ($data: User | null) =>
-        DreamSerializer(User, $data).openapiName('MySerializer').maybeNull().attribute('email')
+      const MySerializer = ($data: User | null) => DreamSerializer(User, $data).maybeNull().attribute('email')
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer['renderedAttributes']).toBeNull()
 
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
         email: {
           type: 'string',
@@ -76,8 +70,7 @@ describe('DreamSerializer attributes', () => {
   })
 
   it('can render attributes from serializers that "extend" other serializers', () => {
-    const BaseSerializer = ($data: User) =>
-      DreamSerializer(User, $data).openapiName('MySerializer').attribute('name')
+    const BaseSerializer = ($data: User) => DreamSerializer(User, $data).attribute('name')
     const MySerializer = ($data: User) => BaseSerializer($data).attribute('email')
 
     const serializer = MySerializer(User.new({ name: 'Snoopy', email: 'abc', password: '123' }))
@@ -88,7 +81,7 @@ describe('DreamSerializer attributes', () => {
       email: 'abc',
     })
 
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
       name: {
         type: ['string', 'null'],
@@ -109,7 +102,6 @@ describe('DreamSerializer attributes', () => {
   context('all Dream column types', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
       DreamSerializer(ModelForOpenapiTypeSpecs, $data)
-        .openapiName('MySerializer')
         .attribute('name')
         .attribute('nicknames')
         .attribute('requiredNicknames')
@@ -180,11 +172,7 @@ describe('DreamSerializer attributes', () => {
         .attribute('likesTreats')
         .attribute('likesTreats')
 
-    let serializer: NamedDreamSerializerBuilder<
-      typeof ModelForOpenapiTypeSpecs,
-      ModelForOpenapiTypeSpecs,
-      any
-    >
+    let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
 
     beforeEach(async () => {
       serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
@@ -259,7 +247,7 @@ describe('DreamSerializer attributes', () => {
     })
 
     it('have the correct OpenAPI shape', () => {
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
         name: { type: ['string', 'null'] },
         nicknames: { type: ['array', 'null'], items: { type: 'string' } },
@@ -333,9 +321,7 @@ describe('DreamSerializer attributes', () => {
   context('numeric/decimal with precision', () => {
     it('rounds to specified precision', async () => {
       const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-        DreamSerializer(ModelForOpenapiTypeSpecs, $data)
-          .openapiName('MySerializer')
-          .attribute('volume', {}, { precision: 1 })
+        DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('volume', {}, { precision: 1 })
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer['renderedAttributes']).toEqual({
@@ -346,9 +332,7 @@ describe('DreamSerializer attributes', () => {
 
   context('with casing specified', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      DreamSerializer(ModelForOpenapiTypeSpecs, $data)
-        .openapiName('MySerializer')
-        .attribute('requiredNicknames')
+      DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('requiredNicknames')
 
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', async () => {
@@ -358,7 +342,7 @@ describe('DreamSerializer attributes', () => {
           required_nicknames: ['Chuck'],
         })
 
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
         expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']).toEqual(
           expect.objectContaining({
             required_nicknames: { type: 'array', items: { type: 'string' } },
@@ -375,7 +359,7 @@ describe('DreamSerializer attributes', () => {
           requiredNicknames: ['Chuck'],
         })
 
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
         expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']).toEqual(
           expect.objectContaining({
             requiredNicknames: { type: 'array', items: { type: 'string' } },

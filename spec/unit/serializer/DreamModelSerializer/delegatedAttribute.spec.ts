@@ -12,7 +12,6 @@ describe('DreamSerializer delegated attributes', () => {
 
     const MySerializer = ($data: Pet) =>
       DreamSerializer(Pet, $data)
-        .openapiName('MySerializer')
         .delegatedAttribute('user', 'name', 'string')
         .delegatedAttribute('user', 'birthdate', 'date')
 
@@ -24,7 +23,8 @@ describe('DreamSerializer delegated attributes', () => {
       birthdate: expect.toEqualCalendarDate(birthdate),
     })
 
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+    MySerializer.openapiName = 'MySerializer'
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
       name: {
         type: 'string',

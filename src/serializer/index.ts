@@ -6,11 +6,11 @@ import { RendersManyOpts } from './decorators/associations/RendersMany.js'
 import { RendersOneOpts } from './decorators/associations/RendersOne.js'
 
 export function DreamSerializer<
-  DataTypeForOpenapi extends typeof Dream,
+  DreamClass extends typeof Dream,
   DataType extends Dream | null,
   PassthroughDataType = object,
->(dreamClass: DataTypeForOpenapi, $data: DataType, $passthroughData?: PassthroughDataType) {
-  return new DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>(
+>(dreamClass: DreamClass, $data: DataType, $passthroughData?: PassthroughDataType) {
+  return new DreamSerializerBuilder<DreamClass, DataType, PassthroughDataType>(
     dreamClass,
     $data,
     $passthroughData
@@ -18,7 +18,7 @@ export function DreamSerializer<
 }
 
 export function ObjectSerializer<DataType, PassthroughDataType = object>(
-  $data: DataType,
+  $data: DataType extends Dream ? never : DataType,
   $passthroughData?: PassthroughDataType
 ) {
   return new DreamSerializerBuilder<null, DataType, PassthroughDataType>(null, $data, $passthroughData)
@@ -86,26 +86,7 @@ interface DecimalShorthandAttributeRenderOptions {
   precision?: RoundingPrecision
 }
 
-class DreamSerializerBuilder<DataTypeForOpenapi extends typeof Dream | null, DataType, PassthroughDataType> {
-  constructor(
-    protected $typeForOpenapi: DataTypeForOpenapi,
-    protected $data: DataType,
-    protected $passthroughData: PassthroughDataType = {} as PassthroughDataType
-  ) {}
-
-  public openapiName(
-    name: string
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
-    return new NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>(
-      name,
-      this.$typeForOpenapi,
-      this.$data,
-      this.$passthroughData
-    )
-  }
-}
-
-export class NamedDreamSerializerBuilder<
+export class DreamSerializerBuilder<
   DataTypeForOpenapi extends typeof Dream | null,
   DataType,
   PassthroughDataType,
@@ -119,7 +100,6 @@ export class NamedDreamSerializerBuilder<
   protected serializerName: string
 
   constructor(
-    protected openapiName: string,
     protected $typeForOpenapi: DataTypeForOpenapi,
     protected $data: DataType,
     protected $passthroughData: PassthroughDataType = {} as PassthroughDataType
@@ -145,11 +125,11 @@ export class NamedDreamSerializerBuilder<
         : never
       : never,
   >(
-    this: NamedDreamSerializerBuilder<typeof Dream, DataType, PassthroughDataType>,
+    this: DreamSerializerBuilder<typeof Dream, DataType, PassthroughDataType>,
     name: AttributeName,
     openapi?: OpenapiOptions,
     renderOptions?: RenderOptions
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>
 
   // Second overload: For other cases (not Dream)
   public attribute<
@@ -163,18 +143,18 @@ export class NamedDreamSerializerBuilder<
       ? DecimalShorthandAttributeRenderOptions
       : never,
   >(
-    this: NamedDreamSerializerBuilder<null, DataType, PassthroughDataType>,
+    this: DreamSerializerBuilder<null, DataType, PassthroughDataType>,
     name: AttributeName,
     openapi: OpenapiOptions,
     renderOptions?: RenderOptions
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType>
 
   // Implementation
   public attribute(
     name: any,
     openapi?: any,
     renderOptions?: any
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributes.push({
       name,
       openapi,
@@ -201,7 +181,7 @@ export class NamedDreamSerializerBuilder<
     name: AttributeName,
     openapi: OpenapiOptions,
     renderOptions?: RenderOptions
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.delegatedAttributes.push({
       targetName,
       name: name as any,
@@ -218,7 +198,7 @@ export class NamedDreamSerializerBuilder<
   >(
     name: AttributeName,
     openapi: OpenapiOptions
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributes.push({
       name,
       openapi: openapi,
@@ -234,7 +214,7 @@ export class NamedDreamSerializerBuilder<
     name: string,
     fn: (x: Exclude<DataType, null>, y?: PassthroughDataType) => unknown,
     openapi: OpenapiOptions
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.attributeFunctions.push({
       name,
       fn,
@@ -258,7 +238,7 @@ export class NamedDreamSerializerBuilder<
     name: AttributeName,
     serializableClassOrClassesOrOptions?: SerializableClassOrClassesOrOptions,
     options?: Options
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.rendersOnes.push({
       name,
       serializableClassOrClasses: (this.$data as Dream)?.isDreamInstance
@@ -286,7 +266,7 @@ export class NamedDreamSerializerBuilder<
     name: AttributeName,
     serializableClassOrClassesOrOptions?: SerializableClassOrClassesOrOptions,
     options?: Options
-  ): NamedDreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
+  ): DreamSerializerBuilder<DataTypeForOpenapi, DataType, PassthroughDataType> {
     this.rendersManys.push({
       name,
       serializableClassOrClasses: (this.$data as Dream)?.isDreamInstance
