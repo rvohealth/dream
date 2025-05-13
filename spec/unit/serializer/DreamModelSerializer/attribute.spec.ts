@@ -33,7 +33,8 @@ describe('DreamSerializer attributes', () => {
   })
 
   it('can specify OpenAPI description', () => {
-    const MySerializer = ($data: User) => DreamModelSerializer(User, $data).attribute('email', {})
+    const MySerializer = ($data: User) =>
+      DreamModelSerializer(User, $data).attribute('email', { description: 'This is an email' })
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
@@ -46,14 +47,9 @@ describe('DreamSerializer attributes', () => {
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
       email: {
         type: 'string',
+        description: 'This is an email',
       },
     })
-
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-      expect.objectContaining({
-        type: 'object',
-      })
-    )
   })
 
   context('when serializing null', () => {
