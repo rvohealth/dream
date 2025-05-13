@@ -56,7 +56,7 @@ describe('DreamSerializer attributes', () => {
   })
 
   context('when serializing null', () => {
-    it('renders the attributes as null', () => {
+    it('renderedAttributes is null', () => {
       const MySerializer = ($data: User | null) =>
         DreamModelSerializer(User, $data).openapiName('MySerializer').maybeNull().attribute('email')
 
@@ -79,7 +79,7 @@ describe('DreamSerializer attributes', () => {
     })
   })
 
-  it('can render attributes from "extended" serializers', () => {
+  it('can render attributes from serializers that "extend" other serializers', () => {
     const BaseSerializer = ($data: User) =>
       DreamModelSerializer(User, $data).openapiName('MySerializer').attribute('name')
     const MySerializer = ($data: User) => BaseSerializer($data).attribute('email')
@@ -339,6 +339,47 @@ describe('DreamSerializer attributes', () => {
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer['renderedAttributes']).toEqual({
         volume: 7.8,
+      })
+    })
+  })
+
+  context('with casing specified', () => {
+    const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
+      DreamModelSerializer(ModelForOpenapiTypeSpecs, $data)
+        .openapiName('MySerializer')
+        .attribute('requiredNicknames')
+
+    context('snake casing is specified', () => {
+      it('renders all attribute keys in snake case', async () => {
+        const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+        const serializerRenderer = new SerializerRenderer(serializer)
+        expect(serializerRenderer.casing('snake')['renderedAttributes']).toEqual({
+          required_nicknames: ['Chuck'],
+        })
+
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']).toEqual(
+          expect.objectContaining({
+            required_nicknames: { type: 'array', items: { type: 'string' } },
+          })
+        )
+      })
+    })
+
+    context('camel casing is specified', () => {
+      it('renders all attribute keys in camel case', async () => {
+        const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+        const serializerRenderer = new SerializerRenderer(serializer)
+        expect(serializerRenderer.casing('camel')['renderedAttributes']).toEqual({
+          requiredNicknames: ['Chuck'],
+        })
+
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(serializer)
+        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']).toEqual(
+          expect.objectContaining({
+            requiredNicknames: { type: 'array', items: { type: 'string' } },
+          })
+        )
       })
     })
   })
