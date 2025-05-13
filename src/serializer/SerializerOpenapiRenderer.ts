@@ -23,7 +23,7 @@ export default class SerializerOpenapiRenderer {
     return this.serializer['attributes'].reduce((accumulator, attribute) => {
       const openapi = attribute.openapiAndRenderOptions
       accumulator[attribute.name] = dreamClass?.isDream
-        ? dreamAttributeOpenapiShape(dreamClass, attribute.name)
+        ? dreamAttributeOpenapiShape(dreamClass, attribute.name, openapi)
         : openapiShorthandPrimitiveTypes.includes(openapi as any)
           ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
           : openapi
@@ -33,7 +33,7 @@ export default class SerializerOpenapiRenderer {
 
   private get renderedOpenapiAttributeFunctions() {
     return this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
-      const openapi = attribute.openapiAndRenderOptions
+      const openapi = attribute.openapi
       accumulator[attribute.name] = openapiShorthandPrimitiveTypes.includes(openapi as any)
         ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
         : openapi

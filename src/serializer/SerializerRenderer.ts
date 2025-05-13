@@ -1,3 +1,4 @@
+import round from '../helpers/round.js'
 import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerRenderer {
@@ -8,7 +9,10 @@ export default class SerializerRenderer {
     if (!$data) return null
 
     return this.serializer['attributes'].reduce((accumulator, attribute) => {
-      accumulator[attribute.name] = $data[attribute.name]
+      const value = $data[attribute.name]
+      const precision = attribute.renderOptions?.precision
+      accumulator[attribute.name] =
+        typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
       return accumulator
     }, {} as any)
   }
@@ -16,9 +20,10 @@ export default class SerializerRenderer {
   private get renderedAttributeFunctions() {
     const $data = this.serializer['$data']
     if (!$data) return null
+    const $passthroughData = this.serializer['$passthroughData']
 
     return this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
-      accumulator[attribute.name] = attribute.fn($data)
+      accumulator[attribute.name] = attribute.fn($data, $passthroughData)
       return accumulator
     }, {} as any)
   }
