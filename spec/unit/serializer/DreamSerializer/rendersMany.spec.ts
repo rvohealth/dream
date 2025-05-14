@@ -144,15 +144,15 @@ describe('DreamSerializer rendersMany', () => {
     pet2.ratings = []
     user.pets = [pet1, pet2]
 
-    const CustomSerializer = ($data: User) => DreamSerializer(Pet, $data).attribute('name')
+    const CustomSerializer = ($data: Pet) => DreamSerializer(Pet, $data).attribute('name')
     const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).rendersMany('pets', { as: 'pets2', serializer: () => CustomSerializer })
+      DreamSerializer(User, $data).rendersMany('pets', { serializer: () => CustomSerializer })
 
     const serializer = MySerializer(user)
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer['renderedAttributes']).toEqual({
-      pets2: [
+      pets: [
         {
           name: 'Snoopy',
         },
@@ -165,7 +165,7 @@ describe('DreamSerializer rendersMany', () => {
     MySerializer.openapiName = 'MySerializer'
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets2: {
+      pets: {
         type: 'array',
         items: {
           type: 'object',
@@ -193,7 +193,7 @@ describe('DreamSerializer rendersMany', () => {
     const MySerializer = ($data: User) =>
       DreamSerializer(User, $data).rendersMany(
         'pets',
-        { as: 'pets2', serializer: () => CustomSerializer },
+        { serializer: () => CustomSerializer },
         { customSerializerRefPath: 'MyCustomSerializer' }
       )
 
@@ -201,7 +201,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer['renderedAttributes']).toEqual({
-      pets2: [
+      pets: [
         {
           name: 'Snoopy',
         },
@@ -214,7 +214,7 @@ describe('DreamSerializer rendersMany', () => {
     MySerializer.openapiName = 'MySerializer'
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets2: {
+      pets: {
         type: 'array',
         items: {
           $ref: '#/components/schemas/MyCustomSerializer',

@@ -5,7 +5,7 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('DreamSerializer rendersOne', () => {
-  it.only('renders the associated objects', () => {
+  it('renders the associated objects', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ name: 'Charlie', birthdate })
     const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
@@ -34,40 +34,27 @@ describe('DreamSerializer rendersOne', () => {
 
   it('supports specifying the serializerKey', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
-    const user = User.new({ name: 'Charlie', birthdate })
-    const pet1 = Pet.new({ user, name: 'Snoopy', species: 'dog', favoriteTreats: ['chicken'] })
-    const pet2 = Pet.new({ user, name: 'Woodstock', species: 'frog', favoriteTreats: ['ocean fish'] })
-    pet1.ratings = []
-    pet2.ratings = []
-    user.pets = [pet1, pet2]
+    const user = User.new({ name: 'Charlie', birthdate, favoriteWord: 'hello' })
+    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
 
-    const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).rendersOne('pets', { serializerKey: 'summary' })
+    const MySerializer = ($data: Pet) =>
+      DreamSerializer(Pet, $data).rendersOne('user', { serializerKey: 'summary' })
 
-    const serializer = MySerializer(user)
+    const serializer = MySerializer(pet)
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer['renderedAttributes']).toEqual({
-      pets: [
-        {
-          id: pet1.id,
-          favoriteTreats: ['chicken'],
-        },
-        {
-          id: pet2.id,
-          favoriteTreats: ['ocean fish'],
-        },
-      ],
+      user: {
+        id: user.id,
+        favoriteWord: 'hello',
+      },
     })
 
     MySerializer.openapiName = 'MySerializer'
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/PetSummarySerializer',
-        },
+      user: {
+        $ref: '#/components/schemas/UserSummarySerializer',
       },
     })
   })
@@ -75,87 +62,57 @@ describe('DreamSerializer rendersOne', () => {
   it('supports customizing the name of the thing rendered (replaces `source: string`)', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ name: 'Charlie', birthdate })
-    const pet1 = Pet.new({ user, name: 'Snoopy', species: 'dog' })
-    const pet2 = Pet.new({ user, name: 'Woodstock', species: 'frog' })
-    pet1.ratings = []
-    pet2.ratings = []
-    user.pets = [pet1, pet2]
+    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
 
-    const MySerializer = ($data: User) => DreamSerializer(User, $data).rendersOne('pets', { as: 'pets2' })
+    const MySerializer = ($data: Pet) => DreamSerializer(Pet, $data).rendersOne('user', { as: 'user2' })
 
-    const serializer = MySerializer(user)
+    const serializer = MySerializer(pet)
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer['renderedAttributes']).toEqual({
-      pets2: [
-        {
-          id: pet1.id,
-          name: 'Snoopy',
-          favoriteDaysOfWeek: ['Monday', 'Tuesday'],
-          species: 'dog',
-          ratings: [],
-        },
-        {
-          id: pet2.id,
-          name: 'Woodstock',
-          favoriteDaysOfWeek: ['Monday', 'Tuesday'],
-          species: 'frog',
-          ratings: [],
-        },
-      ],
+      user2: {
+        id: user.id,
+        name: 'Charlie',
+        birthdate: expect.toEqualCalendarDate(birthdate),
+      },
     })
 
     MySerializer.openapiName = 'MySerializer'
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets2: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/PetSerializer',
-        },
+      user2: {
+        $ref: '#/components/schemas/UserSerializer',
       },
     })
   })
 
-  it('supports sending a custom serializer', () => {
+  it.only('supports sending a custom serializer', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ name: 'Charlie', birthdate })
-    const pet1 = Pet.new({ user, name: 'Snoopy', species: 'dog' })
-    const pet2 = Pet.new({ user, name: 'Woodstock', species: 'frog' })
-    pet1.ratings = []
-    pet2.ratings = []
-    user.pets = [pet1, pet2]
+    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
 
-    const CustomSerializer = ($data: User) => DreamSerializer(Pet, $data).attribute('name')
-    const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).rendersOne('pets', { as: 'pets2', serializer: () => CustomSerializer })
+    const CustomSerializer = ($data: User) => DreamSerializer(User, $data).attribute('name')
+    const MySerializer = ($data: Pet) =>
+      DreamSerializer(Pet, $data).rendersOne('user', { serializer: () => CustomSerializer })
 
-    const serializer = MySerializer(user)
+    const serializer = MySerializer(pet)
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer['renderedAttributes']).toEqual({
-      pets2: [
-        {
-          name: 'Snoopy',
-        },
-        {
-          name: 'Woodstock',
-        },
-      ],
+      user: {
+        name: 'Charlie',
+      },
     })
 
     MySerializer.openapiName = 'MySerializer'
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets2: {
-        type: 'array',
-        items: {
-          type: 'object',
-          required: ['name'],
-          properties: {
-            name: {
-              type: ['string', 'null'],
-            },
+      user: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: {
+            type: ['string', 'null'],
           },
         },
       },
@@ -165,42 +122,30 @@ describe('DreamSerializer rendersOne', () => {
   it('supports setting the custom $ref path to a custom serializer', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ name: 'Charlie', birthdate })
-    const pet1 = Pet.new({ user, name: 'Snoopy', species: 'dog' })
-    const pet2 = Pet.new({ user, name: 'Woodstock', species: 'frog' })
-    pet1.ratings = []
-    pet2.ratings = []
-    user.pets = [pet1, pet2]
+    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
 
-    const CustomSerializer = ($data: User) => DreamSerializer(Pet, $data).attribute('name')
-    const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).rendersOne(
-        'pets',
-        { as: 'pets2', serializer: () => CustomSerializer },
+    const CustomSerializer = ($data: User) => DreamSerializer(User, $data).attribute('name')
+    const MySerializer = ($data: Pet) =>
+      DreamSerializer(Pet, $data).rendersOne(
+        'user',
+        { serializer: () => CustomSerializer },
         { customSerializerRefPath: 'MyCustomSerializer' }
       )
 
-    const serializer = MySerializer(user)
+    const serializer = MySerializer(pet)
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer['renderedAttributes']).toEqual({
-      pets2: [
-        {
-          name: 'Snoopy',
-        },
-        {
-          name: 'Woodstock',
-        },
-      ],
+      user: {
+        name: 'Charlie',
+      },
     })
 
     MySerializer.openapiName = 'MySerializer'
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets2: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/MyCustomSerializer',
-        },
+      user: {
+        $ref: '#/components/schemas/MyCustomSerializer',
       },
     })
   })

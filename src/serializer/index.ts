@@ -196,7 +196,7 @@ export class DreamSerializerBuilder<
 
   public rendersOne<
     AttributeName extends keyof Exclude<DataType, null> & string,
-    Options extends RendersOneOpts,
+    Options extends RendersOneOpts<DataTypeForOpenapi>,
     OpenapiOptions extends Options extends { serializer: any } ? CustomSerializerOpenapiOpts : never,
   >(
     name: AttributeName,

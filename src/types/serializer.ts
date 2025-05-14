@@ -105,8 +105,10 @@ export interface RendersOneOrManyOpts<
 export interface RendersManyOpts<I extends DreamSerializable | DreamSerializableArray | undefined = undefined>
   extends RendersOneOrManyOpts<I> {}
 
-export interface RendersOneOpts<I extends DreamSerializable | DreamSerializableArray | undefined = undefined>
+interface RendersOneOptsBase<I extends DreamSerializable | DreamSerializableArray | undefined = undefined>
   extends RendersOneOrManyOpts<I> {
   flatten?: boolean
-  optional?: boolean
 }
+
+export type RendersOneOpts<I extends DreamSerializable | DreamSerializableArray | undefined = undefined> =
+  I extends typeof Dream ? RendersOneOptsBase<I> : RendersOneOptsBase<I> & { optional?: boolean }
