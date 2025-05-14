@@ -10,6 +10,8 @@ import {
 } from './dream.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from './openapi.js'
 
+export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
+
 export type DreamSerializerCallback = () => SerializerType
 export type SerializableClassOrSerializerCallback = ViewModelClass | DreamSerializerCallback
 
@@ -105,8 +107,9 @@ export interface RendersOneOrManyOpts<
 export interface RendersManyOpts<I extends DreamSerializable | DreamSerializableArray | undefined = undefined>
   extends RendersOneOrManyOpts<I> {}
 
-interface RendersOneOptsBase<I extends DreamSerializable | DreamSerializableArray | undefined = undefined>
-  extends RendersOneOrManyOpts<I> {
+export interface RendersOneOptsBase<
+  I extends DreamSerializable | DreamSerializableArray | undefined = undefined,
+> extends RendersOneOrManyOpts<I> {
   flatten?: boolean
 }
 

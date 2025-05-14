@@ -14,7 +14,7 @@ describe('DreamSerializer attributes', () => {
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
     const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer['renderedAttributes']).toEqual({
+    expect(serializerRenderer.render()).toEqual({
       email: 'abc',
     })
 
@@ -40,7 +40,7 @@ describe('DreamSerializer attributes', () => {
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
     const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer['renderedAttributes']).toEqual({
+    expect(serializerRenderer.render()).toEqual({
       email2: 'abc',
     })
 
@@ -71,7 +71,7 @@ describe('DreamSerializer attributes', () => {
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer['renderedAttributes']).toBeNull()
+      expect(serializerRenderer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
@@ -95,7 +95,7 @@ describe('DreamSerializer attributes', () => {
     const serializer = MySerializer(User.new({ name: 'Snoopy', email: 'abc', password: '123' }))
 
     const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer['renderedAttributes']).toEqual({
+    expect(serializerRenderer.render()).toEqual({
       name: 'Snoopy',
       email: 'abc',
     })
@@ -199,7 +199,7 @@ describe('DreamSerializer attributes', () => {
 
     it('serialize correctly', () => {
       const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer['renderedAttributes']).toEqual({
+      expect(serializerRenderer.render()).toEqual({
         name: 'Charles Brown',
         nicknames: ['Charlie', 'Chuck'],
         requiredNicknames: ['Chuck'],
@@ -343,7 +343,7 @@ describe('DreamSerializer attributes', () => {
         DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('volume', {}, { precision: 1 })
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
       const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer['renderedAttributes']).toEqual({
+      expect(serializerRenderer.render()).toEqual({
         volume: 7.8,
       })
     })
@@ -357,7 +357,7 @@ describe('DreamSerializer attributes', () => {
       it('renders all attribute keys in snake case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
         const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.casing('snake')['renderedAttributes']).toEqual({
+        expect(serializerRenderer.casing('snake').render()).toEqual({
           required_nicknames: ['Chuck'],
         })
 
@@ -374,7 +374,7 @@ describe('DreamSerializer attributes', () => {
       it('renders all attribute keys in camel case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
         const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.casing('camel')['renderedAttributes']).toEqual({
+        expect(serializerRenderer.casing('camel').render()).toEqual({
           requiredNicknames: ['Chuck'],
         })
 

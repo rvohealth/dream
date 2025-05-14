@@ -1,5 +1,4 @@
 import Dream from '../Dream.js'
-import { SerializableTypes } from '../serializer/decorators/attribute.js'
 import {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
@@ -16,6 +15,7 @@ import {
 } from '../types/associations/hasOne.js'
 import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../types/dream.js'
 import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { ValidationType } from '../types/validation.js'
 import Virtual from './field-or-getter/Virtual.js'
 import Encrypted from './field/Encrypted.js'
@@ -389,7 +389,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *
    * @returns An Virtual decorator
    */
-  public Virtual(this: Decorators<TD>, type?: SerializableTypes) {
+  public Virtual(this: Decorators<TD>, type?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand) {
     return Virtual(type)
   }
 

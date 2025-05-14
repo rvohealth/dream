@@ -1,10 +1,12 @@
 import Dream from '../Dream.js'
 import { isOpenapiShorthand } from '../dream/constants.js'
 import snakeify from '../helpers/snakeify.js'
+import uniq from '../helpers/uniq.js'
+import { dreamColumnOpenapiShape } from '../openapi/dreamAttributeOpenapiShape.js'
+import expandStiSerializersInDreamsOrSerializers from '../openapi/expandStiSerializersInDreamsOrSerializers.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { SerializerAttribute, SerializerRendersMany, SerializerType } from '../types/serializer.js'
-import { dreamColumnOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamSerializerBuilder } from './index.js'
 
@@ -119,20 +121,21 @@ function associationOpenapi(
 
   const associationMetadataMap = dreamClass['associationMetadataMap']()
   const association = associationMetadataMap[attribute.name]
-  const associatedClassOrClasses = association!.modelCB()
+  const associatedClassOrClasses = expandStiSerializersInDreamsOrSerializers(association!.modelCB())
 
-  if (Array.isArray(associatedClassOrClasses)) {
-    const serializersOpenapi = associatedClassOrClasses.map(associatedClass =>
+  const serializersOpenapi = uniq(
+    associatedClassOrClasses.map(associatedClass =>
       inferSerializerFromDreamClassOrViewModelClass(associatedClass, attribute.options.serializerKey)
-    )
+    ),
+    serializer => (serializer as any)['globalName']
+  )
 
-    return {
-      anyOf: serializersOpenapi.map(serializer => serializerToRef(serializer)),
-    }
-  } else {
-    return serializerToRef(
-      inferSerializerFromDreamClassOrViewModelClass(associatedClassOrClasses, attribute.options.serializerKey)
-    )
+  if (serializersOpenapi.length === 0)
+    throw new Error(`No serializer found to render  \`${dreamClass.sanitizedName}\` \`${attribute.name}\``)
+  if (serializersOpenapi.length === 1) return serializerToRef(serializersOpenapi[0]!)
+
+  return {
+    anyOf: serializersOpenapi.map(serializer => serializerToRef(serializer)),
   }
 }
 

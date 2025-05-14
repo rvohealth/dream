@@ -1,13 +1,13 @@
-import { DreamSerializer, DreamSerializerBuilder } from '../../../../src/serializer/index.js'
+import { SimpleObjectSerializer, SimpleObjectSerializerBuilder } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
-describe('DreamSerializer json attributes', () => {
+describe('SimpleObjectSerializer json attributes', () => {
   context('all Dream column types', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      DreamSerializer(ModelForOpenapiTypeSpecs, $data)
+      SimpleObjectSerializer(ModelForOpenapiTypeSpecs, $data)
         .jsonAttribute('favoriteJsons', {
           type: ['array', 'null'],
           items: { type: 'object', properties: { hello: 'string' } },
@@ -28,7 +28,11 @@ describe('DreamSerializer json attributes', () => {
         .jsonAttribute('requiredJsonData', { type: 'object', properties: { hello: 'string' } })
         .jsonAttribute('jsonbData', { type: ['object', 'null'], properties: { hello: 'string' } })
         .jsonAttribute('requiredJsonbData', { type: 'object', properties: { hello: 'string' } })
-    let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
+    let serializer: SimpleObjectSerializerBuilder<
+      typeof ModelForOpenapiTypeSpecs,
+      ModelForOpenapiTypeSpecs,
+      any
+    >
 
     beforeEach(async () => {
       serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
@@ -73,7 +77,7 @@ describe('DreamSerializer json attributes', () => {
 
   context('with casing specified', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('requiredNicknames')
+      SimpleObjectSerializer(ModelForOpenapiTypeSpecs, $data).attribute('requiredNicknames')
 
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', async () => {

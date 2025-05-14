@@ -1,16 +1,16 @@
-import { CalendarDate, DreamSerializer } from '../../../../src/index.js'
+import { CalendarDate, SimpleObjectSerializer } from '../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
-describe('DreamSerializer rendersOne', () => {
+describe('SimpleObjectSerializer rendersOne', () => {
   it('renders the associated objects', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
-    const user = User.new({ name: 'Charlie', birthdate })
-    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
+    const user = { name: 'Charlie', birthdate }
+    const pet = { user, name: 'Snoopy', species: 'dog' }
 
-    const MySerializer = ($data: Pet) => DreamSerializer(Pet, $data).rendersOne('user')
+    const MySerializer = ($data: Pet) => SimpleObjectSerializer(Pet, $data).rendersOne('user')
 
     const serializer = MySerializer(pet)
 
@@ -33,11 +33,11 @@ describe('DreamSerializer rendersOne', () => {
 
   it('supports specifying the serializerKey', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
-    const user = User.new({ name: 'Charlie', birthdate, favoriteWord: 'hello' })
-    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
+    const user = { name: 'Charlie', birthdate, favoriteWord: 'hello' }
+    const pet = { user, name: 'Snoopy', species: 'dog' }
 
     const MySerializer = ($data: Pet) =>
-      DreamSerializer(Pet, $data).rendersOne('user', { serializerKey: 'summary' })
+      SimpleObjectSerializer(Pet, $data).rendersOne('user', { serializerKey: 'summary' })
 
     const serializer = MySerializer(pet)
 
@@ -59,10 +59,11 @@ describe('DreamSerializer rendersOne', () => {
 
   it('supports customizing the name of the thing rendered (replaces `source: string`)', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
-    const user = User.new({ name: 'Charlie', birthdate })
-    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
+    const user = { name: 'Charlie', birthdate }
+    const pet = { user, name: 'Snoopy', species: 'dog' }
 
-    const MySerializer = ($data: Pet) => DreamSerializer(Pet, $data).rendersOne('user', { as: 'user2' })
+    const MySerializer = ($data: Pet) =>
+      SimpleObjectSerializer(Pet, $data).rendersOne('user', { as: 'user2' })
 
     const serializer = MySerializer(pet)
 
@@ -85,12 +86,12 @@ describe('DreamSerializer rendersOne', () => {
 
   it.only('supports sending a custom serializer', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
-    const user = User.new({ name: 'Charlie', birthdate })
-    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
+    const user = { name: 'Charlie', birthdate }
+    const pet = { user, name: 'Snoopy', species: 'dog' }
 
-    const CustomSerializer = ($data: User) => DreamSerializer(User, $data).attribute('name')
+    const CustomSerializer = ($data: User) => SimpleObjectSerializer($data).attribute('name')
     const MySerializer = ($data: Pet) =>
-      DreamSerializer(Pet, $data).rendersOne('user', { serializer: () => CustomSerializer })
+      SimpleObjectSerializer(Pet, $data).rendersOne('user', { serializer: () => CustomSerializer })
 
     const serializer = MySerializer(pet)
 
@@ -117,12 +118,12 @@ describe('DreamSerializer rendersOne', () => {
 
   it('supports setting the custom $ref path to a custom serializer', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
-    const user = User.new({ name: 'Charlie', birthdate })
-    const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
+    const user = { name: 'Charlie', birthdate }
+    const pet = { user, name: 'Snoopy', species: 'dog' }
 
-    const CustomSerializer = ($data: User) => DreamSerializer(User, $data).attribute('name')
+    const CustomSerializer = ($data: User) => SimpleObjectSerializer($data).attribute('name')
     const MySerializer = ($data: Pet) =>
-      DreamSerializer(Pet, $data).rendersOne(
+      SimpleObjectSerializer(Pet, $data).rendersOne(
         'user',
         { serializer: () => CustomSerializer },
         { customSerializerRefPath: 'MyCustomSerializer' }

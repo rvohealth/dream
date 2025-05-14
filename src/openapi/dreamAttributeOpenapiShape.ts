@@ -1,14 +1,14 @@
-import Dream from '../../Dream.js'
-import { isOpenapiShorthand } from '../../dream/constants.js'
-import openapiShorthandToOpenapi from '../../openapi/openapiShorthandToOpenapi.js'
-import { DbTypes } from '../../types/db.js'
-import { DreamClassColumnNames } from '../../types/dream.js'
+import Dream from '../Dream.js'
+import { isOpenapiShorthand } from '../dream/constants.js'
+import { DbTypes } from '../types/db.js'
+import { DreamClassColumnNames } from '../types/dream.js'
 import {
   OpenapiSchemaBody,
   OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveTypes,
-} from '../../types/openapi.js'
-import { ExtraOpenapiOptionsForAutomaticallySetOpenapi } from '../../types/serializer.js'
+} from '../types/openapi.js'
+import { ExtraOpenapiOptionsForAutomaticallySetOpenapi } from '../types/serializer.js'
+import openapiShorthandToOpenapi from './openapiShorthandToOpenapi.js'
 
 interface DreamColumnInfo {
   enumValues: string[] | null

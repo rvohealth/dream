@@ -442,6 +442,15 @@ export type DreamOrViewModelSerializerKey<T> = T extends Dream
   ? DreamSerializerKey<T>
   : ViewModelSerializerKey<T>
 
+export type DreamOrViewModel = typeof Dream | ViewModelClass
+
+// export type DreamOrViewModelArray<
+//   StartingArray extends readonly DreamOrViewModel[] = [],
+//   Depth extends number = 0,
+// > = Depth extends 20
+//   ? StartingArray
+//   : StartingArray | DreamOrViewModelArray<[DreamOrViewModel, ...StartingArray], Inc<Depth>>
+
 export type DreamSerializable = typeof Dream | ViewModelClass | SerializerType
 
 export type DreamSerializableArray<

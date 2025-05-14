@@ -15,7 +15,7 @@ export default class SerializerRenderer {
     return this
   }
 
-  private get renderedAttributes() {
+  public render() {
     const $data = this.serializer['$data']
     if (!$data) return null
     const $passthroughData = this.serializer['$passthroughData']
@@ -54,7 +54,7 @@ export default class SerializerRenderer {
         inferSerializerFromDreamOrViewModel(value, attribute.options.serializerKey)
 
       const serializerRenderer = new SerializerRenderer(serializer(value, $passthroughData))
-      accumulator[outputAttributeName] = serializerRenderer.renderedAttributes
+      accumulator[outputAttributeName] = serializerRenderer.render()
 
       return accumulator
     }, renderedAttributes)
@@ -68,7 +68,7 @@ export default class SerializerRenderer {
           attribute.options.serializer?.() ??
           inferSerializerFromDreamOrViewModel(value, attribute.options.serializerKey)
         const serializerRenderer = new SerializerRenderer(serializer(value as any, $passthroughData))
-        return serializerRenderer.renderedAttributes
+        return serializerRenderer.render()
       })
 
       return accumulator
@@ -86,3 +86,28 @@ export default class SerializerRenderer {
     }
   }
 }
+
+// function unknownTypeToIsoDateString(date: unknown): string | null | undefined {
+//   if (date === undefined) return undefined
+//   if (date === null) return null
+//   if (date instanceof CalendarDate || date instanceof DateTime) return date.toISODate()
+//   return date as string
+// }
+
+// function unknownTypeToIsoDatetimeString(dateTime: unknown): string | null | undefined {
+//   if (dateTime === undefined) return undefined
+//   if (dateTime === null) return null
+//   if (dateTime instanceof CalendarDate) return DateTime.fromISO(dateTime.toISO()!).toISO()
+//   if (dateTime instanceof DateTime) return dateTime.toISO()
+//   return dateTime as string
+// }
+
+// function unknownTypeToDecimal(
+//   decimalOrString: string | number | undefined | null,
+//   precision: RoundingPrecision | undefined
+// ): number | null | undefined {
+//   if (decimalOrString === undefined) return undefined
+//   if (decimalOrString === null) return null
+//   const decimalValue = typeof decimalOrString === 'number' ? decimalOrString : Number(decimalOrString)
+//   return precision === undefined ? decimalValue : round(decimalValue, precision)
+// }

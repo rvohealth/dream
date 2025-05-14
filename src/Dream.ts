@@ -63,6 +63,7 @@ import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import { isString } from './helpers/typechecks.js'
 import inferSerializerFromDreamOrViewModel from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import SerializerRenderer from './serializer/SerializerRenderer.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -3750,11 +3751,12 @@ export default class Dream {
     { casing = null, serializerKey }: DreamSerializeOptions<I> = {}
   ) {
     const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey?.toString())
-    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
+    if (!serializerClass) throw new MissingSerializer(this)
 
-    const serializer = new serializerClass(this)
-    if (casing) serializer.casing(casing)
-    return serializer.render()
+    const serializer = serializerClass(this.constructor as typeof Dream, this)
+    const serializerRenderer = new SerializerRenderer(serializer)
+    if (casing) serializerRenderer.casing(casing)
+    return serializerRenderer.render()
   }
 
   /**

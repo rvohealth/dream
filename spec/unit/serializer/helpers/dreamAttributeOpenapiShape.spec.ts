@@ -1,7 +1,7 @@
 import {
   dreamColumnOpenapiShape,
   UseCustomOpenapiForJson,
-} from '../../../../src/serializer/helpers/dreamAttributeOpenapiShape.js'
+} from '../../../../src/openapi/dreamAttributeOpenapiShape.js'
 import { OpenapiSchemaBody } from '../../../../src/types/openapi.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db.js'

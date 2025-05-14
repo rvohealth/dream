@@ -66,14 +66,6 @@ export { default as uncapitalize } from './helpers/uncapitalize.js'
 export { default as uniq } from './helpers/uniq.js'
 export { default as openapiShorthandToOpenapi } from './openapi/openapiShorthandToOpenapi.js'
 export { default as ops } from './ops/index.js'
-export { default as RendersMany } from './serializer/decorators/associations/RendersMany.js'
-export { default as RendersOne } from './serializer/decorators/associations/RendersOne.js'
-export { type DreamSerializerAssociationStatement } from './serializer/decorators/associations/shared.js'
-export {
-  default as Attribute,
-  type AttributeStatement,
-  type SerializableTypes,
-} from './serializer/decorators/attribute.js'
 export {
   inferSerializerFromDreamClassOrViewModelClass,
   default as inferSerializerFromDreamOrViewModel,
