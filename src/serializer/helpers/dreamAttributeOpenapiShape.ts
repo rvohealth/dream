@@ -8,7 +8,7 @@ import {
   OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveTypes,
 } from '../../types/openapi.js'
-import { ExtraOpenapiOptionsForAutomaticallySetOpenapi } from '../index.js'
+import { ExtraOpenapiOptionsForAutomaticallySetOpenapi } from '../../types/serializer.js'
 
 interface DreamColumnInfo {
   enumValues: string[] | null

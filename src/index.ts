@@ -79,7 +79,7 @@ export {
   default as inferSerializerFromDreamOrViewModel,
 } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
-export { DreamSerializer, ObjectSerializer } from './serializer/index.js'
+export { DreamSerializer, SimpleObjectSerializer, ViewModelSerializer } from './serializer/index.js'
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
 export { type DbConnectionType } from './types/db.js'
 export {
@@ -101,13 +101,15 @@ export {
   type DreamVirtualColumns,
   type IdType,
   type PrimaryKeyType,
-  type SerializableClassOrSerializerCallback,
   type Timestamp,
   type UpdateableAssociationProperties,
   type UpdateableProperties,
   type ViewModel,
   type ViewModelClass,
 } from './types/dream.js'
+
+export { type SerializableClassOrSerializerCallback } from './types/serializer.js'
+
 export {
   type CommonOpenapiSchemaObjectFields,
   type OpenapiAllTypes,
@@ -144,8 +146,8 @@ export {
   type OpenapiSchemaShorthandExpressionAllOf,
   type OpenapiSchemaShorthandExpressionAnyOf,
   type OpenapiSchemaShorthandExpressionOneOf,
-  type OpenapiSchemaShorthandExpressionSerializableRef,
-  type OpenapiSchemaShorthandExpressionSerializerRef,
+  // type OpenapiSchemaShorthandExpressionSerializableRef,
+  // type OpenapiSchemaShorthandExpressionSerializerRef,
   type OpenapiSchemaShorthandPrimitiveGeneric,
   type OpenapiSchemaString,
   type OpenapiShorthandAllTypes,

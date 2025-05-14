@@ -1,4 +1,5 @@
-import { SerializableClassOrSerializerCallback, ViewModel } from '../../types/dream.js'
+import { ViewModel } from '../../types/dream.js'
+import { SerializableClassOrSerializerCallback } from '../../types/serializer.js'
 
 export default function (dreamOrSerializerClass: SerializableClassOrSerializerCallback): boolean {
   try {

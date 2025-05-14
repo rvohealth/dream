@@ -22,18 +22,20 @@ export default class SerializerRenderer {
     let renderedAttributes: Record<string, any> = {}
 
     renderedAttributes = this.serializer['attributes'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.renderOptions?.as ?? attribute.name)
       const value = $data[attribute.name]
       const precision = attribute.renderOptions?.precision
-      accumulator[this.setCase(attribute.name)] =
+      accumulator[outputAttributeName] =
         typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
       return accumulator
     }, renderedAttributes)
 
     renderedAttributes = this.serializer['delegatedAttributes'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.renderOptions?.as ?? attribute.name)
       const target = $data[attribute.targetName]
       const value = target[attribute.name]
       const precision = attribute.renderOptions?.precision
-      accumulator[this.setCase(attribute.name)] =
+      accumulator[outputAttributeName] =
         typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
       return accumulator
     }, renderedAttributes)
@@ -43,13 +45,32 @@ export default class SerializerRenderer {
       return accumulator
     }, renderedAttributes)
 
+    renderedAttributes = this.serializer['rendersOnes'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
+      const value = $data[attribute.name]
+
+      const serializer =
+        attribute.options.serializer?.() ??
+        inferSerializerFromDreamOrViewModel(value, attribute.options.serializerKey)
+
+      const serializerRenderer = new SerializerRenderer(serializer(value, $passthroughData))
+      accumulator[outputAttributeName] = serializerRenderer.renderedAttributes
+
+      return accumulator
+    }, renderedAttributes)
+
     renderedAttributes = this.serializer['rendersManys'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
       const values = $data[attribute.name]
-      accumulator[this.setCase(attribute.name)] = (values as ViewModel[]).map(value => {
-        const serializer = inferSerializerFromDreamOrViewModel(value)(value as any, $passthroughData)
-        const serializerRenderer = new SerializerRenderer(serializer)
+
+      accumulator[outputAttributeName] = (values as ViewModel[]).map(value => {
+        const serializer =
+          attribute.options.serializer?.() ??
+          inferSerializerFromDreamOrViewModel(value, attribute.options.serializerKey)
+        const serializerRenderer = new SerializerRenderer(serializer(value as any, $passthroughData))
         return serializerRenderer.renderedAttributes
       })
+
       return accumulator
     }, renderedAttributes)
 

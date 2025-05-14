@@ -1,5 +1,5 @@
 import { DreamConst } from '../../../dream/constants.js'
-import { SerializableClassOrClasses } from '../../../types/dream.js'
+import { SerializableClassOrClasses } from '../../../types/serializer.js'
 import hasSerializersGetter from '../../helpers/hasSerializersGetter.js'
 import maybeSerializableToDreamSerializerCallbackFunction from '../../helpers/maybeSerializableToDreamSerializerCallbackFunction.js'
 
@@ -14,14 +14,6 @@ export interface DreamSerializerAssociationStatement {
   type: SerializableAssociationType
   path: string | null
   exportedAs: string | null
-  serializerKey?: string
-}
-
-export interface RendersOneOrManyOpts {
-  optional?: boolean
-  source?: string | typeof DreamConst.passthrough
-  path?: string
-  exportedAs?: string
   serializerKey?: string
 }
 

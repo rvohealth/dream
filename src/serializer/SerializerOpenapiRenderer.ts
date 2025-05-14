@@ -3,9 +3,10 @@ import { openapiShorthandPrimitiveTypes } from '../dream/constants.js'
 import snakeify from '../helpers/snakeify.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
+import { SerializerAttribute, SerializerRendersMany, SerializerType } from '../types/serializer.js'
 import { dreamColumnOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
 import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { DreamSerializerBuilder, RendersMany, SerializerType } from './index.js'
+import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
@@ -31,8 +32,8 @@ export default class SerializerOpenapiRenderer {
     return this
   }
 
-  public get renderedOpenapi() {
-    const openapiShape = {
+  public get renderedOpenapi(): OpenapiSchemaBodyShorthand {
+    return {
       type: this.serializerBuilder['_maybeNull'] ? ['object', 'null'] : 'object',
       required: [
         ...this.serializerBuilder['attributes'].map(obj => obj.name),
@@ -41,9 +42,8 @@ export default class SerializerOpenapiRenderer {
         ...this.serializerBuilder['rendersOnes'].map(obj => obj.name),
         ...this.serializerBuilder['rendersManys'].map(obj => obj.name),
       ],
+      properties: this.renderedOpenapiAttributes,
     }
-
-    return openapiShape
   }
 
   private get renderedOpenapiAttributes(): Record<string, OpenapiSchemaBodyShorthand> {
@@ -55,9 +55,12 @@ export default class SerializerOpenapiRenderer {
       ...this.serializerBuilder['attributes'],
       ...this.serializerBuilder['attributeFunctions'],
     ].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(
+        (attribute as SerializerAttribute<any>).renderOptions?.as ?? attribute.name
+      )
       const openapi = attribute.openapi
 
-      accumulator[this.setCase(attribute.name)] = dreamClass?.isDream
+      accumulator[outputAttributeName] = dreamClass?.isDream
         ? dreamColumnOpenapiShape(dreamClass, attribute.name, openapi)
         : openapiShorthandPrimitiveTypes.includes(openapi as any)
           ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
@@ -66,29 +69,28 @@ export default class SerializerOpenapiRenderer {
     }, renderedOpenapi)
 
     renderedOpenapi = this.serializerBuilder['delegatedAttributes'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.renderOptions?.as ?? attribute.name)
       const openapi = attribute.openapi
-      accumulator[this.setCase(attribute.name)] = openapiShorthandPrimitiveTypes.includes(openapi as any)
+      accumulator[outputAttributeName] = openapiShorthandPrimitiveTypes.includes(openapi as any)
         ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
         : (openapi as OpenapiSchemaBodyShorthand)
       return accumulator
     }, renderedOpenapi)
 
-    this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
-      renderedOpenapi[this.setCase(attribute.name)] = {
-        type: 'array',
-        items: associationOpenapi(attribute, renderedOpenapi, dreamClass),
-      }
-
-      return renderedOpenapi
+    this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
+      accumulator[outputAttributeName] = associationOpenapi(attribute, dreamClass)
+      return accumulator
     }, renderedOpenapi)
 
-    this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
-      renderedOpenapi[this.setCase(attribute.name)] = associationOpenapi(
-        attribute,
-        renderedOpenapi,
-        dreamClass
-      )
-      return renderedOpenapi
+    this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
+      const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
+      accumulator[outputAttributeName] = {
+        type: 'array',
+        items: associationOpenapi(attribute, dreamClass),
+      }
+
+      return accumulator
     }, renderedOpenapi)
 
     return renderedOpenapi
@@ -105,28 +107,36 @@ export default class SerializerOpenapiRenderer {
 }
 
 function associationOpenapi(
-  attribute: RendersMany<any, string>,
-  renderedOpenapi: Record<string, OpenapiSchemaBodyShorthand>,
+  attribute: SerializerRendersMany<any, string>,
   dreamClass: typeof Dream
-) {
-  const hasManyAssociations = dreamClass['associationMetadataByType'].hasMany
-  const association = hasManyAssociations.find(association => association.as === attribute.name)
+): OpenapiSchemaBodyShorthand {
+  const serializerOverride = attribute.options.serializer?.()
+  if (serializerOverride) {
+    const customSerializerRefPath = attribute.openapi.customSerializerRefPath
+    if (customSerializerRefPath) return { $ref: `#/components/schemas/${customSerializerRefPath}` }
+    return new SerializerOpenapiRenderer(serializerOverride).renderedOpenapi
+  }
+
+  const associationMetadataMap = dreamClass['associationMetadataMap']()
+  const association = associationMetadataMap[attribute.name]
   const associatedClassOrClasses = association!.modelCB()
 
   if (Array.isArray(associatedClassOrClasses)) {
     const serializersOpenapi = associatedClassOrClasses.map(associatedClass =>
-      inferSerializerFromDreamClassOrViewModelClass(associatedClass)
+      inferSerializerFromDreamClassOrViewModelClass(associatedClass, attribute.options.serializerKey)
     )
 
     return {
       anyOf: serializersOpenapi.map(serializer => serializerToRef(serializer)),
     }
   } else {
-    return serializerToRef(inferSerializerFromDreamClassOrViewModelClass(associatedClassOrClasses))
+    return serializerToRef(
+      inferSerializerFromDreamClassOrViewModelClass(associatedClassOrClasses, attribute.options.serializerKey)
+    )
   }
 }
 
-function serializerToRef(serializer: SerializerType) {
+function serializerToRef(serializer: SerializerType): OpenapiSchemaBodyShorthand {
   return {
     $ref: `#/components/schemas/${((serializer as any)['globalName'] ?? '').replace(/\//g, '_')}`,
   }

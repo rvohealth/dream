@@ -1,7 +1,7 @@
 import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
-import { SerializableClassOrClasses } from '../../../types/dream.js'
+import { RendersOneOpts, SerializableClassOrClasses } from '../../../types/serializer.js'
 import DreamSerializer from '../../index.js'
-import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
+import { DreamSerializerAssociationStatement, isSerializable } from './shared.js'
 
 /**
  * Establishes a One to One relationship between
@@ -89,8 +89,4 @@ export default function RendersOne(
       ]
     })
   }
-}
-
-export interface RendersOneOpts extends RendersOneOrManyOpts {
-  flatten?: boolean
 }

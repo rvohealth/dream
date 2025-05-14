@@ -5,7 +5,6 @@ import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
 import OpsStatement from '../ops/ops-statement.js'
-import { SerializerType } from '../serializer/index.js'
 import {
   AssociatedModelParam,
   AssociationStatement,
@@ -14,6 +13,7 @@ import {
 } from './associations/shared.js'
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
+import { SerializerType } from './serializer.js'
 import { FilterInterface, Inc } from './utils.js'
 import { AliasedSchemaAssociation } from './variadic.js'
 
@@ -355,11 +355,6 @@ export type DreamConstructorType<T extends Dream> = (new (...arguments_: any[]) 
 
 export type ViewModel = { serializers: Record<string, string> }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
-
-export type DreamSerializerCallback = () => SerializerType
-export type SerializableClassOrSerializerCallback = ViewModelClass | DreamSerializerCallback
-
-export type SerializableClassOrClasses = DreamSerializerCallback | ViewModelClass | ViewModelClass[]
 
 // preload
 export type NextPreloadArgumentType<

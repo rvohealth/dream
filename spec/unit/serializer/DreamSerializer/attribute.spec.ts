@@ -33,6 +33,25 @@ describe('DreamSerializer attributes', () => {
     )
   })
 
+  it('supports customizing the name of the thing rendered', () => {
+    const MySerializer = ($data: User) =>
+      DreamSerializer(User, $data).attribute('email', {}, { as: 'email2' })
+
+    const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
+
+    const serializerRenderer = new SerializerRenderer(serializer)
+    expect(serializerRenderer['renderedAttributes']).toEqual({
+      email2: 'abc',
+    })
+
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      email2: {
+        type: 'string',
+      },
+    })
+  })
+
   it('can specify OpenAPI description', () => {
     const MySerializer = ($data: User) =>
       DreamSerializer(User, $data).attribute('email', { description: 'This is an email' })

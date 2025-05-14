@@ -2,11 +2,7 @@ import { DreamSerializer } from '../../../src/serializer/index.js'
 import User from '../models/User.js'
 
 const UserSerializer = ($data: User, $passthroughData: object) =>
-  DreamSerializer(User, $data, $passthroughData)
-    .attribute('id')
-    .attribute('name')
-    .attribute('birthdate')
-    .rendersOne('userSettings', { optional: true })
+  DreamSerializer(User, $data, $passthroughData).attribute('id').attribute('name').attribute('birthdate')
 
 export default UserSerializer
 
