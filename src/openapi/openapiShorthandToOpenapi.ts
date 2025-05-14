@@ -1,4 +1,12 @@
-import { OpenapiSchemaBody, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
+import {
+  maybeNullOpenapiShorthandToOpenapiShorthand,
+  openapiShorthandIncludesNull,
+} from '../dream/constants.js'
+import {
+  OpenapiSchemaBody,
+  OpenapiShorthandPrimitiveBaseTypes,
+  OpenapiShorthandPrimitiveTypes,
+} from '../types/openapi.js'
 
 interface Options {
   maybeNull?: boolean
@@ -8,12 +16,15 @@ export default function openapiShorthandToOpenapi(
   shorthand: OpenapiShorthandPrimitiveTypes,
   options: Options = {}
 ): OpenapiSchemaBody {
-  const openapi = simpleOpenapiShorthandToOpenapi(shorthand)
-  if (options.maybeNull) return { ...openapi, type: [openapi.type, 'null'] } as OpenapiSchemaBody
+  const shorthandString = maybeNullOpenapiShorthandToOpenapiShorthand(shorthand)
+  if (!shorthandString) return { type: 'null' }
+  const openapi = simpleOpenapiShorthandToOpenapi(shorthandString)
+  if (options.maybeNull || openapiShorthandIncludesNull(shorthand))
+    return { ...openapi, type: [openapi.type, 'null'] } as OpenapiSchemaBody
   return openapi as OpenapiSchemaBody
 }
 
-function simpleOpenapiShorthandToOpenapi(shorthand: OpenapiShorthandPrimitiveTypes) {
+function simpleOpenapiShorthandToOpenapi(shorthand: OpenapiShorthandPrimitiveBaseTypes) {
   switch (shorthand) {
     case 'string':
       return { type: 'string' }

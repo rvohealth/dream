@@ -1,3 +1,5 @@
+import { OpenapiShorthandPrimitiveBaseTypes, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
+
 export const primaryKeyTypes = ['bigserial', 'bigint', 'uuid', 'integer'] as const
 export const TRIGRAM_OPERATORS = ['%', '<%', '<<%'] as const
 class RequiredAttribute {
@@ -38,12 +40,22 @@ export const openapiShorthandPrimitiveTypes = [
 export function isOpenapiShorthand(openapi: any): boolean {
   const openapiShorthand = maybeNullOpenapiShorthandToOpenapiShorthand(openapi)
   if (typeof openapiShorthand !== 'string') return false
-  return openapiShorthandPrimitiveTypes.includes(
-    openapiShorthand as (typeof openapiShorthandPrimitiveTypes)[number]
-  )
+  return openapiShorthandPrimitiveTypes.includes(openapiShorthand)
 }
 
-function maybeNullOpenapiShorthandToOpenapiShorthand(openapi: any) {
+export function openapiShorthandIncludesNull(openapi: OpenapiShorthandPrimitiveTypes): boolean {
+  if (openapi === undefined) return false
+  if (typeof openapi === 'string') return false
+  if (!Array.isArray(openapi)) return false
+  if (openapi.length !== 2) return false
+  if (openapi[1] === 'null') return true
+  if (openapi[0] === 'null') return true
+  return false
+}
+
+export function maybeNullOpenapiShorthandToOpenapiShorthand(
+  openapi: OpenapiShorthandPrimitiveTypes
+): OpenapiShorthandPrimitiveBaseTypes | undefined {
   if (openapi === undefined) return undefined
   if (typeof openapi === 'string') return openapi
   if (!Array.isArray(openapi)) return undefined

@@ -1,5 +1,5 @@
 import Dream from '../Dream.js'
-import { openapiShorthandPrimitiveTypes } from '../dream/constants.js'
+import { isOpenapiShorthand } from '../dream/constants.js'
 import snakeify from '../helpers/snakeify.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
@@ -62,7 +62,7 @@ export default class SerializerOpenapiRenderer {
 
       accumulator[outputAttributeName] = dreamClass?.isDream
         ? dreamColumnOpenapiShape(dreamClass, attribute.name, openapi)
-        : openapiShorthandPrimitiveTypes.includes(openapi as any)
+        : isOpenapiShorthand(openapi)
           ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
           : (openapi as OpenapiSchemaBodyShorthand)
       return accumulator
@@ -71,7 +71,7 @@ export default class SerializerOpenapiRenderer {
     renderedOpenapi = this.serializerBuilder['delegatedAttributes'].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(attribute.renderOptions?.as ?? attribute.name)
       const openapi = attribute.openapi
-      accumulator[outputAttributeName] = openapiShorthandPrimitiveTypes.includes(openapi as any)
+      accumulator[outputAttributeName] = isOpenapiShorthand(openapi)
         ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
         : (openapi as OpenapiSchemaBodyShorthand)
       return accumulator
