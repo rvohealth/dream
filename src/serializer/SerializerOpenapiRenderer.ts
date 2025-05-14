@@ -4,7 +4,8 @@ import snakeify from '../helpers/snakeify.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { dreamColumnOpenapiShape } from './helpers/dreamAttributeOpenapiShape.js'
-import { DreamSerializerBuilder, SerializerType } from './index.js'
+import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { DreamSerializerBuilder, RendersMany, SerializerType } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
@@ -72,6 +73,24 @@ export default class SerializerOpenapiRenderer {
       return accumulator
     }, renderedOpenapi)
 
+    this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
+      renderedOpenapi[this.setCase(attribute.name)] = {
+        type: 'array',
+        items: associationOpenapi(attribute, renderedOpenapi, dreamClass),
+      }
+
+      return renderedOpenapi
+    }, renderedOpenapi)
+
+    this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
+      renderedOpenapi[this.setCase(attribute.name)] = associationOpenapi(
+        attribute,
+        renderedOpenapi,
+        dreamClass
+      )
+      return renderedOpenapi
+    }, renderedOpenapi)
+
     return renderedOpenapi
   }
 
@@ -82,5 +101,33 @@ export default class SerializerOpenapiRenderer {
       case 'snake':
         return snakeify(attr)
     }
+  }
+}
+
+function associationOpenapi(
+  attribute: RendersMany<any, string>,
+  renderedOpenapi: Record<string, OpenapiSchemaBodyShorthand>,
+  dreamClass: typeof Dream
+) {
+  const hasManyAssociations = dreamClass['associationMetadataByType'].hasMany
+  const association = hasManyAssociations.find(association => association.as === attribute.name)
+  const associatedClassOrClasses = association!.modelCB()
+
+  if (Array.isArray(associatedClassOrClasses)) {
+    const serializersOpenapi = associatedClassOrClasses.map(associatedClass =>
+      inferSerializerFromDreamClassOrViewModelClass(associatedClass)
+    )
+
+    return {
+      anyOf: serializersOpenapi.map(serializer => serializerToRef(serializer)),
+    }
+  } else {
+    return serializerToRef(inferSerializerFromDreamClassOrViewModelClass(associatedClassOrClasses))
+  }
+}
+
+function serializerToRef(serializer: SerializerType) {
+  return {
+    $ref: `#/components/schemas/${((serializer as any)['globalName'] ?? '').replace(/\//g, '_')}`,
   }
 }

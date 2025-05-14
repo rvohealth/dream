@@ -24,7 +24,7 @@ export default function inferSerializerFromDreamOrViewModel(
 }
 
 export function inferSerializerFromDreamClassOrViewModelClass(
-  classDef: ViewModelClass,
+  classDef: typeof Dream | ViewModelClass,
   serializerKey: string | undefined = undefined
 ) {
   return inferSerializerFromDreamOrViewModel(classDef.prototype, serializerKey)
