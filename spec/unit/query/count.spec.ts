@@ -44,6 +44,17 @@ describe('Query#count', () => {
     })
   })
 
+  context('with an association that has an order clause applied', () => {
+    it('does not raise exception', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await user.createAssociation('posts')
+      await user.createAssociation('posts')
+
+      const count = await user.associationQuery('orderedPosts').count()
+      expect(count).toEqual(2)
+    })
+  })
+
   context('within a polymorphic association query', () => {
     it('counts query results', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })

@@ -95,6 +95,9 @@ export default class User extends ApplicationModel {
   @deco.HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allPosts: Post[]
 
+  @deco.HasMany('Post', { order: 'position' })
+  public orderedPosts: Post[]
+
   @deco.HasMany('PostComment', { through: 'posts', source: 'comments' })
   public postComments: PostComment[]
 

@@ -4347,6 +4347,13 @@ export const schema = {
         optional: null,
         requiredOnClauses: null,
       },
+      orderedPosts: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        tables: ['posts'],
+        optional: null,
+        requiredOnClauses: null,
+      },
       pets: {
         type: 'HasMany',
         foreignKey: 'userId',

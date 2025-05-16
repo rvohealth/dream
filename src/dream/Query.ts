@@ -3822,6 +3822,11 @@ export default class Query<
       kyselyQuery = kyselyQuery.selectAll(this.baseSqlAlias)
     }
 
+    // even though we manually bypass explicit order statements above,
+    // associations can contain their own ordering systems. If we do not
+    // escape all orders, we can mistakenly allow an order clause to sneak in.
+    if (bypassOrder) kyselyQuery = kyselyQuery.clearOrderBy()
+
     return kyselyQuery
   }
 
