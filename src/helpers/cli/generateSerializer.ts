@@ -8,10 +8,12 @@ export default async function generateSerializer({
   fullyQualifiedModelName,
   columnsWithTypes,
   fullyQualifiedParentName,
+  stiBaseSerializer,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   fullyQualifiedParentName?: string | undefined
+  stiBaseSerializer: boolean
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
@@ -25,7 +27,12 @@ export default async function generateSerializer({
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(
       absFilePath,
-      generateSerializerContent({ fullyQualifiedModelName, columnsWithTypes, fullyQualifiedParentName })
+      generateSerializerContent({
+        fullyQualifiedModelName,
+        columnsWithTypes,
+        fullyQualifiedParentName,
+        stiBaseSerializer,
+      })
     )
   } catch (error) {
     throw new Error(`

@@ -57,7 +57,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
     })
   })
 
-  it('supports customizing the name of the thing rendered (replaces `source: string`)', () => {
+  it("supports customizing the name of the thing rendered via { as: '...' } (replaces `source: string`)", () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = { name: 'Charlie', birthdate }
     const pet = { user, name: 'Snoopy', species: 'dog' }
@@ -84,7 +84,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
     })
   })
 
-  it.only('supports sending a custom serializer', () => {
+  it('supports sending a custom serializer', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = { name: 'Charlie', birthdate }
     const pet = { user, name: 'Snoopy', species: 'dog' }

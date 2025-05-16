@@ -10,12 +10,6 @@ const CompositionAlternateSerializer = ($data: Composition) =>
     .attribute('metadata', 'json')
     .rendersMany('compositionAssets')
     // .rendersMany('localizedTexts', () => LocalizedTextBaseSerializer<any>)
-
-    // intentionally omitting the serializer callback to
-    // explicitly test importing from only a path config
-    .rendersOne('passthroughCurrentLocalizedText', {
-      path: 'LocalizedText/BaseSerializer',
-      exportedAs: 'LocalizedTextBaseSerializer',
-    })
+    .rendersOne('passthroughCurrentLocalizedText')
 
 export default CompositionAlternateSerializer

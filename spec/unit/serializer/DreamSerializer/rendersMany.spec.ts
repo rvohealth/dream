@@ -49,7 +49,7 @@ describe('DreamSerializer rendersMany', () => {
     })
   })
 
-  it.only('expands STI base model into OpenAPI for all of the child types', () => {
+  it('expands STI base model into OpenAPI for all of the child types', () => {
     const MySerializer = ($data: User) => DreamSerializer(User, $data).rendersMany('balloons')
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
@@ -112,7 +112,7 @@ describe('DreamSerializer rendersMany', () => {
     })
   })
 
-  it('supports customizing the name of the thing rendered (replaces `source: string`)', () => {
+  it("supports customizing the name of the thing rendered via { as: '...' } (replaces `source: string`)", () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ name: 'Charlie', birthdate })
     const pet1 = Pet.new({ user, name: 'Snoopy', species: 'dog' })
