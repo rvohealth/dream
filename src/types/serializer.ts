@@ -2,6 +2,7 @@ import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
 import { DreamSerializerBuilder } from '../serializer/index.js'
 import {
+  DreamAttributeDbTypes,
   DreamOrViewModelClassSerializerArrayKeys,
   DreamOrViewModelClassSerializerKey,
   DreamSerializable,
@@ -19,69 +20,115 @@ export type SerializableClassOrClasses = DreamSerializerCallback | ViewModelClas
 
 export interface SerializerAttribute<
   DataType,
-  AttributeName extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
+  AttributeName extends keyof DataType & string = keyof DataType & string,
 > {
   name: AttributeName
-  openapi:
-    | ExtraOpenapiOptionsForAutomaticallySetOpenapi
-    | OpenapiSchemaBodyShorthand
-    | OpenapiShorthandPrimitiveTypes
-  renderOptions: DecimalShorthandAttributeRenderOptions
+  options: {
+    as?: string
+    openapi?: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+  } & DecimalRenderOption
 }
 
 export interface SerializerDelegatedAttribute<
   DataType,
-  TargetName extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
-  TargetObject extends Exclude<DataType, null>[TargetName] = Exclude<DataType, null>[TargetName],
+  TargetName extends keyof DataType & string = keyof DataType & string,
+  TargetObject extends DataType[TargetName] = DataType[TargetName],
   AttributeName extends TargetObject extends object
     ? keyof TargetObject & string
     : never = TargetObject extends object ? keyof TargetObject & string : never,
 > {
   targetName: TargetName
   name: AttributeName
-  openapi:
-    | ExtraOpenapiOptionsForAutomaticallySetOpenapi
-    | OpenapiSchemaBodyShorthand
-    | OpenapiShorthandPrimitiveTypes
-  renderOptions: DecimalShorthandAttributeRenderOptions
+  options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
 }
 
-export interface SerializerAttributeFunction {
+export interface SerializerCustomAttribute {
   name: string
   fn: (x?: any, y?: any) => any
-  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+  options: Exclude<NonAutomaticSerializerAttributeOptions, 'as'>
 }
 
 export interface SerializerRendersOne<
   DataType,
-  AttributeName extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
+  AttributeName extends keyof DataType & string = keyof DataType & string,
 > {
   name: AttributeName
-  options: RendersOneOpts<any>
-  openapi: CustomSerializerOpenapiOpts
+  options: RendersOneOpts<any> & {
+    openapi?: CustomSerializerOpenapiOpts
+  }
 }
 
 export interface SerializerRendersMany<
   DataType,
-  AttributeName extends keyof Exclude<DataType, null> & string = keyof Exclude<DataType, null> & string,
+  AttributeName extends keyof DataType & string = keyof DataType & string,
 > {
   name: AttributeName
-  options: RendersManyOpts<any>
-  openapi: CustomSerializerOpenapiOpts
+  options: RendersManyOpts<any> & {
+    openapi?: CustomSerializerOpenapiOpts
+  }
 }
 
-export interface ExtraOpenapiOptionsForAutomaticallySetOpenapi {
+export interface OpenapiDescription {
   description?: string
 }
-export interface AttributeRenderOptions {
-  as?: string
-}
-export interface DecimalShorthandAttributeRenderOptions extends AttributeRenderOptions {
+
+export type DecimalOpenapiTypes =
+  | 'decimal'
+  | 'decimal[]'
+  | ['decimal', 'null']
+  | ['decimal[]', 'null']
+  | 'numeric'
+  | 'numeric[]'
+  | ['numeric', 'null']
+  | ['numeric[]', 'null']
+
+export interface DecimalRenderOption {
   precision?: RoundingPrecision
 }
+
+export type AutomaticSerializerAttributeOptions<
+  DreamInstance extends Dream,
+  AttributeName extends keyof DreamInstance & string,
+> = {
+  as?: string
+  openapi?: OpenapiDescription
+} & DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypes
+  ? DecimalRenderOption
+  : object
+
+export type NonAutomaticSerializerAttributeOptions = {
+  as?: string
+} & {
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+}
+
+export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption = {
+  as?: string
+} & (
+  | {
+      openapi: Exclude<OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes, DecimalOpenapiTypes>
+    }
+  | ({
+      openapi: OpenapiDescription & DecimalOpenapiTypes
+    } & DecimalRenderOption)
+)
+
 export type SerializerType =
-  | ((dreamClass: typeof Dream, $data: any, $passthroughData?: any) => DreamSerializerBuilder<any, any, any>)
-  | (($data: any, $passthroughData?: any) => DreamSerializerBuilder<any, any, any>)
+  | ((
+      dreamClass: typeof Dream,
+      $data: any,
+      $passthroughData?: any
+    ) =>
+      | DreamSerializerBuilder<any, any, any>
+      | ViewModelSerializerBuilder<any, any, any>
+      | SimpleObjectSerializerBuilder<any, any>)
+  | ((
+      $data: any,
+      $passthroughData?: any
+    ) =>
+      | DreamSerializerBuilder<any, any, any>
+      | ViewModelSerializerBuilder<any, any, any>
+      | SimpleObjectSerializerBuilder<any, any>)
 
 export interface CustomSerializerOpenapiOpts {
   customSerializerRefPath?: string

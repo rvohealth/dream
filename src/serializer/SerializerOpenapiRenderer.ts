@@ -9,7 +9,7 @@ import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { SerializerAttribute, SerializerRendersMany, SerializerType } from '../types/serializer.js'
 import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { DreamSerializerBuilder } from './index.js'
+import { DreamSerializerBuilder, SimpleObjectSerializerBuilder, ViewModelSerializerBuilder } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
@@ -23,8 +23,14 @@ export default class SerializerOpenapiRenderer {
     return globalName.replace(/\//g, '_')
   }
 
-  private _serializerBuilder: DreamSerializerBuilder<any, any, any>
-  private get serializerBuilder(): DreamSerializerBuilder<any, any, any> {
+  private _serializerBuilder:
+    | DreamSerializerBuilder<any, any, any>
+    | ViewModelSerializerBuilder<any, any, any>
+    | SimpleObjectSerializerBuilder<any, any>
+  private get serializerBuilder():
+    | DreamSerializerBuilder<any, any, any>
+    | ViewModelSerializerBuilder<any, any, any>
+    | SimpleObjectSerializerBuilder<any, any> {
     if (this._serializerBuilder) return this._serializerBuilder
     this._serializerBuilder = this.serializer(undefined as any, undefined as any)
     return this._serializerBuilder
