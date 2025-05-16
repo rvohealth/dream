@@ -6,8 +6,8 @@ import Balloon from '../Balloon.js'
 export default class Mylar extends Balloon {
   public get serializers(): DreamSerializers<Balloon> {
     return {
-      default: 'BalloonSummarySerializer',
-      mylarOnly: 'BalloonSummarySerializer',
+      default: 'Balloon/MylarSerializer',
+      mylarOnly: 'Balloon/MylarSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
     }
   }

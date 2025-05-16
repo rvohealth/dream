@@ -4513,7 +4513,11 @@ export const globalSchema = {
       'UserSettings': 'user_settings'
     },
     serializers: [
+      'Balloon/Latex/AnimalSerializer',
+      'Balloon/LatexSerializer',
+      'Balloon/MylarSerializer',
       'BalloonLineSerializer',
+      'BalloonSerializer',
       'BalloonSpotterBalloonSerializer',
       'BalloonSpotterSerializer',
       'BalloonSummarySerializer',

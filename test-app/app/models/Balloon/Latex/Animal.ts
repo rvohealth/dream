@@ -15,7 +15,7 @@ export default class Animal extends Latex {
 
   public override get serializers(): DreamSerializers<Latex> {
     return {
-      default: 'BalloonSummarySerializer',
+      default: 'Balloon/Latex/AnimalSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
     }
   }
