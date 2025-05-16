@@ -1,6 +1,5 @@
 import lookupModelByGlobalNameOrNames from '../../../dream-app/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
-import StiChildCannotDefineNewAssociations from '../../../errors/sti/StiChildCannotDefineNewAssociations.js'
 import {
   BelongsToStatement,
   NonPolymorphicBelongsToOptions,
@@ -91,8 +90,6 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
         delete (this as any)[key]
         return
       }
-
-      if (dreamClass['isSTIChild']) throw new StiChildCannotDefineNewAssociations(dreamClass, key)
 
       const partialAssociation = associationPrimaryKeyAccessors(
         {

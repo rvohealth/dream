@@ -1,5 +1,6 @@
 import Dream from '../Dream.js'
 import { isOpenapiShorthand } from '../dream/constants.js'
+import compact from '../helpers/compact.js'
 import snakeify from '../helpers/snakeify.js'
 import uniq from '../helpers/uniq.js'
 import { dreamColumnOpenapiShape } from '../openapi/dreamAttributeOpenapiShape.js'
@@ -12,6 +13,7 @@ import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
+  private allOfSiblings: OpenapiSchemaBodyShorthand[] = []
 
   constructor(private serializer: SerializerType) {}
 
@@ -35,13 +37,24 @@ export default class SerializerOpenapiRenderer {
   }
 
   public get renderedOpenapi(): OpenapiSchemaBodyShorthand {
+    const openapi = this._renderedOpenapi
+    if (this.allOfSiblings.length) {
+      return {
+        allOf: [openapi, ...this.allOfSiblings],
+      }
+    } else {
+      return openapi
+    }
+  }
+
+  private get _renderedOpenapi(): OpenapiSchemaBodyShorthand {
     return {
       type: this.serializerBuilder['_maybeNull'] ? ['object', 'null'] : 'object',
       required: [
         ...this.serializerBuilder['attributes'].map(obj => obj.name),
         ...this.serializerBuilder['delegatedAttributes'].map(obj => obj.name),
         ...this.serializerBuilder['attributeFunctions'].map(obj => obj.name),
-        ...this.serializerBuilder['rendersOnes'].map(obj => obj.name),
+        ...compact(this.serializerBuilder['rendersOnes'].map(obj => (obj.options.flatten ? null : obj.name))),
         ...this.serializerBuilder['rendersManys'].map(obj => obj.name),
       ],
       properties: this.renderedOpenapiAttributes,
@@ -81,8 +94,14 @@ export default class SerializerOpenapiRenderer {
 
     this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
-      accumulator[outputAttributeName] = associationOpenapi(attribute, dreamClass)
-      return accumulator
+
+      if (attribute.options.flatten) {
+        this.allOfSiblings.push(associationOpenapi(attribute, dreamClass))
+        return accumulator
+      } else {
+        accumulator[outputAttributeName] = associationOpenapi(attribute, dreamClass)
+        return accumulator
+      }
     }, renderedOpenapi)
 
     this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {

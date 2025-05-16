@@ -35,16 +35,18 @@ export default function STI({ value }: { value?: string } = {}): ClassDecorator 
 function findStiBaseClass(
   originalClass: typeof Dream,
   currentClass: typeof Dream = originalClass,
-  previousClass?: typeof Dream
+  previousClass?: typeof Dream,
+  previousPreviousClass?: typeof Dream
 ): typeof Dream {
   if (currentClass === Dream) {
-    if (previousClass === undefined) throw new Error(`Called \`findStiBaseClass\` on Dream itself`)
-    return previousClass
+    if (previousPreviousClass === undefined)
+      throw new Error(`Called \`findStiBaseClass\` on Dream or ApplicationModel`)
+    return previousPreviousClass
   }
 
   const parentClass = Object.getPrototypeOf(currentClass)
   if (!parentClass || parentClass === Function.prototype)
     throw new Error(`${originalClass.name} does not extend a Dream class`)
 
-  return findStiBaseClass(originalClass, parentClass, currentClass)
+  return findStiBaseClass(originalClass, parentClass, currentClass, previousClass)
 }

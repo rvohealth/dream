@@ -1,13 +1,22 @@
-import { SimpleObjectSerializer, SimpleObjectSerializerBuilder } from '../../../../src/serializer/index.js'
+import { DreamSerializerBuilder, SimpleObjectSerializer } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
-import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
-import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
+
+interface ModelForOpenapiTypeSpecs {
+  favoriteJsons: object[]
+  requiredFavoriteJsons: object[]
+  favoriteJsonbs: object[]
+  requiredFavoriteJsonbs: object[]
+  jsonData: object
+  requiredJsonData: object
+  jsonbData: object
+  requiredJsonbData: object
+}
 
 describe('SimpleObjectSerializer json attributes', () => {
   context('all Dream column types', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      SimpleObjectSerializer(ModelForOpenapiTypeSpecs, $data)
+      SimpleObjectSerializer($data)
         .jsonAttribute('favoriteJsons', {
           type: ['array', 'null'],
           items: { type: 'object', properties: { hello: 'string' } },
@@ -28,14 +37,10 @@ describe('SimpleObjectSerializer json attributes', () => {
         .jsonAttribute('requiredJsonData', { type: 'object', properties: { hello: 'string' } })
         .jsonAttribute('jsonbData', { type: ['object', 'null'], properties: { hello: 'string' } })
         .jsonAttribute('requiredJsonbData', { type: 'object', properties: { hello: 'string' } })
-    let serializer: SimpleObjectSerializerBuilder<
-      typeof ModelForOpenapiTypeSpecs,
-      ModelForOpenapiTypeSpecs,
-      any
-    >
+    let serializer: DreamSerializerBuilder<undefined, ModelForOpenapiTypeSpecs, any>
 
-    beforeEach(async () => {
-      serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+    beforeEach(() => {
+      serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
     })
 
     it('serialize correctly', () => {
@@ -77,40 +82,54 @@ describe('SimpleObjectSerializer json attributes', () => {
 
   context('with casing specified', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      SimpleObjectSerializer(ModelForOpenapiTypeSpecs, $data).attribute('requiredNicknames')
+      SimpleObjectSerializer($data).attribute('requiredFavoriteJsons', { $ref: 'hello/world' })
 
     context('snake casing is specified', () => {
-      it('renders all attribute keys in snake case', async () => {
-        const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+      it('renders all attribute keys in snake case', () => {
+        const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
         const serializerRenderer = new SerializerRenderer(serializer)
         expect(serializerRenderer.casing('snake').render()).toEqual({
-          required_nicknames: ['Chuck'],
+          required_favorite_jsons: [{ hello: 'world' }],
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
         expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']).toEqual(
           expect.objectContaining({
-            required_nicknames: { type: 'array', items: { type: 'string' } },
+            required_favorite_jsons: { $ref: 'hello/world' },
           })
         )
       })
     })
 
     context('camel casing is specified', () => {
-      it('renders all attribute keys in camel case', async () => {
-        const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+      it('renders all attribute keys in camel case', () => {
+        const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
         const serializerRenderer = new SerializerRenderer(serializer)
         expect(serializerRenderer.casing('camel').render()).toEqual({
-          requiredNicknames: ['Chuck'],
+          requiredFavoriteJsons: [{ hello: 'world' }],
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
         expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']).toEqual(
           expect.objectContaining({
-            requiredNicknames: { type: 'array', items: { type: 'string' } },
+            requiredFavoriteJsons: { $ref: 'hello/world' },
           })
         )
       })
     })
   })
 })
+
+export default function fleshedOutModelForOpenapiTypeSpecs() {
+  return {
+    favoriteJsons: [{ hello: 'world' }],
+    requiredFavoriteJsons: [{ hello: 'world' }],
+    favoriteJsonbs: [{ hello: 'world' }],
+    requiredFavoriteJsonbs: [{ hello: 'world' }],
+
+    jsonData: { hello: '1' },
+    requiredJsonData: { hello: '2' },
+    jsonbData: { hello: '3' },
+    requiredJsonbData: { hello: '4' },
+  }
+}

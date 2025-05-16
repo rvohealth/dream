@@ -3,6 +3,7 @@ import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpen
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
+import { SpeciesValues } from '../../../../test-app/types/db.js'
 
 describe('DreamSerializer rendersOne', () => {
   it('renders the associated objects', () => {
@@ -80,6 +81,43 @@ describe('DreamSerializer rendersOne', () => {
       user2: {
         $ref: '#/components/schemas/UserSerializer',
       },
+    })
+  })
+
+  context('flatten', () => {
+    it('it renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
+      const birthdate = CalendarDate.fromISO('1950-10-02')
+      const user = User.new({ name: 'Charlie', birthdate })
+      const pet = Pet.new({ user, name: 'Snoopy', species: 'dog' })
+
+      const MySerializer = ($data: Pet) =>
+        DreamSerializer(Pet, $data).attribute('species').rendersOne('user', { flatten: true })
+
+      const serializer = MySerializer(pet)
+
+      const serializerRenderer = new SerializerRenderer(serializer)
+      expect(serializerRenderer.render()).toEqual({
+        species: 'dog',
+        id: user.id,
+        name: 'Charlie',
+        birthdate: expect.toEqualCalendarDate(birthdate),
+      })
+
+      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual({
+        allOf: [
+          {
+            type: 'object',
+            required: ['species'],
+            properties: {
+              species: { type: ['string', 'null'], enum: SpeciesValues },
+            },
+          },
+          {
+            $ref: '#/components/schemas/UserSerializer',
+          },
+        ],
+      })
     })
   })
 

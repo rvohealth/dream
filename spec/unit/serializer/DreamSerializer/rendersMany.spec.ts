@@ -54,18 +54,18 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets: {
+      balloons: {
         type: 'array',
         items: {
           anyOf: [
+            {
+              $ref: '#/components/schemas/Balloon_Latex_AnimalSerializer',
+            },
             {
               $ref: '#/components/schemas/Balloon_LatexSerializer',
             },
             {
               $ref: '#/components/schemas/Balloon_MylarSerializer',
-            },
-            {
-              $ref: '#/components/schemas/Balloon_Animal_AnimalSerializer',
             },
           ],
         },

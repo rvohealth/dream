@@ -54,9 +54,15 @@ export default class SerializerRenderer {
         inferSerializerFromDreamOrViewModel(value, attribute.options.serializerKey)
 
       const serializerRenderer = new SerializerRenderer(serializer(value, $passthroughData))
-      accumulator[outputAttributeName] = serializerRenderer.render()
-
-      return accumulator
+      if (attribute.options.flatten) {
+        return {
+          ...accumulator,
+          ...serializerRenderer.render(),
+        }
+      } else {
+        accumulator[outputAttributeName] = serializerRenderer.render()
+        return accumulator
+      }
     }, renderedAttributes)
 
     renderedAttributes = this.serializer['rendersManys'].reduce((accumulator, attribute) => {

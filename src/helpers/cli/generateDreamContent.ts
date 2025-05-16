@@ -100,7 +100,7 @@ import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImport
 
 const deco = new Decorators<typeof ${modelClassName}>()
 
-${isSTI ? `\n@STI(${parentModelClassName})` : ''}
+${isSTI ? '\n@STI()' : ''}
 export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {
 ${
   isSTI
