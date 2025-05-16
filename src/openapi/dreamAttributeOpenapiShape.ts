@@ -1,7 +1,14 @@
-import Dream from '../../../Dream.js'
-import { DbTypes } from '../../../types/db.js'
-import { DreamClassColumnNames } from '../../../types/dream.js'
-import { OpenapiSchemaBody } from '../../../types/openapi.js'
+import Dream from '../Dream.js'
+import { isOpenapiShorthand } from '../dream/constants.js'
+import { DbTypes } from '../types/db.js'
+import { DreamClassColumnNames } from '../types/dream.js'
+import {
+  OpenapiDescription,
+  OpenapiSchemaBody,
+  OpenapiSchemaBodyShorthand,
+  OpenapiShorthandPrimitiveTypes,
+} from '../types/openapi.js'
+import openapiShorthandToOpenapi from './openapiShorthandToOpenapi.js'
 
 interface DreamColumnInfo {
   enumValues: string[] | null
@@ -10,30 +17,54 @@ interface DreamColumnInfo {
   isArray: boolean
 }
 
-export function dreamAttributeOpenapiShape<DreamClass extends typeof Dream>(
+export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
-  column: DreamClassColumnNames<DreamClass>
-): OpenapiSchemaBody {
+  column: DreamClassColumnNames<DreamClass>,
+  openapi: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes = {}
+): OpenapiSchemaBodyShorthand {
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]
 
-  if (!dreamColumnInfo) return { type: 'string' }
+  if (!dreamColumnInfo) return openapi as OpenapiSchemaBody
+
+  switch (baseDbType(dreamColumnInfo)) {
+    case 'json':
+    case 'jsonb':
+      if (openapi) return openapi as OpenapiSchemaBody
+      throw new UseCustomOpenapiForJson()
+  }
+
+  const openapiObject: OpenapiSchemaBodyShorthand = isOpenapiShorthand(openapi)
+    ? openapiShorthandToOpenapi(openapi as OpenapiShorthandPrimitiveTypes)
+    : (openapi as OpenapiSchemaBodyShorthand)
 
   const singleType = singularAttributeOpenapiShape(dreamColumnInfo)
 
-  if (dreamColumnInfo.isArray)
-    return { type: dreamColumnInfo.allowNull ? ['array', 'null'] : 'array', items: singleType }
+  if (dreamColumnInfo.isArray) {
+    return {
+      type: dreamColumnInfo.allowNull ? ['array', 'null'] : 'array',
+      items: singleType,
+      ...(openapiObject as any),
+    }
+  } else {
+    const existingType = singleType.type
 
-  return {
-    ...singleType,
-    type: dreamColumnInfo.allowNull ? [singleType.type, 'null'] : singleType.type,
-  } as OpenapiSchemaBody
+    return {
+      ...singleType,
+      type: dreamColumnInfo.allowNull && !Array.isArray(existingType) ? [existingType, 'null'] : existingType,
+      ...openapiObject,
+    } as OpenapiSchemaBodyShorthand
+  }
+}
+
+function baseDbType(dreamColumnInfo: DreamColumnInfo) {
+  return dreamColumnInfo.dbType.replace('[]', '')
 }
 
 function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo) {
   if (dreamColumnInfo.enumValues) return { type: 'string', enum: dreamColumnInfo.enumValues } as const
 
-  switch (dreamColumnInfo.dbType.replace('[]', '')) {
+  switch (baseDbType(dreamColumnInfo)) {
     case 'boolean':
       return { type: 'boolean' } as const
 
@@ -62,8 +93,8 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo) {
     case 'smallserial':
       return { type: 'integer' } as const
 
-    case 'decimal':
     case 'numeric':
+    case 'decimal':
       return { type: 'number', format: 'decimal' } as const
 
     case 'double':
@@ -80,10 +111,6 @@ function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo) {
 
     case 'date':
       return { type: 'string', format: 'date' } as const
-
-    case 'json':
-    case 'jsonb':
-      throw new UseCustomOpenapiForJson()
 
     default:
       throw new Error(

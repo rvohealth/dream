@@ -53,16 +53,17 @@ import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedTo
 import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
-import MissingSerializer from './errors/MissingSerializersDefinition.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import MissingSerializer from './errors/serializers/MissingSerializersDefinition.js'
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
-import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import notEqual from './helpers/notEqual.js'
 import { isString } from './helpers/typechecks.js'
+import inferSerializerFromDreamOrViewModel from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import SerializerRenderer from './serializer/SerializerRenderer.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -614,6 +615,18 @@ export default class Dream {
     return [
       ...new Set([...columns, ...this.virtualAttributes.map(attr => attr.property)]),
     ] as DreamParamSafeColumnNames<I>[]
+  }
+
+  /**
+   * @internal
+   *
+   * Returns true if the column is a column in the database
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
+  public static isColumn<T extends typeof Dream>(this: T, columnName: string): boolean {
+    return this.prototype.isColumn(columnName)
   }
 
   /**
@@ -2582,6 +2595,18 @@ export default class Dream {
   }
 
   /**
+   * @internal
+   *
+   * Returns true if the column is a column in the database
+   *
+   * @param columnName - the name of the property you are checking for
+   * @returns boolean
+   */
+  public isColumn<T extends Dream>(this: T, columnName: string): boolean {
+    return columnName in (this.schema[this.table]?.columns ?? {})
+  }
+
+  /**
    * Returns true if the columnName passed is marked by a
    * Virtual attribute decorator
    *
@@ -2589,9 +2614,7 @@ export default class Dream {
    * @returns A boolean
    */
   public isVirtualColumn<T extends Dream>(this: T, columnName: string): boolean {
-    return (this.constructor as typeof Dream).virtualAttributes
-      .map(attr => attr.property)
-      .includes(columnName)
+    return !!(this.constructor as typeof Dream).virtualAttributes.find(attr => attr.property === columnName)
   }
 
   /**
@@ -3728,11 +3751,12 @@ export default class Dream {
     { casing = null, serializerKey }: DreamSerializeOptions<I> = {}
   ) {
     const serializerClass = inferSerializerFromDreamOrViewModel(this, serializerKey?.toString())
-    if (!serializerClass) throw new MissingSerializer(this.constructor as typeof Dream)
+    if (!serializerClass) throw new MissingSerializer(this)
 
-    const serializer = new serializerClass(this)
-    if (casing) serializer.casing(casing)
-    return serializer.render()
+    const serializer = serializerClass(this.constructor as typeof Dream, this)
+    const serializerRenderer = new SerializerRenderer(serializer)
+    if (casing) serializerRenderer.casing(casing)
+    return serializerRenderer.render()
   }
 
   /**

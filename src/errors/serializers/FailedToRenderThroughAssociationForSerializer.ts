@@ -1,7 +1,7 @@
 export default class FailedToRenderThroughAssociationForSerializer extends Error {
   constructor(
-    public className: any,
-    public missingThroughField: string
+    private className: any,
+    private missingThroughField: string
   ) {
     super()
   }

@@ -9,12 +9,12 @@ import Balloon from '../Balloon.js'
 // the wrong class name value.
 //
 // see https://github.com/evanw/esbuild/issues/1260 for more info
-@STI(Balloon)
+@STI()
 export default class _Latex extends Balloon {
   public get serializers(): DreamSerializers<Balloon> {
     return {
-      default: 'BalloonSummarySerializer',
-      latexOnly: 'BalloonSummarySerializer',
+      default: 'Balloon/LatexSerializer',
+      latexOnly: 'Balloon/LatexSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
     }
   }

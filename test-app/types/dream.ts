@@ -1788,6 +1788,15 @@ export const schema = {
       named: [],
     },
     columns: {
+      aDatetime: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
       bio: {
         coercedType: {} as string,
         enumType: null,
@@ -4511,7 +4520,11 @@ export const globalSchema = {
       'UserSettings': 'user_settings'
     },
     serializers: [
+      'Balloon/Latex/AnimalSerializer',
+      'Balloon/LatexSerializer',
+      'Balloon/MylarSerializer',
       'BalloonLineSerializer',
+      'BalloonSerializer',
       'BalloonSpotterBalloonSerializer',
       'BalloonSpotterSerializer',
       'BalloonSummarySerializer',

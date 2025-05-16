@@ -79,7 +79,7 @@ import FooBar from '../Bar.js'
 
 const deco = new Decorators<typeof FooBarBaz>()
 
-@STI(FooBar)
+@STI()
 export default class FooBarBaz extends FooBar {
   public override get serializers(): DreamSerializers<FooBarBaz> {
     return {

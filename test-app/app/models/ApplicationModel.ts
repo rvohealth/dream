@@ -4,6 +4,7 @@ import { globalSchema, schema } from '../../types/dream.js'
 
 export default class ApplicationModel extends Dream {
   declare public DB: DBClass
+
   public override get schema() {
     return schema
   }

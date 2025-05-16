@@ -95,7 +95,7 @@ export default class DreamBin {
   public static async generateDream(
     fullyQualifiedModelName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean }
+    options: { serializer: boolean; stiBaseSerializer: boolean }
   ) {
     await generateDream({ fullyQualifiedModelName, columnsWithTypes, options })
   }

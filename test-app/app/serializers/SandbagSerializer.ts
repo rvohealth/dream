@@ -1,73 +1,66 @@
-import { DateTime } from '../../../src/index.js'
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
+import Sandbag from '../models/Sandbag.js'
 
-export default class SandbagSerializer extends DreamSerializer {
-  @Attribute()
-  public weight: number
-
-  @Attribute('date-time')
-  public updatedAt: DateTime
-
-  @Attribute({
-    type: 'object',
-    properties: {
-      label: {
-        type: 'string',
-      },
-      value: {
-        type: 'object',
-        properties: {
-          unit: 'string',
-          value: 'number',
+const SandbagSerializer = ($data: Sandbag) =>
+  DreamSerializer(Sandbag, $data)
+    .attribute('weight')
+    .attribute('updatedAt')
+    .customAttribute('answer', () => null, {
+      type: 'object',
+      properties: {
+        label: {
+          type: 'string',
+        },
+        value: {
+          type: 'object',
+          properties: {
+            unit: 'string',
+            value: 'number',
+          },
         },
       },
-    },
-  })
-  public answer() {}
+    })
 
-  @Attribute({
-    anyOf: [
-      {
-        type: ['date-time', 'null'],
-      },
-      {
-        type: ['date', 'null'],
-      },
-    ],
-  })
-  public dateOrDatetime() {}
+    .customAttribute('dateOrDatetime', () => null, {
+      anyOf: [
+        {
+          type: ['date-time', 'null'],
+        },
+        {
+          type: ['date', 'null'],
+        },
+      ],
+    })
 
-  @Attribute({
-    anyOf: [
-      {
-        type: ['date', 'null'],
-      },
-      {
-        $ref: 'components/schemas/Howyadoin',
-      },
-    ],
-  })
-  public refTest() {}
+    .customAttribute('refTest', () => null, {
+      anyOf: [
+        {
+          type: ['date', 'null'],
+        },
+        {
+          $ref: 'components/schemas/Howyadoin',
+        },
+      ],
+    })
 
-  @Attribute({
-    type: 'string',
-    enum: ['hello', 'world'],
-  })
-  public enumTest() {}
+    .customAttribute('enumTest', () => null, {
+      type: 'string',
+      enum: ['hello', 'world'],
+    })
 
-  @Attribute({ type: 'object', additionalProperties: 'number' })
-  public history: Record<string, number>
+    .attribute('history' as any, { type: 'object', additionalProperties: 'number' })
 
-  @Attribute({ type: 'object', additionalProperties: { type: ['number', 'null'] } })
-  public nullableHistory: Record<string, number>
-
-  @Attribute({
-    type: 'object',
-    additionalProperties: {
+    .attribute('nullableHistory' as any, {
       type: 'object',
-      properties: { code: { type: 'integer' }, text: { type: 'string' } },
-    },
-  })
-  public howyadoin: Record<string, { code: string; text: string }>
-}
+      additionalProperties: { type: ['number', 'null'] },
+    })
+
+    .attribute('howyadoin' as any, {
+      type: 'object',
+      additionalProperties: {
+        type: 'object',
+        properties: { code: { type: 'integer' }, text: { type: 'string' } },
+      },
+    })
+
+export default SandbagSerializer

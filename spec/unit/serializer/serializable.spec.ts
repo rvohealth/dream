@@ -1,4 +1,4 @@
-import { isSerializable } from '../../../src/serializer/decorators/associations/shared.js'
+import { isSerializable } from '../../../src/serializer/helpers/isSerializable.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import BaseExtraRating from '../../../test-app/app/models/ExtraRating/Base.js'
 import Pet from '../../../test-app/app/models/Pet.js'

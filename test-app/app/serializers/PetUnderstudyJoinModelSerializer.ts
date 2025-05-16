@@ -1,14 +1,7 @@
-import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
-import DreamSerializer from '../../../src/serializer/index.js'
-import Pet from '../models/Pet.js'
+import { DreamSerializer } from '../../../src/serializer/index.js'
 import PetUnderstudyJoinModel from '../models/PetUnderstudyJoinModel.js'
 
-export default class PetUnderstudyJoinModelSerializer<
-  DataType extends PetUnderstudyJoinModel,
-> extends DreamSerializer<DataType> {
-  @RendersOne()
-  public pet: Pet
+const PetUnderstudyJoinModelSerializer = ($data: PetUnderstudyJoinModel) =>
+  DreamSerializer(PetUnderstudyJoinModel, $data).rendersOne('pet').rendersOne('understudy')
 
-  @RendersOne()
-  public understudy: Pet
-}
+export default PetUnderstudyJoinModelSerializer

@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import Dream from '../../Dream.js'
-import DreamSerializer from '../../serializer/index.js'
+import { SerializerType } from '../../types/serializer.js'
 
 export default class DreamImporter {
   public static async ls(dir: string): Promise<string[]> {
@@ -44,18 +44,18 @@ export default class DreamImporter {
   public static async importSerializers(
     pathToSerializers: string,
     importCb: (path: string) => Promise<any>
-  ): Promise<[string, Record<string, typeof DreamSerializer>][]> {
+  ): Promise<[string, Record<string, SerializerType>][]> {
     const serializerPaths = await DreamImporter.ls(pathToSerializers)
 
-    const serializerClasses = (await Promise.all(
+    const pathsNamesAndSerializers = (await Promise.all(
       serializerPaths.map(serializerPath =>
         importCb(serializerPath).then(serializerClass => [
           serializerPath,
-          serializerClass as Record<string, typeof DreamSerializer>,
+          serializerClass as Record<string, SerializerType>,
         ])
       )
-    )) as [string, Record<string, typeof DreamSerializer>][]
+    )) as [string, Record<string, SerializerType>][]
 
-    return serializerClasses
+    return pathsNamesAndSerializers
   }
 }
