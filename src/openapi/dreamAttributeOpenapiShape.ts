@@ -3,11 +3,11 @@ import { isOpenapiShorthand } from '../dream/constants.js'
 import { DbTypes } from '../types/db.js'
 import { DreamClassColumnNames } from '../types/dream.js'
 import {
+  OpenapiDescription,
   OpenapiSchemaBody,
   OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveTypes,
 } from '../types/openapi.js'
-import { OpenapiDescription } from '../types/serializer.js'
 import openapiShorthandToOpenapi from './openapiShorthandToOpenapi.js'
 
 interface DreamColumnInfo {
@@ -20,7 +20,7 @@ interface DreamColumnInfo {
 export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
   dreamClass: DreamClass,
   column: DreamClassColumnNames<DreamClass>,
-  openapi: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+  openapi: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes = {}
 ): OpenapiSchemaBodyShorthand {
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]

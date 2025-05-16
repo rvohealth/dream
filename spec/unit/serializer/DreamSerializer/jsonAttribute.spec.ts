@@ -9,25 +9,35 @@ describe('DreamSerializer json attributes', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
       DreamSerializer(ModelForOpenapiTypeSpecs, $data)
         .jsonAttribute('favoriteJsons', {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .jsonAttribute('requiredFavoriteJsons', {
-          type: 'array',
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .jsonAttribute('favoriteJsonbs', {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .jsonAttribute('requiredFavoriteJsonbs', {
-          type: 'array',
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
-        .jsonAttribute('jsonData', { type: ['object', 'null'], properties: { hello: 'string' } })
-        .jsonAttribute('requiredJsonData', { type: 'object', properties: { hello: 'string' } })
-        .jsonAttribute('jsonbData', { type: ['object', 'null'], properties: { hello: 'string' } })
-        .jsonAttribute('requiredJsonbData', { type: 'object', properties: { hello: 'string' } })
+        .jsonAttribute('jsonData', { openapi: { type: ['object', 'null'], properties: { hello: 'string' } } })
+        .jsonAttribute('requiredJsonData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+        .jsonAttribute('jsonbData', {
+          openapi: { type: ['object', 'null'], properties: { hello: 'string' } },
+        })
+        .jsonAttribute('requiredJsonbData', { openapi: { type: 'object', properties: { hello: 'string' } } })
     let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
 
     beforeEach(async () => {

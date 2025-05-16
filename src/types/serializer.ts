@@ -1,6 +1,10 @@
 import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
-import { DreamSerializerBuilder } from '../serializer/index.js'
+import {
+  DreamSerializerBuilder,
+  SimpleObjectSerializerBuilder,
+  ViewModelSerializerBuilder,
+} from '../serializer/index.js'
 import {
   DreamAttributeDbTypes,
   DreamOrViewModelClassSerializerArrayKeys,
@@ -9,36 +13,33 @@ import {
   DreamSerializableArray,
   ViewModelClass,
 } from './dream.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from './openapi.js'
+import {
+  DecimalOpenapiTypesIncludingDbTypes,
+  OpenapiDescription,
+  OpenapiSchemaBodyShorthand,
+  OpenapiShorthandPrimitiveTypes,
+} from './openapi.js'
 
 export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
 
 export type DreamSerializerCallback = () => SerializerType
+
 export type SerializableClassOrSerializerCallback = ViewModelClass | DreamSerializerCallback
 
 export type SerializableClassOrClasses = DreamSerializerCallback | ViewModelClass | ViewModelClass[]
 
-export interface SerializerAttribute<
-  DataType,
-  AttributeName extends keyof DataType & string = keyof DataType & string,
-> {
-  name: AttributeName
+export interface SerializerAttribute<> {
+  name: string
   options: {
     as?: string
+    precision?: RoundingPrecision
     openapi?: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
-  } & DecimalRenderOption
+  }
 }
 
-export interface SerializerDelegatedAttribute<
-  DataType,
-  TargetName extends keyof DataType & string = keyof DataType & string,
-  TargetObject extends DataType[TargetName] = DataType[TargetName],
-  AttributeName extends TargetObject extends object
-    ? keyof TargetObject & string
-    : never = TargetObject extends object ? keyof TargetObject & string : never,
-> {
-  targetName: TargetName
-  name: AttributeName
+export interface SerializerDelegatedAttribute<> {
+  targetName: string
+  name: string
   options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
 }
 
@@ -68,32 +69,16 @@ export interface SerializerRendersMany<
   }
 }
 
-export interface OpenapiDescription {
-  description?: string
-}
-
-export type DecimalOpenapiTypes =
-  | 'decimal'
-  | 'decimal[]'
-  | ['decimal', 'null']
-  | ['decimal[]', 'null']
-  | 'numeric'
-  | 'numeric[]'
-  | ['numeric', 'null']
-  | ['numeric[]', 'null']
-
-export interface DecimalRenderOption {
-  precision?: RoundingPrecision
-}
-
 export type AutomaticSerializerAttributeOptions<
   DreamInstance extends Dream,
   AttributeName extends keyof DreamInstance & string,
 > = {
   as?: string
   openapi?: OpenapiDescription
-} & DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypes
-  ? DecimalRenderOption
+} & DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypesIncludingDbTypes
+  ? {
+      precision?: RoundingPrecision
+    }
   : object
 
 export type NonAutomaticSerializerAttributeOptions = {
@@ -104,31 +89,33 @@ export type NonAutomaticSerializerAttributeOptions = {
 
 export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption = {
   as?: string
-} & (
-  | {
-      openapi: Exclude<OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes, DecimalOpenapiTypes>
-    }
-  | ({
-      openapi: OpenapiDescription & DecimalOpenapiTypes
-    } & DecimalRenderOption)
-)
+} & {
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+  // I tried a lot to get this type to disallow precision unless openapi were decimal/decimal[], but
+  // it always allowed decimal even with { openapi: 'string', precision: 7 },
+  // so I'm keeping it simple (some of what I tried removed decimal/decimal[] as a suggested type for
+  // openapi, which is undesirable)
+  precision?: RoundingPrecision
+}
 
-export type SerializerType =
-  | ((
-      dreamClass: typeof Dream,
-      $data: any,
-      $passthroughData?: any
-    ) =>
-      | DreamSerializerBuilder<any, any, any>
-      | ViewModelSerializerBuilder<any, any, any>
-      | SimpleObjectSerializerBuilder<any, any>)
-  | ((
-      $data: any,
-      $passthroughData?: any
-    ) =>
-      | DreamSerializerBuilder<any, any, any>
-      | ViewModelSerializerBuilder<any, any, any>
-      | SimpleObjectSerializerBuilder<any, any>)
+export type DreamModelSerializerType = (
+  dreamClass: any,
+  $data: any,
+  $passthroughData?: any
+) => DreamSerializerBuilder<any, any, any>
+
+export type ViewModelSerializerType = (
+  viewModelClass: any,
+  $data: any,
+  $passthroughData?: any
+) => ViewModelSerializerBuilder<any, any, any>
+
+export type SimpleModelSerializerType = (
+  $data: any,
+  $passthroughData?: any
+) => SimpleObjectSerializerBuilder<any, any>
+
+export type SerializerType = DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType
 
 export interface CustomSerializerOpenapiOpts {
   customSerializerRefPath?: string
@@ -138,7 +125,7 @@ export interface RendersOneOrManyOpts<
   I extends DreamSerializable | DreamSerializableArray | undefined = undefined,
 > {
   as?: string
-  serializer?: DreamSerializerCallback
+  serializer?: SerializableClassOrSerializerCallback
 
   serializerKey?: I extends undefined
     ? never

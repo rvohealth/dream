@@ -8,7 +8,7 @@ interface User {
   id: string
   name?: string
   birthdate?: CalendarDate
-  pets: (Pet | DreamPet)[]
+  pets: Pet[]
 }
 
 interface Pet {
@@ -27,7 +27,9 @@ describe('SimpleObjectSerializer rendersMany', () => {
     const pet2: Pet = { id: '7', name: 'Woodstock', species: 'frog', ratings: [] }
     const user: User = { id: '11', name: 'Charlie', birthdate, pets: [pet1, pet2] }
 
-    const MySerializer = ($data: User) => SimpleObjectSerializer($data).rendersMany('pets')
+    const PetSerializer = ($data: Pet) => SimpleObjectSerializer($data).attribute('name')
+    const MySerializer = ($data: User) =>
+      SimpleObjectSerializer($data).rendersMany('pets', { serializer: () => PetSerializer })
 
     const serializer = MySerializer(user)
 
@@ -106,6 +108,13 @@ describe('SimpleObjectSerializer rendersMany', () => {
   // })
 
   it('supports rendering a Dream model', () => {
+    interface User {
+      id: string
+      name?: string
+      birthdate?: CalendarDate
+      pets: DreamPet[]
+    }
+
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const pet1: DreamPet = DreamPet.new({ id: '3', name: 'Snoopy', species: 'dog' })
     const pet2: DreamPet = DreamPet.new({ id: '7', name: 'Woodstock', species: 'frog' })
@@ -113,7 +122,8 @@ describe('SimpleObjectSerializer rendersMany', () => {
     pet2.ratings = []
     const user: User = { id: '11', name: 'Charlie', birthdate, pets: [pet1, pet2] }
 
-    const MySerializer = ($data: User) => SimpleObjectSerializer($data).rendersMany('pets')
+    const MySerializer = ($data: User) =>
+      SimpleObjectSerializer($data).rendersMany('pets', { serializerKey: 'summary' })
 
     const serializer = MySerializer(user)
 

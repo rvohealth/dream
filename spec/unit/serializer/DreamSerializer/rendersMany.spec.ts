@@ -211,11 +211,10 @@ describe('DreamSerializer rendersMany', () => {
 
     const CustomSerializer = ($data: User) => DreamSerializer(Pet, $data).attribute('name')
     const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).rendersMany(
-        'pets',
-        { serializer: () => CustomSerializer },
-        { customSerializerRefPath: 'MyCustomSerializer' }
-      )
+      DreamSerializer(User, $data).rendersMany('pets', {
+        serializer: () => CustomSerializer,
+        openapi: { customSerializerRefPath: 'MyCustomSerializer' },
+      })
 
     const serializer = MySerializer(user)
 

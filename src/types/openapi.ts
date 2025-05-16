@@ -224,6 +224,18 @@ export interface OpenapiSchemaPropertiesShorthand {
   [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
+export interface OpenapiDescription {
+  description?: string
+}
+
+export type DecimalOpenapiTypes =
+  | 'decimal'
+  | 'decimal[]'
+  | readonly ['decimal', 'null']
+  | readonly ['decimal[]', 'null']
+
+export type DecimalOpenapiTypesIncludingDbTypes = DecimalOpenapiTypes | 'numeric' | 'numeric[]'
+
 type OpenapiPrimitiveBaseTypes = (typeof openapiPrimitiveTypes)[number]
 export type OpenapiPrimitiveTypes =
   | OpenapiPrimitiveBaseTypes
@@ -231,6 +243,7 @@ export type OpenapiPrimitiveTypes =
   | ['null', OpenapiPrimitiveBaseTypes]
 
 export type OpenapiShorthandPrimitiveBaseTypes = (typeof openapiShorthandPrimitiveTypes)[number]
+
 export type OpenapiShorthandPrimitiveTypes =
   | OpenapiShorthandPrimitiveBaseTypes
   | [OpenapiShorthandPrimitiveBaseTypes, 'null']

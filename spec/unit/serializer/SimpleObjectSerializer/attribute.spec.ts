@@ -17,7 +17,8 @@ interface ModelForOpenapiTypeSpecs {
 
 describe('SimpleObjectSerializer attributes', () => {
   it('can render Dream attributes', () => {
-    const MySerializer = ($data: User) => SimpleObjectSerializer($data).attribute('email', 'string')
+    const MySerializer = ($data: User) =>
+      SimpleObjectSerializer($data).attribute('email', { openapi: 'string' })
 
     const serializer = MySerializer({ email: 'abc', password: '123' })
 
@@ -43,7 +44,7 @@ describe('SimpleObjectSerializer attributes', () => {
 
   it('supports customizing the name of the thing rendered', () => {
     const MySerializer = ($data: User) =>
-      SimpleObjectSerializer($data).attribute('email', 'string', { as: 'email2' })
+      SimpleObjectSerializer($data).attribute('email', { openapi: 'string', as: 'email2' })
 
     const serializer = MySerializer({ email: 'abc', password: '123' })
 
@@ -62,7 +63,9 @@ describe('SimpleObjectSerializer attributes', () => {
 
   it('can specify OpenAPI description', () => {
     const MySerializer = ($data: User) =>
-      SimpleObjectSerializer($data).attribute('email', { type: 'string', description: 'This is an email' })
+      SimpleObjectSerializer($data).attribute('email', {
+        openapi: { type: 'string', description: 'This is an email' },
+      })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
@@ -76,7 +79,7 @@ describe('SimpleObjectSerializer attributes', () => {
   context('when serializing null', () => {
     it('renderedAttributes is null', () => {
       const MySerializer = ($data: User | null) =>
-        SimpleObjectSerializer($data).maybeNull().attribute('email', 'string')
+        SimpleObjectSerializer($data).maybeNull().attribute('email', { openapi: 'string' })
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)
@@ -99,8 +102,8 @@ describe('SimpleObjectSerializer attributes', () => {
 
   it('can render attributes from serializers that "extend" other serializers', () => {
     const BaseSerializer = ($data: User) =>
-      SimpleObjectSerializer($data).attribute('name', ['string', 'null'])
-    const MySerializer = ($data: User) => BaseSerializer($data).attribute('email', 'string')
+      SimpleObjectSerializer($data).attribute('name', { openapi: ['string', 'null'] })
+    const MySerializer = ($data: User) => BaseSerializer($data).attribute('email', { openapi: 'string' })
 
     const serializer = MySerializer({ name: 'Snoopy', email: 'abc', password: '123' })
 
@@ -131,9 +134,7 @@ describe('SimpleObjectSerializer attributes', () => {
   context('numeric/decimal with precision', () => {
     it('rounds to specified precision', () => {
       const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-        SimpleObjectSerializer($data).attribute('volume', ['decimal', 'null'], {
-          precision: 1,
-        })
+        SimpleObjectSerializer($data).attribute('volume', { openapi: ['string', 'null'], precision: 1 })
       const serializer = MySerializer({ volume: 7.777 })
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer.render()).toEqual({
@@ -144,7 +145,7 @@ describe('SimpleObjectSerializer attributes', () => {
 
   context('with casing specified', () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      SimpleObjectSerializer($data).attribute('requiredNicknames', 'string[]')
+      SimpleObjectSerializer($data).attribute('requiredNicknames', { openapi: 'string[]' })
 
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', () => {

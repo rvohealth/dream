@@ -1,13 +1,22 @@
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
 import { ViewModel } from '../types/dream.js'
+import { DecimalRenderOption } from '../types/serializer.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { DreamSerializerBuilder } from './index.js'
+import { DreamSerializerBuilder, SimpleObjectSerializerBuilder, ViewModelSerializerBuilder } from './index.js'
 
 export default class SerializerRenderer {
   private _casing: 'camel' | 'snake' = 'camel'
+  private serializer: DreamSerializerBuilder<any, any, any>
 
-  constructor(private serializer: DreamSerializerBuilder<any, any, any>) {}
+  constructor(
+    serializer:
+      | DreamSerializerBuilder<any, any, any>
+      | ViewModelSerializerBuilder<any, any, any>
+      | SimpleObjectSerializerBuilder<any, any>
+  ) {
+    this.serializer = serializer as DreamSerializerBuilder<any, any, any>
+  }
 
   public casing(casing: 'camel' | 'snake') {
     this._casing = casing
@@ -22,19 +31,19 @@ export default class SerializerRenderer {
     let renderedAttributes: Record<string, any> = {}
 
     renderedAttributes = this.serializer['attributes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.renderOptions?.as ?? attribute.name)
+      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
       const value = $data[attribute.name]
-      const precision = attribute.renderOptions?.precision
+      const precision = attribute.options?.precision
       accumulator[outputAttributeName] =
         typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
       return accumulator
     }, renderedAttributes)
 
     renderedAttributes = this.serializer['delegatedAttributes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.renderOptions?.as ?? attribute.name)
+      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
       const target = $data[attribute.targetName]
       const value = target[attribute.name]
-      const precision = attribute.renderOptions?.precision
+      const precision = (attribute.options as DecimalRenderOption)?.precision
       accumulator[outputAttributeName] =
         typeof value === 'number' && typeof precision === 'number' ? round(value, precision) : value
       return accumulator

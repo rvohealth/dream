@@ -34,8 +34,7 @@ describe('DreamSerializer attributes', () => {
   })
 
   it('supports customizing the name of the thing rendered', () => {
-    const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).attribute('email', null, { as: 'email2' })
+    const MySerializer = ($data: User) => DreamSerializer(User, $data).attribute('email', { as: 'email2' })
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
@@ -142,20 +141,28 @@ describe('DreamSerializer attributes', () => {
         .attribute('favoriteDatetimes')
         .attribute('requiredFavoriteDatetimes')
         .jsonAttribute('favoriteJsons', {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .jsonAttribute('requiredFavoriteJsons', {
-          type: 'array',
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .jsonAttribute('favoriteJsonbs', {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .jsonAttribute('requiredFavoriteJsonbs', {
-          type: 'array',
-          items: { type: 'object', properties: { hello: 'string' } },
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
         })
         .attribute('favoriteTexts')
         .attribute('requiredFavoriteTexts')
@@ -173,10 +180,12 @@ describe('DreamSerializer attributes', () => {
 
         .attribute('bio')
         .attribute('notes')
-        .jsonAttribute('jsonData', { type: ['object', 'null'], properties: { hello: 'string' } })
-        .jsonAttribute('requiredJsonData', { type: 'object', properties: { hello: 'string' } })
-        .jsonAttribute('jsonbData', { type: ['object', 'null'], properties: { hello: 'string' } })
-        .jsonAttribute('requiredJsonbData', { type: 'object', properties: { hello: 'string' } })
+        .jsonAttribute('jsonData', { openapi: { type: ['object', 'null'], properties: { hello: 'string' } } })
+        .jsonAttribute('requiredJsonData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+        .jsonAttribute('jsonbData', {
+          openapi: { type: ['object', 'null'], properties: { hello: 'string' } },
+        })
+        .jsonAttribute('requiredJsonbData', { openapi: { type: 'object', properties: { hello: 'string' } } })
         .attribute('uuid')
         .attribute('optionalUuid')
 
@@ -340,7 +349,7 @@ describe('DreamSerializer attributes', () => {
   context('numeric/decimal with precision', () => {
     it('rounds to specified precision', async () => {
       const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-        DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('volume', null, { precision: 1 })
+        DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('volume', { precision: 1 })
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer.render()).toEqual({

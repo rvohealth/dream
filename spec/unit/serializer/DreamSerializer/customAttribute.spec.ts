@@ -9,7 +9,9 @@ import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutMode
 describe('DreamSerializer customAttributes', () => {
   it('can render Dream attributes', () => {
     const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).customAttribute('email', user => `${user?.email}@peanuts.com`, 'string')
+      DreamSerializer(User, $data).customAttribute('email', user => `${user?.email}@peanuts.com`, {
+        openapi: 'string',
+      })
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
     const serializerRenderer = new SerializerRenderer(serializer)
@@ -36,7 +38,7 @@ describe('DreamSerializer customAttributes', () => {
       DreamSerializer(ModelForOpenapiTypeSpecs, $data).customAttribute(
         'birthdate',
         $data => $data.birthdate?.toDateTime()?.toISO(),
-        'date-time'
+        { openapi: 'date-time' }
       )
     const model = await fleshedOutModelForOpenapiTypeSpecs()
     const serializer = MySerializer(model)
@@ -60,9 +62,11 @@ describe('DreamSerializer customAttributes', () => {
         'volume',
         $data => round($data.volume ?? 0),
         {
-          type: 'integer',
-          format: undefined,
-          description: 'Volume as an integer',
+          openapi: {
+            type: 'integer',
+            format: undefined,
+            description: 'Volume as an integer',
+          },
         }
       )
     const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
@@ -86,7 +90,7 @@ describe('DreamSerializer customAttributes', () => {
         DreamSerializer(User, $data, $passthroughData).customAttribute(
           'email',
           (user, $passthroughData) => `${user?.email}.${$passthroughData?.locale}@peanuts.com`,
-          'string'
+          { openapi: 'string' }
         )
 
       const serializer = MySerializer(User.new({ email: 'abc', password: '123' }), { locale: 'en-US' })
@@ -115,7 +119,7 @@ describe('DreamSerializer customAttributes', () => {
       const MySerializer = ($data: User | null) =>
         DreamSerializer(User, $data)
           .maybeNull()
-          .customAttribute('email', user => `${user.email}@peanuts.com`, 'string')
+          .customAttribute('email', user => `${user.email}@peanuts.com`, { openapi: 'string' })
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)
