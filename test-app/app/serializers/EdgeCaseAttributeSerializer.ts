@@ -7,7 +7,7 @@ const EdgeCaseAttributeSerializer = ($data: EdgeCaseAttribute) =>
     .attribute('kPop', 'boolean')
     .attribute('popK', 'string')
     .attribute('popKPop', 'number')
-    .attributeFunction('roundedPopKPop', $data => round($data.popKPop ?? 0, 2), 'decimal', {
+    .customAttribute('roundedPopKPop', $data => round($data.popKPop ?? 0, 2), 'decimal', {
       precision: 2,
     })
 

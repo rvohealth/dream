@@ -26,8 +26,7 @@ export interface SerializerAttribute<
     | ExtraOpenapiOptionsForAutomaticallySetOpenapi
     | OpenapiSchemaBodyShorthand
     | OpenapiShorthandPrimitiveTypes
-    | undefined
-  renderOptions: DecimalShorthandAttributeRenderOptions | undefined
+  renderOptions: DecimalShorthandAttributeRenderOptions
 }
 
 export interface SerializerDelegatedAttribute<
@@ -44,14 +43,13 @@ export interface SerializerDelegatedAttribute<
     | ExtraOpenapiOptionsForAutomaticallySetOpenapi
     | OpenapiSchemaBodyShorthand
     | OpenapiShorthandPrimitiveTypes
-    | undefined
-  renderOptions: DecimalShorthandAttributeRenderOptions | undefined
+  renderOptions: DecimalShorthandAttributeRenderOptions
 }
 
 export interface SerializerAttributeFunction {
   name: string
   fn: (x?: any, y?: any) => any
-  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes | undefined
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
 export interface SerializerRendersOne<

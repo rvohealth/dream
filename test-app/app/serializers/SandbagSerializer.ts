@@ -5,7 +5,7 @@ const SandbagSerializer = ($data: Sandbag) =>
   DreamSerializer(Sandbag, $data)
     .attribute('weight')
     .attribute('updatedAt')
-    .attributeFunction('answer', () => null, {
+    .customAttribute('answer', () => null, {
       type: 'object',
       properties: {
         label: {
@@ -21,7 +21,7 @@ const SandbagSerializer = ($data: Sandbag) =>
       },
     })
 
-    .attributeFunction('dateOrDatetime', () => null, {
+    .customAttribute('dateOrDatetime', () => null, {
       anyOf: [
         {
           type: ['date-time', 'null'],
@@ -32,7 +32,7 @@ const SandbagSerializer = ($data: Sandbag) =>
       ],
     })
 
-    .attributeFunction('refTest', () => null, {
+    .customAttribute('refTest', () => null, {
       anyOf: [
         {
           type: ['date', 'null'],
@@ -43,7 +43,7 @@ const SandbagSerializer = ($data: Sandbag) =>
       ],
     })
 
-    .attributeFunction('enumTest', () => null, {
+    .customAttribute('enumTest', () => null, {
       type: 'string',
       enum: ['hello', 'world'],
     })

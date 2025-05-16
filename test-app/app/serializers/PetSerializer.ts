@@ -6,7 +6,7 @@ const PetSerializer = ($data: Pet, $passthroughData: object) =>
   DreamSerializer(Pet, $data, $passthroughData)
     .attribute('id', { description: 'hello' })
     .attribute('name')
-    .attributeFunction('favoriteDaysOfWeek', () => ['Monday', 'Tuesday'], {
+    .customAttribute('favoriteDaysOfWeek', () => ['Monday', 'Tuesday'], {
       type: 'string[]',
       description: 'The days the Pet is happiest',
     })

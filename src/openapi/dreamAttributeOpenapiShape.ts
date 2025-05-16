@@ -23,7 +23,7 @@ export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
   openapi:
     | ExtraOpenapiOptionsForAutomaticallySetOpenapi
     | OpenapiSchemaBodyShorthand
-    | OpenapiShorthandPrimitiveTypes = {}
+    | OpenapiShorthandPrimitiveTypes
 ): OpenapiSchemaBodyShorthand {
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]

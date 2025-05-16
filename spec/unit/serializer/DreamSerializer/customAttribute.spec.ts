@@ -1,28 +1,17 @@
-import { CalendarDate, round } from '../../../../src/index.js'
-import { SimpleObjectSerializer } from '../../../../src/serializer/index.js'
+import { round } from '../../../../src/index.js'
+import { DreamSerializer } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import User from '../../../../test-app/app/models/User.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
-interface User {
-  email: string
-  password: string
-  name?: string
-  birthdate?: CalendarDate
-}
-
-interface ModelForOpenapiTypeSpecs {
-  volume?: number
-  requiredNicknames?: string[]
-  birthdate?: CalendarDate
-}
-
-describe('SimpleObjectSerializer attributeFunctions', () => {
+describe('DreamSerializer customAttributes', () => {
   it('can render Dream attributes', () => {
     const MySerializer = ($data: User) =>
-      SimpleObjectSerializer($data).attributeFunction('email', user => `${user?.email}@peanuts.com`, 'string')
+      DreamSerializer(User, $data).customAttribute('email', user => `${user?.email}@peanuts.com`, 'string')
 
-    const serializer = MySerializer({ email: 'abc', password: '123' })
+    const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer.render()).toEqual({
       email: 'abc@peanuts.com',
@@ -44,13 +33,13 @@ describe('SimpleObjectSerializer attributeFunctions', () => {
 
   it('can override the OpenAPI shape with OpenAPI shorthand', async () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      SimpleObjectSerializer($data).attributeFunction(
+      DreamSerializer(ModelForOpenapiTypeSpecs, $data).customAttribute(
         'birthdate',
         $data => $data.birthdate?.toDateTime()?.toISO(),
         'date-time'
       )
     const model = await fleshedOutModelForOpenapiTypeSpecs()
-    const serializer = MySerializer({ birthdate: CalendarDate.fromISO('1950-10-02') })
+    const serializer = MySerializer(model)
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer.render()).toEqual({
       birthdate: model.birthdate!.toDateTime()!.toISO(),
@@ -65,14 +54,18 @@ describe('SimpleObjectSerializer attributeFunctions', () => {
     })
   })
 
-  it('can override the OpenAPI shape with an OpenAPI object', () => {
+  it('can override the OpenAPI shape with an OpenAPI object', async () => {
     const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-      SimpleObjectSerializer($data).attributeFunction('volume', $data => round($data.volume ?? 0), {
-        type: 'integer',
-        format: undefined,
-        description: 'Volume as an integer',
-      })
-    const serializer = MySerializer({ volume: 7.777 })
+      DreamSerializer(ModelForOpenapiTypeSpecs, $data).customAttribute(
+        'volume',
+        $data => round($data.volume ?? 0),
+        {
+          type: 'integer',
+          format: undefined,
+          description: 'Volume as an integer',
+        }
+      )
+    const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer.render()).toEqual({
       volume: 8,
@@ -90,13 +83,13 @@ describe('SimpleObjectSerializer attributeFunctions', () => {
   context('with passthrough data', () => {
     it('can access the passthrough data in the function', () => {
       const MySerializer = ($data: User, $passthroughData: { locale: string }) =>
-        SimpleObjectSerializer($data, $passthroughData).attributeFunction(
+        DreamSerializer(User, $data, $passthroughData).customAttribute(
           'email',
           (user, $passthroughData) => `${user?.email}.${$passthroughData?.locale}@peanuts.com`,
           'string'
         )
 
-      const serializer = MySerializer({ email: 'abc', password: '123' }, { locale: 'en-US' })
+      const serializer = MySerializer(User.new({ email: 'abc', password: '123' }), { locale: 'en-US' })
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer.render()).toEqual({
         email: 'abc.en-US@peanuts.com',
@@ -120,9 +113,9 @@ describe('SimpleObjectSerializer attributeFunctions', () => {
   context('when serializing null', () => {
     it('renders the attributes as null', () => {
       const MySerializer = ($data: User | null) =>
-        SimpleObjectSerializer($data)
+        DreamSerializer(User, $data)
           .maybeNull()
-          .attributeFunction('email', user => `${user.email}@peanuts.com`, 'string')
+          .customAttribute('email', user => `${user.email}@peanuts.com`, 'string')
 
       const serializer = MySerializer(null)
       const serializerRenderer = new SerializerRenderer(serializer)

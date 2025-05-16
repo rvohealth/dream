@@ -53,7 +53,7 @@ export default class SerializerOpenapiRenderer {
       required: [
         ...this.serializerBuilder['attributes'].map(obj => obj.name),
         ...this.serializerBuilder['delegatedAttributes'].map(obj => obj.name),
-        ...this.serializerBuilder['attributeFunctions'].map(obj => obj.name),
+        ...this.serializerBuilder['customAttributes'].map(obj => obj.name),
         ...compact(this.serializerBuilder['rendersOnes'].map(obj => (obj.options.flatten ? null : obj.name))),
         ...this.serializerBuilder['rendersManys'].map(obj => obj.name),
       ],
@@ -68,7 +68,7 @@ export default class SerializerOpenapiRenderer {
 
     renderedOpenapi = [
       ...this.serializerBuilder['attributes'],
-      ...this.serializerBuilder['attributeFunctions'],
+      ...this.serializerBuilder['customAttributes'],
     ].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(
         (attribute as SerializerAttribute<any>).renderOptions?.as ?? attribute.name

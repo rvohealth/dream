@@ -40,7 +40,7 @@ export default class SerializerRenderer {
       return accumulator
     }, renderedAttributes)
 
-    renderedAttributes = this.serializer['attributeFunctions'].reduce((accumulator, attribute) => {
+    renderedAttributes = this.serializer['customAttributes'].reduce((accumulator, attribute) => {
       accumulator[this.setCase(attribute.name)] = attribute.fn($data, $passthroughData)
       return accumulator
     }, renderedAttributes)

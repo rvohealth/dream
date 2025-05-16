@@ -35,7 +35,7 @@ describe('DreamSerializer attributes', () => {
 
   it('supports customizing the name of the thing rendered', () => {
     const MySerializer = ($data: User) =>
-      DreamSerializer(User, $data).attribute('email', {}, { as: 'email2' })
+      DreamSerializer(User, $data).attribute('email', null, { as: 'email2' })
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
 
@@ -340,7 +340,7 @@ describe('DreamSerializer attributes', () => {
   context('numeric/decimal with precision', () => {
     it('rounds to specified precision', async () => {
       const MySerializer = ($data: ModelForOpenapiTypeSpecs) =>
-        DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('volume', {}, { precision: 1 })
+        DreamSerializer(ModelForOpenapiTypeSpecs, $data).attribute('volume', null, { precision: 1 })
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
       const serializerRenderer = new SerializerRenderer(serializer)
       expect(serializerRenderer.render()).toEqual({
