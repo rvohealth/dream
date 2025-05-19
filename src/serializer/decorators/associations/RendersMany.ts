@@ -1,4 +1,5 @@
 import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
+import Dream from '../../../Dream.js'
 import { SerializableClassOrClasses } from '../../../types/dream.js'
 import DreamSerializer from '../../index.js'
 import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
@@ -41,8 +42,8 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  * }
  * ```
  */
-export default function RendersMany(
-  serializableClassOrClasses: SerializableClassOrClasses | RendersManyOpts | null = null,
+export default function RendersMany<DreamClass extends typeof Dream | undefined = undefined>(
+  serializableClassOrClasses: SerializableClassOrClasses | RendersManyOpts<DreamClass> | null = null,
   opts?: RendersManyOpts
 ): any {
   return function (_: undefined, context: DecoratorContext) {
@@ -89,4 +90,5 @@ export default function RendersMany(
   }
 }
 
-export type RendersManyOpts = RendersOneOrManyOpts
+export type RendersManyOpts<DreamClass extends typeof Dream | undefined = undefined> =
+  RendersOneOrManyOpts<DreamClass>

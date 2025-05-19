@@ -1,4 +1,5 @@
 import { DecoratorContext } from '../../../decorators/DecoratorContextType.js'
+import Dream from '../../../Dream.js'
 import { SerializableClassOrClasses } from '../../../types/dream.js'
 import DreamSerializer from '../../index.js'
 import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOpts } from './shared.js'
@@ -43,9 +44,9 @@ import { DreamSerializerAssociationStatement, isSerializable, RendersOneOrManyOp
  *
  * @param opts.flatten - whether or not to flatten the association's attributes into this serializer when rendering. Defaults to false.
  */
-export default function RendersOne(
-  serializableClassOrClasses: SerializableClassOrClasses | RendersOneOpts | null = null,
-  opts?: RendersOneOpts
+export default function RendersOne<DreamClass extends typeof Dream | undefined = undefined>(
+  serializableClassOrClasses: SerializableClassOrClasses | RendersOneOpts<DreamClass> | null = null,
+  opts?: RendersOneOpts<DreamClass>
 ): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
@@ -67,9 +68,9 @@ export default function RendersOne(
       }
 
       if (isSerializable(serializableClassOrClasses)) {
-        opts ||= {} as RendersOneOpts
+        opts ||= {} as RendersOneOpts<DreamClass>
       } else {
-        opts = (serializableClassOrClasses || {}) as RendersOneOpts
+        opts = (serializableClassOrClasses || {}) as RendersOneOpts<DreamClass>
         serializableClassOrClasses = null
       }
 
@@ -92,6 +93,7 @@ export default function RendersOne(
   }
 }
 
-export interface RendersOneOpts extends RendersOneOrManyOpts {
+export interface RendersOneOpts<DreamClass extends typeof Dream | undefined = undefined>
+  extends RendersOneOrManyOpts<DreamClass> {
   flatten?: boolean
 }
