@@ -235,6 +235,11 @@ Try setting it to something valid, like:
     return this._unicodeNormalization
   }
 
+  private _paginationPageSize: number = 25
+  public get paginationPageSize() {
+    return this._paginationPageSize
+  }
+
   private _primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
   public get primaryKeyType() {
     return this._primaryKeyType
@@ -370,7 +375,9 @@ Try setting it to something valid, like:
                     ? number
                     : ApplyOpt extends 'unicodeNormalization'
                       ? UnicodeNormalizationForm
-                      : never
+                      : ApplyOpt extends 'paginationPageSize'
+                        ? number
+                        : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -416,6 +423,10 @@ Try setting it to something valid, like:
 
       case 'unicodeNormalization':
         this._unicodeNormalization = options as UnicodeNormalizationForm
+        break
+
+      case 'paginationPageSize':
+        this._paginationPageSize = options as number
         break
 
       default:
@@ -474,6 +485,7 @@ export type DreamAppSetOption =
   | 'serializerCasing'
   | 'parallelTests'
   | 'unicodeNormalization'
+  | 'paginationPageSize'
 
 export interface DreamDirectoryPaths {
   models?: string

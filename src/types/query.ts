@@ -163,3 +163,37 @@ export type QueryToKyselyAliasMap<
       }
     : null,
 > = AliasToDbMaps
+
+export interface PaginatedDreamQueryOptions {
+  /**
+   * the number of records you would like to be returned in each page
+   */
+  pageSize?: number
+
+  /**
+   * the current page
+   */
+  page: number | null | undefined
+}
+
+export interface PaginatedDreamQueryResult<T extends Dream> {
+  /**
+   * the total number of records in the DB matching the query
+   */
+  recordCount: number
+
+  /**
+   * The number of pages that are needed to encapsulate these results
+   */
+  pageCount: number
+
+  /**
+   * The current page
+   */
+  currentPage: number
+
+  /**
+   * The results for the current page
+   */
+  results: T[]
+}

@@ -103,6 +103,8 @@ import {
   BaseModelColumnTypes,
   DefaultQueryTypeOptions,
   FindEachOpts,
+  PaginatedDreamQueryOptions,
+  PaginatedDreamQueryResult,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './types/query.js'
@@ -743,6 +745,40 @@ export default class Dream {
     } = {}
   ): Promise<InstanceType<T>[]> {
     return await this.query().all(options)
+  }
+
+  /**
+   * Paginates the results of your query, accepting a pageSize and page argument,
+   * which it uses to segment your query into pages, leveraging limit and offset
+   * to deliver your query to you in pages.
+   *
+   * ```ts
+   * const paginated = await User.paginate({ pageSize: 100, page: 2 })
+   * paginated.results
+   * // [ { User{id: 101}, User{id: 102}, ...}]
+   *
+   * paginated.recordCount
+   * // 350
+   *
+   * paginated.pageCount
+   * // 4
+   *
+   * paginated.currentPage
+   * // 2
+   * ```
+   *
+   * @param opts.page - the page number that you want to fetch results for
+   * @param opts.pageSize - the number of results per page (optional)
+   * @returns results.recordCount - A number representing the total number of records matching your query
+   * @returns results.pageCount - The number of pages needed to encapsulate all the matching records
+   * @returns results.currentPage - The current page (same as what is provided in the paginate args)
+   * @returns results.results - An array of records matching the current record
+   */
+  public static async paginate<T extends typeof Dream>(
+    this: T,
+    opts: PaginatedDreamQueryOptions
+  ): Promise<PaginatedDreamQueryResult<InstanceType<T>>> {
+    return await this.query().paginate(opts)
   }
 
   /**
