@@ -93,6 +93,8 @@ import {
   FindEachOpts,
   JoinTypes,
   NamespacedOrBaseModelColumnTypes,
+  PaginatedDreamQueryOptions,
+  PaginatedDreamQueryResult,
   PreloadedDreamsAndWhatTheyPointTo,
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
@@ -113,6 +115,10 @@ import orderByDirection from './internal/orderByDirection.js'
 import shouldBypassDefaultScope from './internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from './internal/similarity/SimilarityBuilder.js'
 import sqlResultToDreamInstance from './internal/sqlResultToDreamInstance.js'
+import DreamApp from '../dream-app/index.js'
+import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimit.js'
+import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
+import computedPaginatePage from './internal/computedPaginatePage.js'
 
 export default class Query<
   DreamInstance extends Dream,
@@ -2030,6 +2036,54 @@ export default class Query<
     await this.applyPreload(this.preloadStatements as any, this.preloadOnStatements as any, theAll)
 
     return theAll
+  }
+
+  /**
+   * Paginates the results of your query, accepting a pageSize and page argument,
+   * which it uses to segment your query into pages, leveraging limit and offset
+   * to deliver your query to you in pages.
+   *
+   * ```ts
+   * const paginated = await User.order('email').paginate({ pageSize: 100, page: 2 })
+   * paginated.results
+   * // [ { User{id: 101}, User{id: 102}, ...}]
+   *
+   * paginated.recordCount
+   * // 350
+   *
+   * paginated.pageCount
+   * // 4
+   *
+   * paginated.currentPage
+   * // 2
+   * ```
+   *
+   * @param opts.page - the page number that you want to fetch results for
+   * @param opts.pageSize - the number of results per page (optional)
+   * @returns results.recordCount - A number representing the total number of records matching your query
+   * @returns results.pageCount - The number of pages needed to encapsulate all the matching records
+   * @returns results.currentPage - The current page (same as what is provided in the paginate args)
+   * @returns results.results - An array of records matching the current record
+   */
+  public async paginate(opts: PaginatedDreamQueryOptions): Promise<PaginatedDreamQueryResult<DreamInstance>> {
+    if (this.limitStatement) throw new CannotPaginateWithLimit()
+    if (this.offsetStatement) throw new CannotPaginateWithOffset()
+    const page = computedPaginatePage(opts.page)
+
+    const recordCount = await this.count()
+    const pageSize = opts.pageSize || DreamApp.getOrFail().paginationPageSize
+
+    const pageCount = Math.ceil(recordCount / pageSize)
+    const results = await this.limit(pageSize)
+      .offset((page - 1) * pageSize)
+      .all()
+
+    return {
+      recordCount,
+      pageCount,
+      currentPage: page,
+      results,
+    }
   }
 
   /**
