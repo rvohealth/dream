@@ -127,7 +127,7 @@ ${columnsWithTypes
 function attributeOptionsSpecifier(type: string | undefined, attr: string) {
   switch (type) {
     case 'decimal':
-      return `, { precision: ${attr.split(',').pop()} }`
+      return `, { precision: ${attr.split(',').at(-1)} }`
 
     default:
       return ''
@@ -161,5 +161,5 @@ function importStatementForModel(originModelName: string, destinationModelName: 
 }
 
 function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {
-  return fullyQualifiedModelName.split('/').pop() ?? ''
+  return fullyQualifiedModelName.split('/').at(-1) ?? ''
 }

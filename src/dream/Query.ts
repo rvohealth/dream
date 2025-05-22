@@ -616,7 +616,7 @@ export default class Query<
         await cb(record)
       }
 
-      lastId = records[records.length - 1]?.primaryKeyValue
+      lastId = records.at(-1)?.primaryKeyValue
     } while (records.length > 0 && records.length === batchSize)
   }
 
@@ -2715,7 +2715,7 @@ export default class Query<
 
         return {
           dream: hydratedDream,
-          pointsToPrimaryKey: pluckedData[pluckedData.length - 1],
+          pointsToPrimaryKey: pluckedData.at(-1),
         }
       }
     )
@@ -3555,7 +3555,7 @@ export default class Query<
     if (val instanceof Function && val !== DreamConst.passthrough) {
       val = val()
     } else if (val === DreamConst.passthrough) {
-      const column = attr.split('.').pop()
+      const column = attr.split('.').at(-1)
       if ((this.passthroughOnStatement as any)[column!] === undefined)
         throw new MissingRequiredPassthroughForAssociationAndClause(column!)
       val = (this.passthroughOnStatement as any)[column!]
