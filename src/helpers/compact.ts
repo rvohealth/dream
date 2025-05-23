@@ -27,9 +27,11 @@ export default function compact<
       : never,
 >(obj: T): RetType {
   if (Array.isArray(obj)) {
-    return obj.filter(val => ![undefined, null].includes(val)) as RetType
+    return obj.filter(val => val !== undefined && val !== null) as RetType
   } else {
-    return Object.fromEntries(Object.entries(obj).filter(([, v]) => v != null)) as RetType
+    return Object.fromEntries(
+      Object.entries(obj).filter(([, val]) => val !== undefined && val !== null)
+    ) as RetType
   }
 }
 
