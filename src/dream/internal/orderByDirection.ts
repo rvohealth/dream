@@ -10,7 +10,10 @@ export default function orderByDirection(dir: OrderDir | null) {
     case 'desc':
       return sql`desc nulls last`
 
-    default:
-      throw new Error(`Unrecognized orderBy direction: ${dir as string}`)
+    default: {
+      // protection so that if a new OrderDir is ever added, this will throw a type error at build time
+      const _never: never = dir
+      throw new Error(`Unhandled OrderDir: ${_never as string}`)
+    }
   }
 }

@@ -71,8 +71,11 @@ function simpleOpenapiShorthandToOpenapi(shorthand: OpenapiShorthandPrimitiveBas
     case 'json':
       return { type: 'json' }
 
-    default:
-      throw new UnrecognizedOpenapiShorthand(shorthand)
+    default: {
+      // protection so that if a new OpenapiShorthandPrimitiveBaseTypes is ever added, this will throw a type error at build time
+      const _never: never = shorthand
+      throw new UnrecognizedOpenapiShorthand(_never as string)
+    }
   }
 }
 

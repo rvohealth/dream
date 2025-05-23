@@ -1481,8 +1481,11 @@ export default class Query<
 
       // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
       // the query class for some reason.
-      default:
-        throw new Error('never')
+      default: {
+        // protection so that if a new QueryType is ever added, this will throw a type error at build time
+        const _never: never = type
+        throw new Error(`Unhandled QueryType: ${_never as string}`)
+      }
     }
   }
 

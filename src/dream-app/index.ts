@@ -429,8 +429,11 @@ Try setting it to something valid, like:
         this._paginationPageSize = options as number
         break
 
-      default:
-        throw new Error(`Unhandled applyOption encountered in Dreamconf: ${applyOption}`)
+      default: {
+        // protection so that if a new ApplyOpt is ever added, this will throw a type error at build time
+        const _never: never = applyOption
+        throw new Error(`Unhandled ApplyOpt: ${_never as string}`)
+      }
     }
   }
 
