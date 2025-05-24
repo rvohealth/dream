@@ -24,6 +24,10 @@ export default class ViewModelSerializerBuilder<
   protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
   protected _maybeNull: boolean = false
 
+  public static get isSerializer() {
+    return true
+  }
+
   constructor(
     protected $typeForOpenapi: DataTypeForOpenapi,
     protected data: MaybeNullDataType,

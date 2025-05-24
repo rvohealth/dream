@@ -23,6 +23,10 @@ export default class SimpleObjectSerializerBuilder<
   protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
   protected _maybeNull: boolean = false
 
+  public static get isSerializer() {
+    return true
+  }
+
   constructor(
     protected data: MaybeNullDataType,
     protected passthroughData: PassthroughDataType = {} as PassthroughDataType
