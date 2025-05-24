@@ -9,6 +9,8 @@ import SimpleObjectSerializer from '../SimpleObjectSerializer.js'
 import ViewModelSerializer from '../ViewModelSerializer.js'
 
 export default function isDreamSerializer(dreamOrSerializerClass: any) {
+  if (!dreamOrSerializerClass) return false
+
   const asDream = dreamOrSerializerClass as Dream
   if (asDream.isDreamInstance) return false
 
