@@ -70,7 +70,7 @@ describe('SimpleObjectSerializer json attributes', () => {
 
     it('have the correct OpenAPI shape', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         favoriteJsons: {
           type: ['array', 'null'],
           items: { type: 'object', properties: { hello: 'string' } },
@@ -103,7 +103,7 @@ describe('SimpleObjectSerializer json attributes', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']).toEqual(
+        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             required_favorite_jsons: { type: 'object' },
           })
@@ -120,7 +120,7 @@ describe('SimpleObjectSerializer json attributes', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']).toEqual(
+        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             requiredFavoriteJsons: { type: 'object' },
           })

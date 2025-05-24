@@ -27,7 +27,7 @@ describe('ViewModelSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/view-model_UserSerializer',
       },
@@ -56,7 +56,7 @@ describe('ViewModelSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/view-model_UserSummarySerializer',
       },
@@ -87,7 +87,7 @@ describe('ViewModelSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user2: {
         $ref: '#/components/schemas/view-model_UserSerializer',
       },
@@ -117,7 +117,7 @@ describe('ViewModelSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual({
+      expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual({
         allOf: [
           {
             type: 'object',
@@ -140,7 +140,7 @@ describe('ViewModelSerializer rendersOne', () => {
     const pet = new PetViewModel({ id: '3', user, name: 'Snoopy', species: 'dog' })
 
     const CustomSerializer = (data: UserViewModel) =>
-      ViewModelSerializer(UserViewModel, data).attribute('name')
+      ViewModelSerializer(UserViewModel, data).attribute('name', { openapi: 'string' })
     ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
     const MySerializer = (data: PetViewModel) =>
       ViewModelSerializer(PetViewModel, data).rendersOne('user', {
@@ -157,7 +157,7 @@ describe('ViewModelSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/CustomUserSerializer',
       },

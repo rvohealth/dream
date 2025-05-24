@@ -39,7 +39,8 @@ describe('DreamSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       pets: {
         type: 'array',
         items: {
@@ -47,13 +48,18 @@ describe('DreamSerializer rendersMany', () => {
         },
       },
     })
+
+    expect(results.referencedSerializers).toHaveLength(2)
+    expect((results.referencedSerializers[0] as any).globalName).toEqual('PetSerializer')
+    expect((results.referencedSerializers[1] as any).globalName).toEqual('RatingSerializer')
   })
 
   it('expands STI base model into OpenAPI for all of the child types', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).rendersMany('balloons')
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       balloons: {
         type: 'array',
         items: {
@@ -71,6 +77,11 @@ describe('DreamSerializer rendersMany', () => {
         },
       },
     })
+
+    expect(results.referencedSerializers).toHaveLength(3)
+    expect((results.referencedSerializers[0] as any).globalName).toEqual('Balloon/Latex/AnimalSerializer')
+    expect((results.referencedSerializers[1] as any).globalName).toEqual('Balloon/LatexSerializer')
+    expect((results.referencedSerializers[2] as any).globalName).toEqual('Balloon/MylarSerializer')
   })
 
   it('supports specifying the serializerKey', () => {
@@ -108,7 +119,8 @@ describe('DreamSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       pets: {
         type: 'array',
         items: {
@@ -116,6 +128,9 @@ describe('DreamSerializer rendersMany', () => {
         },
       },
     })
+
+    expect(results.referencedSerializers).toHaveLength(1)
+    expect((results.referencedSerializers[0] as any).globalName).toEqual('PetSummarySerializer')
   })
 
   it("supports customizing the name of the thing rendered via { as: '...' } (replaces `source: string`)", () => {
@@ -152,7 +167,8 @@ describe('DreamSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       pets2: {
         type: 'array',
         items: {
@@ -160,6 +176,10 @@ describe('DreamSerializer rendersMany', () => {
         },
       },
     })
+
+    expect(results.referencedSerializers).toHaveLength(2)
+    expect((results.referencedSerializers[0] as any).globalName).toEqual('PetSerializer')
+    expect((results.referencedSerializers[1] as any).globalName).toEqual('RatingSerializer')
   })
 
   it('supports supplying a custom serializer', () => {
@@ -191,7 +211,8 @@ describe('DreamSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       pets: {
         type: 'array',
         items: {
@@ -199,6 +220,9 @@ describe('DreamSerializer rendersMany', () => {
         },
       },
     })
+
+    expect(results.referencedSerializers).toHaveLength(1)
+    expect((results.referencedSerializers[0] as any).globalName).toEqual('CustomPetSerializer')
   })
 
   it('passes passthrough data', () => {
@@ -236,16 +260,6 @@ describe('DreamSerializer rendersMany', () => {
           title: 'en-US-Woodstock',
         },
       ],
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
-      pets: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/CustomPetSerializer',
-        },
-      },
     })
   })
 })

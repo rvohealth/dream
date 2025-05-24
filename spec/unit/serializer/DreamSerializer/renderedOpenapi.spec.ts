@@ -8,7 +8,7 @@ describe('DreamSerializer attributes', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).attribute('email')
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
 
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
+    expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
       expect.objectContaining({
         type: 'object',
         required: ['email'],
@@ -20,7 +20,7 @@ describe('DreamSerializer attributes', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).attribute('lbs', { openapi: 'decimal' })
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
 
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
+    expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
       expect.objectContaining({
         type: 'object',
         required: ['lbs'],
@@ -33,7 +33,7 @@ describe('DreamSerializer attributes', () => {
       const MySerializer = (data: User | null) => DreamSerializer(User, data).maybeNull().attribute('email')
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
 
-      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
+      expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
         expect.objectContaining({
           type: ['object', 'null'],
         })
@@ -46,7 +46,7 @@ describe('DreamSerializer attributes', () => {
     const MySerializer = (data: User) => BaseSerializer(data).attribute('email')
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
 
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
+    expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
       expect.objectContaining({
         type: 'object',
         required: ['name', 'email'],
@@ -62,7 +62,7 @@ describe('DreamSerializer attributes', () => {
       it('renders all attribute keys in snake case', () => {
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
 
-        expect(serializerOpenapiRenderer.casing('snake').renderedOpenapi).toEqual(
+        expect(serializerOpenapiRenderer.casing('snake').renderedOpenapi().openapi).toEqual(
           expect.objectContaining({
             type: 'object',
             required: ['required_nicknames'],
@@ -75,7 +75,7 @@ describe('DreamSerializer attributes', () => {
       it('renders all attribute keys in camel case', () => {
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
 
-        expect(serializerOpenapiRenderer.casing('camel').renderedOpenapi).toEqual(
+        expect(serializerOpenapiRenderer.casing('camel').renderedOpenapi().openapi).toEqual(
           expect.objectContaining({
             type: 'object',
             required: ['requiredNicknames'],

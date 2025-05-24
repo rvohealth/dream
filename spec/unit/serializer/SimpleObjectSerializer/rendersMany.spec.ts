@@ -55,7 +55,9 @@ describe('SimpleObjectSerializer rendersMany', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+      expect(results.referencedSerializers).toEqual([PetSerializer])
+      expect(results.attributes).toEqual({
         pets: {
           type: 'array',
           items: {
@@ -101,7 +103,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         pets: {
           type: 'array',
           items: {
@@ -149,7 +151,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         pets: {
           type: 'array',
           items: {
@@ -193,7 +195,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         pets2: {
           type: 'array',
           items: {
@@ -232,7 +234,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         pets: {
           type: 'array',
           items: {

@@ -64,6 +64,7 @@ export { type Camelized, type Hyphenized, type Pascalized, type Snakeified } fro
 export { default as uncapitalize } from './helpers/uncapitalize.js'
 export { default as uniq } from './helpers/uniq.js'
 export { default as isOpenapiShorthand } from './openapi/isOpenapiShorthand.js'
+export { default as maybeNullOpenapiShorthandToOpenapiShorthand } from './openapi/maybeNullOpenapiShorthandToOpenapiShorthand.js'
 export { default as openapiShorthandToOpenapi } from './openapi/openapiShorthandToOpenapi.js'
 export { default as ops } from './ops/index.js'
 export {
@@ -72,6 +73,8 @@ export {
 } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 export { DreamSerializer, SimpleObjectSerializer, ViewModelSerializer } from './serializer/index.js'
+export { default as SerializerOpenapiRenderer } from './serializer/SerializerOpenapiRenderer.js'
+export { default as SerializerRenderer } from './serializer/SerializerRenderer.js'
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
 export { type DbConnectionType } from './types/db.js'
 export {
@@ -99,12 +102,12 @@ export {
   type ViewModel,
   type ViewModelClass,
 } from './types/dream.js'
-
 export {
   type CommonOpenapiSchemaObjectFields,
   type OpenapiAllTypes,
   type OpenapiFormats,
   type OpenapiNumberFormats,
+  type OpenapiPrimitiveBaseTypes,
   type OpenapiPrimitiveTypes,
   type OpenapiSchemaArray,
   type OpenapiSchemaArrayShorthand,
@@ -136,13 +139,15 @@ export {
   type OpenapiSchemaShorthandExpressionAllOf,
   type OpenapiSchemaShorthandExpressionAnyOf,
   type OpenapiSchemaShorthandExpressionOneOf,
-  // type OpenapiSchemaShorthandExpressionSerializableRef,
-  // type OpenapiSchemaShorthandExpressionSerializerRef,
+  type OpenapiSchemaShorthandExpressionSerializableRef,
+  type OpenapiSchemaShorthandExpressionSerializerRef,
   type OpenapiSchemaShorthandPrimitiveGeneric,
   type OpenapiSchemaString,
   type OpenapiShorthandAllTypes,
+  type OpenapiShorthandPrimitiveBaseTypes,
   type OpenapiShorthandPrimitiveTypes,
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
 } from './types/openapi.js'
+export { type SerializerType } from './types/serializer.js'
 export { type ValidationType } from './types/validation.js'

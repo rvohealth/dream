@@ -28,18 +28,11 @@ describe('SimpleObjectSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email: {
         type: 'string',
       },
     })
-
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-      expect.objectContaining({
-        type: 'object',
-        required: ['email'],
-      })
-    )
   })
 
   it('supports customizing the name of the thing rendered', () => {
@@ -54,7 +47,7 @@ describe('SimpleObjectSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email2: {
         type: 'string',
       },
@@ -68,7 +61,7 @@ describe('SimpleObjectSerializer attributes', () => {
       })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email: {
         type: 'string',
         description: 'This is an email',
@@ -86,17 +79,11 @@ describe('SimpleObjectSerializer attributes', () => {
       expect(serializerRenderer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         email: {
           type: 'string',
         },
       })
-
-      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-        expect.objectContaining({
-          type: ['object', 'null'],
-        })
-      )
     })
   })
 
@@ -114,7 +101,7 @@ describe('SimpleObjectSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       name: {
         type: ['string', 'null'],
       },
@@ -122,13 +109,6 @@ describe('SimpleObjectSerializer attributes', () => {
         type: 'string',
       },
     })
-
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-      expect.objectContaining({
-        type: 'object',
-        required: ['name', 'email'],
-      })
-    )
   })
 
   context('numeric/decimal with precision', () => {
@@ -156,7 +136,7 @@ describe('SimpleObjectSerializer attributes', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']).toEqual({
+        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']().attributes).toEqual({
           required_nicknames: { type: 'array', items: { type: 'string' } },
         })
       })
@@ -171,7 +151,7 @@ describe('SimpleObjectSerializer attributes', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']).toEqual(
+        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             requiredNicknames: { type: 'array', items: { type: 'string' } },
           })

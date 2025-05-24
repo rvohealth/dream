@@ -25,7 +25,7 @@ describe('DreamSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/UserSerializer',
       },
@@ -112,7 +112,7 @@ describe('DreamSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/UserSummarySerializer',
       },
@@ -138,7 +138,7 @@ describe('DreamSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user2: {
         $ref: '#/components/schemas/UserSerializer',
       },
@@ -146,7 +146,7 @@ describe('DreamSerializer rendersOne', () => {
   })
 
   context('flatten', () => {
-    it('it renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
+    it('renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const user = User.new({ id: '7', name: 'Charlie', birthdate })
       const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -165,7 +165,8 @@ describe('DreamSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual({
+      const results = serializerOpenapiRenderer.renderedOpenapi()
+      expect(results.openapi).toEqual({
         allOf: [
           {
             type: 'object',
@@ -179,6 +180,9 @@ describe('DreamSerializer rendersOne', () => {
           },
         ],
       })
+
+      expect(results.referencedSerializers).toHaveLength(1)
+      expect((results.referencedSerializers[0] as any).globalName).toEqual('UserSerializer')
     })
 
     context('when the associated attributes are null', () => {
@@ -262,7 +266,7 @@ describe('DreamSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/CustomUserSerializer',
       },
@@ -298,7 +302,7 @@ describe('DreamSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
         $ref: '#/components/schemas/CustomUserSerializer',
       },

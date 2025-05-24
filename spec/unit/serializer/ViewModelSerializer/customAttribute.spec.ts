@@ -76,17 +76,11 @@ describe('ViewModelSerializer customAttributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email: {
         type: 'string',
       },
     })
-
-    expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-      expect.objectContaining({
-        type: 'object',
-      })
-    )
   })
 
   it('can override the OpenAPI shape with OpenAPI shorthand', () => {
@@ -107,7 +101,7 @@ describe('ViewModelSerializer customAttributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       birthdate: {
         type: 'string',
         format: 'date-time',
@@ -140,7 +134,7 @@ describe('ViewModelSerializer customAttributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       volume: {
         type: 'integer',
         description: 'Volume as an integer',
@@ -164,17 +158,11 @@ describe('ViewModelSerializer customAttributes', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         email: {
           type: 'string',
         },
       })
-
-      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-        expect.objectContaining({
-          type: 'object',
-        })
-      )
     })
   })
 
@@ -190,17 +178,11 @@ describe('ViewModelSerializer customAttributes', () => {
       expect(serializerRenderer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         email: {
           type: 'string',
         },
       })
-
-      expect(serializerOpenapiRenderer.renderedOpenapi).toEqual(
-        expect.objectContaining({
-          type: ['object', 'null'],
-        })
-      )
     })
   })
 })

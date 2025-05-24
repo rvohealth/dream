@@ -61,7 +61,6 @@ export class DreamSerializerBuilder<
   protected rendersOnes: InternalAnyTypedSerializerRendersOne<DataType>[] = []
   protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
   protected _maybeNull: boolean = false
-  protected serializerName: string
 
   constructor(
     protected $typeForOpenapi: DataTypeForOpenapi,
@@ -240,7 +239,6 @@ export class ViewModelSerializerBuilder<
   protected rendersOnes: InternalAnyTypedSerializerRendersOne<DataType>[] = []
   protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
   protected _maybeNull: boolean = false
-  protected serializerName: string
 
   constructor(
     protected $typeForOpenapi: DataTypeForOpenapi,
@@ -256,7 +254,7 @@ export class ViewModelSerializerBuilder<
   public attribute<
     AttributeName extends keyof DataType & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
-  >(name: AttributeName, options?: Options) {
+  >(name: AttributeName, options: Options) {
     this.attributes.push({
       name,
       options: options ?? {},
@@ -400,7 +398,6 @@ export class SimpleObjectSerializerBuilder<
   protected rendersOnes: InternalAnyTypedSerializerRendersOne<DataType>[] = []
   protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
   protected _maybeNull: boolean = false
-  protected serializerName: string
 
   constructor(
     protected data: MaybeNullDataType,

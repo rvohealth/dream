@@ -1,6 +1,7 @@
 import { isObject } from '../helpers/typechecks.js'
 import {
   OpenapiSchemaBody,
+  OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveBaseTypes,
   OpenapiShorthandPrimitiveTypes,
 } from '../types/openapi.js'
@@ -12,7 +13,7 @@ interface Options {
 }
 
 export default function openapiShorthandToOpenapi(
-  openapi: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBody | undefined,
+  openapi: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand | undefined,
   options: Options = {}
 ): OpenapiSchemaBody {
   if (isOpenapiShorthand(openapi)) {

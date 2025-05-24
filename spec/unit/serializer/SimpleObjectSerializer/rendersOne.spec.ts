@@ -47,7 +47,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
           $ref: '#/components/schemas/CustomUserSerializer',
         },
@@ -76,7 +76,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
           $ref: '#/components/schemas/UserSerializer',
         },
@@ -102,7 +102,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
           $ref: '#/components/schemas/UserSummarySerializer',
         },
@@ -129,7 +129,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
           $ref: '#/components/schemas/CustomUserSerializer',
         },
@@ -156,7 +156,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user2: {
           $ref: '#/components/schemas/UserSerializer',
         },
@@ -185,7 +185,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.renderedOpenapi).toEqual({
+        expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual({
           allOf: [
             {
               type: 'object',

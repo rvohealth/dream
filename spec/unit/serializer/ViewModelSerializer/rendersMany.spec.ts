@@ -39,7 +39,7 @@ describe('ViewModelSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       pets: {
         type: 'array',
         items: {
@@ -54,7 +54,7 @@ describe('ViewModelSerializer rendersMany', () => {
       ViewModelSerializer(UserViewModel, data).rendersMany('balloons', { dreamClass: Balloon })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       balloons: {
         type: 'array',
         items: {
@@ -116,7 +116,7 @@ describe('ViewModelSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       pets: {
         type: 'array',
         items: {
@@ -162,7 +162,7 @@ describe('ViewModelSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       pets2: {
         type: 'array',
         items: {
@@ -179,7 +179,8 @@ describe('ViewModelSerializer rendersMany', () => {
     const pet2 = new PetViewModel({ id: '4', user, name: 'Woodstock', species: 'frog' })
     user.pets = [pet1, pet2]
 
-    const CustomSerializer = (data: PetViewModel) => ViewModelSerializer(PetViewModel, data).attribute('name')
+    const CustomSerializer = (data: PetViewModel) =>
+      ViewModelSerializer(PetViewModel, data).attribute('name', { openapi: 'string' })
     ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
     const MySerializer = (data: UserViewModel) =>
       ViewModelSerializer(UserViewModel, data).rendersMany('pets', {
@@ -201,7 +202,7 @@ describe('ViewModelSerializer rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       pets: {
         type: 'array',
         items: {

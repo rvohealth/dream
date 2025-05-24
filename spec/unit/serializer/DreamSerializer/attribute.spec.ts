@@ -19,7 +19,7 @@ describe('DreamSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email: {
         type: 'string',
       },
@@ -37,7 +37,7 @@ describe('DreamSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       lbs: {
         type: 'number',
         format: 'decimal',
@@ -56,7 +56,7 @@ describe('DreamSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email2: {
         type: 'string',
       },
@@ -68,7 +68,7 @@ describe('DreamSerializer attributes', () => {
       DreamSerializer(User, data).attribute('email', { openapi: { description: 'This is an email' } })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       email: {
         type: 'string',
         description: 'This is an email',
@@ -125,7 +125,7 @@ describe('DreamSerializer attributes', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       name: {
         type: ['string', 'null'],
       },
@@ -294,7 +294,7 @@ describe('DreamSerializer attributes', () => {
 
     it('have the correct OpenAPI shape', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']).toEqual({
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         name: { type: ['string', 'null'] },
         nicknames: { type: ['array', 'null'], items: { type: 'string' } },
         requiredNicknames: { type: 'array', items: { type: 'string' } },
@@ -389,7 +389,7 @@ describe('DreamSerializer attributes', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']).toEqual(
+        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             required_nicknames: { type: 'array', items: { type: 'string' } },
           })
@@ -406,7 +406,7 @@ describe('DreamSerializer attributes', () => {
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']).toEqual(
+        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             requiredNicknames: { type: 'array', items: { type: 'string' } },
           })
