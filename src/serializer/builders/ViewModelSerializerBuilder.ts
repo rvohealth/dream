@@ -24,7 +24,7 @@ export default class ViewModelSerializerBuilder<
   protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
   protected _maybeNull: boolean = false
 
-  public static get isSerializer() {
+  public get isSerializer() {
     return true
   }
 
