@@ -12,10 +12,14 @@ export default function isDreamSerializer(dreamOrSerializerClass: any) {
     | DreamModelSerializerType
     | ViewModelSerializerType
     | SimpleModelSerializerType
+
+  if (typeof asSerializer !== 'function') return false
+
+  const serializer = asSerializer(undefined as any, undefined as any)
+
   return (
-    typeof asSerializer === 'function' &&
-    (asSerializer instanceof DreamSerializer ||
-      asSerializer instanceof ViewModelSerializer ||
-      asSerializer instanceof SimpleObjectSerializer)
+    serializer instanceof DreamSerializer ||
+    serializer instanceof ViewModelSerializer ||
+    serializer instanceof SimpleObjectSerializer
   )
 }
