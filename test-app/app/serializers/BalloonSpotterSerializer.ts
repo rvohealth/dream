@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import BalloonSpotter from '../models/BalloonSpotter.js'
 
 const BalloonSpotterSerializer = (data: BalloonSpotter) =>

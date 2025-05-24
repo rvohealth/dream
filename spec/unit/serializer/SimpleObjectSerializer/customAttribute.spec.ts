@@ -1,7 +1,7 @@
 import { CalendarDate, round } from '../../../../src/index.js'
-import { SimpleObjectSerializer } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
+import SimpleObjectSerializer from '../../../../src/serializer/SimpleObjectSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 interface User {

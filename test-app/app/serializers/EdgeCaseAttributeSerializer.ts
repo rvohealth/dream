@@ -1,5 +1,5 @@
 import { round } from '../../../src/index.js'
-import { DreamSerializer } from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import EdgeCaseAttribute from '../models/EdgeCaseAttribute.js'
 
 export default (data: EdgeCaseAttribute) =>

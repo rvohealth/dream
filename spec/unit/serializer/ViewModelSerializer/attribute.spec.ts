@@ -1,7 +1,7 @@
 import { CalendarDate, DreamSerializers } from '../../../../src/index.js'
-import { ViewModelSerializer } from '../../../../src/serializer/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
+import ViewModelSerializer from '../../../../src/serializer/ViewModelSerializer.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 
 class User {

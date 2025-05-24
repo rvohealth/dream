@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import Collar from '../models/Collar.js'
 
 export default (data: Collar) =>

@@ -15,8 +15,8 @@ import {
   SerializerCasing,
   SerializerType,
 } from '../types/serializer.js'
+import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { DreamSerializerBuilder } from './index.js'
 
 export default class SerializerOpenapiRenderer {
   private casing: SerializerCasing

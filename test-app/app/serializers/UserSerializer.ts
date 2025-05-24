@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import User from '../models/User.js'
 
 export default (data: User, passthroughData: object) =>

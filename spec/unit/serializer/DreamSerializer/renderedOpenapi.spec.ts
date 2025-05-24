@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../../src/serializer/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../../test-app/app/models/User.js'

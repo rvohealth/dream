@@ -1,4 +1,4 @@
-import { ViewModelSerializer } from '../../../../src/serializer/index.js'
+import ViewModelSerializer from '../../../../src/serializer/ViewModelSerializer.js'
 import { CatTreatsValues, SpeciesValues } from '../../../types/db.js'
 import PetViewModel from '../../view-models/PetViewModel.js'
 

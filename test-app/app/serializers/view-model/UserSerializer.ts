@@ -1,4 +1,4 @@
-import { ViewModelSerializer } from '../../../../src/serializer/index.js'
+import ViewModelSerializer from '../../../../src/serializer/ViewModelSerializer.js'
 import UserViewModel from '../../view-models/UserViewModel.js'
 
 export default (data: UserViewModel, passthroughData: object) =>

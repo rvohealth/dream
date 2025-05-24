@@ -72,9 +72,18 @@ export {
   default as inferSerializerFromDreamOrViewModel,
 } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
-export { DreamSerializer, SimpleObjectSerializer, ViewModelSerializer } from './serializer/index.js'
+
 export { default as SerializerOpenapiRenderer } from './serializer/SerializerOpenapiRenderer.js'
 export { default as SerializerRenderer } from './serializer/SerializerRenderer.js'
+
+export { default as DreamSerializer } from './serializer/DreamSerializer.js'
+export { default as SimpleObjectSerializer } from './serializer/SimpleObjectSerializer.js'
+export { default as ViewModelSerializer } from './serializer/ViewModelSerializer.js'
+
+export { default as DreamSerializerBuilder } from './serializer/builders/DreamSerializerBuilder.js'
+export { default as SimpleObjectSerializerBuilder } from './serializer/builders/SimpleObjectSerializerBuilder.js'
+export { default as ViewModelSerializerBuilder } from './serializer/builders/ViewModelSerializerBuilder.js'
+
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
 export { type DbConnectionType } from './types/db.js'
 export {

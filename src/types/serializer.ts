@@ -1,10 +1,8 @@
 import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
-import {
-  DreamSerializerBuilder,
-  SimpleObjectSerializerBuilder,
-  ViewModelSerializerBuilder,
-} from '../serializer/index.js'
+import DreamSerializerBuilder from '../serializer/builders/DreamSerializerBuilder.js'
+import SimpleObjectSerializerBuilder from '../serializer/builders/SimpleObjectSerializerBuilder.js'
+import ViewModelSerializerBuilder from '../serializer/builders/ViewModelSerializerBuilder.js'
 import {
   DreamAttributeDbTypes,
   DreamSerializable,

@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import Sandbag from '../models/Sandbag.js'
 
 export default (data: Sandbag) =>

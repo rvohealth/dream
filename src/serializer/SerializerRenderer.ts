@@ -8,10 +8,12 @@ import {
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   SerializerCasing,
 } from '../types/serializer.js'
+import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
+import SimpleObjectSerializerBuilder from './builders/SimpleObjectSerializerBuilder.js'
+import ViewModelSerializerBuilder from './builders/ViewModelSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { DreamSerializerBuilder, SimpleObjectSerializerBuilder, ViewModelSerializerBuilder } from './index.js'
 
 export default class SerializerRenderer {
   private casing: SerializerCasing

@@ -5,7 +5,8 @@ import MissingSerializersDefinitionForKey from '../../errors/serializers/Missing
 import NoGlobalSerializerForSpecifiedKey from '../../errors/serializers/NoGlobalSerializerForSpecifiedKey.js'
 import { ViewModel, ViewModelClass } from '../../types/dream.js'
 import { SerializerType } from '../../types/serializer.js'
-import { DEFAULT_SERIALIZER_KEY } from '../index.js'
+
+export const DEFAULT_SERIALIZER_KEY = 'default'
 
 export default function inferSerializerFromDreamOrViewModel<
   T extends Dream | ViewModel | null | undefined,

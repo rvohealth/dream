@@ -1,7 +1,8 @@
 import { DreamSerializers } from '../../../../src/index.js'
-import { ViewModelSerializer, ViewModelSerializerBuilder } from '../../../../src/serializer/index.js'
+import ViewModelSerializerBuilder from '../../../../src/serializer/builders/ViewModelSerializerBuilder.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
+import ViewModelSerializer from '../../../../src/serializer/ViewModelSerializer.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 
 class ModelForOpenapiTypeSpecs {

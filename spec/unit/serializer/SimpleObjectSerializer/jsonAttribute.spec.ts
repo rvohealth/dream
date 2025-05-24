@@ -1,6 +1,7 @@
-import { SimpleObjectSerializer, SimpleObjectSerializerBuilder } from '../../../../src/serializer/index.js'
+import SimpleObjectSerializerBuilder from '../../../../src/serializer/builders/SimpleObjectSerializerBuilder.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
+import SimpleObjectSerializer from '../../../../src/serializer/SimpleObjectSerializer.js'
 
 interface ModelForOpenapiTypeSpecs {
   favoriteJsons: object[]
