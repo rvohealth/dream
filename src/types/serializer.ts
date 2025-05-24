@@ -19,6 +19,7 @@ import {
   OpenapiShorthandPrimitiveTypes,
 } from './openapi.js'
 
+export type SerializerCasing = 'camel' | 'snake'
 export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
 
 export type DreamSerializerCallback<

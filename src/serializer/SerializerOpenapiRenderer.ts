@@ -9,15 +9,17 @@ import { dreamColumnOpenapiShape } from '../openapi/dreamAttributeOpenapiShape.j
 import expandStiSerializersInDreamsOrSerializers from '../openapi/expandStiSerializersInDreamsOrSerializers.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { DreamOrViewModel, ViewModelClass } from '../types/dream.js'
-import { OpenapiSchemaBodyShorthand } from '../types/openapi.js'
-import { InternalAnyTypedSerializerRendersMany, SerializerType } from '../types/serializer.js'
+import { OpenapiSchemaBodyShorthand, OpenapiSchemaExpressionRef } from '../types/openapi.js'
+import {
+  InternalAnyTypedSerializerRendersMany,
+  SerializerCasing,
+  SerializerType,
+} from '../types/serializer.js'
 import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamSerializerBuilder } from './index.js'
 
-export type Casing = 'camel' | 'snake'
-
 export default class SerializerOpenapiRenderer {
-  private casing: Casing
+  private casing: SerializerCasing
   private schemaDelimiter: string
   private allOfSiblings: OpenapiSchemaBodyShorthand[] = []
 
@@ -27,7 +29,7 @@ export default class SerializerOpenapiRenderer {
       casing = 'camel',
       schemaDelimiter = '_',
     }: {
-      casing?: Casing
+      casing?: SerializerCasing
       schemaDelimiter?: string
     } = {}
   ) {
@@ -43,7 +45,7 @@ export default class SerializerOpenapiRenderer {
     return this.globalName.replace(/\//g, this.schemaDelimiter)
   }
 
-  public get serializerRef(): OpenapiSchemaBodyShorthand {
+  public get serializerRef(): OpenapiSchemaExpressionRef {
     return {
       $ref: `#/components/schemas/${this.openapiName}`,
     }
@@ -62,7 +64,7 @@ export default class SerializerOpenapiRenderer {
   }
 
   public renderedOpenapi(
-    alreadyProcessedSerializers: string[] = []
+    alreadyProcessedSerializers: Record<string, boolean> = {}
   ): ReferencedSerializersAndOpenapiSchemaBodyShorthand {
     const referencedSerializersAndOpenapiSchemaBodyShorthand =
       this._renderedOpenapi(alreadyProcessedSerializers)
@@ -81,7 +83,7 @@ export default class SerializerOpenapiRenderer {
   }
 
   private _renderedOpenapi(
-    alreadyProcessedSerializers: string[]
+    alreadyProcessedSerializers: Record<string, boolean>
   ): ReferencedSerializersAndOpenapiSchemaBodyShorthand {
     const referencedSerializersAndAttributes = this.renderedOpenapiAttributes(alreadyProcessedSerializers)
 
@@ -104,7 +106,7 @@ export default class SerializerOpenapiRenderer {
   }
 
   private renderedOpenapiAttributes(
-    alreadyProcessedSerializers: string[] = []
+    alreadyProcessedSerializers: Record<string, boolean> = {}
   ): ReferencedSerializersAndAttributes {
     const $typeForOpenapi = this.serializerBuilder['$typeForOpenapi']
     const DataTypeForOpenapi = $typeForOpenapi as typeof Dream | ViewModelClass | undefined
@@ -202,7 +204,7 @@ export default class SerializerOpenapiRenderer {
 function associationOpenapi(
   attribute: InternalAnyTypedSerializerRendersMany<any, string>,
   DataTypeForOpenapi: typeof Dream | ViewModelClass | undefined,
-  alreadyProcessedSerializers: string[]
+  alreadyProcessedSerializers: Record<string, boolean>
 ): ReferencedSerializersAndOpenapiSchemaBodyShorthand {
   const serializerOverride = attribute.options.serializerCallback?.()
   if (serializerOverride)
@@ -268,16 +270,16 @@ function associationOpenapi(
 
 function serializerAndDescendentSerializers(
   serializer: SerializerType<any>,
-  alreadyProcessedSerializers: string[]
+  alreadyProcessedSerializers: Record<string, boolean>
 ): SerializerType<any>[] {
-  if (alreadyProcessedSerializers.includes((serializer as any).globalName)) return []
+  if (alreadyProcessedSerializers[(serializer as any).globalName]) return []
 
   return compact([
     serializer,
-    ...new SerializerOpenapiRenderer(serializer).renderedOpenapi([
+    ...new SerializerOpenapiRenderer(serializer).renderedOpenapi({
       ...alreadyProcessedSerializers,
-      (serializer as any).globalName,
-    ]).referencedSerializers,
+      [(serializer as any).globalName]: true,
+    }).referencedSerializers,
   ])
 }
 

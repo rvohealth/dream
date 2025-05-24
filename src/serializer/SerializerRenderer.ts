@@ -6,15 +6,15 @@ import { ViewModel } from '../types/dream.js'
 import {
   InternalAnyRendersOneOrManyOpts,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
+  SerializerCasing,
 } from '../types/serializer.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamSerializerBuilder, SimpleObjectSerializerBuilder, ViewModelSerializerBuilder } from './index.js'
-import { Casing } from './SerializerOpenapiRenderer.js'
 
 export default class SerializerRenderer {
-  private casing: Casing
+  private casing: SerializerCasing
   private serializerBuilder: DreamSerializerBuilder<any, any, any> | null
   private passthroughData: object
 
@@ -29,7 +29,7 @@ export default class SerializerRenderer {
     {
       casing = 'camel',
     }: {
-      casing?: Casing
+      casing?: SerializerCasing
     } = {}
   ) {
     this.serializerBuilder = (serializerBuilder ?? null) as DreamSerializerBuilder<any, any, any> | null
