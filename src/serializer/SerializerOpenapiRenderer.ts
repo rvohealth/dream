@@ -44,7 +44,7 @@ export default class SerializerOpenapiRenderer {
   }
 
   public get openapiName(): string {
-    return this.globalName.replace(/\//g, this.schemaDelimiter)
+    return this.globalName.replace(/Serializer$/, '').replace(/\//g, this.schemaDelimiter)
   }
 
   public get serializerRef(): OpenapiSchemaExpressionRef {
