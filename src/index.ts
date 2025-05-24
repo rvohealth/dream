@@ -159,5 +159,5 @@ export {
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
 } from './types/openapi.js'
-export { type SerializerCasing, type SerializerType } from './types/serializer.js'
+export { type SerializerCasing } from './types/serializer.js'
 export { type ValidationType } from './types/validation.js'

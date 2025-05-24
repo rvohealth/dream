@@ -30,7 +30,11 @@ import {
 import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import { DbConnectionType } from '../types/db.js'
-import { SerializerType } from '../types/serializer.js'
+import {
+  DreamModelSerializerType,
+  SimpleModelSerializerType,
+  ViewModelSerializerType,
+} from '../types/serializer.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
 import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
 import importSerializers, {
@@ -300,7 +304,10 @@ Try setting it to something valid, like:
     return getModelsOrFail()
   }
 
-  public get serializers(): Record<string, SerializerType<any>> {
+  public get serializers(): Record<
+    string,
+    DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType
+  > {
     return getSerializersOrFail()
   }
 

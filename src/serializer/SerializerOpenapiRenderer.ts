@@ -11,9 +11,11 @@ import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
 import { ViewModelClass } from '../types/dream.js'
 import { OpenapiSchemaBodyShorthand, OpenapiSchemaExpressionRef } from '../types/openapi.js'
 import {
+  DreamModelSerializerType,
   InternalAnyTypedSerializerRendersMany,
   SerializerCasing,
-  SerializerType,
+  SimpleModelSerializerType,
+  ViewModelSerializerType,
 } from '../types/serializer.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
@@ -24,7 +26,7 @@ export default class SerializerOpenapiRenderer {
   private allOfSiblings: OpenapiSchemaBodyShorthand[] = []
 
   constructor(
-    private serializer: SerializerType<any>,
+    private serializer: DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType,
     {
       casing = 'camel',
       schemaDelimiter = '_',
@@ -110,7 +112,11 @@ export default class SerializerOpenapiRenderer {
   ): ReferencedSerializersAndAttributes {
     const $typeForOpenapi = this.serializerBuilder['$typeForOpenapi']
     const DataTypeForOpenapi = $typeForOpenapi as typeof Dream | ViewModelClass | undefined
-    let referencedSerializers: SerializerType<any>[] = []
+    let referencedSerializers: (
+      | DreamModelSerializerType
+      | ViewModelSerializerType
+      | SimpleModelSerializerType
+    )[] = []
     let renderedOpenapi: Record<string, OpenapiSchemaBodyShorthand> = {}
 
     renderedOpenapi = this.serializerBuilder['attributes'].reduce((accumulator, attribute) => {
@@ -271,9 +277,9 @@ function associationOpenapi(
 }
 
 function serializerAndDescendentSerializers(
-  serializer: SerializerType<any>,
+  serializer: DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType,
   alreadyProcessedSerializers: Record<string, boolean>
-): SerializerType<any>[] {
+): (DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType)[] {
   if (alreadyProcessedSerializers[(serializer as any).globalName]) return []
 
   return compact([
@@ -286,11 +292,11 @@ function serializerAndDescendentSerializers(
 }
 
 interface ReferencedSerializersAndOpenapiSchemaBodyShorthand {
-  referencedSerializers: SerializerType<any>[]
+  referencedSerializers: (DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType)[]
   openapi: OpenapiSchemaBodyShorthand
 }
 
 interface ReferencedSerializersAndAttributes {
-  referencedSerializers: SerializerType<any>[]
+  referencedSerializers: (DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType)[]
   attributes: Record<string, OpenapiSchemaBodyShorthand>
 }

@@ -1,16 +1,23 @@
 import SerializerNameConflict from '../../../errors/dream-app/SerializerNameConflict.js'
 import DreamSerializerBuilder from '../../../serializer/builders/DreamSerializerBuilder.js'
 import ViewModelSerializerBuilder from '../../../serializer/builders/ViewModelSerializerBuilder.js'
-import { SerializerType } from '../../../types/serializer.js'
+import {
+  DreamModelSerializerType,
+  SimpleModelSerializerType,
+  ViewModelSerializerType,
+} from '../../../types/serializer.js'
 import DreamImporter from '../DreamImporter.js'
 import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js'
 
-let _serializers: Record<string, SerializerType<any>>
+let _serializers: Record<
+  string,
+  DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType
+>
 
 export default async function importSerializers(
   serializersPath: string,
   serializerImportCb: (path: string) => Promise<any>
-): Promise<Record<string, SerializerType<any>>> {
+): Promise<Record<string, DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType>> {
   if (_serializers) return _serializers
 
   const serializerClasses = await DreamImporter.importSerializers(serializersPath, serializerImportCb)
@@ -40,7 +47,9 @@ export default async function importSerializers(
   return _serializers
 }
 
-export function setCachedSerializers(serializers: Record<string, SerializerType<any>>) {
+export function setCachedSerializers(
+  serializers: Record<string, DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType>
+) {
   _serializers = serializers
 }
 

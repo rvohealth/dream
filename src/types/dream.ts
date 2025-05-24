@@ -13,7 +13,7 @@ import {
 } from './associations/shared.js'
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
-import { SerializerType } from './serializer.js'
+import { DreamModelSerializerType, SimpleModelSerializerType, ViewModelSerializerType } from './serializer.js'
 import { FilterInterface, Inc } from './utils.js'
 import { AliasedSchemaAssociation } from './variadic.js'
 
@@ -449,7 +449,12 @@ export type DreamOrViewModelSerializerKey<T> = T extends Dream
 //   ? StartingArray
 //   : StartingArray | DreamOrViewModelArray<[DreamOrViewModel, ...StartingArray], Inc<Depth>>
 
-export type DreamSerializable = typeof Dream | ViewModelClass | SerializerType<any>
+export type DreamSerializable =
+  | typeof Dream
+  | ViewModelClass
+  | DreamModelSerializerType
+  | ViewModelSerializerType
+  | SimpleModelSerializerType
 
 export type DreamSerializableArray<
   StartingArray extends readonly DreamSerializable[] = [],
