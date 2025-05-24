@@ -60,9 +60,9 @@ describe('DreamSerializer attributes', () => {
 
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', () => {
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
 
-        expect(serializerOpenapiRenderer.casing('snake').renderedOpenapi().openapi).toEqual(
+        expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
           expect.objectContaining({
             type: 'object',
             required: ['required_nicknames'],
@@ -73,9 +73,9 @@ describe('DreamSerializer attributes', () => {
 
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', () => {
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
 
-        expect(serializerOpenapiRenderer.casing('camel').renderedOpenapi().openapi).toEqual(
+        expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
           expect.objectContaining({
             type: 'object',
             required: ['requiredNicknames'],

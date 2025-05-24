@@ -14,18 +14,33 @@ import { InternalAnyTypedSerializerRendersMany, SerializerType } from '../types/
 import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamSerializerBuilder } from './index.js'
 
+export type Casing = 'camel' | 'snake'
+
 export default class SerializerOpenapiRenderer {
-  private _casing: 'camel' | 'snake' = 'camel'
+  private casing: Casing
+  private schemaDelimiter: string
   private allOfSiblings: OpenapiSchemaBodyShorthand[] = []
 
-  constructor(private serializer: SerializerType<any>) {}
+  constructor(
+    private serializer: SerializerType<any>,
+    {
+      casing = 'camel',
+      schemaDelimiter = '_',
+    }: {
+      casing?: Casing
+      schemaDelimiter?: string
+    } = {}
+  ) {
+    this.casing = casing
+    this.schemaDelimiter = schemaDelimiter
+  }
 
   public get globalName(): string {
     return (this.serializer as unknown as { globalName: string })['globalName'] ?? ''
   }
 
   public get openapiName(): string {
-    return this.globalName.replace(/\//g, '_')
+    return this.globalName.replace(/\//g, this.schemaDelimiter)
   }
 
   public get serializerRef(): OpenapiSchemaBodyShorthand {
@@ -44,12 +59,6 @@ export default class SerializerOpenapiRenderer {
       any
     >
     return this._serializerBuilder
-  }
-
-  public casing(casing: 'camel' | 'snake') {
-    this._casing = casing
-
-    return this
   }
 
   public renderedOpenapi(
@@ -176,11 +185,16 @@ export default class SerializerOpenapiRenderer {
   }
 
   private setCase(attr: string) {
-    switch (this._casing) {
+    switch (this.casing) {
       case 'camel':
         return attr
       case 'snake':
         return snakeify(attr)
+      default: {
+        // protection so that if a new Casing is ever added, this will throw a type error at build time
+        const _never: never = this.casing
+        throw new Error(`Unhandled Casing: ${_never as string}`)
+      }
     }
   }
 }

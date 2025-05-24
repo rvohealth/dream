@@ -383,13 +383,13 @@ describe('DreamSerializer attributes', () => {
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.casing('snake').render()).toEqual({
+        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
+        expect(serializerRenderer.render()).toEqual({
           required_nicknames: ['Chuck'],
         })
 
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']().attributes).toEqual(
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             required_nicknames: { type: 'array', items: { type: 'string' } },
           })
@@ -400,13 +400,13 @@ describe('DreamSerializer attributes', () => {
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.casing('camel').render()).toEqual({
+        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
+        expect(serializerRenderer.render()).toEqual({
           requiredNicknames: ['Chuck'],
         })
 
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']().attributes).toEqual(
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             requiredNicknames: { type: 'array', items: { type: 'string' } },
           })

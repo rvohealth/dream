@@ -11,11 +11,12 @@ import inferSerializerFromDreamOrViewModel, {
   inferSerializerFromDreamClassOrViewModelClass,
 } from './helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamSerializerBuilder, SimpleObjectSerializerBuilder, ViewModelSerializerBuilder } from './index.js'
+import { Casing } from './SerializerOpenapiRenderer.js'
 
 export default class SerializerRenderer {
-  private _casing: 'camel' | 'snake' = 'camel'
+  private casing: Casing
   private serializerBuilder: DreamSerializerBuilder<any, any, any> | null
-  private passthroughData: object | undefined
+  private passthroughData: object
 
   constructor(
     serializerBuilder:
@@ -24,16 +25,16 @@ export default class SerializerRenderer {
       | SimpleObjectSerializerBuilder<any, any>
       | null
       | undefined,
-    passthroughData?: object
+    passthroughData: object = {},
+    {
+      casing = 'camel',
+    }: {
+      casing?: Casing
+    } = {}
   ) {
     this.serializerBuilder = (serializerBuilder ?? null) as DreamSerializerBuilder<any, any, any> | null
     this.passthroughData = passthroughData
-  }
-
-  public casing(casing: 'camel' | 'snake') {
-    this._casing = casing
-
-    return this
+    this.casing = casing
   }
 
   public render() {
@@ -128,11 +129,16 @@ export default class SerializerRenderer {
   }
 
   private setCase(attr: string) {
-    switch (this._casing) {
+    switch (this.casing) {
       case 'camel':
         return attr
       case 'snake':
         return snakeify(attr)
+      default: {
+        // protection so that if a new Casing is ever added, this will throw a type error at build time
+        const _never: never = this.casing
+        throw new Error(`Unhandled Casing: ${_never as string}`)
+      }
     }
   }
 }

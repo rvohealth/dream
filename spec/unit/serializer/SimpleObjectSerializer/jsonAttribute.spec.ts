@@ -97,13 +97,13 @@ describe('SimpleObjectSerializer json attributes', () => {
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', () => {
         const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.casing('snake').render()).toEqual({
+        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
+        expect(serializerRenderer.render()).toEqual({
           required_favorite_jsons: [{ hello: 'world' }],
         })
 
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('snake')['renderedOpenapiAttributes']().attributes).toEqual(
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             required_favorite_jsons: { type: 'object' },
           })
@@ -114,13 +114,13 @@ describe('SimpleObjectSerializer json attributes', () => {
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', () => {
         const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.casing('camel').render()).toEqual({
+        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
+        expect(serializerRenderer.render()).toEqual({
           requiredFavoriteJsons: [{ hello: 'world' }],
         })
 
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.casing('camel')['renderedOpenapiAttributes']().attributes).toEqual(
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
             requiredFavoriteJsons: { type: 'object' },
           })
