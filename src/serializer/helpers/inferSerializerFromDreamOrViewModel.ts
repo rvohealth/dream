@@ -3,8 +3,15 @@ import Dream from '../../Dream.js'
 import MissingSerializersDefinition from '../../errors/serializers/MissingSerializersDefinition.js'
 import MissingSerializersDefinitionForKey from '../../errors/serializers/MissingSerializersDefinitionForKey.js'
 import NoGlobalSerializerForSpecifiedKey from '../../errors/serializers/NoGlobalSerializerForSpecifiedKey.js'
+import compact from '../../helpers/compact.js'
+import expandStiClasses from '../../helpers/sti/expandStiClasses.js'
 import { ViewModel, ViewModelClass } from '../../types/dream.js'
-import { SerializerType } from '../../types/serializer.js'
+import {
+  DreamModelSerializerType,
+  SerializerType,
+  SimpleModelSerializerType,
+  ViewModelSerializerType,
+} from '../../types/serializer.js'
 
 export const DEFAULT_SERIALIZER_KEY = 'default'
 
@@ -30,9 +37,16 @@ export default function inferSerializerFromDreamOrViewModel<
   return serializer as ReturnType
 }
 
-export function inferSerializerFromDreamClassOrViewModelClass(
-  classDef: typeof Dream | ViewModelClass,
+export function inferSerializersFromDreamClassOrViewModelClass(
+  classDef: typeof Dream | ViewModelClass | null | undefined,
   serializerKey: string | undefined = undefined
-) {
-  return inferSerializerFromDreamOrViewModel(classDef.prototype, serializerKey)!
+): (DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType)[] {
+  if (!classDef) return []
+  const classes = expandStiClasses(classDef)
+
+  const serializers = classes.map(classDef =>
+    inferSerializerFromDreamOrViewModel(classDef.prototype, serializerKey)
+  )
+
+  return compact(serializers)
 }

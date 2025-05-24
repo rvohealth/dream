@@ -1,18 +1,20 @@
 import Dream from '../Dream.js'
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
-import expandStiSerializersInDreamsOrSerializers from '../openapi/expandStiSerializersInDreamsOrSerializers.js'
 import { ViewModel } from '../types/dream.js'
 import {
+  DreamModelSerializerType,
   InternalAnyRendersOneOrManyOpts,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   SerializerCasing,
+  SimpleModelSerializerType,
+  ViewModelSerializerType,
 } from '../types/serializer.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import SimpleObjectSerializerBuilder from './builders/SimpleObjectSerializerBuilder.js'
 import ViewModelSerializerBuilder from './builders/ViewModelSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel, {
-  inferSerializerFromDreamClassOrViewModelClass,
+  inferSerializersFromDreamClassOrViewModelClass,
 } from './helpers/inferSerializerFromDreamOrViewModel.js'
 
 export default class SerializerRenderer {
@@ -51,6 +53,9 @@ export default class SerializerRenderer {
 
     let renderedAttributes: Record<string, any> = {}
 
+    ////////////////
+    // attributes //
+    ////////////////
     renderedAttributes = this.serializerBuilder['attributes'].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
       const value = data[attribute.name]
@@ -58,7 +63,13 @@ export default class SerializerRenderer {
 
       return accumulator
     }, renderedAttributes)
+    /////////////////////
+    // end: attributes //
+    /////////////////////
 
+    /////////////////////////
+    // delegatedAttributes //
+    /////////////////////////
     renderedAttributes = this.serializerBuilder['delegatedAttributes'].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
       const target = data[attribute.targetName]
@@ -66,7 +77,13 @@ export default class SerializerRenderer {
       accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
       return accumulator
     }, renderedAttributes)
+    //////////////////////////////
+    // end: delegatedAttributes //
+    //////////////////////////////
 
+    //////////////////////
+    // customAttributes //
+    //////////////////////
     renderedAttributes = this.serializerBuilder['customAttributes'].reduce((accumulator, attribute) => {
       // customAttributes don't support `as` since they are already custom and there is nothing to override
       const outputAttributeName = this.setCase(attribute.name)
@@ -75,12 +92,24 @@ export default class SerializerRenderer {
       accumulator[outputAttributeName] = attribute.fn(data, passthroughData)
       return accumulator
     }, renderedAttributes)
+    ///////////////////////////
+    // end: customAttributes //
+    ///////////////////////////
 
+    /////////////////
+    // rendersOnes //
+    /////////////////
     renderedAttributes = this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
-      const value = data[attribute.name]
+      const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
+      const associatedObject = data[attribute.name]
 
-      const serializer = serializerForAssociatedModel(data, value, attribute.name, attribute.options)
+      let serializer: DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType | null
+
+      if (associatedObject) {
+        serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+      } else {
+        serializer = serializerForAssociatedClass(data, attribute.name, attribute.options)
+      }
 
       // Normally, would only need to pass passthroughData into the SerializerRenderer—
       // since not every Serializer handles passthrough data—
@@ -89,7 +118,10 @@ export default class SerializerRenderer {
       // into the serializer builder, so we pass passthroughData into _both_ the SerializerRenderer
       // and the SerializerRenderer
       const serializerRenderer = new SerializerRenderer(
-        serializer?.(attribute.options.flatten ? (value ?? {}) : value, passthroughData),
+        serializer?.(
+          attribute.options.flatten ? (associatedObject ?? {}) : associatedObject,
+          passthroughData
+        ),
         passthroughData
       )
 
@@ -103,13 +135,19 @@ export default class SerializerRenderer {
         return accumulator
       }
     }, renderedAttributes)
+    //////////////////////
+    // end: rendersOnes //
+    //////////////////////
 
+    //////////////////
+    // rendersManys //
+    //////////////////
     renderedAttributes = this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
-      const values = data[attribute.name]
+      const associatedObjects = data[attribute.name]
 
-      accumulator[outputAttributeName] = (values as ViewModel[]).map(value => {
-        const serializer = serializerForAssociatedModel(data, value, attribute.name, attribute.options)
+      accumulator[outputAttributeName] = (associatedObjects as ViewModel[]).map(associatedObject => {
+        const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
 
         // Normally, would only need to pass passthroughData into the SerializerRenderer—
         // since not every Serializer handles passthrough data—
@@ -118,7 +156,7 @@ export default class SerializerRenderer {
         // into the serializer builder, so we pass passthroughData into _both_ the SerializerRenderer
         // and the SerializerRenderer
         const serializerRenderer = new SerializerRenderer(
-          serializer?.(value, passthroughData),
+          serializer?.(associatedObject, passthroughData),
           passthroughData
         )
         return serializerRenderer.render()
@@ -126,6 +164,9 @@ export default class SerializerRenderer {
 
       return accumulator
     }, renderedAttributes)
+    ///////////////////////
+    // end: rendersManys //
+    ///////////////////////
 
     return renderedAttributes
   }
@@ -157,24 +198,30 @@ function applyRenderingOptionsToAttribute(
   return value ?? null
 }
 
-function serializerForAssociatedModel<
-  ObjectType extends Dream | ViewModel,
-  AssociatedObjectType extends Dream | ViewModel,
->(
+function serializerForAssociatedObject<ObjectType extends Dream | ViewModel>(
+  associatedObject: ObjectType,
+  options: InternalAnyRendersOneOrManyOpts
+): DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType | null {
+  if (options.serializerCallback) return options.serializerCallback()
+  return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey)
+}
+
+/**
+ * Only used when flatten: true, and the associated model is null, in which case,
+ * we need something to determine the keys that will be flattened into the
+ * rendering serializer
+ */
+function serializerForAssociatedClass<ObjectType extends Dream | ViewModel>(
   object: ObjectType,
-  associatedObject: AssociatedObjectType,
   associationName: string,
   options: InternalAnyRendersOneOrManyOpts
-) {
+): DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType | null {
   if (options.serializerCallback) return options.serializerCallback()
-  if (associatedObject) return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey)
   if (!(object as Dream).isDreamInstance) return null
 
   const dream = object as Dream
   const association = dream['getAssociationMetadata'](associationName)
-  const associatedClasses = expandStiSerializersInDreamsOrSerializers(association!.modelCB())
-  const associatedClass = associatedClasses[0]
-  if (!associatedClass) return null
-
-  return inferSerializerFromDreamClassOrViewModelClass(associatedClass, options.serializerKey)
+  const associatedClasses = association!.modelCB()
+  const associatedClass = Array.isArray(associatedClasses) ? associatedClasses[0] : associatedClasses
+  return inferSerializersFromDreamClassOrViewModelClass(associatedClass, options.serializerKey)[0] ?? null
 }

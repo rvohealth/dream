@@ -68,9 +68,10 @@ export { default as maybeNullOpenapiShorthandToOpenapiShorthand } from './openap
 export { default as openapiShorthandToOpenapi } from './openapi/openapiShorthandToOpenapi.js'
 export { default as ops } from './ops/index.js'
 export {
-  inferSerializerFromDreamClassOrViewModelClass,
   default as inferSerializerFromDreamOrViewModel,
+  inferSerializersFromDreamClassOrViewModelClass,
 } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+export { default as isDreamSerializer } from './serializer/helpers/isDreamSerializer.js'
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 
 export { default as SerializerOpenapiRenderer } from './serializer/SerializerOpenapiRenderer.js'

@@ -4,11 +4,11 @@ import SimpleObjectSerializerRendersOneAndManyRequireClassType from '../errors/s
 import ViewModelSerializerRendersOneAndManyRequireClassType from '../errors/serializers/ViewModelSerializerRendersOneAndManyRequireClassType.js'
 import compact from '../helpers/compact.js'
 import snakeify from '../helpers/snakeify.js'
+import expandStiClasses from '../helpers/sti/expandStiClasses.js'
 import uniq from '../helpers/uniq.js'
 import { dreamColumnOpenapiShape } from '../openapi/dreamAttributeOpenapiShape.js'
-import expandStiSerializersInDreamsOrSerializers from '../openapi/expandStiSerializersInDreamsOrSerializers.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
-import { DreamOrViewModel, ViewModelClass } from '../types/dream.js'
+import { ViewModelClass } from '../types/dream.js'
 import { OpenapiSchemaBodyShorthand, OpenapiSchemaExpressionRef } from '../types/openapi.js'
 import {
   InternalAnyTypedSerializerRendersMany,
@@ -16,7 +16,7 @@ import {
   SerializerType,
 } from '../types/serializer.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
-import { inferSerializerFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { inferSerializersFromDreamClassOrViewModelClass } from './helpers/inferSerializerFromDreamOrViewModel.js'
 
 export default class SerializerOpenapiRenderer {
   private casing: SerializerCasing
@@ -216,11 +216,11 @@ function associationOpenapi(
       openapi: new SerializerOpenapiRenderer(serializerOverride).serializerRef,
     }
 
-  let associatedClasses: DreamOrViewModel[]
+  let associatedClasses: (typeof Dream | ViewModelClass)[]
 
   if ((DataTypeForOpenapi as typeof Dream)?.isDream) {
     const association = (DataTypeForOpenapi as typeof Dream)['getAssociationMetadata'](attribute.name)
-    associatedClasses = expandStiSerializersInDreamsOrSerializers(association!.modelCB())
+    associatedClasses = expandStiClasses(association!.modelCB())
     //
   } else {
     const associatedClass: typeof Dream | ViewModelClass | undefined =
@@ -233,16 +233,18 @@ function associationOpenapi(
     }
 
     if ((associatedClass as typeof Dream)?.isDream) {
-      associatedClasses = expandStiSerializersInDreamsOrSerializers(associatedClass)
+      associatedClasses = expandStiClasses(associatedClass)
     } else {
       associatedClasses = [associatedClass]
     }
   }
 
   const serializersOpenapi = uniq(
-    associatedClasses.map(associatedClass =>
-      inferSerializerFromDreamClassOrViewModelClass(associatedClass, attribute.options.serializerKey)
-    ),
+    associatedClasses
+      .map(associatedClass =>
+        inferSerializersFromDreamClassOrViewModelClass(associatedClass, attribute.options.serializerKey)
+      )
+      .flat(),
     serializer => (serializer as any)['globalName']
   )
 
