@@ -3,9 +3,9 @@ import {
   SimpleModelSerializerType,
   ViewModelSerializerType,
 } from '../../types/serializer.js'
-import DreamSerializerBuilder from '../builders/DreamSerializerBuilder.js'
-import SimpleObjectSerializerBuilder from '../builders/SimpleObjectSerializerBuilder.js'
-import ViewModelSerializerBuilder from '../builders/ViewModelSerializerBuilder.js'
+import DreamSerializer from '../DreamSerializer.js'
+import SimpleObjectSerializer from '../SimpleObjectSerializer.js'
+import ViewModelSerializer from '../ViewModelSerializer.js'
 
 export default function isDreamSerializer(dreamOrSerializerClass: any) {
   const asSerializer = dreamOrSerializerClass as
@@ -14,8 +14,8 @@ export default function isDreamSerializer(dreamOrSerializerClass: any) {
     | SimpleModelSerializerType
   return (
     typeof asSerializer === 'function' &&
-    (asSerializer instanceof DreamSerializerBuilder ||
-      asSerializer instanceof ViewModelSerializerBuilder ||
-      asSerializer instanceof SimpleObjectSerializerBuilder)
+    (asSerializer instanceof DreamSerializer ||
+      asSerializer instanceof ViewModelSerializer ||
+      asSerializer instanceof SimpleObjectSerializer)
   )
 }
