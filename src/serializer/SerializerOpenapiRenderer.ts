@@ -4,6 +4,8 @@ import SimpleObjectSerializerRendersOneAndManyRequireClassType from '../errors/s
 import ViewModelSerializerRendersOneAndManyRequireClassType from '../errors/serializers/ViewModelSerializerRendersOneAndManyRequireClassType.js'
 import compact from '../helpers/compact.js'
 import snakeify from '../helpers/snakeify.js'
+import sort from '../helpers/sort.js'
+import sortObjectByKey from '../helpers/sortObjectByKey.js'
 import expandStiClasses from '../helpers/sti/expandStiClasses.js'
 import uniq from '../helpers/uniq.js'
 import { dreamColumnOpenapiShape } from '../openapi/dreamAttributeOpenapiShape.js'
@@ -97,16 +99,18 @@ export default class SerializerOpenapiRenderer {
       referencedSerializers: referencedSerializersAndAttributes.referencedSerializers,
       openapi: {
         type: this.serializerBuilder['_maybeNull'] ? ['object', 'null'] : 'object',
-        required: [
-          ...this.serializerBuilder['attributes'].map(obj => obj.name),
-          ...this.serializerBuilder['delegatedAttributes'].map(obj => obj.name),
-          ...this.serializerBuilder['customAttributes'].map(obj => obj.name),
-          ...compact(
-            this.serializerBuilder['rendersOnes'].map(obj => (obj.options.flatten ? null : obj.name))
-          ),
-          ...this.serializerBuilder['rendersManys'].map(obj => obj.name),
-        ].map(attribute => this.setCase(attribute)),
-        properties: referencedSerializersAndAttributes.attributes,
+        required: sort(
+          [
+            ...this.serializerBuilder['attributes'].map(obj => obj.name),
+            ...this.serializerBuilder['delegatedAttributes'].map(obj => obj.name),
+            ...this.serializerBuilder['customAttributes'].map(obj => obj.name),
+            ...compact(
+              this.serializerBuilder['rendersOnes'].map(obj => (obj.options.flatten ? null : obj.name))
+            ),
+            ...this.serializerBuilder['rendersManys'].map(obj => obj.name),
+          ].map(attribute => this.setCase(attribute))
+        ),
+        properties: sortObjectByKey(referencedSerializersAndAttributes.attributes),
       },
     }
   }
