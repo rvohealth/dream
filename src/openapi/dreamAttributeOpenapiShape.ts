@@ -22,7 +22,8 @@ export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
     | OpenapiDescription
     | OpenapiSchemaBodyShorthand
     | OpenapiShorthandPrimitiveTypes
-    | undefined = undefined
+    | undefined = undefined,
+  { suppressResponseEnums }: { suppressResponseEnums: boolean }
 ) {
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]
@@ -39,7 +40,7 @@ export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
   }
 
   const openapiObject = openapiShorthandToOpenapi((openapi ?? {}) as any)
-  const singleType = singularAttributeOpenapiShape(dreamColumnInfo)
+  const singleType = singularAttributeOpenapiShape(dreamColumnInfo, suppressResponseEnums)
 
   if (dreamColumnInfo.isArray) {
     return {
@@ -62,8 +63,17 @@ function baseDbType(dreamColumnInfo: DreamColumnInfo) {
   return dreamColumnInfo.dbType.replace('[]', '')
 }
 
-function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo) {
-  if (dreamColumnInfo.enumValues) return { type: 'string', enum: dreamColumnInfo.enumValues } as const
+function singularAttributeOpenapiShape(dreamColumnInfo: DreamColumnInfo, suppressResponseEnums: boolean) {
+  if (dreamColumnInfo.enumValues) {
+    if (suppressResponseEnums) {
+      return {
+        type: 'string',
+        description: `The following values will be allowed:\n  ${dreamColumnInfo.enumValues.join(',\n  ')}`,
+      } as const
+    } else {
+      return { type: 'string', enum: dreamColumnInfo.enumValues } as const
+    }
+  }
 
   switch (baseDbType(dreamColumnInfo)) {
     case 'boolean':

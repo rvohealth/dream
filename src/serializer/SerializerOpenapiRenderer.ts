@@ -24,19 +24,23 @@ export default class SerializerOpenapiRenderer {
   private casing: SerializerCasing
   private schemaDelimiter: string
   private allOfSiblings: OpenapiSchemaBodyShorthand[] = []
+  private suppressResponseEnums: boolean
 
   constructor(
     private serializer: DreamModelSerializerType | ViewModelSerializerType | SimpleModelSerializerType,
     {
       casing = 'camel',
       schemaDelimiter = '_',
+      suppressResponseEnums = false,
     }: {
       casing?: SerializerCasing
       schemaDelimiter?: string
+      suppressResponseEnums?: boolean
     } = {}
   ) {
     this.casing = casing
     this.schemaDelimiter = schemaDelimiter
+    this.suppressResponseEnums = suppressResponseEnums
   }
 
   public get globalName(): string {
@@ -124,7 +128,9 @@ export default class SerializerOpenapiRenderer {
       const openapi = attribute.options.openapi
 
       accumulator[outputAttributeName] = (DataTypeForOpenapi as typeof Dream)?.isDream
-        ? dreamColumnOpenapiShape(DataTypeForOpenapi as typeof Dream, attribute.name, openapi)
+        ? dreamColumnOpenapiShape(DataTypeForOpenapi as typeof Dream, attribute.name, openapi, {
+            suppressResponseEnums: this.suppressResponseEnums,
+          })
         : openapiShorthandToOpenapi(openapi as any)
 
       return accumulator

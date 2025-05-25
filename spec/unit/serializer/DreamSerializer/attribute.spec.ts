@@ -363,6 +363,33 @@ describe('DreamSerializer attributes', () => {
         likesTreats: { type: 'boolean' },
       })
     })
+
+    context('suppressResponseEnums: true', () => {
+      it('renders a description with the enums rather than proper enums', () => {
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, {
+          suppressResponseEnums: true,
+        })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
+          expect.objectContaining({
+            species: {
+              type: ['string', 'null'],
+              description: `The following values will be allowed:
+  cat,
+  noncat`,
+            },
+            favoriteTreats: {
+              type: ['array', 'null'],
+              items: {
+                type: 'string',
+                description: `The following values will be allowed:
+  efishy feesh,
+  snick snowcks`,
+              },
+            },
+          })
+        )
+      })
+    })
   })
 
   context('numeric/decimal with precision', () => {
