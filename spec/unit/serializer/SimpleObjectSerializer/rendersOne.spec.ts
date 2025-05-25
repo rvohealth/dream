@@ -49,7 +49,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
-          $ref: '#/components/schemas/CustomUserSerializer',
+          $ref: '#/components/schemas/CustomUser',
         },
       })
     })
@@ -78,7 +78,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
-          $ref: '#/components/schemas/UserSerializer',
+          $ref: '#/components/schemas/User',
         },
       })
     })
@@ -104,7 +104,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
-          $ref: '#/components/schemas/UserSummarySerializer',
+          $ref: '#/components/schemas/UserSummary',
         },
       })
     })
@@ -131,7 +131,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user: {
-          $ref: '#/components/schemas/CustomUserSerializer',
+          $ref: '#/components/schemas/CustomUser',
         },
       })
     })
@@ -158,7 +158,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
         user2: {
-          $ref: '#/components/schemas/UserSerializer',
+          $ref: '#/components/schemas/User',
         },
       })
     })
@@ -195,7 +195,7 @@ describe('SimpleObjectSerializer rendersOne', () => {
               },
             },
             {
-              $ref: '#/components/schemas/UserSerializer',
+              $ref: '#/components/schemas/User',
             },
           ],
         })

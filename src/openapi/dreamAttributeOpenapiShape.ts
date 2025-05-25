@@ -23,7 +23,7 @@ export function dreamColumnOpenapiShape<DreamClass extends typeof Dream>(
     | OpenapiSchemaBodyShorthand
     | OpenapiShorthandPrimitiveTypes
     | undefined = undefined,
-  { suppressResponseEnums }: { suppressResponseEnums: boolean }
+  { suppressResponseEnums = false }: { suppressResponseEnums?: boolean } = {}
 ) {
   const dream = dreamClass.prototype
   const dreamColumnInfo: DreamColumnInfo = dream.schema[dream.table]?.columns[column]

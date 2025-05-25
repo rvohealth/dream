@@ -29,7 +29,7 @@ describe('ViewModelSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/view-model_UserSerializer',
+        $ref: '#/components/schemas/view-model_User',
       },
     })
   })
@@ -58,7 +58,7 @@ describe('ViewModelSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/view-model_UserSummarySerializer',
+        $ref: '#/components/schemas/view-model_UserSummary',
       },
     })
   })
@@ -89,7 +89,7 @@ describe('ViewModelSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user2: {
-        $ref: '#/components/schemas/view-model_UserSerializer',
+        $ref: '#/components/schemas/view-model_User',
       },
     })
   })
@@ -127,7 +127,7 @@ describe('ViewModelSerializer rendersOne', () => {
             },
           },
           {
-            $ref: '#/components/schemas/view-model_UserSerializer',
+            $ref: '#/components/schemas/view-model_User',
           },
         ],
       })
@@ -159,7 +159,7 @@ describe('ViewModelSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/CustomUserSerializer',
+        $ref: '#/components/schemas/CustomUser',
       },
     })
   })

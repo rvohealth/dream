@@ -27,7 +27,7 @@ describe('DreamSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/UserSerializer',
+        $ref: '#/components/schemas/User',
       },
     })
   })
@@ -114,7 +114,7 @@ describe('DreamSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/UserSummarySerializer',
+        $ref: '#/components/schemas/UserSummary',
       },
     })
   })
@@ -140,7 +140,7 @@ describe('DreamSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user2: {
-        $ref: '#/components/schemas/UserSerializer',
+        $ref: '#/components/schemas/User',
       },
     })
   })
@@ -176,7 +176,7 @@ describe('DreamSerializer rendersOne', () => {
             },
           },
           {
-            $ref: '#/components/schemas/UserSerializer',
+            $ref: '#/components/schemas/User',
           },
         ],
       })
@@ -268,7 +268,7 @@ describe('DreamSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/CustomUserSerializer',
+        $ref: '#/components/schemas/CustomUser',
       },
     })
   })
@@ -304,7 +304,7 @@ describe('DreamSerializer rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/CustomUserSerializer',
+        $ref: '#/components/schemas/CustomUser',
       },
     })
   })

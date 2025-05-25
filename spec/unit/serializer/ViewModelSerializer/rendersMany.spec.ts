@@ -43,7 +43,7 @@ describe('ViewModelSerializer rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/view-model_PetSerializer',
+          $ref: '#/components/schemas/view-model_Pet',
         },
       },
     })
@@ -60,13 +60,13 @@ describe('ViewModelSerializer rendersMany', () => {
         items: {
           anyOf: [
             {
-              $ref: '#/components/schemas/Balloon_Latex_AnimalSerializer',
+              $ref: '#/components/schemas/Balloon_Latex_Animal',
             },
             {
-              $ref: '#/components/schemas/Balloon_LatexSerializer',
+              $ref: '#/components/schemas/Balloon_Latex',
             },
             {
-              $ref: '#/components/schemas/Balloon_MylarSerializer',
+              $ref: '#/components/schemas/Balloon_Mylar',
             },
           ],
         },
@@ -120,7 +120,7 @@ describe('ViewModelSerializer rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/view-model_PetSummarySerializer',
+          $ref: '#/components/schemas/view-model_PetSummary',
         },
       },
     })
@@ -166,7 +166,7 @@ describe('ViewModelSerializer rendersMany', () => {
       pets2: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/view-model_PetSerializer',
+          $ref: '#/components/schemas/view-model_Pet',
         },
       },
     })
@@ -206,7 +206,7 @@ describe('ViewModelSerializer rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/CustomPetSerializer',
+          $ref: '#/components/schemas/CustomPet',
         },
       },
     })

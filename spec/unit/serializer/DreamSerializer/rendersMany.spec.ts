@@ -44,7 +44,7 @@ describe('DreamSerializer rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/PetSerializer',
+          $ref: '#/components/schemas/Pet',
         },
       },
     })
@@ -65,13 +65,13 @@ describe('DreamSerializer rendersMany', () => {
         items: {
           anyOf: [
             {
-              $ref: '#/components/schemas/Balloon_Latex_AnimalSerializer',
+              $ref: '#/components/schemas/Balloon_Latex_Animal',
             },
             {
-              $ref: '#/components/schemas/Balloon_LatexSerializer',
+              $ref: '#/components/schemas/Balloon_Latex',
             },
             {
-              $ref: '#/components/schemas/Balloon_MylarSerializer',
+              $ref: '#/components/schemas/Balloon_Mylar',
             },
           ],
         },
@@ -124,7 +124,7 @@ describe('DreamSerializer rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/PetSummarySerializer',
+          $ref: '#/components/schemas/PetSummary',
         },
       },
     })
@@ -172,7 +172,7 @@ describe('DreamSerializer rendersMany', () => {
       pets2: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/PetSerializer',
+          $ref: '#/components/schemas/Pet',
         },
       },
     })
@@ -216,7 +216,7 @@ describe('DreamSerializer rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/CustomPetSerializer',
+          $ref: '#/components/schemas/CustomPet',
         },
       },
     })

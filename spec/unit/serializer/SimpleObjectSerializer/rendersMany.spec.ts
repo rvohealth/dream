@@ -61,7 +61,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
         pets: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/PetSerializer',
+            $ref: '#/components/schemas/Pet',
           },
         },
       })
@@ -107,7 +107,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
         pets: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/PetSerializer',
+            $ref: '#/components/schemas/Pet',
           },
         },
       })
@@ -155,7 +155,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
         pets: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/PetSummarySerializer',
+            $ref: '#/components/schemas/PetSummary',
           },
         },
       })
@@ -199,7 +199,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
         pets2: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/PetSerializer',
+            $ref: '#/components/schemas/Pet',
           },
         },
       })
@@ -238,7 +238,7 @@ describe('SimpleObjectSerializer rendersMany', () => {
         pets: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/CustomPetSerializer',
+            $ref: '#/components/schemas/CustomPet',
           },
         },
       })
