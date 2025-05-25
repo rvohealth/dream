@@ -1,24 +1,12 @@
-import { RendersMany, RendersOne } from '../../../src/index.js'
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
-import { CompositionMetadata } from '../models/Composition.js'
-import CompositionAsset from '../models/CompositionAsset.js'
-import LocalizedText from '../models/LocalizedText.js'
-import { LocalizedTextBaseSerializer } from './LocalizedText/BaseSerializer.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
+import Composition from '../models/Composition.js'
 
-export default class CompositionSerializer extends DreamSerializer {
-  @Attribute()
-  public id: string
+export default (data: Composition) =>
+  DreamSerializer(Composition, data)
+    .attribute('id')
+    .jsonAttribute('metadata', { openapi: 'json' })
 
-  @Attribute('json')
-  public metadata: CompositionMetadata
+    .rendersMany('compositionAssets')
+    // .rendersMany('localizedTexts', () => LocalizedTextBaseSerializer<any>)
 
-  @RendersMany()
-  public compositionAssets: CompositionAsset[]
-
-  @RendersMany(() => LocalizedTextBaseSerializer<any>)
-  public localizedTexts: LocalizedText[]
-
-  @RendersOne()
-  public passthroughCurrentLocalizedText: LocalizedText
-}
+    .rendersOne('passthroughCurrentLocalizedText')

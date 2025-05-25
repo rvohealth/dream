@@ -75,7 +75,7 @@ export function setCachedModels(models: Record<string, typeof Dream>) {
 }
 
 export function getModelsOrFail() {
-  if (!_models) throw new Error('Must call loadModels before calling getModelsOrFail')
+  if (!_models) throw new Error('Must call importModels before calling getModelsOrFail')
   return _models
 }
 

@@ -1,0 +1,123 @@
+import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
+import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
+import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
+import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
+
+describe('DreamSerializer json attributes', () => {
+  context('all Dream column types', () => {
+    const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+      DreamSerializer(ModelForOpenapiTypeSpecs, data)
+        .jsonAttribute('favoriteJsons', {
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .jsonAttribute('requiredFavoriteJsons', {
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .jsonAttribute('favoriteJsonbs', {
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .jsonAttribute('requiredFavoriteJsonbs', {
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .jsonAttribute('jsonData', { openapi: { type: ['object', 'null'], properties: { hello: 'string' } } })
+        .jsonAttribute('requiredJsonData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+        .jsonAttribute('jsonbData', {
+          openapi: { type: ['object', 'null'], properties: { hello: 'string' } },
+        })
+        .jsonAttribute('requiredJsonbData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+    let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
+
+    beforeEach(async () => {
+      serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+    })
+
+    it('serialize correctly', () => {
+      const serializerRenderer = new SerializerRenderer(serializer)
+      expect(serializerRenderer.render()).toEqual({
+        favoriteJsons: [{ hello: 'world' }],
+        requiredFavoriteJsons: [{ hello: 'world' }],
+        favoriteJsonbs: [{ hello: 'world' }],
+        requiredFavoriteJsonbs: [{ hello: 'world' }],
+
+        jsonData: { hello: '1' },
+        requiredJsonData: { hello: '2' },
+        jsonbData: { hello: '3' },
+        requiredJsonbData: { hello: '4' },
+      })
+    })
+
+    it('have the correct OpenAPI shape', () => {
+      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
+        favoriteJsons: {
+          type: ['array', 'null'],
+          items: { type: 'object', properties: { hello: 'string' } },
+        },
+        requiredFavoriteJsons: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
+        favoriteJsonbs: {
+          type: ['array', 'null'],
+          items: { type: 'object', properties: { hello: 'string' } },
+        },
+        requiredFavoriteJsonbs: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
+
+        jsonData: { type: ['object', 'null'], properties: { hello: 'string' } },
+        requiredJsonData: { type: 'object', properties: { hello: 'string' } },
+        jsonbData: { type: ['object', 'null'], properties: { hello: 'string' } },
+        requiredJsonbData: { type: 'object', properties: { hello: 'string' } },
+      })
+    })
+  })
+
+  context('with casing specified', () => {
+    const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+      DreamSerializer(ModelForOpenapiTypeSpecs, data).attribute('requiredNicknames')
+
+    context('snake casing is specified', () => {
+      it('renders all attribute keys in snake case', async () => {
+        const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
+        expect(serializerRenderer.render()).toEqual({
+          required_nicknames: ['Chuck'],
+        })
+
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
+          expect.objectContaining({
+            required_nicknames: { type: 'array', items: { type: 'string' } },
+          })
+        )
+      })
+    })
+
+    context('camel casing is specified', () => {
+      it('renders all attribute keys in camel case', async () => {
+        const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
+        expect(serializerRenderer.render()).toEqual({
+          requiredNicknames: ['Chuck'],
+        })
+
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
+        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
+          expect.objectContaining({
+            requiredNicknames: { type: 'array', items: { type: 'string' } },
+          })
+        )
+      })
+    })
+  })
+})

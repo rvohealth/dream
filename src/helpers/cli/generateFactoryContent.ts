@@ -56,7 +56,7 @@ export default function generateFactoryContent({
 
       case 'enum':
         stringAttributes.push(
-          `${camelize(attributeName)}: '${(descriptors[descriptors.length - 1] || '<tbd>').split(',')[0]}',`
+          `${camelize(attributeName)}: '${(descriptors.at(-1) || '<tbd>').split(',')[0]}',`
         )
         break
 

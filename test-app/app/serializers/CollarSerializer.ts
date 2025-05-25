@@ -1,14 +1,5 @@
-import RendersOne from '../../../src/serializer/decorators/associations/RendersOne.js'
-import Attribute from '../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../src/serializer/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
+import Collar from '../models/Collar.js'
 
-export default class CollarSerializer extends DreamSerializer {
-  @Attribute()
-  public id: any
-
-  @Attribute()
-  public lost: any
-
-  @RendersOne()
-  public pet: any
-}
+export default (data: Collar) =>
+  DreamSerializer(Collar, data).attribute('id').attribute('lost').rendersOne('pet')

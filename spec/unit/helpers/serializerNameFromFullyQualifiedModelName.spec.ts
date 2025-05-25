@@ -1,4 +1,4 @@
-import serializerNameFromFullyQualifiedModelName from '../../../src/helpers/serializerNameFromFullyQualifiedModelName.js'
+import serializerNameFromFullyQualifiedModelName from '../../../src/serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 
 describe('serializerNameFromFullyQualifiedModelName', () => {
   context('default', () => {

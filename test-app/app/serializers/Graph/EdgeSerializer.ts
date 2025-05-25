@@ -1,7 +1,6 @@
-import Attribute from '../../../../src/serializer/decorators/attribute.js'
-import DreamSerializer from '../../../../src/serializer/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
+import Edge from '../../models/Graph/Edge.js'
 
-export default class GraphEdgeSerializer extends DreamSerializer {
-  @Attribute('string')
-  public name: string
-}
+const GraphEdgeSerializer = (data: Edge) => DreamSerializer(Edge, data).attribute('name')
+
+export default GraphEdgeSerializer
