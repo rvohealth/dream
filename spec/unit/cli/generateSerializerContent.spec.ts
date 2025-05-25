@@ -14,12 +14,12 @@ describe('dream generate:serializer <name> [...attributes]', () => {
 import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export const UserSummarySerializer = (data: User, passthroughData: object) =>
-  DreamSerializer(User, data, passthroughData)
+export const UserSummarySerializer = (user: User, passthroughData: object) =>
+  DreamSerializer(User, user, passthroughData)
     .attribute('id')
 
-export default (data: User, passthroughData: object) =>
-  UserSummarySerializer(data, passthroughData)
+export default (user: User, passthroughData: object) =>
+  UserSummarySerializer(user, passthroughData)
     .attribute('loggedInAt')
 `
         )
@@ -39,12 +39,12 @@ export default (data: User, passthroughData: object) =>
 import { DreamSerializer } from '@rvoh/dream'
 import Balloon from '../models/Balloon.js'
 
-export const BalloonSummarySerializer = (StiChildClass: typeof Balloon, data: Balloon, passthroughData: object) =>
-  DreamSerializer(StiChildClass, data, passthroughData)
+export const BalloonSummarySerializer = (StiChildClass: typeof Balloon, balloon: Balloon, passthroughData: object) =>
+  DreamSerializer(StiChildClass, balloon, passthroughData)
     .attribute('id')
 
-export default (StiChildClass: typeof Balloon, data: Balloon, passthroughData: object) =>
-  BalloonSummarySerializer(StiChildClass, data, passthroughData)
+export default (StiChildClass: typeof Balloon, balloon: Balloon, passthroughData: object) =>
+  BalloonSummarySerializer(StiChildClass, balloon, passthroughData)
     .attribute('hello')
 `
         )
@@ -64,11 +64,11 @@ export default (StiChildClass: typeof Balloon, data: Balloon, passthroughData: o
 import BarSerializer, { BarSummarySerializer } from '../BarSerializer.js'
 import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
 
-export const BazSummarySerializer = (data: FooBarBaz, passthroughData: object) =>
-  BarSummarySerializer(FooBarBaz, data, passthroughData)
+export const BazSummarySerializer = (fooBarBaz: FooBarBaz, passthroughData: object) =>
+  BarSummarySerializer(FooBarBaz, fooBarBaz, passthroughData)
 
-export default (data: FooBarBaz, passthroughData: object) =>
-  BarSerializer(FooBarBaz, data, passthroughData)
+export default (fooBarBaz: FooBarBaz, passthroughData: object) =>
+  BarSerializer(FooBarBaz, fooBarBaz, passthroughData)
     .attribute('hello')
 `
         )
@@ -89,12 +89,12 @@ export default (data: FooBarBaz, passthroughData: object) =>
 import { DreamSerializer } from '@rvoh/dream'
 import UserAdmin from '../../models/User/Admin.js'
 
-export const AdminSummarySerializer = (data: UserAdmin, passthroughData: object) =>
-  DreamSerializer(UserAdmin, data, passthroughData)
+export const AdminSummarySerializer = (userAdmin: UserAdmin, passthroughData: object) =>
+  DreamSerializer(UserAdmin, userAdmin, passthroughData)
     .attribute('id')
 
-export default (data: UserAdmin, passthroughData: object) =>
-  AdminSummarySerializer(data, passthroughData)
+export default (userAdmin: UserAdmin, passthroughData: object) =>
+  AdminSummarySerializer(userAdmin, passthroughData)
 `
             )
           }
@@ -139,12 +139,12 @@ export default (data: UserAdmin, passthroughData: object) =>
 import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export const UserSummarySerializer = (data: User, passthroughData: object) =>
-  DreamSerializer(User, data, passthroughData)
+export const UserSummarySerializer = (user: User, passthroughData: object) =>
+  DreamSerializer(User, user, passthroughData)
     .attribute('id')
 
-export default (data: User, passthroughData: object) =>
-  UserSummarySerializer(data, passthroughData)
+export default (user: User, passthroughData: object) =>
+  UserSummarySerializer(user, passthroughData)
     .attribute('howyadoin', { precision: 2 })
 `
           )
@@ -218,12 +218,12 @@ export default (data: User, passthroughData: object) =>
 import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export const UserSummarySerializer = (data: User, passthroughData: object) =>
-  DreamSerializer(User, data, passthroughData)
+export const UserSummarySerializer = (user: User, passthroughData: object) =>
+  DreamSerializer(User, user, passthroughData)
     .attribute('id')
 
-export default (data: User, passthroughData: object) =>
-  UserSummarySerializer(data, passthroughData)
+export default (user: User, passthroughData: object) =>
+  UserSummarySerializer(user, passthroughData)
 `
             )
           })
@@ -243,12 +243,12 @@ function expectAttributeType(startingAttributeType: string) {
 import { DreamSerializer } from '@rvoh/dream'
 import User from '../models/User.js'
 
-export const UserSummarySerializer = (data: User, passthroughData: object) =>
-  DreamSerializer(User, data, passthroughData)
+export const UserSummarySerializer = (user: User, passthroughData: object) =>
+  DreamSerializer(User, user, passthroughData)
     .attribute('id')
 
-export default (data: User, passthroughData: object) =>
-  UserSummarySerializer(data, passthroughData)
+export default (user: User, passthroughData: object) =>
+  UserSummarySerializer(user, passthroughData)
     .attribute('howyadoin')
 `
   )

@@ -30,17 +30,18 @@ export default function generateSerializerContent({
 
   const relatedModelImport = importStatementForModel(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelInstanceName = camelize(modelClassName)
   const modelSerializerSignature = stiBaseSerializer
-    ? `StiChildClass: typeof ${modelClassName}, data: ${modelClassName}, passthroughData: object`
-    : `data: ${modelClassName}, passthroughData: object`
+    ? `StiChildClass: typeof ${modelClassName}, ${modelInstanceName}: ${modelClassName}, passthroughData: object`
+    : `${modelInstanceName}: ${modelClassName}, passthroughData: object`
   const modelSerializerArgs = stiBaseSerializer
-    ? `StiChildClass, data, passthroughData`
+    ? `StiChildClass, ${modelInstanceName}, passthroughData`
     : isSTI
-      ? `${modelClassName}, data, passthroughData`
-      : `data, passthroughData`
+      ? `${modelClassName}, ${modelInstanceName}, passthroughData`
+      : `${modelInstanceName}, passthroughData`
   const dreamSerializerArgs = stiBaseSerializer
-    ? `StiChildClass, data, passthroughData`
-    : `${modelClassName}, data, passthroughData`
+    ? `StiChildClass, ${modelInstanceName}, passthroughData`
+    : `${modelClassName}, ${modelInstanceName}, passthroughData`
 
   // const defaultSerialzerClassName = serializerNameFromFullyQualifiedModelName(
   //   fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
