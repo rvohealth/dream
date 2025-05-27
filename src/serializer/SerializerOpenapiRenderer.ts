@@ -263,10 +263,12 @@ function associationOpenapi(
     }
 
   let associatedClasses: (typeof Dream | ViewModelClass)[]
+  const association =
+    (DataTypeForOpenapi as typeof Dream)?.isDream &&
+    (DataTypeForOpenapi as typeof Dream)['getAssociationMetadata'](attribute.name)
 
-  if ((DataTypeForOpenapi as typeof Dream)?.isDream) {
-    const association = (DataTypeForOpenapi as typeof Dream)['getAssociationMetadata'](attribute.name)
-    associatedClasses = expandStiClasses(association!.modelCB())
+  if (association) {
+    associatedClasses = expandStiClasses(association.modelCB())
     //
   } else {
     const associatedClass: typeof Dream | ViewModelClass | undefined =
