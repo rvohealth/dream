@@ -1,28 +1,39 @@
+import { CalendarDate } from '../../../../src/index.js'
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 describe('DreamSerializer attributes', () => {
   it('can render Dream attributes', () => {
-    const MySerializer = (data: User) => DreamSerializer(User, data).attribute('email')
-
-    const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
+    const serializer = UserSerializer(
+      User.new({
+        id: '7',
+        name: 'Charlie',
+        birthdate: CalendarDate.fromISO('1950-10-02'),
+        favoriteWord: 'football',
+      })
+    )
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer.render()).toEqual({
-      email: 'abc',
+      id: '7',
+      name: 'Charlie',
+      birthdate: '1950-10-02',
+      favoriteWord: 'football',
     })
 
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(UserSerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-      },
+      id: { type: 'string' },
+      favoriteWord: { type: ['string', 'null'] },
+      name: { type: ['string', 'null'] },
+      birthdate: { type: ['string', 'null'], format: 'date' },
     })
   })
 

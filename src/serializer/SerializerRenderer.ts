@@ -1,4 +1,5 @@
 import Dream from '../Dream.js'
+import RendersManyMustReceiveArray from '../errors/serializers/RendersManyMustReceiveArray.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
 import round from '../helpers/round.js'
@@ -88,8 +89,16 @@ export default class SerializerRenderer {
       const outputAttributeName = this.setCase(attribute.name)
       // customAttributes don't support rendering options since the custom function should handle all
       // manipulation of the value
-      accumulator[outputAttributeName] = attribute.fn()
-      return accumulator
+
+      if (attribute.options.flatten) {
+        return {
+          ...accumulator,
+          ...applyRenderingOptionsToAttribute(attribute.fn(), {}),
+        }
+      } else {
+        accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(attribute.fn(), {})
+        return accumulator
+      }
     }, renderedAttributes)
     ///////////////////////////
     // end: customAttributes //
@@ -146,6 +155,8 @@ export default class SerializerRenderer {
     renderedAttributes = this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
       const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
       const associatedObjects = data[attribute.name]
+
+      if (!associatedObjects) throw new RendersManyMustReceiveArray(attribute, associatedObjects)
 
       accumulator[outputAttributeName] = (associatedObjects as ViewModel[]).map(associatedObject => {
         const serializer = serializerForAssociatedObject(associatedObject, attribute.options)

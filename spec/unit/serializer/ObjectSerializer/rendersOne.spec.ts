@@ -71,6 +71,7 @@ describe('ObjectSerializer rendersOne', () => {
         user: {
           id: user.id,
           name: 'Charlie',
+          favoriteWord: null,
           birthdate: birthdate.toISO(),
         },
       })
@@ -151,6 +152,7 @@ describe('ObjectSerializer rendersOne', () => {
         user2: {
           id: user.id,
           name: 'Charlie',
+          favoriteWord: 'hello',
           birthdate: birthdate.toISO(),
         },
       })
@@ -180,6 +182,7 @@ describe('ObjectSerializer rendersOne', () => {
         expect(serializerRenderer.render()).toEqual({
           species: 'dog',
           id: user.id,
+          favoriteWord: 'hello',
           name: 'Charlie',
           birthdate: birthdate.toISO(),
         })

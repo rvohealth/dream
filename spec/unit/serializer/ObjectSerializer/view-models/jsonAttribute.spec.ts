@@ -50,8 +50,8 @@ class ModelForOpenapiTypeSpecs {
 
   public get serializers(): DreamSerializers<ApplicationModel> {
     return {
-      default: 'PetSerializer',
-      summary: 'PetSummarySerializer',
+      default: 'view-model/PetSerializer',
+      summary: 'view-model/PetSummarySerializer',
     }
   }
 }

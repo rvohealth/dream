@@ -1,9 +1,12 @@
-import { round } from '../../../../src/index.js'
+import { CalendarDate, round } from '../../../../src/index.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
+import { SpeciesValues } from '../../../../test-app/types/db.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 describe('DreamSerializer customAttributes', () => {
@@ -27,11 +30,27 @@ describe('DreamSerializer customAttributes', () => {
     })
   })
 
+  context('CalendarDate and DateTime', () => {
+    it('are converted to ISO strings', async () => {
+      const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+        DreamSerializer(ModelForOpenapiTypeSpecs, data)
+          .customAttribute('birthdate', () => data.birthdate, { openapi: 'date' })
+          .customAttribute('aDatetime', () => data.aDatetime, { openapi: 'date-time' })
+      const model = await fleshedOutModelForOpenapiTypeSpecs()
+      const serializer = MySerializer(model)
+      const serializerRenderer = new SerializerRenderer(serializer)
+      expect(serializerRenderer.render()).toEqual({
+        birthdate: model.birthdate!.toISO(),
+        aDatetime: model.aDatetime!.toISO(),
+      })
+    })
+  })
+
   it('can override the OpenAPI shape with OpenAPI shorthand', async () => {
     const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
       DreamSerializer(ModelForOpenapiTypeSpecs, data).customAttribute(
         'birthdate',
-        () => data.birthdate?.toDateTime()?.toISO(),
+        () => data.birthdate?.toDateTime(),
         { openapi: 'date-time' }
       )
     const model = await fleshedOutModelForOpenapiTypeSpecs()
@@ -121,6 +140,176 @@ describe('DreamSerializer customAttributes', () => {
         email: {
           type: 'string',
         },
+      })
+    })
+  })
+
+  context('flatten', () => {
+    it('renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
+      const birthdate = CalendarDate.fromISO('1950-10-02')
+      const user = User.new({ id: '7', name: 'Charlie', birthdate })
+      const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute(
+            'user',
+            () => {
+              const serializer = UserSerializer(data.user!)
+              return new SerializerRenderer(serializer).render()
+            },
+            {
+              flatten: true,
+              openapi: {
+                $serializer: UserSerializer,
+              },
+            }
+          )
+
+      const serializer = MySerializer(pet)
+
+      const serializerRenderer = new SerializerRenderer(serializer)
+      expect(serializerRenderer.render()).toEqual({
+        species: 'dog',
+        id: user.id,
+        name: 'Charlie',
+        favoriteWord: null,
+        birthdate: birthdate.toISO(),
+      })
+
+      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+      const results = serializerOpenapiRenderer.renderedOpenapi()
+      expect(results.openapi).toEqual({
+        allOf: [
+          {
+            type: 'object',
+            required: ['species'],
+            properties: {
+              species: { type: ['string', 'null'], enum: SpeciesValues },
+            },
+          },
+          {
+            $ref: '#/components/schemas/User',
+          },
+        ],
+      })
+
+      expect(results.referencedSerializers).toHaveLength(1)
+      expect((results.referencedSerializers[0] as any).globalName).toEqual('UserSerializer')
+    })
+
+    context('when optional and flatten', () => {
+      it('the other association is wrapped in anyOf with null', () => {
+        const birthdate = CalendarDate.fromISO('1950-10-02')
+        const user = User.new({ id: '7', name: 'Charlie', birthdate })
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data)
+            .attribute('species')
+            .rendersOne('user', { flatten: true, optional: true })
+
+        const serializer = MySerializer(pet)
+
+        const serializerRenderer = new SerializerRenderer(serializer)
+        expect(serializerRenderer.render()).toEqual({
+          species: 'dog',
+          id: user.id,
+          name: 'Charlie',
+          favoriteWord: null,
+          birthdate: birthdate.toISO(),
+        })
+
+        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+        const results = serializerOpenapiRenderer.renderedOpenapi()
+        expect(results.openapi).toEqual({
+          allOf: [
+            {
+              type: 'object',
+              required: ['species'],
+              properties: {
+                species: { type: ['string', 'null'], enum: SpeciesValues },
+              },
+            },
+            {
+              anyOf: [
+                {
+                  $ref: '#/components/schemas/User',
+                },
+                {
+                  type: 'null',
+                },
+              ],
+            },
+          ],
+        })
+
+        expect(results.referencedSerializers).toHaveLength(1)
+        expect((results.referencedSerializers[0] as any).globalName).toEqual('UserSerializer')
+      })
+    })
+
+    context('when the associated attributes are null', () => {
+      it('renders the flattened attributes as null', () => {
+        const user = User.new({ id: '7', name: null, birthdate: null })
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).attribute('species').rendersOne('user', { flatten: true })
+
+        const serializer = MySerializer(pet)
+
+        const serializerRenderer = new SerializerRenderer(serializer)
+        expect(serializerRenderer.render()).toEqual({
+          species: 'dog',
+          id: user.id,
+          name: null,
+          favoriteWord: null,
+          birthdate: null,
+        })
+      })
+    })
+
+    context('when the associated attributes are undefined', () => {
+      it('renders the flattened attributes as null', () => {
+        const user = User.new({ id: '7' })
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).attribute('species').rendersOne('user', { flatten: true })
+
+        const serializer = MySerializer(pet)
+
+        const serializerRenderer = new SerializerRenderer(serializer)
+        expect(serializerRenderer.render()).toEqual({
+          species: 'dog',
+          id: user.id,
+          name: null,
+          favoriteWord: null,
+          birthdate: null,
+        })
+      })
+    })
+
+    context('when the associated model is null', () => {
+      it('renders the flattened attributes as null', () => {
+        const user = null
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).attribute('species').rendersOne('user', { flatten: true })
+
+        const serializer = MySerializer(pet)
+
+        const serializerRenderer = new SerializerRenderer(serializer)
+        expect(serializerRenderer.render()).toEqual({
+          species: 'dog',
+          id: null,
+          name: null,
+          favoriteWord: null,
+          birthdate: null,
+        })
       })
     })
   })

@@ -14,8 +14,8 @@ class User {
 
   public get serializers(): DreamSerializers<ApplicationModel> {
     return {
-      default: 'UserSerializer',
-      summary: 'UserSummarySerializer',
+      default: 'view-model/UserSerializer',
+      summary: 'view-model/UserSummarySerializer',
     }
   }
 }

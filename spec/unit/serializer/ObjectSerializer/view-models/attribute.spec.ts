@@ -3,6 +3,8 @@ import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
 import SerializerRenderer from '../../../../../src/serializer/SerializerRenderer.js'
 import ApplicationModel from '../../../../../test-app/app/models/ApplicationModel.js'
+import UserSerializer from '../../../../../test-app/app/serializers/view-model/UserSerializer.js'
+import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 
 class User {
   public email: string
@@ -29,8 +31,8 @@ class User {
 
   public get serializers(): DreamSerializers<ApplicationModel> {
     return {
-      default: 'UserSerializer',
-      summary: 'UserSummarySerializer',
+      default: 'view-model/UserSerializer',
+      summary: 'view-model/UserSummarySerializer',
     }
   }
 }
@@ -46,28 +48,37 @@ class ModelForOpenapiTypeSpecs {
 
   public get serializers(): DreamSerializers<ApplicationModel> {
     return {
-      default: 'PetSerializer',
-      summary: 'PetSummarySerializer',
+      default: 'view-model/PetSerializer',
+      summary: 'view-model/PetSummarySerializer',
     }
   }
 }
 
 describe('ObjectSerializer (on a view model) attributes', () => {
   it('can render Dream attributes', () => {
-    const MySerializer = (data: User) => ObjectSerializer(data).attribute('email', { openapi: 'string' })
-
-    const serializer = MySerializer(new User({ email: 'abc', password: '123' }))
+    const serializer = UserSerializer(
+      new UserViewModel({
+        id: '7',
+        name: 'Charlie',
+        birthdate: CalendarDate.fromISO('1950-10-02'),
+        favoriteWord: 'football',
+      })
+    )
 
     const serializerRenderer = new SerializerRenderer(serializer)
     expect(serializerRenderer.render()).toEqual({
-      email: 'abc',
+      id: '7',
+      name: 'Charlie',
+      birthdate: '1950-10-02',
+      favoriteWord: 'football',
     })
 
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(UserSerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-      },
+      id: { type: 'string' },
+      favoriteWord: { type: ['string', 'null'] },
+      name: { type: ['string', 'null'] },
+      birthdate: { type: ['string', 'null'], format: 'date' },
     })
   })
 

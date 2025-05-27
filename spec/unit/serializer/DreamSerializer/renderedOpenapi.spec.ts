@@ -16,6 +16,18 @@ describe('DreamSerializer attributes', () => {
     )
   })
 
+  it('can alias Dream attributes', () => {
+    const MySerializer = (data: User) => DreamSerializer(User, data).attribute('email', { as: 'email2' })
+    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+
+    expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual(
+      expect.objectContaining({
+        type: 'object',
+        required: ['email2'],
+      })
+    )
+  })
+
   it('can render virtual Dream attributes', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).attribute('lbs', { openapi: 'decimal' })
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)

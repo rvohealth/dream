@@ -50,6 +50,8 @@ export type OpenapiSchemaShorthandExpressionSerializerRef = {
   maybeNull?: boolean
 }
 
+// TODO: remove $serializable or else add support for it (keeping in mind that STI
+// base Dream models get expanded into an array of Dream models)
 export type OpenapiSchemaShorthandExpressionSerializableRef = {
   $serializable: typeof Dream | ViewModelClass
   key?: string

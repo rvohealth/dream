@@ -20,6 +20,7 @@ describe('DreamSerializer rendersOne', () => {
       user: {
         id: user.id,
         name: 'Charlie',
+        favoriteWord: null,
         birthdate: birthdate.toISO(),
       },
     })
@@ -47,6 +48,7 @@ describe('DreamSerializer rendersOne', () => {
         user: {
           id: user.id,
           name: 'Charlie',
+          favoriteWord: null,
           birthdate: birthdate.toISO(),
         },
       })
@@ -80,6 +82,7 @@ describe('DreamSerializer rendersOne', () => {
         user: {
           id: user.id,
           name: null,
+          favoriteWord: null,
           birthdate: null,
         },
       })
@@ -102,6 +105,7 @@ describe('DreamSerializer rendersOne', () => {
         user: {
           id: user.id,
           name: null,
+          favoriteWord: null,
           birthdate: null,
         },
       })
@@ -166,6 +170,7 @@ describe('DreamSerializer rendersOne', () => {
       user2: {
         id: user.id,
         name: 'Charlie',
+        favoriteWord: null,
         birthdate: birthdate.toISO(),
       },
     })
@@ -194,6 +199,7 @@ describe('DreamSerializer rendersOne', () => {
         species: 'dog',
         id: user.id,
         name: 'Charlie',
+        favoriteWord: null,
         birthdate: birthdate.toISO(),
       })
 
@@ -236,6 +242,7 @@ describe('DreamSerializer rendersOne', () => {
           species: 'dog',
           id: user.id,
           name: 'Charlie',
+          favoriteWord: null,
           birthdate: birthdate.toISO(),
         })
 
@@ -283,6 +290,7 @@ describe('DreamSerializer rendersOne', () => {
           species: 'dog',
           id: user.id,
           name: null,
+          favoriteWord: null,
           birthdate: null,
         })
       })
@@ -303,6 +311,7 @@ describe('DreamSerializer rendersOne', () => {
           species: 'dog',
           id: user.id,
           name: null,
+          favoriteWord: null,
           birthdate: null,
         })
       })
@@ -323,6 +332,7 @@ describe('DreamSerializer rendersOne', () => {
           species: 'dog',
           id: null,
           name: null,
+          favoriteWord: null,
           birthdate: null,
         })
       })

@@ -31,7 +31,7 @@ export interface InternalAnyTypedSerializerDelegatedAttribute<> {
 export interface InternalAnyTypedSerializerCustomAttribute {
   name: string
   fn: (x?: any, y?: any) => any
-  options: Omit<NonAutomaticSerializerAttributeOptions, 'as'>
+  options: Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean }
 }
 
 export interface InternalAnyRendersOneOrManyOpts {

@@ -94,7 +94,7 @@ export default class DreamSerializerBuilder<
   }
 
   public customAttribute<
-    Options extends Omit<NonAutomaticSerializerAttributeOptions, 'as'>,
+    Options extends Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean },
     CallbackFn extends () => unknown,
   >(name: string, fn: CallbackFn, options: Options) {
     this.customAttributes.push({

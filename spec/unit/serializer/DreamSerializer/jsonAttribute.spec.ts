@@ -84,20 +84,22 @@ describe('DreamSerializer json attributes', () => {
 
   context('with casing specified', () => {
     const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
-      DreamSerializer(ModelForOpenapiTypeSpecs, data).attribute('requiredNicknames')
+      DreamSerializer(ModelForOpenapiTypeSpecs, data).jsonAttribute('jsonData', {
+        openapi: { type: 'object', properties: { hello: { type: 'string' } } },
+      })
 
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
         const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
         expect(serializerRenderer.render()).toEqual({
-          required_nicknames: ['Chuck'],
+          json_data: { hello: '1' },
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
         expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
-            required_nicknames: { type: 'array', items: { type: 'string' } },
+            json_data: { type: 'object', properties: { hello: { type: 'string' } } },
           })
         )
       })
@@ -108,13 +110,13 @@ describe('DreamSerializer json attributes', () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
         const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
         expect(serializerRenderer.render()).toEqual({
-          requiredNicknames: ['Chuck'],
+          jsonData: { hello: '1' },
         })
 
         const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
         expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
           expect.objectContaining({
-            requiredNicknames: { type: 'array', items: { type: 'string' } },
+            jsonData: { type: 'object', properties: { hello: { type: 'string' } } },
           })
         )
       })

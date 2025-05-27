@@ -3,6 +3,7 @@ import Dream from '../../Dream.js'
 import MissingSerializersDefinition from '../../errors/serializers/MissingSerializersDefinition.js'
 import MissingSerializersDefinitionForKey from '../../errors/serializers/MissingSerializersDefinitionForKey.js'
 import NoGlobalSerializerForSpecifiedKey from '../../errors/serializers/NoGlobalSerializerForSpecifiedKey.js'
+import NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey from '../../errors/serializers/NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey.js'
 import compact from '../../helpers/compact.js'
 import expandStiClasses from '../../helpers/sti/expandStiClasses.js'
 import { ViewModel, ViewModelClass } from '../../types/dream.js'
@@ -11,6 +12,7 @@ import {
   SerializerType,
   SimpleObjectSerializerType,
 } from '../../types/serializer.js'
+import isDreamSerializer from './isDreamSerializer.js'
 
 export const DEFAULT_SERIALIZER_KEY = 'default'
 
@@ -32,6 +34,13 @@ export default function inferSerializerFromDreamOrViewModel<
   const dreamApp = DreamApp.getOrFail()
   const serializer = dreamApp.serializers[globalName]
   if (!serializer) throw new NoGlobalSerializerForSpecifiedKey(obj, serializerKey, globalName)
+  if (!isDreamSerializer(serializer))
+    throw new NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey(
+      obj,
+      serializerKey,
+      globalName,
+      serializer
+    )
 
   return serializer as ReturnType
 }
