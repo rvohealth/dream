@@ -13,7 +13,7 @@ export default class MissingSerializersDefinitionForKey extends Error {
     const className = (this.viewModel as Dream)?.sanitizedConstructorName ?? this.viewModel.constructor.name
 
     return `
-Missing serializers definition on class \`${className}\`
+Missing serializers definition for \`${this.serializerKey}\` on class \`${className}\`
 
 Try something like this in your ${className}'s serializer getter:
 

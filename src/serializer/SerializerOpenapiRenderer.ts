@@ -158,66 +158,76 @@ export default class SerializerOpenapiRenderer {
     }, renderedOpenapi)
 
     this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
-      const referencedSerializersAndOpenapiSchemaBodyShorthand = associationOpenapi(
-        attribute,
-        DataTypeForOpenapi,
-        alreadyProcessedSerializers,
-        {
-          casing: this.casing,
-          schemaDelimiter: this.schemaDelimiter,
-          suppressResponseEnums: this.suppressResponseEnums,
-        }
-      )
-      referencedSerializers = [
-        ...referencedSerializers,
-        ...referencedSerializersAndOpenapiSchemaBodyShorthand.referencedSerializers,
-      ]
+      try {
+        const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
+        const referencedSerializersAndOpenapiSchemaBodyShorthand = associationOpenapi(
+          attribute,
+          DataTypeForOpenapi,
+          alreadyProcessedSerializers,
+          {
+            casing: this.casing,
+            schemaDelimiter: this.schemaDelimiter,
+            suppressResponseEnums: this.suppressResponseEnums,
+          }
+        )
+        referencedSerializers = [
+          ...referencedSerializers,
+          ...referencedSerializersAndOpenapiSchemaBodyShorthand.referencedSerializers,
+        ]
 
-      if (attribute.options.flatten && attribute.options.optional) {
-        this.allOfSiblings.push({
-          anyOf: [referencedSerializersAndOpenapiSchemaBodyShorthand.openapi, NULL_OBJECT_OPENAPI],
-        })
-        return accumulator
-        //
-      } else if (attribute.options.flatten) {
-        this.allOfSiblings.push(referencedSerializersAndOpenapiSchemaBodyShorthand.openapi)
-        return accumulator
-        //
-      } else if (attribute.options.optional) {
-        accumulator[outputAttributeName] = {
-          anyOf: [referencedSerializersAndOpenapiSchemaBodyShorthand.openapi, NULL_OBJECT_OPENAPI],
+        if (attribute.options.flatten && attribute.options.optional) {
+          this.allOfSiblings.push({
+            anyOf: [referencedSerializersAndOpenapiSchemaBodyShorthand.openapi, NULL_OBJECT_OPENAPI],
+          })
+          return accumulator
+          //
+        } else if (attribute.options.flatten) {
+          this.allOfSiblings.push(referencedSerializersAndOpenapiSchemaBodyShorthand.openapi)
+          return accumulator
+          //
+        } else if (attribute.options.optional) {
+          accumulator[outputAttributeName] = {
+            anyOf: [referencedSerializersAndOpenapiSchemaBodyShorthand.openapi, NULL_OBJECT_OPENAPI],
+          }
+          return accumulator
+        } else {
+          accumulator[outputAttributeName] = referencedSerializersAndOpenapiSchemaBodyShorthand.openapi
+          return accumulator
         }
-        return accumulator
-      } else {
-        accumulator[outputAttributeName] = referencedSerializersAndOpenapiSchemaBodyShorthand.openapi
-        return accumulator
+      } catch (error) {
+        if (error instanceof CallingSerializersThrewError) return accumulator
+        throw error
       }
     }, renderedOpenapi)
 
     this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
-      const referencedSerializersAndOpenapiSchemaBodyShorthand = associationOpenapi(
-        attribute,
-        DataTypeForOpenapi,
-        alreadyProcessedSerializers,
-        {
-          casing: this.casing,
-          schemaDelimiter: this.schemaDelimiter,
-          suppressResponseEnums: this.suppressResponseEnums,
+      try {
+        const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
+        const referencedSerializersAndOpenapiSchemaBodyShorthand = associationOpenapi(
+          attribute,
+          DataTypeForOpenapi,
+          alreadyProcessedSerializers,
+          {
+            casing: this.casing,
+            schemaDelimiter: this.schemaDelimiter,
+            suppressResponseEnums: this.suppressResponseEnums,
+          }
+        )
+        referencedSerializers = [
+          ...referencedSerializers,
+          ...referencedSerializersAndOpenapiSchemaBodyShorthand.referencedSerializers,
+        ]
+
+        accumulator[outputAttributeName] = {
+          type: 'array',
+          items: referencedSerializersAndOpenapiSchemaBodyShorthand.openapi,
         }
-      )
-      referencedSerializers = [
-        ...referencedSerializers,
-        ...referencedSerializersAndOpenapiSchemaBodyShorthand.referencedSerializers,
-      ]
 
-      accumulator[outputAttributeName] = {
-        type: 'array',
-        items: referencedSerializersAndOpenapiSchemaBodyShorthand.openapi,
+        return accumulator
+      } catch (error) {
+        if (error instanceof CallingSerializersThrewError) return accumulator
+        throw error
       }
-
-      return accumulator
     }, renderedOpenapi)
 
     return {
@@ -275,8 +285,15 @@ function associationOpenapi(
       attribute.options.dreamClass ?? attribute.options.viewModelClass
 
     if (associatedClass === undefined) {
-      if ((DataTypeForOpenapi as ViewModelClass)?.prototype?.serializers)
-        throw new ObjectSerializerRendersOneAndManyRequireClassType(attribute.name)
+      let serializerCheck: DreamModelSerializerType | SimpleObjectSerializerType | undefined
+
+      try {
+        ;(DataTypeForOpenapi as ViewModelClass)?.prototype?.serializers
+      } catch {
+        throw new CallingSerializersThrewError()
+      }
+
+      if (serializerCheck) throw new ObjectSerializerRendersOneAndManyRequireClassType(attribute.name)
       throw new ObjectSerializerRendersOneAndManyRequireClassType(attribute.name)
     }
 
@@ -343,3 +360,11 @@ function serializerAndDescendentSerializers(
     }).referencedSerializers,
   ])
 }
+
+// When attempting to expand STI children, we might call `.serializers` on
+// an instance that throws an error just by calling `.serializers` (so that
+// they can be sure to define serializers on the STI children, but in this
+// case, there might be STI children that are intermediaries to the intended
+// STI children, so they don't have serializers and calling `.serializers`
+// throws an error)
+class CallingSerializersThrewError extends Error {}
