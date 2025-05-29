@@ -37,6 +37,10 @@ export default function generateSerializerContent({
   const modelSerializerArgs = `${modelInstanceName}`
   const dreamSerializerArgs = `${modelClassName}, ${modelInstanceName}`
 
+  const serialzerClassName = serializerNameFromFullyQualifiedModelName(
+    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
+  )
+
   const summarySerialzerClassName = serializerNameFromFullyQualifiedModelName(
     fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName),
     'summary'
@@ -67,7 +71,7 @@ export default function generateSerializerContent({
 export const ${summarySerialzerClassName} = ${modelSerializerSignature} =>
   ${summarySerialzerExtends}${isSTI ? '' : `\n    .attribute('id')`}
 
-export default ${modelSerializerSignature} =>
+export const ${serialzerClassName} = ${modelSerializerSignature} =>
   ${defaultSerialzerExtends}${columnsWithTypes
     .map(attr => {
       const [name, type] = attr.split(':')
@@ -130,5 +134,5 @@ function importStatementForModel(originModelName: string, destinationModelName: 
 }
 
 function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {
-  return fullyQualifiedModelName.split('/').at(-1) ?? ''
+  return fullyQualifiedModelName.replace(/\//g, '')
 }

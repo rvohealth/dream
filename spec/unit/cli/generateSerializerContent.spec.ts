@@ -18,7 +18,7 @@ export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
     .attribute('id')
 
-export default (user: User) =>
+export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
     .attribute('loggedInAt')
 `
@@ -43,7 +43,7 @@ export const BalloonSummarySerializer = <T extends Balloon>(balloon: T) =>
   DreamSerializer(Balloon, balloon)
     .attribute('id')
 
-export default <T extends Balloon>(balloon: T) =>
+export const BalloonSerializer = <T extends Balloon>(balloon: T) =>
   BalloonSummarySerializer(balloon)
     .attribute('hello')
 `
@@ -61,14 +61,14 @@ export default <T extends Balloon>(balloon: T) =>
 
         expect(res).toEqual(
           `\
-import BarSerializer, { BarSummarySerializer } from '../BarSerializer.js'
+import FooBarSerializer, { FooBarSummarySerializer } from '../BarSerializer.js'
 import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
 
-export const BazSummarySerializer = (fooBarBaz: FooBarBaz) =>
-  BarSummarySerializer(fooBarBaz)
+export const FooBarBazSummarySerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarSummarySerializer(fooBarBaz)
 
-export default (fooBarBaz: FooBarBaz) =>
-  BarSerializer(fooBarBaz)
+export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarSerializer(fooBarBaz)
     .attribute('hello')
 `
         )
@@ -89,12 +89,12 @@ export default (fooBarBaz: FooBarBaz) =>
 import { DreamSerializer } from '@rvoh/dream'
 import UserAdmin from '../../models/User/Admin.js'
 
-export const AdminSummarySerializer = (userAdmin: UserAdmin) =>
+export const UserAdminSummarySerializer = (userAdmin: UserAdmin) =>
   DreamSerializer(UserAdmin, userAdmin)
     .attribute('id')
 
-export default (userAdmin: UserAdmin) =>
-  AdminSummarySerializer(userAdmin)
+export const UserAdminSerializer = (userAdmin: UserAdmin) =>
+  UserAdminSummarySerializer(userAdmin)
 `
             )
           }
@@ -143,7 +143,7 @@ export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
     .attribute('id')
 
-export default (user: User) =>
+export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
     .attribute('howyadoin', { precision: 2 })
 `
@@ -222,7 +222,7 @@ export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
     .attribute('id')
 
-export default (user: User) =>
+export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
 `
             )
@@ -247,7 +247,7 @@ export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
     .attribute('id')
 
-export default (user: User) =>
+export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
     .attribute('howyadoin')
 `
@@ -268,7 +268,7 @@ export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
     .attribute('id')
 
-export default (user: User) =>
+export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
     .jsonAttribute('howyadoin', { openapi: { type: 'object', properties: { } } })
 `
