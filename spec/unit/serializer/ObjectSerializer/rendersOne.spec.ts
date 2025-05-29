@@ -1,6 +1,5 @@
 import { CalendarDate, DreamSerializer, ObjectSerializer } from '../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import { default as DreamUser } from '../../../../test-app/app/models/User.js'
 import { Species, SpeciesValues } from '../../../../test-app/types/db.js'
 
@@ -39,8 +38,7 @@ describe('ObjectSerializer rendersOne', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         user: {
           name: 'Charlie',
         },
@@ -66,8 +64,7 @@ describe('ObjectSerializer rendersOne', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         user: {
           id: user.id,
           name: 'Charlie',
@@ -94,8 +91,7 @@ describe('ObjectSerializer rendersOne', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         user: {
           id: user.id,
           favoriteWord: 'hello',
@@ -122,8 +118,7 @@ describe('ObjectSerializer rendersOne', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         user: {
           name: 'Charlie',
         },
@@ -147,8 +142,7 @@ describe('ObjectSerializer rendersOne', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         user2: {
           id: user.id,
           name: 'Charlie',
@@ -178,8 +172,7 @@ describe('ObjectSerializer rendersOne', () => {
 
         const serializer = MySerializer(pet)
 
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render()).toEqual({
           species: 'dog',
           id: user.id,
           favoriteWord: 'hello',

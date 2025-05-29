@@ -1,6 +1,5 @@
 import { CalendarDate, ObjectSerializer } from '../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import { default as DreamPet } from '../../../../test-app/app/models/Pet.js'
 import { CatTreats, Species } from '../../../../test-app/types/db.js'
 
@@ -42,8 +41,7 @@ describe('ObjectSerializer rendersMany', () => {
 
       const serializer = MySerializer(user)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         pets: [
           {
             name: 'Snoopy',
@@ -82,8 +80,7 @@ describe('ObjectSerializer rendersMany', () => {
 
       const serializer = MySerializer(user)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         pets: [
           {
             id: pet1.id,
@@ -136,8 +133,7 @@ describe('ObjectSerializer rendersMany', () => {
 
       const serializer = MySerializer(user)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         pets: [
           {
             id: pet1.id,
@@ -174,8 +170,7 @@ describe('ObjectSerializer rendersMany', () => {
 
       const serializer = MySerializer(user)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         pets2: [
           {
             id: pet1.id,
@@ -221,8 +216,7 @@ describe('ObjectSerializer rendersMany', () => {
 
       const serializer = MySerializer(user)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         pets: [
           {
             name: 'Snoopy',

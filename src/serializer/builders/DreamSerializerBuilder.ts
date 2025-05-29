@@ -11,6 +11,7 @@ import {
   NonAutomaticSerializerAttributeOptions,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
 } from '../../types/serializer.js'
+import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRenderer.js'
 
 export default class DreamSerializerBuilder<
   DataTypeForOpenapi extends typeof Dream,
@@ -184,5 +185,9 @@ export default class DreamSerializerBuilder<
     })
 
     return this
+  }
+
+  public render(passthrough: any = {}, opts: SerializerRendererOpts = {}) {
+    return new SerializerRenderer(this, passthrough, opts).render()
   }
 }

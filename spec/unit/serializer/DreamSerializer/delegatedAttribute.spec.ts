@@ -1,6 +1,5 @@
 import { CalendarDate, DreamSerializer } from '../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -17,8 +16,7 @@ describe('DreamSerializer delegated attributes', () => {
 
     const serializer = MySerializer(pet)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       name: 'Charlie',
       birthdate: birthdate.toISO(),
     })

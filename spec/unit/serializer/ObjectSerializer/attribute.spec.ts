@@ -1,7 +1,6 @@
 import { CalendarDate } from '../../../../src/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 
 interface User {
   email: string
@@ -21,8 +20,7 @@ describe('ObjectSerializer attributes', () => {
 
     const serializer = MySerializer({ email: 'abc', password: '123' })
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       email: 'abc',
     })
 
@@ -40,8 +38,7 @@ describe('ObjectSerializer attributes', () => {
 
     const serializer = MySerializer({ email: 'abc', password: '123' })
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       email2: 'abc',
     })
 
@@ -74,8 +71,7 @@ describe('ObjectSerializer attributes', () => {
         ObjectSerializer(data).attribute('email', { openapi: 'string' })
 
       const serializer = MySerializer(null)
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toBeNull()
+      expect(serializer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
@@ -93,8 +89,7 @@ describe('ObjectSerializer attributes', () => {
 
     const serializer = MySerializer({ name: 'Snoopy', email: 'abc', password: '123' })
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       name: 'Snoopy',
       email: 'abc',
     })
@@ -115,8 +110,7 @@ describe('ObjectSerializer attributes', () => {
       const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
         ObjectSerializer(data).attribute('volume', { openapi: ['decimal', 'null'], precision: 1 })
       const serializer = MySerializer({ volume: 7.777 })
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         volume: 7.8,
       })
     })
@@ -129,8 +123,7 @@ describe('ObjectSerializer attributes', () => {
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', () => {
         const serializer = MySerializer({ requiredNicknames: ['Chuck'] })
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_nicknames: ['Chuck'],
         })
 
@@ -144,8 +137,7 @@ describe('ObjectSerializer attributes', () => {
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', () => {
         const serializer = MySerializer({ requiredNicknames: ['Chuck'] })
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
 

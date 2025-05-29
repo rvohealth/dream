@@ -18,10 +18,18 @@ import inferSerializerFromDreamOrViewModel, {
   inferSerializersFromDreamClassOrViewModelClass,
 } from './helpers/inferSerializerFromDreamOrViewModel.js'
 
+export interface SerializerRendererOpts {
+  casing?: SerializerCasing
+}
+
+interface StandardizedSerializerRendererOpts {
+  casing: SerializerCasing
+}
+
 export default class SerializerRenderer {
-  private casing: SerializerCasing
   private serializerBuilder: DreamSerializerBuilder<any, any, any> | null
   private passthroughData: object
+  private renderOpts: StandardizedSerializerRendererOpts
 
   constructor(
     serializerBuilder:
@@ -30,15 +38,11 @@ export default class SerializerRenderer {
       | null
       | undefined,
     passthroughData: object = {},
-    {
-      casing = 'camel',
-    }: {
-      casing?: SerializerCasing
-    } = {}
+    { casing = 'camel' }: SerializerRendererOpts = {}
   ) {
     this.serializerBuilder = (serializerBuilder ?? null) as DreamSerializerBuilder<any, any, any> | null
     this.passthroughData = passthroughData
-    this.casing = casing
+    this.renderOpts = { casing }
   }
 
   public render() {
@@ -46,9 +50,12 @@ export default class SerializerRenderer {
     const data = this.serializerBuilder['data']
     if (!data) return null
 
-    // passthroughData will be passed into the SerializerRenderer by Psychic, but the user may
-    // be explicitly calling the serializer, in which case, passthrough data will need to be
-    // sent into the serializer itself
+    // passthrough data must be passed both into the serializer and render
+    // because, if the serializer does accept passthrough data, then passing it in is how
+    // it gets into the serializer, but if it does not accept passthrough data, and therefore
+    // does not pass it into the call to DreamSerializer/ObjectSerializer,
+    // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+    // handles passing its passthrough data into those
     const passthroughData = { ...this.passthroughData, ...this.serializerBuilder['passthroughData'] }
 
     let renderedAttributes: Record<string, any> = {}
@@ -119,29 +126,32 @@ export default class SerializerRenderer {
         serializer = serializerForAssociatedClass(data, attribute.name, attribute.options)
       }
 
-      const serializerRenderer = new SerializerRenderer(
-        serializer?.(
-          attribute.options.flatten ? (associatedObject ?? {}) : associatedObject,
-          // passthrough data going into the serializer is the argument that gets
-          // used in the custom attribute callback function
-          passthroughData
-        ),
-        // passthrough data must be passed both into the serializer and the SerializerRenderer
-        // because, if the serializer does accept passthrough data, then passing it in is how
-        // it gets into the serializer, but if it does not accept passthrough data, and therefore
-        // does not pass it into the call to DreamSerializer/ObjectSerializer,
-        // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
-        // handles passing its passthrough data into those
+      const serializerBuilder = serializer?.(
+        attribute.options.flatten ? (associatedObject ?? {}) : associatedObject,
+        // passthrough data going into the serializer is the argument that gets
+        // used in the custom attribute callback function
         passthroughData
       )
 
       if (attribute.options.flatten) {
         return {
           ...accumulator,
-          ...serializerRenderer.render(),
+          // passthrough data must be passed both into the serializer and render
+          // because, if the serializer does accept passthrough data, then passing it in is how
+          // it gets into the serializer, but if it does not accept passthrough data, and therefore
+          // does not pass it into the call to DreamSerializer/ObjectSerializer,
+          // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+          // handles passing its passthrough data into those
+          ...serializerBuilder?.render(passthroughData, this.renderOpts),
         }
       } else {
-        accumulator[outputAttributeName] = serializerRenderer.render()
+        // passthrough data must be passed both into the serializer and render
+        // because, if the serializer does accept passthrough data, then passing it in is how
+        // it gets into the serializer, but if it does not accept passthrough data, and therefore
+        // does not pass it into the call to DreamSerializer/ObjectSerializer,
+        // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+        // handles passing its passthrough data into those
+        accumulator[outputAttributeName] = serializerBuilder?.render(passthroughData, this.renderOpts)
         return accumulator
       }
     }, renderedAttributes)
@@ -161,19 +171,18 @@ export default class SerializerRenderer {
       accumulator[outputAttributeName] = (associatedObjects as ViewModel[]).map(associatedObject => {
         const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
 
-        const serializerRenderer = new SerializerRenderer(
+        return (
           // passthrough data going into the serializer is the argument that gets
           // used in the custom attribute callback function
-          serializer?.(associatedObject, passthroughData),
-          // passthrough data must be passed both into the serializer and the SerializerRenderer
-          // because, if the serializer does accept passthrough data, then passing it in is how
-          // it gets into the serializer, but if it does not accept passthrough data, and therefore
-          // does not pass it into the call to DreamSerializer/ObjectSerializer,
-          // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
-          // handles passing its passthrough data into those
-          passthroughData
+          serializer?.(associatedObject, passthroughData)
+            // passthrough data must be passed both into the serializer and render
+            // because, if the serializer does accept passthrough data, then passing it in is how
+            // it gets into the serializer, but if it does not accept passthrough data, and therefore
+            // does not pass it into the call to DreamSerializer/ObjectSerializer,
+            // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+            // handles passing its passthrough data into those
+            .render(passthroughData)
         )
-        return serializerRenderer.render()
       })
 
       return accumulator
@@ -186,14 +195,14 @@ export default class SerializerRenderer {
   }
 
   private setCase(attr: string) {
-    switch (this.casing) {
+    switch (this.renderOpts.casing) {
       case 'camel':
         return attr
       case 'snake':
         return snakeify(attr)
       default: {
         // protection so that if a new Casing is ever added, this will throw a type error at build time
-        const _never: never = this.casing
+        const _never: never = this.renderOpts.casing
         throw new Error(`Unhandled Casing: ${_never as string}`)
       }
     }

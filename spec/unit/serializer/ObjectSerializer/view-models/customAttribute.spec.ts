@@ -1,7 +1,6 @@
 import { CalendarDate, DreamSerializers, round } from '../../../../../src/index.js'
 import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../../src/serializer/SerializerRenderer.js'
 import ApplicationModel from '../../../../../test-app/app/models/ApplicationModel.js'
 import UserSerializer from '../../../../../test-app/app/serializers/view-model/UserSerializer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
@@ -91,8 +90,7 @@ describe('ObjectSerializer (on a view model) customAttributes', () => {
     })
 
     const serializer = MySerializer(model)
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       birthdate: model.birthdate!.toDateTime()!.toISO(),
     })
 
@@ -120,8 +118,7 @@ describe('ObjectSerializer (on a view model) customAttributes', () => {
     })
 
     const serializer = MySerializer(model)
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       volume: 8,
     })
 
@@ -144,8 +141,7 @@ describe('ObjectSerializer (on a view model) customAttributes', () => {
         )
 
       const serializer = MySerializer(new User({ email: 'abc', password: '123' }), { locale: 'en-US' })
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         email: 'abc.en-US@peanuts.com',
       })
 
@@ -166,8 +162,7 @@ describe('ObjectSerializer (on a view model) customAttributes', () => {
         })
 
       const serializer = MySerializer(null)
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toBeNull()
+      expect(serializer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
@@ -191,15 +186,14 @@ describe('ObjectSerializer (on a view model) customAttributes', () => {
             'user',
             () => {
               const serializer = UserSerializer(data.user!)
-              return new SerializerRenderer(serializer).render()
+              return serializer.render()
             },
             { openapi: { $serializer: UserSerializer }, flatten: true }
           )
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         species: 'dog',
         id: user.id,
         name: 'Charlie',

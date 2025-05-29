@@ -1,7 +1,6 @@
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
@@ -46,8 +45,7 @@ describe('DreamSerializer json attributes', () => {
     })
 
     it('serialize correctly', () => {
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         favoriteJsons: [{ hello: 'world' }],
         requiredFavoriteJsons: [{ hello: 'world' }],
         favoriteJsonbs: [{ hello: 'world' }],
@@ -91,8 +89,7 @@ describe('DreamSerializer json attributes', () => {
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
           json_data: { hello: '1' },
         })
 
@@ -108,8 +105,7 @@ describe('DreamSerializer json attributes', () => {
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', async () => {
         const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'camel' })).toEqual({
           jsonData: { hello: '1' },
         })
 

@@ -1,7 +1,6 @@
 import ObjectSerializerBuilder from '../../../../src/serializer/builders/ObjectSerializerBuilder.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 
 interface ModelForOpenapiTypeSpecs {
   favoriteJsons: object[]
@@ -55,8 +54,7 @@ describe('ObjectSerializer json attributes', () => {
     })
 
     it('serialize correctly', () => {
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         favoriteJsons: [{ hello: 'world' }],
         requiredFavoriteJsons: [{ hello: 'world' }],
         favoriteJsonbs: [{ hello: 'world' }],
@@ -98,8 +96,7 @@ describe('ObjectSerializer json attributes', () => {
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', () => {
         const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_favorite_jsons: [{ hello: 'world' }],
         })
 
@@ -115,8 +112,7 @@ describe('ObjectSerializer json attributes', () => {
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', () => {
         const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredFavoriteJsons: [{ hello: 'world' }],
         })
 

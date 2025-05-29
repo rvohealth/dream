@@ -1,7 +1,6 @@
 import { CalendarDate, round } from '../../../../src/index.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -17,8 +16,7 @@ describe('DreamSerializer customAttributes', () => {
       })
 
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       email: 'abc@peanuts.com',
     })
 
@@ -38,8 +36,7 @@ describe('DreamSerializer customAttributes', () => {
           .customAttribute('aDatetime', () => data.aDatetime, { openapi: 'date-time' })
       const model = await fleshedOutModelForOpenapiTypeSpecs()
       const serializer = MySerializer(model)
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         birthdate: model.birthdate!.toISO(),
         aDatetime: model.aDatetime!.toISO(),
       })
@@ -55,8 +52,7 @@ describe('DreamSerializer customAttributes', () => {
       )
     const model = await fleshedOutModelForOpenapiTypeSpecs()
     const serializer = MySerializer(model)
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       birthdate: model.birthdate!.toDateTime()!.toISO(),
     })
 
@@ -93,7 +89,7 @@ describe('DreamSerializer customAttributes', () => {
   })
 
   context('with passthrough data', () => {
-    it('when rendering a serializer directly, all passthrough data must be sent into the serializer', () => {
+    it('when rendering a serializer directly, all passthrough data must be sent into the serializer, not into the render call', () => {
       const MySerializer = (data: User, passthroughData: { passthrough1?: string; passthrough2?: string }) =>
         DreamSerializer(User, data, passthroughData).customAttribute(
           'myString',
@@ -106,12 +102,7 @@ describe('DreamSerializer customAttributes', () => {
         passthrough2: 'serializerP2',
       })
 
-      const serializerRenderer = new SerializerRenderer(serializer, {
-        passthrough1: 'rendererP1',
-        passthrough2: 'rendererP2',
-      })
-
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render({ passthrough1: 'rendererP1', passthrough2: 'rendererP2' })).toEqual({
         myString: 'serializerP1, serializerP2',
       })
 
@@ -132,8 +123,7 @@ describe('DreamSerializer customAttributes', () => {
         })
 
       const serializer = MySerializer(null)
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toBeNull()
+      expect(serializer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
@@ -157,7 +147,7 @@ describe('DreamSerializer customAttributes', () => {
             'user',
             () => {
               const serializer = UserSerializer(data.user!)
-              return new SerializerRenderer(serializer).render()
+              return serializer.render()
             },
             {
               flatten: true,
@@ -169,8 +159,7 @@ describe('DreamSerializer customAttributes', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         species: 'dog',
         id: user.id,
         name: 'Charlie',
@@ -212,8 +201,7 @@ describe('DreamSerializer customAttributes', () => {
 
         const serializer = MySerializer(pet)
 
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render()).toEqual({
           species: 'dog',
           id: user.id,
           name: 'Charlie',
@@ -260,8 +248,7 @@ describe('DreamSerializer customAttributes', () => {
 
         const serializer = MySerializer(pet)
 
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render()).toEqual({
           species: 'dog',
           id: user.id,
           name: null,
@@ -281,8 +268,7 @@ describe('DreamSerializer customAttributes', () => {
 
         const serializer = MySerializer(pet)
 
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render()).toEqual({
           species: 'dog',
           id: user.id,
           name: null,
@@ -302,8 +288,7 @@ describe('DreamSerializer customAttributes', () => {
 
         const serializer = MySerializer(pet)
 
-        const serializerRenderer = new SerializerRenderer(serializer)
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render()).toEqual({
           species: 'dog',
           id: null,
           name: null,

@@ -10,6 +10,7 @@ import {
   NonAutomaticSerializerAttributeOptions,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
 } from '../../types/serializer.js'
+import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRenderer.js'
 
 export default class ObjectSerializerBuilder<
   MaybeNullDataType extends object | null,
@@ -163,5 +164,9 @@ export default class ObjectSerializerBuilder<
     })
 
     return this
+  }
+
+  public render(passthrough: any = {}, opts: SerializerRendererOpts = {}) {
+    return new SerializerRenderer(this, passthrough, opts).render()
   }
 }

@@ -1,7 +1,6 @@
 import { CalendarDate, round } from '../../../../src/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 interface User {
@@ -25,8 +24,7 @@ describe('ObjectSerializer customAttributes', () => {
       })
 
     const serializer = MySerializer({ email: 'abc', password: '123' })
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       email: 'abc@peanuts.com',
     })
 
@@ -45,8 +43,7 @@ describe('ObjectSerializer customAttributes', () => {
       })
     const model = await fleshedOutModelForOpenapiTypeSpecs()
     const serializer = MySerializer({ birthdate: CalendarDate.fromISO('1950-10-02') })
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       birthdate: model.birthdate!.toDateTime()!.toISO(),
     })
 
@@ -84,8 +81,7 @@ describe('ObjectSerializer customAttributes', () => {
         )
 
       const serializer = MySerializer({ email: 'abc', password: '123' }, { locale: 'en-US' })
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         email: 'abc.en-US@peanuts.com',
       })
 
@@ -106,8 +102,7 @@ describe('ObjectSerializer customAttributes', () => {
         })
 
       const serializer = MySerializer(null)
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toBeNull()
+      expect(serializer.render()).toBeNull()
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({

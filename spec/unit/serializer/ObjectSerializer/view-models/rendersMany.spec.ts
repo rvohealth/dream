@@ -1,6 +1,5 @@
 import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../../src/serializer/SerializerRenderer.js'
 import Balloon from '../../../../../test-app/app/models/Balloon.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
@@ -18,8 +17,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets: [
         {
           id: pet1.id,
@@ -101,8 +99,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets: [
         {
           id: pet1.id,
@@ -141,8 +138,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets2: [
         {
           id: pet1.id,
@@ -189,8 +185,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets: [
         {
           name: 'Snoopy',

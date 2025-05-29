@@ -17,16 +17,16 @@ export {
   default as DreamApp,
   type DreamAppInitOptions,
   type DreamAppOpts,
-  type DreamLogLevel,
   type DreamLogger,
+  type DreamLogLevel,
 } from './dream-app/index.js'
 export { default as Dream } from './Dream.js'
 export {
   DreamConst,
   openapiPrimitiveTypes,
   openapiShorthandPrimitiveTypes,
-  type TRIGRAM_OPERATORS,
   type primaryKeyTypes,
+  type TRIGRAM_OPERATORS,
 } from './dream/constants.js'
 export { default as DreamTransaction } from './dream/DreamTransaction.js'
 export { default as Query } from './dream/Query.js'
@@ -76,7 +76,6 @@ export { default as isDreamSerializer } from './serializer/helpers/isDreamSerial
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 
 export { default as SerializerOpenapiRenderer } from './serializer/SerializerOpenapiRenderer.js'
-export { default as SerializerRenderer } from './serializer/SerializerRenderer.js'
 
 export { default as DreamSerializer } from './serializer/DreamSerializer.js'
 export { default as ObjectSerializer } from './serializer/ObjectSerializer.js'

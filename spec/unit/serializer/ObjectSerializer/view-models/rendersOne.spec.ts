@@ -1,6 +1,5 @@
 import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../../src/serializer/SerializerRenderer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 import { SpeciesValues } from '../../../../../test-app/types/db.js'
@@ -16,8 +15,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
 
     const serializer = MySerializer(pet)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       user: {
         id: user.id,
         name: 'Charlie',
@@ -47,8 +45,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
 
     const serializer = MySerializer(pet)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       user: {
         id: user.id,
         favoriteWord: 'hello',
@@ -76,8 +73,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
 
     const serializer = MySerializer(pet)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       user2: {
         id: user.id,
         name: 'Charlie',
@@ -107,8 +103,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
 
       const serializer = MySerializer(pet)
 
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         species: 'dog',
         id: user.id,
         name: 'Charlie',
@@ -149,8 +144,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
 
     const serializer = MySerializer(pet)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       user: {
         name: 'Charlie',
       },

@@ -2,7 +2,6 @@ import { DreamSerializers } from '../../../../../src/index.js'
 import ObjectSerializerBuilder from '../../../../../src/serializer/builders/ObjectSerializerBuilder.js'
 import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../../src/serializer/SerializerRenderer.js'
 import ApplicationModel from '../../../../../test-app/app/models/ApplicationModel.js'
 
 class ModelForOpenapiTypeSpecs {
@@ -98,8 +97,7 @@ describe('ObjectSerializer (on a view model) json attributes', () => {
     })
 
     it('serialize correctly', () => {
-      const serializerRenderer = new SerializerRenderer(serializer)
-      expect(serializerRenderer.render()).toEqual({
+      expect(serializer.render()).toEqual({
         favoriteJsons: [{ hello: 'world' }],
         requiredFavoriteJsons: [{ hello: 'world' }],
         favoriteJsonbs: [{ hello: 'world' }],
@@ -143,8 +141,7 @@ describe('ObjectSerializer (on a view model) json attributes', () => {
     context('snake casing is specified', () => {
       it('renders all attribute keys in snake case', () => {
         const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'snake' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_nicknames: ['Chuck'],
         })
 
@@ -160,8 +157,7 @@ describe('ObjectSerializer (on a view model) json attributes', () => {
     context('camel casing is specified', () => {
       it('renders all attribute keys in camel case', () => {
         const serializer = MySerializer(fleshedOutModelForOpenapiTypeSpecs())
-        const serializerRenderer = new SerializerRenderer(serializer, {}, { casing: 'camel' })
-        expect(serializerRenderer.render()).toEqual({
+        expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
 

@@ -1,6 +1,5 @@
 import { CalendarDate, DreamSerializer } from '../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
-import SerializerRenderer from '../../../../src/serializer/SerializerRenderer.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -18,8 +17,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets: [
         {
           id: pet1.id,
@@ -104,8 +102,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets: [
         {
           id: pet1.id,
@@ -146,8 +143,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets2: [
         {
           id: pet1.id,
@@ -198,8 +194,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer)
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render()).toEqual({
       pets: [
         {
           name: 'Snoopy',
@@ -250,8 +245,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const serializer = MySerializer(user)
 
-    const serializerRenderer = new SerializerRenderer(serializer, { locale: 'en-US' })
-    expect(serializerRenderer.render()).toEqual({
+    expect(serializer.render({ locale: 'en-US' })).toEqual({
       pets: [
         {
           title: 'en-US-Snoopy',
