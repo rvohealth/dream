@@ -31,6 +31,27 @@ describe('DreamSerializer rendersOne', () => {
     })
   })
 
+  context('when there is no associated model', () => {
+    it('renders null', () => {
+      const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog', user: null })
+
+      const MySerializer = (data: Pet) => DreamSerializer(Pet, data).rendersOne('user')
+
+      const serializer = MySerializer(pet)
+
+      expect(serializer.render()).toEqual({
+        user: null,
+      })
+
+      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
+      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
+        user: {
+          $ref: '#/components/schemas/User',
+        },
+      })
+    })
+  })
+
   context('when optional', () => {
     it('the association is anyOf the ref or null', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')

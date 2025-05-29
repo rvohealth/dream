@@ -1,6 +1,7 @@
 import Dream from '../Dream.js'
 import RendersManyMustReceiveArray from '../errors/serializers/RendersManyMustReceiveArray.js'
 import CalendarDate from '../helpers/CalendarDate.js'
+import compact from '../helpers/compact.js'
 import { DateTime } from '../helpers/DateTime.js'
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
@@ -118,11 +119,16 @@ export default class SerializerRenderer {
       const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
       const associatedObject = data[attribute.name]
 
-      let serializer: DreamModelSerializerType | SimpleObjectSerializerType | null
+      let serializer: DreamModelSerializerType | SimpleObjectSerializerType | null = null
 
       if (associatedObject) {
         serializer = serializerForAssociatedObject(associatedObject, attribute.options)
-      } else {
+      } else if (attribute.options.flatten) {
+        /**
+         * Only used when flatten: true, and the associated model is null, in which case,
+         * we need something to determine the keys that will be flattened into the
+         * rendering serializer
+         */
         serializer = serializerForAssociatedClass(data, attribute.name, attribute.options)
       }
 
@@ -151,7 +157,7 @@ export default class SerializerRenderer {
         // does not pass it into the call to DreamSerializer/ObjectSerializer,
         // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
         // handles passing its passthrough data into those
-        accumulator[outputAttributeName] = serializerBuilder?.render(passthroughData, this.renderOpts)
+        accumulator[outputAttributeName] = serializerBuilder?.render(passthroughData, this.renderOpts) ?? null
         return accumulator
       }
     }, renderedAttributes)
@@ -168,13 +174,13 @@ export default class SerializerRenderer {
 
       if (!associatedObjects) throw new RendersManyMustReceiveArray(attribute, associatedObjects)
 
-      accumulator[outputAttributeName] = (associatedObjects as ViewModel[]).map(associatedObject => {
+      accumulator[outputAttributeName] = compact(associatedObjects as ViewModel[]).map(associatedObject => {
         const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
 
         return (
           // passthrough data going into the serializer is the argument that gets
           // used in the custom attribute callback function
-          serializer?.(associatedObject, passthroughData)
+          serializer(associatedObject, passthroughData)
             // passthrough data must be passed both into the serializer and render
             // because, if the serializer does accept passthrough data, then passing it in is how
             // it gets into the serializer, but if it does not accept passthrough data, and therefore
@@ -237,7 +243,7 @@ function _applyRenderingOptionsToAttribute(
 function serializerForAssociatedObject<ObjectType extends Dream | ViewModel>(
   associatedObject: ObjectType,
   options: InternalAnyRendersOneOrManyOpts
-): DreamModelSerializerType | SimpleObjectSerializerType | null {
+): DreamModelSerializerType | SimpleObjectSerializerType {
   if (options.serializerCallback) return options.serializerCallback()
   return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey)
 }
