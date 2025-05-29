@@ -83,8 +83,8 @@ const deco = new Decorators<typeof FooBarBaz>()
 export default class FooBarBaz extends FooBar {
   public override get serializers(): DreamSerializers<FooBarBaz> {
     return {
-      default: 'Foo/Bar/BazSerializer',
-      summary: 'Foo/Bar/BazSummarySerializer',
+      default: 'Foo/Bar/FooBarBazSerializer',
+      summary: 'Foo/Bar/FooBarBazSummarySerializer',
     }
   }
 
@@ -390,8 +390,8 @@ export default class PetDomesticCat extends ApplicationModel {
 
   public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      default: 'Pet/Domestic/CatSerializer',
-      summary: 'Pet/Domestic/CatSummarySerializer',
+      default: 'Pet/Domestic/PetDomesticCatSerializer',
+      summary: 'Pet/Domestic/PetDomesticCatSummarySerializer',
     }
   }
 
@@ -428,8 +428,8 @@ export default class PetDomesticCat extends ApplicationModel {
 
   public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      default: 'Pet/Domestic/CatSerializer',
-      summary: 'Pet/Domestic/CatSummarySerializer',
+      default: 'Pet/Domestic/PetDomesticCatSerializer',
+      summary: 'Pet/Domestic/PetDomesticCatSummarySerializer',
     }
   }
 
@@ -466,8 +466,8 @@ export default class PetWildCat extends ApplicationModel {
 
   public get serializers(): DreamSerializers<PetWildCat> {
     return {
-      default: 'Pet/Wild/CatSerializer',
-      summary: 'Pet/Wild/CatSummarySerializer',
+      default: 'Pet/Wild/PetWildCatSerializer',
+      summary: 'Pet/Wild/PetWildCatSummarySerializer',
     }
   }
 

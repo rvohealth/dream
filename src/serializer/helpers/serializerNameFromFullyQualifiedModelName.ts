@@ -1,13 +1,19 @@
 import standardizeFullyQualifiedModelName from '../../helpers/standardizeFullyQualifiedModelName.js'
 
-export default function (fullyQualifiedModelName: string, serializerType: 'default' | 'summary' = 'default') {
-  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
+export default function serializerNameFromFullyQualifiedModelName(
+  fullyQualifiedModelName: string,
+  serializerType: 'default' | 'summary' = 'default'
+) {
+  const delimitedFullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
+  const path = delimitedFullyQualifiedModelName.split('/').slice(0, -1)
+  const pathName = `${path.join('/')}${path.length ? '/' : ''}`
+  fullyQualifiedModelName = fullyQualifiedModelName.replace(/\//g, '')
 
   switch (serializerType) {
     case 'default':
-      return `${fullyQualifiedModelName}Serializer`
+      return `${pathName}${fullyQualifiedModelName}Serializer`
 
     case 'summary':
-      return `${fullyQualifiedModelName}SummarySerializer`
+      return `${pathName}${fullyQualifiedModelName}SummarySerializer`
   }
 }
