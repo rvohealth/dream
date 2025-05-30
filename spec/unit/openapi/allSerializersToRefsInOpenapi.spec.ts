@@ -36,7 +36,7 @@ describe('allSerializersToRefsInOpenapi', () => {
       },
     }
 
-    const results = allSerializersToRefsInOpenapi(openapi, '')
+    const results = allSerializersToRefsInOpenapi(openapi)
 
     expect(results).toEqual({
       type: 'object',

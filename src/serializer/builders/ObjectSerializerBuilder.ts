@@ -1,7 +1,6 @@
 import Dream from '../../Dream.js'
 import { DreamOrViewModelSerializerKey, ViewModel, ViewModelClass } from '../../types/dream.js'
 import {
-  DreamSerializerCallback,
   InternalAnyTypedSerializerAttribute,
   InternalAnyTypedSerializerCustomAttribute,
   InternalAnyTypedSerializerDelegatedAttribute,
@@ -9,6 +8,7 @@ import {
   InternalAnyTypedSerializerRendersOne,
   NonAutomaticSerializerAttributeOptions,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
+  SerializerType,
 } from '../../types/serializer.js'
 import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRenderer.js'
 
@@ -17,11 +17,13 @@ export default class ObjectSerializerBuilder<
   PassthroughDataType,
   DataType extends Exclude<MaybeNullDataType, null> = Exclude<MaybeNullDataType, null>,
 > {
-  protected attributes: InternalAnyTypedSerializerAttribute[] = []
-  protected delegatedAttributes: InternalAnyTypedSerializerDelegatedAttribute[] = []
-  protected customAttributes: InternalAnyTypedSerializerCustomAttribute[] = []
-  protected rendersOnes: InternalAnyTypedSerializerRendersOne<DataType>[] = []
-  protected rendersManys: InternalAnyTypedSerializerRendersMany<DataType>[] = []
+  protected attributes: (
+    | InternalAnyTypedSerializerAttribute
+    | InternalAnyTypedSerializerDelegatedAttribute
+    | InternalAnyTypedSerializerCustomAttribute
+    | InternalAnyTypedSerializerRendersOne<DataType>
+    | InternalAnyTypedSerializerRendersMany<DataType>
+  )[] = []
 
   public get isSerializer() {
     return true
@@ -37,6 +39,7 @@ export default class ObjectSerializerBuilder<
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
+      type: 'attribute',
       name,
       options: options ?? {},
     })
@@ -50,7 +53,8 @@ export default class ObjectSerializerBuilder<
     AttributeName extends TargetObject extends object ? keyof TargetObject & string : never,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(targetName: TargetName, name: AttributeName, options: Options) {
-    this.delegatedAttributes.push({
+    this.attributes.push({
+      type: 'delegatedAttribute',
       targetName,
       name: name as any,
       options: options ?? {},
@@ -64,6 +68,7 @@ export default class ObjectSerializerBuilder<
     Options extends NonAutomaticSerializerAttributeOptions,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
+      type: 'attribute',
       name,
       options,
     })
@@ -75,7 +80,8 @@ export default class ObjectSerializerBuilder<
     Options extends Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean },
     CallbackFn extends () => unknown,
   >(name: string, fn: CallbackFn, options: Options) {
-    this.customAttributes.push({
+    this.attributes.push({
+      type: 'customAttribute',
       name,
       fn,
       options,
@@ -94,7 +100,7 @@ export default class ObjectSerializerBuilder<
               serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
             }
           | {
-              serializerCallback: DreamSerializerCallback<AssociatedModelType>
+              serializer: SerializerType<AssociatedModelType>
             }
       : AssociatedModelType extends ViewModel
         ?
@@ -103,11 +109,11 @@ export default class ObjectSerializerBuilder<
                 serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
               }
             | {
-                serializerCallback: DreamSerializerCallback<AssociatedModelType>
+                serializer: SerializerType<AssociatedModelType>
               }
         : AssociatedModelType extends object
           ? {
-              serializerCallback: DreamSerializerCallback<AssociatedModelType>
+              serializer: SerializerType<AssociatedModelType>
             }
           : object,
     Options extends {
@@ -116,7 +122,8 @@ export default class ObjectSerializerBuilder<
       optional?: boolean
     } & SerializerOptions,
   >(name: AttributeName, options?: Options) {
-    this.rendersOnes.push({
+    this.attributes.push({
+      type: 'rendersOne',
       name,
       options: options ?? {},
     })
@@ -138,7 +145,7 @@ export default class ObjectSerializerBuilder<
               serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
             }
           | {
-              serializerCallback: DreamSerializerCallback<AssociatedModelType>
+              serializer: SerializerType<AssociatedModelType>
             }
       : AssociatedModelType extends ViewModel
         ?
@@ -147,18 +154,19 @@ export default class ObjectSerializerBuilder<
                 serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
               }
             | {
-                serializerCallback: DreamSerializerCallback<AssociatedModelType>
+                serializer: SerializerType<AssociatedModelType>
               }
         : AssociatedModelType extends object
           ? {
-              serializerCallback: DreamSerializerCallback<AssociatedModelType>
+              serializer: SerializerType<AssociatedModelType>
             }
           : object,
     Options extends {
       as?: string
     } & SerializerOptions,
   >(name: AttributeName, options?: Options) {
-    this.rendersManys.push({
+    this.attributes.push({
+      type: 'rendersMany',
       name,
       options: options ?? {},
     })

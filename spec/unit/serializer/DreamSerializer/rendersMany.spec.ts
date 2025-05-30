@@ -191,7 +191,7 @@ describe('DreamSerializer rendersMany', () => {
     ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
     ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
     const MySerializer = (data: User) =>
-      DreamSerializer(User, data).rendersMany('pets', { serializerCallback: () => CustomSerializer })
+      DreamSerializer(User, data).rendersMany('pets', { serializer: CustomSerializer })
 
     const serializer = MySerializer(user)
 
@@ -217,8 +217,7 @@ describe('DreamSerializer rendersMany', () => {
       },
     })
 
-    expect(results.referencedSerializers).toHaveLength(1)
-    expect((results.referencedSerializers[0] as any).globalName).toEqual('CustomPetSerializer')
+    expect(results.referencedSerializers).toEqual([CustomSerializer])
   })
 
   it('passes passthrough data', () => {
@@ -243,7 +242,7 @@ describe('DreamSerializer rendersMany', () => {
     ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
     ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
     const MySerializer = (data: User) =>
-      DreamSerializer(User, data).rendersMany('pets', { serializerCallback: () => CustomSerializer })
+      DreamSerializer(User, data).rendersMany('pets', { serializer: CustomSerializer })
 
     const serializer = MySerializer(user)
 

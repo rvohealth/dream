@@ -7,7 +7,7 @@ export default class AttemptedToDeriveDescendentSerializersFromNonSerializer ext
 
   public override get message() {
     return `
-Attempted to derive descendent serializers from non serializer:
+Attempted to derive descendant serializers from non serializer:
 ${inspect(this.serializer)}`
   }
 }

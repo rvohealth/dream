@@ -38,7 +38,7 @@ describe('ObjectSerializer rendersMany', () => {
       ;(PetSerializer as any)['globalName'] = 'PetSerializer'
       ;(PetSerializer as any)['openapiName'] = 'Pet'
       const MySerializer = (data: UserWithSimplePets) =>
-        ObjectSerializer(data).rendersMany('pets', { serializerCallback: () => PetSerializer })
+        ObjectSerializer(data).rendersMany('pets', { serializer: PetSerializer })
 
       const serializer = MySerializer(user)
 
@@ -55,7 +55,6 @@ describe('ObjectSerializer rendersMany', () => {
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
       const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
-      expect(results.referencedSerializers).toEqual([PetSerializer])
       expect(results.attributes).toEqual({
         pets: {
           type: 'array',
@@ -64,6 +63,8 @@ describe('ObjectSerializer rendersMany', () => {
           },
         },
       })
+
+      expect(results.referencedSerializers).toEqual([PetSerializer])
     })
   })
 
@@ -214,7 +215,7 @@ describe('ObjectSerializer rendersMany', () => {
       ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
       ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
       const MySerializer = (data: UserWithSimplePets) =>
-        ObjectSerializer(data).rendersMany('pets', { serializerCallback: () => CustomSerializer })
+        ObjectSerializer(data).rendersMany('pets', { serializer: CustomSerializer })
 
       const serializer = MySerializer(user)
 

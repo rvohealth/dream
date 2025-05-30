@@ -83,4 +83,166 @@ describe('DreamSerializer attributes', () => {
       })
     })
   })
+
+  context('$serializer', () => {
+    it('converts $serializer to a $ref and tracks what serializers have been processed and need to be rendered', () => {
+      const SerializerC = (data: User) => DreamSerializer(User, data)
+      ;(SerializerC as any)['globalName'] = 'SerializerC'
+      ;(SerializerC as any)['openapiName'] = 'SerializerC'
+
+      const SerializerB = (data: User) =>
+        DreamSerializer(User, data).customAttribute('mySerializerC', () => null, {
+          openapi: { $serializer: SerializerC },
+        })
+      ;(SerializerB as any)['globalName'] = 'SerializerB'
+      ;(SerializerB as any)['openapiName'] = 'SerializerB'
+
+      const SerializerA = (data: User) =>
+        DreamSerializer(User, data).customAttribute('mySerializerB', () => null, {
+          openapi: { $serializer: SerializerB },
+        })
+      ;(SerializerA as any)['globalName'] = 'SerializerA'
+      ;(SerializerA as any)['openapiName'] = 'SerializerA'
+
+      const alreadyExtractedDescendantSerializers: Record<string, boolean> = {}
+
+      const serializerAOpenapiRenderer = new SerializerOpenapiRenderer(SerializerA)
+      const renderedA = serializerAOpenapiRenderer.renderedOpenapi(alreadyExtractedDescendantSerializers)
+
+      expect(renderedA.openapi).toEqual(
+        expect.objectContaining({
+          type: 'object',
+          required: ['mySerializerB'],
+          properties: {
+            mySerializerB: {
+              $ref: '#/components/schemas/SerializerB',
+            },
+          },
+        })
+      )
+
+      expect(renderedA.referencedSerializers).toHaveLength(2)
+      expect(renderedA.referencedSerializers).toEqual([SerializerB, SerializerC])
+
+      expect(alreadyExtractedDescendantSerializers).toEqual({
+        SerializerA: true,
+        SerializerB: true,
+        SerializerC: true,
+      })
+
+      const serializerBOpenapiRenderer = new SerializerOpenapiRenderer(SerializerB)
+      const renderedB = serializerBOpenapiRenderer.renderedOpenapi(alreadyExtractedDescendantSerializers)
+
+      expect(renderedB.openapi).toEqual(
+        expect.objectContaining({
+          type: 'object',
+          required: ['mySerializerC'],
+          properties: {
+            mySerializerC: {
+              $ref: '#/components/schemas/SerializerC',
+            },
+          },
+        })
+      )
+
+      expect(renderedB.referencedSerializers).toHaveLength(1)
+      expect(renderedB.referencedSerializers).toEqual([SerializerC])
+
+      const serializerCOpenapiRenderer = new SerializerOpenapiRenderer(SerializerC)
+      const renderedC = serializerCOpenapiRenderer.renderedOpenapi(alreadyExtractedDescendantSerializers)
+
+      expect(renderedC.openapi).toEqual(
+        expect.objectContaining({
+          type: 'object',
+          required: [],
+          properties: {},
+        })
+      )
+      expect(renderedC.referencedSerializers).toHaveLength(0)
+    })
+
+    context('in nested OpenAPI', () => {
+      it('converts $serializer to a $ref and tracks what serializers have been processed and need to be rendered', () => {
+        const SerializerC = (data: User) => DreamSerializer(User, data)
+        ;(SerializerC as any)['globalName'] = 'SerializerC'
+        ;(SerializerC as any)['openapiName'] = 'SerializerC'
+
+        const SerializerB = (data: User) =>
+          DreamSerializer(User, data).customAttribute('mySerializers', () => null, {
+            openapi: { type: 'array', items: { $serializer: SerializerC } },
+          })
+        ;(SerializerB as any)['globalName'] = 'SerializerB'
+        ;(SerializerB as any)['openapiName'] = 'SerializerB'
+
+        const SerializerA = (data: User) =>
+          DreamSerializer(User, data).customAttribute('myOuterObject', () => null, {
+            openapi: { type: 'object', properties: { mySerializerB: { $serializer: SerializerB } } },
+          })
+        ;(SerializerA as any)['globalName'] = 'SerializerA'
+        ;(SerializerA as any)['openapiName'] = 'SerializerA'
+
+        const alreadyExtractedDescendantSerializers: Record<string, boolean> = {}
+
+        const serializerAOpenapiRenderer = new SerializerOpenapiRenderer(SerializerA)
+        const renderedA = serializerAOpenapiRenderer.renderedOpenapi(alreadyExtractedDescendantSerializers)
+
+        expect(renderedA.openapi).toEqual(
+          expect.objectContaining({
+            type: 'object',
+            required: ['myOuterObject'],
+            properties: {
+              myOuterObject: {
+                type: 'object',
+                properties: {
+                  mySerializerB: {
+                    $ref: '#/components/schemas/SerializerB',
+                  },
+                },
+              },
+            },
+          })
+        )
+
+        expect(renderedA.referencedSerializers).toHaveLength(2)
+        expect(renderedA.referencedSerializers).toEqual([SerializerB, SerializerC])
+        expect(alreadyExtractedDescendantSerializers).toEqual({
+          SerializerA: true,
+          SerializerB: true,
+          SerializerC: true,
+        })
+
+        const serializerBOpenapiRenderer = new SerializerOpenapiRenderer(SerializerB)
+        const renderedB = serializerBOpenapiRenderer.renderedOpenapi(alreadyExtractedDescendantSerializers)
+
+        expect(renderedB.openapi).toEqual(
+          expect.objectContaining({
+            type: 'object',
+            required: ['mySerializers'],
+            properties: {
+              mySerializers: {
+                type: 'array',
+                items: {
+                  $ref: '#/components/schemas/SerializerC',
+                },
+              },
+            },
+          })
+        )
+        expect(renderedB.referencedSerializers).toHaveLength(1)
+        expect(renderedB.referencedSerializers).toEqual([SerializerC])
+
+        const serializerCOpenapiRenderer = new SerializerOpenapiRenderer(SerializerC)
+        const renderedC = serializerCOpenapiRenderer.renderedOpenapi(alreadyExtractedDescendantSerializers)
+
+        expect(renderedC.openapi).toEqual(
+          expect.objectContaining({
+            type: 'object',
+            required: [],
+            properties: {},
+          })
+        )
+        expect(renderedC.referencedSerializers).toHaveLength(0)
+      })
+    })
+  })
 })

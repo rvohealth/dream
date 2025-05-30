@@ -8,18 +8,17 @@ import { Range } from './range.js'
 import { isObject } from './typechecks.js'
 
 /**
- * @internal
+ * Accepts any value and returns a valid clone of that object.
+ * Dream instances, Query instances, and other special types are
+ * automatically cloned using their specialized cloning methods.
  *
- * accepts any value, and will return a valid clone of
- * that object. Any dream or query instances passed
- * will automatically be cloned using special cloning
- * methods.
- *
- * @param original - the value to clone
- * @param includePrimaryKey - Whether or not to copy the primary key when cloning a dream instance
- * @returns Either a clone, or else the original value
+ * @param original - The value to clone
+ * @param unsupportedTypeCloneFunction - Optional function to handle cloning of unsupported types.
+ *   If not provided, an error will be thrown for unsupported types.
+ * @returns Either a clone of the original value, or the original value itself for immutable types
+ * @throws {TypeUnsupportedByClone} When an unsupported type is encountered and no unsupportedTypeCloneFunction is provided
  */
-export default function cloneDeepSafe<T>(original: T): T {
+export default function cloneDeepSafe<T>(original: T, unsupportedTypeCloneFunction?: <U>(x: U) => U): T {
   if (original === undefined) return original
   if (original === null) return original
   if (typeof original === 'string') return original
@@ -34,14 +33,18 @@ export default function cloneDeepSafe<T>(original: T): T {
     return (original as unknown as Query<Dream>).clone() as T
   if ((original as unknown as SelectQueryBuilder<any, any, any>)?.isSelectQueryBuilder) return original
 
-  if (Array.isArray(original)) return original.map(value => cloneDeepSafe(value)) as T
+  if (Array.isArray(original))
+    return original.map(value => cloneDeepSafe(value, unsupportedTypeCloneFunction)) as T
 
   if (isObject(original) && original.constructor.name === 'Object') {
     const clone = { ...original }
-    Object.keys(clone).forEach(key => ((clone as any)[key] = cloneDeepSafe((clone as any)[key])))
+    Object.keys(clone).forEach(
+      key => ((clone as any)[key] = cloneDeepSafe((clone as any)[key], unsupportedTypeCloneFunction))
+    )
     return clone
   }
 
+  if (unsupportedTypeCloneFunction) return unsupportedTypeCloneFunction(original) as T
   throw new TypeUnsupportedByClone(original)
 }
 

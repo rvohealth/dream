@@ -7,7 +7,7 @@ export default class ObjectSerializerRendersOneAndManyRequireClassType extends E
     return `
 ObjectSerializer \`rendersOne\` and \`rendersMany\`
 options must include \`dreamClass\`, \`viewModelClass\`, or
-\`serializerCallback\`.
+\`serializer\`.
 
 rendersOne/Many name: ${this.associationName}
 `

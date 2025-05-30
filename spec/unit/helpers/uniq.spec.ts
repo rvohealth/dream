@@ -4,8 +4,6 @@ import GraphNode from '../../../test-app/app/models/Graph/Node.js'
 
 describe('uniq', () => {
   context('comparing Dream models', () => {
-    beforeEach(async () => {})
-
     it('uses the custom Dream comparator', async () => {
       const graphNode1 = await GraphNode.create({ name: 'Hello' })
       const graphNode2 = await GraphNode.create({ name: 'Hello' })

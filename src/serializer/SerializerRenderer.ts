@@ -61,142 +61,155 @@ export default class SerializerRenderer {
 
     let renderedAttributes: Record<string, any> = {}
 
-    ////////////////
-    // attributes //
-    ////////////////
     renderedAttributes = this.serializerBuilder['attributes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
-      const value = data[attribute.name]
-      accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
+      const attributeType = attribute.type
+      switch (attributeType) {
+        ////////////////
+        // attributes //
+        ////////////////
+        case 'attribute': {
+          const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
+          const value = data[attribute.name]
+          accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
 
-      return accumulator
-    }, renderedAttributes)
-    /////////////////////
-    // end: attributes //
-    /////////////////////
-
-    /////////////////////////
-    // delegatedAttributes //
-    /////////////////////////
-    renderedAttributes = this.serializerBuilder['delegatedAttributes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
-      const target = data[attribute.targetName]
-      const value = target[attribute.name]
-      accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
-      return accumulator
-    }, renderedAttributes)
-    //////////////////////////////
-    // end: delegatedAttributes //
-    //////////////////////////////
-
-    //////////////////////
-    // customAttributes //
-    //////////////////////
-    renderedAttributes = this.serializerBuilder['customAttributes'].reduce((accumulator, attribute) => {
-      // customAttributes don't support `as` since they are already custom and there is nothing to override
-      const outputAttributeName = this.setCase(attribute.name)
-      // customAttributes don't support rendering options since the custom function should handle all
-      // manipulation of the value
-
-      if (attribute.options.flatten) {
-        return {
-          ...accumulator,
-          ...applyRenderingOptionsToAttribute(attribute.fn(), {}),
+          return accumulator
         }
-      } else {
-        accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(attribute.fn(), {})
-        return accumulator
-      }
-    }, renderedAttributes)
-    ///////////////////////////
-    // end: customAttributes //
-    ///////////////////////////
+        /////////////////////
+        // end: attributes //
+        /////////////////////
 
-    /////////////////
-    // rendersOnes //
-    /////////////////
-    renderedAttributes = this.serializerBuilder['rendersOnes'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
-      const associatedObject = data[attribute.name]
-
-      let serializer: DreamModelSerializerType | SimpleObjectSerializerType | null = null
-
-      if (associatedObject) {
-        serializer = serializerForAssociatedObject(associatedObject, attribute.options)
-      } else if (attribute.options.flatten) {
-        /**
-         * Only used when flatten: true, and the associated model is null, in which case,
-         * we need something to determine the keys that will be flattened into the
-         * rendering serializer
-         */
-        serializer = serializerForAssociatedClass(data, attribute.name, attribute.options)
-      }
-
-      const serializerBuilder = serializer?.(
-        attribute.options.flatten ? (associatedObject ?? {}) : associatedObject,
-        // passthrough data going into the serializer is the argument that gets
-        // used in the custom attribute callback function
-        passthroughData
-      )
-
-      if (attribute.options.flatten) {
-        return {
-          ...accumulator,
-          // passthrough data must be passed both into the serializer and render
-          // because, if the serializer does accept passthrough data, then passing it in is how
-          // it gets into the serializer, but if it does not accept passthrough data, and therefore
-          // does not pass it into the call to DreamSerializer/ObjectSerializer,
-          // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
-          // handles passing its passthrough data into those
-          ...serializerBuilder?.render(passthroughData, this.renderOpts),
+        /////////////////////////
+        // delegatedAttributes //
+        /////////////////////////
+        case 'delegatedAttribute': {
+          const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
+          const target = data[attribute.targetName]
+          const value = target[attribute.name]
+          accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
+          return accumulator
         }
-      } else {
-        // passthrough data must be passed both into the serializer and render
-        // because, if the serializer does accept passthrough data, then passing it in is how
-        // it gets into the serializer, but if it does not accept passthrough data, and therefore
-        // does not pass it into the call to DreamSerializer/ObjectSerializer,
-        // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
-        // handles passing its passthrough data into those
-        accumulator[outputAttributeName] = serializerBuilder?.render(passthroughData, this.renderOpts) ?? null
-        return accumulator
-      }
-    }, renderedAttributes)
-    //////////////////////
-    // end: rendersOnes //
-    //////////////////////
+        //////////////////////////////
+        // end: delegatedAttributes //
+        //////////////////////////////
 
-    //////////////////
-    // rendersManys //
-    //////////////////
-    renderedAttributes = this.serializerBuilder['rendersManys'].reduce((accumulator, attribute) => {
-      const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
-      const associatedObjects = data[attribute.name]
+        //////////////////////
+        // customAttributes //
+        //////////////////////
+        case 'customAttribute': {
+          // customAttributes don't support `as` since they are already custom and there is nothing to override
+          const outputAttributeName = this.setCase(attribute.name)
+          // customAttributes don't support rendering options since the custom function should handle all
+          // manipulation of the value
 
-      if (!associatedObjects) throw new RendersManyMustReceiveArray(attribute, associatedObjects)
+          if (attribute.options.flatten) {
+            return {
+              ...accumulator,
+              ...applyRenderingOptionsToAttribute(attribute.fn(), {}),
+            }
+          } else {
+            accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(attribute.fn(), {})
+            return accumulator
+          }
+        }
+        ///////////////////////////
+        // end: customAttributes //
+        ///////////////////////////
 
-      accumulator[outputAttributeName] = compact(associatedObjects as ViewModel[]).map(associatedObject => {
-        const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+        /////////////////
+        // rendersOnes //
+        /////////////////
+        case 'rendersOne': {
+          const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
+          const associatedObject = data[attribute.name]
 
-        return (
-          // passthrough data going into the serializer is the argument that gets
-          // used in the custom attribute callback function
-          serializer(associatedObject, passthroughData)
+          let serializer: DreamModelSerializerType | SimpleObjectSerializerType | null = null
+
+          if (associatedObject) {
+            serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+          } else if (attribute.options.flatten) {
+            /**
+             * Only used when flatten: true, and the associated model is null, in which case,
+             * we need something to determine the keys that will be flattened into the
+             * rendering serializer
+             */
+            serializer = serializerForAssociatedClass(data, attribute.name, attribute.options)
+          }
+
+          const serializerBuilder = serializer?.(
+            attribute.options.flatten ? (associatedObject ?? {}) : associatedObject,
+            // passthrough data going into the serializer is the argument that gets
+            // used in the custom attribute callback function
+            passthroughData
+          )
+
+          if (attribute.options.flatten) {
+            return {
+              ...accumulator,
+              // passthrough data must be passed both into the serializer and render
+              // because, if the serializer does accept passthrough data, then passing it in is how
+              // it gets into the serializer, but if it does not accept passthrough data, and therefore
+              // does not pass it into the call to DreamSerializer/ObjectSerializer,
+              // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+              // handles passing its passthrough data into those
+              ...serializerBuilder?.render(passthroughData, this.renderOpts),
+            }
+          } else {
             // passthrough data must be passed both into the serializer and render
             // because, if the serializer does accept passthrough data, then passing it in is how
             // it gets into the serializer, but if it does not accept passthrough data, and therefore
             // does not pass it into the call to DreamSerializer/ObjectSerializer,
             // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
             // handles passing its passthrough data into those
-            .render(passthroughData)
-        )
-      })
+            accumulator[outputAttributeName] =
+              serializerBuilder?.render(passthroughData, this.renderOpts) ?? null
+            return accumulator
+          }
+        }
+        //////////////////////
+        // end: rendersOnes //
+        //////////////////////
 
-      return accumulator
+        //////////////////
+        // rendersManys //
+        //////////////////
+        case 'rendersMany': {
+          const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
+          const associatedObjects = data[attribute.name]
+
+          if (!associatedObjects) throw new RendersManyMustReceiveArray(attribute, associatedObjects)
+
+          accumulator[outputAttributeName] = compact(associatedObjects as ViewModel[]).map(
+            associatedObject => {
+              const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+
+              return (
+                // passthrough data going into the serializer is the argument that gets
+                // used in the custom attribute callback function
+                serializer(associatedObject, passthroughData)
+                  // passthrough data must be passed both into the serializer and render
+                  // because, if the serializer does accept passthrough data, then passing it in is how
+                  // it gets into the serializer, but if it does not accept passthrough data, and therefore
+                  // does not pass it into the call to DreamSerializer/ObjectSerializer,
+                  // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+                  // handles passing its passthrough data into those
+                  .render(passthroughData)
+              )
+            }
+          )
+
+          return accumulator
+        }
+        ///////////////////////
+        // end: rendersManys //
+        ///////////////////////
+
+        default: {
+          // protection so that if a new ValidationType is ever added, this will throw a type error at build time
+          const _never: never = attributeType
+          throw new Error(`Unhandled serializer attribute type: ${_never as string}`)
+        }
+      }
     }, renderedAttributes)
-    ///////////////////////
-    // end: rendersManys //
-    ///////////////////////
-
     return renderedAttributes
   }
 
@@ -244,7 +257,7 @@ function serializerForAssociatedObject<ObjectType extends Dream | ViewModel>(
   associatedObject: ObjectType,
   options: InternalAnyRendersOneOrManyOpts
 ): DreamModelSerializerType | SimpleObjectSerializerType {
-  if (options.serializerCallback) return options.serializerCallback()
+  if (options.serializer) return options.serializer
   return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey)
 }
 
@@ -258,7 +271,7 @@ function serializerForAssociatedClass<ObjectType extends Dream | ViewModel>(
   associationName: string,
   options: InternalAnyRendersOneOrManyOpts
 ): DreamModelSerializerType | SimpleObjectSerializerType | null {
-  if (options.serializerCallback) return options.serializerCallback()
+  if (options.serializer) return options.serializer
   if (!(object as Dream).isDreamInstance) return null
 
   const dream = object as Dream

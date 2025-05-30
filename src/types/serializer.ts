@@ -13,22 +13,21 @@ import {
 export type SerializerCasing = 'camel' | 'snake'
 export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
 
-export type DreamSerializerCallback<
-  T extends typeof Dream | ViewModelClass | object | (typeof Dream)[] | ViewModelClass[] | object[],
-> = () => SerializerType<T>
-
 export interface InternalAnyTypedSerializerAttribute<> {
+  type: 'attribute'
   name: string
   options: Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
 }
 
 export interface InternalAnyTypedSerializerDelegatedAttribute<> {
+  type: 'delegatedAttribute'
   targetName: string
   name: string
   options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
 }
 
 export interface InternalAnyTypedSerializerCustomAttribute {
+  type: 'customAttribute'
   name: string
   fn: (x?: any, y?: any) => any
   options: Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean }
@@ -38,7 +37,7 @@ export interface InternalAnyRendersOneOrManyOpts {
   as?: string
   dreamClass?: typeof Dream
   viewModelClass?: ViewModelClass
-  serializerCallback?: DreamSerializerCallback<any>
+  serializer?: DreamModelSerializerType | SimpleObjectSerializerType
   serializerKey?: string
 }
 
@@ -46,6 +45,7 @@ export interface InternalAnyTypedSerializerRendersOne<
   DataType,
   AttributeName extends keyof DataType & string = keyof DataType & string,
 > {
+  type: 'rendersOne'
   name: AttributeName
   options: InternalAnyRendersOneOrManyOpts & {
     flatten?: boolean
@@ -57,6 +57,7 @@ export interface InternalAnyTypedSerializerRendersMany<
   DataType,
   AttributeName extends keyof DataType & string = keyof DataType & string,
 > {
+  type: 'rendersMany'
   name: AttributeName
   options: InternalAnyRendersOneOrManyOpts
 }

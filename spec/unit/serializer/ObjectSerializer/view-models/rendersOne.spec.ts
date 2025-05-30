@@ -1,11 +1,12 @@
 import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
+import UserSerializer from '../../../../../test-app/app/serializers/view-model/UserSerializer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 import { SpeciesValues } from '../../../../../test-app/types/db.js'
 
 describe('ObjectSerializer (on a view model) rendersOne', () => {
-  it('renders the ViewModel’s default serializer', () => {
+  it('renders the ViewModel’s default serializer and includes the referenced serializer in the returned referencedSerializers array', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = new UserViewModel({ id: '7', name: 'Charlie', birthdate })
     const pet = new PetViewModel({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -25,11 +26,14 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       user: {
         $ref: '#/components/schemas/view-modelUser',
       },
     })
+
+    expect(results.referencedSerializers).toEqual([UserSerializer])
   })
 
   it('supports specifying a specific serializerKey', () => {
@@ -140,7 +144,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
     const MySerializer = (data: PetViewModel) =>
       ObjectSerializer(data).rendersOne('user', {
-        serializerCallback: () => CustomSerializer,
+        serializer: CustomSerializer,
       })
 
     const serializer = MySerializer(pet)

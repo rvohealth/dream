@@ -35,7 +35,7 @@ describe('ObjectSerializer rendersOne', () => {
       ;(UserSerializer as any)['globalName'] = 'CustomUserSerializer'
       ;(UserSerializer as any)['openapiName'] = 'CustomUser'
       const MySerializer = (data: PetWithSimpleUser) =>
-        ObjectSerializer(data).rendersOne('user', { serializerCallback: () => UserSerializer })
+        ObjectSerializer(data).rendersOne('user', { serializer: UserSerializer })
 
       const serializer = MySerializer(pet)
 
@@ -46,11 +46,14 @@ describe('ObjectSerializer rendersOne', () => {
       })
 
       const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
+      const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+      expect(results.attributes).toEqual({
         user: {
           $ref: '#/components/schemas/CustomUser',
         },
       })
+
+      expect(results.referencedSerializers).toEqual([UserSerializer])
     })
   })
 
@@ -116,7 +119,7 @@ describe('ObjectSerializer rendersOne', () => {
       ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
       ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
       const MySerializer = (data: PetWithDreamUser) =>
-        ObjectSerializer(data).rendersOne('user', { serializerCallback: () => CustomSerializer })
+        ObjectSerializer(data).rendersOne('user', { serializer: CustomSerializer })
 
       const serializer = MySerializer(pet)
 
@@ -196,6 +199,30 @@ describe('ObjectSerializer rendersOne', () => {
               $ref: '#/components/schemas/User',
             },
           ],
+        })
+      })
+
+      context('defined before a flattened attribute', () => {
+        it('the attribute defined later in the serializer takes precedence', () => {
+          const birthdate = CalendarDate.fromISO('1950-10-02')
+          const user = DreamUser.new({ id: '7', name: 'Charlie', birthdate, favoriteWord: 'hello' })
+          const pet: PetWithDreamUser = { id: '3', user, name: 'Snoopy', species: 'dog' }
+
+          const MySerializer = (data: PetWithDreamUser) =>
+            ObjectSerializer(data)
+              .attribute('species', { openapi: { type: ['string', 'null'], enum: SpeciesValues } })
+              .rendersOne('user', { dreamClass: DreamUser, flatten: true })
+              .customAttribute('favoriteWord', () => 'howdy', { openapi: 'string' })
+
+          const serializer = MySerializer(pet)
+
+          expect(serializer.render()).toEqual({
+            species: 'dog',
+            id: user.id,
+            favoriteWord: 'howdy',
+            name: 'Charlie',
+            birthdate: birthdate.toISO(),
+          })
         })
       })
     })

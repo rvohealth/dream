@@ -1,6 +1,7 @@
 import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
 import Balloon from '../../../../../test-app/app/models/Balloon.js'
+import PetSerializer from '../../../../../test-app/app/serializers/view-model/PetSerializer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 
@@ -37,7 +38,8 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       pets: {
         type: 'array',
         items: {
@@ -45,6 +47,8 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
         },
       },
     })
+
+    expect(results.referencedSerializers).toEqual([PetSerializer])
   })
 
   it('expands STI base model into OpenAPI for all of the child types', () => {
@@ -181,7 +185,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
     ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
     const MySerializer = (data: UserViewModel) =>
       ObjectSerializer(data).rendersMany('pets', {
-        serializerCallback: () => CustomSerializer,
+        serializer: CustomSerializer,
       })
 
     const serializer = MySerializer(user)

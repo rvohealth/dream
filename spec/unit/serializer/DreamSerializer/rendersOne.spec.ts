@@ -2,10 +2,11 @@ import { CalendarDate, DreamSerializer } from '../../../../src/index.js'
 import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import { SpeciesValues } from '../../../../test-app/types/db.js'
 
 describe('DreamSerializer rendersOne', () => {
-  it('renders the Dream model’s default serializer', () => {
+  it('renders the Dream model’s default serializer and includes the referenced serializer in the returned referencedSerializers array', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ id: '7', name: 'Charlie', birthdate })
     const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -24,11 +25,14 @@ describe('DreamSerializer rendersOne', () => {
     })
 
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
+    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
+    expect(results.attributes).toEqual({
       user: {
         $ref: '#/components/schemas/User',
       },
     })
+
+    expect(results.referencedSerializers).toEqual([UserSerializer])
   })
 
   context('when there is no associated model', () => {
@@ -354,7 +358,7 @@ describe('DreamSerializer rendersOne', () => {
     ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
     ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
     const MySerializer = (data: Pet) =>
-      DreamSerializer(Pet, data).rendersOne('user', { serializerCallback: () => CustomSerializer })
+      DreamSerializer(Pet, data).rendersOne('user', { serializer: CustomSerializer })
 
     const serializer = MySerializer(pet)
 
@@ -390,7 +394,7 @@ describe('DreamSerializer rendersOne', () => {
     ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
     ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
     const MySerializer = (data: Pet) =>
-      DreamSerializer(Pet, data).rendersOne('user', { serializerCallback: () => CustomSerializer })
+      DreamSerializer(Pet, data).rendersOne('user', { serializer: CustomSerializer })
 
     const serializer = MySerializer(pet)
 

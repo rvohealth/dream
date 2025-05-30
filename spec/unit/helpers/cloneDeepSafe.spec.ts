@@ -140,5 +140,15 @@ describe('cloneDeepSafe', () => {
       const original = [new Set()]
       expect(() => cloneDeepSafe(original)).toThrow(TypeUnsupportedByClone)
     })
+
+    context('with a custom unsupported type callback', () => {
+      it('returns the value returned by the callback', () => {
+        const theSet = new Set()
+        const original = [theSet]
+        const result = cloneDeepSafe(original, obj => obj)
+        expect(result).toHaveLength(1)
+        expect(result[0]).toEqual(theSet)
+      })
+    })
   })
 })
