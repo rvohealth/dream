@@ -76,6 +76,7 @@ export { default as isDreamSerializer } from './serializer/helpers/isDreamSerial
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 
 export { default as SerializerOpenapiRenderer } from './serializer/SerializerOpenapiRenderer.js'
+export { type SerializerRendererOpts } from './serializer/SerializerRenderer.js'
 
 export { default as DreamSerializer } from './serializer/DreamSerializer.js'
 export { default as ObjectSerializer } from './serializer/ObjectSerializer.js'

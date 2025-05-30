@@ -37,7 +37,6 @@ const NULL_OBJECT_OPENAPI: OpenapiSchemaBody = { type: 'null' }
 
 export default class SerializerOpenapiRenderer {
   private casing: SerializerCasing
-  private schemaDelimiter: string
   private suppressResponseEnums: boolean
   private allOfSiblings: OpenapiSchemaBodyShorthand[] = []
 
@@ -45,18 +44,15 @@ export default class SerializerOpenapiRenderer {
     private serializer: DreamModelSerializerType | SimpleObjectSerializerType,
     {
       casing = 'camel',
-      schemaDelimiter = '_',
       suppressResponseEnums = false,
     }: {
       casing?: SerializerCasing
-      schemaDelimiter?: string
       suppressResponseEnums?: boolean
     } = {}
   ) {
     if (!isDreamSerializer(this.serializer))
       throw new NonSerializerPassedToSerializerOpenapiRenderer(this.serializer)
     this.casing = casing
-    this.schemaDelimiter = schemaDelimiter
     this.suppressResponseEnums = suppressResponseEnums
   }
 
@@ -149,7 +145,6 @@ export default class SerializerOpenapiRenderer {
 
     const openapiRenderingOpts = {
       casing: this.casing,
-      schemaDelimiter: this.schemaDelimiter,
       suppressResponseEnums: this.suppressResponseEnums,
     }
 
@@ -166,7 +161,7 @@ export default class SerializerOpenapiRenderer {
         ? dreamColumnOpenapiShape(DataTypeForOpenapi as typeof Dream, attribute.name, openapi, {
             suppressResponseEnums: this.suppressResponseEnums,
           })
-        : allSerializersToRefsInOpenapi(openapiShorthandToOpenapi(openapi as any), this.schemaDelimiter)
+        : allSerializersToRefsInOpenapi(openapiShorthandToOpenapi(openapi as any))
 
       return accumulator
     }, renderedOpenapi)
@@ -184,13 +179,10 @@ export default class SerializerOpenapiRenderer {
       referencedSerializers = [...referencedSerializers, ...allSerializersFromHandWrittenOpenapi(openapi)]
 
       if (attribute.options.flatten) {
-        this.allOfSiblings.push(
-          allSerializersToRefsInOpenapi(openapiShorthandToOpenapi(openapi as any), this.schemaDelimiter)
-        )
+        this.allOfSiblings.push(allSerializersToRefsInOpenapi(openapiShorthandToOpenapi(openapi as any)))
       } else {
         accumulator[outputAttributeName] = allSerializersToRefsInOpenapi(
-          openapiShorthandToOpenapi(openapi as any),
-          this.schemaDelimiter
+          openapiShorthandToOpenapi(openapi as any)
         )
       }
 
@@ -210,8 +202,7 @@ export default class SerializerOpenapiRenderer {
       referencedSerializers = [...referencedSerializers, ...allSerializersFromHandWrittenOpenapi(openapi)]
 
       accumulator[outputAttributeName] = allSerializersToRefsInOpenapi(
-        openapiShorthandToOpenapi(openapi as any),
-        this.schemaDelimiter
+        openapiShorthandToOpenapi(openapi as any)
       )
       return accumulator
     }, renderedOpenapi)
@@ -334,7 +325,6 @@ function associationOpenapi(
   alreadyProcessedSerializers: Record<string, boolean>,
   opts: {
     casing: SerializerCasing
-    schemaDelimiter: string
     suppressResponseEnums: boolean
   }
 ): ReferencedSerializersAndOpenapiSchemaBodyShorthand {
@@ -430,7 +420,6 @@ function serializerAndDescendentSerializers(
   alreadyProcessedSerializers: Record<string, boolean>,
   opts: {
     casing: SerializerCasing
-    schemaDelimiter: string
     suppressResponseEnums: boolean
   }
 ): (DreamModelSerializerType | SimpleObjectSerializerType)[] {
