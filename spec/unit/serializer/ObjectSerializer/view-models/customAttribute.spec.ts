@@ -212,7 +212,7 @@ describe('ObjectSerializer (on a view model) customAttributes', () => {
             },
           },
           {
-            $ref: '#/components/schemas/view-model_User',
+            $ref: '#/components/schemas/view-modelUser',
           },
         ],
       })

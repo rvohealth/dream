@@ -3,6 +3,7 @@ import isDreamSerializer from '../../../serializer/helpers/isDreamSerializer.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from '../../../types/serializer.js'
 import DreamImporter from '../DreamImporter.js'
 import globalSerializerKeyFromPath from '../globalSerializerKeyFromPath.js'
+import serializerOpenapiNameFromPath from '../serializerOpenapiNameFromPath.js'
 
 let _serializers: Record<string, DreamModelSerializerType | SimpleObjectSerializerType>
 
@@ -21,11 +22,13 @@ export default async function importSerializers(
 
       if (potentialSerializer && isDreamSerializer(potentialSerializer)) {
         const serializerKey = globalSerializerKeyFromPath(serializerPath, serializersPath, key)
+        const serializerOpenapiName = serializerOpenapiNameFromPath(serializerPath, serializersPath, key)
 
         if (_serializers[serializerKey]) throw new SerializerNameConflict(serializerKey)
 
         const serializer = potentialSerializer
         ;(serializer as any)['globalName'] = serializerKey
+        ;(serializer as any)['openapiName'] = serializerOpenapiName
 
         _serializers[serializerKey] = potentialSerializer
       }

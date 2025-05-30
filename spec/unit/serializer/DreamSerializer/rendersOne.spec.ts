@@ -352,6 +352,7 @@ describe('DreamSerializer rendersOne', () => {
 
     const CustomSerializer = (data: User) => DreamSerializer(User, data).attribute('name')
     ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
+    ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
     const MySerializer = (data: Pet) =>
       DreamSerializer(Pet, data).rendersOne('user', { serializerCallback: () => CustomSerializer })
 
@@ -387,6 +388,7 @@ describe('DreamSerializer rendersOne', () => {
         { openapi: 'string' }
       )
     ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
+    ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
     const MySerializer = (data: Pet) =>
       DreamSerializer(Pet, data).rendersOne('user', { serializerCallback: () => CustomSerializer })
 

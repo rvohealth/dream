@@ -1,5 +1,5 @@
 import pluralize from 'pluralize-esm'
-import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
+import serializerGlobalNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerGlobalNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
@@ -114,8 +114,8 @@ ${
     serializer
       ? `  public ${isSTI ? 'override ' : ''}get serializers(): DreamSerializers<${modelClassName}> {
     return {
-      default: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
-      summary: '${serializerNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
+      default: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
+      summary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
     }
   }
 

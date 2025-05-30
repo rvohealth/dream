@@ -63,13 +63,13 @@ describe('DreamSerializer rendersMany', () => {
         items: {
           anyOf: [
             {
-              $ref: '#/components/schemas/Balloon_Latex_Animal',
+              $ref: '#/components/schemas/BalloonLatexAnimal',
             },
             {
-              $ref: '#/components/schemas/Balloon_Latex',
+              $ref: '#/components/schemas/BalloonLatex',
             },
             {
-              $ref: '#/components/schemas/Balloon_Mylar',
+              $ref: '#/components/schemas/BalloonMylar',
             },
           ],
         },
@@ -189,6 +189,7 @@ describe('DreamSerializer rendersMany', () => {
 
     const CustomSerializer = (data: Pet) => DreamSerializer(Pet, data).attribute('name')
     ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
+    ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
     const MySerializer = (data: User) =>
       DreamSerializer(User, data).rendersMany('pets', { serializerCallback: () => CustomSerializer })
 
@@ -240,6 +241,7 @@ describe('DreamSerializer rendersMany', () => {
         { openapi: 'string' }
       )
     ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
+    ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
     const MySerializer = (data: User) =>
       DreamSerializer(User, data).rendersMany('pets', { serializerCallback: () => CustomSerializer })
 

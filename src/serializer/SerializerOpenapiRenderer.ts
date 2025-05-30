@@ -61,11 +61,11 @@ export default class SerializerOpenapiRenderer {
   }
 
   public get globalName(): string {
-    return (this.serializer as unknown as { globalName: string })['globalName'] ?? ''
+    return (this.serializer as unknown as { globalName: string })['globalName'] ?? '--unnamed--'
   }
 
   public get openapiName(): string {
-    return this.globalName.replace(/Serializer$/, '').replace(/\//g, this.schemaDelimiter)
+    return (this.serializer as unknown as { openapiName: string })['openapiName'] ?? '--unnamed--'
   }
 
   public get serializerRef(): OpenapiSchemaExpressionRef {

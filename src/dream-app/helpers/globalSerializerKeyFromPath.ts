@@ -1,4 +1,8 @@
-export default function (filepath: string, dirPath: string, exportKey: string = 'default') {
+export default function globalSerializerKeyFromPath(
+  filepath: string,
+  dirPath: string,
+  exportKey: string = 'default'
+) {
   const prefixPath = dirPath
   const defaultExport = filepath
     .replace(prefixPath, '')

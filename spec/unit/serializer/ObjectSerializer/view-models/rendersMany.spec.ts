@@ -41,7 +41,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/view-model_Pet',
+          $ref: '#/components/schemas/view-modelPet',
         },
       },
     })
@@ -58,13 +58,13 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
         items: {
           anyOf: [
             {
-              $ref: '#/components/schemas/Balloon_Latex_Animal',
+              $ref: '#/components/schemas/BalloonLatexAnimal',
             },
             {
-              $ref: '#/components/schemas/Balloon_Latex',
+              $ref: '#/components/schemas/BalloonLatex',
             },
             {
-              $ref: '#/components/schemas/Balloon_Mylar',
+              $ref: '#/components/schemas/BalloonMylar',
             },
           ],
         },
@@ -117,7 +117,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
       pets: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/view-model_PetSummary',
+          $ref: '#/components/schemas/PetSummary',
         },
       },
     })
@@ -162,7 +162,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
       pets2: {
         type: 'array',
         items: {
-          $ref: '#/components/schemas/view-model_Pet',
+          $ref: '#/components/schemas/view-modelPet',
         },
       },
     })
@@ -178,6 +178,7 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
     const CustomSerializer = (data: PetViewModel) =>
       ObjectSerializer(data).attribute('name', { openapi: 'string' })
     ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
+    ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
     const MySerializer = (data: UserViewModel) =>
       ObjectSerializer(data).rendersMany('pets', {
         serializerCallback: () => CustomSerializer,

@@ -27,7 +27,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/view-model_User',
+        $ref: '#/components/schemas/view-modelUser',
       },
     })
   })
@@ -55,7 +55,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user: {
-        $ref: '#/components/schemas/view-model_UserSummary',
+        $ref: '#/components/schemas/UserSummary',
       },
     })
   })
@@ -85,7 +85,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
     expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
       user2: {
-        $ref: '#/components/schemas/view-model_User',
+        $ref: '#/components/schemas/view-modelUser',
       },
     })
   })
@@ -122,7 +122,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
             },
           },
           {
-            $ref: '#/components/schemas/view-model_User',
+            $ref: '#/components/schemas/view-modelUser',
           },
         ],
       })
@@ -137,6 +137,7 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     const CustomSerializer = (data: UserViewModel) =>
       ObjectSerializer(data).attribute('name', { openapi: 'string' })
     ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
+    ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
     const MySerializer = (data: PetViewModel) =>
       ObjectSerializer(data).rendersOne('user', {
         serializerCallback: () => CustomSerializer,

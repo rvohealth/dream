@@ -36,6 +36,7 @@ describe('ObjectSerializer rendersMany', () => {
       const PetSerializer = (data: SimplePet) =>
         ObjectSerializer(data).attribute('name', { openapi: ['string', 'null'] })
       ;(PetSerializer as any)['globalName'] = 'PetSerializer'
+      ;(PetSerializer as any)['openapiName'] = 'Pet'
       const MySerializer = (data: UserWithSimplePets) =>
         ObjectSerializer(data).rendersMany('pets', { serializerCallback: () => PetSerializer })
 
@@ -211,6 +212,7 @@ describe('ObjectSerializer rendersMany', () => {
       const CustomSerializer = (data: SimplePet) =>
         ObjectSerializer(data).attribute('name', { openapi: ['string', 'null'] })
       ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
+      ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
       const MySerializer = (data: UserWithSimplePets) =>
         ObjectSerializer(data).rendersMany('pets', { serializerCallback: () => CustomSerializer })
 

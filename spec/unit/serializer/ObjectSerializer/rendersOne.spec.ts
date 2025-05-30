@@ -33,6 +33,7 @@ describe('ObjectSerializer rendersOne', () => {
       const UserSerializer = (data: SimpleUser) =>
         ObjectSerializer(data).attribute('name', { openapi: ['string', 'null'] })
       ;(UserSerializer as any)['globalName'] = 'CustomUserSerializer'
+      ;(UserSerializer as any)['openapiName'] = 'CustomUser'
       const MySerializer = (data: PetWithSimpleUser) =>
         ObjectSerializer(data).rendersOne('user', { serializerCallback: () => UserSerializer })
 
@@ -113,6 +114,7 @@ describe('ObjectSerializer rendersOne', () => {
 
       const CustomSerializer = (data: DreamUser) => DreamSerializer(DreamUser, data).attribute('name')
       ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
+      ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
       const MySerializer = (data: PetWithDreamUser) =>
         ObjectSerializer(data).rendersOne('user', { serializerCallback: () => CustomSerializer })
 
