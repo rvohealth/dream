@@ -45,7 +45,7 @@ import { DateTime } from '../helpers/DateTime.js'
 import isEmpty from '../helpers/isEmpty.js'
 import isObject from '../helpers/isObject.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
-import normalizeString from '../helpers/normalizeString.js'
+import normalizeUnicode from '../helpers/normalizeUnicode.js'
 import objectPathsToArrays from '../helpers/objectPathsToArrays.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { Range } from '../helpers/range.js'
@@ -3576,7 +3576,7 @@ export default class Query<
         v instanceof DateTime || v instanceof CalendarDate
           ? v.toSQL()
           : typeof v === 'string'
-            ? normalizeString(v)
+            ? normalizeUnicode(v)
             : v
       )
     } else if (val instanceof CurriedOpsStatement) {
@@ -3616,10 +3616,10 @@ export default class Query<
     }
 
     if (c instanceof DateTime || c instanceof CalendarDate) c = c.toSQL()
-    else if (typeof c === 'string') c = normalizeString(c)
+    else if (typeof c === 'string') c = normalizeUnicode(c)
 
     if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toSQL()
-    else if (typeof c2 === 'string') c2 = normalizeString(c2)
+    else if (typeof c2 === 'string') c2 = normalizeUnicode(c2)
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)

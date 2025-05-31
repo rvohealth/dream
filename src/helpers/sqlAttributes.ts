@@ -3,7 +3,7 @@ import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
 import isDatetimeOrDatetimeArrayColumn from './db/types/isDatetimeOrDatetimeArrayColumn.js'
 import isTextOrTextArrayColumn from './db/types/isTextOrTextArrayColumn.js'
-import normalizeString from './normalizeString.js'
+import normalizeUnicode from './normalizeUnicode.js'
 
 export default function sqlAttributes(dream: Dream) {
   const attributes = dream.dirtyAttributes()
@@ -16,10 +16,10 @@ export default function sqlAttributes(dream: Dream) {
 
       if (Array.isArray(val)) {
         if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = val.map(valueToDatetime)
-        else if (isTextOrTextArrayColumn(dreamClass, key)) val = val.map(normalizeString)
+        else if (isTextOrTextArrayColumn(dreamClass, key)) val = val.map(normalizeUnicode)
       } else {
         if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = valueToDatetime(val)
-        else if (isTextOrTextArrayColumn(dreamClass, key)) val = normalizeString(val)
+        else if (isTextOrTextArrayColumn(dreamClass, key)) val = normalizeUnicode(val)
       }
 
       if (val instanceof DateTime || val instanceof CalendarDate) {
