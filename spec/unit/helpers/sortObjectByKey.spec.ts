@@ -1,4 +1,4 @@
-import { sortObjectByKey } from '../../../src/index.js'
+import sortObjectByKey from '../../../src/helpers/sortObjectByKey.js'
 
 describe('sortObjectByKey', () => {
   it('returns a copy of the object with keys in alphabetical order', () => {
