@@ -133,6 +133,6 @@ function importStatementForModel(originModelName: string, destinationModelName: 
   return `import ${modelName} from '${importFrom}'\n`
 }
 
-function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {
+export function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {
   return fullyQualifiedModelName.replace(/\//g, '')
 }

@@ -1,5 +1,6 @@
 import { Decorators } from '../../../../src/index.js'
-import { DreamColumn, DreamSerializers } from '../../../../src/types/dream.js'
+import { DreamColumn } from '../../../../src/types/dream.js'
+import GraphNodeSerializer from '../../serializers/Graph/NodeSerializer.js'
 import ApplicationModel from '../ApplicationModel.js'
 import GraphEdge from './Edge.js'
 import EdgeNode from './EdgeNode.js'
@@ -11,8 +12,8 @@ export default class Node extends ApplicationModel {
     return 'graph_nodes' as const
   }
 
-  public get serializers(): DreamSerializers<Node> {
-    return { default: 'Graph/NodeSerializer' }
+  public get serializers() {
+    return { default: GraphNodeSerializer }
   }
 
   public id: DreamColumn<Node, 'id'>

@@ -1,11 +1,12 @@
 import pluralize from 'pluralize-esm'
-import serializerGlobalNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerGlobalNameFromFullyQualifiedModelName.js'
+import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
+import { fullyQualifiedModelNameToSerializerBaseName } from './generateSerializerContent.js'
 
 export default function generateDreamContent({
   fullyQualifiedModelName,
@@ -22,7 +23,6 @@ export default function generateDreamContent({
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   let parentModelClassName: string | undefined
   const dreamImports: string[] = ['Decorators', 'DreamColumn']
-  if (serializer) dreamImports.push('DreamSerializers')
   const isSTI = !!fullyQualifiedParentName
 
   if (isSTI) {
@@ -31,10 +31,23 @@ export default function generateDreamContent({
     dreamImports.push('STI')
   }
 
+  const serialzerClassName = serializerNameFromFullyQualifiedModelName(
+    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
+  )
+
+  const summarySerialzerClassName = serializerNameFromFullyQualifiedModelName(
+    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName),
+    'summary'
+  )
+
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
   const modelImportStatements: string[] = isSTI
     ? [importStatementForModel(fullyQualifiedModelName, fullyQualifiedParentName)]
     : [importStatementForModel(fullyQualifiedModelName, 'ApplicationModel')]
+
+  const serializerImportStatement = serializer
+    ? importStatementForSerializers(fullyQualifiedModelName, serialzerClassName, summarySerialzerClassName)
+    : ''
 
   const attributeStatements = columnsWithTypes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
@@ -96,7 +109,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
 
   return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}
+import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}${serializerImportStatement}
 
 const deco = new Decorators<typeof ${modelClassName}>()
 
@@ -112,10 +125,10 @@ ${
 `
 }${
     serializer
-      ? `  public ${isSTI ? 'override ' : ''}get serializers(): DreamSerializers<${modelClassName}> {
+      ? `  public ${isSTI ? 'override ' : ''}get serializers() {
     return {
-      default: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
-      summary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
+      default: ${serialzerClassName},
+      summary: ${summarySerialzerClassName},
     }
   }
 
@@ -134,4 +147,12 @@ function getAttributeType(attribute: string, modelClassName: string) {
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
   return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('models', 'models', originModelName, destinationModelName)}'`
+}
+
+function importStatementForSerializers(
+  originModelName: string,
+  serialzerClassName: string,
+  summarySerialzerClassName: string
+) {
+  return `\nimport { ${serialzerClassName}, ${summarySerialzerClassName} } from '${relativeDreamPath('models', 'serializers', originModelName)}'`
 }

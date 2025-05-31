@@ -1,6 +1,7 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import { Decorators, ops } from '../../../src/index.js'
-import { DreamColumn, DreamSerializers, IdType } from '../../../src/types/dream.js'
+import { DreamColumn, IdType } from '../../../src/types/dream.js'
+import PetSerializer, { PetSummarySerializer } from '../serializers/PetSerializer.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 import Collar from './Collar.js'
@@ -17,10 +18,10 @@ export default class Pet extends ApplicationModel {
     return 'pets' as const
   }
 
-  public get serializers(): DreamSerializers<Pet> {
+  public get serializers() {
     return {
-      default: 'PetSerializer',
-      summary: 'PetSummarySerializer',
+      default: PetSerializer,
+      summary: PetSummarySerializer,
     }
   }
 

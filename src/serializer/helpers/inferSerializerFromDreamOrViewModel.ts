@@ -28,8 +28,11 @@ export default function inferSerializerFromDreamOrViewModel<
   const serializers = (obj as ViewModel).serializers
   if (!serializers) throw new MissingSerializersDefinition(obj)
 
-  const globalName = serializers[serializerKey]
-  if (!globalName) throw new MissingSerializersDefinitionForKey(obj, serializerKey)
+  const serializerOrGlobalName = serializers[serializerKey]
+  if (!serializerOrGlobalName) throw new MissingSerializersDefinitionForKey(obj, serializerKey)
+
+  if (isDreamSerializer(serializerOrGlobalName)) return serializerOrGlobalName as unknown as ReturnType
+  const globalName = serializerOrGlobalName as string
 
   const dreamApp = DreamApp.getOrFail()
   const serializer = dreamApp.serializers[globalName]
