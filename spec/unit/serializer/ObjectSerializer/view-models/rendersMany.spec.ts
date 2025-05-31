@@ -62,10 +62,10 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
         items: {
           anyOf: [
             {
-              $ref: '#/components/schemas/BalloonLatexAnimal',
+              $ref: '#/components/schemas/BalloonLatex',
             },
             {
-              $ref: '#/components/schemas/BalloonLatex',
+              $ref: '#/components/schemas/BalloonLatexAnimal',
             },
             {
               $ref: '#/components/schemas/BalloonMylar',

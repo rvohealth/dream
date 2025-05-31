@@ -1,3 +1,4 @@
+import { inspect } from 'node:util'
 import Dream from '../Dream.js'
 import AttemptedToDeriveDescendentSerializersFromNonSerializer from '../errors/serializers/AttemptedToDeriveDescendentSerializersFromNonSerializer.js'
 import ExpectedSerializerForRendersOneOrManyOption from '../errors/serializers/ExpectedSerializerForRendersOneOrManyOption.js'
@@ -8,6 +9,7 @@ import ObjectSerializerRendersOneAndManyRequireClassType from '../errors/seriali
 import compact from '../helpers/compact.js'
 import snakeify from '../helpers/snakeify.js'
 import sort from '../helpers/sort.js'
+import sortBy from '../helpers/sortBy.js'
 import sortObjectByKey from '../helpers/sortObjectByKey.js'
 import expandStiClasses from '../helpers/sti/expandStiClasses.js'
 import uniq from '../helpers/uniq.js'
@@ -445,8 +447,12 @@ function associationOpenapi(
       ),
     ],
     openapi: {
-      anyOf: serializersOpenapi.map(
-        serializer => new SerializerOpenapiRenderer(serializer, opts).serializerRef
+      anyOf: sortBy(
+        uniq(
+          serializersOpenapi.map(serializer => new SerializerOpenapiRenderer(serializer, opts).serializerRef),
+          ref => ref['$ref']
+        ),
+        ref => (ref['$ref'] ? ref['$ref'] : inspect(ref, { depth: 2 }))
       ),
     },
   }
