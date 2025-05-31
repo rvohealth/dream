@@ -35,7 +35,9 @@ export default class ObjectSerializerBuilder<
   ) {}
 
   public attribute<
-    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
+    // don't attempt to exclude 'serializers' because it breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    AttributeName extends keyof DataType & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
@@ -48,7 +50,9 @@ export default class ObjectSerializerBuilder<
   }
 
   public delegatedAttribute<
-    TargetName extends Exclude<keyof DataType, 'serializers'> & string,
+    // don't attempt to exclude 'serializers' because it breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    TargetName extends keyof DataType & string,
     TargetObject extends DataType[TargetName],
     AttributeName extends TargetObject extends object ? keyof TargetObject & string : never,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
@@ -64,7 +68,9 @@ export default class ObjectSerializerBuilder<
   }
 
   public jsonAttribute<
-    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
+    // don't attempt to exclude 'serializers' because it breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    AttributeName extends keyof DataType & string,
     Options extends NonAutomaticSerializerAttributeOptions,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
@@ -91,7 +97,13 @@ export default class ObjectSerializerBuilder<
   }
 
   public rendersOne<
-    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
+    // applying any type function to limit AttributeName breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    // e.g., the following causes problems:
+    // AttributeName extends NonArrayAttributes<DataType> & string,
+    // and so does
+    // AttributeName extends Exclude<DataType, 'serializers'> & string,
+    AttributeName extends keyof DataType & string,
     AssociatedModelType extends Exclude<DataType[AttributeName], null>,
     SerializerOptions extends AssociatedModelType extends Dream
       ?
@@ -132,7 +144,11 @@ export default class ObjectSerializerBuilder<
   }
 
   public rendersMany<
-    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
+    // applying any type function to limit AttributeName breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    // e.g., the following causes problems:
+    // AttributeName extends ArrayAttributes<DataType> & string,
+    AttributeName extends keyof DataType & string,
     AssociatedModelType extends DataType[AttributeName] extends (Dream | ViewModel | object)[]
       ? DataType[AttributeName] extends (infer U)[]
         ? U

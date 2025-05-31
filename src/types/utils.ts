@@ -1,3 +1,11 @@
+export type ArrayAttributes<T> = {
+  [K in keyof T]: T[K] extends any[] ? K : never
+}[keyof T]
+
+export type NonArrayAttributes<T> = {
+  [K in keyof T]: T[K] extends any[] ? never : K
+}[keyof T]
+
 export type Inc<T extends number> =
   // Check `T`'s value on every number from 0 to 31 and return the next value each time.
   // If it's out of scope, just return `never`.

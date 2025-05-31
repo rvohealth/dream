@@ -92,7 +92,6 @@ export {
   type DreamClassColumn,
   type DreamColumn,
   type DreamColumnNames,
-  type DreamOrViewModelClassSerializerArrayKeys,
   type DreamOrViewModelClassSerializerKey,
   type DreamOrViewModelSerializerKey,
   type DreamParamSafeAttributes,

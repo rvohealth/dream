@@ -1,12 +1,5 @@
 import Dream from '../../Dream.js'
-import {
-  DreamBelongsToAssociationMetadata,
-  DreamHasManyAssociationMetadata,
-  DreamHasOneAssociationMetadata,
-  DreamOrViewModelSerializerKey,
-  ViewModel,
-  ViewModelClass,
-} from '../../types/dream.js'
+import { DreamOrViewModelSerializerKey, ViewModel, ViewModelClass } from '../../types/dream.js'
 import {
   AutomaticSerializerAttributeOptions,
   InternalAnyTypedSerializerAttribute,
@@ -49,10 +42,12 @@ export default class DreamSerializerBuilder<
     TableName extends DataType['table'] & keyof Schema,
     MaybeAttributeName extends
       | keyof Schema[TableName]['columns']
-      | (Exclude<keyof DataType, 'serializers'> & string),
+      // don't attempt to exclude 'serializers' because it breaks types when adding
+      // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+      | (keyof DataType & string),
     AttributeName extends MaybeAttributeName extends keyof Schema[TableName]['columns']
       ? never
-      : Exclude<keyof DataType, 'serializers'> & string,
+      : keyof DataType & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(
     name: AttributeName,
@@ -80,7 +75,9 @@ export default class DreamSerializerBuilder<
   }
 
   public delegatedAttribute<
-    TargetName extends Exclude<keyof DataType, 'serializers'> & string,
+    // don't attempt to exclude 'serializers' because it breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    TargetName extends keyof DataType & string,
     TargetObject extends DataType[TargetName],
     AttributeName extends TargetObject extends object ? keyof TargetObject & string : never,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
@@ -96,7 +93,9 @@ export default class DreamSerializerBuilder<
   }
 
   public jsonAttribute<
-    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
+    // don't attempt to exclude 'serializers' because it breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    AttributeName extends keyof DataType & string,
     Options extends NonAutomaticSerializerAttributeOptions,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
@@ -123,11 +122,13 @@ export default class DreamSerializerBuilder<
   }
 
   public rendersOne<
-    AttributeName extends (
-      | keyof DreamBelongsToAssociationMetadata<DataType>
-      | keyof DreamHasOneAssociationMetadata<DataType>
-    ) &
-      string,
+    // applying any type function to limit AttributeName breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    // e.g., the following causes problems:
+    // AttributeName extends NonArrayAttributes<DataType> & string,
+    // and so does
+    // AttributeName extends Exclude<DataType, 'serializers'> & string,
+    AttributeName extends keyof DataType & string,
     AssociatedModelType extends Exclude<DataType[AttributeName], null>,
     SerializerOptions extends AssociatedModelType extends Dream
       ?
@@ -167,7 +168,11 @@ export default class DreamSerializerBuilder<
   }
 
   public rendersMany<
-    AttributeName extends keyof DreamHasManyAssociationMetadata<DataType> & string,
+    // applying any type function to limit AttributeName breaks types when adding
+    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
+    // e.g., the following causes problems:
+    // AttributeName extends ArrayAttributes<DataType> & string,
+    AttributeName extends keyof DataType & string,
     AssociatedModelType extends DataType[AttributeName] extends (Dream | ViewModel)[]
       ? DataType[AttributeName] extends (infer U)[]
         ? U

@@ -151,26 +151,6 @@ export type DreamBelongsToAssociationMetadata<
   TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
 > = TypeRecord
 
-export type DreamHasOneAssociationMetadata<
-  DreamInstance extends Dream,
-  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
-  SchemaTypeInterface = {
-    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
-  },
-  BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'HasOne'> & string,
-  TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
-> = TypeRecord
-
-export type DreamHasManyAssociationMetadata<
-  DreamInstance extends Dream,
-  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
-  SchemaTypeInterface = {
-    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
-  },
-  BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'HasMany'> & string,
-  TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
-> = TypeRecord
-
 export type DreamAttributes<
   DreamInstance extends Dream,
   Schema = DreamInstance['schema'],
@@ -473,13 +453,6 @@ export type DreamSerializableArray<
 > = Depth extends 20
   ? StartingArray
   : StartingArray | DreamSerializableArray<[DreamSerializable, ...StartingArray], Inc<Depth>>
-
-export type DreamOrViewModelClassSerializerArrayKeys<T extends DreamSerializableArray> = T['length'] extends 0
-  ? string
-  : T[0] extends typeof Dream | ViewModelClass
-    ? DreamOrViewModelClassSerializerKey<T[0]> &
-        DreamOrViewModelClassSerializerArrayKeys<T extends [any, ...infer Rest] ? Rest : never>
-    : DreamOrViewModelClassSerializerArrayKeys<T extends [any, ...infer Rest] ? Rest : never>
 
 export type DreamSerializerKey<
   T,
