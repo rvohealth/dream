@@ -85,7 +85,11 @@ export { default as ObjectSerializer } from './serializer/ObjectSerializer.js'
 export { default as DreamSerializerBuilder } from './serializer/builders/DreamSerializerBuilder.js'
 export { default as ObjectSerializerBuilder } from './serializer/builders/ObjectSerializerBuilder.js'
 
+export { type BelongsToStatement } from './types/associations/belongsTo.js'
+export { type HasManyStatement } from './types/associations/hasMany.js'
+export { type HasOneStatement } from './types/associations/hasOne.js'
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
+
 export { type DbConnectionType, type DbTypes } from './types/db.js'
 export {
   type DreamAssociationMetadata,
