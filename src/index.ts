@@ -52,6 +52,7 @@ export { default as hyphenize } from './helpers/hyphenize.js'
 export { default as intersection } from './helpers/intersection.js'
 export { default as isEmpty } from './helpers/isEmpty.js'
 export { default as loadRepl } from './helpers/loadRepl.js'
+export { default as normalizeUnicode } from './helpers/normalizeUnicode.js'
 export { default as pascalize } from './helpers/pascalize.js'
 export { default as dreamPath } from './helpers/path/dreamPath.js'
 export { default as relativeDreamPath } from './helpers/path/relativeDreamPath.js'
@@ -84,7 +85,11 @@ export { default as ObjectSerializer } from './serializer/ObjectSerializer.js'
 export { default as DreamSerializerBuilder } from './serializer/builders/DreamSerializerBuilder.js'
 export { default as ObjectSerializerBuilder } from './serializer/builders/ObjectSerializerBuilder.js'
 
+export { type BelongsToStatement } from './types/associations/belongsTo.js'
+export { type HasManyStatement } from './types/associations/hasMany.js'
+export { type HasOneStatement } from './types/associations/hasOne.js'
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
+
 export { type DbConnectionType, type DbTypes } from './types/db.js'
 export {
   type DreamAssociationMetadata,

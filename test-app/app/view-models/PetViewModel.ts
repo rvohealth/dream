@@ -1,6 +1,5 @@
-import { DreamSerializers } from '../../../src/index.js'
 import { CatTreats, IdType, Species } from '../../types/db.js'
-import ApplicationModel from '../models/ApplicationModel.js'
+import PetSerializer, { PetSummarySerializer } from '../serializers/view-model/PetSerializer.js'
 import UserViewModel from './UserViewModel.js'
 
 export default class PetViewModel {
@@ -30,10 +29,10 @@ export default class PetViewModel {
     this.favoriteTreats = favoriteTreats
   }
 
-  public get serializers(): DreamSerializers<ApplicationModel> {
+  public get serializers() {
     return {
-      default: 'view-model/PetSerializer',
-      summary: 'view-model/PetSummarySerializer',
+      default: PetSerializer,
+      summary: PetSummarySerializer,
     }
   }
 }

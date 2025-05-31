@@ -1,6 +1,7 @@
-import { DreamColumn, DreamSerializers } from '../../../../src/types/dream.js'
+import { DreamColumn } from '../../../../src/types/dream.js'
 
 import { Decorators, SoftDelete } from '../../../../src/index.js'
+import EdgeNodeSerializer from '../../serializers/Graph/EdgeNodeSerializer.js'
 import ApplicationModel from '../ApplicationModel.js'
 import GraphEdge from './Edge.js'
 import GraphNode from './Node.js'
@@ -13,8 +14,8 @@ export default class EdgeNode extends ApplicationModel {
     return 'graph_edge_nodes' as const
   }
 
-  public get serializers(): DreamSerializers<EdgeNode> {
-    return { default: 'Graph/EdgeNodeSerializer' }
+  public get serializers() {
+    return { default: EdgeNodeSerializer }
   }
 
   public id: DreamColumn<EdgeNode, 'id'>
