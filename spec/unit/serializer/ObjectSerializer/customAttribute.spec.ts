@@ -1,6 +1,5 @@
-import { CalendarDate, round } from '../../../../src/index.js'
+import { CalendarDate } from '../../../../src/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 interface User {
@@ -27,13 +26,6 @@ describe('ObjectSerializer customAttributes', () => {
     expect(serializer.render()).toEqual({
       email: 'abc@peanuts.com',
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-      },
-    })
   })
 
   it('can override the OpenAPI shape with OpenAPI shorthand', async () => {
@@ -45,29 +37,6 @@ describe('ObjectSerializer customAttributes', () => {
     const serializer = MySerializer({ birthdate: CalendarDate.fromISO('1950-10-02') })
     expect(serializer.render()).toEqual({
       birthdate: model.birthdate!.toDateTime()!.toISO(),
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      birthdate: {
-        type: 'string',
-        format: 'date-time',
-      },
-    })
-  })
-
-  it('can override the OpenAPI shape with an OpenAPI object', () => {
-    const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
-      ObjectSerializer(data).customAttribute('volume', () => round(data.volume ?? 0), {
-        openapi: { type: 'integer', format: undefined, description: 'Volume as an integer' },
-      })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      volume: {
-        type: 'integer',
-        description: 'Volume as an integer',
-      },
     })
   })
 
@@ -84,13 +53,6 @@ describe('ObjectSerializer customAttributes', () => {
       expect(serializer.render()).toEqual({
         email: 'abc.en-US@peanuts.com',
       })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        email: {
-          type: 'string',
-        },
-      })
     })
   })
 
@@ -103,13 +65,6 @@ describe('ObjectSerializer customAttributes', () => {
 
       const serializer = MySerializer(null)
       expect(serializer.render()).toBeNull()
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        email: {
-          type: 'string',
-        },
-      })
     })
   })
 })

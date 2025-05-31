@@ -4,7 +4,6 @@ import { DateTime } from './DateTime.js'
 import isDatetimeOrDatetimeArrayColumn from './db/types/isDatetimeOrDatetimeArrayColumn.js'
 import isTextOrTextArrayColumn from './db/types/isTextOrTextArrayColumn.js'
 import normalizeString from './normalizeString.js'
-import { isString } from './typechecks.js'
 
 export default function sqlAttributes(dream: Dream) {
   const attributes = dream.dirtyAttributes()
@@ -42,5 +41,5 @@ export default function sqlAttributes(dream: Dream) {
 }
 
 function valueToDatetime(val: any) {
-  return isString(val) ? DateTime.fromISO(val, { zone: 'UTC' }) : val
+  return typeof val === 'string' ? DateTime.fromISO(val, { zone: 'UTC' }) : val
 }

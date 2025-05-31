@@ -1,11 +1,9 @@
 import { CalendarDate } from '../../../../src/index.js'
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
-import { PetTreatsEnumValues, SpeciesTypesEnumValues } from '../../../../test-app/types/db.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 describe('DreamSerializer attributes', () => {
@@ -25,14 +23,6 @@ describe('DreamSerializer attributes', () => {
       birthdate: '1950-10-02',
       favoriteWord: 'football',
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(UserSerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      id: { type: 'string' },
-      favoriteWord: { type: ['string', 'null'] },
-      name: { type: ['string', 'null'] },
-      birthdate: { type: ['string', 'null'], format: 'date' },
-    })
   })
 
   it('can render virtual Dream attributes', () => {
@@ -43,14 +33,6 @@ describe('DreamSerializer attributes', () => {
     expect(serializer.render()).toEqual({
       lbs: 180.1,
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      lbs: {
-        type: 'number',
-        format: 'decimal',
-      },
-    })
   })
 
   it('supports customizing the name of the thing rendered', () => {
@@ -60,26 +42,6 @@ describe('DreamSerializer attributes', () => {
 
     expect(serializer.render()).toEqual({
       email2: 'abc',
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email2: {
-        type: 'string',
-      },
-    })
-  })
-
-  it('can specify OpenAPI description', () => {
-    const MySerializer = (data: User) =>
-      DreamSerializer(User, data).attribute('email', { openapi: { description: 'This is an email' } })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-        description: 'This is an email',
-      },
     })
   })
 
@@ -123,16 +85,6 @@ describe('DreamSerializer attributes', () => {
     expect(serializer.render()).toEqual({
       name: 'Snoopy',
       email: 'abc',
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      name: {
-        type: ['string', 'null'],
-      },
-      email: {
-        type: 'string',
-      },
     })
   })
 
@@ -285,104 +237,6 @@ describe('DreamSerializer attributes', () => {
         likesTreats: false,
       })
     })
-
-    it('have the correct OpenAPI shape', () => {
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        name: { type: ['string', 'null'] },
-        nicknames: { type: ['array', 'null'], items: { type: 'string' } },
-        requiredNicknames: { type: 'array', items: { type: 'string' } },
-        email: { type: 'string' },
-        birthdate: { type: ['string', 'null'], format: 'date' },
-        aDatetime: { type: ['string', 'null'], format: 'date-time' },
-
-        volume: { type: ['number', 'null'], format: 'decimal' },
-
-        // begin: favorite records (used for checking type validation in Params.for)
-        favoriteCitext: { type: ['string', 'null'] },
-        requiredFavoriteCitext: { type: 'string' },
-        favoriteCitexts: { type: ['array', 'null'], items: { type: 'string' } },
-        requiredFavoriteCitexts: { type: 'array', items: { type: 'string' } },
-        favoriteUuids: { type: ['array', 'null'], items: { type: 'string' } },
-        requiredFavoriteUuids: { type: 'array', items: { type: 'string' } },
-        favoriteDates: { type: ['array', 'null'], items: { type: 'string', format: 'date' } },
-        requiredFavoriteDates: { type: 'array', items: { type: 'string', format: 'date' } },
-        favoriteDatetimes: { type: ['array', 'null'], items: { type: 'string', format: 'date-time' } },
-        requiredFavoriteDatetimes: { type: 'array', items: { type: 'string', format: 'date-time' } },
-        favoriteJsons: {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
-        },
-        requiredFavoriteJsons: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
-        favoriteJsonbs: {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
-        },
-        requiredFavoriteJsonbs: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
-        favoriteTexts: { type: ['array', 'null'], items: { type: 'string' } },
-        requiredFavoriteTexts: { type: 'array', items: { type: 'string' } },
-        favoriteNumerics: { type: ['array', 'null'], items: { type: 'number', format: 'decimal' } },
-        requiredFavoriteNumerics: { type: 'array', items: { type: 'number', format: 'decimal' } },
-        favoriteBooleans: { type: ['array', 'null'], items: { type: 'boolean' } },
-        requiredFavoriteBooleans: { type: 'array', items: { type: 'boolean' } },
-        favoriteBigint: { type: ['string', 'null'] },
-        requiredFavoriteBigint: { type: 'string' },
-        favoriteBigints: { type: ['array', 'null'], items: { type: 'string' } },
-        requiredFavoriteBigints: { type: 'array', items: { type: 'string' } },
-        favoriteIntegers: { type: ['array', 'null'], items: { type: 'integer' } },
-        requiredFavoriteIntegers: { type: 'array', items: { type: 'integer' } },
-        // end: favorite records
-
-        bio: { type: 'string' },
-        notes: { type: ['string', 'null'] },
-        jsonData: { type: ['object', 'null'], properties: { hello: 'string' } },
-        requiredJsonData: { type: 'object', properties: { hello: 'string' } },
-        jsonbData: { type: ['object', 'null'], properties: { hello: 'string' } },
-        requiredJsonbData: { type: 'object', properties: { hello: 'string' } },
-        uuid: { type: 'string' },
-        optionalUuid: { type: ['string', 'null'] },
-
-        species: { type: ['string', 'null'], enum: SpeciesTypesEnumValues },
-        favoriteTreats: {
-          type: ['array', 'null'],
-          items: { type: 'string', enum: PetTreatsEnumValues },
-        },
-        collarCount: { type: ['string', 'null'] },
-        collarCountInt: { type: ['integer', 'null'] },
-        collarCountNumeric: { type: ['number', 'null'], format: 'decimal' },
-        requiredCollarCount: { type: 'string' },
-        requiredCollarCountInt: { type: 'integer' },
-        likesWalks: { type: ['boolean', 'null'] },
-        likesTreats: { type: 'boolean' },
-      })
-    })
-
-    context('suppressResponseEnums: true', () => {
-      it('renders a description with the enums rather than proper enums', () => {
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, {
-          suppressResponseEnums: true,
-        })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            species: {
-              type: ['string', 'null'],
-              description: `The following values will be allowed:
-  cat,
-  noncat`,
-            },
-            favoriteTreats: {
-              type: ['array', 'null'],
-              items: {
-                type: 'string',
-                description: `The following values will be allowed:
-  efishy feesh,
-  snick snowcks`,
-              },
-            },
-          })
-        )
-      })
-    })
   })
 
   context('numeric/decimal with precision', () => {
@@ -406,13 +260,6 @@ describe('DreamSerializer attributes', () => {
         expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_nicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            required_nicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
 
@@ -422,13 +269,6 @@ describe('DreamSerializer attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            requiredNicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
   })

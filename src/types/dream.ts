@@ -78,14 +78,6 @@ export type DreamBelongsToForeignKeys<
   >,
 > = BelongsToForeignKeys
 
-export type DreamClassColumnNames<
-  DreamClass extends typeof Dream,
-  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
-  DB = DreamInstance['DB'],
-  TableName extends keyof DB = DreamInstance['table'] & keyof DB,
-  Table extends DB[keyof DB] = DB[TableName],
-> = keyof Table & string
-
 export type TableColumnNames<
   DB,
   TableName extends keyof DB,
@@ -156,6 +148,26 @@ export type DreamBelongsToAssociationMetadata<
     [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
   },
   BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'BelongsTo'> & string,
+  TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
+> = TypeRecord
+
+export type DreamHasOneAssociationMetadata<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+  },
+  BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'HasOne'> & string,
+  TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
+> = TypeRecord
+
+export type DreamHasManyAssociationMetadata<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+  },
+  BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'HasMany'> & string,
   TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
 > = TypeRecord
 

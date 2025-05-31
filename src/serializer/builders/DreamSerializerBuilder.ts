@@ -1,5 +1,12 @@
 import Dream from '../../Dream.js'
-import { DreamOrViewModelSerializerKey, ViewModel, ViewModelClass } from '../../types/dream.js'
+import {
+  DreamBelongsToAssociationMetadata,
+  DreamHasManyAssociationMetadata,
+  DreamHasOneAssociationMetadata,
+  DreamOrViewModelSerializerKey,
+  ViewModel,
+  ViewModelClass,
+} from '../../types/dream.js'
 import {
   AutomaticSerializerAttributeOptions,
   InternalAnyTypedSerializerAttribute,
@@ -40,10 +47,12 @@ export default class DreamSerializerBuilder<
   public attribute<
     Schema extends DataType['schema'],
     TableName extends DataType['table'] & keyof Schema,
-    MaybeAttributeName extends keyof Schema[TableName]['columns'] | (keyof DataType & string),
+    MaybeAttributeName extends
+      | keyof Schema[TableName]['columns']
+      | (Exclude<keyof DataType, 'serializers'> & string),
     AttributeName extends MaybeAttributeName extends keyof Schema[TableName]['columns']
       ? never
-      : keyof DataType & string,
+      : Exclude<keyof DataType, 'serializers'> & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(
     name: AttributeName,
@@ -71,7 +80,7 @@ export default class DreamSerializerBuilder<
   }
 
   public delegatedAttribute<
-    TargetName extends keyof DataType & string,
+    TargetName extends Exclude<keyof DataType, 'serializers'> & string,
     TargetObject extends DataType[TargetName],
     AttributeName extends TargetObject extends object ? keyof TargetObject & string : never,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
@@ -87,7 +96,7 @@ export default class DreamSerializerBuilder<
   }
 
   public jsonAttribute<
-    AttributeName extends keyof DataType & string,
+    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
     Options extends NonAutomaticSerializerAttributeOptions,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
@@ -114,7 +123,11 @@ export default class DreamSerializerBuilder<
   }
 
   public rendersOne<
-    AttributeName extends keyof DataType & string,
+    AttributeName extends (
+      | keyof DreamBelongsToAssociationMetadata<DataType>
+      | keyof DreamHasOneAssociationMetadata<DataType>
+    ) &
+      string,
     AssociatedModelType extends Exclude<DataType[AttributeName], null>,
     SerializerOptions extends AssociatedModelType extends Dream
       ?
@@ -154,7 +167,7 @@ export default class DreamSerializerBuilder<
   }
 
   public rendersMany<
-    AttributeName extends keyof DataType & string,
+    AttributeName extends keyof DreamHasManyAssociationMetadata<DataType> & string,
     AssociatedModelType extends DataType[AttributeName] extends (Dream | ViewModel)[]
       ? DataType[AttributeName] extends (infer U)[]
         ? U

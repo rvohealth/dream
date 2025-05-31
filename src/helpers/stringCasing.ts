@@ -1,7 +1,7 @@
 import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from '../types/utils.js'
 import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
-import { isObject, isString } from './typechecks.js'
+import isObject from './isObject.js'
 
 type RecursivelyStringCaseObjectKeysInTuple<
   T extends any[],
@@ -127,14 +127,14 @@ type PascalizeString<S extends string> = Capitalize<InnerCamelizeString<S>>
 type CamelizeString<S extends string> = Uncapitalize<InnerCamelizeString<S>>
 
 export default function stringCase(target: any, stringCaser: (x: string) => string): any {
-  if (isString(target)) return stringCaser(target as string)
+  if (typeof target === 'string') return stringCaser(target)
   return recursiveStringCase(target, stringCaser)
 }
 
 function recursiveStringCase(target: any, stringCaser: (x: string) => string): any {
   if (target === null) return null
   if (target === undefined) return undefined
-  if (isString(target)) return target
+  if (typeof target === 'string') return target
   if (Array.isArray(target)) return target.map(s => recursiveStringCase(s, stringCaser))
 
   if (isObject(target)) {

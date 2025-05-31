@@ -1,6 +1,4 @@
 import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
-import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
-import UserSerializer from '../../../../../test-app/app/serializers/view-model/UserSerializer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 import { SpeciesValues } from '../../../../../test-app/types/db.js'
@@ -24,16 +22,6 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
         favoriteWord: null,
       },
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
-    expect(results.attributes).toEqual({
-      user: {
-        $ref: '#/components/schemas/view-modelUser',
-      },
-    })
-
-    expect(results.referencedSerializers).toEqual([UserSerializer])
   })
 
   it('supports specifying a specific serializerKey', () => {
@@ -53,13 +41,6 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
       user: {
         id: user.id,
         favoriteWord: 'hello',
-      },
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      user: {
-        $ref: '#/components/schemas/UserSummary',
       },
     })
   })
@@ -85,13 +66,6 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
         favoriteWord: null,
       },
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      user2: {
-        $ref: '#/components/schemas/view-modelUser',
-      },
-    })
   })
 
   context('flatten', () => {
@@ -113,22 +87,6 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
         name: 'Charlie',
         favoriteWord: null,
         birthdate: birthdate.toISO(),
-      })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual({
-        allOf: [
-          {
-            type: 'object',
-            required: ['species'],
-            properties: {
-              species: { type: ['string', 'null'], enum: SpeciesValues },
-            },
-          },
-          {
-            $ref: '#/components/schemas/view-modelUser',
-          },
-        ],
       })
     })
   })
@@ -152,13 +110,6 @@ describe('ObjectSerializer (on a view model) rendersOne', () => {
     expect(serializer.render()).toEqual({
       user: {
         name: 'Charlie',
-      },
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      user: {
-        $ref: '#/components/schemas/CustomUser',
       },
     })
   })

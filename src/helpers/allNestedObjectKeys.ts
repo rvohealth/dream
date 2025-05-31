@@ -1,4 +1,4 @@
-import { isObject } from './typechecks.js'
+import isObject from './isObject.js'
 
 export default function allNestedObjectKeys(obj: any): string[] {
   return Object.keys(obj).flatMap(key => {

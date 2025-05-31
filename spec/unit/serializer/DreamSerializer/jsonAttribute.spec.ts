@@ -1,6 +1,5 @@
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
@@ -57,27 +56,6 @@ describe('DreamSerializer json attributes', () => {
         requiredJsonbData: { hello: '4' },
       })
     })
-
-    it('have the correct OpenAPI shape', () => {
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        favoriteJsons: {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
-        },
-        requiredFavoriteJsons: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
-        favoriteJsonbs: {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
-        },
-        requiredFavoriteJsonbs: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
-
-        jsonData: { type: ['object', 'null'], properties: { hello: 'string' } },
-        requiredJsonData: { type: 'object', properties: { hello: 'string' } },
-        jsonbData: { type: ['object', 'null'], properties: { hello: 'string' } },
-        requiredJsonbData: { type: 'object', properties: { hello: 'string' } },
-      })
-    })
   })
 
   context('with casing specified', () => {
@@ -92,13 +70,6 @@ describe('DreamSerializer json attributes', () => {
         expect(serializer.render({}, { casing: 'snake' })).toEqual({
           json_data: { hello: '1' },
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            json_data: { type: 'object', properties: { hello: { type: 'string' } } },
-          })
-        )
       })
     })
 
@@ -108,13 +79,6 @@ describe('DreamSerializer json attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           jsonData: { hello: '1' },
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            jsonData: { type: 'object', properties: { hello: { type: 'string' } } },
-          })
-        )
       })
     })
   })

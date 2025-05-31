@@ -1,5 +1,4 @@
 import { CalendarDate, DreamSerializer, ObjectSerializer } from '../../../../src/index.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import { default as DreamUser } from '../../../../test-app/app/models/User.js'
 import { Species, SpeciesValues } from '../../../../test-app/types/db.js'
 
@@ -44,16 +43,6 @@ describe('ObjectSerializer rendersOne', () => {
           name: 'Charlie',
         },
       })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
-      expect(results.attributes).toEqual({
-        user: {
-          $ref: '#/components/schemas/CustomUser',
-        },
-      })
-
-      expect(results.referencedSerializers).toEqual([UserSerializer])
     })
   })
 
@@ -76,13 +65,6 @@ describe('ObjectSerializer rendersOne', () => {
           birthdate: birthdate.toISO(),
         },
       })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        user: {
-          $ref: '#/components/schemas/User',
-        },
-      })
     })
 
     it('supports specifying a specific serializerKey', () => {
@@ -99,13 +81,6 @@ describe('ObjectSerializer rendersOne', () => {
         user: {
           id: user.id,
           favoriteWord: 'hello',
-        },
-      })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        user: {
-          $ref: '#/components/schemas/UserSummary',
         },
       })
     })
@@ -128,13 +103,6 @@ describe('ObjectSerializer rendersOne', () => {
           name: 'Charlie',
         },
       })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        user: {
-          $ref: '#/components/schemas/CustomUser',
-        },
-      })
     })
 
     it("supports customizing the name of the thing rendered via { as: '...' } (replaces `source: string`)", () => {
@@ -153,13 +121,6 @@ describe('ObjectSerializer rendersOne', () => {
           name: 'Charlie',
           favoriteWord: 'hello',
           birthdate: birthdate.toISO(),
-        },
-      })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        user2: {
-          $ref: '#/components/schemas/User',
         },
       })
     })
@@ -183,22 +144,6 @@ describe('ObjectSerializer rendersOne', () => {
           favoriteWord: 'hello',
           name: 'Charlie',
           birthdate: birthdate.toISO(),
-        })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        expect(serializerOpenapiRenderer.renderedOpenapi().openapi).toEqual({
-          allOf: [
-            {
-              type: 'object',
-              required: ['species'],
-              properties: {
-                species: { type: ['string', 'null'], enum: SpeciesValues },
-              },
-            },
-            {
-              $ref: '#/components/schemas/User',
-            },
-          ],
         })
       })
 

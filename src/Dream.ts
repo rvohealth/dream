@@ -60,7 +60,6 @@ import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
-import { isString } from './helpers/typechecks.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -2546,7 +2545,7 @@ export default class Dream {
                   ? null
                   : val === undefined
                     ? undefined
-                    : isString(val)
+                    : typeof val === 'string'
                       ? val
                       : JSON.stringify(val)
               )
@@ -3025,7 +3024,7 @@ export default class Dream {
    */
   private unknownValueToMillis(currentValue: any): number | undefined {
     if (!currentValue) return
-    if (isString(currentValue)) currentValue = DateTime.fromISO(currentValue)
+    if (typeof currentValue === 'string') currentValue = DateTime.fromISO(currentValue)
     if (currentValue instanceof CalendarDate) currentValue = currentValue.toDateTime()
     if (currentValue instanceof DateTime && currentValue.isValid) return currentValue.toMillis()
   }
@@ -3035,7 +3034,7 @@ export default class Dream {
    */
   private unknownValueToDateString(currentValue: any): string | undefined {
     if (!currentValue) return
-    if (isString(currentValue)) currentValue = CalendarDate.fromISO(currentValue)
+    if (typeof currentValue === 'string') currentValue = CalendarDate.fromISO(currentValue)
     if (currentValue instanceof DateTime) currentValue = CalendarDate.fromDateTime(currentValue)
     if (currentValue instanceof CalendarDate && currentValue.isValid) return currentValue.toISO()!
   }

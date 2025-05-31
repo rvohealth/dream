@@ -35,7 +35,7 @@ export default class ObjectSerializerBuilder<
   ) {}
 
   public attribute<
-    AttributeName extends keyof DataType & string,
+    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
@@ -48,7 +48,7 @@ export default class ObjectSerializerBuilder<
   }
 
   public delegatedAttribute<
-    TargetName extends keyof DataType & string,
+    TargetName extends Exclude<keyof DataType, 'serializers'> & string,
     TargetObject extends DataType[TargetName],
     AttributeName extends TargetObject extends object ? keyof TargetObject & string : never,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
@@ -64,7 +64,7 @@ export default class ObjectSerializerBuilder<
   }
 
   public jsonAttribute<
-    AttributeName extends keyof DataType & string,
+    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
     Options extends NonAutomaticSerializerAttributeOptions,
   >(name: AttributeName, options: Options) {
     this.attributes.push({
@@ -91,7 +91,7 @@ export default class ObjectSerializerBuilder<
   }
 
   public rendersOne<
-    AttributeName extends keyof DataType & string,
+    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
     AssociatedModelType extends Exclude<DataType[AttributeName], null>,
     SerializerOptions extends AssociatedModelType extends Dream
       ?
@@ -115,13 +115,13 @@ export default class ObjectSerializerBuilder<
           ? {
               serializer: SerializerType<AssociatedModelType>
             }
-          : object,
+          : never,
     Options extends {
       as?: string
       flatten?: boolean
       optional?: boolean
     } & SerializerOptions,
-  >(name: AttributeName, options?: Options) {
+  >(name: AttributeName, options: Options) {
     this.attributes.push({
       type: 'rendersOne',
       name,
@@ -132,12 +132,12 @@ export default class ObjectSerializerBuilder<
   }
 
   public rendersMany<
-    AttributeName extends keyof DataType & string,
-    AssociatedModelType extends DataType[AttributeName] extends (Dream | ViewModel)[]
+    AttributeName extends Exclude<keyof DataType, 'serializers'> & string,
+    AssociatedModelType extends DataType[AttributeName] extends (Dream | ViewModel | object)[]
       ? DataType[AttributeName] extends (infer U)[]
         ? U
-        : object
-      : object,
+        : never
+      : never,
     SerializerOptions extends AssociatedModelType extends Dream
       ?
           | {
@@ -160,11 +160,11 @@ export default class ObjectSerializerBuilder<
           ? {
               serializer: SerializerType<AssociatedModelType>
             }
-          : object,
+          : never,
     Options extends {
       as?: string
     } & SerializerOptions,
-  >(name: AttributeName, options?: Options) {
+  >(name: AttributeName, options: Options) {
     this.attributes.push({
       type: 'rendersMany',
       name,

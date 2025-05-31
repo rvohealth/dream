@@ -1,5 +1,4 @@
 import { CalendarDate, ObjectSerializer } from '../../../../src/index.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 
 interface User {
   name?: string
@@ -27,17 +26,6 @@ describe('ObjectSerializer delegated attributes', () => {
     expect(serializer.render()).toEqual({
       name: 'Charlie',
       birthdate: birthdate.toISO(),
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      name: {
-        type: 'string',
-      },
-      birthdate: {
-        type: 'string',
-        format: 'date',
-      },
     })
   })
 })

@@ -1,7 +1,6 @@
 import { DreamSerializers } from '../../../../../src/index.js'
 import ObjectSerializerBuilder from '../../../../../src/serializer/builders/ObjectSerializerBuilder.js'
 import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
-import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
 import ApplicationModel from '../../../../../test-app/app/models/ApplicationModel.js'
 
 class ModelForOpenapiTypeSpecs {
@@ -109,27 +108,6 @@ describe('ObjectSerializer (on a view model) json attributes', () => {
         requiredJsonbData: { hello: '4' },
       })
     })
-
-    it('have the correct OpenAPI shape', () => {
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        favoriteJsons: {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
-        },
-        requiredFavoriteJsons: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
-        favoriteJsonbs: {
-          type: ['array', 'null'],
-          items: { type: 'object', properties: { hello: 'string' } },
-        },
-        requiredFavoriteJsonbs: { type: 'array', items: { type: 'object', properties: { hello: 'string' } } },
-
-        jsonData: { type: ['object', 'null'], properties: { hello: 'string' } },
-        requiredJsonData: { type: 'object', properties: { hello: 'string' } },
-        jsonbData: { type: ['object', 'null'], properties: { hello: 'string' } },
-        requiredJsonbData: { type: 'object', properties: { hello: 'string' } },
-      })
-    })
   })
 
   context('with casing specified', () => {
@@ -144,13 +122,6 @@ describe('ObjectSerializer (on a view model) json attributes', () => {
         expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_nicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            required_nicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
 
@@ -160,13 +131,6 @@ describe('ObjectSerializer (on a view model) json attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            requiredNicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
   })

@@ -43,13 +43,13 @@ import cloneDeepSafe from '../helpers/cloneDeepSafe.js'
 import compact from '../helpers/compact.js'
 import { DateTime } from '../helpers/DateTime.js'
 import isEmpty from '../helpers/isEmpty.js'
+import isObject from '../helpers/isObject.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
 import normalizeString from '../helpers/normalizeString.js'
 import objectPathsToArrays from '../helpers/objectPathsToArrays.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { Range } from '../helpers/range.js'
 import snakeify from '../helpers/snakeify.js'
-import { isObject, isString } from '../helpers/typechecks.js'
 import uniq from '../helpers/uniq.js'
 import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import ops from '../ops/index.js'
@@ -854,8 +854,8 @@ export default class Query<
 
     if (nextAssociationStatement === undefined) {
       // just satisfying typing
-    } else if (isString(nextAssociationStatement)) {
-      const nextStatement = nextAssociationStatement as string
+    } else if (typeof nextAssociationStatement === 'string') {
+      const nextStatement = nextAssociationStatement
 
       if (!joinStatements[nextStatement])
         joinStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
@@ -1365,7 +1365,7 @@ export default class Query<
     >,
   >(arg: ColumnName | Partial<Record<ColumnName, OrderDir>> | null) {
     if (arg === null) return this.clone({ order: null })
-    if (isString(arg)) return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
+    if (typeof arg === 'string') return this.clone({ order: [{ column: arg as any, direction: 'asc' }] })
 
     let query = this.clone()
 
@@ -3403,11 +3403,8 @@ export default class Query<
     let selectQuery = query as SelectQueryBuilder<any, any, any>
     const orderStatement = association.order
 
-    if (isString(orderStatement)) {
-      selectQuery = selectQuery.orderBy(
-        this.namespaceColumn(orderStatement as string, tableNameOrAlias),
-        'asc'
-      )
+    if (typeof orderStatement === 'string') {
+      selectQuery = selectQuery.orderBy(this.namespaceColumn(orderStatement, tableNameOrAlias), 'asc')
     } else {
       Object.keys(orderStatement as Record<string, OrderDir>).forEach(column => {
         const direction = (orderStatement as any)[column] as OrderDir
@@ -3576,7 +3573,11 @@ export default class Query<
       a = attr
       b = 'in'
       c = val.map(v =>
-        v instanceof DateTime || v instanceof CalendarDate ? v.toSQL() : isString(v) ? normalizeString(v) : v
+        v instanceof DateTime || v instanceof CalendarDate
+          ? v.toSQL()
+          : typeof v === 'string'
+            ? normalizeString(v)
+            : v
       )
     } else if (val instanceof CurriedOpsStatement) {
       val = val.toOpsStatement(this.dreamClass, attr)
@@ -3615,10 +3616,10 @@ export default class Query<
     }
 
     if (c instanceof DateTime || c instanceof CalendarDate) c = c.toSQL()
-    else if (isString(c)) c = normalizeString(c)
+    else if (typeof c === 'string') c = normalizeString(c)
 
     if (c2 instanceof DateTime || c2 instanceof CalendarDate) c2 = c2.toSQL()
-    else if (isString(c2)) c2 = normalizeString(c2)
+    else if (typeof c2 === 'string') c2 = normalizeString(c2)
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)

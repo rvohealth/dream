@@ -1,7 +1,4 @@
 import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
-import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
-import Balloon from '../../../../../test-app/app/models/Balloon.js'
-import PetSerializer from '../../../../../test-app/app/serializers/view-model/PetSerializer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 
@@ -35,44 +32,6 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
           species: 'frog',
         },
       ],
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    const results = serializerOpenapiRenderer['renderedOpenapiAttributes']()
-    expect(results.attributes).toEqual({
-      pets: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/view-modelPet',
-        },
-      },
-    })
-
-    expect(results.referencedSerializers).toEqual([PetSerializer])
-  })
-
-  it('expands STI base model into OpenAPI for all of the child types', () => {
-    const MySerializer = (data: UserViewModel) =>
-      ObjectSerializer(data).rendersMany('balloons', { dreamClass: Balloon })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      balloons: {
-        type: 'array',
-        items: {
-          anyOf: [
-            {
-              $ref: '#/components/schemas/BalloonLatex',
-            },
-            {
-              $ref: '#/components/schemas/BalloonLatexAnimal',
-            },
-            {
-              $ref: '#/components/schemas/BalloonMylar',
-            },
-          ],
-        },
-      },
     })
   })
 
@@ -115,16 +74,6 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
         },
       ],
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      pets: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/PetSummary',
-        },
-      },
-    })
   })
 
   it("supports customizing the name of the thing rendered via { as: '...' } (replaces `source: string`)", () => {
@@ -160,16 +109,6 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
         },
       ],
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      pets2: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/view-modelPet',
-        },
-      },
-    })
   })
 
   it('supports supplying a custom serializer', () => {
@@ -199,16 +138,6 @@ describe('ObjectSerializer (on a view model) rendersMany', () => {
           name: 'Woodstock',
         },
       ],
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      pets: {
-        type: 'array',
-        items: {
-          $ref: '#/components/schemas/CustomPet',
-        },
-      },
     })
   })
 })

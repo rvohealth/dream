@@ -1,6 +1,5 @@
 import { CalendarDate, DreamSerializers } from '../../../../../src/index.js'
 import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
-import SerializerOpenapiRenderer from '../../../../../src/serializer/SerializerOpenapiRenderer.js'
 import ApplicationModel from '../../../../../test-app/app/models/ApplicationModel.js'
 import UserSerializer from '../../../../../test-app/app/serializers/view-model/UserSerializer.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
@@ -70,14 +69,6 @@ describe('ObjectSerializer (on a view model) attributes', () => {
       birthdate: '1950-10-02',
       favoriteWord: 'football',
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(UserSerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      id: { type: 'string' },
-      favoriteWord: { type: ['string', 'null'] },
-      name: { type: ['string', 'null'] },
-      birthdate: { type: ['string', 'null'], format: 'date' },
-    })
   })
 
   it('supports customizing the name of the thing rendered', () => {
@@ -89,28 +80,6 @@ describe('ObjectSerializer (on a view model) attributes', () => {
     expect(serializer.render()).toEqual({
       email2: 'abc',
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email2: {
-        type: 'string',
-      },
-    })
-  })
-
-  it('can specify OpenAPI description', () => {
-    const MySerializer = (data: User) =>
-      ObjectSerializer(data).attribute('email', {
-        openapi: { type: 'string', description: 'This is an email' },
-      })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-        description: 'This is an email',
-      },
-    })
   })
 
   context('when serializing null', () => {
@@ -120,13 +89,6 @@ describe('ObjectSerializer (on a view model) attributes', () => {
 
       const serializer = MySerializer(null)
       expect(serializer.render()).toBeNull()
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        email: {
-          type: 'string',
-        },
-      })
     })
   })
 
@@ -140,16 +102,6 @@ describe('ObjectSerializer (on a view model) attributes', () => {
     expect(serializer.render()).toEqual({
       name: 'Snoopy',
       email: 'abc',
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      name: {
-        type: ['string', 'null'],
-      },
-      email: {
-        type: 'string',
-      },
     })
   })
 
@@ -180,13 +132,6 @@ describe('ObjectSerializer (on a view model) attributes', () => {
         expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_nicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            required_nicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
 
@@ -196,13 +141,6 @@ describe('ObjectSerializer (on a view model) attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            requiredNicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
   })

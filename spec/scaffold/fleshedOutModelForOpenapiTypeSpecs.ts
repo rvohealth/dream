@@ -1,5 +1,4 @@
-import { DateTime } from 'luxon'
-import { CalendarDate } from '../../src/index.js'
+import { CalendarDate, DateTime } from '../../src/index.js'
 import ModelForOpenapiTypeSpecs from '../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 
 export default async function fleshedOutModelForOpenapiTypeSpecs() {

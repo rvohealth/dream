@@ -101,13 +101,3 @@ export type SimpleObjectSerializerType = (
 export type SerializerType<T extends Dream | object | Dream[] | object[]> = T extends Dream | Dream[]
   ? DreamModelSerializerType
   : SimpleObjectSerializerType
-
-export interface ReferencedSerializersAndOpenapiSchemaBodyShorthand {
-  referencedSerializers: (DreamModelSerializerType | SimpleObjectSerializerType)[]
-  openapi: OpenapiSchemaBodyShorthand
-}
-
-export interface ReferencedSerializersAndAttributes {
-  referencedSerializers: (DreamModelSerializerType | SimpleObjectSerializerType)[]
-  attributes: Record<string, OpenapiSchemaBodyShorthand>
-}

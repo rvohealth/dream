@@ -1,11 +1,9 @@
-import { CalendarDate, round } from '../../../../src/index.js'
+import { CalendarDate } from '../../../../src/index.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
-import { SpeciesValues } from '../../../../test-app/types/db.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 describe('DreamSerializer customAttributes', () => {
@@ -18,13 +16,6 @@ describe('DreamSerializer customAttributes', () => {
     const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
     expect(serializer.render()).toEqual({
       email: 'abc@peanuts.com',
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-      },
     })
   })
 
@@ -55,37 +46,6 @@ describe('DreamSerializer customAttributes', () => {
     expect(serializer.render()).toEqual({
       birthdate: model.birthdate!.toDateTime()!.toISO(),
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      birthdate: {
-        type: 'string',
-        format: 'date-time',
-      },
-    })
-  })
-
-  it('can override the OpenAPI shape with an OpenAPI object', () => {
-    const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
-      DreamSerializer(ModelForOpenapiTypeSpecs, data).customAttribute(
-        'volume',
-        () => round(data.volume ?? 0),
-        {
-          openapi: {
-            type: 'integer',
-            format: undefined,
-            description: 'Volume as an integer',
-          },
-        }
-      )
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      volume: {
-        type: 'integer',
-        description: 'Volume as an integer',
-      },
-    })
   })
 
   context('with passthrough data', () => {
@@ -105,13 +65,6 @@ describe('DreamSerializer customAttributes', () => {
       expect(serializer.render({ passthrough1: 'rendererP1', passthrough2: 'rendererP2' })).toEqual({
         myString: 'serializerP1, serializerP2',
       })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        myString: {
-          type: 'string',
-        },
-      })
     })
   })
 
@@ -124,13 +77,6 @@ describe('DreamSerializer customAttributes', () => {
 
       const serializer = MySerializer(null)
       expect(serializer.render()).toBeNull()
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        email: {
-          type: 'string',
-        },
-      })
     })
   })
 
@@ -166,26 +112,6 @@ describe('DreamSerializer customAttributes', () => {
         favoriteWord: null,
         birthdate: birthdate.toISO(),
       })
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      const results = serializerOpenapiRenderer.renderedOpenapi()
-      expect(results.openapi).toEqual({
-        allOf: [
-          {
-            type: 'object',
-            required: ['species'],
-            properties: {
-              species: { type: ['string', 'null'], enum: SpeciesValues },
-            },
-          },
-          {
-            $ref: '#/components/schemas/User',
-          },
-        ],
-      })
-
-      expect(results.referencedSerializers).toHaveLength(1)
-      expect((results.referencedSerializers[0] as any).globalName).toEqual('UserSerializer')
     })
 
     context('when optional and flatten', () => {
@@ -208,33 +134,6 @@ describe('DreamSerializer customAttributes', () => {
           favoriteWord: null,
           birthdate: birthdate.toISO(),
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-        const results = serializerOpenapiRenderer.renderedOpenapi()
-        expect(results.openapi).toEqual({
-          allOf: [
-            {
-              type: 'object',
-              required: ['species'],
-              properties: {
-                species: { type: ['string', 'null'], enum: SpeciesValues },
-              },
-            },
-            {
-              anyOf: [
-                {
-                  $ref: '#/components/schemas/User',
-                },
-                {
-                  type: 'null',
-                },
-              ],
-            },
-          ],
-        })
-
-        expect(results.referencedSerializers).toHaveLength(1)
-        expect((results.referencedSerializers[0] as any).globalName).toEqual('UserSerializer')
       })
     })
 

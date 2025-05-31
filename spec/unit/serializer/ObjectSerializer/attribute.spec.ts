@@ -1,6 +1,5 @@
 import { CalendarDate } from '../../../../src/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
-import SerializerOpenapiRenderer from '../../../../src/serializer/SerializerOpenapiRenderer.js'
 
 interface User {
   email: string
@@ -23,13 +22,6 @@ describe('ObjectSerializer attributes', () => {
     expect(serializer.render()).toEqual({
       email: 'abc',
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-      },
-    })
   })
 
   it('supports customizing the name of the thing rendered', () => {
@@ -41,28 +33,6 @@ describe('ObjectSerializer attributes', () => {
     expect(serializer.render()).toEqual({
       email2: 'abc',
     })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email2: {
-        type: 'string',
-      },
-    })
-  })
-
-  it('can specify OpenAPI description', () => {
-    const MySerializer = (data: User) =>
-      ObjectSerializer(data).attribute('email', {
-        openapi: { type: 'string', description: 'This is an email' },
-      })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      email: {
-        type: 'string',
-        description: 'This is an email',
-      },
-    })
   })
 
   context('when serializing null', () => {
@@ -72,13 +42,6 @@ describe('ObjectSerializer attributes', () => {
 
       const serializer = MySerializer(null)
       expect(serializer.render()).toBeNull()
-
-      const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-      expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-        email: {
-          type: 'string',
-        },
-      })
     })
   })
 
@@ -92,16 +55,6 @@ describe('ObjectSerializer attributes', () => {
     expect(serializer.render()).toEqual({
       name: 'Snoopy',
       email: 'abc',
-    })
-
-    const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer)
-    expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-      name: {
-        type: ['string', 'null'],
-      },
-      email: {
-        type: 'string',
-      },
     })
   })
 
@@ -126,11 +79,6 @@ describe('ObjectSerializer attributes', () => {
         expect(serializer.render({}, { casing: 'snake' })).toEqual({
           required_nicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'snake' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual({
-          required_nicknames: { type: 'array', items: { type: 'string' } },
-        })
       })
     })
 
@@ -140,13 +88,6 @@ describe('ObjectSerializer attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
-
-        const serializerOpenapiRenderer = new SerializerOpenapiRenderer(MySerializer, { casing: 'camel' })
-        expect(serializerOpenapiRenderer['renderedOpenapiAttributes']().attributes).toEqual(
-          expect.objectContaining({
-            requiredNicknames: { type: 'array', items: { type: 'string' } },
-          })
-        )
       })
     })
   })

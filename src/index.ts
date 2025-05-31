@@ -64,12 +64,10 @@ export { default as sortBy } from './helpers/sortBy.js'
 export { default as sortObjectByKey } from './helpers/sortObjectByKey.js'
 export { default as sortObjectByValue } from './helpers/sortObjectByValue.js'
 export { default as standardizeFullyQualifiedModelName } from './helpers/standardizeFullyQualifiedModelName.js'
+export { default as expandStiClasses } from './helpers/sti/expandStiClasses.js'
 export { type Camelized, type Hyphenized, type Pascalized, type Snakeified } from './helpers/stringCasing.js'
 export { default as uncapitalize } from './helpers/uncapitalize.js'
 export { default as uniq } from './helpers/uniq.js'
-export { default as isOpenapiShorthand } from './openapi/isOpenapiShorthand.js'
-export { default as maybeNullOpenapiShorthandToOpenapiShorthand } from './openapi/maybeNullOpenapiShorthandToOpenapiShorthand.js'
-export { default as openapiShorthandToOpenapi } from './openapi/openapiShorthandToOpenapi.js'
 export { default as ops } from './ops/index.js'
 export {
   default as inferSerializerFromDreamOrViewModel,
@@ -78,7 +76,6 @@ export {
 export { default as isDreamSerializer } from './serializer/helpers/isDreamSerializer.js'
 export { default as serializerNameFromFullyQualifiedModelName } from './serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 
-export { default as SerializerOpenapiRenderer } from './serializer/SerializerOpenapiRenderer.js'
 export { type SerializerRendererOpts } from './serializer/SerializerRenderer.js'
 
 export { default as DreamSerializer } from './serializer/DreamSerializer.js'
@@ -88,7 +85,7 @@ export { default as DreamSerializerBuilder } from './serializer/builders/DreamSe
 export { default as ObjectSerializerBuilder } from './serializer/builders/ObjectSerializerBuilder.js'
 
 export { type WhereStatementForDream, type WhereStatementForDreamClass } from './types/associations/shared.js'
-export { type DbConnectionType } from './types/db.js'
+export { type DbConnectionType, type DbTypes } from './types/db.js'
 export {
   type DreamAssociationMetadata,
   type DreamAttributes,
@@ -117,6 +114,7 @@ export {
 export {
   type CommonOpenapiSchemaObjectFields,
   type OpenapiAllTypes,
+  type OpenapiDescription,
   type OpenapiFormats,
   type OpenapiNumberFormats,
   type OpenapiPrimitiveBaseTypes,
@@ -163,6 +161,8 @@ export {
 } from './types/openapi.js'
 export {
   type DreamModelSerializerType,
+  type InternalAnyTypedSerializerRendersMany,
+  type InternalAnyTypedSerializerRendersOne,
   type SerializerCasing,
   type SimpleObjectSerializerType,
 } from './types/serializer.js'
