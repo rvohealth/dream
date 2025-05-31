@@ -6,6 +6,7 @@ import NoGlobalSerializerForSpecifiedKey from '../../errors/serializers/NoGlobal
 import NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey from '../../errors/serializers/NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey.js'
 import compact from '../../helpers/compact.js'
 import expandStiClasses from '../../helpers/sti/expandStiClasses.js'
+import uniq from '../../helpers/uniq.js'
 import { ViewModel, ViewModelClass } from '../../types/dream.js'
 import {
   DreamModelSerializerType,
@@ -59,5 +60,5 @@ export function inferSerializersFromDreamClassOrViewModelClass(
     inferSerializerFromDreamOrViewModel(classDef.prototype, serializerKey)
   )
 
-  return compact(serializers)
+  return uniq(compact(serializers))
 }
