@@ -113,7 +113,7 @@ describe('Dream.paginate', () => {
   context('when a limit is applied to the query', () => {
     it('throws an exception', async () => {
       await expect(async () => {
-        await User.limit(100).paginate({ pageSize: 2, page: 1 })
+        await User.limit(100).paginate({ pageSize: 2, page: 1 } as any)
       }).rejects.toThrow(CannotPaginateWithLimit)
     })
   })
@@ -121,7 +121,7 @@ describe('Dream.paginate', () => {
   context('when an offset is applied to the query', () => {
     it('throws an exception', async () => {
       await expect(async () => {
-        await User.offset(100).paginate({ pageSize: 2, page: 1 })
+        await User.offset(100).paginate({ pageSize: 2, page: 1 } as any)
       }).rejects.toThrow(CannotPaginateWithOffset)
     })
   })

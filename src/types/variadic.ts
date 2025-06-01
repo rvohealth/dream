@@ -330,6 +330,9 @@ export type QueryTypeOptions = {
   rootTableAlias: string
   allowPreload: boolean
   allowLeftJoinPreload: boolean
+  allowLimit: boolean
+  allowOffset: boolean
+  allowPaginate: boolean
 }
 
 export type JoinedAssociationsTypeFromAssociations<

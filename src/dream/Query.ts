@@ -604,7 +604,7 @@ export default class Query<
     let records: any[]
     const query = this.order(null)
       .order(this.namespacedPrimaryKey as any)
-      .limit(batchSize)
+      .limit(batchSize as any)
     let lastId = null
 
     do {
@@ -667,12 +667,17 @@ export default class Query<
         Readonly<{
           joinedAssociations: JoinedAssociations
           allowPreload: false
+          allowLimit: false
+          allowOffset: false
+          allowPaginate: false
         }>
       >
     >,
   >(
     this: Q,
-    ...args: Incompatible extends true ? 'leftJoinPreload is incompatible with preload'[] : [...Arr, LastArg]
+    ...args: Incompatible extends true
+      ? 'leftJoinPreload is incompatible with preload, limit, offset, and paginate'[]
+      : [...Arr, LastArg]
   ): RetQuery {
     const untypedArgs: any[] = [...args] as any[]
     const lastAssociations = [untypedArgs.pop()].flat()
@@ -726,7 +731,7 @@ export default class Query<
     const preloadOnStatements: RelaxedPreloadOnStatement<DB, Schema> = cloneDeepSafe(this.preloadOnStatements)
 
     this.fleshOutJoinStatements([], preloadStatements, preloadOnStatements, null, [...(args as any)])
-    return this.clone({ preloadStatements, preloadOnStatements: preloadOnStatements }) as any
+    return this.clone({ preloadStatements, preloadOnStatements: preloadOnStatements }) as unknown as RetQuery
   }
 
   /**
@@ -1391,8 +1396,26 @@ export default class Query<
    *
    * @returns A cloned Query with the limit clause applied
    */
-  public limit(limit: number | null): Query<DreamInstance, QueryTypeOpts> {
-    return this.clone({ limit })
+  public limit<
+    Q extends Query<DreamInstance, any>,
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowLimit: false }> ? true : false,
+    RetQuery = Query<
+      DreamInstance,
+      ExtendQueryType<
+        QueryTypeOpts,
+        Readonly<{
+          allowPaginate: false
+          allowLeftJoinPreload: false
+        }>
+      >
+    >,
+  >(
+    this: Q,
+    limit: Incompatible extends true
+      ? 'limit is incompatible with paginate and leftJoinPreload'[]
+      : number | null
+  ): RetQuery {
+    return this.clone({ limit: limit as unknown as number | null }) as unknown as RetQuery
   }
 
   /**
@@ -1405,8 +1428,26 @@ export default class Query<
    *
    * @returns A cloned Query with the offset clause applied
    */
-  public offset(offset: number | null): Query<DreamInstance, QueryTypeOpts> {
-    return this.clone({ offset })
+  public offset<
+    Q extends Query<DreamInstance, any>,
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowOffset: false }> ? true : false,
+    RetQuery = Query<
+      DreamInstance,
+      ExtendQueryType<
+        QueryTypeOpts,
+        Readonly<{
+          allowPaginate: false
+          allowLeftJoinPreload: false
+        }>
+      >
+    >,
+  >(
+    this: Q,
+    offset: Incompatible extends true
+      ? 'offset is incompatible with paginate and leftJoinPreload'[]
+      : number | null
+  ): RetQuery {
+    return this.clone({ offset: offset as unknown as number | null }) as unknown as RetQuery
   }
 
   /**
@@ -1672,7 +1713,7 @@ export default class Query<
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
   ): Promise<DreamInstance[]> {
-    const query = this.limit(null).offset(null)
+    const query = (this as any).limit(null).offset(null)
 
     let kyselyQuery = query.buildSelect({ bypassSelectAll: true })
 
@@ -1994,10 +2035,10 @@ export default class Query<
         ? onlyColumns
         : [this.namespacedPrimaryKey, ...onlyColumns]
 
-      records = await this.offset(offset)
+      records = await this.offset(offset as any)
         .order(null)
         .order(this.namespacedPrimaryKey as any)
-        .limit(batchSize)
+        .limit(batchSize as any)
         .executePluck(...columnsIncludingPrimaryKey)
 
       // In order to batch, we need to order by primary key, so the primary key must be plucked.
@@ -2068,16 +2109,25 @@ export default class Query<
    * @returns results.currentPage - The current page (same as what is provided in the paginate args)
    * @returns results.results - An array of records matching the current record
    */
-  public async paginate(opts: PaginatedDreamQueryOptions): Promise<PaginatedDreamQueryResult<DreamInstance>> {
+  public async paginate<
+    Q extends Query<DreamInstance, any>,
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowPaginate: false }> ? true : false,
+  >(
+    this: Q,
+    opts: Incompatible extends true
+      ? 'paginate is incompatible with limit, offset, and leftJoinPreload'[]
+      : PaginatedDreamQueryOptions
+  ): Promise<PaginatedDreamQueryResult<DreamInstance>> {
     if (this.limitStatement) throw new CannotPaginateWithLimit()
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
-    const page = computedPaginatePage(opts.page)
+    const page = computedPaginatePage((opts as any).page)
 
     const recordCount = await this.count()
-    const pageSize = opts.pageSize || DreamApp.getOrFail().paginationPageSize
+    const pageSize = (opts as any).pageSize || DreamApp.getOrFail().paginationPageSize
 
     const pageCount = Math.ceil(recordCount / pageSize)
-    const results = await this.limit(pageSize)
+    const results = await (this as any)
+      .limit(pageSize)
       .offset((page - 1) * pageSize)
       .all()
 
@@ -2127,7 +2177,7 @@ export default class Query<
     // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
     // because it avoids the step of finding the first. Just find any, and return
     // that one.
-    return (await this.limit(1).all()).length > 0
+    return (await (this as any).limit(1).all()).length > 0
   }
 
   /**
@@ -2434,7 +2484,7 @@ export default class Query<
         query = this
       } else {
         // otherwise find the primary key and apply it to the query
-        const primaryKeyValue = (await this.limit(1).pluck(this.namespacedPrimaryKey as any))[0]
+        const primaryKeyValue = (await (this as any).limit(1).pluck(this.namespacedPrimaryKey as any))[0]
         if (primaryKeyValue === undefined) return null
         query = this.where({ [this.namespacedPrimaryKey]: primaryKeyValue } as any)
       }
@@ -2442,7 +2492,7 @@ export default class Query<
       return (await query.executeJoinLoad())[0] || null
     }
 
-    const kyselyQuery = this.limit(1).buildSelect()
+    const kyselyQuery = (this as any).limit(1).buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
