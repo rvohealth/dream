@@ -55,6 +55,9 @@ export type DefaultQueryTypeOptions<
   rootTableAlias: TableAliasSource extends Dream ? TableAliasSource['table'] : TableAliasSource
   allowPreload: true
   allowLeftJoinPreload: true
+  allowLimit: true
+  allowOffset: true
+  allowPaginate: true
 }>
 
 export interface PreloadedDreamsAndWhatTheyPointTo {
@@ -82,6 +85,9 @@ export type ExtendQueryType<
   allowLeftJoinPreload: Opts['allowLeftJoinPreload'] extends false
     ? false
     : OriginalOpts['allowLeftJoinPreload']
+  allowLimit: Opts['allowLimit'] extends false ? false : OriginalOpts['allowLimit']
+  allowOffset: Opts['allowOffset'] extends false ? false : OriginalOpts['allowOffset']
+  allowPaginate: Opts['allowPaginate'] extends false ? false : OriginalOpts['allowPaginate']
 }>
 
 export type NamespacedColumnType<
