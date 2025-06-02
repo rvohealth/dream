@@ -1817,6 +1817,15 @@ export const schema = {
       named: [],
     },
     columns: {
+      aDatetime: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
       bio: {
         coercedType: {} as string,
         enumType: null,
@@ -3975,7 +3984,13 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
-      
+      balloons: {
+        type: 'HasMany',
+        foreignKey: 'shapableId',
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredOnClauses: null,
+      },
     },
   },
   unscoped_sortable_models: {

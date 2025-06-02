@@ -384,6 +384,7 @@ export interface LocalizedTexts {
 }
 
 export interface ModelForOpenapiTypeSpecs {
+  aDatetime: Timestamp | null;
   bio: Generated<string>;
   birthdate: Timestamp | null;
   collarCount: Int8 | null;
