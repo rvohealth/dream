@@ -3984,13 +3984,7 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
-      balloons: {
-        type: 'HasMany',
-        foreignKey: 'shapableId',
-        tables: ['beautiful_balloons'],
-        optional: null,
-        requiredOnClauses: null,
-      },
+      
     },
   },
   unscoped_sortable_models: {
