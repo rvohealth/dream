@@ -187,6 +187,19 @@ export const PetTreatsEnumValues = [
 ] as const
 
 
+export type ShapableTypesEnum = "Shape";
+export const ShapableTypesEnumValues = [
+  "Shape"
+] as const
+
+
+export type ShapeTypesEnum = "CatShape" | "RegularShape";
+export const ShapeTypesEnumValues = [
+  "CatShape",
+  "RegularShape"
+] as const
+
+
 export type Species = "cat" | "dog" | "frog";
 export const SpeciesValues = [
   "cat",
@@ -236,6 +249,8 @@ export interface BeautifulBalloons {
   multicolor: ArrayType<BalloonColorsEnum> | null;
   positionAlpha: number | null;
   positionBeta: number | null;
+  shapableId: Int8 | null;
+  shapableType: ShapableTypesEnum | null;
   type: BalloonTypesEnum;
   updatedAt: Timestamp;
   userId: Int8 | null;
@@ -369,7 +384,6 @@ export interface LocalizedTexts {
 }
 
 export interface ModelForOpenapiTypeSpecs {
-  aDatetime: Timestamp | null;
   bio: Generated<string>;
   birthdate: Timestamp | null;
   collarCount: Int8 | null;
@@ -554,6 +568,14 @@ export interface Sandbags {
   weightTons: number | null;
 }
 
+export interface Shapes {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string | null;
+  type: ShapeTypesEnum;
+  updatedAt: Timestamp;
+}
+
 export interface UnscopedSortableModels {
   createdAt: Timestamp;
   id: Generated<Int8>;
@@ -624,6 +646,7 @@ export interface DB {
   posts: Posts;
   ratings: Ratings;
   sandbags: Sandbags;
+  shapes: Shapes;
   unscoped_sortable_models: UnscopedSortableModels;
   user_settings: UserSettings;
   users: Users;
@@ -663,6 +686,7 @@ export class DBClass {
   posts: Posts
   ratings: Ratings
   sandbags: Sandbags
+  shapes: Shapes
   unscoped_sortable_models: UnscopedSortableModels
   user_settings: UserSettings
   users: Users
