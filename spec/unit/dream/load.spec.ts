@@ -1,10 +1,13 @@
 import { NonLoadedAssociation } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import BaseExtraRating from '../../../test-app/app/models/ExtraRating/Base.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import Shape from '../../../test-app/app/models/Shape.js'
+import CatShape from '../../../test-app/app/models/Shape/Cat.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#load', () => {
@@ -122,16 +125,17 @@ describe('Dream#load', () => {
 
   context('STI with a polymorphic belongs_to association to another STI model', () => {
     it('loads the association', async () => {
-      const balloon = await Mylar.create()
-      const rating = await BaseExtraRating.create({
-        extraRateable: balloon,
-        user,
-        type: 'StarRating',
-        rating: 3,
-      })
+      const shape = await CatShape.create()
+      const balloon = await Mylar.create({ shapable: shape })
 
-      const clone = await rating.load('extraRateable').execute()
-      expect(clone.extraRateable).toMatchDreamModel(balloon)
+      const clone = await balloon.load('shapable').execute()
+      expect(clone.shapable).toMatchDreamModel(shape)
+    })
+
+    it('fails when the optional assoc is not there', async () => {
+      const balloon = await Mylar.create()
+      const clone = await balloon.load('shapable').execute()
+      expect(clone?.shapable).toBeNull()
     })
   })
 })

@@ -5,6 +5,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
+import CatShape from '../../../test-app/app/models/Shape/Cat.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.preload', () => {
@@ -85,5 +86,21 @@ describe('Dream.preload', () => {
 
     expect(spy).toHaveBeenCalledWith('replica')
     expect(spy).not.toHaveBeenCalledWith('primary')
+  })
+
+  context('STI with a polymorphic belongs_to association to another STI model', () => {
+    it('loads the association', async () => {
+      const shape = await CatShape.create()
+      const balloon = await Mylar.create({ shapable: shape })
+
+      const clone = await Mylar.preload('shapable').first()
+      expect(clone?.shapable).toMatchDreamModel(shape)
+    })
+
+    it('fails when the optional assoc is not there', async () => {
+      const balloon = await Mylar.create()
+      const clone = await Mylar.preload('shapable').first()
+      expect(clone?.shapable).toBeNull()
+    })
   })
 })
