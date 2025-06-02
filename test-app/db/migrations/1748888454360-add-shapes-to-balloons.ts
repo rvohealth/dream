@@ -1,6 +1,5 @@
 import { Kysely, sql } from 'kysely'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.createType('shapable_types_enum').asEnum(['Shape']).execute()
 
@@ -11,7 +10,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('beautiful_balloons')
@@ -21,4 +19,3 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   await db.schema.dropType('shapable_types_enum').execute()
 }
-

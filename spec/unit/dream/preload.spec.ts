@@ -91,14 +91,14 @@ describe('Dream.preload', () => {
   context('STI with a polymorphic belongs_to association to another STI model', () => {
     it('loads the association', async () => {
       const shape = await CatShape.create()
-      const balloon = await Mylar.create({ shapable: shape })
+      await Mylar.create({ shapable: shape })
 
       const clone = await Mylar.preload('shapable').first()
       expect(clone?.shapable).toMatchDreamModel(shape)
     })
 
     it('fails when the optional assoc is not there', async () => {
-      const balloon = await Mylar.create()
+      await Mylar.create()
       const clone = await Mylar.preload('shapable').first()
       expect(clone?.shapable).toBeNull()
     })

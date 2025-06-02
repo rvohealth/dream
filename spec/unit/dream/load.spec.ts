@@ -1,12 +1,9 @@
 import { NonLoadedAssociation } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
-import Balloon from '../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
-import BaseExtraRating from '../../../test-app/app/models/ExtraRating/Base.js'
 import Pet from '../../../test-app/app/models/Pet.js'
-import Shape from '../../../test-app/app/models/Shape.js'
 import CatShape from '../../../test-app/app/models/Shape/Cat.js'
 import User from '../../../test-app/app/models/User.js'
 
