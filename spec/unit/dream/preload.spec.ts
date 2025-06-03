@@ -1,4 +1,5 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
+import { NonLoadedAssociation } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
@@ -97,10 +98,16 @@ describe('Dream.preload', () => {
       expect(clone?.shapable).toMatchDreamModel(shape)
     })
 
-    it('is null when the optional polymorhipc assoc is not present', async () => {
+    it('is null when the optional polymorphic assoc is not present', async () => {
       await Mylar.create()
       const clone = await Mylar.preload('shapable').first()
       expect(clone?.shapable).toBeNull()
+    })
+
+    it('throws an error when the assoc is not preloaded', async () => {
+      await Mylar.create()
+      const clone = await Mylar.first()
+      expect(() => clone?.shapable).toThrow(NonLoadedAssociation)
     })
   })
 })
