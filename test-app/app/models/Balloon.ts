@@ -7,6 +7,7 @@ import ApplicationModel from './ApplicationModel.js'
 import BalloonLine from './BalloonLine.js'
 import HeartRating from './ExtraRating/HeartRating.js'
 import Sandbag from './Sandbag.js'
+import Shape from './Shape.js'
 import User from './User.js'
 
 const deco = new Decorators<typeof Balloon>()
@@ -58,6 +59,15 @@ export default class Balloon extends ApplicationModel {
 
   @deco.HasMany('Sandbag', { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
+
+  @deco.BelongsTo(['Shape'], {
+    foreignKey: 'shapableId',
+    polymorphic: true,
+    optional: true,
+  })
+  public shapable: Shape
+  public shapableId: DreamColumn<Balloon, 'shapableId'>
+  public shapableType: DreamColumn<Balloon, 'shapableType'>
 
   @deco.AfterCreate()
   public justToEnsureSortableWorksWithAnAfterCreate() {}

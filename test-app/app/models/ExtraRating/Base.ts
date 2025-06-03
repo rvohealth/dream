@@ -21,9 +21,6 @@ export default class BaseExtraRating extends ApplicationModel {
   public body: DreamColumn<BaseExtraRating, 'body'>
   public rating: DreamColumn<BaseExtraRating, 'rating'>
 
-  public extraRateableId: DreamColumn<BaseExtraRating, 'extraRateableId'>
-  public extraRateableType: DreamColumn<BaseExtraRating, 'extraRateableType'>
-
   @deco.BelongsTo('User')
   public user: User
   public userId: DreamColumn<BaseExtraRating, 'userId'>
@@ -33,4 +30,6 @@ export default class BaseExtraRating extends ApplicationModel {
     polymorphic: true,
   })
   public extraRateable: Composition | Post | Balloon
+  public extraRateableId: DreamColumn<BaseExtraRating, 'extraRateableId'>
+  public extraRateableType: DreamColumn<BaseExtraRating, 'extraRateableType'>
 }

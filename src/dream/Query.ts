@@ -2576,7 +2576,8 @@ export default class Query<
     associatedDreams: Dream[]
   ) {
     const relevantAssociatedModels = dreams.filter((dream: any) => {
-      return dream[association.foreignKeyTypeField()] === associatedDreamClass['stiBaseClassOrOwnClassName']
+      const field = association.foreignKeyTypeField()
+      return dream[field] === associatedDreamClass['stiBaseClassOrOwnClassName'] || dream[field] === null
     })
 
     if (relevantAssociatedModels.length) {
