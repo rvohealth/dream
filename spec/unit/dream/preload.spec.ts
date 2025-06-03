@@ -97,7 +97,7 @@ describe('Dream.preload', () => {
       expect(clone?.shapable).toMatchDreamModel(shape)
     })
 
-    it('fails when the optional assoc is not there', async () => {
+    it('is null when the optional polymorhipc assoc is not present', async () => {
       await Mylar.create()
       const clone = await Mylar.preload('shapable').first()
       expect(clone?.shapable).toBeNull()
