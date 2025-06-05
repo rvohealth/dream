@@ -60,7 +60,7 @@ export default class Balloon extends ApplicationModel {
   @deco.HasMany('Sandbag', { foreignKey: 'balloonId' })
   public sandbags: Sandbag[]
 
-  @deco.BelongsTo(['Shape'], {
+  @deco.BelongsTo(() => [Shape], {
     foreignKey: 'shapableId',
     polymorphic: true,
     optional: true,
