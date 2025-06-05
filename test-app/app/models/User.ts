@@ -110,57 +110,57 @@ export default class User extends ApplicationModel {
   @deco.HasMany(() => Rating)
   public ratings: Rating[]
 
-  @deco.HasMany('ExtraRating/HeartRating')
+  @deco.HasMany(() => HeartRating)
   public heartRatings: HeartRating[]
 
-  @deco.HasMany('Rating', { through: 'posts', source: 'ratings' })
+  @deco.HasMany(() => Rating, { through: 'posts', source: 'ratings' })
   public postRatings: Rating[]
 
-  @deco.HasOne('Post', { selfAnd: { position: 'featuredPostPosition' } })
+  @deco.HasOne(() => Post, { selfAnd: { position: 'featuredPostPosition' } })
   public featuredPost: Post
 
-  @deco.HasMany('Rating', { through: 'featuredPost', source: 'ratings' })
+  @deco.HasMany(() => Rating, { through: 'featuredPost', source: 'ratings' })
   public featuredRatings: Rating[]
 
-  @deco.HasMany('Rating', {
+  @deco.HasMany(() => Rating, {
     through: 'posts',
     source: 'ratings',
     selfAnd: { rating: 'targetRating' },
   })
   public ratingsThroughPostsThatMatchUserTargetRating: Rating[]
 
-  @deco.HasMany('Composition', { dependent: 'destroy' })
+  @deco.HasMany(() => Composition, { dependent: 'destroy' })
   public compositions: Composition[]
 
-  @deco.HasOne('Composition', {
+  @deco.HasOne(() => Composition, {
     and: { primary: true },
   })
   public mainComposition: Composition
 
-  @deco.HasMany('IncompatibleForeignKeyTypeExample')
+  @deco.HasMany(() => IncompatibleForeignKeyTypeExample)
   public incompatibleForeignKeyTypeExamples: IncompatibleForeignKeyTypeExample[]
 
-  @deco.HasMany('CompositionAsset', {
+  @deco.HasMany(() => CompositionAsset, {
     through: 'compositions',
   })
   public compositionAssets: CompositionAsset[]
 
-  @deco.HasOne('CompositionAsset', {
+  @deco.HasOne(() => CompositionAsset, {
     through: 'mainComposition',
   })
   public mainCompositionAsset: CompositionAsset
 
-  @deco.HasMany('Composition', {
+  @deco.HasMany(() => Composition, {
     order: { id: 'desc' },
   })
   public reverseOrderedCompositions: Composition[]
 
-  @deco.HasMany('Composition', {
+  @deco.HasMany(() => Composition, {
     order: { content: 'asc', id: 'desc' },
   })
   public sortedCompositions: Composition[]
 
-  @deco.HasMany('Composition', {
+  @deco.HasMany(() => Composition, {
     order: {
       content: 'asc',
       id: 'desc',
@@ -168,30 +168,30 @@ export default class User extends ApplicationModel {
   })
   public sortedCompositions2: Composition[]
 
-  @deco.HasMany('CompositionAssetAudit', {
+  @deco.HasMany(() => CompositionAssetAudit, {
     through: 'compositionAssets',
   })
   public compositionAssetAudits: CompositionAssetAudit[]
 
   // recent associations
-  @deco.HasMany('Composition', {
+  @deco.HasMany(() => Composition, {
     and: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public recentCompositions: Composition[]
 
   // not recent associations (contrived so that we can test whereNot)
-  @deco.HasMany('Composition', {
+  @deco.HasMany(() => Composition, {
     andNot: { createdAt: () => range(DateTime.now().minus({ week: 1 })) },
   })
   public notRecentCompositions: Composition[]
 
-  @deco.HasMany('CompositionAsset', {
+  @deco.HasMany(() => CompositionAsset, {
     through: 'recentCompositions',
     source: 'compositionAssets',
   })
   public recentCompositionAssets: CompositionAsset[]
 
-  @deco.HasMany('CompositionAsset', {
+  @deco.HasMany(() => CompositionAsset, {
     through: 'recentCompositions',
     source: 'mainCompositionAsset',
   })
@@ -200,31 +200,31 @@ export default class User extends ApplicationModel {
   // end:recent associations
 
   // missing through association
-  @deco.HasMany('CompositionAsset', { through: 'nonExtantCompositions' as any })
+  @deco.HasMany(() => CompositionAsset, { through: 'nonExtantCompositions' as any })
   public nonExtantCompositionAssets1: CompositionAsset[]
   // end: missing through association
 
   // missing through association source
-  @deco.HasMany('CompositionAsset', { through: 'compositions' })
+  @deco.HasMany(() => CompositionAsset, { through: 'compositions' })
   public nonExtantCompositionAssets2: CompositionAsset[]
   // end: missing through association source
 
-  @deco.HasMany('Balloon')
+  @deco.HasMany(() => Balloon)
   public balloons: Balloon[]
 
-  @deco.HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
+  @deco.HasMany(() => BalloonLine, { through: 'balloons', source: 'balloonLine' })
   public balloonLines: BalloonLine[]
 
-  @deco.HasMany('Pet')
+  @deco.HasMany(() => Pet)
   public pets: Pet[]
 
   // allows us to find hidden pets
-  @deco.HasMany('Pet', {
+  @deco.HasMany(() => Pet, {
     withoutDefaultScopes: ['dream:SoftDelete'],
   })
   public allPets: Pet[]
 
-  @deco.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @deco.HasMany(() => Pet, { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
   public petsFromUuid: Pet[]
 
   @deco.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
