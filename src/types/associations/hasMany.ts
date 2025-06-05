@@ -1,11 +1,6 @@
 import Dream from '../../Dream.js'
 import { AssociationTableNames } from '../db.js'
-import {
-  GlobalModelNames,
-  GlobalModelNameTableMap,
-  TableColumnNames,
-  TableNameForGlobalModelName,
-} from '../dream.js'
+import { GlobalModelNameTableMap, TableColumnNames } from '../dream.js'
 import {
   HasOptions,
   HasStatement,
@@ -25,16 +20,7 @@ export type HasManyStatement<
 }
 interface HasManyOnlyOptions<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | GlobalModelNames<BaseInstance>
-    | readonly GlobalModelNames<BaseInstance>[],
-  AssociationGlobalName = AssociationGlobalNameOrNames extends any[]
-    ? AssociationGlobalNameOrNames[0] & string
-    : AssociationGlobalNameOrNames & string,
-  AssociationTableName = TableNameForGlobalModelName<
-    BaseInstance,
-    AssociationGlobalName & GlobalModelNames<BaseInstance>
-  >,
+  AssociationTableName extends keyof BaseInstance['DB'],
 > {
   distinct?:
     | TableColumnNames<
@@ -69,12 +55,12 @@ export type HasManyOptions<
 
 export type PolymorphicHasManyOptions<
   BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName> &
-  HasManyOnlyOptions<BaseInstance, AssociationGlobalName>
+  AssociationTableName extends keyof BaseInstance['DB'],
+> = PolymorphicHasOptions<BaseInstance, AssociationTableName> &
+  HasManyOnlyOptions<BaseInstance, AssociationTableName>
 
 export type HasManyThroughOptions<
   BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasThroughOptions<BaseInstance, AssociationGlobalName> &
-  HasManyOnlyOptions<BaseInstance, AssociationGlobalName>
+  AssociationTableName extends keyof BaseInstance['DB'],
+> = HasThroughOptions<BaseInstance, AssociationTableName> &
+  HasManyOnlyOptions<BaseInstance, AssociationTableName>

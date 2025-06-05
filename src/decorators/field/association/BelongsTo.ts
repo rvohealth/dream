@@ -5,7 +5,7 @@ import {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
 } from '../../../types/associations/belongsTo.js'
-import { GlobalModelNameTableMap } from '../../../types/dream.js'
+import { GlobalModelIdentifier, TableNameForGlobalModelName } from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import { validatesImplementation } from '../validation/Validates.js'
 import {
@@ -18,22 +18,20 @@ import {
 
 export default function BelongsTo<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
+  const AssociationGlobalId extends GlobalModelIdentifier<BaseInstance>,
+  AssociationTableNameOrNames extends TableNameForGlobalModelName<BaseInstance, AssociationGlobalId>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: NonPolymorphicBelongsToOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationNameOrNames: AssociationGlobalId,
+  opts?: NonPolymorphicBelongsToOptions<BaseInstance, AssociationTableNameOrNames>
 ): any
 
 export default function BelongsTo<
   BaseInstance extends Dream,
-  AssociationGlobalNameOrNames extends
-    | keyof GlobalModelNameTableMap<BaseInstance>
-    | (keyof GlobalModelNameTableMap<BaseInstance>)[],
+  const AssociationGlobalId extends GlobalModelIdentifier<BaseInstance>,
+  AssociationTableNameOrNames extends TableNameForGlobalModelName<BaseInstance, AssociationGlobalId>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-  opts?: PolymorphicBelongsToOptions<BaseInstance, AssociationGlobalNameOrNames>
+  globalAssociationNameOrNames: AssociationGlobalId,
+  opts?: PolymorphicBelongsToOptions<BaseInstance, AssociationTableNameOrNames>
 ): any
 
 /**

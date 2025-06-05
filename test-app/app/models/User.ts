@@ -85,10 +85,10 @@ export default class User extends ApplicationModel {
   @deco.Validates('length', { min: 4, max: 64 })
   public email: DreamColumn<User, 'email'>
 
-  @deco.HasOne('UserSettings')
+  @deco.HasOne(() => UserSettings)
   public userSettings: UserSettings
 
-  @deco.HasMany('Post')
+  @deco.HasMany(() => Post)
   // @deco.HasMany('Post', { dependent: 'destroy' })
   public posts: Post[]
 
@@ -98,7 +98,7 @@ export default class User extends ApplicationModel {
   @deco.HasMany('Post', { order: 'position' })
   public orderedPosts: Post[]
 
-  @deco.HasMany('PostComment', { through: 'posts', source: 'comments' })
+  @deco.HasMany(() => PostComment, { through: 'posts', source: 'comments' })
   public postComments: PostComment[]
 
   @deco.HasMany('PostComment', {

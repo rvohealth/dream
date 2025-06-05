@@ -316,12 +316,29 @@ export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
 }
 
 // Model global names and tables
-export type TableNameForGlobalModelName<
-  I extends Dream,
-  GMN extends keyof GlobalModelNameTableMap<I>,
-> = GlobalModelNameTableMap<I>[GMN]
+export type TableNameForGlobalModelName<I extends Dream, GMN> = GMN extends keyof GlobalModelNameTableMap<I>
+  ? GlobalModelNameTableMap<I>[GMN]
+  : GMN extends (keyof GlobalModelNameTableMap<I>)[]
+    ? GlobalModelNameTableMap<I>[GMN[number]]
+    : GMN extends () => typeof Dream
+      ? ModelFromModelCb<GMN>['prototype']['table']
+      : GMN extends () => (typeof Dream)[]
+        ? ModelFromModelCb<GMN>['prototype']['table']
+        : never
+
+type ModelFromModelCb<ModelCb> = ModelCb extends () => typeof Dream
+  ? ReturnType<ModelCb>
+  : ModelCb extends () => (typeof Dream)[]
+    ? ReturnType<ModelCb>[number]
+    : never
 
 export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
+
+export type GlobalModelIdentifier<I extends Dream> =
+  | GlobalModelNames<I>
+  | GlobalModelNames<I>[]
+  | (() => typeof Dream)
+  | (() => (typeof Dream)[])
 
 export type GlobalModelNameTableMap<
   I extends Dream,

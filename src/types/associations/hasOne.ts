@@ -12,8 +12,8 @@ export type HasOneStatement<
 
 export type HasOneOptions<
   BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasOptions<BaseInstance, AssociationGlobalName>
+  AssociationTableName extends keyof BaseInstance['DB'],
+> = HasOptions<BaseInstance, AssociationTableName>
 
 export type PolymorphicHasOneOptions<
   BaseInstance extends Dream,

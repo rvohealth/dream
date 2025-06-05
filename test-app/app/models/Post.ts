@@ -30,7 +30,7 @@ export default class Post extends ApplicationModel {
 
   public body: DreamColumn<Post, 'body'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo(() => User)
   public user: User
   public userId: DreamColumn<Post, 'userId'>
 

@@ -13,7 +13,12 @@ import {
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
 } from '../types/associations/hasOne.js'
-import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../types/dream.js'
+import {
+  DreamColumnNames,
+  GlobalModelIdentifier,
+  SortableOptions,
+  TableNameForGlobalModelName,
+} from '../types/dream.js'
 import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { ValidationType } from '../types/validation.js'
@@ -41,23 +46,21 @@ import Scope from './static-method/Scope.js'
 
 export default class Decorators<TD extends typeof Dream, T extends Dream = InstanceType<TD>> {
   public BelongsTo<
-    const AssociationGlobalNameOrNames extends
-      | keyof GlobalModelNameTableMap<T>
-      | (keyof GlobalModelNameTableMap<T>)[],
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableNameOrNames extends TableNameForGlobalModelName<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: NonPolymorphicBelongsToOptions<T, AssociationGlobalNameOrNames>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: NonPolymorphicBelongsToOptions<T, AssociationTableNameOrNames>
   ): any
 
   public BelongsTo<
-    const AssociationGlobalNameOrNames extends
-      | keyof GlobalModelNameTableMap<T>
-      | (keyof GlobalModelNameTableMap<T>)[],
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableNameOrNames extends TableNameForGlobalModelName<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalNameOrNames,
-    options?: PolymorphicBelongsToOptions<T, AssociationGlobalNameOrNames>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: PolymorphicBelongsToOptions<T, AssociationTableNameOrNames>
   ): any
 
   /**
@@ -85,32 +88,43 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * @returns A BelongsTo decorator
    */
   public BelongsTo<
-    const AssociationGlobalNameOrNames extends
-      | keyof GlobalModelNameTableMap<T>
-      | (keyof GlobalModelNameTableMap<T>)[],
-  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalNameOrNames, options: unknown = {}) {
-    return BelongsTo<T, AssociationGlobalNameOrNames>(globalAssociationNameOrNames, options as any)
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableNameOrNames extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalId, options: unknown = {}) {
+    return BelongsTo<T, AssociationGlobalId, AssociationTableNameOrNames>(
+      globalAssociationNameOrNames,
+      options as any
+    )
   }
 
   ///////////
   // HasMany
   ///////////
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasMany<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasManyOptions<T, AssociationGlobalName>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: HasManyOptions<T, AssociationTableName>
   ): any
 
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasMany<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasManyThroughOptions<T, AssociationGlobalName>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: HasManyThroughOptions<T, AssociationTableName>
   ): any
 
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasMany<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options?: PolymorphicHasManyOptions<T, AssociationGlobalName>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: PolymorphicHasManyOptions<T, AssociationTableName>
   ): any
 
   /**
@@ -136,12 +150,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * @param options - the options you want to use to apply to this association
    * @returns A HasMany decorator
    */
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options: unknown = {}
-  ) {
-    return HasMany<T, AssociationGlobalName>(globalAssociationNameOrNames, options as any)
+  public HasMany<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalId, options: unknown = {}) {
+    return HasMany<T, AssociationGlobalId, AssociationTableName>(globalAssociationNameOrNames, options as any)
   }
   ///////////////
   // end: HasMany
@@ -150,22 +163,31 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   ///////////
   // HasOne
   ///////////
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasOne<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasOneOptions<T, AssociationGlobalName>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: HasOneOptions<T, AssociationTableName>
   ): any
 
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasOne<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasOneThroughOptions<T, AssociationGlobalName>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: HasOneThroughOptions<T, AssociationTableName>
   ): any
 
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasOne<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(
     this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options?: PolymorphicHasOneOptions<T, AssociationGlobalName>
+    globalAssociationNameOrNames: AssociationGlobalId,
+    options?: PolymorphicHasOneOptions<T, AssociationTableName>
   ): any
 
   /**
@@ -190,12 +212,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * @param options - The options you want to use to apply to this association
    * @returns A HasOne decorator
    */
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options: unknown = {}
-  ): any {
-    return HasOne<T, AssociationGlobalName>(globalAssociationNameOrNames, options as any)
+  public HasOne<
+    const AssociationGlobalId extends GlobalModelIdentifier<T>,
+    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalId, options: unknown = {}): any {
+    return HasOne<T, AssociationGlobalId, AssociationTableName>(globalAssociationNameOrNames, options as any)
   }
   //////////////
   // end: HasOne

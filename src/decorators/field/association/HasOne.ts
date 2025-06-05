@@ -6,7 +6,7 @@ import {
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
 } from '../../../types/associations/hasOne.js'
-import { GlobalModelNameTableMap } from '../../../types/dream.js'
+import { GlobalModelIdentifier, TableNameForGlobalModelName } from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import {
   applyGetterAndSetter,
@@ -18,27 +18,27 @@ import {
 } from './shared.js'
 
 export default function HasOne<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+  I extends Dream,
+  const AssociationGlobalId extends GlobalModelIdentifier<I>,
+  AssociationTableName extends TableNameForGlobalModelName<I, AssociationGlobalId>,
+>(globalAssociationName: AssociationGlobalId, opts?: HasOneOptions<I, AssociationTableName>): any
+
+export default function HasOne<
+  I extends Dream,
+  const AssociationGlobalId extends GlobalModelIdentifier<I>,
+  AssociationTableName extends TableNameForGlobalModelName<I, AssociationGlobalId>,
 >(
-  globalAssociationName: AssociationGlobalName,
-  opts?: HasOneOptions<BaseInstance, AssociationGlobalName>
+  globalAssociationNameOrNames: AssociationGlobalId,
+  opts?: HasOneThroughOptions<I, AssociationTableName>
 ): any
 
 export default function HasOne<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+  I extends Dream,
+  const AssociationGlobalId extends GlobalModelIdentifier<I>,
+  AssociationTableName extends TableNameForGlobalModelName<I, AssociationGlobalId>,
 >(
-  globalAssociationNameOrNames: AssociationGlobalName,
-  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalName>
-): any
-
-export default function HasOne<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
->(
-  globalAssociationNameOrNames: AssociationGlobalName,
-  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalName>
+  globalAssociationNameOrNames: AssociationGlobalId,
+  opts?: PolymorphicHasOneOptions<I, AssociationTableName>
 ): any
 
 /**
@@ -73,8 +73,8 @@ export default function HasOne<
  * @param opts.through - If passed, this association will travel through another association.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association
  */
-export default function HasOne<BaseInstance extends Dream, AssociationGlobalNameOrNames>(
-  globalAssociationNameOrNames: AssociationGlobalNameOrNames,
+export default function HasOne<BaseInstance extends Dream, AssociationTableNameOrNames>(
+  globalAssociationNameOrNames: AssociationTableNameOrNames,
   opts: unknown = {}
 ): any {
   const {
