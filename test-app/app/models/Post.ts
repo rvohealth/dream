@@ -38,7 +38,7 @@ export default class Post extends ApplicationModel {
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @deco.HasMany(() => PostComment, { dependent: 'destroy' })
+  @deco.HasMany('PostComment', { dependent: 'destroy' })
   public comments: PostComment[]
 
   @deco.HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
