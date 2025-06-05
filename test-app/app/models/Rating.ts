@@ -24,7 +24,7 @@ export default class Rating extends ApplicationModel {
   public user: User
   public userId: DreamColumn<Rating, 'userId'>
 
-  @deco.BelongsTo(() => [Composition, Post], {
+  @deco.BelongsTo(['Composition', 'Post'], {
     foreignKey: 'rateableId',
     polymorphic: true,
   })
