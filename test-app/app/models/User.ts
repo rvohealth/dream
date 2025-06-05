@@ -92,22 +92,22 @@ export default class User extends ApplicationModel {
   // @deco.HasMany('Post', { dependent: 'destroy' })
   public posts: Post[]
 
-  @deco.HasMany('Post', { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @deco.HasMany(() => Post, { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allPosts: Post[]
 
-  @deco.HasMany('Post', { order: 'position' })
+  @deco.HasMany(() => Post, { order: 'position' })
   public orderedPosts: Post[]
 
   @deco.HasMany(() => PostComment, { through: 'posts', source: 'comments' })
   public postComments: PostComment[]
 
-  @deco.HasMany('PostComment', {
+  @deco.HasMany(() => PostComment, {
     through: 'allPosts',
     source: 'allComments',
   })
   public allPostComments: PostComment[]
 
-  @deco.HasMany('Rating')
+  @deco.HasMany(() => Rating)
   public ratings: Rating[]
 
   @deco.HasMany('ExtraRating/HeartRating')
