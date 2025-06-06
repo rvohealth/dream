@@ -1,3 +1,4 @@
+import DreamImporter from '../../dream-app/helpers/DreamImporter.js'
 import Dream from '../../Dream.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 
@@ -7,14 +8,16 @@ export default function Scope(
   } = {}
 ): any {
   return function (_: any, context: DecoratorContext & { static: true }) {
-    const key = context.name
+    DreamImporter.addImportHook(() => {
+      const key = context.name
 
-    context.addInitializer(function (this: typeof Dream) {
-      // this is already a typeof Dream here, because scopes
-      // can only be set on static methods
-      const t: typeof Dream = this
+      context.addInitializer(function (this: typeof Dream) {
+        // this is already a typeof Dream here, because scopes
+        // can only be set on static methods
+        const t: typeof Dream = this
 
-      scopeImplementation(t, key, opts)
+        scopeImplementation(t, key, opts)
+      })
     })
   }
 }
