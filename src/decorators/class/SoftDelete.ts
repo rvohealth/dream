@@ -43,10 +43,8 @@ export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
  */
 export default function SoftDelete(): ClassDecorator {
   return function (target: any) {
-    const dreamCb = target as () => typeof Dream
-
     DreamImporter.addImportHook(() => {
-      const dreamClass = dreamCb()
+      const dreamClass = target as typeof Dream
 
       if (dreamClass['isSTIChild']) throw new StiChildIncompatibleWithSoftDeleteDecorator(dreamClass)
 
@@ -56,7 +54,7 @@ export default function SoftDelete(): ClassDecorator {
         return query.where({ [dreamClass.prototype.deletedAtField]: null } as any)
       }
 
-      scopeImplementation(dreamClass, SOFT_DELETE_SCOPE_NAME, { default: true })
+      scopeImplementation(target, SOFT_DELETE_SCOPE_NAME, { default: true })
     })
   }
 }
