@@ -1,3 +1,4 @@
+import DreamImporter from '../../dream-app/helpers/DreamImporter.js'
 import Dream from '../../Dream.js'
 import Query from '../../dream/Query.js'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
@@ -42,16 +43,20 @@ export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
  */
 export default function SoftDelete(): ClassDecorator {
   return function (target: any) {
-    const dreamClass = target as typeof Dream
+    const dreamCb = target as () => typeof Dream
 
-    if (dreamClass['isSTIChild']) throw new StiChildIncompatibleWithSoftDeleteDecorator(dreamClass)
+    DreamImporter.addImportHook(() => {
+      const dreamClass = dreamCb()
 
-    dreamClass['softDelete'] = true
+      if (dreamClass['isSTIChild']) throw new StiChildIncompatibleWithSoftDeleteDecorator(dreamClass)
 
-    target[SOFT_DELETE_SCOPE_NAME] = function (query: Query<any, any>) {
-      return query.where({ [dreamClass.prototype.deletedAtField]: null } as any)
-    }
+      dreamClass['softDelete'] = true
 
-    scopeImplementation(target, SOFT_DELETE_SCOPE_NAME, { default: true })
+      target[SOFT_DELETE_SCOPE_NAME] = function (query: Query<any, any>) {
+        return query.where({ [dreamClass.prototype.deletedAtField]: null } as any)
+      }
+
+      scopeImplementation(dreamClass, SOFT_DELETE_SCOPE_NAME, { default: true })
+    })
   }
 }
