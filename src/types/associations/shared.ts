@@ -16,13 +16,11 @@ import {
   DefaultScopeNameForTable,
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
-  GlobalModelNameTableMap,
   IdType,
   OrderDir,
   TableColumnEnumTypeArray,
   TableColumnNames,
   TableColumnType,
-  TableNameForGlobalModelName,
   TrigramOperator,
 } from '../dream.js'
 import { Inc, MergeUnionOfRecordTypes, ReadonlyTail, UnionToIntersection } from '../utils.js'
@@ -321,15 +319,9 @@ export interface HasStatement<
   withoutDefaultScopes?: DefaultScopeName<BaseInstance>[]
 }
 
-interface HasOptionsBase<
-  BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-  AssociationTableName = TableNameForGlobalModelName<
-    BaseInstance,
-    AssociationGlobalName & keyof GlobalModelNameTableMap<BaseInstance>
-  >,
-> {
+interface HasOptionsBase<BaseInstance extends Dream, AssociationTableName extends keyof Dream['DB']> {
   dependent?: DependentOptions
+  ham?: AssociationTableName
   foreignKey?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
 
   and?: OnStatementForAssociationDefinition<
@@ -399,19 +391,19 @@ type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 
 export type HasOptions<
   BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughOnlyOptions | PolymorphicOption>
+  AssociationTableName extends keyof BaseInstance['DB'],
+> = Omit<HasOptionsBase<BaseInstance, AssociationTableName>, ThroughOnlyOptions | PolymorphicOption>
 
 export type PolymorphicHasOptions<
   BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasOptionsBase<BaseInstance, AssociationGlobalName> &
-  Required<Pick<HasOptionsBase<BaseInstance, AssociationGlobalName>, PolymorphicOption | ForeignKeyOption>>
+  AssociationTableName extends keyof BaseInstance['DB'],
+> = HasOptionsBase<BaseInstance, AssociationTableName> &
+  Required<Pick<HasOptionsBase<BaseInstance, AssociationTableName>, PolymorphicOption | ForeignKeyOption>>
 
 export type HasThroughOptions<
   BaseInstance extends Dream,
-  AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughIncompatibleOptions>
+  AssociationTableName extends BaseInstance['DB'],
+> = Omit<HasOptionsBase<BaseInstance, AssociationTableName>, ThroughIncompatibleOptions>
 
 export interface AssociationStatementsMap {
   belongsTo: readonly BelongsToStatement<any, any, any, any>[] | BelongsToStatement<any, any, any, any>[]

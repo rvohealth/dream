@@ -18,10 +18,10 @@ export default class PostComment extends ApplicationModel {
   public createdAt: DreamColumn<PostComment, 'createdAt'>
   public updatedAt: DreamColumn<PostComment, 'updatedAt'>
 
-  @deco.BelongsTo('Post')
+  @deco.BelongsTo(() => Post)
   public post: Post
   public postId: DreamColumn<PostComment, 'postId'>
 
-  @deco.BelongsTo('Post', { foreignKey: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
+  @deco.BelongsTo(() => Post, { foreignKey: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
   public postEvenIfDeleted: Post
 }

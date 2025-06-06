@@ -67,6 +67,8 @@ export default async function importModels(
    */
   Dream['globallyInitializingDecorators'] = false
 
+  DreamImporter.runAndClearHooks()
+
   return _models
 }
 

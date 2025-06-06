@@ -18,7 +18,7 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public createdAt: DreamColumn<PetUnderstudyJoinModel, 'createdAt'>
   public updatedAt: DreamColumn<PetUnderstudyJoinModel, 'updatedAt'>
 
-  @deco.BelongsTo('Pet')
+  @deco.BelongsTo(() => Pet)
   public pet: Pet
   public petId: DreamColumn<PetUnderstudyJoinModel, 'petId'>
 
