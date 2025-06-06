@@ -6,7 +6,7 @@ import {
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
 } from '../../../types/associations/hasOne.js'
-import { GlobalModelIdentifier, TableNameForGlobalModelName } from '../../../types/dream.js'
+import { GlobalModelIdentifier, TableNameForGlobalModelIdentifier } from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import {
   applyGetterAndSetter,
@@ -20,13 +20,13 @@ import {
 export default function HasOne<
   I extends Dream,
   const AssociationGlobalId extends GlobalModelIdentifier<I>,
-  AssociationTableName extends TableNameForGlobalModelName<I, AssociationGlobalId>,
+  AssociationTableName extends TableNameForGlobalModelIdentifier<I, AssociationGlobalId>,
 >(globalAssociationName: AssociationGlobalId, opts?: HasOneOptions<I, AssociationTableName>): any
 
 export default function HasOne<
   I extends Dream,
   const AssociationGlobalId extends GlobalModelIdentifier<I>,
-  AssociationTableName extends TableNameForGlobalModelName<I, AssociationGlobalId>,
+  AssociationTableName extends TableNameForGlobalModelIdentifier<I, AssociationGlobalId>,
 >(
   globalAssociationNameOrNames: AssociationGlobalId,
   opts?: HasOneThroughOptions<I, AssociationTableName>
@@ -35,7 +35,7 @@ export default function HasOne<
 export default function HasOne<
   I extends Dream,
   const AssociationGlobalId extends GlobalModelIdentifier<I>,
-  AssociationTableName extends TableNameForGlobalModelName<I, AssociationGlobalId>,
+  AssociationTableName extends TableNameForGlobalModelIdentifier<I, AssociationGlobalId>,
 >(
   globalAssociationNameOrNames: AssociationGlobalId,
   opts?: PolymorphicHasOneOptions<I, AssociationTableName>

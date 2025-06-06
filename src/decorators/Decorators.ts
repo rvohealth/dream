@@ -17,7 +17,7 @@ import {
   DreamColumnNames,
   GlobalModelIdentifier,
   SortableOptions,
-  TableNameForGlobalModelName,
+  TableNameForGlobalModelIdentifier,
 } from '../types/dream.js'
 import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
@@ -47,7 +47,7 @@ import Scope from './static-method/Scope.js'
 export default class Decorators<TD extends typeof Dream, T extends Dream = InstanceType<TD>> {
   public BelongsTo<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableNameOrNames extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableNameOrNames extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -56,7 +56,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
 
   public BelongsTo<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableNameOrNames extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableNameOrNames extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -89,7 +89,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    */
   public BelongsTo<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableNameOrNames extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableNameOrNames extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalId, options: unknown = {}) {
     return BelongsTo<T, AssociationGlobalId, AssociationTableNameOrNames>(
       globalAssociationNameOrNames,
@@ -102,7 +102,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   ///////////
   public HasMany<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -111,7 +111,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
 
   public HasMany<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -120,7 +120,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
 
   public HasMany<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -152,7 +152,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    */
   public HasMany<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalId, options: unknown = {}) {
     return HasMany<T, AssociationGlobalId, AssociationTableName>(globalAssociationNameOrNames, options as any)
   }
@@ -165,7 +165,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   ///////////
   public HasOne<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -174,7 +174,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
 
   public HasOne<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -183,7 +183,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
 
   public HasOne<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalId,
@@ -214,7 +214,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    */
   public HasOne<
     const AssociationGlobalId extends GlobalModelIdentifier<T>,
-    AssociationTableName extends TableNameForGlobalModelName<T, AssociationGlobalId>,
+    AssociationTableName extends TableNameForGlobalModelIdentifier<T, AssociationGlobalId>,
   >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalId, options: unknown = {}): any {
     return HasOne<T, AssociationGlobalId, AssociationTableName>(globalAssociationNameOrNames, options as any)
   }

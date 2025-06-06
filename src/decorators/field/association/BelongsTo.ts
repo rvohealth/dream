@@ -5,7 +5,7 @@ import {
   NonPolymorphicBelongsToOptions,
   PolymorphicBelongsToOptions,
 } from '../../../types/associations/belongsTo.js'
-import { GlobalModelIdentifier, TableNameForGlobalModelName } from '../../../types/dream.js'
+import { GlobalModelIdentifier, TableNameForGlobalModelIdentifier } from '../../../types/dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import { validatesImplementation } from '../validation/Validates.js'
 import {
@@ -19,7 +19,7 @@ import {
 export default function BelongsTo<
   BaseInstance extends Dream,
   const AssociationGlobalId extends GlobalModelIdentifier<BaseInstance>,
-  AssociationTableNameOrNames extends TableNameForGlobalModelName<BaseInstance, AssociationGlobalId>,
+  AssociationTableNameOrNames extends TableNameForGlobalModelIdentifier<BaseInstance, AssociationGlobalId>,
 >(
   globalAssociationNameOrNames: AssociationGlobalId,
   opts?: NonPolymorphicBelongsToOptions<BaseInstance, AssociationTableNameOrNames>
@@ -28,7 +28,7 @@ export default function BelongsTo<
 export default function BelongsTo<
   BaseInstance extends Dream,
   const AssociationGlobalId extends GlobalModelIdentifier<BaseInstance>,
-  AssociationTableNameOrNames extends TableNameForGlobalModelName<BaseInstance, AssociationGlobalId>,
+  AssociationTableNameOrNames extends TableNameForGlobalModelIdentifier<BaseInstance, AssociationGlobalId>,
 >(
   globalAssociationNameOrNames: AssociationGlobalId,
   opts?: PolymorphicBelongsToOptions<BaseInstance, AssociationTableNameOrNames>

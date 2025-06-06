@@ -316,7 +316,10 @@ export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
 }
 
 // Model global names and tables
-export type TableNameForGlobalModelName<I extends Dream, GMN> = GMN extends keyof GlobalModelNameTableMap<I>
+export type TableNameForGlobalModelIdentifier<
+  I extends Dream,
+  GMN,
+> = GMN extends keyof GlobalModelNameTableMap<I>
   ? GlobalModelNameTableMap<I>[GMN]
   : GMN extends (keyof GlobalModelNameTableMap<I>)[]
     ? GlobalModelNameTableMap<I>[GMN[number]]
