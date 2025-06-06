@@ -12,7 +12,6 @@ export default async function importModels(
   if (_models) return _models
 
   const modelClasses = await DreamImporter.importDreams(modelsPath, modelImportCb)
-  DreamImporter.runAndClearHooks()
 
   /**
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
@@ -67,6 +66,8 @@ export default async function importModels(
    * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
    */
   Dream['globallyInitializingDecorators'] = false
+
+  DreamImporter.runAndClearHooks()
 
   return _models
 }
