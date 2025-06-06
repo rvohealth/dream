@@ -36,8 +36,8 @@ export default function STI(dreamCb: () => typeof Dream, { value }: { value?: st
       ;(stiChildClass as any)[STI_SCOPE_NAME] = function (query: any) {
         return query.where({ type: stiChildClass['sti'].value })
       }
-    })
 
-    scopeImplementation(stiChildClass, STI_SCOPE_NAME, { default: true })
+      scopeImplementation(stiChildClass, STI_SCOPE_NAME, { default: true })
+    })
   }
 }
