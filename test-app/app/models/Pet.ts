@@ -43,7 +43,7 @@ export default class Pet extends ApplicationModel {
   @deco.Sortable({ scope: 'species' })
   public positionWithinSpecies: number
 
-  @deco.BelongsTo('User', {
+  @deco.BelongsTo(() => User, {
     optional: true,
     primaryKeyOverride: 'uuid',
     foreignKey: 'userUuid',
@@ -51,7 +51,7 @@ export default class Pet extends ApplicationModel {
   public userThroughUuid: User | null
   public userUuid: string
 
-  @deco.BelongsTo('User', {
+  @deco.BelongsTo(() => User, {
     optional: true,
   })
   public user: User | null

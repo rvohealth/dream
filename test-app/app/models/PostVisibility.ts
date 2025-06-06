@@ -20,7 +20,7 @@ export default class PostVisibility extends ApplicationModel {
   public createdAt: DreamColumn<PostVisibility, 'createdAt'>
   public updatedAt: DreamColumn<PostVisibility, 'updatedAt'>
 
-  @deco.HasOne('Post', { dependent: 'destroy' })
+  @deco.HasOne(() => Post, { dependent: 'destroy' })
   public post: Post
 
   @deco.BeforeCreate()

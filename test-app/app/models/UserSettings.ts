@@ -22,7 +22,7 @@ intentionally try to call .serializers on it.`)
   public createdAt: DreamColumn<UserSettings, 'createdAt'>
   public updatedAt: DreamColumn<UserSettings, 'updatedAt'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo(() => User)
   public user: User
   public userId: DreamColumn<UserSettings, 'userId'>
 }

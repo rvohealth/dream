@@ -34,27 +34,27 @@ export default class Post extends ApplicationModel {
   public user: User
   public userId: DreamColumn<Post, 'userId'>
 
-  @deco.BelongsTo('PostVisibility', { optional: true })
+  @deco.BelongsTo(() => PostVisibility, { optional: true })
   public postVisibility: PostVisibility | null
   public postVisibilityId: DreamColumn<Post, 'postVisibilityId'>
 
-  @deco.HasMany('PostComment', { dependent: 'destroy' })
+  @deco.HasMany(() => PostComment, { dependent: 'destroy' })
   public comments: PostComment[]
 
-  @deco.HasMany('PostComment', { withoutDefaultScopes: ['dream:SoftDelete'] })
+  @deco.HasMany(() => PostComment, { withoutDefaultScopes: ['dream:SoftDelete'] })
   public allComments: PostComment[]
 
-  @deco.HasMany('Rating', {
+  @deco.HasMany(() => Rating, {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
   })
   public ratings: Rating[]
 
-  @deco.HasMany('PostComment', { and: { body: undefined as unknown as string } })
+  @deco.HasMany(() => PostComment, { and: { body: undefined as unknown as string } })
   public invalidWherePostComments: PostComment[]
 
-  @deco.HasMany('PostComment', { andNot: { body: undefined as unknown as string } })
+  @deco.HasMany(() => PostComment, { andNot: { body: undefined as unknown as string } })
   public invalidWhereNotPostComments: PostComment[]
 
   // Traveling through NonNullRating, a model
@@ -63,7 +63,7 @@ export default class Post extends ApplicationModel {
   // by passing withoutDefaultScopes, we
   // override the default scope, allowing us
   // to see null bodies
-  @deco.HasMany('NonNullRating', {
+  @deco.HasMany(() => NonNullRating, {
     foreignKey: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
@@ -71,7 +71,7 @@ export default class Post extends ApplicationModel {
   })
   public overriddenNonNullRatings: NonNullRating[]
 
-  @deco.HasMany('ExtraRating/HeartRating', {
+  @deco.HasMany(() => HeartRating, {
     foreignKey: 'extraRateableId',
     polymorphic: true,
     dependent: 'destroy',
