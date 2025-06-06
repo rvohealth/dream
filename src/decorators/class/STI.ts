@@ -1,6 +1,6 @@
 import DreamImporter from '../../dream-app/helpers/DreamImporter.js'
 import Dream from '../../Dream.js'
-import StiChildCannotDefineNewAssociations from '../../errors/sti/StiChildCannotDefineNewAssociations.js'
+// import StiChildCannotDefineNewAssociations from '../../errors/sti/StiChildCannotDefineNewAssociations.js'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
 import { scopeImplementation } from '../static-method/Scope.js'
@@ -15,8 +15,8 @@ export default function STI(dreamCb: () => typeof Dream, { value }: { value?: st
       const dreamClass = dreamCb()
       const baseClass = dreamClass['sti'].baseClass || dreamClass
 
-      if (Object.getOwnPropertyDescriptor(stiChildClass, 'associationMetadataByType'))
-        throw new StiChildCannotDefineNewAssociations(baseClass, stiChildClass)
+      // if (Object.getOwnPropertyDescriptor(stiChildClass, 'associationMetadataByType'))
+      //   throw new StiChildCannotDefineNewAssociations(baseClass, stiChildClass)
 
       if (Object.getOwnPropertyDescriptor(stiChildClass, 'replicaSafe'))
         throw new StiChildIncompatibleWithReplicaSafeDecorator(stiChildClass)
