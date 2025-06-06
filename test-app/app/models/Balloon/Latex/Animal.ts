@@ -4,7 +4,7 @@ import { BalloonTypesEnum } from '../../../../types/db.js'
 import Balloon from '../../Balloon.js'
 import Latex from '../Latex.js'
 
-@STI(Balloon)
+@STI(() => Balloon)
 export default class Animal extends Latex {
   public override get type() {
     return (this as Animal).getAttribute('type')

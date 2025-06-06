@@ -3,6 +3,8 @@ import * as path from 'node:path'
 import Dream from '../../Dream.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from '../../types/serializer.js'
 
+let importDecoratorHooks: (() => void)[] = []
+
 export default class DreamImporter {
   public static async ls(dir: string): Promise<string[]> {
     try {
@@ -24,6 +26,21 @@ export default class DreamImporter {
       if ((err as any).code === 'ENOENT') return []
       throw err
     }
+  }
+
+  public static addImportHook(cb: () => void) {
+    importDecoratorHooks.push(cb)
+  }
+
+  public static runAndClearHooks() {
+    importDecoratorHooks.forEach(cb => {
+      cb()
+    })
+    this.clearImportHooks()
+  }
+
+  public static clearImportHooks() {
+    importDecoratorHooks = []
   }
 
   public static async importDreams(

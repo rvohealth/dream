@@ -12,6 +12,7 @@ export default async function importModels(
   if (_models) return _models
 
   const modelClasses = await DreamImporter.importDreams(modelsPath, modelImportCb)
+  DreamImporter.runAndClearHooks()
 
   /**
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
