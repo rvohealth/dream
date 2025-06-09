@@ -95,7 +95,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
       const associationMetadata = this.dream['getAssociationMetadata'](associationName)
       if (associationMetadata === undefined) throw new UnexpectedUndefined()
 
-      this.query['hydrateAssociation'](
+      this.query.dbDriverInstance()['hydrateAssociation'](
         [this.dream],
         associationMetadata,
         this.associationToPreloadedDreamsAndWhatTheyPointTo({

@@ -1,5 +1,5 @@
 export default async function executeDatabaseQuery<
-  Command extends 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow',
+  Command extends DbQueryCommand,
   ReturnType extends Command extends 'execute'
     ? any[]
     : Command extends 'executeTakeFirst'
@@ -10,3 +10,5 @@ export default async function executeDatabaseQuery<
 >(kyselyQuery: any, command: Command): Promise<ReturnType> {
   return await kyselyQuery[command]()
 }
+
+export type DbQueryCommand = 'execute' | 'executeTakeFirst' | 'executeTakeFirstOrThrow'
