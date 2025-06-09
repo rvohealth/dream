@@ -83,7 +83,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
       this.query = this.query.txn(this.dreamTransaction)
     }
 
-    await this.query['hydratePreload'](this.dream)
+    await this.query.dbDriverInstance()['hydratePreload'](this.dream)
     return this.dream as DreamInstance
   }
 }
