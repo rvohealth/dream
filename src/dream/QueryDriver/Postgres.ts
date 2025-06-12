@@ -74,27 +74,76 @@ import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
 
 export default class PostgresQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
-  public static async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
-    const db = txn?.kyselyTransaction ?? _db('primary')
+  /**
+   * @internal
+   *
+   * This method is used internally by a Query driver to
+   * take the result of a single row in a database, and
+   * turn that row into the provided dream instance.
+   *
+   * If needed, the return type can be overriden to
+   * explicitly define the resulting dream instance,
+   * in cases where a proper type for the dream class
+   * cannot be inferred, i.e.
+   *
+   * ```ts
+   * this.dbResultToDreamInstance<typeof Dream, DreamInstance>(result, this.dreamClass)
+   * ```
+   */
+  public override dbResultToDreamInstance<
+    DreamClass extends typeof Dream,
+    RetType = InstanceType<DreamClass>,
+  >(result: any, dreamClass: typeof Dream): RetType {
+    return sqlResultToDreamInstance(dreamClass, result) as RetType
+  }
 
-    const sqlifiedAttributes = sqlAttributes(dream)
+  /**
+   * @internal
+   *
+   * Used for applying first and last queries
+   *
+   * @returns A dream instance or null
+   */
+  public async takeOne(this: PostgresQueryDriver<DreamInstance>): Promise<DreamInstance | null> {
+    if (this.query['joinLoadActivated']) {
+      let query: Query<DreamInstance>
 
-    if (dream.isPersisted) {
-      const query = db
-        .updateTable(dream.table)
-        .set(sqlifiedAttributes as any)
-        .where(namespaceColumn(dream.primaryKey, dream.table), '=', dream.primaryKeyValue)
-      return await executeDatabaseQuery(
-        query.returning([...dream.columns()] as any),
-        'executeTakeFirstOrThrow'
-      )
-    } else {
-      const query = db
-        .insertInto(dream.table)
-        .values(sqlifiedAttributes as any)
-        .returning([...dream.columns()] as any)
-      return await executeDatabaseQuery(query, 'executeTakeFirstOrThrow')
+      if (
+        this.query['whereStatements'].find(
+          whereStatement =>
+            (whereStatement as any)[this.dreamClass.primaryKey] ||
+            (whereStatement as any)[this.query['namespacedPrimaryKey']]
+        )
+      ) {
+        // the query already includes a primary key where statement
+        query = this.query
+      } else {
+        // otherwise find the primary key and apply it to the query
+        const primaryKeyValue = (
+          await this.query.limit(1).pluck(this.query['namespacedPrimaryKey'] as any)
+        )[0]
+        if (primaryKeyValue === undefined) return null
+        query = this.query.where({ [this.query['namespacedPrimaryKey']]: primaryKeyValue } as any)
+      }
+
+      return (await new PostgresQueryDriver(query)['executeJoinLoad']())[0] || null
     }
+
+    const kyselyQuery = new PostgresQueryDriver(this.query.limit(1)).buildSelect()
+    const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
+
+    if (results) {
+      const theFirst = this.dbResultToDreamInstance<typeof Dream, DreamInstance>(results, this.dreamClass)
+
+      if (theFirst)
+        await this.applyPreload(
+          this.query['preloadStatements'] as any,
+          this.query['preloadOnStatements'] as any,
+          [theFirst]
+        )
+
+      return theFirst
+    } else return null
   }
 
   /**
@@ -110,64 +159,23 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * @returns an array of dreams
    */
-  public async all(
+  public async takeAll(
     options: {
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
-  ) {
+  ): Promise<DreamInstance[]> {
     if (this.query['joinLoadActivated']) return await this.executeJoinLoad(options)
 
     const kyselyQuery = this.buildSelect(options)
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
-    const theAll = results.map(r => sqlResultToDreamInstance(this.dreamClass, r)) as DreamInstance[]
+    const theAll = results.map(r => this.dbResultToDreamInstance(r, this.dreamClass))
     await this.applyPreload(
       this.query['preloadStatements'] as any,
       this.query['preloadOnStatements'] as any,
       theAll
     )
 
-    return theAll
-  }
-
-  /**
-   * Returns the first record in the database
-   * matching the Query. If the Query is not
-   * ordered, it will automatically order
-   * by primary key.
-   *
-   * ```ts
-   * await User.query().first()
-   * // User{id: 1}
-   * ```
-   *
-   * @returns First record in the database, or null if no record exists
-   */
-  public async first() {
-    const query = this.query['orderStatements'].length
-      ? this.query
-      : this.query.order({ [this.query['namespacedPrimaryKey'] as any]: 'asc' } as any)
-    return await new PostgresQueryDriver(query).takeOne()
-  }
-
-  /**
-   * Returns the last record in the database
-   * matching the Query. If the Query is not
-   * ordered, it will automatically order
-   * by primary key.
-   *
-   * ```ts
-   * await User.query().last()
-   * // User{id: 99}
-   * ```
-   *
-   * @returns Last record in the database, or null if no record exists
-   */
-  public async last() {
-    const query = this.query['orderStatements'].length
-      ? this.invertOrder()
-      : this.query.order({ [this.query['namespacedPrimaryKey']]: 'desc' } as any)
-
-    return await new PostgresQueryDriver(query).takeOne()
+    return theAll as DreamInstance[]
   }
 
   /**
@@ -284,6 +292,31 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
   }
 
   /**
+   * Returns a new Kysely SelectQueryBuilder instance to be used
+   * in a sub Query
+   *
+   * ```ts
+   * const records = await User.where({
+   *   id: Post.query().nestedSelect('userId'),
+   * }).all()
+   * // [User{id: 1}, ...]
+   * ```
+   *
+   * @param selection - the column to use for your nested Query
+   * @returns A Kysely SelectQueryBuilder instance
+   */
+  public nestedSelect<SimpleFieldType extends keyof DreamColumnNames<DreamInstance>, PluckThroughFieldType>(
+    this: PostgresQueryDriver<DreamInstance>,
+    selection: SimpleFieldType | PluckThroughFieldType
+  ) {
+    const query = this.buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+    return query.select(this.namespaceColumn(selection as any))
+  }
+
+  /**
    * executes provided query instance as a deletion query.
    * @returns the number of deleted rows
    */
@@ -300,11 +333,76 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]
-
     return Number(resultData?.numUpdatedRows || 0)
   }
 
-  public buildDelete(this: PostgresQueryDriver<DreamInstance>): DeleteQueryBuilder<any, any, any> {
+  /**
+   * persists any unsaved changes to the database. If a transaction
+   * is provided as a second argument, it will use that transaction
+   * to encapsulate the persisting of the dream, as well as any
+   * subsequent model hooks that are fired.
+   */
+  public static async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
+    const db = txn?.kyselyTransaction ?? _db('primary')
+
+    const sqlifiedAttributes = sqlAttributes(dream)
+
+    if (dream.isPersisted) {
+      const query = db
+        .updateTable(dream.table)
+        .set(sqlifiedAttributes as any)
+        .where(namespaceColumn(dream.primaryKey, dream.table), '=', dream.primaryKeyValue)
+      return await executeDatabaseQuery(
+        query.returning([...dream.columns()] as any),
+        'executeTakeFirstOrThrow'
+      )
+    } else {
+      const query = db
+        .insertInto(dream.table)
+        .values(sqlifiedAttributes as any)
+        .returning([...dream.columns()] as any)
+      return await executeDatabaseQuery(query, 'executeTakeFirstOrThrow')
+    }
+  }
+
+  /**
+   * Returns the sql that would be executed by this Query
+   *
+   * ```ts
+   * User.where({ email: 'how@yadoin' }).sql()
+   * // {
+   * //  query: {
+   * //    kind: 'SelectQueryNode',
+   * //    from: { kind: 'FromNode', froms: [Array] },
+   * //    selections: [ [Object] ],
+   * //    distinctOn: undefined,
+   * //    joins: undefined,
+   * //    groupBy: undefined,
+   * //    orderBy: undefined,
+   * //    where: { kind: 'WhereNode', where: [Object] },
+   * //    frontModifiers: undefined,
+   * //    endModifiers: undefined,
+   * //    limit: undefined,
+   * //    offset: undefined,
+   * //    with: undefined,
+   * //    having: undefined,
+   * //    explain: undefined,
+   * //    setOperations: undefined
+   * //  },
+   * //  sql: 'select "users".* from "users" where ("users"."email" = $1 and "users"."deleted_at" is null)',
+   * //  parameters: [ 'how@yadoin' ]
+   * //}
+   * ```
+   *
+   * @returns An object representing the underlying sql statement
+   *
+   */
+  public sql() {
+    const kyselyQuery = this.buildSelect()
+    return kyselyQuery.compile()
+  }
+
+  private buildDelete(this: PostgresQueryDriver<DreamInstance>): DeleteQueryBuilder<any, any, any> {
     const kyselyQuery = this.dbFor('delete').deleteFrom(
       this.query['baseSqlAlias'] as unknown as AliasedExpression<any, any>
     )
@@ -313,7 +411,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     return new PostgresQueryDriver(results.clone).buildCommon(results.kyselyQuery)
   }
 
-  public buildSelect(
+  private buildSelect(
     this: PostgresQueryDriver<DreamInstance>,
     {
       bypassSelectAll = false,
@@ -381,7 +479,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     return kyselyQuery
   }
 
-  public buildUpdate<DB extends DreamInstance['DB']>(
+  private buildUpdate<DB extends DreamInstance['DB']>(
     attributes: Updateable<DreamInstance['table']>
   ): UpdateQueryBuilder<DB, any, any, object> {
     let kyselyQuery = this.dbFor('update')
@@ -453,54 +551,6 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
       this.query['preloadOnStatements'] as any,
       dream
     )
-  }
-  /**
-   * @internal
-   *
-   * Used for applying first and last queries
-   *
-   * @returns A dream instance or null
-   */
-  private async takeOne() {
-    if (this.query['joinLoadActivated']) {
-      let query: Query<DreamInstance>
-
-      if (
-        this.query['whereStatements'].find(
-          whereStatement =>
-            (whereStatement as any)[this.dreamClass.primaryKey] ||
-            (whereStatement as any)[this.query['namespacedPrimaryKey']]
-        )
-      ) {
-        // the query already includes a primary key where statement
-        query = this.query
-      } else {
-        // otherwise find the primary key and apply it to the query
-        const primaryKeyValue = (
-          await this.query.limit(1).pluck(this.query['namespacedPrimaryKey'] as any)
-        )[0]
-        if (primaryKeyValue === undefined) return null
-        query = this.query.where({ [this.query['namespacedPrimaryKey']]: primaryKeyValue } as any)
-      }
-
-      return (await new PostgresQueryDriver(query)['executeJoinLoad']())[0] || null
-    }
-
-    const kyselyQuery = new PostgresQueryDriver(this.query.limit(1)).buildSelect()
-    const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
-
-    if (results) {
-      const theFirst = sqlResultToDreamInstance(this.dreamClass, results) as DreamInstance
-
-      if (theFirst)
-        await this.applyPreload(
-          this.query['preloadStatements'] as any,
-          this.query['preloadOnStatements'] as any,
-          [theFirst]
-        )
-
-      return theFirst
-    } else return null
   }
 
   private aliasWhereStatements(whereStatements: Readonly<WhereStatement<any, any, any>[]>, alias: string) {
@@ -709,7 +759,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
         },
         {} as Record<string, any>
       )
-      const dream = sqlResultToDreamInstance(dreamClass, columnValueMap)
+      const dream = this.dbResultToDreamInstance(columnValueMap, dreamClass)
 
       const association = aliasToAssociationsMap[currentAlias] as
         | HasOneStatement<any, any, any, any>
@@ -2139,7 +2189,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
             (attributes[protectAgainstPollutingAssignment(columnName)] = pluckedData[index])
         )
 
-        const hydratedDream = sqlResultToDreamInstance(dreamClassToHydrate, attributes)
+        const hydratedDream = this.dbResultToDreamInstance(attributes, dreamClassToHydrate)
 
         throughColumnsToHydrate.forEach(
           (throughAssociationColumn, index) =>
@@ -2295,18 +2345,6 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
       kyselyQuery = similarityBuilder.update(kyselyQuery)
     }
     return kyselyQuery
-  }
-
-  private invertOrder() {
-    let query = this.query.clone({ order: null })
-
-    for (const orderStatement of this.query['orderStatements']) {
-      query = query.order({
-        [orderStatement.column]: orderStatement.direction === 'desc' ? 'asc' : 'desc',
-      } as any)
-    }
-
-    return query
   }
 }
 

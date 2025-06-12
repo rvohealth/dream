@@ -1156,11 +1156,7 @@ export default class Query<
     this: Query<DreamInstance, QueryTypeOpts>,
     selection: SimpleFieldType | PluckThroughFieldType
   ) {
-    const query = this.dbDriverInstance().buildSelect({
-      bypassSelectAll: true,
-      bypassOrder: true,
-    })
-    return query.select(this.namespaceColumn(selection as any))
+    return this.dbDriverInstance().nestedSelect(selection)
   }
 
   /**
@@ -1305,8 +1301,7 @@ export default class Query<
    *
    */
   public sql() {
-    const kyselyQuery = this.dbDriverInstance().buildSelect()
-    return kyselyQuery.compile()
+    return this.dbDriverInstance().sql()
   }
 
   /**
@@ -1334,13 +1329,13 @@ export default class Query<
   >(type: QueryType) {
     switch (type) {
       case 'select':
-        return this.dbDriverInstance().buildSelect() as ToKyselyReturnType
+        return this.dbDriverInstance()['buildSelect']() as ToKyselyReturnType
 
       case 'delete':
-        return this.dbDriverInstance().buildDelete() as ToKyselyReturnType
+        return this.dbDriverInstance()['buildDelete']() as ToKyselyReturnType
 
       case 'update':
-        return this.dbDriverInstance().buildUpdate({}) as ToKyselyReturnType
+        return this.dbDriverInstance()['buildUpdate']({}) as ToKyselyReturnType
 
       // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
       // the query class for some reason.
@@ -1596,7 +1591,7 @@ export default class Query<
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
   ) {
-    return await this.dbDriverInstance().all(options)
+    return await this.dbDriverInstance().takeAll(options)
   }
 
   public static dbDriverClass<T extends Dream>() {
@@ -1720,7 +1715,11 @@ export default class Query<
    * @returns First record in the database, or null if no record exists
    */
   public async first() {
-    return await this.dbDriverInstance().first()
+    const query = this.orderStatements.length
+      ? this
+      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+    const dbDriverClass = Query.dbDriverClass<DreamInstance>()
+    return await new dbDriverClass(query).takeOne()
   }
 
   /**
@@ -1757,7 +1756,12 @@ export default class Query<
    * @returns Last record in the database, or null if no record exists
    */
   public async last() {
-    return await this.dbDriverInstance().last()
+    const query = this.orderStatements.length
+      ? this.invertOrder()
+      : this.order({ [this.namespacedPrimaryKey]: 'desc' } as any)
+
+    const dbDriverClass = Query.dbDriverClass<DreamInstance>()
+    return await new dbDriverClass(query).takeOne()
   }
 
   /**
@@ -1974,6 +1978,18 @@ export default class Query<
 
   private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {
     return await this.dbDriverInstance().update(attributes)
+  }
+
+  private invertOrder() {
+    let query = this.clone({ order: null })
+
+    for (const orderStatement of this.orderStatements) {
+      query = query.order({
+        [orderStatement.column]: orderStatement.direction === 'desc' ? 'asc' : 'desc',
+      } as any)
+    }
+
+    return query
   }
 }
 
