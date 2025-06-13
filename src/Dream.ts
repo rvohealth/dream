@@ -2052,6 +2052,51 @@ export default class Dream {
   }
 
   /**
+   * Checks whether this Dream instance has a specific association defined on its class.
+   * Optionally validates that the association points to a specific Dream class.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @deco.HasMany('Post')
+   *   public posts: Post[]
+   *
+   *   @deco.BelongsTo('Company')
+   *   public company: Company
+   * }
+   *
+   * const user = new User()
+   *
+   * // Check if association exists
+   * user.associationDefined('posts')
+   * // true
+   *
+   * user.associationDefined('nonExistentAssociation')
+   * // false
+   *
+   * // Check if association exists and points to specific class
+   * user.associationDefined('posts', Post)
+   * // true
+   *
+   * user.associationDefined('posts', User)
+   * // false (posts association points to Post, not User)
+   *
+   * user.associationDefined('company', Company)
+   * // true
+   * ```
+   *
+   * @param associationName - The name of the association to check for
+   * @param associationClass - Optional Dream class to validate the association points to
+   * @returns `true` if the association is declared on the Dream model's class (and optionally points to the specified class), `false` otherwise
+   */
+  public associationDefined(associationName: string, associationClass?: typeof Dream): boolean {
+    const association = this['associationMetadataMap']()[associationName as any]
+    if (!association) return false
+    if (!associationClass) return true
+    const actualAssociationClass = association.modelCB()
+    return actualAssociationClass === associationClass
+  }
+
+  /**
    * @internal
    *
    * returns all association data for the given dream class,
