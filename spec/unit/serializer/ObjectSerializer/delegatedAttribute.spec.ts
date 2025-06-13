@@ -28,4 +28,18 @@ describe('ObjectSerializer delegated attributes', () => {
       birthdate: birthdate.toISO(),
     })
   })
+
+  it('supports specifying a default value', () => {
+    const user: User = {}
+    const pet: Pet = { user, name: 'Snoopy' }
+
+    const MySerializer = (data: Pet) =>
+      ObjectSerializer(data).delegatedAttribute('user', 'name', { default: 'Woodstock', openapi: 'string' })
+
+    const serializer = MySerializer(pet)
+
+    expect(serializer.render()).toEqual({
+      name: 'Woodstock',
+    })
+  })
 })
