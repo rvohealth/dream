@@ -67,21 +67,6 @@ export default class ObjectSerializerBuilder<
     return this
   }
 
-  public jsonAttribute<
-    // don't attempt to exclude 'serializers' because it breaks types when adding
-    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-    AttributeName extends keyof DataType & string,
-    Options extends NonAutomaticSerializerAttributeOptions,
-  >(name: AttributeName, options: Options) {
-    this.attributes.push({
-      type: 'attribute',
-      name,
-      options,
-    })
-
-    return this
-  }
-
   public customAttribute<
     Options extends Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean },
     CallbackFn extends () => unknown,

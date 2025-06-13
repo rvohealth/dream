@@ -45,10 +45,15 @@ export type PrimaryKeyForFind<
 
 export type DreamColumnNames<
   DreamInstance extends Dream,
-  DB = DreamInstance['DB'],
-  TableName extends keyof DB = DreamInstance['table'] & keyof DB,
-  Table extends DB[keyof DB] = DB[TableName],
-> = keyof Table & string
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
+  TableName extends DreamInstance['table'] & keyof Schema = DreamInstance['table'] & keyof Schema,
+  AttributeName extends keyof Schema[TableName]['columns'] & string = keyof Schema[TableName]['columns'] &
+    string,
+> = AttributeName
+
+export type NonJsonDreamColumnNames<DreamInstance extends Dream, T = DreamAttributeDbTypes<DreamInstance>> = {
+  [K in keyof T]: T[K] extends 'json' | 'jsonb' | 'json[]' | 'jsonb[]' ? never : K
+}[keyof T]
 
 export type DreamParamSafeColumnNames<
   DreamInstance extends Dream,

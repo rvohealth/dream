@@ -110,13 +110,13 @@ export const UserAdminSerializer = (userAdmin: UserAdmin) =>
       })
 
       context('one of those attributes is json', () => {
-        it('renders it using jsonAttribute', () => {
+        it('renders it using attribute with an openapi specification', () => {
           expectJsonAttributeType('json')
         })
       })
 
       context('one of those attributes is jsonb', () => {
-        it('renders it using jsonAttribute', () => {
+        it('renders it using attribute with an openapi specification', () => {
           expectJsonAttributeType('jsonb')
         })
       })
@@ -270,7 +270,7 @@ export const UserSummarySerializer = (user: User) =>
 
 export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
-    .jsonAttribute('howyadoin', { openapi: { type: 'object', properties: { } } })
+    .attribute('howyadoin', { openapi: { type: 'object', properties: { } } })
 `
   )
 }
