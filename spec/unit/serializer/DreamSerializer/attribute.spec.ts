@@ -35,6 +35,16 @@ describe('DreamSerializer attributes', () => {
     })
   })
 
+  it('supports specifying a default value', () => {
+    const MySerializer = (data: User) => DreamSerializer(User, data).attribute('name', { default: 'Snoopy' })
+
+    const serializer = MySerializer(User.new({}))
+
+    expect(serializer.render()).toEqual({
+      name: 'Snoopy',
+    })
+  })
+
   it('supports customizing the name of the thing rendered', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).attribute('email', { as: 'email2' })
 
