@@ -10,9 +10,8 @@ describe('dream generate:model <name> [...attributes]', () => {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { MealTypeSerializer, MealTypeSummarySerializer } from '../serializers/MealTypeSerializer.js'
 
 const deco = new Decorators<typeof MealType>()
 
@@ -21,10 +20,10 @@ export default class MealType extends ApplicationModel {
     return 'meal_types' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<MealType> {
     return {
-      default: MealTypeSerializer,
-      summary: MealTypeSummarySerializer,
+      default: 'MealTypeSerializer',
+      summary: 'MealTypeSummarySerializer',
     }
   }
 
@@ -75,18 +74,17 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, STI } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
 import FooBar from '../Bar.js'
-import { FooBarBazSerializer, FooBarBazSummarySerializer } from '../../../serializers/Foo/Bar/BazSerializer.js'
 
 const deco = new Decorators<typeof FooBarBaz>()
 
 @STI(FooBar)
 export default class FooBarBaz extends FooBar {
-  public override get serializers() {
+  public override get serializers(): DreamSerializers<FooBarBaz> {
     return {
-      default: FooBarBazSerializer,
-      summary: FooBarBazSummarySerializer,
+      default: 'Foo/Bar/BazSerializer',
+      summary: 'Foo/Bar/BazSummarySerializer',
     }
   }
 
@@ -107,9 +105,8 @@ export default class FooBarBaz extends FooBar {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { UserSerializer, UserSummarySerializer } from '../serializers/UserSerializer.js'
 
 const deco = new Decorators<typeof User>()
 
@@ -118,10 +115,10 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<User> {
     return {
-      default: UserSerializer,
-      summary: UserSummarySerializer,
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
     }
   }
 
@@ -145,9 +142,8 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, Encrypted } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { UserSerializer, UserSummarySerializer } from '../serializers/UserSerializer.js'
 
 const deco = new Decorators<typeof User>()
 
@@ -156,10 +152,10 @@ export default class User extends ApplicationModel {
     return 'users' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<User> {
     return {
-      default: UserSerializer,
-      summary: UserSummarySerializer,
+      default: 'UserSerializer',
+      summary: 'UserSummarySerializer',
     }
   }
 
@@ -189,9 +185,8 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { ChalupaSerializer, ChalupaSummarySerializer } from '../serializers/ChalupaSerializer.js'
 
 const deco = new Decorators<typeof Chalupa>()
 
@@ -200,10 +195,10 @@ export default class Chalupa extends ApplicationModel {
     return 'chalupas' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Chalupa> {
     return {
-      default: ChalupaSerializer,
-      summary: ChalupaSummarySerializer,
+      default: 'ChalupaSerializer',
+      summary: 'ChalupaSummarySerializer',
     }
   }
 
@@ -228,9 +223,8 @@ export default class Chalupa extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { PaperSerializer, PaperSummarySerializer } from '../serializers/PaperSerializer.js'
 
 const deco = new Decorators<typeof Paper>()
 
@@ -239,10 +233,10 @@ export default class Paper extends ApplicationModel {
     return 'paper' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Paper> {
     return {
-      default: PaperSerializer,
-      summary: PaperSummarySerializer,
+      default: 'PaperSerializer',
+      summary: 'PaperSummarySerializer',
     }
   }
 
@@ -266,10 +260,9 @@ export default class Paper extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import GraphNode from './GraphNode.js'
-import { CompositionSerializer, CompositionSummarySerializer } from '../serializers/CompositionSerializer.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -278,10 +271,10 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      default: CompositionSerializer,
-      summary: CompositionSummarySerializer,
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
     }
   }
 
@@ -306,10 +299,9 @@ export default class Composition extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import GraphNode from './GraphNode.js'
-import { CompositionSerializer, CompositionSummarySerializer } from '../serializers/CompositionSerializer.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -318,10 +310,10 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      default: CompositionSerializer,
-      summary: CompositionSummarySerializer,
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
     }
   }
 
@@ -347,10 +339,9 @@ export default class Composition extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import PetDomesticCat from './Pet/Domestic/Cat.js'
-import { CatToySerializer, CatToySummarySerializer } from '../serializers/CatToySerializer.js'
 
 const deco = new Decorators<typeof CatToy>()
 
@@ -359,10 +350,10 @@ export default class CatToy extends ApplicationModel {
     return 'cat_toys' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<CatToy> {
     return {
-      default: CatToySerializer,
-      summary: CatToySummarySerializer,
+      default: 'CatToySerializer',
+      summary: 'CatToySummarySerializer',
     }
   }
 
@@ -386,10 +377,9 @@ export default class CatToy extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import GraphNode from '../../GraphNode.js'
-import { PetDomesticCatSerializer, PetDomesticCatSummarySerializer } from '../../../serializers/Pet/Domestic/CatSerializer.js'
 
 const deco = new Decorators<typeof PetDomesticCat>()
 
@@ -398,10 +388,10 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      default: PetDomesticCatSerializer,
-      summary: PetDomesticCatSummarySerializer,
+      default: 'Pet/Domestic/CatSerializer',
+      summary: 'Pet/Domestic/CatSummarySerializer',
     }
   }
 
@@ -425,10 +415,9 @@ export default class PetDomesticCat extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import PetDomesticDog from './Dog.js'
-import { PetDomesticCatSerializer, PetDomesticCatSummarySerializer } from '../../../serializers/Pet/Domestic/CatSerializer.js'
 
 const deco = new Decorators<typeof PetDomesticCat>()
 
@@ -437,10 +426,10 @@ export default class PetDomesticCat extends ApplicationModel {
     return 'pet_domestic_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetDomesticCat> {
     return {
-      default: PetDomesticCatSerializer,
-      summary: PetDomesticCatSummarySerializer,
+      default: 'Pet/Domestic/CatSerializer',
+      summary: 'Pet/Domestic/CatSummarySerializer',
     }
   }
 
@@ -464,10 +453,9 @@ export default class PetDomesticCat extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from '../../ApplicationModel.js'
 import PetDomesticDog from '../Domestic/Dog.js'
-import { PetWildCatSerializer, PetWildCatSummarySerializer } from '../../../serializers/Pet/Wild/CatSerializer.js'
 
 const deco = new Decorators<typeof PetWildCat>()
 
@@ -476,10 +464,10 @@ export default class PetWildCat extends ApplicationModel {
     return 'pet_wild_cats' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<PetWildCat> {
     return {
-      default: PetWildCatSerializer,
-      summary: PetWildCatSummarySerializer,
+      default: 'Pet/Wild/CatSerializer',
+      summary: 'Pet/Wild/CatSummarySerializer',
     }
   }
 
@@ -504,11 +492,10 @@ export default class PetWildCat extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'
 import Chalupa from './Chalupa.js'
-import { CompositionSerializer, CompositionSummarySerializer } from '../serializers/CompositionSerializer.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -517,10 +504,10 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      default: CompositionSerializer,
-      summary: CompositionSummarySerializer,
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
     }
   }
 
@@ -550,9 +537,8 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { CompositionSerializer, CompositionSummarySerializer } from '../serializers/CompositionSerializer.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -561,10 +547,10 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      default: CompositionSerializer,
-      summary: CompositionSummarySerializer,
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
     }
   }
 
@@ -586,9 +572,8 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
 import ApplicationModel from './ApplicationModel.js'
-import { CompositionSerializer, CompositionSummarySerializer } from '../serializers/CompositionSerializer.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -597,10 +582,10 @@ export default class Composition extends ApplicationModel {
     return 'compositions' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Composition> {
     return {
-      default: CompositionSerializer,
-      summary: CompositionSummarySerializer,
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
     }
   }
 

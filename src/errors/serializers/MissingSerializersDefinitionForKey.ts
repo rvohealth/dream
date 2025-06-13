@@ -1,5 +1,4 @@
 import Dream from '../../Dream.js'
-import pascalize from '../../helpers/pascalize.js'
 import { ViewModel } from '../../types/dream.js'
 
 export default class MissingSerializersDefinitionForKey extends Error {
@@ -19,10 +18,10 @@ Missing serializers definition for \`${this.serializerKey}\` on class \`${classN
 Try something like this in your ${className}'s serializer getter:
 
 class ${className} {
-  public get serializers() {
+  public get serializers(): DreamSerializers<${className}> {
     return {
-      default: ${className}Serializer
-      ${this.serializerKey}: ${className}${pascalize(this.serializerKey)}Serializer
+      default: '${className}Serializer'
+      ${this.serializerKey}: '<the_global_name_of_a_serializer>'
     }
   }
   ...
