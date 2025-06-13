@@ -111,25 +111,26 @@ describe('DreamSerializer attributes', () => {
         .attribute('requiredFavoriteDates')
         .attribute('favoriteDatetimes')
         .attribute('requiredFavoriteDatetimes')
-        .jsonAttribute('favoriteJsons', {
+        .attribute('favoriteJsonbs', { openapi: 'string' })
+        .attribute('favoriteJsons', {
           openapi: {
             type: ['array', 'null'],
             items: { type: 'object', properties: { hello: 'string' } },
           },
         })
-        .jsonAttribute('requiredFavoriteJsons', {
+        .attribute('requiredFavoriteJsons', {
           openapi: {
             type: 'array',
             items: { type: 'object', properties: { hello: 'string' } },
           },
         })
-        .jsonAttribute('favoriteJsonbs', {
+        .attribute('favoriteJsonbs', {
           openapi: {
             type: ['array', 'null'],
             items: { type: 'object', properties: { hello: 'string' } },
           },
         })
-        .jsonAttribute('requiredFavoriteJsonbs', {
+        .attribute('requiredFavoriteJsonbs', {
           openapi: {
             type: 'array',
             items: { type: 'object', properties: { hello: 'string' } },
@@ -151,12 +152,12 @@ describe('DreamSerializer attributes', () => {
 
         .attribute('bio')
         .attribute('notes')
-        .jsonAttribute('jsonData', { openapi: { type: ['object', 'null'], properties: { hello: 'string' } } })
-        .jsonAttribute('requiredJsonData', { openapi: { type: 'object', properties: { hello: 'string' } } })
-        .jsonAttribute('jsonbData', {
+        .attribute('jsonData', { openapi: { type: ['object', 'null'], properties: { hello: 'string' } } })
+        .attribute('requiredJsonData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+        .attribute('jsonbData', {
           openapi: { type: ['object', 'null'], properties: { hello: 'string' } },
         })
-        .jsonAttribute('requiredJsonbData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+        .attribute('requiredJsonbData', { openapi: { type: 'object', properties: { hello: 'string' } } })
         .attribute('uuid')
         .attribute('optionalUuid')
 
@@ -246,6 +247,60 @@ describe('DreamSerializer attributes', () => {
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
       expect(serializer.render()).toEqual({
         volume: 7.8,
+      })
+    })
+  })
+
+  context('json attribute', () => {
+    const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+      DreamSerializer(ModelForOpenapiTypeSpecs, data)
+        .attribute('favoriteJsons', {
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .attribute('requiredFavoriteJsons', {
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .attribute('favoriteJsonbs', {
+          openapi: {
+            type: ['array', 'null'],
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .attribute('requiredFavoriteJsonbs', {
+          openapi: {
+            type: 'array',
+            items: { type: 'object', properties: { hello: 'string' } },
+          },
+        })
+        .attribute('jsonData', { openapi: { type: ['object', 'null'], properties: { hello: 'string' } } })
+        .attribute('requiredJsonData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+        .attribute('jsonbData', {
+          openapi: { type: ['object', 'null'], properties: { hello: 'string' } },
+        })
+        .attribute('requiredJsonbData', { openapi: { type: 'object', properties: { hello: 'string' } } })
+    let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
+
+    beforeEach(async () => {
+      serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
+    })
+
+    it('serialize correctly', () => {
+      expect(serializer.render()).toEqual({
+        favoriteJsons: [{ hello: 'world' }],
+        requiredFavoriteJsons: [{ hello: 'world' }],
+        favoriteJsonbs: [{ hello: 'world' }],
+        requiredFavoriteJsonbs: [{ hello: 'world' }],
+
+        jsonData: { hello: '1' },
+        requiredJsonData: { hello: '2' },
+        jsonbData: { hello: '3' },
+        requiredJsonbData: { hello: '4' },
       })
     })
   })
