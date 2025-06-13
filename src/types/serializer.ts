@@ -67,6 +67,7 @@ export type AutomaticSerializerAttributeOptions<
   AttributeName extends keyof DreamInstance & string,
 > = {
   as?: string
+  default?: any
   openapi?: OpenapiDescription
   precision?: DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypesIncludingDbTypes
     ? RoundingPrecision
@@ -75,6 +76,7 @@ export type AutomaticSerializerAttributeOptions<
 
 export type NonAutomaticSerializerAttributeOptions = {
   as?: string
+  default?: any
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 

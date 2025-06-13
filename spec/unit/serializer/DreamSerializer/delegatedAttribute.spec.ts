@@ -20,4 +20,21 @@ describe('DreamSerializer delegated attributes', () => {
       birthdate: birthdate.toISO(),
     })
   })
+
+  it('supports specifying a default value', () => {
+    const user = User.new({})
+    const pet = Pet.new({ user, name: 'Snoopy' })
+
+    const MySerializer = (data: Pet) =>
+      DreamSerializer(Pet, data).delegatedAttribute('user', 'name', {
+        default: 'Woodstock',
+        openapi: 'string',
+      })
+
+    const serializer = MySerializer(pet)
+
+    expect(serializer.render()).toEqual({
+      name: 'Woodstock',
+    })
+  })
 })

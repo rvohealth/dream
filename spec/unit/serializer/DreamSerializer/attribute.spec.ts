@@ -35,6 +35,53 @@ describe('DreamSerializer attributes', () => {
     })
   })
 
+  context('default value', () => {
+    it('converts undefined to the default', () => {
+      const MySerializer = (data: User) =>
+        DreamSerializer(User, data).attribute('name', { default: 'Snoopy' })
+
+      const serializer = MySerializer(User.new({}))
+
+      expect(serializer.render()).toEqual({
+        name: 'Snoopy',
+      })
+    })
+
+    it('converts null to the default', () => {
+      const MySerializer = (data: User) =>
+        DreamSerializer(User, data).attribute('name', { default: 'Snoopy' })
+
+      const serializer = MySerializer(User.new({ name: null }))
+
+      expect(serializer.render()).toEqual({
+        name: 'Snoopy',
+      })
+    })
+
+    it('does not convert non-null, non-undefined falsey values to the default', () => {
+      const MySerializer = (data: User) =>
+        DreamSerializer(User, data).attribute('name', { default: 'Snoopy' })
+
+      const serializer = MySerializer(User.new({ name: '' }))
+
+      expect(serializer.render()).toEqual({
+        name: '',
+      })
+    })
+
+    context('when a default is not provided', () => {
+      it('default doesn’t turn null into undefined', () => {
+        const MySerializer = (data: User) => DreamSerializer(User, data).attribute('name')
+
+        const serializer = MySerializer(User.new({ name: null }))
+
+        expect(serializer.render()).toEqual({
+          name: null,
+        })
+      })
+    })
+  })
+
   it('supports customizing the name of the thing rendered', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).attribute('email', { as: 'email2' })
 

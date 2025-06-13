@@ -24,6 +24,17 @@ describe('ObjectSerializer attributes', () => {
     })
   })
 
+  it('supports specifying a default value', () => {
+    const MySerializer = (data: User) =>
+      ObjectSerializer(data).attribute('name', { default: 'Charlie', openapi: 'string' })
+
+    const serializer = MySerializer({ email: 'abc', password: '123' })
+
+    expect(serializer.render()).toEqual({
+      name: 'Charlie',
+    })
+  })
+
   it('supports customizing the name of the thing rendered', () => {
     const MySerializer = (data: User) =>
       ObjectSerializer(data).attribute('email', { openapi: 'string', as: 'email2' })
