@@ -19,6 +19,86 @@ describe('DreamSerializer customAttributes', () => {
     })
   })
 
+  context('returning a serializer', () => {
+    it('automatically renders the serializer', async () => {
+      const OtherSerializer = (data: ModelForOpenapiTypeSpecs) =>
+        DreamSerializer(ModelForOpenapiTypeSpecs, data).attribute('name', { as: 'myName' })
+
+      const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+        DreamSerializer(ModelForOpenapiTypeSpecs, data).customAttribute(
+          'otherSerializer',
+          () => OtherSerializer(data),
+          { openapi: { $serializer: OtherSerializer } }
+        )
+
+      const model = await fleshedOutModelForOpenapiTypeSpecs()
+      const serializer = MySerializer(model)
+      expect(serializer.render()).toEqual({
+        otherSerializer: { myName: 'Charles Brown' },
+      })
+    })
+
+    context('with casing specified', () => {
+      it('renders the returned serializer with the specified casing', async () => {
+        const OtherSerializer = (data: ModelForOpenapiTypeSpecs) =>
+          DreamSerializer(ModelForOpenapiTypeSpecs, data).attribute('name', { as: 'myName' })
+
+        const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+          DreamSerializer(ModelForOpenapiTypeSpecs, data).customAttribute(
+            'otherSerializer',
+            () => OtherSerializer(data),
+            { openapi: { $serializer: OtherSerializer } }
+          )
+
+        const model = await fleshedOutModelForOpenapiTypeSpecs()
+        const serializer = MySerializer(model)
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
+          other_serializer: { my_name: 'Charles Brown' },
+        })
+      })
+    })
+  })
+
+  context('returning an array of serializers', () => {
+    it('automatically renders the serializers', async () => {
+      const OtherSerializer = (data: ModelForOpenapiTypeSpecs) =>
+        DreamSerializer(ModelForOpenapiTypeSpecs, data).attribute('name', { as: 'myName' })
+
+      const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+        DreamSerializer(ModelForOpenapiTypeSpecs, data).customAttribute(
+          'otherSerializers',
+          () => [OtherSerializer(data)],
+          { openapi: { type: 'array', items: { $serializer: OtherSerializer } } }
+        )
+
+      const model = await fleshedOutModelForOpenapiTypeSpecs()
+      const serializer = MySerializer(model)
+      expect(serializer.render()).toEqual({
+        otherSerializers: [{ myName: 'Charles Brown' }],
+      })
+    })
+
+    context('with casing specified', () => {
+      it('renders the returned serializer with the specified casing', async () => {
+        const OtherSerializer = (data: ModelForOpenapiTypeSpecs) =>
+          DreamSerializer(ModelForOpenapiTypeSpecs, data).attribute('name', { as: 'myName' })
+
+        const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
+          DreamSerializer(ModelForOpenapiTypeSpecs, data).customAttribute(
+            'otherSerializers',
+            () => [OtherSerializer(data)],
+            { openapi: { type: 'array', items: { $serializer: OtherSerializer } } }
+          )
+
+        const model = await fleshedOutModelForOpenapiTypeSpecs()
+        const serializer = MySerializer(model)
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
+          other_serializers: [{ my_name: 'Charles Brown' }],
+        })
+      })
+    })
+  })
+
   context('CalendarDate and DateTime', () => {
     it('are converted to ISO strings', async () => {
       const MySerializer = (data: ModelForOpenapiTypeSpecs) =>

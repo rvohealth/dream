@@ -70,7 +70,12 @@ export default class SerializerRenderer {
         case 'attribute': {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const value = data[attribute.name]
-          accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
+          accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
+            value,
+            attribute.options,
+            this.passthroughData,
+            this.renderOpts
+          )
 
           return accumulator
         }
@@ -85,7 +90,12 @@ export default class SerializerRenderer {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const target = data[attribute.targetName]
           const value = target[attribute.name]
-          accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(value, attribute.options)
+          accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
+            value,
+            attribute.options,
+            this.passthroughData,
+            this.renderOpts
+          )
           return accumulator
         }
         //////////////////////////////
@@ -104,10 +114,15 @@ export default class SerializerRenderer {
           if (attribute.options.flatten) {
             return {
               ...accumulator,
-              ...applyRenderingOptionsToAttribute(attribute.fn(), {}),
+              ...applyRenderingOptionsToAttribute(attribute.fn(), {}, this.passthroughData, this.renderOpts),
             }
           } else {
-            accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(attribute.fn(), {})
+            accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
+              attribute.fn(),
+              {},
+              this.passthroughData,
+              this.renderOpts
+            )
             return accumulator
           }
         }
@@ -233,10 +248,13 @@ function applyRenderingOptionsToAttribute(
   options:
     | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
     | Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
-    | undefined
+    | undefined,
+  passthroughData: object,
+  renderOptions: SerializerRendererOpts
 ) {
-  if (Array.isArray(value)) return value.map(val => _applyRenderingOptionsToAttribute(val, options))
-  return _applyRenderingOptionsToAttribute(value, options)
+  if (Array.isArray(value))
+    return value.map(val => _applyRenderingOptionsToAttribute(val, options, passthroughData, renderOptions))
+  return _applyRenderingOptionsToAttribute(value, options, passthroughData, renderOptions)
 }
 
 function _applyRenderingOptionsToAttribute(
@@ -244,8 +262,12 @@ function _applyRenderingOptionsToAttribute(
   options:
     | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
     | Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
-    | undefined
+    | undefined,
+  passthroughData: object,
+  renderOptions: SerializerRendererOpts
 ) {
+  if (value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder)
+    return value.render(passthroughData, renderOptions)
   if (value instanceof DateTime) return value.toISO()
   if (value instanceof CalendarDate) return value.toISO()
   const precision = options?.precision
