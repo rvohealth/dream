@@ -1,16 +1,15 @@
-import { DreamColumn } from '../../../src/types/dream.js'
+import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
-import { ShapeSerializer, ShapeSummarySerializer } from '../serializers/ShapeSerializer.js'
 
 export default class Shape extends ApplicationModel {
   public override get table() {
     return 'shapes' as const
   }
 
-  public get serializers() {
+  public get serializers(): DreamSerializers<Shape> {
     return {
-      default: ShapeSerializer,
-      summary: ShapeSummarySerializer,
+      default: 'ShapeSerializer',
+      summary: 'ShapeSummarySerializer',
     }
   }
 
