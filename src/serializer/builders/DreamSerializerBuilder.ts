@@ -1,5 +1,10 @@
 import Dream from '../../Dream.js'
-import { DreamOrViewModelSerializerKey, ViewModel, ViewModelClass } from '../../types/dream.js'
+import {
+  DreamOrViewModelSerializerKey,
+  NonJsonDreamColumnNames,
+  ViewModel,
+  ViewModelClass,
+} from '../../types/dream.js'
 import {
   AutomaticSerializerAttributeOptions,
   InternalAnyTypedSerializerAttribute,
@@ -38,14 +43,12 @@ export default class DreamSerializerBuilder<
   ) {}
 
   public attribute<
-    Schema extends DataType['schema'],
-    TableName extends DataType['table'] & keyof Schema,
     MaybeAttributeName extends
-      | keyof Schema[TableName]['columns']
+      | NonJsonDreamColumnNames<DataType>
       // don't attempt to exclude 'serializers' because it breaks types when adding
       // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
       | (keyof DataType & string),
-    AttributeName extends MaybeAttributeName extends keyof Schema[TableName]['columns']
+    AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
       ? never
       : keyof DataType & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
@@ -55,9 +58,7 @@ export default class DreamSerializerBuilder<
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
   public attribute<
-    Schema extends DataType['schema'],
-    TableName extends DataType['table'] & keyof Schema,
-    AttributeName extends keyof Schema[TableName]['columns'] & keyof DataType & string,
+    AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & string,
     Options extends AutomaticSerializerAttributeOptions<DataType, AttributeName>,
   >(
     name: AttributeName,
@@ -87,21 +88,6 @@ export default class DreamSerializerBuilder<
       targetName,
       name: name as any,
       options: options ?? {},
-    })
-
-    return this
-  }
-
-  public jsonAttribute<
-    // don't attempt to exclude 'serializers' because it breaks types when adding
-    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-    AttributeName extends keyof DataType & string,
-    Options extends NonAutomaticSerializerAttributeOptions,
-  >(name: AttributeName, options: Options) {
-    this.attributes.push({
-      type: 'attribute',
-      name,
-      options,
     })
 
     return this
