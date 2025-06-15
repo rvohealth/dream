@@ -90,7 +90,7 @@ function attribute(name: string, type: string | undefined, attr: string) {
     case 'jsonb':
     case 'json[]':
     case 'jsonb[]':
-      return `.jsonAttribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
+      return `.attribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
 
     default:
       return `.attribute('${camelize(name)}'${attributeOptionsSpecifier(type, attr)})`

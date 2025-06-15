@@ -69,7 +69,7 @@ export default class SerializerRenderer {
         ////////////////
         case 'attribute': {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
-          const value = data[attribute.name]
+          const value = data[attribute.name] ?? attribute.options?.default
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
             value,
             attribute.options,
@@ -89,7 +89,7 @@ export default class SerializerRenderer {
         case 'delegatedAttribute': {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const target = data[attribute.targetName]
-          const value = target[attribute.name]
+          const value = target[attribute.name] ?? attribute.options?.default
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
             value,
             attribute.options,
