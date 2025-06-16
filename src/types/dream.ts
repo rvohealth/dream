@@ -73,7 +73,6 @@ export type DreamParamSafeColumnNames<
 > = Exclude<
   DreamColumnNames<DreamInstance>,
   | BelongsToForeignKeys
-  | DreamVirtualColumns<DreamInstance>
   | TableSchema['primaryKey' & keyof TableSchema]
   | TableSchema['createdAtField' & keyof TableSchema]
   | TableSchema['updatedAtField' & keyof TableSchema]
