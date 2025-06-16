@@ -45,10 +45,16 @@ export type PrimaryKeyForFind<
 
 export type DreamColumnNames<
   DreamInstance extends Dream,
-  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
-  TableName extends DreamInstance['table'] & keyof Schema = DreamInstance['table'] & keyof Schema,
-  AttributeName extends keyof Schema[TableName]['columns'] & string = keyof Schema[TableName]['columns'] &
-    string,
+  // This should be analogous to the below, DB table based approach, but it breaks Psychic paramsFor
+  //   Schema extends DreamInstance['schema'] = DreamInstance['schema'],
+  //   TableName extends DreamInstance['table'] & keyof Schema = DreamInstance['table'] & keyof Schema,
+  //   AttributeName extends keyof Schema[TableName]['columns'] & string = keyof Schema[TableName]['columns'] &
+  //     string,
+  // > = AttributeName
+  DB = DreamInstance['DB'],
+  TableName extends keyof DB = DreamInstance['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName],
+  AttributeName extends keyof Table & string = keyof Table & string,
 > = AttributeName
 
 export type NonJsonDreamColumnNames<
