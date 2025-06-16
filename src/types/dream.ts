@@ -51,9 +51,13 @@ export type DreamColumnNames<
     string,
 > = AttributeName
 
-export type NonJsonDreamColumnNames<DreamInstance extends Dream, T = DreamAttributeDbTypes<DreamInstance>> = {
-  [K in keyof T]: T[K] extends 'json' | 'jsonb' | 'json[]' | 'jsonb[]' ? never : K
-}[keyof T]
+export type NonJsonDreamColumnNames<
+  DreamInstance extends Dream,
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
+  TableName extends DreamInstance['table'] & keyof Schema = DreamInstance['table'] & keyof Schema,
+  AttributeName extends Schema[TableName]['nonJsonColumnNames'][number] &
+    string = Schema[TableName]['nonJsonColumnNames'][number] & string,
+> = AttributeName
 
 export type DreamParamSafeColumnNames<
   DreamInstance extends Dream,

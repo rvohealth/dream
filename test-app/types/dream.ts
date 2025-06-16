@@ -101,6 +101,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['balloonId', 'createdAt', 'id', 'material', 'updatedAt'],
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -169,6 +170,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'],
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -260,6 +262,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'name', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -333,6 +336,7 @@ export const schema = {
       default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],
     },
+    nonJsonColumnNames: ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'shapableId', 'shapableType', 'type', 'updatedAt', 'userId', 'volume'],
     columns: {
       color: {
         coercedType: {} as BalloonColorsEnum | null,
@@ -501,6 +505,7 @@ export const schema = {
       default: ['dream:SoftDelete', 'hideHiddenCollars'],
       named: [],
     },
+    nonJsonColumnNames: ['balloonId', 'createdAt', 'deletedAt', 'hidden', 'id', 'lost', 'petId', 'position', 'tagName', 'updatedAt'],
     columns: {
       balloonId: {
         coercedType: {} as IdType | null,
@@ -621,6 +626,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'],
     columns: {
       approval: {
         coercedType: {} as boolean | null,
@@ -712,6 +718,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'],
     columns: {
       compositionId: {
         coercedType: {} as IdType,
@@ -842,6 +849,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['content', 'createdAt', 'id', 'primary', 'updatedAt', 'userId'],
     columns: {
       content: {
         coercedType: {} as string | null,
@@ -1009,6 +1017,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1080,6 +1089,7 @@ export const schema = {
       default: ['dream:STI'],
       named: [],
     },
+    nonJsonColumnNames: ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1191,6 +1201,7 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'deletedAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1342,6 +1353,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'name', 'updatedAt', 'weight'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1417,6 +1429,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'name', 'omittedEdgePosition', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1541,6 +1554,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'updatedAt', 'userId'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1600,6 +1614,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'position', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1659,6 +1674,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'position', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1712,6 +1728,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1816,6 +1833,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['aDatetime', 'bio', 'birthdate', 'collarCount', 'collarCountInt', 'collarCountNumeric', 'createdAt', 'createdOn', 'email', 'favoriteBigint', 'favoriteBigints', 'favoriteBooleans', 'favoriteCitext', 'favoriteCitexts', 'favoriteDates', 'favoriteDatetimes', 'favoriteIntegers', 'favoriteNumerics', 'favoriteTexts', 'favoriteTreats', 'favoriteUuids', 'id', 'likesTreats', 'likesWalks', 'name', 'nicknames', 'notes', 'optionalUuid', 'passwordDigest', 'requiredCollarCount', 'requiredCollarCountInt', 'requiredFavoriteBigint', 'requiredFavoriteBigints', 'requiredFavoriteBooleans', 'requiredFavoriteCitext', 'requiredFavoriteCitexts', 'requiredFavoriteDates', 'requiredFavoriteDatetimes', 'requiredFavoriteIntegers', 'requiredFavoriteNumerics', 'requiredFavoriteTexts', 'requiredFavoriteUuids', 'requiredNicknames', 'species', 'updatedAt', 'uuid', 'volume'],
     columns: {
       aDatetime: {
         coercedType: {} as DateTime | null,
@@ -2328,6 +2346,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['counter', 'createdAt', 'id', 'somethingHappenedAt', 'somethingHappenedInATransactionAt', 'updatedAt'],
     columns: {
       counter: {
         coercedType: {} as number,
@@ -2399,6 +2418,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['allowedColumn1', 'allowedColumn2', 'column1', 'column2', 'createdAt', 'disallowedColumn1', 'disallowedColumn2', 'id', 'updatedAt'],
     columns: {
       allowedColumn1: {
         coercedType: {} as string | null,
@@ -2497,6 +2517,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['allowedColumn1', 'allowedColumn2', 'createdAt', 'disallowedColumn1', 'disallowedColumn2', 'id', 'updatedAt'],
     columns: {
       allowedColumn1: {
         coercedType: {} as string | null,
@@ -2577,6 +2598,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2621,6 +2643,7 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'deletedAt', 'id', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2674,6 +2697,7 @@ export const schema = {
       default: ['dream:SoftDelete', 'howyadoin'],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2718,6 +2742,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['cantUpdateThis', 'createdAt', 'id', 'name'],
     columns: {
       cantUpdateThis: {
         coercedType: {} as string | null,
@@ -2771,6 +2796,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2846,6 +2872,7 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'deletedAt', 'favoriteDaysOfWeek', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId', 'userUuid'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -3437,6 +3464,7 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
+    nonJsonColumnNames: ['body', 'createdAt', 'deletedAt', 'id', 'postId', 'updatedAt'],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -3521,6 +3549,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'notes', 'updatedAt', 'visibility'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -3589,6 +3618,7 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
+    nonJsonColumnNames: ['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -3740,6 +3770,7 @@ export const schema = {
       default: ['nonNullBodies'],
       named: [],
     },
+    nonJsonColumnNames: ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -3849,6 +3880,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight', 'weightKgs', 'weightTons'],
     columns: {
       balloonId: {
         coercedType: {} as IdType,
@@ -3935,6 +3967,7 @@ export const schema = {
       default: ['dream:STI'],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'name', 'type', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -3997,6 +4030,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'position', 'updatedAt'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4050,6 +4084,7 @@ export const schema = {
       default: [],
       named: [],
     },
+    nonJsonColumnNames: ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4118,6 +4153,7 @@ export const schema = {
       default: ['hideDeleted'],
       named: ['withFunnyName'],
     },
+    nonJsonColumnNames: ['birthdate', 'createdAt', 'deletedAt', 'email', 'encryptedSecret', 'favoriteDates', 'favoriteDatetimes', 'favoriteNumbers', 'favoriteWord', 'featuredPostPosition', 'grams', 'id', 'myOtherEncryptedSecret', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt', 'uuid'],
     columns: {
       birthdate: {
         coercedType: {} as CalendarDate | null,

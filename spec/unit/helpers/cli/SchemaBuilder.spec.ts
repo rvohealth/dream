@@ -115,6 +115,20 @@ describe('SchemaBuilder', () => {
       })
     })
 
+    context('nonJsonColumnNames', () => {
+      it('includes non-json column names', () => {
+        expect(User.prototype.schema.model_for_openapi_type_specs.nonJsonColumnNames).toEqual(
+          expect.arrayContaining(['name', 'nicknames', 'birthdate', 'volume'])
+        )
+      })
+
+      it('omits json column names', () => {
+        expect(User.prototype.schema.model_for_openapi_type_specs.nonJsonColumnNames).not.toEqual(
+          expect.arrayContaining(['jsonData', 'jsonbData', 'favoriteJsons', 'favoriteJsonbs'])
+        )
+      })
+    })
+
     context('primaryKey', () => {
       it('sets the primaryKey', () => {
         expect(User.prototype.schema.users.primaryKey).toEqual('id')

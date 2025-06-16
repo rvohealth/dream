@@ -2,6 +2,7 @@ import { CalendarDate } from '../../../../src/index.js'
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
@@ -371,6 +372,18 @@ describe('DreamSerializer attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
+      })
+    })
+  })
+
+  context('generic serializer', () => {
+    it('typing doesn’t throw an error', () => {
+      const MySerializer = <T extends User | Pet>(data: T) => DreamSerializer(User, data).attribute('name')
+
+      const serializer = MySerializer(Pet.new({ name: 'Aster' }))
+
+      expect(serializer.render()).toEqual({
+        name: 'Aster',
       })
     })
   })
