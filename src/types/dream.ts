@@ -54,24 +54,16 @@ export type DreamColumnNames<
   DB = DreamInstance['DB'],
   TableName extends keyof DB = DreamInstance['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
-  AttributeNames extends keyof Table & string = keyof Table & string,
-> = AttributeNames
-
-export type JsonDreamColumnNames<
-  DreamInstance extends Dream,
-  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
-  TableName extends DreamInstance['table'] & keyof Schema = DreamInstance['table'] & keyof Schema,
-  AttributeNames extends Schema[TableName]['jsonColumnNames'][number] &
-    string = Schema[TableName]['jsonColumnNames'][number] & string,
-> = AttributeNames
+  AttributeName extends keyof Table & string = keyof Table & string,
+> = AttributeName
 
 export type NonJsonDreamColumnNames<
   DreamInstance extends Dream,
-  AttributeNames extends Exclude<
-    DreamColumnNames<DreamInstance>,
-    JsonDreamColumnNames<DreamInstance>
-  > = Exclude<DreamColumnNames<DreamInstance>, JsonDreamColumnNames<DreamInstance>>,
-> = AttributeNames
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
+  TableName extends DreamInstance['table'] & keyof Schema = DreamInstance['table'] & keyof Schema,
+  AttributeName extends Schema[TableName]['nonJsonColumnNames'][number] &
+    string = Schema[TableName]['nonJsonColumnNames'][number] & string,
+> = AttributeName
 
 export type DreamParamSafeColumnNames<
   DreamInstance extends Dream,
