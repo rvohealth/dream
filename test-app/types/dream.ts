@@ -336,7 +336,7 @@ export const schema = {
       default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],
     },
-    nonJsonColumnNames: ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'positionAlpha', 'positionBeta', 'shapableId', 'shapableType', 'type', 'updatedAt', 'userId', 'volume'],
+    nonJsonColumnNames: ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'mylarOnlyProperty', 'positionAlpha', 'positionBeta', 'shapableId', 'shapableType', 'type', 'updatedAt', 'userId', 'volume'],
     columns: {
       color: {
         coercedType: {} as BalloonColorsEnum | null,
@@ -382,6 +382,15 @@ export const schema = {
         dbType: 'balloon_colors_enum[]',
         allowNull: true,
         isArray: true,
+      },
+      mylarOnlyProperty: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'character varying',
+        allowNull: true,
+        isArray: false,
       },
       positionAlpha: {
         coercedType: {} as number | null,

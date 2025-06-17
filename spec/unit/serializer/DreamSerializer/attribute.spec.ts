@@ -1,8 +1,9 @@
 import { CalendarDate } from '../../../../src/index.js'
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
-import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
@@ -378,12 +379,15 @@ describe('DreamSerializer attributes', () => {
 
   context('generic serializer', () => {
     it('typing doesn’t throw an error', () => {
-      const MySerializer = <T extends User | Pet>(data: T) => DreamSerializer(User, data).attribute('name')
+      const AncestorSerializer = <T extends Balloon>(data: T) =>
+        DreamSerializer(Balloon, data).attribute('color')
+      const MySerializer = (data: Mylar) => AncestorSerializer(data).attribute('mylarOnlyProperty')
 
-      const serializer = MySerializer(Pet.new({ name: 'Aster' }))
+      const serializer = MySerializer(Mylar.new({ color: 'blue', mylarOnlyProperty: 'Howdy' }))
 
       expect(serializer.render()).toEqual({
-        name: 'Aster',
+        color: 'blue',
+        mylarOnlyProperty: 'Howdy',
       })
     })
   })

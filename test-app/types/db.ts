@@ -247,6 +247,7 @@ export interface BeautifulBalloons {
   deletedAt: Timestamp | null;
   id: Generated<Int8>;
   multicolor: ArrayType<BalloonColorsEnum> | null;
+  mylarOnlyProperty: string | null;
   positionAlpha: number | null;
   positionBeta: number | null;
   shapableId: Int8 | null;

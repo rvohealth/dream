@@ -15,6 +15,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('position_alpha', 'integer')
     .addColumn('position_beta', 'integer')
     .addColumn('multicolor', sql`balloon_colors_enum[]`)
+    .addColumn('mylar_only_property', 'varchar(256)')
     .addColumn('deleted_at', 'timestamp')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

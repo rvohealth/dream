@@ -1,5 +1,5 @@
 import STI from '../../../../src/decorators/class/STI.js'
-import { DreamSerializers } from '../../../../src/types/dream.js'
+import { DreamColumn, DreamSerializers } from '../../../../src/types/dream.js'
 import Balloon from '../Balloon.js'
 
 @STI(Balloon)
@@ -11,4 +11,6 @@ export default class Mylar extends Balloon {
       allBalloonStiChildren: 'BalloonSummarySerializer',
     }
   }
+
+  public mylarOnlyProperty: DreamColumn<Mylar, 'mylarOnlyProperty'>
 }
