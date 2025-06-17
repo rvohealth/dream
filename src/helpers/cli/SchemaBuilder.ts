@@ -98,12 +98,11 @@ ${tableName}: {
       default: ${stringifyArray(defaultScopeNames)},
       named: ${stringifyArray(namedScopeNames)},
     },
-    nonJsonColumnNames: ${stringifyArray(
-      Object.keys(schemaDatum.columns).filter(
-        columnName =>
-          !['json', 'jsonb', 'json[]', 'jsonb[]'].includes(
-            tableData.columns[columnName as keyof typeof tableData.columns]!.dbType
-          )
+    jsonColumnNames: ${stringifyArray(
+      Object.keys(schemaDatum.columns).filter(columnName =>
+        ['json', 'jsonb', 'json[]', 'jsonb[]'].includes(
+          tableData.columns[columnName as keyof typeof tableData.columns]!.dbType
+        )
       )
     )},
     columns: {
