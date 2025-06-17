@@ -584,7 +584,9 @@ export default class Dream {
     const userDefinedUnsafeParams = (this.prototype as any).paramUnsafeColumns as ReturnVal
 
     if (Array.isArray(userDefinedUnsafeParams)) {
-      defaultParams = defaultParams.filter(param => !userDefinedUnsafeParams.includes(param)) as ReturnVal
+      defaultParams = defaultParams.filter(
+        param => !userDefinedUnsafeParams.includes(param as any)
+      ) as ReturnVal
     }
 
     if (Array.isArray(userDefinedParams)) {

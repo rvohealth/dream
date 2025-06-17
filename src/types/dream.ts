@@ -71,7 +71,7 @@ export type DreamParamSafeColumnNames<
   Schema = DreamInstance['schema'],
   TableSchema = Schema[DreamInstance['table'] & keyof Schema],
 > = Exclude<
-  DreamColumnNames<DreamInstance>,
+  keyof UpdateableProperties<DreamInstance>,
   | BelongsToForeignKeys
   | TableSchema['primaryKey' & keyof TableSchema]
   | TableSchema['createdAtField' & keyof TableSchema]
@@ -184,8 +184,8 @@ export type DreamAttributeDbTypes<
 }
 
 export type DreamParamSafeAttributes<DreamInstance extends Dream> = {
-  [K in keyof DreamAttributes<DreamInstance> &
-    DreamParamSafeColumnNames<DreamInstance>]: DreamAttributes<DreamInstance>[K]
+  [K in keyof UpdateableProperties<DreamInstance> &
+    DreamParamSafeColumnNames<DreamInstance>]: UpdateableProperties<DreamInstance>[K]
 }
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
