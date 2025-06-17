@@ -26,7 +26,7 @@ export const UserSerializer = (user: User) =>
       })
     })
 
-    context('when stiBaseSerializer: true', () => {
+    context('when stiBaseSerializer: true (STI parent)', () => {
       it('alters the serializer to include a generic', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Balloon',
@@ -39,23 +39,23 @@ export const UserSerializer = (user: User) =>
 import { DreamSerializer } from '@rvoh/dream'
 import Balloon from '../models/Balloon.js'
 
-export const BalloonSummarySerializer = <T extends Balloon>(balloon: T) =>
-  DreamSerializer(Balloon, balloon)
+export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  DreamSerializer(StiChildClass, balloon)
     .attribute('id')
 
-export const BalloonSerializer = <T extends Balloon>(balloon: T) =>
-  BalloonSummarySerializer(balloon)
+export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  BalloonSummarySerializer(StiChildClass, balloon)
     .attribute('hello')
 `
         )
       })
     })
 
-    context('when parentName is included', () => {
+    context('when parentName is included (STI child)', () => {
       it('the serializers extend the parent serializers, summary omits id', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Foo/Bar/Baz',
-          columnsWithTypes: ['hello'],
+          columnsWithTypes: ['world'],
           fullyQualifiedParentName: 'Foo/Bar',
         })
 
@@ -65,11 +65,11 @@ import FooBarSerializer, { FooBarSummarySerializer } from '../BarSerializer.js'
 import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
 
 export const FooBarBazSummarySerializer = (fooBarBaz: FooBarBaz) =>
-  FooBarSummarySerializer(fooBarBaz)
+  FooBarSummarySerializer(FooBarBaz, fooBarBaz)
 
 export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
-  FooBarSerializer(fooBarBaz)
-    .attribute('hello')
+  FooBarSerializer(FooBarBaz, fooBarBaz)
+    .attribute('world')
 `
         )
       })

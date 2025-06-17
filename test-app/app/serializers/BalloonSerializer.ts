@@ -1,5 +1,5 @@
 import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import Balloon from '../models/Balloon.js'
 
-export default (StiChildClass: typeof Balloon, data: Balloon) =>
+export default <T extends Balloon>(StiChildClass: typeof Balloon, data: T) =>
   DreamSerializer(StiChildClass, data).attribute('color')

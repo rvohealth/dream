@@ -32,31 +32,31 @@ export default function generateSerializerContent({
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   const modelInstanceName = camelize(modelClassName)
   const modelSerializerSignature = stiBaseSerializer
-    ? `<T extends ${modelClassName}>(${modelInstanceName}: T)`
+    ? `<T extends ${modelClassName}>(StiChildClass: typeof ${modelClassName}, ${modelInstanceName}: T)`
     : `(${modelInstanceName}: ${modelClassName})`
   const modelSerializerArgs = `${modelInstanceName}`
-  const dreamSerializerArgs = `${modelClassName}, ${modelInstanceName}`
+  const dreamSerializerArgs = `${stiBaseSerializer ? 'StiChildClass' : modelClassName}, ${modelInstanceName}`
 
   const serialzerClassName = serializerNameFromFullyQualifiedModelName(
     fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
   )
 
-  const summarySerialzerClassName = serializerNameFromFullyQualifiedModelName(
+  const summarySerializerClassName = serializerNameFromFullyQualifiedModelName(
     fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName),
     'summary'
   )
 
-  const defaultSerialzerExtends = isSTI
+  const defaultSerializerExtends = isSTI
     ? `${serializerNameFromFullyQualifiedModelName(
         fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!)
-      )}(${modelSerializerArgs})`
-    : `${summarySerialzerClassName}(${modelSerializerArgs})`
+      )}(${modelClassName}, ${modelSerializerArgs})`
+    : `${summarySerializerClassName}(${stiBaseSerializer ? 'StiChildClass, ' : ''}${modelSerializerArgs})`
 
-  const summarySerialzerExtends = isSTI
+  const summarySerializerExtends = isSTI
     ? `${serializerNameFromFullyQualifiedModelName(
         fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!),
         'summary'
-      )}(${modelSerializerArgs})`
+      )}(${modelClassName}, ${modelSerializerArgs})`
     : `DreamSerializer(${dreamSerializerArgs})`
 
   const additionalModelImports: string[] = []
@@ -68,11 +68,11 @@ export default function generateSerializerContent({
   const additionalImportsStr = uniq(additionalImports).join('')
 
   return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
-export const ${summarySerialzerClassName} = ${modelSerializerSignature} =>
-  ${summarySerialzerExtends}${isSTI ? '' : `\n    .attribute('id')`}
+export const ${summarySerializerClassName} = ${modelSerializerSignature} =>
+  ${summarySerializerExtends}${isSTI ? '' : `\n    .attribute('id')`}
 
 export const ${serialzerClassName} = ${modelSerializerSignature} =>
-  ${defaultSerialzerExtends}${columnsWithTypes
+  ${defaultSerializerExtends}${columnsWithTypes
     .map(attr => {
       const [name, type] = attr.split(':')
       if (name === undefined) return ''
