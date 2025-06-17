@@ -3213,13 +3213,11 @@ export default class Dream {
   public async createAssociation<
     I extends Dream,
     AssociationName extends DreamAssociationNames<I>,
-    PossibleArrayAssociationType = I[AssociationName & keyof I],
-    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+    PossibleArrayAssociationType extends I[AssociationName & keyof I],
+    AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
       ? ElementType
       : PossibleArrayAssociationType,
-    RestrictedAssociationType extends AssociationType extends Dream
-      ? AssociationType
-      : never = AssociationType extends Dream ? AssociationType : never,
+    RestrictedAssociationType extends AssociationType extends Dream ? AssociationType : never,
   >(
     this: I,
     associationName: AssociationName,
@@ -3526,10 +3524,17 @@ export default class Dream {
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
+    //
+    PossibleArrayAssociationType extends I[AssociationName & keyof I],
+    AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType,
+    RestrictedAssociationType extends AssociationType extends Dream ? AssociationType : never,
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
+
+    attributes: UpdateableAssociationProperties<I, RestrictedAssociationType>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
@@ -3544,10 +3549,16 @@ export default class Dream {
     AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<I>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
+    //
+    PossibleArrayAssociationType extends I[AssociationName & keyof I],
+    AssociationType extends PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType,
+    RestrictedAssociationType extends AssociationType extends Dream ? AssociationType : never,
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
+    attributes: UpdateableAssociationProperties<I, RestrictedAssociationType>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
@@ -3580,7 +3591,7 @@ export default class Dream {
   public async updateAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<I, AssociationName>>>,
+    attributes: unknown,
     updateAssociationOptions?: unknown
   ): Promise<number> {
     if (this.isNewRecord) throw new CannotUpdateAssociationOnUnpersistedDream(this, associationName)
@@ -3596,7 +3607,9 @@ export default class Dream {
         (updateAssociationOptions as any)?.bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass:
         (updateAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-    }).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS })
+    }).update(attributes as any, {
+      skipHooks: (updateAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS,
+    })
   }
 
   ///////////////////
