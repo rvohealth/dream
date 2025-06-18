@@ -382,13 +382,17 @@ describe('DreamSerializer attributes', () => {
   context('generic serializer', () => {
     it('enables chaining a descendant model serializer off of a base model', () => {
       const AncestorSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, data: T) =>
-        DreamSerializer(StiChildClass, data).attribute('color')
+        (DreamSerializer(StiChildClass, data) as unknown as DreamSerializerBuilder<typeof Balloon, Balloon>)
+          .attribute('color')
+          .rendersMany('heartRatings', { serializerKey: 'default' }) as unknown as DreamSerializerBuilder<
+          typeof Balloon,
+          T
+        >
 
       const MySerializer = (data: Mylar) =>
         AncestorSerializer(Mylar, data)
           .attribute('mylarOnlyProperty')
           .rendersOne('balloonLine', { serializerKey: 'summary' })
-          .rendersMany('heartRatings', { serializerKey: 'default' })
 
       const balloonLine = BalloonLine.new({ material: 'nylon' })
       const heartRating = HeartRating.new({ id: 333, rating: 7 })

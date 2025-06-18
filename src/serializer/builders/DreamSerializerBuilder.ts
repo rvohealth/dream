@@ -21,7 +21,7 @@ import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRendere
 export default class DreamSerializerBuilder<
   DataTypeForOpenapi extends typeof Dream,
   MaybeNullDataType extends Dream | null,
-  PassthroughDataType,
+  PassthroughDataType = any,
   DataType extends Exclude<MaybeNullDataType, null> = Exclude<MaybeNullDataType, null>,
 > {
   protected attributes: (

@@ -93,7 +93,7 @@ export type DreamModelSerializerType = (
   dreamClass: any,
   data: any,
   passthroughData?: any
-) => DreamSerializerBuilder<any, any, any>
+) => DreamSerializerBuilder<any, any>
 
 export type SimpleObjectSerializerType = (
   data: any,
