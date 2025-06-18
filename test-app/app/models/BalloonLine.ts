@@ -1,5 +1,6 @@
 import { Decorators } from '../../../src/index.js'
-import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
+import { DreamColumn } from '../../../src/types/dream.js'
+import BalloonLineSerializer, { BallonLineSummarySerializer } from '../serializers/BalloonLineSerializer.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 
@@ -10,8 +11,11 @@ export default class BalloonLine extends ApplicationModel {
     return 'balloon_lines' as const
   }
 
-  public get serializers(): DreamSerializers<BalloonLine> {
-    return { default: 'BalloonLineSerializer' }
+  public get serializers() {
+    return {
+      default: BalloonLineSerializer,
+      summary: BallonLineSummarySerializer,
+    }
   }
 
   public id: DreamColumn<BalloonLine, 'id'>
