@@ -96,7 +96,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: ['default'],
+    serializerKeys: ['default', 'summary'],
     scopes: {
       default: [],
       named: [],
@@ -1093,7 +1093,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['default'],
     scopes: {
       default: ['dream:STI'],
       named: [],
@@ -4659,6 +4659,7 @@ export const globalSchema = {
       'UserSettings': 'user_settings'
     },
     serializers: [
+      'BallonLineSummarySerializer',
       'Balloon/Latex/AnimalSerializer',
       'Balloon/LatexSerializer',
       'Balloon/MylarSerializer',
@@ -4671,6 +4672,8 @@ export const globalSchema = {
       'CompositionAlternateSerializer',
       'CompositionSerializer',
       'EdgeCaseAttributeSerializer',
+      'ExtraRating/HeartRatingSerializer',
+      'ExtraRating/StarRatingSerializer',
       'Graph/EdgeNodeSerializer',
       'Graph/EdgeSerializer',
       'Graph/NodeSerializer',

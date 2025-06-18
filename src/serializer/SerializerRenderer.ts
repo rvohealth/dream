@@ -28,20 +28,20 @@ interface StandardizedSerializerRendererOpts {
 }
 
 export default class SerializerRenderer {
-  private serializerBuilder: DreamSerializerBuilder<any, any, any> | null
+  private serializerBuilder: DreamSerializerBuilder<any, any> | null
   private passthroughData: object
   private renderOpts: StandardizedSerializerRendererOpts
 
   constructor(
     serializerBuilder:
-      | DreamSerializerBuilder<any, any, any>
+      | DreamSerializerBuilder<any, any>
       | ObjectSerializerBuilder<any, any>
       | null
       | undefined,
     passthroughData: object = {},
     { casing = 'camel' }: SerializerRendererOpts = {}
   ) {
-    this.serializerBuilder = (serializerBuilder ?? null) as DreamSerializerBuilder<any, any, any> | null
+    this.serializerBuilder = (serializerBuilder ?? null) as DreamSerializerBuilder<any, any> | null
     this.passthroughData = passthroughData
     this.renderOpts = { casing }
   }

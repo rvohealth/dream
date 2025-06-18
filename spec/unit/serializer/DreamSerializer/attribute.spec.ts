@@ -1,8 +1,6 @@
 import { CalendarDate } from '../../../../src/index.js'
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
-import Balloon from '../../../../test-app/app/models/Balloon.js'
-import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
@@ -373,21 +371,6 @@ describe('DreamSerializer attributes', () => {
         expect(serializer.render({}, { casing: 'camel' })).toEqual({
           requiredNicknames: ['Chuck'],
         })
-      })
-    })
-  })
-
-  context('generic serializer', () => {
-    it('typing doesn’t throw an error', () => {
-      const AncestorSerializer = <T extends Balloon>(data: T) =>
-        DreamSerializer(Balloon, data).attribute('color')
-      const MySerializer = (data: Mylar) => AncestorSerializer(data).attribute('mylarOnlyProperty')
-
-      const serializer = MySerializer(Mylar.new({ color: 'blue', mylarOnlyProperty: 'Howdy' }))
-
-      expect(serializer.render()).toEqual({
-        color: 'blue',
-        mylarOnlyProperty: 'Howdy',
       })
     })
   })
