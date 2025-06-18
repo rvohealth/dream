@@ -89,7 +89,7 @@ export default class SerializerRenderer {
         case 'delegatedAttribute': {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const target = data[attribute.targetName]
-          const value = target[attribute.name] ?? attribute.options?.default
+          const value = target?.[attribute.name] ?? attribute.options?.default
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
             value,
             attribute.options,

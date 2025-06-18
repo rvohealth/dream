@@ -38,4 +38,39 @@ describe('DreamSerializer delegated attributes', () => {
       name: 'Woodstock',
     })
   })
+
+  context('when the target object is null', () => {
+    it('returns null', () => {
+      const pet = Pet.new({ user: null, name: 'Snoopy' })
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .delegatedAttribute('user', 'name', { openapi: 'string' })
+          // passing a generic argument here just to ensure the types stay correct
+          .delegatedAttribute<User>('user', 'birthdate', { openapi: 'date' })
+
+      const serializer = MySerializer(pet)
+
+      expect(serializer.render()).toEqual({
+        name: null,
+        birthdate: null,
+      })
+    })
+
+    it('supports specifying a default value', () => {
+      const pet = Pet.new({ user: null, name: 'Snoopy' })
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data).delegatedAttribute('user', 'name', {
+          default: 'Woodstock',
+          openapi: 'string',
+        })
+
+      const serializer = MySerializer(pet)
+
+      expect(serializer.render()).toEqual({
+        name: 'Woodstock',
+      })
+    })
+  })
 })
