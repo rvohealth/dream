@@ -76,12 +76,20 @@ export default class DreamSerializerBuilder<
   }
 
   public delegatedAttribute<
+    ProvidedTargetObjectType = undefined,
     // don't attempt to exclude 'serializers' because it breaks types when adding
     // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-    TargetName extends keyof DataType & string,
-    TargetObject extends DataType[TargetName],
-    AttributeName extends TargetObject extends object ? keyof TargetObject & string : never,
-    Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
+    TargetName extends keyof DataType & string = keyof DataType & string,
+    TargetObject extends ProvidedTargetObjectType extends undefined
+      ? DataType[TargetName]
+      : ProvidedTargetObjectType = ProvidedTargetObjectType extends undefined
+      ? DataType[TargetName]
+      : ProvidedTargetObjectType,
+    AttributeName extends TargetObject extends object
+      ? keyof TargetObject & string
+      : never = TargetObject extends object ? keyof TargetObject & string : never,
+    Options extends
+      NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption = NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(targetName: TargetName, name: AttributeName, options: Options) {
     this.attributes.push({
       type: 'delegatedAttribute',
@@ -200,7 +208,7 @@ export default class DreamSerializerBuilder<
       type: 'rendersMany',
       name,
       options: options ?? {},
-    } as any)
+    })
 
     return this
   }

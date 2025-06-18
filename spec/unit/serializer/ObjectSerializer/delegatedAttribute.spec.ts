@@ -19,7 +19,7 @@ describe('ObjectSerializer delegated attributes', () => {
     const MySerializer = (data: Pet) =>
       ObjectSerializer(data)
         .delegatedAttribute('user', 'name', { openapi: 'string' })
-        .delegatedAttribute('user', 'birthdate', { openapi: 'date' })
+        .delegatedAttribute<User>('user', 'birthdate', { openapi: 'date' })
 
     const serializer = MySerializer(pet)
 

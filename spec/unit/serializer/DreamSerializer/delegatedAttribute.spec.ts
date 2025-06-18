@@ -11,7 +11,7 @@ describe('DreamSerializer delegated attributes', () => {
     const MySerializer = (data: Pet) =>
       DreamSerializer(Pet, data)
         .delegatedAttribute('user', 'name', { openapi: 'string' })
-        .delegatedAttribute('user', 'birthdate', { openapi: 'date' })
+        .delegatedAttribute<User>('user', 'birthdate', { openapi: 'date' })
 
     const serializer = MySerializer(pet)
 
