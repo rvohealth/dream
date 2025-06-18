@@ -1,8 +1,7 @@
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
-import ConnectedToDB from '../../db/ConnectedToDB.js'
 import Dream from '../../Dream.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
-import { DreamColumnNames, DreamTableSchema } from '../../types/dream.js'
+import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
 import {
   PreloadedDreamsAndWhatTheyPointTo,
   QueryToKyselyDBType,
@@ -11,10 +10,27 @@ import {
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
 import PostgresQueryDriver from './Postgres.js'
+import { DbConnectionType } from '../../types/db.js'
 
-export default class QueryDriverBase<DreamInstance extends Dream> extends ConnectedToDB<DreamInstance> {
+export default class QueryDriverBase<DreamInstance extends Dream> {
+  protected readonly dreamClass: DreamConstructorType<DreamInstance>
+  protected readonly dreamInstance: DreamInstance
+  protected dreamTransaction: DreamTransaction<Dream> | null = null
+  protected connectionOverride: DbConnectionType | undefined
+
+  /**
+   * @internal
+   *
+   * stores the Dream models joined in this Query instance
+   */
+  protected readonly innerJoinDreamClasses: readonly (typeof Dream)[] = Object.freeze([])
+
   constructor(public query: Query<DreamInstance, any>) {
-    super(query.dreamInstance, query['originalOpts'])
+    this.dreamInstance = query.dreamInstance
+    this.dreamClass = query.dreamInstance.constructor as DreamConstructorType<DreamInstance>
+    this.dreamTransaction = query['originalOpts'].transaction || null
+    this.connectionOverride = query['originalOpts'].connection
+    this.innerJoinDreamClasses = Object.freeze(query['originalOpts'].innerJoinDreamClasses || [])
   }
 
   /**

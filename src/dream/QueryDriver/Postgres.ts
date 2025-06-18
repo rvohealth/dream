@@ -4,6 +4,8 @@ import {
   ExpressionBuilder,
   ExpressionWrapper,
   JoinBuilder,
+  Kysely,
+  Transaction as KyselyTransaction,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   SelectQueryBuilder,
   sql,
@@ -65,6 +67,7 @@ import {
   RelaxedJoinStatement,
   RelaxedPreloadOnStatement,
   RelaxedPreloadStatement,
+  SqlCommandType,
   TableOrAssociationName,
 } from '../../types/dream.js'
 import {
@@ -88,6 +91,7 @@ import writeSyncFile from '../../bin/helpers/sync.js'
 import SchemaBuilder from '../../helpers/cli/SchemaBuilder.js'
 import createDb from '../../helpers/db/createDb.js'
 import _dropDb from '../../helpers/db/dropDb.js'
+import { DbConnectionType } from '../../types/db.js'
 
 export default class PostgresQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   /**
@@ -514,6 +518,34 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
         .returning([...dream.columns()] as any)
       return await executeDatabaseQuery(query, 'executeTakeFirstOrThrow')
     }
+  }
+
+  public dbConnectionType(sqlCommandType: SqlCommandType): DbConnectionType {
+    if (this.dreamTransaction) return 'primary'
+
+    switch (sqlCommandType) {
+      case 'select':
+        return this.connectionOverride || (this.isReplicaSafe() ? 'replica' : 'primary')
+
+      default:
+        return 'primary'
+    }
+  }
+
+  // ATTENTION FRED
+  // stop trying to make this async. You never learn...
+  public dbFor(
+    sqlCommandType: SqlCommandType
+  ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
+    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
+    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType))
+  }
+
+  private isReplicaSafe(): boolean {
+    return this.innerJoinDreamClasses.reduce(
+      (accumulator, dreamClass) => accumulator && dreamClass['replicaSafe'],
+      this.dreamClass['replicaSafe']
+    )
   }
 
   /**
