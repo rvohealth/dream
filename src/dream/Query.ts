@@ -1326,25 +1326,8 @@ export default class Query<
         : QueryType extends 'update'
           ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
           : never,
-  >(type: QueryType) {
-    switch (type) {
-      case 'select':
-        return this.dbDriverInstance()['buildSelect']() as ToKyselyReturnType
-
-      case 'delete':
-        return this.dbDriverInstance()['buildDelete']() as ToKyselyReturnType
-
-      case 'update':
-        return this.dbDriverInstance()['buildUpdate']({}) as ToKyselyReturnType
-
-      // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
-      // the query class for some reason.
-      default: {
-        // protection so that if a new QueryType is ever added, this will throw a type error at build time
-        const _never: never = type
-        throw new Error(`Unhandled QueryType: ${_never as string}`)
-      }
-    }
+  >(type: QueryType): ToKyselyReturnType {
+    return this.dbDriverInstance().toKysely(type)
   }
 
   /**

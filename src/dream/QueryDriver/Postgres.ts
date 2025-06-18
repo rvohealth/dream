@@ -67,7 +67,13 @@ import {
   RelaxedPreloadStatement,
   TableOrAssociationName,
 } from '../../types/dream.js'
-import { DefaultQueryTypeOptions, JoinTypes, PreloadedDreamsAndWhatTheyPointTo } from '../../types/query.js'
+import {
+  DefaultQueryTypeOptions,
+  JoinTypes,
+  PreloadedDreamsAndWhatTheyPointTo,
+  QueryToKyselyDBType,
+  QueryToKyselyTableNamesType,
+} from '../../types/query.js'
 import { DreamConst } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
@@ -84,6 +90,9 @@ import createDb from '../../helpers/db/createDb.js'
 import _dropDb from '../../helpers/db/dropDb.js'
 
 export default class PostgresQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
+  /**
+   * migrate the database. Must respond to the NODE_ENV value.
+   */
   public static override async migrate() {
     const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
@@ -95,6 +104,9 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     await this.duplicateDatabase()
   }
 
+  /**
+   * rollback the database. Must respond to the NODE_ENV value.
+   */
   public static override async rollback(opts: { steps: number }) {
     const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
@@ -128,6 +140,9 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     await onSync()
   }
 
+  /**
+   * create the database. Must respond to the NODE_ENV value.
+   */
   public static override async dbCreate() {
     const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
@@ -146,6 +161,9 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     // }
   }
 
+  /**
+   * delete the database. Must respond to the NODE_ENV value.
+   */
   public static override async dbDrop() {
     const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig('primary')
@@ -164,38 +182,47 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
     // }
   }
 
-  private static async duplicateDatabase() {
-    const dreamApp = DreamApp.getOrFail()
-    const parallelTests = dreamApp.parallelTests
-    if (!parallelTests) return
+  /**
+   * Converts the given dream class into a Kysely query, enabling
+   * you to build custom queries using the Kysely API
+   *
+   * ```ts
+   * await User.query().toKysely('select').where('email', '=', 'how@yadoin').execute()
+   * ```
+   *
+   * @param type - the type of Kysely query builder instance you would like to obtain
+   * @returns A Kysely query. Depending on the type passed, it will return either a SelectQueryBuilder, DeleteQueryBuilder, or an UpdateQueryBuilder
+   */
+  public override toKysely<
+    QueryType extends 'select' | 'delete' | 'update',
+    DbType = QueryToKyselyDBType<Query<DreamInstance>>,
+    TableNames = QueryToKyselyTableNamesType<Query<DreamInstance>>,
+    ToKyselyReturnType = QueryType extends 'select'
+      ? SelectQueryBuilder<DbType, TableNames & keyof DbType, unknown>
+      : QueryType extends 'delete'
+        ? DeleteQueryBuilder<DbType, TableNames & keyof DbType, unknown>
+        : QueryType extends 'update'
+          ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
+          : never,
+  >(type: QueryType) {
+    switch (type) {
+      case 'select':
+        return this.buildSelect() as ToKyselyReturnType
 
-    DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
-    const dbConf = dreamApp.dbConnectionConfig('primary')
-    const client = await loadPgClient({ useSystemDb: true })
+      case 'delete':
+        return this.buildDelete() as ToKyselyReturnType
 
-    if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
-      const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
-      DreamCLI.logger.logContinueProgress(
-        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
-      )
-      await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
-      await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
+      case 'update':
+        return this.buildUpdate({}) as ToKyselyReturnType
+
+      // TODO: in the future, we should support insert type, but don't yet, since inserts are done outside
+      // the query class for some reason.
+      default: {
+        // protection so that if a new QueryType is ever added, this will throw a type error at build time
+        const _never: never = type
+        throw new Error(`Unhandled QueryType: ${_never as string}`)
+      }
     }
-
-    for (let i = 2; i <= parallelTests; i++) {
-      const workerDatabaseName = `${dbConf.name}_${i}`
-
-      DreamCLI.logger.logContinueProgress(
-        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
-      )
-      await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
-      await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
-    }
-    await client.end()
-
-    DreamCLI.logger.logEndProgress()
   }
 
   /**
@@ -228,7 +255,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * @returns A dream instance or null
    */
-  public async takeOne(this: PostgresQueryDriver<DreamInstance>): Promise<DreamInstance | null> {
+  public override async takeOne(this: PostgresQueryDriver<DreamInstance>): Promise<DreamInstance | null> {
     if (this.query['joinLoadActivated']) {
       let query: Query<DreamInstance>
 
@@ -283,7 +310,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * @returns an array of dreams
    */
-  public async takeAll(
+  public override async takeAll(
     options: {
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
@@ -315,7 +342,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * @returns the max value of the specified column for this Query
    *
    */
-  public async max(columnName: string): Promise<any> {
+  public override async max(columnName: string): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
     let kyselyQuery = new PostgresQueryDriver(this.query).buildSelect({
@@ -342,7 +369,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * @param columnName - a column name on the model
    * @returns the min value of the specified column for this Query
    */
-  public async min(columnName: string): Promise<any> {
+  public override async min(columnName: string): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
     let kyselyQuery = new PostgresQueryDriver(this.query).buildSelect({
@@ -365,7 +392,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * @returns The number of records in the database
    */
-  public async count() {
+  public override async count() {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { count } = this.dbFor('select').fn
     const distinctColumn = this.query['distinctColumn']
@@ -391,7 +418,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * @returns An array of plucked values
    */
-  public async pluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
+  public override async pluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
     let kyselyQuery = new PostgresQueryDriver(
       this.query['removeAllDefaultScopesExceptOnAssociations']()
     ).buildSelect({
@@ -429,10 +456,10 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * @param selection - the column to use for your nested Query
    * @returns A Kysely SelectQueryBuilder instance
    */
-  public nestedSelect<SimpleFieldType extends keyof DreamColumnNames<DreamInstance>, PluckThroughFieldType>(
-    this: PostgresQueryDriver<DreamInstance>,
-    selection: SimpleFieldType | PluckThroughFieldType
-  ) {
+  public override nestedSelect<
+    SimpleFieldType extends keyof DreamColumnNames<DreamInstance>,
+    PluckThroughFieldType,
+  >(this: PostgresQueryDriver<DreamInstance>, selection: SimpleFieldType | PluckThroughFieldType) {
     const query = this.buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
@@ -444,7 +471,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * executes provided query instance as a deletion query.
    * @returns the number of deleted rows
    */
-  public async delete(): Promise<number> {
+  public override async delete(): Promise<number> {
     const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
     return Number(deletionResult?.numDeletedRows || 0)
   }
@@ -453,7 +480,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * executes provided query instance as an update query.
    * @returns the number of updated rows
    */
-  public async update(attributes: DreamTableSchema<DreamInstance>): Promise<number> {
+  public override async update(attributes: DreamTableSchema<DreamInstance>): Promise<number> {
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]
@@ -466,7 +493,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * to encapsulate the persisting of the dream, as well as any
    * subsequent model hooks that are fired.
    */
-  public static async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
+  public static override async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
     const db = txn?.kyselyTransaction ?? _db('primary')
 
     const sqlifiedAttributes = sqlAttributes(dream)
@@ -521,7 +548,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    * @returns An object representing the underlying sql statement
    *
    */
-  public sql() {
+  public override sql() {
     const kyselyQuery = this.buildSelect()
     return kyselyQuery.compile()
   }
@@ -621,7 +648,7 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * Used to hydrate dreams with the provided associations
    */
-  public hydrateAssociation(
+  public override hydrateAssociation(
     dreams: Dream[],
     association: AssociationStatement,
     preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
@@ -669,12 +696,46 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
    *
    * Used by loadBuider
    */
-  public async hydratePreload(this: PostgresQueryDriver<DreamInstance>, dream: Dream) {
+  public override async hydratePreload(this: PostgresQueryDriver<DreamInstance>, dream: Dream) {
     await this.applyPreload(
       this.query['preloadStatements'] as any,
       this.query['preloadOnStatements'] as any,
       dream
     )
+  }
+
+  public static async duplicateDatabase() {
+    const dreamApp = DreamApp.getOrFail()
+    const parallelTests = dreamApp.parallelTests
+    if (!parallelTests) return
+
+    DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
+    const dbConf = dreamApp.dbConnectionConfig('primary')
+    const client = await loadPgClient({ useSystemDb: true })
+
+    if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
+      const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
+      DreamCLI.logger.logContinueProgress(
+        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
+        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+      )
+      await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
+      await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
+    }
+
+    for (let i = 2; i <= parallelTests; i++) {
+      const workerDatabaseName = `${dbConf.name}_${i}`
+
+      DreamCLI.logger.logContinueProgress(
+        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
+        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+      )
+      await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
+      await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
+    }
+    await client.end()
+
+    DreamCLI.logger.logEndProgress()
   }
 
   private aliasWhereStatements(whereStatements: Readonly<WhereStatement<any, any, any>[]>, alias: string) {
@@ -2229,113 +2290,6 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
   /**
    * @internal
    *
-   * Applies a preload statement
-   */
-  private async applyOnePreload(
-    this: PostgresQueryDriver<DreamInstance>,
-    associationName: string,
-    dreams: Dream | Dream[],
-    onStatement: RelaxedPreloadOnStatement<any, any> = {}
-  ) {
-    if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
-
-    const dream = dreams.find(dream => dream['getAssociationMetadata'](associationName))!
-    if (!dream) return
-
-    const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
-
-    const association = dream['getAssociationMetadata'](name)
-    if (association === undefined) throw new UnexpectedUndefined()
-
-    const dreamClass = dream.constructor as typeof Dream
-    const dreamClassToHydrate = association.modelCB() as typeof Dream
-
-    if ((association.polymorphic && association.type === 'BelongsTo') || Array.isArray(dreamClassToHydrate))
-      return this.preloadPolymorphicBelongsTo(
-        association as BelongsToStatement<any, any, any, string>,
-        dreams
-      )
-
-    const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
-    const throughColumnsToHydrate: any[] = []
-
-    const columnsToPluck = dreamClassToHydrateColumns.map(column =>
-      this.namespaceColumn(column.toString(), alias)
-    ) as any[]
-
-    const asHasAssociation = association as
-      | HasManyStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-
-    if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
-      if (isObject(asHasAssociation.preloadThroughColumns)) {
-        const preloadMap = asHasAssociation.preloadThroughColumns as Record<string, string>
-        Object.keys(preloadMap).forEach(preloadThroughColumn => {
-          throughColumnsToHydrate.push(preloadMap[preloadThroughColumn])
-          columnsToPluck.push(this.namespaceColumn(preloadThroughColumn, asHasAssociation.through))
-        })
-      } else {
-        const preloadArray = asHasAssociation.preloadThroughColumns as string[]
-        preloadArray.forEach(preloadThroughColumn => {
-          throughColumnsToHydrate.push(preloadThroughColumn)
-          columnsToPluck.push(this.namespaceColumn(preloadThroughColumn, asHasAssociation.through))
-        })
-      }
-    }
-
-    columnsToPluck.push(this.namespaceColumn(dreamClass.primaryKey, dreamClass.table))
-
-    const baseClass = dreamClass['stiBaseClassOrOwnClass']['getAssociationMetadata'](associationName)
-      ? dreamClass['stiBaseClassOrOwnClass']
-      : dreamClass
-
-    const associationDataScope = this.dreamClassQueryWithScopeBypasses(baseClass, {
-      // In order to stay DRY, preloading leverages the association logic built into
-      // `joins` (by using `pluck`, which calls `joins`). However, baseClass may have
-      // default scopes that would preclude finding that instance. We remove all
-      // default scopes on baseClass, but not subsequent associations, so that the
-      // single query will be able to find each row corresponding to a Dream in `dreams`,
-      // regardless of default scopes on that Dream's class.
-      bypassAllDefaultScopesExceptOnAssociations: true,
-    }).where({
-      [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
-    })
-
-    const hydrationData: any[][] = await associationDataScope['_connection'](this.connectionOverride)
-      .innerJoin(associationName, (onStatement || {}) as JoinAndStatements<any, any, any, any>)
-      .pluck(...columnsToPluck)
-
-    const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
-      pluckedData => {
-        const attributes = {} as any
-        dreamClassToHydrateColumns.forEach(
-          (columnName, index) =>
-            (attributes[protectAgainstPollutingAssignment(columnName)] = pluckedData[index])
-        )
-
-        const hydratedDream = this.dbResultToDreamInstance(attributes, dreamClassToHydrate)
-
-        throughColumnsToHydrate.forEach(
-          (throughAssociationColumn, index) =>
-            ((hydratedDream as any).preloadedThroughColumns[throughAssociationColumn] =
-              pluckedData[dreamClassToHydrateColumns.length + index])
-        )
-
-        return {
-          dream: hydratedDream,
-          pointsToPrimaryKey: pluckedData.at(-1),
-        }
-      }
-    )
-
-    this.hydrateAssociation(dreams, association, preloadedDreamsAndWhatTheyPointTo)
-
-    return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
-  }
-
-  /**
-   * @internal
-   *
    * Polymorphic BelongsTo. Since polymorphic associations may point to multiple tables,
    * preload by loading each target class separately.
    *
@@ -2469,6 +2423,113 @@ export default class PostgresQueryDriver<DreamInstance extends Dream> extends Qu
       kyselyQuery = similarityBuilder.update(kyselyQuery)
     }
     return kyselyQuery
+  }
+
+  /**
+   * @internal
+   *
+   * Applies a preload statement
+   */
+  private async applyOnePreload(
+    this: PostgresQueryDriver<DreamInstance>,
+    associationName: string,
+    dreams: Dream | Dream[],
+    onStatement: RelaxedPreloadOnStatement<any, any> = {}
+  ) {
+    if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
+
+    const dream = dreams.find(dream => dream['getAssociationMetadata'](associationName))!
+    if (!dream) return
+
+    const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
+
+    const association = dream['getAssociationMetadata'](name)
+    if (association === undefined) throw new UnexpectedUndefined()
+
+    const dreamClass = dream.constructor as typeof Dream
+    const dreamClassToHydrate = association.modelCB() as typeof Dream
+
+    if ((association.polymorphic && association.type === 'BelongsTo') || Array.isArray(dreamClassToHydrate))
+      return this.preloadPolymorphicBelongsTo(
+        association as BelongsToStatement<any, any, any, string>,
+        dreams
+      )
+
+    const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
+    const throughColumnsToHydrate: any[] = []
+
+    const columnsToPluck = dreamClassToHydrateColumns.map(column =>
+      this.namespaceColumn(column.toString(), alias)
+    ) as any[]
+
+    const asHasAssociation = association as
+      | HasManyStatement<any, any, any, any>
+      | HasOneStatement<any, any, any, any>
+
+    if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
+      if (isObject(asHasAssociation.preloadThroughColumns)) {
+        const preloadMap = asHasAssociation.preloadThroughColumns as Record<string, string>
+        Object.keys(preloadMap).forEach(preloadThroughColumn => {
+          throughColumnsToHydrate.push(preloadMap[preloadThroughColumn])
+          columnsToPluck.push(this.namespaceColumn(preloadThroughColumn, asHasAssociation.through))
+        })
+      } else {
+        const preloadArray = asHasAssociation.preloadThroughColumns as string[]
+        preloadArray.forEach(preloadThroughColumn => {
+          throughColumnsToHydrate.push(preloadThroughColumn)
+          columnsToPluck.push(this.namespaceColumn(preloadThroughColumn, asHasAssociation.through))
+        })
+      }
+    }
+
+    columnsToPluck.push(this.namespaceColumn(dreamClass.primaryKey, dreamClass.table))
+
+    const baseClass = dreamClass['stiBaseClassOrOwnClass']['getAssociationMetadata'](associationName)
+      ? dreamClass['stiBaseClassOrOwnClass']
+      : dreamClass
+
+    const associationDataScope = this.dreamClassQueryWithScopeBypasses(baseClass, {
+      // In order to stay DRY, preloading leverages the association logic built into
+      // `joins` (by using `pluck`, which calls `joins`). However, baseClass may have
+      // default scopes that would preclude finding that instance. We remove all
+      // default scopes on baseClass, but not subsequent associations, so that the
+      // single query will be able to find each row corresponding to a Dream in `dreams`,
+      // regardless of default scopes on that Dream's class.
+      bypassAllDefaultScopesExceptOnAssociations: true,
+    }).where({
+      [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
+    })
+
+    const hydrationData: any[][] = await associationDataScope['_connection'](this.connectionOverride)
+      .innerJoin(associationName, (onStatement || {}) as JoinAndStatements<any, any, any, any>)
+      .pluck(...columnsToPluck)
+
+    const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
+      pluckedData => {
+        const attributes = {} as any
+        dreamClassToHydrateColumns.forEach(
+          (columnName, index) =>
+            (attributes[protectAgainstPollutingAssignment(columnName)] = pluckedData[index])
+        )
+
+        const hydratedDream = this.dbResultToDreamInstance(attributes, dreamClassToHydrate)
+
+        throughColumnsToHydrate.forEach(
+          (throughAssociationColumn, index) =>
+            ((hydratedDream as any).preloadedThroughColumns[throughAssociationColumn] =
+              pluckedData[dreamClassToHydrateColumns.length + index])
+        )
+
+        return {
+          dream: hydratedDream,
+          pointsToPrimaryKey: pluckedData.at(-1),
+        }
+      }
+    )
+
+    this.hydrateAssociation(dreams, association, preloadedDreamsAndWhatTheyPointTo)
+
+    return preloadedDreamsAndWhatTheyPointTo.map(obj => obj.dream)
   }
 }
 
