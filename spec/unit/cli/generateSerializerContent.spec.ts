@@ -36,16 +36,16 @@ export const UserSerializer = (user: User) =>
 
         expect(res).toEqual(
           `\
-import { DreamSerializer } from '@rvoh/dream'
+import { DreamSerializer, DreamSerializerBuilder } from '@rvoh/dream'
 import Balloon from '../models/Balloon.js'
 
 export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
-  DreamSerializer(StiChildClass, balloon)
-    .attribute('id')
+  (DreamSerializer(StiChildClass, balloon) as unknown as DreamSerializerBuilder<typeof Balloon, Balloon>)
+    .attribute('id') as unknown as DreamSerializerBuilder<typeof Balloon, T>
 
 export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
-  BalloonSummarySerializer(StiChildClass, balloon)
-    .attribute('hello')
+  (BalloonSummarySerializer(StiChildClass, balloon) as unknown as DreamSerializerBuilder<typeof Balloon, Balloon>)
+    .attribute('hello') as unknown as DreamSerializerBuilder<typeof Balloon, T>
 `
         )
       })
