@@ -19,14 +19,13 @@ export default function generateSerializerContent({
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
   const dreamImports: string[] = []
-  const stiChildSerializer = !!fullyQualifiedParentName
+  const isSTI = !!fullyQualifiedParentName
 
-  if (stiChildSerializer) {
+  if (isSTI) {
     fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
     additionalImports.push(importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName))
   } else {
     dreamImports.push('DreamSerializer')
-    if (stiBaseSerializer) dreamImports.push('DreamSerializerBuilder')
   }
 
   const relatedModelImport = importStatementForModel(fullyQualifiedModelName)
@@ -47,27 +46,18 @@ export default function generateSerializerContent({
     'summary'
   )
 
-  const nonGenericSerializerBuilderTypeCast = `as unknown as DreamSerializerBuilder<typeof ${modelClassName}, ${modelClassName}>`
-  const genericSerializerBuilderTypeCast = stiBaseSerializer
-    ? ` as unknown as DreamSerializerBuilder<typeof ${modelClassName}, T>`
-    : ''
-
-  const defaultSerializerExtends = stiChildSerializer
+  const defaultSerializerExtends = isSTI
     ? `${serializerNameFromFullyQualifiedModelName(
         fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!)
       )}(${modelClassName}, ${modelSerializerArgs})`
-    : stiBaseSerializer
-      ? `(${summarySerializerClassName}(${stiBaseSerializer ? 'StiChildClass, ' : ''}${modelSerializerArgs}) ${nonGenericSerializerBuilderTypeCast})`
-      : `${summarySerializerClassName}(${modelSerializerArgs})`
+    : `${summarySerializerClassName}(${stiBaseSerializer ? 'StiChildClass, ' : ''}${modelSerializerArgs})`
 
-  const summarySerializerExtends = stiChildSerializer
+  const summarySerializerExtends = isSTI
     ? `${serializerNameFromFullyQualifiedModelName(
         fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!),
         'summary'
       )}(${modelClassName}, ${modelSerializerArgs})`
-    : stiBaseSerializer
-      ? `(DreamSerializer(${dreamSerializerArgs}) ${nonGenericSerializerBuilderTypeCast})`
-      : `DreamSerializer(${dreamSerializerArgs})`
+    : `DreamSerializer(${dreamSerializerArgs})`
 
   const additionalModelImports: string[] = []
 
@@ -79,7 +69,7 @@ export default function generateSerializerContent({
 
   return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
 export const ${summarySerializerClassName} = ${modelSerializerSignature} =>
-  ${summarySerializerExtends}${stiChildSerializer ? '' : `\n    .attribute('id')${genericSerializerBuilderTypeCast}`}
+  ${summarySerializerExtends}${isSTI ? '' : `\n    .attribute('id')`}
 
 export const ${serialzerClassName} = ${modelSerializerSignature} =>
   ${defaultSerializerExtends}${columnsWithTypes
@@ -90,7 +80,7 @@ export const ${serialzerClassName} = ${modelSerializerSignature} =>
 
       return `\n    ${attribute(name, type, attr)}`
     })
-    .join('\n\n  ')}${genericSerializerBuilderTypeCast}
+    .join('\n\n  ')}
 `
 }
 
