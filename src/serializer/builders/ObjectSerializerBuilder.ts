@@ -82,15 +82,18 @@ export default class ObjectSerializerBuilder<
   }
 
   public rendersOne<
+    ProvidedAssociatedModelType = undefined,
     // applying any type function to limit AttributeName breaks types when adding
     // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
     // e.g., the following causes problems:
     // AttributeName extends NonArrayAttributes<DataType> & string,
     // and so does
     // AttributeName extends Exclude<DataType, 'serializers'> & string,
-    AttributeName extends keyof DataType & string,
-    AssociatedModelType extends Exclude<DataType[AttributeName], null>,
-    SerializerOptions extends AssociatedModelType extends Dream
+    AttributeName extends keyof DataType & string = keyof DataType & string,
+    AssociatedModelType = ProvidedAssociatedModelType extends undefined
+      ? Exclude<DataType[AttributeName], null>
+      : ProvidedAssociatedModelType,
+    SerializerOptions = AssociatedModelType extends Dream
       ?
           | {
               dreamClass: typeof Dream
@@ -113,7 +116,7 @@ export default class ObjectSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : never,
-    Options extends {
+    Options = {
       as?: string
       flatten?: boolean
       optional?: boolean
@@ -129,17 +132,20 @@ export default class ObjectSerializerBuilder<
   }
 
   public rendersMany<
+    ProvidedAssociatedModelType = undefined,
     // applying any type function to limit AttributeName breaks types when adding
     // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
     // e.g., the following causes problems:
     // AttributeName extends ArrayAttributes<DataType> & string,
-    AttributeName extends keyof DataType & string,
-    AssociatedModelType extends DataType[AttributeName] extends (Dream | ViewModel | object)[]
-      ? DataType[AttributeName] extends (infer U)[]
-        ? U
+    AttributeName extends keyof DataType & string = keyof DataType & string,
+    AssociatedModelType = ProvidedAssociatedModelType extends undefined
+      ? DataType[AttributeName] extends (Dream | ViewModel | object)[]
+        ? DataType[AttributeName] extends (infer U)[]
+          ? U
+          : never
         : never
-      : never,
-    SerializerOptions extends AssociatedModelType extends Dream
+      : ProvidedAssociatedModelType,
+    SerializerOptions = AssociatedModelType extends Dream
       ?
           | {
               dreamClass: typeof Dream
@@ -162,7 +168,7 @@ export default class ObjectSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : never,
-    Options extends {
+    Options = {
       as?: string
     } & SerializerOptions,
   >(name: AttributeName, options: Options) {
