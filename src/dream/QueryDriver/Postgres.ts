@@ -12,8 +12,10 @@ import {
   UpdateQueryBuilder,
 } from 'kysely'
 import pluralize from 'pluralize-esm'
+import DreamCLI from '../../cli/index.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
+import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import CannotAssociateThroughPolymorphic from '../../errors/associations/CannotAssociateThroughPolymorphic.js'
 import CannotJoinPolymorphicBelongsToError from '../../errors/associations/CannotJoinPolymorphicBelongsToError.js'
@@ -27,8 +29,12 @@ import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUn
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
+import generateMigration from '../../helpers/cli/generateMigration.js'
 import compact from '../../helpers/compact.js'
 import { DateTime } from '../../helpers/DateTime.js'
+import loadPgClient from '../../helpers/db/loadPgClient.js'
+import runMigration from '../../helpers/db/runMigration.js'
+import EnvInternal from '../../helpers/EnvInternal.js'
 import isEmpty from '../../helpers/isEmpty.js'
 import isObject from '../../helpers/isObject.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
@@ -72,8 +78,126 @@ import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
+import writeSyncFile from '../../bin/helpers/sync.js'
+import SchemaBuilder from '../../helpers/cli/SchemaBuilder.js'
+import createDb from '../../helpers/db/createDb.js'
+import _dropDb from '../../helpers/db/dropDb.js'
 
 export default class PostgresQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
+  public static override async migrate() {
+    const dreamApp = DreamApp.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
+
+    await runMigration({ mode: 'migrate' })
+    DreamCLI.logger.logEndProgress()
+
+    await this.duplicateDatabase()
+  }
+
+  public static override async rollback(opts: { steps: number }) {
+    const dreamApp = DreamApp.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    DreamCLI.logger.logStartProgress(`rolling back ${primaryDbConf.name}...`)
+
+    let step = opts.steps
+    while (step > 0) {
+      await runMigration({ mode: 'rollback' })
+      step -= 1
+    }
+    DreamCLI.logger.logEndProgress()
+
+    await this.duplicateDatabase()
+  }
+
+  public static override async generateMigration(migrationName: string, columnsWithTypes: string[]) {
+    await generateMigration({ migrationName, columnsWithTypes })
+  }
+
+  public static override async sync(onSync: () => Promise<void> | void) {
+    DreamCLI.logger.logStartProgress('writing db schema...')
+    await writeSyncFile()
+    DreamCLI.logger.logEndProgress()
+
+    DreamCLI.logger.logStartProgress('building dream schema...')
+    await new SchemaBuilder().build()
+    DreamCLI.logger.logEndProgress()
+
+    // intentionally leaving logs off here, since it allows other
+    // onSync handlers to determine their own independent logging approach
+    await onSync()
+  }
+
+  public static override async dbCreate() {
+    const dreamApp = DreamApp.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+
+    DreamCLI.logger.logStartProgress(`creating ${primaryDbConf.name}...`)
+    await createDb('primary')
+    DreamCLI.logger.logEndProgress()
+
+    // TODO: add support for creating replicas. Began doing it below, but it is very tricky,
+    // and we don't need it at the moment, so kicking off for future development when we have more time
+    // to flesh this out.
+    // if (connectionRetriever.hasReplicaConfig()) {
+    //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
+    //   console.log(`creating ${process.env[replicaDbConf.name]}`)
+    //   await createDb('replica')
+    // }
+  }
+
+  public static override async dbDrop() {
+    const dreamApp = DreamApp.getOrFail()
+    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+
+    DreamCLI.logger.logStartProgress(`dropping ${primaryDbConf.name}...`)
+    await _dropDb('primary')
+    DreamCLI.logger.logEndProgress()
+
+    // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,
+    // and we don't need it at the moment, so kicking off for future development when we have more time
+    // to flesh this out.
+    // if (connectionRetriever.hasReplicaConfig()) {
+    //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
+    //   console.log(`dropping ${process.env[replicaDbConf.name]}`)
+    //   await _dropDb('replica')
+    // }
+  }
+
+  private static async duplicateDatabase() {
+    const dreamApp = DreamApp.getOrFail()
+    const parallelTests = dreamApp.parallelTests
+    if (!parallelTests) return
+
+    DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
+    const dbConf = dreamApp.dbConnectionConfig('primary')
+    const client = await loadPgClient({ useSystemDb: true })
+
+    if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
+      const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
+      DreamCLI.logger.logContinueProgress(
+        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
+        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+      )
+      await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
+      await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
+    }
+
+    for (let i = 2; i <= parallelTests; i++) {
+      const workerDatabaseName = `${dbConf.name}_${i}`
+
+      DreamCLI.logger.logContinueProgress(
+        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
+        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+      )
+      await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
+      await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
+    }
+    await client.end()
+
+    DreamCLI.logger.logEndProgress()
+  }
+
   /**
    * @internal
    *

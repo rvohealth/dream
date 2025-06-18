@@ -7,6 +7,30 @@ export default class QueryDriverBase<DreamInstance extends Dream> extends Connec
     super(query.dreamInstance, query['originalOpts'])
   }
 
+  public static async migrate() {
+    throw new Error('override migrate in child class')
+  }
+
+  public static async rollback(_: { steps: number }) {
+    throw new Error('override rollback in child class')
+  }
+
+  public static async dbCreate() {
+    throw new Error('override dbCreate on child class')
+  }
+
+  public static async dbDrop() {
+    throw new Error('override dbDrop on child class')
+  }
+
+  public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {
+    throw new Error('override generateMigration in child class')
+  }
+
+  public static async sync(_: () => Promise<void> | void) {
+    throw new Error('override sync on child class')
+  }
+
   /**
    * @internal
    *
