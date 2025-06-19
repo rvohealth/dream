@@ -15,9 +15,8 @@ import {
 } from '../types/serializer.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
-import inferSerializerFromDreamOrViewModel, {
-  inferSerializersFromDreamClassOrViewModelClass,
-} from './helpers/inferSerializerFromDreamOrViewModel.js'
+import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
+import { serializerForAssociatedClass } from './helpers/serializerForAssociatedClass.js'
 
 export interface SerializerRendererOpts {
   casing?: SerializerCasing
@@ -281,24 +280,4 @@ function serializerForAssociatedObject<ObjectType extends Dream | ViewModel>(
 ): DreamModelSerializerType | SimpleObjectSerializerType {
   if (options.serializer) return options.serializer
   return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey)
-}
-
-/**
- * Only used when flatten: true, and the associated model is null, in which case,
- * we need something to determine the keys that will be flattened into the
- * rendering serializer
- */
-function serializerForAssociatedClass<ObjectType extends Dream | ViewModel>(
-  object: ObjectType,
-  associationName: string,
-  options: InternalAnyRendersOneOrManyOpts
-): DreamModelSerializerType | SimpleObjectSerializerType | null {
-  if (options.serializer) return options.serializer
-  if (!(object as Dream).isDreamInstance) return null
-
-  const dream = object as Dream
-  const association = dream['getAssociationMetadata'](associationName)
-  const associatedClasses = association!.modelCB()
-  const associatedClass = Array.isArray(associatedClasses) ? associatedClasses[0] : associatedClasses
-  return inferSerializersFromDreamClassOrViewModelClass(associatedClass, options.serializerKey)[0] ?? null
 }

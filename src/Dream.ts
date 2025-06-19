@@ -1,5 +1,6 @@
 import { CompiledQuery, Updateable } from 'kysely'
 
+import yoctocolors from 'yoctocolors'
 import { pgErrorType } from './db/errors.js'
 import db from './db/index.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
@@ -26,6 +27,7 @@ import {
 } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
 import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js'
+import { RecursiveSerializerInfo } from './dream/internal/extractNestedPaths.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 import reload from './dream/internal/reload.js'
 import runValidations from './dream/internal/runValidations.js'
@@ -59,7 +61,11 @@ import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
+import { indent } from './helpers/indent.js'
 import notEqual from './helpers/notEqual.js'
+import DreamSerializerBuilder from './serializer/builders/DreamSerializerBuilder.js'
+import { inferSerializersFromDreamClassOrViewModelClass } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import { serializerForAssociatedClass } from './serializer/helpers/serializerForAssociatedClass.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -81,6 +87,7 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
+  DreamSerializerKey,
   IdType,
   JoinAndStatements,
   NextPreloadArgumentType,
@@ -104,6 +111,13 @@ import {
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './types/query.js'
+import {
+  DreamModelSerializerType,
+  InternalAnyTypedSerializerDelegatedAttribute,
+  InternalAnyTypedSerializerRendersMany,
+  InternalAnyTypedSerializerRendersOne,
+  SimpleObjectSerializerType,
+} from './types/serializer.js'
 import { ValidationStatement, ValidationType } from './types/validation.js'
 import {
   JoinedAssociation,
@@ -174,6 +188,47 @@ export default class Dream {
 
   public get globalSchema(): any {
     throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'globalSchema')
+  }
+
+  /**
+   * Determines if the provided Dream class is the same as or a subclass of this Dream class.
+   * This method is particularly useful for runtime type checking and works with STI (Single Table Inheritance) classes.
+   *
+   * For regular Dream classes, this checks if the provided class is exactly the same class.
+   * For STI classes, this checks inheritance relationships - a child STI class will return true
+   * when compared against its parent class.
+   *
+   * ```ts
+   * // Regular class comparison
+   * User.typeof(User)    // true
+   * User.typeof(Pet)     // false
+   *
+   * // STI inheritance checking
+   * class Balloon extends ApplicationModel {
+   *   // base STI class
+   * }
+   *
+   * class Mylar extends Balloon {
+   *   // STI child class
+   * }
+   *
+   * Balloon.typeof(Balloon) // true
+   * Balloon.typeof(Mylar)   // false
+   * Mylar.typeof(Balloon)   // true (child recognizes parent)
+   * Mylar.typeof(Mylar)     // true
+   *
+   * // Runtime type checking with variables
+   * const dreamClass: typeof Dream = getRandomDreamClass()
+   * if (dreamClass.typeof(Pet)) {
+   *   // dreamClass is Pet or a subclass of Pet
+   * }
+   * ```
+   *
+   * @param dreamClass - The Dream class to compare against this class
+   * @returns `true` if the provided class is the same as this class or if this class is a subclass of the provided class (STI inheritance), `false` otherwise
+   */
+  public static typeof(dreamClass: typeof Dream): boolean {
+    return this.new() instanceof dreamClass
   }
 
   /**
@@ -528,6 +583,112 @@ export default class Dream {
    */
   private static setGlobalName(globalName: string) {
     this._globalName = globalName
+  }
+
+  protected static serializationMap<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    SerializerKey extends DreamSerializerKey<I>,
+  >(this: T, serializerKey?: SerializerKey): RecursiveSerializerInfo {
+    const key = serializerKey || 'default'
+    const serializer = inferSerializersFromDreamClassOrViewModelClass(this, key)[0] ?? null
+    if (!serializer) throw new Error(`unable to find serializer with key: ${key as string}`)
+    return this.recursiveSerializationMap(serializer)
+  }
+
+  protected static displaySerialization<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    SerializerKey extends DreamSerializerKey<I>,
+  >(this: T, serializerKey?: SerializerKey): RecursiveSerializerInfo {
+    const key = serializerKey || 'default'
+    const serializer = inferSerializersFromDreamClassOrViewModelClass(this, key)[0] ?? null
+    if (!serializer) throw new Error(`unable to find serializer with key: ${key as string}`)
+
+    console.log(yoctocolors.cyan(this.sanitizedName))
+    console.log(yoctocolors.gray((serializer as unknown as Record<'globalName', string>).globalName))
+
+    return this.recursiveSerializationMap(serializer, {
+      forDisplay: true,
+    })
+  }
+
+  protected static recursiveSerializationMap(
+    serializer: DreamModelSerializerType | SimpleObjectSerializerType,
+    {
+      forDisplay = false,
+      forDisplayDepth = 0,
+    }: {
+      forDisplay?: boolean
+      forDisplayDepth?: number
+    } = {}
+  ) {
+    const serializerBuilder = serializer(undefined as any, undefined as any) as DreamSerializerBuilder<
+      any,
+      any
+    >
+    const serializerAssociations = serializerBuilder['attributes'].filter(attribute =>
+      ['rendersOne', 'rendersMany', 'delegatedAttribute'].includes(attribute.type as string)
+    ) as (
+      | InternalAnyTypedSerializerRendersMany<any>
+      | InternalAnyTypedSerializerRendersOne<any>
+      | InternalAnyTypedSerializerDelegatedAttribute
+    )[]
+
+    return serializerAssociations.reduce((acc, serializerAssociation) => {
+      const serializerAssociationName =
+        (serializerAssociation as InternalAnyTypedSerializerDelegatedAttribute).targetName ??
+        serializerAssociation.name
+      const serializerAssociationType = serializerAssociation.type
+      const association = this['getAssociationMetadata'](serializerAssociationName)
+      if (!association) return acc
+
+      const associatedClasses = association.modelCB()
+      const associatedClass = Array.isArray(associatedClasses) ? associatedClasses[0] : associatedClasses
+      if (!associatedClass)
+        throw new Error(
+          `No class defined on ${serializerAssociationName} association on ${this.sanitizedName}`
+        )
+
+      const associationSerializer = serializerForAssociatedClass(
+        this.prototype,
+        serializerAssociationName,
+        serializerAssociation.options
+      )
+      if (!associationSerializer)
+        throw new Error(`No serializer found to render ${serializerAssociationName} on ${this.sanitizedName}`)
+
+      if (forDisplay && serializerAssociationType !== 'delegatedAttribute') {
+        const hierarchyLine = '└───'
+        const indentation = indent((hierarchyLine.length + 1) * forDisplayDepth, {
+          tabWidth: 1,
+        })
+        const prefix = `${hierarchyLine} `
+        const nestedAssociationDisplay =
+          indentation + `${prefix}${serializerAssociationType} ${yoctocolors.cyan(serializerAssociationName)}`
+        console.log(nestedAssociationDisplay)
+        console.log(
+          yoctocolors.gray(
+            indentation +
+              indent(prefix.length, { tabWidth: 1 }) +
+              (associationSerializer as unknown as Record<'globalName', string>).globalName
+          )
+        )
+      }
+
+      acc[association.as] = {
+        parentDreamClass: this,
+        nestedSerializerInfo:
+          serializerAssociation.type === 'delegatedAttribute'
+            ? {}
+            : associatedClass['recursiveSerializationMap'](associationSerializer, {
+                forDisplay,
+                forDisplayDepth: forDisplayDepth + 1,
+              }),
+      }
+
+      return acc
+    }, {} as RecursiveSerializerInfo)
   }
 
   /**
@@ -1277,6 +1438,152 @@ export default class Dream {
     const Arr extends readonly unknown[],
   >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
     return this.query().preload(...(args as any))
+  }
+
+  /**
+   * Recursively preloads all Dream associations referenced by `rendersOne` and `rendersMany`
+   * in a DreamSerializer. This traverses the entire content tree of serializers to automatically
+   * load all necessary associations, eliminating N+1 query problems and removing the need to
+   * manually remember which associations to preload for serialization.
+   *
+   * This method decouples data loading code from data rendering code by having the serializer
+   * (rendering code) inform the query (loading code) about which associations are needed.
+   * As serializers evolve over time - adding new `rendersOne` and `rendersMany` calls or
+   * modifying existing ones - the loading code automatically adapts without requiring
+   * corresponding modifications to preload statements.
+   *
+   * This method analyzes the serializer (specified by `serializerKey` or 'default') and
+   * automatically preloads all associations that will be needed during serialization.
+   *
+   * ```ts
+   * // Instead of manually specifying all associations:
+   * await User.preload('posts', 'comments', 'replies').all()
+   *
+   * // Automatically preload everything needed for serialization:
+   * await User.preloadForSerialization({ serializerKey: 'summary' }).all()
+   *
+   * // Add where conditions to specific associations during preloading:
+   * await User.preloadForSerialization({
+   *   serializerKey: 'detailed',
+   *   modifierFn: (dreamClass, associationName) => {
+   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *       return { and: { published: true } }
+   *     }
+   *   }
+   * }).all()
+   *
+   * // Skip preloading specific associations to handle them manually:
+   * await User.preloadForSerialization({
+   *   serializerKey: 'summary',
+   *   modifierFn: (dreamClass, associationName) => {
+   *     if (dreamClass.typeof(User) && associationName === 'posts') {
+   *       return 'omit' // Handle posts preloading separately with custom logic
+   *     }
+   *   }
+   * })
+   * .preload('posts', { and: { featured: true } }) // Custom preloading
+   * .all()
+   * ```
+   *
+   * @param opts - Configuration options for serialization preloading
+   * @param opts.serializerKey - The serializer key to use for determining which associations to preload. Defaults to 'default'
+   * @param opts.modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
+   * @returns A Query with all serialization associations preloaded
+   */
+
+  public static preloadForSerialization<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    SerializerKey extends DreamSerializerKey<I>,
+  >(
+    this: T,
+    opts: {
+      serializerKey?: SerializerKey
+      modifierFn?: <
+        DreamClass extends typeof Dream,
+        const AssociationName extends DreamAssociationNames<InstanceType<DreamClass>>,
+      >(
+        dreamClass: DreamClass,
+        associationName: AssociationName
+      ) => { and?: object; andAny?: object; andNot?: object } | 'omit' | undefined
+    } = {}
+  ) {
+    return this.query().preloadForSerialization(opts)
+  }
+
+  /**
+   * Recursively preloads all Dream associations referenced by `rendersOne` and `rendersMany`
+   * in a DreamSerializer using left join preloading. This traverses the entire content tree
+   * of serializers to automatically load all necessary associations in a single query,
+   * eliminating N+1 query problems and removing the need to manually remember which
+   * associations to preload for serialization.
+   *
+   * This method decouples data loading code from data rendering code by having the serializer
+   * (rendering code) inform the query (loading code) about which associations are needed.
+   * As serializers evolve over time - adding new `rendersOne` and `rendersMany` calls or
+   * modifying existing ones - the loading code automatically adapts without requiring
+   * corresponding modifications to left join preload statements.
+   *
+   * This method analyzes the serializer (specified by `serializerKey` or 'default') and
+   * automatically left join preloads all associations that will be needed during serialization.
+   *
+   * Note: Left join preloading loads all data in a single SQL query but has trade-offs compared
+   * to regular preloading. See {@link Dream.leftJoinPreload} for details about limitations.
+   *
+   * ```ts
+   * // Instead of manually specifying all associations:
+   * await User.leftJoinPreload('posts', 'comments', 'replies').all()
+   *
+   * // Automatically left join preload everything needed for serialization:
+   * await User.leftJoinPreloadForSerialization({ serializerKey: 'summary' }).all()
+   *
+   * // Add where conditions to specific associations during left join preloading:
+   * await User.leftJoinPreloadForSerialization({
+   *   serializerKey: 'detailed',
+   *   modifierFn: (dreamClass, associationName) => {
+   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *       return { and: { published: true } }
+   *     }
+   *   }
+   * }).all()
+   *
+   * // Skip left join preloading specific associations to handle them manually:
+   * await User.leftJoinPreloadForSerialization({
+   *   serializerKey: 'summary',
+   *   modifierFn: (dreamClass, associationName) => {
+   *     if (dreamClass.typeof(User) && associationName === 'posts') {
+   *       return 'omit' // Handle posts preloading separately with custom logic
+   *     }
+   *   }
+   * })
+   * .preload('posts', { and: { featured: true } }) // Custom preloading instead
+   * .all()
+   * ```
+   *
+   * @param opts - Configuration options for serialization preloading
+   * @param opts.serializerKey - The serializer key to use for determining which associations to preload. Defaults to 'default'
+   * @param opts.modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
+   * @returns A Query with all serialization associations left join preloaded
+   */
+
+  public static leftJoinPreloadForSerialization<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    SerializerKey extends DreamSerializerKey<I>,
+  >(
+    this: T,
+    opts: {
+      serializerKey?: SerializerKey
+      modifierFn?: <
+        DreamClass extends typeof Dream,
+        const AssociationName extends DreamAssociationNames<InstanceType<DreamClass>>,
+      >(
+        dreamClass: DreamClass,
+        associationName: AssociationName
+      ) => { and?: object; andAny?: object; andNot?: object } | 'omit' | undefined
+    } = {}
+  ) {
+    return this.query().leftJoinPreloadForSerialization(opts)
   }
 
   /**

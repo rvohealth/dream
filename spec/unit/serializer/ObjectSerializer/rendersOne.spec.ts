@@ -1,5 +1,5 @@
 import { CalendarDate, DreamSerializer, ObjectSerializer } from '../../../../src/index.js'
-import User, { default as DreamUser } from '../../../../test-app/app/models/User.js'
+import { default as DreamUser } from '../../../../test-app/app/models/User.js'
 import { Species, SpeciesValues } from '../../../../test-app/types/db.js'
 
 interface SimpleUser {
@@ -157,7 +157,7 @@ describe('ObjectSerializer rendersOne', () => {
             ObjectSerializer(data)
               .attribute('species', { openapi: { type: ['string', 'null'], enum: SpeciesValues } })
               // rendersOne generic param just to make sure it works
-              .rendersOne<User>('user', { dreamClass: DreamUser, flatten: true })
+              .rendersOne<PetWithDreamUser>('user', { dreamClass: DreamUser, flatten: true })
               .customAttribute('favoriteWord', () => 'howdy', { openapi: 'string' })
 
           const serializer = MySerializer(pet)

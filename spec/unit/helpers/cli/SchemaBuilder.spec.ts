@@ -159,7 +159,7 @@ describe('SchemaBuilder', () => {
 
     context('serializerKeys', () => {
       it('sets the serializerKeys', () => {
-        expect(User.prototype.schema.users.serializerKeys).toEqual(['default', 'summary'])
+        expect(User.prototype.schema.users.serializerKeys).toEqual(['deep', 'default', 'summary'])
       })
 
       context('on an STI table name', () => {
@@ -167,6 +167,7 @@ describe('SchemaBuilder', () => {
           expect(User.prototype.schema.beautiful_balloons.serializerKeys).toEqual([
             'allBalloonStiChildren',
             'default',
+            'delegated',
           ])
         })
       })

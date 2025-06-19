@@ -25,6 +25,8 @@ export default class Balloon extends ApplicationModel {
   public createdAt: DreamColumn<Balloon, 'createdAt'>
   public updatedAt: DreamColumn<Balloon, 'updatedAt'>
 
+  public myString: { value: string } = { value: 'howyd-do' }
+
   public get type() {
     return (this as Balloon).getAttribute('type')
   }

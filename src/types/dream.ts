@@ -15,7 +15,7 @@ import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from './serializer.js'
 import { FilterInterface, Inc } from './utils.js'
-import { AliasedSchemaAssociation } from './variadic.js'
+import { AliasedSchemaAssociation, RequiredOnClauseKeys } from './variadic.js'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
@@ -247,6 +247,31 @@ export type AssociationTableName<
   AssociationName,
   AssociationData = MetadataForAssociation<Schema, TableName, AssociationName>,
 > = (AssociationData['tables' & keyof AssociationData] & any[])[0] & keyof Schema
+
+export type DreamClassAssociationAndStatement<
+  DreamClass extends typeof Dream,
+  AssociationName,
+  DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
+  DB extends DreamInstance['DB'] = DreamInstance['DB'],
+  Schema extends DreamInstance['schema'] = DreamInstance['schema'],
+  TableName extends DreamInstance['table'] = DreamInstance['table'],
+  AssocTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB = AssociationTableName<
+    Schema,
+    TableName,
+    AssociationName
+  >,
+  RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<
+    Schema,
+    TableName,
+    AssociationName
+  > = RequiredOnClauseKeys<Schema, TableName, AssociationName>,
+  Statements extends JoinAndStatements<
+    DB,
+    Schema,
+    AssocTableName,
+    RequiredOnClauseKeysForThisAssociation
+  > = JoinAndStatements<DB, Schema, AssocTableName, RequiredOnClauseKeysForThisAssociation>,
+> = Statements
 
 export type JoinAndStatements<
   DB,

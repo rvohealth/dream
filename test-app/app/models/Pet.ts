@@ -1,7 +1,7 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import { Decorators, ops } from '../../../src/index.js'
 import { DreamColumn, IdType } from '../../../src/types/dream.js'
-import PetSerializer, { PetSummarySerializer } from '../serializers/PetSerializer.js'
+import PetSerializer, { PetDeepSerializer, PetSummarySerializer } from '../serializers/PetSerializer.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 import Collar from './Collar.js'
@@ -22,6 +22,7 @@ export default class Pet extends ApplicationModel {
     return {
       default: PetSerializer,
       summary: PetSummarySerializer,
+      deep: PetDeepSerializer,
     }
   }
 

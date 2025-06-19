@@ -94,6 +94,7 @@ export { type DbConnectionType, type DbTypes } from './types/db.js'
 export {
   type DreamAssociationMetadata,
   type DreamAttributes,
+  type DreamClassAssociationAndStatement,
   type DreamClassColumn,
   type DreamColumn,
   type DreamColumnNames,

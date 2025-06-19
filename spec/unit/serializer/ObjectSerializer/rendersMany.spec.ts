@@ -172,7 +172,7 @@ describe('ObjectSerializer rendersMany', () => {
       ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
       const MySerializer = (data: UserWithSimplePets) =>
         // rendersMany generic param just to make sure it works
-        ObjectSerializer(data).rendersMany<SimplePet>('pets', { serializer: CustomSerializer })
+        ObjectSerializer(data).rendersMany<UserWithSimplePets>('pets', { serializer: CustomSerializer })
 
       const serializer = MySerializer(user)
 

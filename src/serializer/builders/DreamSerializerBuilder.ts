@@ -131,24 +131,32 @@ export default class DreamSerializerBuilder<
    * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
   public delegatedAttribute<
-    ProvidedTargetObjectType = undefined,
-    // don't attempt to exclude 'serializers' because it breaks types when adding
-    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-    TargetName extends keyof DataType & string = keyof DataType & string,
-    TargetObject extends ProvidedTargetObjectType extends undefined
-      ? DataType[TargetName]
-      : ProvidedTargetObjectType = ProvidedTargetObjectType extends undefined
-      ? DataType[TargetName]
-      : ProvidedTargetObjectType,
+    ProvidedModelType = undefined,
+    ProvidedAttributeName extends ProvidedModelType extends undefined
+      ? undefined
+      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      ? undefined
+      : Exclude<keyof ProvidedModelType, keyof Dream>,
+    ActualDataType extends ProvidedModelType extends undefined
+      ? DataType
+      : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
+    TargetName extends ProvidedAttributeName extends undefined
+      ? Exclude<keyof ActualDataType, keyof Dream>
+      : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
+      ? Exclude<keyof ActualDataType, keyof Dream>
+      : ProvidedAttributeName & keyof ActualDataType,
+    //
+
+    TargetObject extends ActualDataType[TargetName] = ActualDataType[TargetName],
     AttributeName extends TargetObject extends object
-      ? keyof TargetObject & string
-      : never = TargetObject extends object ? keyof TargetObject & string : never,
+      ? Exclude<keyof TargetObject, keyof Dream> & string
+      : never = TargetObject extends object ? Exclude<keyof TargetObject, keyof Dream> & string : never,
     Options extends
       NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption = NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(targetName: TargetName, name: AttributeName, options: Options) {
     this.attributes.push({
       type: 'delegatedAttribute',
-      targetName,
+      targetName: targetName as any,
       name: name as any,
       options: options ?? {},
     })
@@ -228,17 +236,23 @@ export default class DreamSerializerBuilder<
    * See: {@link https://your-docs-url.com/docs/serializers/associations | Serializer Associations Documentation}
    */
   public rendersOne<
-    ProvidedAssociatedModelType = undefined,
-    // applying any type function to limit AttributeName breaks types when adding
-    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-    // e.g., the following causes problems:
-    // AttributeName extends NonArrayAttributes<DataType> & string,
-    // and so does
-    // AttributeName extends Exclude<DataType, 'serializers'> & string,
-    AttributeName extends keyof DataType & string = keyof DataType & string,
-    AssociatedModelType = ProvidedAssociatedModelType extends undefined
-      ? Exclude<DataType[AttributeName], null>
-      : ProvidedAssociatedModelType,
+    ProvidedModelType = undefined,
+    ProvidedAttributeName extends ProvidedModelType extends undefined
+      ? undefined
+      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      ? undefined
+      : Exclude<keyof ProvidedModelType, keyof Dream>,
+    ActualDataType extends ProvidedModelType extends undefined
+      ? DataType
+      : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
+    AttributeName extends ProvidedAttributeName extends undefined
+      ? Exclude<keyof ActualDataType, keyof Dream>
+      : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
+      ? Exclude<keyof ActualDataType, keyof Dream>
+      : ProvidedAttributeName & keyof ActualDataType,
+    //
+
+    AssociatedModelType = Exclude<ActualDataType[AttributeName], null>,
     SerializerOptions = AssociatedModelType extends Dream
       ?
           | {
@@ -261,7 +275,11 @@ export default class DreamSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : object,
-    Options = {
+    Options extends {
+      as?: string
+      flatten?: boolean
+      optional?: boolean
+    } & SerializerOptions = {
       as?: string
       flatten?: boolean
       optional?: boolean
@@ -269,7 +287,7 @@ export default class DreamSerializerBuilder<
   >(name: AttributeName, options?: Options) {
     this.attributes.push({
       type: 'rendersOne',
-      name,
+      name: name as any,
       options: options ?? {},
     })
 
@@ -306,19 +324,27 @@ export default class DreamSerializerBuilder<
    * See: {@link https://your-docs-url.com/docs/serializers/associations | Serializer Associations Documentation}
    */
   public rendersMany<
-    ProvidedAssociatedModelType = undefined,
-    // applying any type function to limit AttributeName breaks types when adding
-    // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-    // e.g., the following causes problems:
-    // AttributeName extends ArrayAttributes<DataType> & string,
-    AttributeName extends keyof DataType & string = keyof DataType & string,
-    AssociatedModelType = ProvidedAssociatedModelType extends undefined
-      ? DataType[AttributeName] extends (Dream | ViewModel)[]
-        ? DataType[AttributeName] extends (infer U)[]
-          ? U
-          : object
+    ProvidedModelType = undefined,
+    ProvidedAttributeName extends ProvidedModelType extends undefined
+      ? undefined
+      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      ? undefined
+      : Exclude<keyof ProvidedModelType, keyof Dream>,
+    ActualDataType extends ProvidedModelType extends undefined
+      ? DataType
+      : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
+    AttributeName extends ProvidedAttributeName extends undefined
+      ? Exclude<keyof ActualDataType, keyof Dream>
+      : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
+      ? Exclude<keyof ActualDataType, keyof Dream>
+      : ProvidedAttributeName & keyof ActualDataType,
+    //
+
+    AssociatedModelType = ActualDataType[AttributeName] extends (Dream | ViewModel)[]
+      ? ActualDataType[AttributeName] extends (infer U)[]
+        ? U
         : object
-      : ProvidedAssociatedModelType,
+      : object,
     SerializerOptions = AssociatedModelType extends Dream
       ?
           | {
@@ -341,13 +367,17 @@ export default class DreamSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : object,
-    Options = {
+    Options extends {
       as?: string
+      z?: AttributeName
+    } & SerializerOptions = {
+      as?: string
+      z?: AttributeName
     } & SerializerOptions,
   >(name: AttributeName, options?: Options) {
     this.attributes.push({
       type: 'rendersMany',
-      name,
+      name: name as any,
       options: options ?? {},
     })
 

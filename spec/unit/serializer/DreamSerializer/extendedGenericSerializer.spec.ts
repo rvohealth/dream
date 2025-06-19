@@ -9,8 +9,8 @@ describe('extending a generic DreamSerializer', () => {
     const AncestorSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, data: T) =>
       DreamSerializer(StiChildClass, data)
         .attribute('color')
-        .rendersOne<BalloonLine>('balloonLine', { serializerKey: 'summary' })
-        .rendersMany<HeartRating>('heartRatings', { serializerKey: 'default' })
+        .rendersOne<Balloon, 'balloonLine'>('balloonLine', { serializerKey: 'summary' })
+        .rendersMany<Balloon, 'heartRatings'>('heartRatings', { serializerKey: 'default' })
 
     const MySerializer = (data: Mylar) => AncestorSerializer(Mylar, data).attribute('mylarOnlyProperty')
 

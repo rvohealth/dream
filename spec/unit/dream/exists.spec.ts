@@ -1,7 +1,7 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
 
-describe('Dream.first', () => {
+describe('Dream.exists', () => {
   context('when no instances of the specified model exists', () => {
     it('return false', async () => {
       expect(await User.exists()).toBe(false)
