@@ -123,7 +123,10 @@ export default class DreamSerializerBuilder<
     // AttributeName extends NonArrayAttributes<DataType> & string,
     // and so does
     // AttributeName extends Exclude<DataType, 'serializers'> & string,
-    AttributeName extends keyof DataType & string = keyof DataType & string,
+    AttributeName extends Exclude<keyof DataType & string, keyof Dream> = Exclude<
+      keyof DataType & string,
+      keyof Dream
+    >,
     AssociatedModelType = ProvidedAssociatedModelType extends undefined
       ? Exclude<DataType[AttributeName], null>
       : ProvidedAssociatedModelType,
@@ -170,7 +173,10 @@ export default class DreamSerializerBuilder<
     // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
     // e.g., the following causes problems:
     // AttributeName extends ArrayAttributes<DataType> & string,
-    AttributeName extends keyof DataType & string = keyof DataType & string,
+    AttributeName extends Exclude<keyof DataType & string, keyof Dream> = Exclude<
+      keyof DataType & string,
+      keyof Dream
+    >,
     AssociatedModelType = ProvidedAssociatedModelType extends undefined
       ? DataType[AttributeName] extends (Dream | ViewModel)[]
         ? DataType[AttributeName] extends (infer U)[]

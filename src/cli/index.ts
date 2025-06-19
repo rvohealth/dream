@@ -224,6 +224,24 @@ export default class DreamCLI {
         await seedDb()
         process.exit()
       })
+
+    program
+      .command('introspect:serialization')
+      .alias('i:serialization')
+      .description(
+        'displays a serialization map to help understand the rendering logic for a particular model'
+      )
+      .argument('<globalName>', 'the global name of the model you want to look up')
+      .argument('[serializerKey]', 'the serializer key you wish to use')
+      .action(async (globalName: string, serializerKey: string) => {
+        await initializeDreamApp()
+        const dreamApp = DreamApp.getOrFail()
+        const modelClass = dreamApp.models[globalName]
+        if (!modelClass) throw new Error(`failed to locate model by global name: ${globalName}`)
+
+        modelClass.displaySerialization(serializerKey)
+        process.exit()
+      })
   }
 
   /*

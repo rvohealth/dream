@@ -29,6 +29,7 @@ export default class User extends ApplicationModel {
     return {
       default: 'UserSerializer',
       summary: 'UserSummarySerializer',
+      deep: 'UserDeepSerializer',
     }
   }
 

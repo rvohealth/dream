@@ -11,4 +11,4 @@ export const CollarSummarySerializer = (data: Collar) =>
     .rendersOne('pet', { serializerKey: 'summary' })
 
 export const CollarDeepSerializer = (data: Collar) =>
-  DreamSerializer(Collar, data).rendersOne('pet', { serializerKey: 'deep' })
+  DreamSerializer(Collar, data).rendersOne('pet', { serializerKey: 'deep' }).rendersOne('balloon')

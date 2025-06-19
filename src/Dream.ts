@@ -582,6 +582,74 @@ export default class Dream {
     return allAssociations
   }
 
+  public static displaySerialization<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    Table = I['table' & keyof I] extends string ? I['table' & keyof I] : never,
+    Schema = I['schema' & keyof I] extends object ? I['schema' & keyof I] : never,
+    TableSchema = Table extends never ? never : Schema extends never ? never : Schema[Table & keyof Schema],
+    SerializerKeys = TableSchema extends never
+      ? never
+      : TableSchema['serializerKeys' & keyof TableSchema] & (string[] | Readonly<string[]>),
+    SerializerKey = SerializerKeys extends string[] | Readonly<string[]> ? SerializerKeys[number] : never,
+  >(this: T, serializerKey?: SerializerKey, spaces: string = '') {
+    const key = serializerKey || 'default'
+    const serializerNameOrCb = (this as DreamSerializable).prototype.serializers[key]
+    const inferred =
+      typeof serializerNameOrCb === 'string'
+        ? DreamApp.getOrFail().serializers[serializerNameOrCb]
+        : serializerNameOrCb
+
+    if (!inferred) throw new Error(`unable to find serializer with key: ${key as string}`)
+
+    const builder = inferred(undefined as any, undefined as any) as DreamSerializerBuilder<any, any, any>
+    const associations = builder['attributes'].filter(attribute =>
+      ['rendersOne', 'rendersMany'].includes(attribute.type as string)
+    ) as (InternalAnyTypedSerializerRendersMany<any, any> | InternalAnyTypedSerializerRendersOne<any, any>)[]
+
+    console.log(`${this.name}${serializerKey ? `:${serializerKey}` : ''}`)
+
+    associations.forEach(association => {
+      const serializerKey = association.options?.serializerKey
+      console.log(
+        `${spaces + '└───'}${association.name}(${association.type}${serializerKey ? `:${serializerKey}` : ''})`
+      )
+      this.logAssociationsForAssociation(association, spaces + '    ')
+    })
+  }
+
+  private static logAssociationsForAssociation(
+    serializerAssociation:
+      | InternalAnyTypedSerializerRendersMany<any, any>
+      | InternalAnyTypedSerializerRendersOne<any, any>,
+    spaces: string
+  ) {
+    const association = this['getAssociationMetadata'](serializerAssociation.name)
+    const associatedClasses = association!.modelCB()
+    const associatedClass = Array.isArray(associatedClasses) ? associatedClasses[0] : associatedClasses
+
+    const inferred =
+      inferSerializersFromDreamClassOrViewModelClass(
+        associatedClass,
+        serializerAssociation.options.serializerKey
+      )[0] ?? null
+
+    if (!inferred) return {}
+
+    const builder = inferred(undefined as any, undefined as any) as DreamSerializerBuilder<any, any, any>
+    const associations = builder['attributes'].filter(attribute =>
+      ['rendersOne', 'rendersMany'].includes(attribute.type as string)
+    ) as (InternalAnyTypedSerializerRendersMany<any, any> | InternalAnyTypedSerializerRendersOne<any, any>)[]
+
+    associations.forEach(association => {
+      const serializerKey = association.options?.serializerKey
+      console.log(
+        `${spaces}└───${association.name}(${association.type}${serializerKey ? `:${serializerKey}` : ''})`
+      )
+      associatedClass?.logAssociationsForAssociation(association, spaces + '    ')
+    })
+  }
+
   private static getAssociationsForAssociation(
     serializerAssociation:
       | InternalAnyTypedSerializerRendersMany<any, any>
@@ -603,7 +671,6 @@ export default class Dream {
     const associations = builder['attributes'].filter(attribute =>
       ['rendersOne', 'rendersMany'].includes(attribute.type as string)
     ) as (InternalAnyTypedSerializerRendersMany<any, any> | InternalAnyTypedSerializerRendersOne<any, any>)[]
-    console.log({ associatedClass, inferred })
 
     const retVal: any = {}
     associations.forEach(association => {

@@ -5,3 +5,5 @@ export default (data: User) => UserSummarySerializer(data).attribute('name').att
 
 export const UserSummarySerializer = (data: User) =>
   DreamSerializer(User, data).attribute('id').attribute('favoriteWord')
+
+export const UserDeepSerializer = (data: User) => DreamSerializer(User, data).rendersMany('allPets')

@@ -4157,7 +4157,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: ['default', 'summary'],
+    serializerKeys: ['deep', 'default', 'summary'],
     scopes: {
       default: ['hideDeleted'],
       named: ['withFunnyName'],
@@ -4692,6 +4692,7 @@ export const globalSchema = {
       'SandbagSerializer',
       'ShapeSerializer',
       'ShapeSummarySerializer',
+      'UserDeepSerializer',
       'UserSerializer',
       'UserSummarySerializer',
       'view-model/PetSerializer',
