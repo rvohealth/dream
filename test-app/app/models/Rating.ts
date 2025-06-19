@@ -13,7 +13,7 @@ export default class Rating extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<Rating> {
-    return { default: 'RatingSerializer' }
+    return { default: 'RatingSerializer', deep: 'RatingDeepSerializer' }
   }
 
   public id: DreamColumn<Rating, 'id'>

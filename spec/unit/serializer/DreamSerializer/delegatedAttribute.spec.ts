@@ -12,7 +12,7 @@ describe('DreamSerializer delegated attributes', () => {
       DreamSerializer(Pet, data)
         .delegatedAttribute('user', 'name', { openapi: 'string' })
         // passing a generic argument here just to ensure the types stay correct
-        .delegatedAttribute<User>('user', 'birthdate', { openapi: 'date' })
+        .delegatedAttribute<Pet>('user', 'birthdate', { openapi: 'date' })
 
     const serializer = MySerializer(pet)
 
@@ -47,7 +47,7 @@ describe('DreamSerializer delegated attributes', () => {
         DreamSerializer(Pet, data)
           .delegatedAttribute('user', 'name', { openapi: 'string' })
           // passing a generic argument here just to ensure the types stay correct
-          .delegatedAttribute<User>('user', 'birthdate', { openapi: 'date' })
+          .delegatedAttribute<Pet>('user', 'birthdate', { openapi: 'date' })
 
       const serializer = MySerializer(pet)
 

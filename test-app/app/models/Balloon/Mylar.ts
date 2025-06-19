@@ -9,6 +9,7 @@ export default class Mylar extends Balloon {
       default: 'Balloon/MylarSerializer',
       mylarOnly: 'Balloon/MylarSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
+      delegated: 'Balloon/DelegatedAttributeSerializer',
     }
   }
 

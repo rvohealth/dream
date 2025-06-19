@@ -16,6 +16,7 @@ export default class _Latex extends Balloon {
       default: 'Balloon/LatexSerializer',
       latexOnly: 'Balloon/LatexSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
+      delegated: 'Balloon/DelegatedAttributeSerializer',
     }
   }
 }
