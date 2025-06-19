@@ -14,7 +14,11 @@ export default class Collar extends ApplicationModel {
   }
 
   public get serializers(): DreamSerializers<Collar> {
-    return { default: 'CollarSerializer' }
+    return {
+      default: 'CollarSerializer',
+      summary: 'CollarSummarySerializer',
+      deep: 'CollarDeepSerializer',
+    } as const
   }
 
   public id: DreamColumn<Collar, 'id'>

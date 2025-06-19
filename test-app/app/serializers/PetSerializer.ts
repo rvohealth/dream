@@ -16,3 +16,6 @@ export default (data: Pet, passthroughData: object) =>
 
 export const PetSummarySerializer = (data: Pet, $passthrough: object) =>
   DreamSerializer(Pet, data, $passthrough).attribute('id').attribute('favoriteTreats')
+
+export const PetDeepSerializer = (data: Pet, passthroughData: object) =>
+  DreamSerializer(Pet, data, passthroughData).rendersMany('ratings', { serializerKey: 'deep' })
