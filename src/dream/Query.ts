@@ -532,8 +532,8 @@ export default class Query<
    * ```
    *
    * @param cb - The callback to call for each found record
-   * @param options - Options for destroying the instance
-   * @param options.batchSize - The batch size you wish to collect records in. If not provided, it will default to 1000
+   * @param __namedParameters - Options for batch processing
+   * @param __namedParameters.batchSize - The batch size you wish to collect records in. If not provided, it will default to 1000
    * @returns void
    */
   public async findEach(
@@ -563,10 +563,10 @@ export default class Query<
 
   /**
    * Load each specified association using a single SQL query.
-   * See {@link #preload} for preloading in separate queries.
+   * See {@link Query.preload} for preloading in separate queries.
    *
    * Note: since leftJoinPreload loads via single query, it has
-   * some downsides and that may be avoided using {@link #preload}:
+   * some downsides and that may be avoided using {@link Query.preload}:
    * 1. `limit` and `offset` will be automatically removed
    * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
    * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
@@ -634,7 +634,7 @@ export default class Query<
 
   /**
    * Load each specified association using a separate SQL query.
-   * See {@link #leftJoinPreload} for preloading in a single query.
+   * See {@link Query.leftJoinPreload} for preloading in a single query.
    *
    * ```ts
    * const user = await User.query().preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
@@ -1173,7 +1173,7 @@ export default class Query<
    * // [User{name: 'a', id: 99}, User{name: 'a', id: 97}, User{ name: 'b', id: 98 } ...]
    * ```
    *
-   * @param orderStatement - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
+   * @param arg - Either a string or an object specifying order. If a string, the order is implicitly ascending. If the orderStatement is an object, statements will be provided in the order of the keys set in the object
    * @returns A cloned Query with the order clause applied
    */
 
@@ -1339,7 +1339,7 @@ export default class Query<
    * })
    * ```
    *
-   * @param txn - A DreamTransaction instance (usually collected by calling `ApplicationModel.transaction`)
+   * @param dreamTransaction - A DreamTransaction instance (usually collected by calling `ApplicationModel.transaction`)
    * @returns A cloned Query with the transaction applied
    *
    */
@@ -1606,6 +1606,7 @@ export default class Query<
    * // 2
    * ```
    *
+   * @param opts - Pagination options
    * @param opts.page - the page number that you want to fetch results for
    * @param opts.pageSize - the number of results per page (optional)
    * @returns results.recordCount - A number representing the total number of records matching your query
@@ -1784,11 +1785,11 @@ export default class Query<
    * // 12
    * ```
    *
-   * @param options - Options for destroying the instance
-   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
-   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
+   * @param __namedParameters - Options for destroying the instance
+   * @param __namedParameters.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param __namedParameters.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    */
   public async destroy({
@@ -1834,18 +1835,18 @@ export default class Query<
    * were destroyed.
    *
    * To destroy without bypassing the SoftDelete
-   * decorator, use {@link Query.(destroy:instance) | destroy} instead.
+   * decorator, use {@link Query.destroy} instead.
    *
    * ```ts
    * await User.where({ email: ops.ilike('%burpcollaborator%') }).reallyDestroy()
    * // 12
    * ```
    *
-   * @param options - Options for destroying the instance
-   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
-   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
+   * @param __namedParameters - Options for destroying the instance
+   * @param __namedParameters.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param __namedParameters.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    */
   public async reallyDestroy({
@@ -1867,11 +1868,11 @@ export default class Query<
    * // 12
    * ```
    *
-   * @param options - Options for undestroying the instance
-   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
-   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
+   * @param __namedParameters - Options for undestroying the instance
+   * @param __namedParameters.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
+   * @param __namedParameters.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
+   * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The number of records that were removed
    */
   public async undestroy({
@@ -1910,7 +1911,7 @@ export default class Query<
    * though cascading may still happen at the database level.
    *
    * To apply model hooks and association dependent destroy,
-   * use {@link Query.(destroy:instance) | destroy} instead.
+   * use {@link Query.destroy} instead.
    *
    * ```ts
    * await User.where({ email: ops.ilike('%burpcollaborator%').delete() })

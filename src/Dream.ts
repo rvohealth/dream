@@ -777,12 +777,14 @@ export default class Dream {
    * // 2
    * ```
    *
+   * @param opts - Pagination options
    * @param opts.page - the page number that you want to fetch results for
    * @param opts.pageSize - the number of results per page (optional)
-   * @returns results.recordCount - A number representing the total number of records matching your query
-   * @returns results.pageCount - The number of pages needed to encapsulate all the matching records
-   * @returns results.currentPage - The current page (same as what is provided in the paginate args)
-   * @returns results.results - An array of records matching the current record
+   * @returns A paginated result object containing:
+   * - `recordCount` - A number representing the total number of records matching your query
+   * - `pageCount` - The number of pages needed to encapsulate all the matching records
+   * - `currentPage` - The current page (same as what is provided in the paginate args)
+   * - `results` - An array of records matching the current record
    */
   public static async paginate<T extends typeof Dream>(
     this: T,
@@ -867,7 +869,8 @@ export default class Dream {
    * ```
    *
    * @param attributes - attributes or belongs to associations you wish to set on this model before persisting
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param __namedParameters - optional parameters
+   * @param __namedParameters.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A newly persisted dream instance
    */
   public static async create<T extends typeof Dream>(
@@ -896,6 +899,7 @@ export default class Dream {
    * ```
    *
    * @param attributes - The base attributes to persist, but also the attributes to use to find when create fails
+   * @param extraOpts - Additional options
    * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
    * @returns A dream instance
    */
@@ -931,6 +935,7 @@ export default class Dream {
    * ```
    *
    * @param attributes - The base attributes for finding which record to update, also used when creating
+   * @param extraOpts - Additional options
    * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
    * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
@@ -956,6 +961,7 @@ export default class Dream {
    * at least one of the provided attributes
    *
    * @param attributes - The base attributes for finding which record to update, also used when creating
+   * @param extraOpts - Additional options
    * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
    * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
@@ -1067,6 +1073,7 @@ export default class Dream {
    * ```
    *
    * @param cb - The callback to call for each found record
+   * @param opts - Optional parameters for batch processing
    * @param opts.batchSize - the batch size you wish to collect records in. If not provided, it will default to 1000
    * @returns void
    */
@@ -1166,6 +1173,7 @@ export default class Dream {
    * ```
    *
    * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param extraOpts - Additional options
    * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
    * @returns A dream instance
    */
@@ -1199,10 +1207,10 @@ export default class Dream {
 
   /**
    * Load each specified association using a single SQL query.
-   * See {@link #preload} for preloading in separate queries.
+   * See {@link Dream.preload} for preloading in separate queries.
    *
    * Note: since leftJoinPreload loads via single query, it has
-   * some downsides and that may be avoided using {@link #preload}:
+   * some downsides and that may be avoided using {@link Dream.preload}:
    * 1. `limit` and `offset` will be automatically removed
    * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
    * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
@@ -1563,7 +1571,7 @@ export default class Dream {
    * // 3
    * ```
    *
-   * @param fields - a list of fields to pluck, followed by a callback function to call for each set of found fields
+   * @param args - a list of fields to pluck, followed by a callback function to call for each set of found fields
    * @returns void
    */
   public static async pluckEach<
@@ -1813,7 +1821,7 @@ export default class Dream {
    * // [User{email: 'how@yadoin'}, User{name: 'fred'}, User{name: 'fred'}]
    * ```
    *
-   * @param whereStatements - a list of where statements to `OR` together
+   * @param statements - a list of where statements to `OR` together
    * @returns A Query for this model with the whereAny clause applied
    */
   public static whereAny<
@@ -1835,7 +1843,7 @@ export default class Dream {
    * // User{email: 'hello@world'}
    * ```
    *
-   * @param whereStatement - A where statement to negate and apply to the Query
+   * @param attributes - A where statement to negate and apply to the Query
    * @returns A Query for this model with the whereNot clause applied
    */
   public static whereNot<
@@ -2901,7 +2909,7 @@ export default class Dream {
    * // 'dog'
    * ```
    *
-   * @param columName - The column name you want the previous value for
+   * @param columnName - The column name you want the previous value for
    * @returns Returns the previous value for an attribute
    */
   public previousValueForAttribute<
@@ -2935,7 +2943,7 @@ export default class Dream {
    * Returns true if the columnName provided has
    * changes that have not yet been persisted.
    *
-   * @param columnName - the column name to check
+   * @param attribute - the column name to check
    * @returns A boolean
    */
   public willSaveChangeToAttribute<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
@@ -3649,7 +3657,7 @@ export default class Dream {
   /**
    * Loads the requested associations upon execution
    *
-   * NOTE: {@link #preload} is often a preferrable way of achieving the
+   * NOTE: {@link Dream.preload} is often a preferrable way of achieving the
    * same goal.
    *
    * ```ts
@@ -3680,18 +3688,17 @@ export default class Dream {
 
   /**
    * Load each specified association using a single SQL query.
-   * See {@link #load} for loading in separate queries.
+   * See {@link Dream.load} for loading in separate queries.
    *
-   * Note: since leftJoinPreload loads via single query, it has
-   * some downsides and that may be avoided using {@link #load}:
+   * Note: since leftJoinLoad loads via single query, it has
+   * some downsides and that may be avoided using {@link Dream.load}:
    * 1. `limit` and `offset` will be automatically removed
    * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
-   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinLoad('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
-   * Loads the requested associations upon execution
    *
-   * NOTE: {@link #leftJoinPreload} is often a preferrable way of achieving the
+   * NOTE: {@link Dream.leftJoinPreload} is often a preferrable way of achieving the
    * same goal.
    *
    * ```ts
@@ -3851,7 +3858,8 @@ export default class Dream {
    * user.type // 'User'
    * ```
    *
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param __namedParameters - optional parameters
+   * @param __namedParameters.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
   public async save<I extends Dream>(this: I, { skipHooks }: { skipHooks?: boolean } = {}): Promise<void> {
@@ -3896,7 +3904,8 @@ export default class Dream {
    * ```
    *
    * @param attributes - the attributes to set on the model
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param __namedParameters - optional parameters
+   * @param __namedParameters.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns void
    */
   public async update<I extends Dream>(
@@ -3928,7 +3937,8 @@ export default class Dream {
    * ```
    *
    * @param attributes - The attributes to update on this instance
-   * @param opts.skipHooks - if true, will skip applying model hooks. Defaults to false
+   * @param __namedParameters - optional parameters
+   * @param __namedParameters.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns - void
    */
   public async updateAttributes<I extends Dream>(
@@ -3967,7 +3977,7 @@ export default class Dream {
    * Flags a dream model so that it allows
    * deletion once again.
    *
-   * Undoes {@link Dream.(preventDeletion:instance) | preventDeletion}
+   * Undoes {@link Dream.preventDeletion}
    *
    * ```ts
    * class User extends ApplicationModel {

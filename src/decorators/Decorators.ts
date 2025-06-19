@@ -266,7 +266,8 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
-   * @param scope - The column, association, or combination there-of which you would like to restrict the incrementing logic to
+   * @param opts - Configuration options for the sortable decorator
+   * @param opts.scope - The column, association, or combination thereof which you would like to restrict the incrementing logic to. Can be a single column name, a single belongs-to association name, or an array of column/association names
    * @returns A Sortable decorator
    */
   public Sortable(this: Decorators<TD>, opts?: SortableOptions<T>) {

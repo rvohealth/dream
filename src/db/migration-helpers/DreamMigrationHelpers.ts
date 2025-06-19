@@ -10,8 +10,9 @@ export default class DreamMigrationHelpers {
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param constraintName - The name of the constraint to create
-   * @param opts.table - The name of the table
-   * @param opts.columns[] - The names of the columns to include in the constraint
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.columns - The names of the columns to include in the constraint
    *
    */
   public static async addDeferrableUniqueConstraint(
@@ -40,9 +41,9 @@ export default class DreamMigrationHelpers {
    * Note that this always includes "IF NOT EXISTS", so is safe to re-run multiple times.
    *
    * @param db - The Kysely database object passed into the migration up/down function
-   * @param opt.enumName - The name of the enum to modify
-   * @param opt.value - The name of the value to add to the enum
-   *
+   * @param __namedParameters - The options for adding the enum value
+   * @param __namedParameters.enumName - The name of the enum to modify
+   * @param __namedParameters.value - The name of the value to add to the enum
    */
   public static async addEnumValue(db: Kysely<any>, { enumName, value }: AddValueToEnumOpts) {
     await sql`ALTER TYPE ${sql.raw(enumName)} ADD VALUE IF NOT EXISTS '${sql.raw(value)}';`.execute(db)
@@ -61,8 +62,9 @@ export default class DreamMigrationHelpers {
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param extensionName - The name of the database extension to add
-   * @param opt.ifNotExists - Only add the extension if it doesn't already exist
-   * @param opt.publicSchema - Create using the public schema
+   * @param options - Configuration options
+   * @param options.ifNotExists - Only add the extension if it doesn't already exist
+   * @param options.publicSchema - Create using the public schema
    *
    */
   public static async createExtension(
@@ -82,8 +84,9 @@ export default class DreamMigrationHelpers {
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param indexName - The name of the constraint to create
-   * @param opts.table - The name of the table
-   * @param opts.column - The name of the column to index
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.column - The name of the column to index
    *
    */
   public static async createGinIndex(
@@ -105,7 +108,8 @@ export default class DreamMigrationHelpers {
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param constraintName - The name of the constraint to create
-   * @param opts.table - The name of the table
+   * @param options - Configuration options
+   * @param options.table - The name of the table
    *
    */
   public static async dropConstraint(db: Kysely<any>, constraintName: string, { table }: { table: string }) {
@@ -118,10 +122,10 @@ export default class DreamMigrationHelpers {
    * Drop a value from an enum and replace it (or optionally remove it from array columns)
    *
    * @param db - The Kysely database object passed into the migration up/down function
-   * @param opt.enumName - The name of the enum to modify
-   * @param opt.value - The name of the value to drop from the enum
-   * @param opt.replacements[] - Details about which table and column to change and which value to replace the dropped value with (or remove it if the column is an array)
-   *
+   * @param __namedParameters - The options for dropping the enum value
+   * @param __namedParameters.enumName - The name of the enum to modify
+   * @param __namedParameters.value - The name of the value to drop from the enum
+   * @param __namedParameters.replacements - Details about which table and column to change and which value to replace the dropped value with (or remove it if the column is an array)
    */
   public static async dropEnumValue(
     db: Kysely<any>,
