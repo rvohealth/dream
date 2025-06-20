@@ -203,3 +203,8 @@ export interface PaginatedDreamQueryResult<T extends Dream> {
    */
   results: T[]
 }
+
+export type LoadForModifierFn = (
+  dreamClass: typeof Dream,
+  associationName: string
+) => { and?: object; andAny?: object; andNot?: object } | 'omit' | undefined

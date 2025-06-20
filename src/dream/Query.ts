@@ -13,7 +13,6 @@ import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimi
 import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
 import RecordNotFound from '../errors/RecordNotFound.js'
 import cloneDeepSafe from '../helpers/cloneDeepSafe.js'
-import compact from '../helpers/compact.js'
 import isObject from '../helpers/isObject.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
@@ -34,7 +33,6 @@ import { DbConnectionType } from '../types/db.js'
 import {
   AllDefaultScopeNames,
   DefaultScopeName,
-  DreamAssociationNames,
   DreamColumnNames,
   DreamConstructorType,
   DreamSerializerKey,
@@ -54,6 +52,7 @@ import {
   DefaultQueryTypeOptions,
   ExtendQueryType,
   FindEachOpts,
+  LoadForModifierFn,
   NamespacedOrBaseModelColumnTypes,
   PaginatedDreamQueryOptions,
   PaginatedDreamQueryResult,
@@ -70,7 +69,8 @@ import {
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
-import extractNestedPaths, { DreamClassAndAssociationNameTuple } from './internal/extractNestedPaths.js'
+import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
+import extractNestedPaths from './internal/extractNestedPaths.js'
 import PostgresQueryDriver from './QueryDriver/Postgres.js'
 
 export default class Query<
@@ -699,38 +699,31 @@ export default class Query<
    * await User.preload('posts', 'comments', 'replies').all()
    *
    * // Automatically preload everything needed for serialization:
-   * await User.preloadForSerialization({ serializerKey: 'summary' }).all()
+   * await User.preloadFor('summary').all()
    *
    * // Add where conditions to specific associations during preloading:
-   * await User.preloadForSerialization({
-   *   serializerKey: 'detailed',
-   *   modifierFn: (dreamClass, associationName) => {
-   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *       return { and: { published: true } }
-   *     }
-   *   }
-   * }).all()
-   *
-   * // Skip preloading specific associations to handle them manually:
-   * await User.preloadForSerialization({
-   *   serializerKey: 'summary',
-   *   modifierFn: (dreamClass, associationName) => {
-   *     if (dreamClass.typeof(User) && associationName === 'posts') {
-   *       return 'omit' // Handle posts preloading separately with custom logic
-   *     }
+   * await User.preloadFor('detailed', (dreamClass, associationName) => {
+   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *     return { and: { published: true } }
    *   }
    * })
-   * .preload('posts', { and: { featured: true } }) // Custom preloading
-   * .all()
+   *   .all()
+   *
+   * // Skip preloading specific associations to handle them manually:
+   * await User.preloadFor('summary', (dreamClass, associationName) => {
+   *   if (dreamClass.typeof(User) && associationName === 'posts') {
+   *     return 'omit' // Handle posts preloading separately with custom logic
+   *   }
+   * })
+   *   .preload('posts', { and: { featured: true } }) // Custom preloading
+   *   .all()
    * ```
    *
-   * @param opts - Configuration options for serialization preloading
-   * @param opts.serializerKey - The serializer key to use for determining which associations to preload. Defaults to 'default'
-   * @param opts.modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
+   * @param serializerKey - The serializer key to use for determining which associations to preload.
+   * @param modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
    * @returns A Query with all serialization associations preloaded
    */
-
-  public preloadForSerialization<
+  public preloadFor<
     Q extends Query<DreamInstance, any>,
     SerializerKey extends DreamSerializerKey<DreamInstance>,
     RetQuery = Query<
@@ -742,29 +735,14 @@ export default class Query<
         }>
       >
     >,
-  >(
-    this: Q,
-    {
-      serializerKey,
-      modifierFn,
-    }: {
-      serializerKey?: SerializerKey
-      modifierFn?: <
-        DreamClass extends typeof Dream,
-        const AssociationName extends DreamAssociationNames<InstanceType<DreamClass>>,
-      >(
-        dreamClass: DreamClass,
-        associationName: AssociationName
-      ) => { and?: object; andAny?: object; andNot?: object } | 'omit' | undefined
-    } = {}
-  ): RetQuery {
+  >(this: Q, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn): RetQuery {
     const preloadArgs = extractNestedPaths(this.dreamClass['serializationMap'](serializerKey))
 
     let query: RetQuery = this as unknown as RetQuery
 
     preloadArgs.forEach(dreamClassAndAssociationNameTupleArray => {
       query = (query as any).preload(
-        ...(this.convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
+        ...(convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
           dreamClassAndAssociationNameTupleArray,
           modifierFn
         ) as any)
@@ -798,38 +776,31 @@ export default class Query<
    * await User.leftJoinPreload('posts', 'comments', 'replies').all()
    *
    * // Automatically left join preload everything needed for serialization:
-   * await User.leftJoinPreloadForSerialization({ serializerKey: 'summary' }).all()
+   * await User.leftJoinPreloadFor('summary').all()
    *
    * // Add where conditions to specific associations during left join preloading:
-   * await User.leftJoinPreloadForSerialization({
-   *   serializerKey: 'detailed',
-   *   modifierFn: (dreamClass, associationName) => {
-   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *       return { and: { published: true } }
-   *     }
-   *   }
-   * }).all()
-   *
-   * // Skip left join preloading specific associations to handle them manually:
-   * await User.leftJoinPreloadForSerialization({
-   *   serializerKey: 'summary',
-   *   modifierFn: (dreamClass, associationName) => {
-   *     if (dreamClass.typeof(User) && associationName === 'posts') {
-   *       return 'omit' // Handle posts preloading separately with custom logic
-   *     }
+   * await User.leftJoinPreloadFor('detailed', (dreamClass, associationName) => {
+   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *     return { and: { published: true } }
    *   }
    * })
-   * .preload('posts', { and: { featured: true } }) // Custom preloading instead
-   * .all()
+   *   .all()
+   *
+   * // Skip left join preloading specific associations to handle them manually:
+   * await User.leftJoinPreloadFor('summary', (dreamClass, associationName) => {
+   *   if (dreamClass.typeof(User) && associationName === 'posts') {
+   *     return 'omit' // Handle posts preloading separately with custom logic
+   *   }
+   * })
+   *   .preload('posts', { and: { featured: true } }) // Custom preloading instead
+   *   .all()
    * ```
    *
-   * @param opts - Configuration options for serialization preloading
-   * @param opts.serializerKey - The serializer key to use for determining which associations to preload. Defaults to 'default'
-   * @param opts.modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
+   * @param serializerKey - The serializer key to use for determining which associations to preload.
+   * @param modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
    * @returns A Query with all serialization associations left join preloaded
    */
-
-  public leftJoinPreloadForSerialization<
+  public leftJoinPreloadFor<
     Q extends Query<DreamInstance, any>,
     SerializerKey extends DreamSerializerKey<DreamInstance>,
     RetQuery = Query<
@@ -844,22 +815,7 @@ export default class Query<
         }>
       >
     >,
-  >(
-    this: Q,
-    {
-      serializerKey,
-      modifierFn,
-    }: {
-      serializerKey?: SerializerKey
-      modifierFn?: <
-        DreamClass extends typeof Dream,
-        const AssociationName extends DreamAssociationNames<InstanceType<DreamClass>>,
-      >(
-        dreamClass: DreamClass,
-        associationName: AssociationName
-      ) => { and?: object; andAny?: object; andNot?: object } | 'omit' | undefined
-    } = {}
-  ): RetQuery {
+  >(this: Q, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn): RetQuery {
     const preloadArgs = extractNestedPaths(this.dreamClass['serializationMap'](serializerKey))
 
     let query: RetQuery = this as unknown as RetQuery
@@ -867,7 +823,7 @@ export default class Query<
 
     preloadArgs.forEach(dreamClassAndAssociationNameTupleArray => {
       query = (query as any).leftJoinPreload(
-        ...(this.convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
+        ...(convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
           dreamClassAndAssociationNameTupleArray,
           modifierFn,
           counter
@@ -876,31 +832,6 @@ export default class Query<
     })
 
     return query
-  }
-
-  private convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
-    dreamClassAndAssociationNameTupleArray: DreamClassAndAssociationNameTuple[],
-    modifierFn?: <
-      DreamClass extends typeof Dream,
-      const AssociationName extends DreamAssociationNames<InstanceType<DreamClass>>,
-    >(
-      dreamClass: DreamClass,
-      associationName: AssociationName
-    ) => { and?: object; andAny?: object; andNot?: object } | 'omit' | undefined,
-    counter?: { count: number }
-  ): (string | { and?: object; andAny?: object; andNot?: object })[] {
-    return compact(
-      dreamClassAndAssociationNameTupleArray.flatMap(dreamClassAndAssociationNameTuple => {
-        const associationName = dreamClassAndAssociationNameTuple[1]
-        const aliasedAssociationName = counter
-          ? `${dreamClassAndAssociationNameTuple[1]} as drsz${counter.count++}`
-          : dreamClassAndAssociationNameTuple[1]
-        if (!modifierFn) return aliasedAssociationName
-        const modifier = modifierFn(dreamClassAndAssociationNameTuple[0], associationName)
-        if (modifier === 'omit') return undefined
-        return [aliasedAssociationName, modifier]
-      })
-    )
   }
 
   /**
