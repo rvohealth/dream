@@ -9,6 +9,7 @@ import {
 } from '../types/query.js'
 import { VariadicLeftJoinLoadArgs } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
+import unaliasTableName from './internal/unaliasTableName.js'
 import Query from './Query.js'
 
 export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
@@ -145,7 +146,8 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
 
     const dreamWithLoadedAssociations = await this.query.firstOrFail()
 
-    Object.keys(this.query['leftJoinStatements']).forEach(associationName => {
+    Object.keys(this.query['leftJoinStatements']).forEach(aliasedAssociationName => {
+      const associationName = unaliasTableName(aliasedAssociationName)
       const associationMetadata = this.dream['getAssociationMetadata'](associationName)
       if (associationMetadata === undefined) throw new UnexpectedUndefined()
 
