@@ -74,6 +74,13 @@ describe('Dream#leftJoinLoad', () => {
     })
   })
 
+  context('aliased association names', () => {
+    it('correctly aliases', async () => {
+      const clone = await user.leftJoinLoad('pets as p').execute()
+      expect(clone.pets).toMatchDreamModels([await Pet.findBy({ name: 'aster' })])
+    })
+  })
+
   context('when called twice', () => {
     context('Has(One/Many) association', () => {
       it('loads the association fresh from the database', async () => {
