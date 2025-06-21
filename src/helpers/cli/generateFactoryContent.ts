@@ -19,7 +19,7 @@ export default function generateFactoryContent({
   const belongsToTypedNames: string[] = []
   const associationCreationStatements: string[] = []
   const attributeDefaults: string[] = []
-  let firstAttrWithDefault = true
+  let counterVariableIncremented = false
 
   for (const attribute of columnsWithTypes) {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
@@ -53,9 +53,9 @@ export default function generateFactoryContent({
       case 'text':
       case 'citext':
         attributeDefaults.push(
-          `${attributeVariable}: \`${fullyQualifiedModelName} ${attributeVariable} ${firstAttrWithDefault ? '${++counter}' : '${counter}'}\`,`
+          `${attributeVariable}: \`${fullyQualifiedModelName} ${attributeVariable} ${counterVariableIncremented ? '${counter}' : '${++counter}'}\`,`
         )
-        firstAttrWithDefault = false
+        counterVariableIncremented = true
         break
 
       case 'enum':
@@ -87,7 +87,7 @@ import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'
 import ${modelClassName} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
-${attributeDefaults.length ? '\nlet counter = 0\n' : ''}
+${counterVariableIncremented ? '\nlet counter = 0\n' : ''}
 export default async function create${modelClassName}(attrs: UpdateableProperties<${modelClassName}> = {}) {
   return await ${modelClassName}.create({
     ${associationCreationStatements.length ? associationCreationStatements.join('\n    ') + '\n    ' : ''}${

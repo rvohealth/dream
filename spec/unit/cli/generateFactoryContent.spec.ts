@@ -58,6 +58,38 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       )
     })
 
+    context('when the counter is not used to modify any of the default values', () => {
+      it('the counter variable is omitted', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: [
+            'type:enum:post_type:WeeklyPost,GuestPost',
+            'style:enum:building_style:formal,informal',
+            'rating:decimal:3,2',
+            'ratings:integer',
+            'big_rating:bigint',
+          ],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream'
+import Post from '../../app/models/Post.js'
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
+    type: 'WeeklyPost',
+    style: 'formal',
+    rating: 1.1,
+    ratings: 1,
+    bigRating: '11111111111111111',
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
     context('polymorphic attributes (_id and _type)', () => {
       it('omit default values', () => {
         const res = generateFactoryContent({
