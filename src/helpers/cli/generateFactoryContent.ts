@@ -18,46 +18,60 @@ export default function generateFactoryContent({
   const belongsToNames: string[] = []
   const belongsToTypedNames: string[] = []
   const associationCreationStatements: string[] = []
-  const stringAttributes: string[] = []
-  let firstStringAttr = true
+  const attributeDefaults: string[] = []
+  let firstAttrWithDefault = true
 
   for (const attribute of columnsWithTypes) {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     if (attributeName === undefined) continue
-    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
-    const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
-    const associationFactoryImportStatement = `import create${associationModelName} from '${relativeDreamPath('factories', 'factories', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
-    const associationName = camelize(associationModelName)
     if (attributeName === undefined) continue
+    const attributeVariable = camelize(attributeName.replace(/\//g, ''))
 
-    if (/_type$/.test(attributeName)) continue
+    if (/(_type|_id)$/.test(attributeName)) continue
 
     if (!attributeType)
-      throw new Error(
-        `Must pass a column type for ${fullyQualifiedAssociatedModelName} (i.e. ${fullyQualifiedAssociatedModelName}:string)`
-      )
+      throw new Error(`Must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
 
     switch (attributeType) {
-      case 'belongs_to':
-        belongsToNames.push(associationName)
-        belongsToTypedNames.push(`${associationName}: ${associationModelName}`)
+      case 'belongs_to': {
+        const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
+        const associationModelName = globalClassNameFromFullyQualifiedModelName(
+          fullyQualifiedAssociatedModelName
+        )
+        const associationFactoryImportStatement = `import create${associationModelName} from '${relativeDreamPath('factories', 'factories', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
+
+        belongsToNames.push(attributeVariable)
+        belongsToTypedNames.push(`${attributeVariable}: ${associationModelName}`)
         additionalImports.push(associationFactoryImportStatement)
-        associationCreationStatements.push(`${associationName}: await create${associationModelName}(),`)
+        associationCreationStatements.push(
+          `${attributeVariable}: attrs.${attributeVariable} ? null : await create${associationModelName}(),`
+        )
         break
+      }
 
       case 'string':
       case 'text':
       case 'citext':
-        stringAttributes.push(
-          `${camelize(attributeName)}: \`${fullyQualifiedModelName} ${camelize(attributeName)} ${firstStringAttr ? '${++counter}' : '${counter}'}\`,`
+        attributeDefaults.push(
+          `${attributeVariable}: \`${fullyQualifiedModelName} ${attributeVariable} ${firstAttrWithDefault ? '${++counter}' : '${counter}'}\`,`
         )
-        firstStringAttr = false
+        firstAttrWithDefault = false
         break
 
       case 'enum':
-        stringAttributes.push(
-          `${camelize(attributeName)}: '${(descriptors.at(-1) || '<tbd>').split(',')[0]}',`
-        )
+        attributeDefaults.push(`${attributeVariable}: '${(descriptors.at(-1) || '<tbd>').split(',')[0]}',`)
+        break
+
+      case 'integer':
+        attributeDefaults.push(`${attributeVariable}: 1,`)
+        break
+
+      case 'bigint':
+        attributeDefaults.push(`${attributeVariable}: '11111111111111111',`)
+        break
+
+      case 'decimal':
+        attributeDefaults.push(`${attributeVariable}: 1.1,`)
         break
 
       default:
@@ -73,11 +87,11 @@ import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'
 import ${modelClassName} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }
-${stringAttributes.length ? '\nlet counter = 0\n' : ''}
+${attributeDefaults.length ? '\nlet counter = 0\n' : ''}
 export default async function create${modelClassName}(attrs: UpdateableProperties<${modelClassName}> = {}) {
   return await ${modelClassName}.create({
     ${associationCreationStatements.length ? associationCreationStatements.join('\n    ') + '\n    ' : ''}${
-      stringAttributes.length ? stringAttributes.join('\n    ') + '\n    ' : ''
+      attributeDefaults.length ? attributeDefaults.join('\n    ') + '\n    ' : ''
     }...attrs,
   })
 }
