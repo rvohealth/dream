@@ -259,7 +259,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('enum attributes', () => {
-      it('generates a kysely migration with enum', () => {
+      it('generates a kysely migration with non-null enum', () => {
         const res = generateMigrationContent({
           table: 'chalupas',
           columnsWithTypes: [
@@ -295,9 +295,9 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('chalupas')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('topping', sql\`topping_enum\`)
-    .addColumn('protein_type', sql\`protein_enum\`)
-    .addColumn('existing_enum', sql\`my_existing_enum_enum\`)
+    .addColumn('topping', sql\`topping_enum\`, col => col.notNull())
+    .addColumn('protein_type', sql\`protein_enum\`, col => col.notNull())
+    .addColumn('existing_enum', sql\`my_existing_enum_enum\`, col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

@@ -212,8 +212,7 @@ function generateEnumStr(attribute: string) {
   const computedAttributeType = enumAttributeType(attribute)
   const attributeName = attribute.split(':')[0]
   if (attributeName === undefined) return ''
-  const notNull = NOT_NULL_COLUMNS.includes(attributeName)
-  return `.addColumn('${attributeName}', ${computedAttributeType}${notNull ? ', col => col.notNull()' : ''})`
+  return `.addColumn('${attributeName}', ${computedAttributeType}, col => col.notNull())`
 }
 
 function generateDecimalStr(attribute: string) {
