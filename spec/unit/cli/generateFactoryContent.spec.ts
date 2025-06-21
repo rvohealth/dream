@@ -24,10 +24,14 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
         columnsWithTypes: [
-          'name:citext',
-          'title:string',
-          'body:text',
           'type:enum:post_type:WeeklyPost,GuestPost',
+          'style:enum:building_style:formal,informal',
+          'title:citext',
+          'subtitle:string',
+          'body_markdown:text',
+          'rating:decimal:3,2',
+          'ratings:integer',
+          'big_rating:bigint',
         ],
       })
       expect(res).toEqual(
@@ -39,10 +43,14 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    name: \`Post name \${++counter}\`,
-    title: \`Post title \${counter}\`,
-    body: \`Post body \${counter}\`,
     type: 'WeeklyPost',
+    style: 'formal',
+    title: \`Post title \${++counter}\`,
+    subtitle: \`Post subtitle \${counter}\`,
+    bodyMarkdown: \`Post bodyMarkdown \${counter}\`,
+    rating: 1.1,
+    ratings: 1,
+    bigRating: '11111111111111111',
     ...attrs,
   })
 }
@@ -50,8 +58,40 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       )
     })
 
-    context('that end with "_type"', () => {
-      it('omits the default', () => {
+    context('when the counter is not used to modify any of the default values', () => {
+      it('the counter variable is omitted', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: [
+            'type:enum:post_type:WeeklyPost,GuestPost',
+            'style:enum:building_style:formal,informal',
+            'rating:decimal:3,2',
+            'ratings:integer',
+            'big_rating:bigint',
+          ],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream'
+import Post from '../../app/models/Post.js'
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
+    type: 'WeeklyPost',
+    style: 'formal',
+    rating: 1.1,
+    ratings: 1,
+    bigRating: '11111111111111111',
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
+    context('polymorphic attributes (_id and _type)', () => {
+      it('omit default values', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
           columnsWithTypes: [
@@ -94,7 +134,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
   })
 
   context('with belongs_to attrs', () => {
-    it('includes includes automatic creation of associations', () => {
+    it('conditionally creates a default associated model iff an associated model is not provided', () => {
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
         columnsWithTypes: ['name:string', 'User:belongs_to'],
@@ -109,7 +149,7 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    user: await createUser(),
+    user: attrs.user ? null : await createUser(),
     name: \`Post name \${++counter}\`,
     ...attrs,
   })
@@ -134,7 +174,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    myNestedDoubleNestedOrganization: await createMyNestedDoubleNestedOrganization(),
+    myNestedDoubleNestedOrganization: attrs.myNestedDoubleNestedOrganization ? null : await createMyNestedDoubleNestedOrganization(),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
