@@ -1,12 +1,12 @@
 import pluralize from 'pluralize-esm'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
 import { PrimaryKeyType } from '../../types/dream.js'
+import compact from '../compact.js'
 import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
 import snakeify from '../snakeify.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
 const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
-const NOT_NULL_COLUMNS = [STI_TYPE_COLUMN_NAME]
 
 interface ColumnDefsAndDrops {
   columnDefs: string[]
@@ -33,6 +33,8 @@ export default function generateMigrationContent({
     (acc: ColumnDefsAndDrops, attribute: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
       const [nonStandardAttributeName, attributeType, ...descriptors] = attribute.split(':')
+      const optional = optionalFromDescriptors(descriptors)
+      const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
       let attributeName = snakeify(nonStandardAttributeName)
       if (attributeName === undefined) return acc
@@ -41,37 +43,36 @@ export default function generateMigrationContent({
 
       if (attributeType === 'citext') requireCitextExtension = true
 
-      const coercedAttributeType = getAttributeType(attribute)
       switch (attributeType) {
         case 'belongs_to':
           columnDefs.push(
             generateBelongsToStr(attributeName, {
               primaryKeyType,
-              optional: descriptors.includes('optional'),
+              optional,
             })
           )
           attributeName = associationNameToForeignKey(attributeName)
           break
 
         case 'enum':
-          columnDefs.push(generateEnumStr(attribute))
+          columnDefs.push(generateEnumStr(attributeName, { descriptors, optional }))
           break
 
         case 'decimal':
-          columnDefs.push(generateDecimalStr(attribute))
+          columnDefs.push(generateDecimalStr(attributeName, { descriptors, optional }))
           break
 
         case 'boolean':
-          columnDefs.push(generateBooleanStr(attributeName))
+          columnDefs.push(generateBooleanStr(attributeName, { optional }))
           break
 
         case 'encrypted':
-          columnDefs.push(generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors))
+          columnDefs.push(generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors, { optional }))
           break
 
         default:
-          if (coercedAttributeType !== undefined) {
-            columnDefs.push(generateColumnStr(attributeName, coercedAttributeType, descriptors))
+          if (sqlAttributeType !== undefined) {
+            columnDefs.push(generateColumnStr(attributeName, sqlAttributeType, descriptors, { optional }))
           }
           break
       }
@@ -153,82 +154,96 @@ export async function down(db: Kysely<any>): Promise<void> {
 `
 }
 
-function getAttributeType(attribute: string) {
-  const [, attributeType, ...descriptors] = attribute.split(':')
-  if (attributeType === 'enum') {
-    return enumAttributeType(attribute)[0]
-  }
-
+function getAttributeType(attributeType: string | undefined, descriptors: string[]) {
   switch (attributeType) {
-    case 'datetime':
-      return 'timestamp'
-
     case 'string':
       return `varchar(${descriptors[0] || 255})`
+
+    case 'enum':
+      return enumAttributeType(descriptors)
+
+    case 'datetime':
+      return 'timestamp'
 
     default:
       return attributeType
   }
 }
 
-function enumAttributeType(attribute: string) {
-  const [, , ...descriptors] = attribute.split(':')
+function enumAttributeType(descriptors: string[]) {
   return `sql\`${descriptors[0]}_enum\``
 }
 
 function generateEnumStatements(columnsWithTypes: string[]) {
   const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
-  const finalStatements = enumStatements.map(statement => {
-    const enumName = statement.split(':')[2]
-    const columnsWithTypesString = statement.split(':')[3]
-    if (columnsWithTypesString === undefined) return ''
-    const columnsWithTypes = columnsWithTypesString.split(/,\s{0,}/)
-    return `  await db.schema
+  const finalStatements = compact(
+    enumStatements.map(statement => {
+      const [, , enumName, ...descriptors] = statement.split(':')
+      optionalFromDescriptors(descriptors)
+      const columnsWithTypesString = descriptors[0]
+      if (columnsWithTypesString === undefined) return
+      const columnsWithTypes = columnsWithTypesString.split(/,\s{0,}/)
+      return `  await db.schema
     .createType('${enumName}_enum')
     .asEnum([
       ${columnsWithTypes.map(attr => `'${attr}'`).join(',\n      ')}
     ])
     .execute()`
-  })
+    })
+  )
 
   return finalStatements.length ? finalStatements.join('\n\n') + '\n\n' : ''
 }
 
 function generateEnumDropStatements(columnsWithTypes: string[]) {
   const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
-  const finalStatements = enumStatements.map(statement => {
-    const enumName = statement.split(':')[2]
-    return `await db.schema.dropType('${enumName}_enum').execute()`
-  })
+  const finalStatements = compact(
+    enumStatements.map(statement => {
+      const [, , enumName, ...descriptors] = statement.split(':')
+      optionalFromDescriptors(descriptors)
+      const columnsWithTypesString = descriptors[0]
+      if (columnsWithTypesString === undefined) return
+      return `await db.schema.dropType('${enumName}_enum').execute()`
+    })
+  )
 
   return finalStatements.length ? '\n\n  ' + finalStatements.join('\n  ') : ''
 }
 
-function generateBooleanStr(attributeName: string) {
-  return `.addColumn('${attributeName}', 'boolean', col => col.notNull().defaultTo(false))`
+function generateBooleanStr(attributeName: string, { optional }: { optional: boolean }) {
+  return `.addColumn('${attributeName}', 'boolean'${optional ? '' : ', col => col.notNull().defaultTo(false)'})`
 }
 
-function generateEnumStr(attribute: string) {
-  const computedAttributeType = enumAttributeType(attribute)
-  const attributeName = attribute.split(':')[0]
+function generateEnumStr(
+  attributeName: string,
+  { descriptors, optional }: { descriptors: string[]; optional: boolean }
+) {
+  const computedAttributeType = enumAttributeType(descriptors)
   if (attributeName === undefined) return ''
-  return `.addColumn('${attributeName}', ${computedAttributeType}, col => col.notNull())`
+  return `.addColumn('${attributeName}', ${computedAttributeType}${optional ? '' : ', col => col.notNull()'})`
 }
 
-function generateDecimalStr(attribute: string) {
-  const [, , ...descriptors] = attribute.split(':')
+function generateDecimalStr(
+  attributeName: string,
+  { descriptors, optional }: { descriptors: string[]; optional: boolean }
+) {
   const [scale, precision] = descriptors[0]?.split(',') || [null, null]
-  if (!scale || !precision) throw new InvalidDecimalFieldPassedToGenerator(attribute)
+  if (!scale || !precision) throw new InvalidDecimalFieldPassedToGenerator(attributeName)
 
-  return `.addColumn('${attribute.split(':')[0]}', 'decimal(${scale}, ${precision})')`
+  return `.addColumn('${attributeName}', 'decimal(${scale}, ${precision})'${optional ? '' : ', col => col.notNull()'})`
 }
 
-function generateColumnStr(attributeName: string, attributeType: string, descriptors: string[]) {
+function generateColumnStr(
+  attributeName: string,
+  attributeType: string,
+  descriptors: string[],
+  { optional }: { optional: boolean }
+) {
   let returnStr = `.addColumn('${attributeName}', ${attributeTypeString(attributeType)}`
 
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
-  const notNull = NOT_NULL_COLUMNS.includes(attributeName)
+  const notNull = !optional
   const hasExtraValues = providedDefault || notNull
 
   if (hasExtraValues) returnStr += ', col => col'
@@ -268,7 +283,7 @@ function generateBelongsToStr(
     optional = false,
   }: {
     primaryKeyType: PrimaryKeyType
-    optional?: boolean
+    optional: boolean
   }
 ) {
   const dataType = foreignKeyTypeFromPrimaryKey(primaryKeyType)
@@ -294,4 +309,10 @@ function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
 
 function associationNameToForeignKey(associationName: string) {
   return snakeify(associationName.replace(/\//g, '_').replace(/_id$/, '') + '_id')
+}
+
+function optionalFromDescriptors(descriptors: string[]): boolean {
+  const optional = descriptors.at(-1) === 'optional'
+  if (optional) descriptors.pop()
+  return optional
 }

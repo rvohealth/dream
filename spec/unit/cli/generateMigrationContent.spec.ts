@@ -17,7 +17,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('hello_worlds')
-    .addColumn('greeting', 'varchar(255)')
+    .addColumn('greeting', 'varchar(255)', col => col.notNull())
     .execute()
 }
 
@@ -32,7 +32,7 @@ export async function down(db: Kysely<any>): Promise<void> {
   })
 
   context('with no attributes', () => {
-    it('generates a migration with no columns', () => {
+    it('generates a migration with only primary key, created_at, and updated_at columns', () => {
       const res = generateMigrationContent({
         table: 'users',
         columnsWithTypes: [],
@@ -86,12 +86,12 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('email', 'varchar(128)')
-    .addColumn('name', sql\`citext\`)
-    .addColumn('password_digest', 'varchar(255)')
-    .addColumn('chalupified_at', 'timestamp')
-    .addColumn('finished_chalupa_on', 'date')
-    .addColumn('finished_chalupa_at', 'timestamp')
+    .addColumn('email', 'varchar(128)', col => col.notNull())
+    .addColumn('name', sql\`citext\`, col => col.notNull())
+    .addColumn('password_digest', 'varchar(255)', col => col.notNull())
+    .addColumn('chalupified_at', 'timestamp', col => col.notNull())
+    .addColumn('finished_chalupa_on', 'date', col => col.notNull())
+    .addColumn('finished_chalupa_at', 'timestamp', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -123,7 +123,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('phone_number', 'varchar(255)')
+    .addColumn('phone_number', 'varchar(255)', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -155,7 +155,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('encrypted_phone_number', 'text')
+    .addColumn('encrypted_phone_number', 'text', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -219,7 +219,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('chalupas')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('deliciousness', 'decimal(4, 2)')
+    .addColumn('deliciousness', 'decimal(4, 2)', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

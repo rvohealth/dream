@@ -6,6 +6,42 @@ import EnvInternal from '../helpers/EnvInternal.js'
 import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
 
+const INDENT = '                  '
+
+const columnsWithTypesDescription = `space separated snake-case (except for belongs_to model name) properties like this:
+${INDENT}    title:citext subtitle:string body_markdown:text style:enum:post_styles:formal,informal User:belongs_to
+${INDENT}
+${INDENT}all properties default to not nullable; null can be allowed by appending ':optional':
+${INDENT}    subtitle:string:optional
+${INDENT}
+${INDENT}supported types:
+${INDENT}    - citext:
+${INDENT}        case insensitive text (indexes and queries are automatically case insensitive)
+${INDENT}
+${INDENT}    - string:
+${INDENT}        varchar; allowed length defaults to 255, but may be customized, e.g.: subtitle:string:128 or subtitle:string:128:optional
+${INDENT}
+${INDENT}    - text
+${INDENT}
+${INDENT}    - integer
+${INDENT}
+${INDENT}    - decimal:
+${INDENT}        scale,precision is required, e.g.: volume:decimal:3,2 or volume:decimal:3,2:optional
+${INDENT}
+${INDENT}    - enum:
+${INDENT}        include the enum name to automatically create the enum:
+${INDENT}          type:enum:room_types:bathroom,kitchen,bedroom or type:enum:room_types:bathroom,kitchen,bedroom:optional
+${INDENT}
+${INDENT}        omit the enum values to leverage an existing enum (omits the enum type creation):
+${INDENT}          type:enum:room_types or type:enum:room_types:optional
+${INDENT}
+${INDENT}    - belongs_to:
+${INDENT}        Not only updates the migration but also adds a BelongsTo association to the generated model:
+${INDENT}          Place:belongs_to
+${INDENT}        
+${INDENT}        Include the full Path to the model. E.g., if the Coach model is in src/app/models/Health/Coach:
+${INDENT}          Health/Coach:belongs_to`
+
 export default class DreamCLI {
   /**
    * use this method for initializing a standalone dream application. If using Psychic and Dream together,
@@ -61,10 +97,7 @@ export default class DreamCLI {
       .alias('g:migration')
       .description('create a new migration')
       .argument('<migrationName>', 'end with -to-table-name to prepopulate with an alterTable command')
-      .argument(
-        '[columnsWithTypes...]',
-        'properties of the model column1:text/string/enum/etc. column2:text/string/enum/etc. ... columnN:text/string/enum/etc.'
-      )
+      .argument('[columnsWithTypes...]', columnsWithTypesDescription)
       .action(async (migrationName: string, columnsWithTypes: string[]) => {
         await initializeDreamApp()
         await DreamBin.generateMigration(migrationName, columnsWithTypes)
@@ -79,7 +112,7 @@ export default class DreamCLI {
       .option('--no-serializer')
       .option(
         '--sti-base-serializer',
-        'Omits the serializer from the dream model, but does create the serializer so it can be extended by STI children'
+        'omits the serializer from the dream model, but does create the serializer so it can be extended by STI children'
       )
       .description('create a new Dream model')
       .argument(
@@ -113,12 +146,14 @@ export default class DreamCLI {
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
       )
-      .argument('<extends>', 'just the word extends')
-      .argument('<parentModelName>', 'name of the parent model')
+      .argument('<extends>', 'just the word "extends"')
       .argument(
-        '[columnsWithTypes...]',
-        'properties of the model property1:text/string/enum/etc. property2:text/string/enum/etc. ... propertyN:text/string/enum/etc.'
+        '<parentModelName>',
+        `fully qualified name of the parent model, e.g.:
+${INDENT}    to extend the Room model in src/app/models/Room: Room
+${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Coach`
       )
+      .argument('[columnsWithTypes...]', columnsWithTypesDescription)
       .action(
         async (
           childModelName: string,

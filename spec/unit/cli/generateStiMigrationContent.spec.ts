@@ -28,12 +28,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .alterTable('users')
-    .addColumn('email', 'varchar(128)')
-    .addColumn('name', sql\`citext\`)
-    .addColumn('password_digest', 'varchar(255)')
-    .addColumn('chalupified_at', 'timestamp')
-    .addColumn('finished_chalupa_on', 'date')
-    .addColumn('finished_chalupa_at', 'timestamp')
+    .addColumn('email', 'varchar(128)', col => col.notNull())
+    .addColumn('name', sql\`citext\`, col => col.notNull())
+    .addColumn('password_digest', 'varchar(255)', col => col.notNull())
+    .addColumn('chalupified_at', 'timestamp', col => col.notNull())
+    .addColumn('finished_chalupa_on', 'date', col => col.notNull())
+    .addColumn('finished_chalupa_at', 'timestamp', col => col.notNull())
     .execute()
 }
 
@@ -70,7 +70,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('chalupas')
-    .addColumn('deliciousness', 'decimal(4, 2)')
+    .addColumn('deliciousness', 'decimal(4, 2)', col => col.notNull())
     .execute()
 }
 
