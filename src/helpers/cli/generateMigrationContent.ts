@@ -311,7 +311,7 @@ function associationNameToForeignKey(associationName: string) {
   return snakeify(associationName.replace(/\//g, '_').replace(/_id$/, '') + '_id')
 }
 
-function optionalFromDescriptors(descriptors: string[]): boolean {
+export function optionalFromDescriptors(descriptors: string[]): boolean {
   const optional = descriptors.at(-1) === 'optional'
   if (optional) descriptors.pop()
   return optional

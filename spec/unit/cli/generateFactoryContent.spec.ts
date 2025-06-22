@@ -32,11 +32,13 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
           'rating:decimal:3,2',
           'ratings:integer',
           'big_rating:bigint',
+          'signed_on:date',
+          'signed_at:datetime',
         ],
       })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties, CalendarDate, DateTime } from '@rvoh/dream'
 import Post from '../../app/models/Post.js'
 
 let counter = 0
@@ -51,6 +53,38 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
     rating: 1.1,
     ratings: 1,
     bigRating: '11111111111111111',
+    signedOn: CalendarDate.today(),
+    signedAt: DateTime.now(),
+    ...attrs,
+  })
+}
+`
+      )
+    })
+
+    it('defaults are omitted for optional arguments', () => {
+      const res = generateFactoryContent({
+        fullyQualifiedModelName: 'Post',
+        columnsWithTypes: [
+          'type:enum:post_type:WeeklyPost,GuestPost:optional',
+          'style:enum:building_style:formal,informal:optional',
+          'title:citext:optional',
+          'subtitle:string:optional',
+          'body_markdown:text:optional',
+          'rating:decimal:3,2:optional',
+          'ratings:integer:optional',
+          'big_rating:bigint:optional',
+          'signed_on:date:optional',
+          'signed_at:datetime:optional',
+        ],
+      })
+      expect(res).toEqual(
+        `\
+import { UpdateableProperties } from '@rvoh/dream'
+import Post from '../../app/models/Post.js'
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
     ...attrs,
   })
 }

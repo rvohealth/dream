@@ -3,6 +3,7 @@ import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFu
 import relativeDreamPath from '../path/relativeDreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
+import { optionalFromDescriptors } from './generateMigrationContent.js'
 
 export default function generateFactoryContent({
   fullyQualifiedModelName,
@@ -24,7 +25,9 @@ export default function generateFactoryContent({
   for (const attribute of columnsWithTypes) {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     if (attributeName === undefined) continue
-    if (attributeName === undefined) continue
+    if (attributeType === undefined) continue
+    const optional = optionalFromDescriptors(descriptors)
+    if (optional) continue
     const attributeVariable = camelize(attributeName.replace(/\//g, ''))
 
     if (/(_type|_id)$/.test(attributeName)) continue
@@ -72,6 +75,16 @@ export default function generateFactoryContent({
 
       case 'decimal':
         attributeDefaults.push(`${attributeVariable}: 1.1,`)
+        break
+
+      case 'date':
+        dreamImports.push('CalendarDate')
+        attributeDefaults.push(`${attributeVariable}: CalendarDate.today(),`)
+        break
+
+      case 'datetime':
+        dreamImports.push('DateTime')
+        attributeDefaults.push(`${attributeVariable}: DateTime.now(),`)
         break
 
       default:
