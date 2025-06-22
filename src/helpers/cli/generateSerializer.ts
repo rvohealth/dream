@@ -9,11 +9,13 @@ export default async function generateSerializer({
   columnsWithTypes,
   fullyQualifiedParentName,
   stiBaseSerializer,
+  includeAdminSerializers,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
+  includeAdminSerializers: boolean
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
@@ -32,6 +34,7 @@ export default async function generateSerializer({
         columnsWithTypes,
         fullyQualifiedParentName,
         stiBaseSerializer,
+        includeAdminSerializers,
       })
     )
   } catch (error) {

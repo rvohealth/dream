@@ -16,7 +16,11 @@ export default async function generateDream({
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
-  options: { serializer: boolean; stiBaseSerializer: boolean }
+  options: {
+    serializer: boolean
+    stiBaseSerializer: boolean
+    includeAdminSerializers: boolean
+  }
   fullyQualifiedParentName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
@@ -36,6 +40,7 @@ export default async function generateDream({
         columnsWithTypes,
         fullyQualifiedParentName,
         serializer: options.serializer && !options.stiBaseSerializer,
+        includeAdminSerializers: options.includeAdminSerializers,
       })
     )
   } catch (error) {
@@ -56,6 +61,7 @@ export default async function generateDream({
       columnsWithTypes,
       fullyQualifiedParentName,
       stiBaseSerializer: options.stiBaseSerializer,
+      includeAdminSerializers: options.includeAdminSerializers,
     })
 
   const isSTI = !!fullyQualifiedParentName

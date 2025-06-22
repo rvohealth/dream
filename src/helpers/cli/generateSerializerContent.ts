@@ -9,12 +9,14 @@ export default function generateSerializerContent({
   fullyQualifiedModelName,
   columnsWithTypes = [],
   fullyQualifiedParentName,
-  stiBaseSerializer = false,
+  stiBaseSerializer,
+  includeAdminSerializers,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes?: string[] | undefined
   fullyQualifiedParentName?: string | undefined
-  stiBaseSerializer?: boolean
+  stiBaseSerializer: boolean
+  includeAdminSerializers: boolean
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
@@ -37,7 +39,7 @@ export default function generateSerializerContent({
   const modelSerializerArgs = `${modelInstanceName}`
   const dreamSerializerArgs = `${stiBaseSerializer ? 'StiChildClass' : modelClassName}, ${modelInstanceName}`
 
-  const serialzerClassName = serializerNameFromFullyQualifiedModelName(
+  const serializerClassName = serializerNameFromFullyQualifiedModelName(
     fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
   )
 
@@ -59,6 +61,15 @@ export default function generateSerializerContent({
       )}(${modelClassName}, ${modelSerializerArgs})`
     : `DreamSerializer(${dreamSerializerArgs})`
 
+  // Admin variants
+  const adminSerializerClassName = serializerClassName.replace(/Serializer$/, 'AdminSerializer')
+
+  const adminSummarySerializerClassName = summarySerializerClassName.replace(
+    /SummarySerializer$/,
+    'AdminSummarySerializer'
+  )
+  // end:Admin variants
+
   const additionalModelImports: string[] = []
 
   const dreamImport = dreamImports.length
@@ -67,11 +78,10 @@ export default function generateSerializerContent({
 
   const additionalImportsStr = uniq(additionalImports).join('')
 
-  return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
-export const ${summarySerializerClassName} = ${modelSerializerSignature} =>
-  ${summarySerializerExtends}${isSTI ? '' : `\n    .attribute('id')`}
+  const summarySerializer = `export const ${summarySerializerClassName} = ${modelSerializerSignature} =>
+  ${summarySerializerExtends}${isSTI ? '' : `\n    .attribute('id')`}`
 
-export const ${serialzerClassName} = ${modelSerializerSignature} =>
+  const defaultSerializer = `export const ${serializerClassName} = ${modelSerializerSignature} =>
   ${defaultSerializerExtends}${columnsWithTypes
     .map(attr => {
       const [name, type] = attr.split(':')
@@ -80,7 +90,20 @@ export const ${serialzerClassName} = ${modelSerializerSignature} =>
 
       return `\n    ${attribute(name, type, attr)}`
     })
-    .join('\n\n  ')}
+    .join('\n\n  ')}`
+
+  return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
+${summarySerializer}
+
+${defaultSerializer}${
+    !includeAdminSerializers
+      ? ''
+      : `
+
+${summarySerializer.replace(summarySerializerClassName, adminSummarySerializerClassName)}
+
+${defaultSerializer.replace(serializerClassName, adminSerializerClassName).replace(summarySerializerClassName, adminSummarySerializerClassName)}`
+  }
 `
 }
 

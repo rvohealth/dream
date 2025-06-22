@@ -29,7 +29,11 @@ export default class DreamBin {
     columnsWithTypes: string[],
     options: { serializer: boolean; stiBaseSerializer: boolean }
   ) {
-    await generateDream({ fullyQualifiedModelName, columnsWithTypes, options })
+    await generateDream({
+      fullyQualifiedModelName,
+      columnsWithTypes,
+      options: { includeAdminSerializers: false, ...options },
+    })
   }
 
   public static async generateStiChild(
@@ -41,7 +45,7 @@ export default class DreamBin {
     await generateDream({
       fullyQualifiedModelName,
       columnsWithTypes,
-      options: { ...options, stiBaseSerializer: false },
+      options: { includeAdminSerializers: false, ...options, stiBaseSerializer: false },
       fullyQualifiedParentName,
     })
   }

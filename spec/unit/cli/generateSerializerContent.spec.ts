@@ -7,6 +7,8 @@ describe('dream generate:serializer <name> [...attributes]', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'User',
           columnsWithTypes: ['logged_in_at'],
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
         })
 
         expect(res).toEqual(
@@ -26,12 +28,47 @@ export const UserSerializer = (user: User) =>
       })
     })
 
+    context('includeAdminSerializers: true', () => {
+      it('generates admin serializers', () => {
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'Article',
+          columnsWithTypes: ['body:text'],
+          stiBaseSerializer: false,
+          includeAdminSerializers: true,
+        })
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer } from '@rvoh/dream'
+import Article from '../models/Article.js'
+
+export const ArticleSummarySerializer = (article: Article) =>
+  DreamSerializer(Article, article)
+    .attribute('id')
+
+export const ArticleSerializer = (article: Article) =>
+  ArticleSummarySerializer(article)
+    .attribute('body')
+
+export const ArticleAdminSummarySerializer = (article: Article) =>
+  DreamSerializer(Article, article)
+    .attribute('id')
+
+export const ArticleAdminSerializer = (article: Article) =>
+  ArticleAdminSummarySerializer(article)
+    .attribute('body')
+`
+        )
+      })
+    })
+
     context('when stiBaseSerializer: true (STI parent)', () => {
       it('alters the serializer to include a generic', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Balloon',
           columnsWithTypes: ['hello'],
           stiBaseSerializer: true,
+          includeAdminSerializers: false,
         })
 
         expect(res).toEqual(
@@ -57,6 +94,8 @@ export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Ballo
           fullyQualifiedModelName: 'Foo/Bar/Baz',
           columnsWithTypes: ['world'],
           fullyQualifiedParentName: 'Foo/Bar',
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
         })
 
         expect(res).toEqual(
@@ -75,17 +114,20 @@ export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
       })
     })
 
-    context('nested paths', () => {
-      context('when passed a nested model class', () => {
-        it(
-          'correctly injects extra updirs to account for nested paths, but leaves ' +
-            'the class name as just the model name + Serializer/SummarySerializer so that ' +
-            'the serializers getter in the model does not replicate the nesting structure twice',
-          () => {
-            const res = generateSerializerContent({ fullyQualifiedModelName: 'User/Admin' })
+    context('when passed a nested model class', () => {
+      it(
+        'correctly injects extra updirs to account for nested paths, but leaves ' +
+          'the class name as just the model name + Serializer/SummarySerializer so that ' +
+          'the serializers getter in the model does not replicate the nesting structure twice',
+        () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'User/Admin',
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
+          })
 
-            expect(res).toEqual(
-              `\
+          expect(res).toEqual(
+            `\
 import { DreamSerializer } from '@rvoh/dream'
 import UserAdmin from '../../models/User/Admin.js'
 
@@ -96,9 +138,39 @@ export const UserAdminSummarySerializer = (userAdmin: UserAdmin) =>
 export const UserAdminSerializer = (userAdmin: UserAdmin) =>
   UserAdminSummarySerializer(userAdmin)
 `
-            )
-          }
-        )
+          )
+        }
+      )
+
+      context('includeAdminSerializers: true', () => {
+        it('generates admin serializers with the correct names', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'Article/Comment',
+            stiBaseSerializer: false,
+            includeAdminSerializers: true,
+          })
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer } from '@rvoh/dream'
+import ArticleComment from '../../models/Article/Comment.js'
+
+export const ArticleCommentSummarySerializer = (articleComment: ArticleComment) =>
+  DreamSerializer(ArticleComment, articleComment)
+    .attribute('id')
+
+export const ArticleCommentSerializer = (articleComment: ArticleComment) =>
+  ArticleCommentSummarySerializer(articleComment)
+
+export const ArticleCommentAdminSummarySerializer = (articleComment: ArticleComment) =>
+  DreamSerializer(ArticleComment, articleComment)
+    .attribute('id')
+
+export const ArticleCommentAdminSerializer = (articleComment: ArticleComment) =>
+  ArticleCommentAdminSummarySerializer(articleComment)
+`
+          )
+        })
       })
     })
 
@@ -132,6 +204,8 @@ export const UserAdminSerializer = (userAdmin: UserAdmin) =>
           const res = generateSerializerContent({
             fullyQualifiedModelName: 'User',
             columnsWithTypes: ['howyadoin:decimal:4,2'],
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
           })
 
           expect(res).toEqual(
@@ -211,6 +285,8 @@ export const UserSerializer = (user: User) =>
             const res = generateSerializerContent({
               fullyQualifiedModelName: 'user',
               columnsWithTypes: ['organization:belongs_to'],
+              stiBaseSerializer: false,
+              includeAdminSerializers: false,
             })
 
             expect(res).toEqual(
@@ -237,6 +313,8 @@ function expectAttributeType(startingAttributeType: string) {
   const res = generateSerializerContent({
     fullyQualifiedModelName: 'User',
     columnsWithTypes: [`howyadoin:${startingAttributeType}`],
+    stiBaseSerializer: false,
+    includeAdminSerializers: false,
   })
   expect(res).toEqual(
     `\
@@ -258,6 +336,8 @@ function expectJsonAttributeType(startingAttributeType: 'json' | 'jsonb' | 'json
   const res = generateSerializerContent({
     fullyQualifiedModelName: 'User',
     columnsWithTypes: [`howyadoin:${startingAttributeType}`],
+    stiBaseSerializer: false,
+    includeAdminSerializers: false,
   })
   expect(res).toEqual(
     `\

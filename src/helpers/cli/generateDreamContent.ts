@@ -12,11 +12,13 @@ export default function generateDreamContent({
   columnsWithTypes,
   fullyQualifiedParentName,
   serializer,
+  includeAdminSerializers,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   fullyQualifiedParentName?: string | undefined
   serializer: boolean
+  includeAdminSerializers: boolean
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
@@ -115,7 +117,13 @@ ${
       ? `  public ${isSTI ? 'override ' : ''}get serializers(): DreamSerializers<${modelClassName}> {
     return {
       default: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
-      summary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',
+      summary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',${
+        !includeAdminSerializers
+          ? ''
+          : `
+      admin: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName).replace(/Serializer$/, 'AdminSerializer')}',
+      adminSummary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary').replace(/SummarySerializer$/, 'AdminSummarySerializer')}',`
+      }
     }
   }
 

@@ -7,6 +7,7 @@ describe('dream generate:model <name> [...attributes]', () => {
         fullyQualifiedModelName: 'MealType',
         columnsWithTypes: [],
         serializer: true,
+        includeAdminSerializers: false,
       })
       expect(res).toEqual(
         `\
@@ -36,12 +37,13 @@ export default class MealType extends ApplicationModel {
     })
   })
 
-  context('with serializer: false', () => {
+  context('serializer: false', () => {
     it('omits the serializer method', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'MealType',
         columnsWithTypes: [],
         serializer: false,
+        includeAdminSerializers: false,
       })
       expect(res).toEqual(
         `\
@@ -64,6 +66,44 @@ export default class MealType extends ApplicationModel {
     })
   })
 
+  context('includeAdminSerializers: true', () => {
+    it('references the admin and adminSummary serializers', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'MealType',
+        columnsWithTypes: [],
+        serializer: true,
+        includeAdminSerializers: true,
+      })
+      expect(res).toEqual(
+        `\
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import ApplicationModel from './ApplicationModel.js'
+
+const deco = new Decorators<typeof MealType>()
+
+export default class MealType extends ApplicationModel {
+  public override get table() {
+    return 'meal_types' as const
+  }
+
+  public get serializers(): DreamSerializers<MealType> {
+    return {
+      default: 'MealTypeSerializer',
+      summary: 'MealTypeSummarySerializer',
+      admin: 'MealTypeAdminSerializer',
+      adminSummary: 'MealTypeAdminSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<MealType, 'id'>
+  public createdAt: DreamColumn<MealType, 'createdAt'>
+  public updatedAt: DreamColumn<MealType, 'updatedAt'>
+}
+`
+      )
+    })
+  })
+
   context('when parentName is included', () => {
     it('extends the parent, adds STI decorator, omits table and base attributes', () => {
       const res = generateDreamContent({
@@ -71,6 +111,7 @@ export default class MealType extends ApplicationModel {
         columnsWithTypes: ['hello:string'],
         fullyQualifiedParentName: 'Foo/Bar',
         serializer: true,
+        includeAdminSerializers: false,
       })
       expect(res).toEqual(
         `\
@@ -102,6 +143,7 @@ export default class FooBarBaz extends FooBar {
           fullyQualifiedModelName: 'user',
           columnsWithTypes: ['email:string', 'password_digest:string'],
           serializer: true,
+          includeAdminSerializers: false,
         })
         expect(res).toEqual(
           `\
@@ -139,6 +181,7 @@ export default class User extends ApplicationModel {
           fullyQualifiedModelName: 'user',
           columnsWithTypes: ['email:string', 'phone_number:encrypted'],
           serializer: true,
+          includeAdminSerializers: false,
         })
         expect(res).toEqual(
           `\
@@ -182,6 +225,7 @@ export default class User extends ApplicationModel {
             'existing_enum:enum:my_existing_enum',
           ],
           serializer: true,
+          includeAdminSerializers: false,
         })
         expect(res).toEqual(
           `\
@@ -220,6 +264,7 @@ export default class Chalupa extends ApplicationModel {
           fullyQualifiedModelName: 'paper',
           columnsWithTypes: ['name:string'],
           serializer: true,
+          includeAdminSerializers: false,
         })
         expect(res).toEqual(
           `\
@@ -257,6 +302,7 @@ export default class Paper extends ApplicationModel {
             fullyQualifiedModelName: 'composition',
             columnsWithTypes: ['graph_node:belongs_to'],
             serializer: true,
+            includeAdminSerializers: false,
           })
           expect(res).toEqual(
             `\
@@ -296,6 +342,7 @@ export default class Composition extends ApplicationModel {
               fullyQualifiedModelName: 'composition',
               columnsWithTypes: ['graph_node:belongs_to:optional'],
               serializer: true,
+              includeAdminSerializers: false,
             })
             expect(res).toEqual(
               `\
@@ -336,6 +383,7 @@ export default class Composition extends ApplicationModel {
               fullyQualifiedModelName: 'cat_toy',
               columnsWithTypes: ['pet/domestic/cat:belongs_to'],
               serializer: true,
+              includeAdminSerializers: false,
             })
             expect(res).toEqual(
               `\
@@ -374,6 +422,7 @@ export default class CatToy extends ApplicationModel {
               fullyQualifiedModelName: 'pet/domestic/cat',
               columnsWithTypes: ['graph_node:belongs_to'],
               serializer: true,
+              includeAdminSerializers: false,
             })
             expect(res).toEqual(
               `\
@@ -412,6 +461,7 @@ export default class PetDomesticCat extends ApplicationModel {
               fullyQualifiedModelName: 'pet/domestic/cat',
               columnsWithTypes: ['pet/domestic/dog:belongs_to'],
               serializer: true,
+              includeAdminSerializers: false,
             })
             expect(res).toEqual(
               `\
@@ -450,6 +500,7 @@ export default class PetDomesticCat extends ApplicationModel {
               fullyQualifiedModelName: 'pet/wild/cat',
               columnsWithTypes: ['pet/domestic/dog:belongs_to'],
               serializer: true,
+              includeAdminSerializers: false,
             })
             expect(res).toEqual(
               `\
@@ -489,6 +540,7 @@ export default class PetWildCat extends ApplicationModel {
             fullyQualifiedModelName: 'composition',
             columnsWithTypes: ['user:belongs_to', 'chalupa:belongs_to'],
             serializer: true,
+            includeAdminSerializers: false,
           })
           expect(res).toEqual(
             `\
@@ -534,6 +586,7 @@ export default class Composition extends ApplicationModel {
             fullyQualifiedModelName: 'composition',
             columnsWithTypes: ['graph_node:has_one'],
             serializer: true,
+            includeAdminSerializers: false,
           })
           expect(res).toEqual(
             `\
@@ -569,6 +622,7 @@ export default class Composition extends ApplicationModel {
             fullyQualifiedModelName: 'composition',
             columnsWithTypes: ['graph_node:has_one'],
             serializer: true,
+            includeAdminSerializers: false,
           })
           expect(res).toEqual(
             `\
