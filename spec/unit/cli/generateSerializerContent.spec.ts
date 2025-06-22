@@ -5,8 +5,8 @@ describe('dream generate:serializer <name> [...attributes]', () => {
     context('when passed a dream class', () => {
       it('generates a serializer adding requested attributes, casting the serializer type to the specified model', () => {
         const res = generateSerializerContent({
-          fullyQualifiedModelName: 'User',
-          columnsWithTypes: ['logged_in_at'],
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['title:string', 'bodyMarkdown:text'],
           stiBaseSerializer: false,
           includeAdminSerializers: false,
         })
@@ -14,15 +14,16 @@ describe('dream generate:serializer <name> [...attributes]', () => {
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
+import Post from '../models/Post.js'
 
-export const UserSummarySerializer = (user: User) =>
-  DreamSerializer(User, user)
+export const PostSummarySerializer = (post: Post) =>
+  DreamSerializer(Post, post)
     .attribute('id')
 
-export const UserSerializer = (user: User) =>
-  UserSummarySerializer(user)
-    .attribute('loggedInAt')
+export const PostSerializer = (post: Post) =>
+  PostSummarySerializer(post)
+    .attribute('title')
+    .attribute('bodyMarkdown')
 `
         )
       })

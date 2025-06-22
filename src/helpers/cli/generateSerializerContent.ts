@@ -90,7 +90,7 @@ export default function generateSerializerContent({
 
       return `\n    ${attribute(name, type, attr)}`
     })
-    .join('\n\n  ')}`
+    .join('')}`
 
   return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
 ${summarySerializer}
