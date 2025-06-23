@@ -39,7 +39,7 @@ export default async function generateDream({
         fullyQualifiedModelName,
         columnsWithTypes,
         fullyQualifiedParentName,
-        serializer: options.serializer && !options.stiBaseSerializer,
+        serializer: options.serializer,
         includeAdminSerializers: options.includeAdminSerializers,
       })
     )
