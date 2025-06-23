@@ -88,7 +88,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    * await user.loadFor('summary').execute()
    *
    * // Add where conditions to specific associations during preloading:
-   * await user.loadFor('detailed', (dreamClass, associationName) => {
+   * await user.loadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
@@ -97,7 +97,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    *
    * // Skip preloading specific associations to handle them manually:
    * await user
-   *   .loadFor('summary', (dreamClass, associationName) => {
+   *   .loadFor('summary', (associationName, dreamClass) => {
    *     if (dreamClass.typeof(User) && associationName === 'posts') {
    *       return 'omit' // Handle posts preloading separately with custom logic
    *     }

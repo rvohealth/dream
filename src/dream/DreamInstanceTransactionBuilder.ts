@@ -120,7 +120,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * await user.loadFor('summary').execute()
    *
    * // Add where conditions to specific associations during preloading:
-   * await user.txn(txn).loadFor('detailed', (dreamClass, associationName) => {
+   * await user.txn(txn).loadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
@@ -130,7 +130,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * // Skip preloading specific associations to handle them manually:
    * await user
    *   .txn(txn)
-   *   .loadFor('summary', (dreamClass, associationName) => {
+   *   .loadFor('summary', (associationName, dreamClass) => {
    *     if (dreamClass.typeof(User) && associationName === 'posts') {
    *       return 'omit' // Handle posts preloading separately with custom logic
    *     }
@@ -223,7 +223,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * await user.leftJoinLoadFor('summary').execute()
    *
    * // Add where conditions to specific associations during preloading:
-   * await user.txn(txn).leftJoinLoadFor('detailed', (dreamClass, associationName) => {
+   * await user.txn(txn).leftJoinLoadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
@@ -233,7 +233,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * // Skip preloading specific associations to handle them manually:
    * await user
    *   .txn(txn)
-   *   .leftJoinLoadFor('summary', (dreamClass, associationName) => {
+   *   .leftJoinLoadFor('summary', (associationName, dreamClass) => {
    *     if (dreamClass.typeof(User) && associationName === 'posts') {
    *       return 'omit' // Handle posts preloading separately with custom logic
    *     }

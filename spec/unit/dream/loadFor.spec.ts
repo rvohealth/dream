@@ -29,7 +29,7 @@ describe('Dream#loadFor(serializerKey)', () => {
       const collar = await Collar.create({ pet })
 
       const reloaded = await collar
-        .loadFor('default', (dreamClass, associationName) => {
+        .loadFor('default', (associationName, dreamClass) => {
           if (dreamClass.typeof(Pet) && associationName === 'ratings') {
             const modifier: DreamClassAssociationAndStatement<typeof Post, 'ratings'> = {
               and: { rating: 7 },

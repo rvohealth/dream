@@ -96,7 +96,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
    * await user.leftJoinLoadFor('summary').execute()
    *
    * // Add where conditions to specific associations during preloading:
-   * await user.leftJoinLoadFor('detailed', (dreamClass, associationName) => {
+   * await user.leftJoinLoadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
@@ -105,7 +105,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
    *
    * // Skip preloading specific associations to handle them manually:
    * await user
-   *   .leftJoinLoadFor('summary', (dreamClass, associationName) => {
+   *   .leftJoinLoadFor('summary', (associationName, dreamClass) => {
    *     if (dreamClass.typeof(User) && associationName === 'posts') {
    *       return 'omit' // Handle posts preloading separately with custom logic
    *     }

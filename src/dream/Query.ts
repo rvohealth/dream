@@ -702,7 +702,7 @@ export default class Query<
    * await User.preloadFor('summary').all()
    *
    * // Add where conditions to specific associations during preloading:
-   * await User.preloadFor('detailed', (dreamClass, associationName) => {
+   * await User.preloadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
@@ -710,7 +710,7 @@ export default class Query<
    *   .all()
    *
    * // Skip preloading specific associations to handle them manually:
-   * await User.preloadFor('summary', (dreamClass, associationName) => {
+   * await User.preloadFor('summary', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(User) && associationName === 'posts') {
    *     return 'omit' // Handle posts preloading separately with custom logic
    *   }
@@ -779,7 +779,7 @@ export default class Query<
    * await User.leftJoinPreloadFor('summary').all()
    *
    * // Add where conditions to specific associations during left join preloading:
-   * await User.leftJoinPreloadFor('detailed', (dreamClass, associationName) => {
+   * await User.leftJoinPreloadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
@@ -787,7 +787,7 @@ export default class Query<
    *   .all()
    *
    * // Skip left join preloading specific associations to handle them manually:
-   * await User.leftJoinPreloadFor('summary', (dreamClass, associationName) => {
+   * await User.leftJoinPreloadFor('summary', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(User) && associationName === 'posts') {
    *     return 'omit' // Handle posts preloading separately with custom logic
    *   }

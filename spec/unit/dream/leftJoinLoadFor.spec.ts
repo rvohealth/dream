@@ -29,7 +29,7 @@ describe('Dream#leftJoinLoadFor(serializerKey)', () => {
       const collar = await Collar.create({ pet })
 
       const reloaded = await collar
-        .leftJoinLoadFor('default', (dreamClass, associationName) => {
+        .leftJoinLoadFor('default', (associationName, dreamClass) => {
           if (dreamClass.typeof(Pet) && associationName === 'ratings') {
             const modifier: DreamClassAssociationAndStatement<typeof Post, 'ratings'> = {
               and: { rating: 7 },

@@ -14,7 +14,7 @@ export default function convertDreamClassAndAssociationNameTupleArrayToPreloadAr
         ? `${dreamClassAndAssociationNameTuple[1]} as drsz${counter.count++}`
         : dreamClassAndAssociationNameTuple[1]
       if (!modifierFn) return aliasedAssociationName
-      const modifier = modifierFn(dreamClassAndAssociationNameTuple[0], associationName)
+      const modifier = modifierFn(associationName, dreamClassAndAssociationNameTuple[0])
       if (modifier === 'omit') return undefined
       return [aliasedAssociationName, modifier]
     })

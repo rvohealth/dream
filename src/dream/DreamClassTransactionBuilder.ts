@@ -524,14 +524,14 @@ export default class DreamClassTransactionBuilder<
    * await User.preloadFor('summary').all()
    *
    * // Add where conditions to specific associations during preloading:
-   * await User.txn(txn).leftJoinPreloadFor('detailed', (dreamClass, associationName) => {
+   * await User.txn(txn).leftJoinPreloadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
    * }).all()
    *
    * // Skip preloading specific associations to handle them manually:
-   * await User.txn(txn).leftJoinPreloadFor('summary', (dreamClass, associationName) => {
+   * await User.txn(txn).leftJoinPreloadFor('summary', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(User) && associationName === 'posts') {
    *     return 'omit' // Handle posts preloading separately with custom logic
    *   }
@@ -605,14 +605,14 @@ export default class DreamClassTransactionBuilder<
    * await User.preloadFor('summary').all()
    *
    * // Add where conditions to specific associations during preloading:
-   * await User.txn(txn).preloadFor('detailed', (dreamClass, associationName) => {
+   * await User.txn(txn).preloadFor('detailed', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(Post) && associationName === 'comments') {
    *     return { and: { published: true } }
    *   }
    * }).all()
    *
    * // Skip preloading specific associations to handle them manually:
-   * await User.txn(txn).preloadFor('summary', (dreamClass, associationName) => {
+   * await User.txn(txn).preloadFor('summary', (associationName, dreamClass) => {
    *   if (dreamClass.typeof(User) && associationName === 'posts') {
    *     return 'omit' // Handle posts preloading separately with custom logic
    *   }
