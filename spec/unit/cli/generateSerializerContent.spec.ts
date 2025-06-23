@@ -101,7 +101,7 @@ export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Ballo
 
         expect(res).toEqual(
           `\
-import FooBarSerializer, { FooBarSummarySerializer } from '../BarSerializer.js'
+import { FooBarSerializer, FooBarSummarySerializer } from '../BarSerializer.js'
 import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
 
 export const FooBarBazSummarySerializer = (fooBarBaz: FooBarBaz) =>

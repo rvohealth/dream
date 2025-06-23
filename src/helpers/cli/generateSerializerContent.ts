@@ -146,7 +146,7 @@ function importStatementForSerializer(originModelName: string, destinationModelN
 
   const importFrom = relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)
 
-  return `import ${defaultSerializer}, { ${summarySerializer} } from '${importFrom}'\n`
+  return `import { ${defaultSerializer}, ${summarySerializer} } from '${importFrom}'\n`
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
