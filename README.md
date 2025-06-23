@@ -1,5 +1,3 @@
-> ATTENTION: we are currently in the process of releasing this code to the world, as of the afternoon of May 21st, 2025. This notice will be removed, and the version of this repo will be bumped to 1.0.0, once all of the repos have been migrated to the new spaces and we can verify that it is all working. This should happen sometime in the next month.
-
 Dream is a typescript-driven, esm-first ORM built on top of [kysely](http://kysely.dev). It is built to operate within the [Psychic web framework](https://psychic-docs.netlify.app), but can be brought into other projects and used without the encapsulating framework (though this is theoretical, and we do not encourage it at this time). It is actively being developed to support production-grade applications in use within the [RVOHealth organization](https://www.rvohealth.com), who has kindly sponsored the continued development of this ORM, as well as the Psychic web framework as a whole.
 
 Documentation: [https://psychic-docs.netlify.app](https://psychic-docs.netlify.app)
