@@ -769,7 +769,7 @@ export default class Dream {
       if (this.explicitUnsafeParamColumns.includes(column)) return false
       if (this.isBelongsToAssociationForeignKey(column)) return false
       if (this.isBelongsToAssociationPolymorphicTypeField(column)) return false
-      if (this.sti.active && column === 'type') return false
+      if ((this.isSTIChild || this.isSTIBase) && column === 'type') return false
       return true
     }) as DreamParamSafeColumnNames<I>[]
 

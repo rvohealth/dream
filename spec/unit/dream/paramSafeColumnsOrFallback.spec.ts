@@ -1,4 +1,5 @@
 import { Dream } from '../../../src/index.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns.js'
 import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns.js'
@@ -40,6 +41,10 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
 
   it('omits type field for STI models', () => {
     expect(subject(Latex)).not.toEqual(expect.arrayContaining(['type']))
+  })
+
+  it('omits type field for STI base models', () => {
+    expect(subject(Balloon)).not.toEqual(expect.arrayContaining(['type']))
   })
 
   it('omits type field for polymorphic associations', () => {
