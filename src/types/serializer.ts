@@ -89,11 +89,7 @@ export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOptio
     precision?: RoundingPrecision
   }
 
-export type DreamModelSerializerType = (
-  dreamClass: any,
-  data: any,
-  passthroughData?: any
-) => DreamSerializerBuilder<any, any>
+export type DreamModelSerializerType = (data: any, passthroughData?: any) => DreamSerializerBuilder<any, any>
 
 export type SimpleObjectSerializerType = (
   data: any,
