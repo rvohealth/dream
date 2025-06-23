@@ -7,7 +7,7 @@ import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating
 describe('extending a generic DreamSerializer', () => {
   it('enables chaining a descendant model serializer off of a base model', () => {
     const AncestorSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, data: T) =>
-      DreamSerializer(StiChildClass, data)
+      DreamSerializer(StiChildClass ?? Balloon, data)
         .attribute('color')
         .rendersOne<Balloon, 'balloonLine'>('balloonLine', { serializerKey: 'summary' })
         .rendersMany<Balloon, 'heartRatings'>('heartRatings', { serializerKey: 'default' })

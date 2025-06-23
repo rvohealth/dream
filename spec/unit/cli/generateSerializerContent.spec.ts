@@ -78,7 +78,7 @@ import { DreamSerializer } from '@rvoh/dream'
 import Balloon from '../models/Balloon.js'
 
 export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
-  DreamSerializer(StiChildClass, balloon)
+  DreamSerializer(StiChildClass ?? Balloon, balloon)
     .attribute('id')
 
 export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>

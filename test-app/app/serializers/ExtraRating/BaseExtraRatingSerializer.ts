@@ -4,4 +4,7 @@ import BaseExtraRating from '../../models/ExtraRating/Base.js'
 export const BaseExtraRatingSerializer = <T extends BaseExtraRating>(
   StiChildClass: typeof BaseExtraRating,
   data: T
-) => DreamSerializer(StiChildClass, data).attribute('id').attribute('type')
+) =>
+  DreamSerializer(StiChildClass ?? BaseExtraRating, data)
+    .attribute('id')
+    .attribute('type')

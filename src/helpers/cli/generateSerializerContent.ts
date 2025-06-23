@@ -37,7 +37,7 @@ export default function generateSerializerContent({
     ? `<T extends ${modelClassName}>(StiChildClass: typeof ${modelClassName}, ${modelInstanceName}: T)`
     : `(${modelInstanceName}: ${modelClassName})`
   const modelSerializerArgs = `${modelInstanceName}`
-  const dreamSerializerArgs = `${stiBaseSerializer ? 'StiChildClass' : modelClassName}, ${modelInstanceName}`
+  const dreamSerializerArgs = `${stiBaseSerializer ? `StiChildClass ?? ${modelClassName}` : modelClassName}, ${modelInstanceName}`
 
   const serializerClassName = serializerNameFromFullyQualifiedModelName(
     fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
