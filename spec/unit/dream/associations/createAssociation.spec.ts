@@ -96,34 +96,37 @@ describe('Dream#createAssociation', () => {
   })
 
   context('with a polymorphic association', () => {
-    it('assigns class name of base model to polymorphic type field', async () => {
+    it('sets the foreign key type to the class name of the associated model', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const post = await Post.create({ user, body: 'howyadoin' })
       const rating = await post.createAssociation('ratings', { body: 'my rating', user })
       expect(rating.rateableType).toEqual('Post')
+      expect(rating.rateableId).toEqual(post.id)
     })
 
     context('when the polymorphic association is passed as an argument', () => {
-      it('assigns class name of base model to polymorphic type field', async () => {
+      it('sets the foreign key type to the class name of the associated model', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const composition = await Composition.create({ user })
 
         const rating = await user.createAssociation('ratings', { rateable: composition })
         expect(rating.rateableType).toEqual('Composition')
+        expect(rating.rateableId).toEqual(composition.id)
       })
     })
 
     context('when the model being assined is an STI child', () => {
-      it('assigns class name of base STI model to polymorphic type field', async () => {
+      it('sets the foreign key type to the class name of the associated STI base model', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
         const mylarBalloon = await Mylar.create()
         const rating = await mylarBalloon.createAssociation('heartRatings', { rating: 3, user })
         expect(rating.extraRateableType).toEqual('Balloon')
+        expect(rating.extraRateableId).toEqual(mylarBalloon.id)
       })
 
       context('when the polymorphic association is passed as an argument', () => {
-        it('assigns class name of base STI model to polymorphic type field', async () => {
+        it('sets the foreign key type to the class name of the associated STI base model', async () => {
           const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
           const mylarBalloon = await Mylar.create()
@@ -132,6 +135,7 @@ describe('Dream#createAssociation', () => {
             extraRateable: mylarBalloon,
           })
           expect(rating.extraRateableType).toEqual('Balloon')
+          expect(rating.extraRateableId).toEqual(mylarBalloon.id)
         })
       })
     })

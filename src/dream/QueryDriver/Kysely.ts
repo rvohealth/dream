@@ -5,8 +5,8 @@ import {
   ExpressionWrapper,
   JoinBuilder,
   Kysely,
-  Transaction as KyselyTransaction,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
+  Transaction as KyselyTransaction,
   SelectQueryBuilder,
   sql,
   SqlBool,
@@ -14,6 +14,7 @@ import {
   UpdateQueryBuilder,
 } from 'kysely'
 import pluralize from 'pluralize-esm'
+import writeSyncFile from '../../bin/helpers/sync.js'
 import DreamCLI from '../../cli/index.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
@@ -32,8 +33,11 @@ import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
+import SchemaBuilder from '../../helpers/cli/SchemaBuilder.js'
 import compact from '../../helpers/compact.js'
 import { DateTime } from '../../helpers/DateTime.js'
+import createDb from '../../helpers/db/createDb.js'
+import _dropDb from '../../helpers/db/dropDb.js'
 import loadPgClient from '../../helpers/db/loadPgClient.js'
 import runMigration from '../../helpers/db/runMigration.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
@@ -53,6 +57,7 @@ import { BelongsToStatement } from '../../types/associations/belongsTo.js'
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import { HasOneStatement } from '../../types/associations/hasOne.js'
 import { AssociationStatement, SelfOnStatement, WhereStatement } from '../../types/associations/shared.js'
+import { DbConnectionType } from '../../types/db.js'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
@@ -87,11 +92,6 @@ import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
-import writeSyncFile from '../../bin/helpers/sync.js'
-import SchemaBuilder from '../../helpers/cli/SchemaBuilder.js'
-import createDb from '../../helpers/db/createDb.js'
-import _dropDb from '../../helpers/db/dropDb.js'
-import { DbConnectionType } from '../../types/db.js'
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   // ATTENTION FRED
@@ -2348,20 +2348,25 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         `Polymorphic association ${association.as} points to an array of models but is ${association.type as string}. Only BelongsTo associations may point to an array of models.`
       )
 
-    const associatedDreams: Dream[] = []
+    const nestedDreamsForNextRoundOfPreloading: Dream[] = []
 
     for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
-      await this.preloadPolymorphicAssociationModel(dreams, association, associatedModel, associatedDreams)
+      await this.preloadPolymorphicAssociationModel(
+        dreams,
+        association,
+        associatedModel,
+        nestedDreamsForNextRoundOfPreloading
+      )
     }
 
-    return associatedDreams
+    return nestedDreamsForNextRoundOfPreloading
   }
 
   private async preloadPolymorphicAssociationModel(
     dreams: Dream[],
     association: BelongsToStatement<any, any, any, string>,
     associatedDreamClass: typeof Dream,
-    associatedDreams: Dream[]
+    nestedDreamsForNextRoundOfPreloading: Dream[]
   ) {
     const relevantAssociatedModels = dreams.filter((dream: any) => {
       const field = association.foreignKeyTypeField()
@@ -2386,23 +2391,25 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         })
         .all()
 
-      loadedAssociations.forEach((loadedAssociation: Dream) => associatedDreams.push(loadedAssociation))
+      loadedAssociations.forEach((loadedAssociation: Dream) =>
+        nestedDreamsForNextRoundOfPreloading.push(loadedAssociation)
+      )
 
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Associate each loaded association with each dream based on primary key and foreign key type
       //////////////////////////////////////////////////////////////////////////////////////////////
       for (const loadedAssociation of loadedAssociations) {
         dreams
-          .filter((dream: any) => {
-            return (
+          .filter(
+            (dream: any) =>
               dream[association.foreignKeyTypeField()] === loadedAssociation['stiBaseClassOrOwnClassName'] &&
               dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
-            )
-          })
+          )
           .forEach((dream: any) => {
             dream[association.as] = loadedAssociation
           })
       }
+
       ///////////////////////////////////////////////////////////////////////////////////////////////////
       // end: Associate each loaded association with each dream based on primary key and foreign key type
       ///////////////////////////////////////////////////////////////////////////////////////////////////

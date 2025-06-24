@@ -131,7 +131,7 @@ export function applyGetterAndSetter(
           partialAssociation.primaryKeyValue(associatedModel)
         if (partialAssociation.polymorphic)
           (this as any)[foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)] =
-            associatedModel?.['sanitizedConstructorName']
+            associatedModel?.['stiBaseClassOrOwnClassName']
       }
     },
   })

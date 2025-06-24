@@ -89,25 +89,28 @@ describe('Dream.preload', () => {
     expect(spy).not.toHaveBeenCalledWith('primary')
   })
 
-  context('STI with a polymorphic belongs_to association to another STI model', () => {
-    it('loads the association', async () => {
+  context('STI with a polymorphic belongs-to association to another STI model', () => {
+    it('loads the association, leaving the polymorphic association type as the STI base class name', async () => {
       const shape = await CatShape.create()
-      await Mylar.create({ shapable: shape })
+      const mylar = await Mylar.create({ shapable: shape })
+      expect(mylar?.shapableType).toEqual('Shape')
 
-      const clone = await Mylar.preload('shapable').first()
-      expect(clone?.shapable).toMatchDreamModel(shape)
+      const reloadedMylar = await Mylar.preload('shapable').firstOrFail()
+      expect(reloadedMylar.shapable).toMatchDreamModel(shape)
+      expect(reloadedMylar.shapableId).toEqual(shape.id)
+      expect(reloadedMylar.shapableType).toEqual('Shape')
     })
 
     it('is null when the optional polymorphic assoc is not present', async () => {
       await Mylar.create()
-      const clone = await Mylar.preload('shapable').first()
-      expect(clone?.shapable).toBeNull()
+      const reloadedMylar = await Mylar.preload('shapable').firstOrFail()
+      expect(reloadedMylar.shapable).toBeNull()
     })
 
     it('throws an error when the assoc is not preloaded', async () => {
       await Mylar.create()
-      const clone = await Mylar.first()
-      expect(() => clone?.shapable).toThrow(NonLoadedAssociation)
+      const reloadedMylar = await Mylar.firstOrFail()
+      expect(() => reloadedMylar.shapable).toThrow(NonLoadedAssociation)
     })
   })
 })
