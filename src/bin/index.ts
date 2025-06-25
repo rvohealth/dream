@@ -4,8 +4,8 @@ import generateDream from '../helpers/cli/generateDream.js'
 import sspawn from '../helpers/sspawn.js'
 
 export default class DreamBin {
-  public static async sync(onSync: () => Promise<void> | void) {
-    await Query.dbDriverClass().sync(onSync)
+  public static async sync(onSync: () => Promise<void> | void, options?: { schemaOnly?: boolean }) {
+    await Query.dbDriverClass().sync(onSync, options)
   }
 
   public static async dbCreate() {

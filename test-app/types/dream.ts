@@ -696,7 +696,7 @@ export const schema = {
     associations: {
       composition: {
         type: 'HasOne',
-        foreignKey: 'compositionAssetAuditId',
+        foreignKey: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -710,7 +710,7 @@ export const schema = {
       },
       user: {
         type: 'HasOne',
-        foreignKey: 'compositionAssetAuditId',
+        foreignKey: null,
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,
@@ -841,7 +841,7 @@ export const schema = {
       },
       user: {
         type: 'HasOne',
-        foreignKey: 'compositionAssetId',
+        foreignKey: null,
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,
@@ -1296,14 +1296,14 @@ export const schema = {
       },
       headSibling: {
         type: 'HasOne',
-        foreignKey: 'graphEdgeNodeId',
+        foreignKey: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
       },
       justThisSibling: {
         type: 'HasOne',
-        foreignKey: 'graphEdgeNodeId',
+        foreignKey: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -3393,7 +3393,7 @@ export const schema = {
       },
       featuredPost: {
         type: 'HasOne',
-        foreignKey: 'petId',
+        foreignKey: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -4382,7 +4382,7 @@ export const schema = {
       },
       balloonsFromUuid: {
         type: 'HasMany',
-        foreignKey: 'userId',
+        foreignKey: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -4424,14 +4424,14 @@ export const schema = {
       },
       featuredRatings: {
         type: 'HasMany',
-        foreignKey: 'userId',
+        foreignKey: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
       },
       firstCollarFromUuid: {
         type: 'HasOne',
-        foreignKey: 'userId',
+        foreignKey: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -4466,7 +4466,7 @@ export const schema = {
       },
       mainCompositionAsset: {
         type: 'HasOne',
-        foreignKey: 'userId',
+        foreignKey: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -4522,7 +4522,7 @@ export const schema = {
       },
       postRatings: {
         type: 'HasMany',
-        foreignKey: 'userId',
+        foreignKey: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -4543,7 +4543,7 @@ export const schema = {
       },
       ratingsThroughPostsThatMatchUserTargetRating: {
         type: 'HasMany',
-        foreignKey: 'userId',
+        foreignKey: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,

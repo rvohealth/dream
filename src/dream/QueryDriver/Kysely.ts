@@ -18,6 +18,7 @@ import writeSyncFile from '../../bin/helpers/sync.js'
 import DreamCLI from '../../cli/index.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
+import PackageManager from '../../dream-app/helpers/PackageManager.js'
 import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import CannotAssociateThroughPolymorphic from '../../errors/associations/CannotAssociateThroughPolymorphic.js'
@@ -145,18 +146,44 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     await generateMigration({ migrationName, columnsWithTypes })
   }
 
-  public static override async sync(onSync: () => Promise<void> | void) {
-    DreamCLI.logger.logStartProgress('writing db schema...')
-    await writeSyncFile()
-    DreamCLI.logger.logEndProgress()
+  public static override async sync(
+    onSync: () => Promise<void> | void,
+    options: { schemaOnly?: boolean } = {}
+  ) {
+    if (!options?.schemaOnly) {
+      DreamCLI.logger.logStartProgress('writing db schema...')
+      await writeSyncFile()
+      DreamCLI.logger.logEndProgress()
+    }
 
     DreamCLI.logger.logStartProgress('building dream schema...')
-    await new SchemaBuilder().build()
+    const schemaBuilder = new SchemaBuilder()
+    await schemaBuilder.build()
     DreamCLI.logger.logEndProgress()
 
-    // intentionally leaving logs off here, since it allows other
-    // onSync handlers to determine their own independent logging approach
-    await onSync()
+    if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
+      DreamCLI.logger.logStartProgress('triggering resync to correct for foreign key errors...')
+
+      // TODO: make this customizable to enable dream apps to separate
+      const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
+
+      await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
+        onStdout: str => {
+          DreamCLI.logger.logContinueProgress(`${str}`, {
+            logPrefix: '  ├ [resync]',
+            logPrefixColor: 'blue',
+          })
+        },
+      })
+
+      DreamCLI.logger.logEndProgress()
+    }
+
+    if (!options?.schemaOnly) {
+      // intentionally leaving logs off here, since it allows other
+      // onSync handlers to determine their own independent logging approach
+      await onSync()
+    }
   }
 
   /**
