@@ -25,6 +25,7 @@ export default async function (dreamApp: DreamApp) {
   dreamApp.set('projectRoot', projectRoot)
   dreamApp.set('primaryKeyType', 'bigserial')
   dreamApp.set('inflections', inflections)
+  dreamApp.set('packageManager', 'yarn')
 
   dreamApp.set('logger', logger(projectRoot))
 

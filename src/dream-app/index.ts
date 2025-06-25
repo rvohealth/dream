@@ -275,6 +275,11 @@ Try setting it to something valid, like:
     return this._plugins
   }
 
+  private _packageManager: DreamAppAllowedPackageManagersEnum
+  public get packageManager() {
+    return this._packageManager
+  }
+
   protected loadedModels: boolean = false
 
   constructor(opts?: Partial<DreamAppOpts>) {
@@ -369,15 +374,17 @@ Try setting it to something valid, like:
               ? string
               : ApplyOpt extends 'inflections'
                 ? () => void | Promise<void>
-                : ApplyOpt extends 'paths'
-                  ? DreamDirectoryPaths
-                  : ApplyOpt extends 'parallelTests'
-                    ? number
-                    : ApplyOpt extends 'unicodeNormalization'
-                      ? UnicodeNormalizationForm
-                      : ApplyOpt extends 'paginationPageSize'
-                        ? number
-                        : never
+                : ApplyOpt extends 'packageManager'
+                  ? DreamAppAllowedPackageManagersEnum
+                  : ApplyOpt extends 'paths'
+                    ? DreamDirectoryPaths
+                    : ApplyOpt extends 'parallelTests'
+                      ? number
+                      : ApplyOpt extends 'unicodeNormalization'
+                        ? UnicodeNormalizationForm
+                        : ApplyOpt extends 'paginationPageSize'
+                          ? number
+                          : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -423,6 +430,10 @@ Try setting it to something valid, like:
 
       case 'unicodeNormalization':
         this._unicodeNormalization = options as UnicodeNormalizationForm
+        break
+
+      case 'packageManager':
+        this._packageManager = options as DreamAppAllowedPackageManagersEnum
         break
 
       case 'paginationPageSize':
@@ -489,6 +500,7 @@ export type DreamAppSetOption =
   | 'parallelTests'
   | 'unicodeNormalization'
   | 'paginationPageSize'
+  | 'packageManager'
 
 export interface DreamDirectoryPaths {
   models?: string
@@ -548,3 +560,6 @@ export interface KyselyLogEvent {
   queryDurationMillis: number // the time in milliseconds it took for the query to execute and get a response from the database.
   error: unknown // only present if `level` is `'error'`.
 }
+
+export const DreamAppAllowedPackageManagersEnumValues = ['yarn', 'npm', 'pnpm'] as const
+export type DreamAppAllowedPackageManagersEnum = (typeof DreamAppAllowedPackageManagersEnumValues)[number]

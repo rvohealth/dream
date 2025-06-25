@@ -15,6 +15,8 @@ export { default as DreamImporter } from './dream-app/helpers/DreamImporter.js'
 export { default as lookupClassByGlobalName } from './dream-app/helpers/lookupClassByGlobalName.js'
 export {
   default as DreamApp,
+  DreamAppAllowedPackageManagersEnumValues,
+  type DreamAppAllowedPackageManagersEnum,
   type DreamAppInitOptions,
   type DreamAppOpts,
   type DreamLogger,
