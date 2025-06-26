@@ -9,3 +9,7 @@
 ## 1.0.3
 
 - exclude type from `DreamParamSafeColumnNames`
+
+## 1.0.4
+
+- properly exclude type from `DreamParamSafeColumnNames`
