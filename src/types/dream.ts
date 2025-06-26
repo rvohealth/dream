@@ -77,7 +77,7 @@ export type DreamParamSafeColumnNames<
   | TableSchema['createdAtField' & keyof TableSchema]
   | TableSchema['updatedAtField' & keyof TableSchema]
   | TableSchema['deletedAtField' & keyof TableSchema]
-  | TableSchema['type' & keyof TableSchema]
+  | 'type'
 >
 
 export type DreamBelongsToForeignKeys<
