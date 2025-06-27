@@ -187,6 +187,13 @@ export const PetTreatsEnumValues = [
 ] as const
 
 
+export type PolymorphicTaskableTypesEnum = "Chore" | "Workout";
+export const PolymorphicTaskableTypesEnumValues = [
+  "Chore",
+  "Workout"
+] as const
+
+
 export type ShapableTypesEnum = "Shape";
 export const ShapableTypesEnumValues = [
   "Shape"
@@ -521,6 +528,36 @@ export interface PetUnderstudyJoinModels {
   updatedAt: Timestamp;
 }
 
+export interface PolymorphicChores {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicTasks {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  polymorphicUserId: Int8;
+  taskableId: Int8;
+  taskableType: PolymorphicTaskableTypesEnum;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicUsers {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicWorkouts {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
 export interface PostComments {
   body: string | null;
   createdAt: Timestamp;
@@ -643,6 +680,10 @@ export interface DB {
   model_without_updated_at: ModelWithoutUpdatedAt;
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
+  polymorphic_chores: PolymorphicChores;
+  polymorphic_tasks: PolymorphicTasks;
+  polymorphic_users: PolymorphicUsers;
+  polymorphic_workouts: PolymorphicWorkouts;
   post_comments: PostComments;
   post_visibilities: PostVisibilities;
   posts: Posts;
@@ -683,6 +724,10 @@ export class DBClass {
   model_without_updated_at: ModelWithoutUpdatedAt
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
+  polymorphic_chores: PolymorphicChores
+  polymorphic_tasks: PolymorphicTasks
+  polymorphic_users: PolymorphicUsers
+  polymorphic_workouts: PolymorphicWorkouts
   post_comments: PostComments
   post_visibilities: PostVisibilities
   posts: Posts
