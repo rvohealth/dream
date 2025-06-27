@@ -535,12 +535,27 @@ export interface PolymorphicChores {
   updatedAt: Timestamp;
 }
 
+export interface PolymorphicMetaUsers {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
 export interface PolymorphicTasks {
   createdAt: Timestamp;
   id: Generated<Int8>;
   polymorphicUserId: Int8;
   taskableId: Int8;
   taskableType: PolymorphicTaskableTypesEnum;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicUserMetaUsers {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  polymorphicMetaUserId: Int8;
+  polymorphicUserId: Int8;
   updatedAt: Timestamp;
 }
 
@@ -681,7 +696,9 @@ export interface DB {
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
   polymorphic_chores: PolymorphicChores;
+  polymorphic_meta_users: PolymorphicMetaUsers;
   polymorphic_tasks: PolymorphicTasks;
+  polymorphic_user_meta_users: PolymorphicUserMetaUsers;
   polymorphic_users: PolymorphicUsers;
   polymorphic_workouts: PolymorphicWorkouts;
   post_comments: PostComments;
@@ -725,7 +742,9 @@ export class DBClass {
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
   polymorphic_chores: PolymorphicChores
+  polymorphic_meta_users: PolymorphicMetaUsers
   polymorphic_tasks: PolymorphicTasks
+  polymorphic_user_meta_users: PolymorphicUserMetaUsers
   polymorphic_users: PolymorphicUsers
   polymorphic_workouts: PolymorphicWorkouts
   post_comments: PostComments

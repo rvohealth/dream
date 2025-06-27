@@ -1209,6 +1209,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         dreamClass: query['dreamClass'],
         previousAssociationTableOrAlias: this.query['baseSqlAlias'],
         joinType: 'inner',
+        baseThroughAssociation: undefined,
       })
     }
 
@@ -1220,6 +1221,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         dreamClass: query['dreamClass'],
         previousAssociationTableOrAlias: this.query['baseSqlAlias'],
         joinType: 'left',
+        baseThroughAssociation: undefined,
       })
     }
 
@@ -1482,6 +1484,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     dreamClass,
     previousAssociationTableOrAlias,
     joinType,
+    baseThroughAssociation,
   }: {
     query: QueryType
     joinStatement: RelaxedJoinStatement
@@ -1489,6 +1492,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     dreamClass: typeof Dream
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     joinType: 'inner' | 'left'
+    baseThroughAssociation:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | undefined
   }): QueryType {
     for (const currentAssociationTableOrAlias of Object.keys(joinStatement)) {
       const results = this.applyOneJoin({
@@ -1498,6 +1505,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         currentAssociationTableOrAlias,
         joinAndStatements,
         joinType,
+        baseThroughAssociation,
       })
 
       query = results.query
@@ -1510,6 +1518,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         dreamClass: association.modelCB() as typeof Dream,
         previousAssociationTableOrAlias: currentAssociationTableOrAlias,
         joinType,
+        baseThroughAssociation,
       })
     }
 
@@ -1776,6 +1785,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousAssociationTableOrAlias,
     throughAssociations,
     joinType,
+    baseThroughAssociation,
   }: {
     query: QueryType
     dreamClass: typeof Dream
@@ -1783,6 +1793,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousAssociationTableOrAlias: TableOrAssociationName<Schema>
     throughAssociations: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
     joinType: JoinTypes
+    baseThroughAssociation:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | undefined
   }): {
     query: QueryType
     dreamClass: typeof Dream
@@ -1812,6 +1826,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         currentAssociationTableOrAlias: association.through as TableOrAssociationName<Schema>,
         throughAssociations,
         joinType,
+        baseThroughAssociation,
       })
 
       // The through association has both a `through` and a `source`. The `source`
@@ -1832,6 +1847,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           previousAssociationTableOrAlias: throughAssociation.as as TableOrAssociationName<Schema>,
           throughAssociations,
           joinType,
+          baseThroughAssociation,
         })
       } else {
         // This new association is not a through association, so
@@ -1909,6 +1925,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     joinAndStatements = {},
     throughAssociations = [],
     joinType,
+    baseThroughAssociation,
   }: {
     query: QueryType
     dreamClass: typeof Dream
@@ -1918,6 +1935,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     throughAssociations?: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
 
     joinType: JoinTypes
+    baseThroughAssociation:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | undefined
   }): {
     query: QueryType
     association: AssociationStatement
@@ -1944,6 +1965,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
     }
 
+    baseThroughAssociation ??= (
+      association as HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    ).through
+      ? (association as HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)
+      : undefined
+
     const results = this.joinsBridgeThroughAssociations({
       query,
       dreamClass,
@@ -1951,6 +1978,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       previousAssociationTableOrAlias,
       throughAssociations,
       joinType,
+      baseThroughAssociation,
     })
 
     query = results.query
@@ -1959,7 +1987,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     association = results.association
     const timeToApplyThroughAssociations =
       throughAssociations.length && throughAssociations[0]?.source === association.as
-    const baseThroughAssociation = timeToApplyThroughAssociations ? throughAssociations[0] : undefined
+    const baseThroughAssociationToApply = association.polymorphic ? baseThroughAssociation : undefined
+    console.debug({ association, baseThroughAssociationToApply })
 
     const originalPreviousAssociationTableOrAlias = previousAssociationTableOrAlias
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
@@ -2006,7 +2035,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
 
     if (association.type === 'BelongsTo') {
-      if (!baseThroughAssociation && Array.isArray(association.modelCB()))
+      if (!baseThroughAssociationToApply && Array.isArray(association.modelCB()))
         throw new CannotJoinPolymorphicBelongsToError({
           dreamClass,
           association,
@@ -2014,7 +2043,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           leftJoinStatements: this.query['leftJoinStatements'],
         })
 
-      const to = ((baseThroughAssociation ?? association).modelCB() as typeof Dream).table
+      const to = ((baseThroughAssociationToApply ?? association).modelCB() as typeof Dream).table
       const joinTableExpression =
         currentAssociationTableOrAlias === to
           ? currentAssociationTableOrAlias
@@ -2028,21 +2057,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             '=',
             this.namespaceColumn(
               association.primaryKey(undefined, {
-                associatedClassOverride: baseThroughAssociation?.modelCB(),
+                associatedClassOverride: baseThroughAssociationToApply?.modelCB(),
               }),
               currentAssociationTableOrAlias
             )
           )
 
-          if (association.polymorphic && baseThroughAssociation) {
+          if (baseThroughAssociationToApply) {
             join = join.on((eb: ExpressionBuilder<any, any>) =>
               this.whereStatementToExpressionWrapper(
                 eb,
                 this.aliasWhereStatement(
                   {
-                    [association.foreignKeyTypeField()]: baseThroughAssociation.modelCB().sanitizedName,
+                    [association.foreignKeyTypeField()]:
+                      baseThroughAssociationToApply.modelCB().sanitizedName,
                   } as WhereStatement<any, any, any>,
-                  baseThroughAssociation?.through ?? currentAssociationTableOrAlias
+                  throughAssociations.at(-1)!.through!
                 )
               )
             )
@@ -2068,7 +2098,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentAssociationTableOrAlias,
             association,
-            throughAssociatedClassOverride: baseThroughAssociation?.modelCB(),
+            throughAssociatedClassOverride: baseThroughAssociationToApply?.modelCB(),
           })
 
           join = this.applyJoinAndStatement(join, joinAndStatement, currentAssociationTableOrAlias)
@@ -2136,7 +2166,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentAssociationTableOrAlias,
             association,
-            throughAssociatedClassOverride: baseThroughAssociation?.modelCB(),
+            throughAssociatedClassOverride: baseThroughAssociationToApply?.modelCB(),
           })
 
           join = this.applyJoinAndStatement(join, joinAndStatement, currentAssociationTableOrAlias)
