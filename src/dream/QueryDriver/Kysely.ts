@@ -1959,6 +1959,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     association = results.association
     const timeToApplyThroughAssociations =
       throughAssociations.length && throughAssociations[0]?.source === association.as
+    const baseThroughAssociation = timeToApplyThroughAssociations ? throughAssociations[0] : undefined
 
     const originalPreviousAssociationTableOrAlias = previousAssociationTableOrAlias
     previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
@@ -2005,7 +2006,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
 
     if (association.type === 'BelongsTo') {
-      if (Array.isArray(association.modelCB()))
+      if (!baseThroughAssociation && Array.isArray(association.modelCB()))
         throw new CannotJoinPolymorphicBelongsToError({
           dreamClass,
           association,
@@ -2013,7 +2014,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           leftJoinStatements: this.query['leftJoinStatements'],
         })
 
-      const to = (association.modelCB() as typeof Dream).table
+      const to = ((baseThroughAssociation ?? association).modelCB() as typeof Dream).table
       const joinTableExpression =
         currentAssociationTableOrAlias === to
           ? currentAssociationTableOrAlias
@@ -2025,8 +2026,27 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           join = join.onRef(
             this.namespaceColumn(association.foreignKey(), previousAssociationTableOrAlias),
             '=',
-            this.namespaceColumn(association.primaryKey(), currentAssociationTableOrAlias)
+            this.namespaceColumn(
+              association.primaryKey(undefined, {
+                associatedClassOverride: baseThroughAssociation?.modelCB(),
+              }),
+              currentAssociationTableOrAlias
+            )
           )
+
+          if (association.polymorphic && baseThroughAssociation) {
+            join = join.on((eb: ExpressionBuilder<any, any>) =>
+              this.whereStatementToExpressionWrapper(
+                eb,
+                this.aliasWhereStatement(
+                  {
+                    [association.foreignKeyTypeField()]: baseThroughAssociation.modelCB().sanitizedName,
+                  } as WhereStatement<any, any, any>,
+                  baseThroughAssociation?.through ?? currentAssociationTableOrAlias
+                )
+              )
+            )
+          }
 
           if (timeToApplyThroughAssociations) {
             throughAssociations.forEach(
@@ -2048,6 +2068,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentAssociationTableOrAlias,
             association,
+            throughAssociatedClassOverride: baseThroughAssociation?.modelCB(),
           })
 
           join = this.applyJoinAndStatement(join, joinAndStatement, currentAssociationTableOrAlias)
@@ -2115,6 +2136,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentAssociationTableOrAlias,
             association,
+            throughAssociatedClassOverride: baseThroughAssociation?.modelCB(),
           })
 
           join = this.applyJoinAndStatement(join, joinAndStatement, currentAssociationTableOrAlias)
@@ -2308,13 +2330,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     join,
     tableNameOrAlias,
     association,
+    throughAssociatedClassOverride,
   }: {
     join: JoinBuilder<any, any>
     tableNameOrAlias: string
     association: AssociationStatement
+    throughAssociatedClassOverride: typeof Dream | undefined
   }) {
     let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
-    const associationClass = association.modelCB() as typeof Dream
+    const associationClass = throughAssociatedClassOverride ?? (association.modelCB() as typeof Dream)
     const associationScopes = associationClass['scopes'].default
 
     for (const scope of associationScopes) {

@@ -19,9 +19,9 @@ export default class PolymorphicUser extends ApplicationModel {
   @deco.HasMany('Polymorphic/Task')
   public tasks: PolymorphicTask[]
 
-  @deco.HasMany('Polymorphic/Chore', {through: 'tasks', source: 'taskable'})
+  @deco.HasMany('Polymorphic/Chore', { through: 'tasks', source: 'taskable' })
   public chores: Chore[]
 
-  @deco.HasOne('Polymorphic/Chore', {through: 'tasks', source: 'taskable', and: {name: 'favorite'}})
+  @deco.HasOne('Polymorphic/Chore', { through: 'tasks', source: 'taskable', and: { name: 'favorite' } })
   public favoriteChore: Chore | null
 }
