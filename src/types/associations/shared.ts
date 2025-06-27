@@ -199,6 +199,7 @@ export type OnStatementForAssociation<
     ? Required<Pick<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>> &
         Partial<Omit<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>>
     : never
+
 // on statement on an association definition
 type OnStatementForAssociationDefinition<
   DB,
@@ -324,6 +325,9 @@ export interface HasStatement<
 interface HasOptionsBase<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+  ForeignTableName extends
+    BaseInstance['schema'][BaseInstance['table']]['associations'][ThroughAssociationName]['tables'][number] = BaseInstance['schema'][BaseInstance['table']]['associations'][ThroughAssociationName]['tables'][number],
   AssociationTableName = TableNameForGlobalModelName<
     BaseInstance,
     AssociationGlobalName & keyof GlobalModelNameTableMap<BaseInstance>
@@ -378,8 +382,8 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  source?: string
-  through?: keyof BaseInstance['schema'][BaseInstance['table']]['associations']
+  source?: keyof BaseInstance['schema'][ForeignTableName]['associations']
+  through?: ThroughAssociationName
 
   withoutDefaultScopes?: DefaultScopeNameForTable<
     BaseInstance['schema'],
@@ -400,18 +404,32 @@ type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
 export type HasOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughOnlyOptions | PolymorphicOption>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = Omit<
+  HasOptionsBase<BaseInstance, AssociationGlobalName, ThroughAssociationName>,
+  ThroughOnlyOptions | PolymorphicOption
+>
 
 export type PolymorphicHasOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasOptionsBase<BaseInstance, AssociationGlobalName> &
-  Required<Pick<HasOptionsBase<BaseInstance, AssociationGlobalName>, PolymorphicOption | ForeignKeyOption>>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = HasOptionsBase<BaseInstance, AssociationGlobalName, ThroughAssociationName> &
+  Required<
+    Pick<
+      HasOptionsBase<BaseInstance, AssociationGlobalName, ThroughAssociationName>,
+      PolymorphicOption | ForeignKeyOption
+    >
+  >
 
 export type HasThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = Omit<HasOptionsBase<BaseInstance, AssociationGlobalName>, ThroughIncompatibleOptions>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = Omit<
+  HasOptionsBase<BaseInstance, AssociationGlobalName, ThroughAssociationName>,
+  ThroughIncompatibleOptions
+>
 
 export interface AssociationStatementsMap {
   belongsTo: readonly BelongsToStatement<any, any, any, any>[] | BelongsToStatement<any, any, any, any>[]

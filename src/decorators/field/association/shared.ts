@@ -144,11 +144,14 @@ export function associationPrimaryKeyAccessors(
   return {
     ...partialAssociation,
 
-    primaryKey(associationInstance?: Dream) {
+    primaryKey(
+      associationInstance?: Dream | undefined,
+      { associatedClassOverride }: { associatedClassOverride?: typeof Dream | undefined } = {}
+    ) {
       if (this.primaryKeyOverride) return this.primaryKeyOverride
       if (associationInstance) return associationInstance.primaryKey
 
-      const associationClass = this.modelCB()
+      const associationClass = associatedClassOverride ?? this.modelCB()
       if (Array.isArray(associationClass)) {
         throw new Error(`
 Cannot lookup primaryKey on polymorphic association:

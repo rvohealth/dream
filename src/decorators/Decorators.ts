@@ -95,22 +95,31 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   ///////////
   // HasMany
   ///////////
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasMany<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasManyOptions<T, AssociationGlobalName>
+    options?: HasManyOptions<T, AssociationGlobalName, ThroughAssociationName>
   ): any
 
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasMany<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasManyThroughOptions<T, AssociationGlobalName>
+    options?: HasManyThroughOptions<T, AssociationGlobalName, ThroughAssociationName>
   ): any
 
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasMany<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
-    options?: PolymorphicHasManyOptions<T, AssociationGlobalName>
+    options?: PolymorphicHasManyOptions<T, AssociationGlobalName, ThroughAssociationName>
   ): any
 
   /**
@@ -136,12 +145,14 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * @param options - the options you want to use to apply to this association
    * @returns A HasMany decorator
    */
-  public HasMany<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options: unknown = {}
-  ) {
-    return HasMany<T, AssociationGlobalName>(globalAssociationNameOrNames, options as any)
+  public HasMany<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalName, options: unknown = {}) {
+    return HasMany<T, AssociationGlobalName, ThroughAssociationName>(
+      globalAssociationNameOrNames,
+      options as any
+    )
   }
   ///////////////
   // end: HasMany
@@ -150,22 +161,31 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   ///////////
   // HasOne
   ///////////
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasOne<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasOneOptions<T, AssociationGlobalName>
+    options?: HasOneOptions<T, AssociationGlobalName, ThroughAssociationName>
   ): any
 
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasOne<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
-    options?: HasOneThroughOptions<T, AssociationGlobalName>
+    options?: HasOneThroughOptions<T, AssociationGlobalName, ThroughAssociationName>
   ): any
 
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
+  public HasOne<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(
     this: Decorators<TD>,
     globalAssociationNameOrNames: AssociationGlobalName,
-    options?: PolymorphicHasOneOptions<T, AssociationGlobalName>
+    options?: PolymorphicHasOneOptions<T, AssociationGlobalName, ThroughAssociationName>
   ): any
 
   /**
@@ -190,12 +210,14 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * @param options - The options you want to use to apply to this association
    * @returns A HasOne decorator
    */
-  public HasOne<const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>>(
-    this: Decorators<TD>,
-    globalAssociationNameOrNames: AssociationGlobalName,
-    options: unknown = {}
-  ): any {
-    return HasOne<T, AssociationGlobalName>(globalAssociationNameOrNames, options as any)
+  public HasOne<
+    const AssociationGlobalName extends keyof GlobalModelNameTableMap<T>,
+    const ThroughAssociationName extends keyof T['schema'][T['table']]['associations'],
+  >(this: Decorators<TD>, globalAssociationNameOrNames: AssociationGlobalName, options: unknown = {}): any {
+    return HasOne<T, AssociationGlobalName, ThroughAssociationName>(
+      globalAssociationNameOrNames,
+      options as any
+    )
   }
   //////////////
   // end: HasOne

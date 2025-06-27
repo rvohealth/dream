@@ -187,6 +187,20 @@ export const PetTreatsEnumValues = [
 ] as const
 
 
+export type PolymorphicTaskableTypesEnum = "Chore" | "Workout";
+export const PolymorphicTaskableTypesEnumValues = [
+  "Chore",
+  "Workout"
+] as const
+
+
+export type PolymorphicTestsLocalizableTypesEnum = "Chore" | "Workout";
+export const PolymorphicTestsLocalizableTypesEnumValues = [
+  "Chore",
+  "Workout"
+] as const
+
+
 export type ShapableTypesEnum = "Shape";
 export const ShapableTypesEnumValues = [
   "Shape"
@@ -521,6 +535,76 @@ export interface PetUnderstudyJoinModels {
   updatedAt: Timestamp;
 }
 
+export interface PolymorphicChoreCleaningSupplies {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  polymorphicChoreId: Int8;
+  polymorphicCleaningSupplyId: Int8;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicChores {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicCleaningSupplies {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicLocalizedTexts {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  locale: LocalesEnum;
+  localizableId: Int8;
+  localizableType: PolymorphicTestsLocalizableTypesEnum;
+  title: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicMetaUsers {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicTasks {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  polymorphicUserId: Int8;
+  taskableId: Int8;
+  taskableType: PolymorphicTaskableTypesEnum;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicUserMetaUsers {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  polymorphicMetaUserId: Int8;
+  polymorphicUserId: Int8;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicUsers {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface PolymorphicWorkouts {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
 export interface PostComments {
   body: string | null;
   createdAt: Timestamp;
@@ -643,6 +727,15 @@ export interface DB {
   model_without_updated_at: ModelWithoutUpdatedAt;
   pet_understudy_join_models: PetUnderstudyJoinModels;
   pets: Pets;
+  polymorphic_chore_cleaning_supplies: PolymorphicChoreCleaningSupplies;
+  polymorphic_chores: PolymorphicChores;
+  polymorphic_cleaning_supplies: PolymorphicCleaningSupplies;
+  polymorphic_localized_texts: PolymorphicLocalizedTexts;
+  polymorphic_meta_users: PolymorphicMetaUsers;
+  polymorphic_tasks: PolymorphicTasks;
+  polymorphic_user_meta_users: PolymorphicUserMetaUsers;
+  polymorphic_users: PolymorphicUsers;
+  polymorphic_workouts: PolymorphicWorkouts;
   post_comments: PostComments;
   post_visibilities: PostVisibilities;
   posts: Posts;
@@ -683,6 +776,15 @@ export class DBClass {
   model_without_updated_at: ModelWithoutUpdatedAt
   pet_understudy_join_models: PetUnderstudyJoinModels
   pets: Pets
+  polymorphic_chore_cleaning_supplies: PolymorphicChoreCleaningSupplies
+  polymorphic_chores: PolymorphicChores
+  polymorphic_cleaning_supplies: PolymorphicCleaningSupplies
+  polymorphic_localized_texts: PolymorphicLocalizedTexts
+  polymorphic_meta_users: PolymorphicMetaUsers
+  polymorphic_tasks: PolymorphicTasks
+  polymorphic_user_meta_users: PolymorphicUserMetaUsers
+  polymorphic_users: PolymorphicUsers
+  polymorphic_workouts: PolymorphicWorkouts
   post_comments: PostComments
   post_visibilities: PostVisibilities
   posts: Posts

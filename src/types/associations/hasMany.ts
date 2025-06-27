@@ -65,16 +65,20 @@ interface HasManyOnlyOptions<
 export type HasManyOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasOptions<BaseInstance, AssociationGlobalName> & HasManyOnlyOptions<BaseInstance, AssociationGlobalName>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = HasOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName> &
+  HasManyOnlyOptions<BaseInstance, AssociationGlobalName>
 
 export type PolymorphicHasManyOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName> &
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName> &
   HasManyOnlyOptions<BaseInstance, AssociationGlobalName>
 
 export type HasManyThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasThroughOptions<BaseInstance, AssociationGlobalName> &
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = HasThroughOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName> &
   HasManyOnlyOptions<BaseInstance, AssociationGlobalName>

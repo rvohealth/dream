@@ -19,7 +19,10 @@ export interface BelongsToStatement<
   globalAssociationNameOrNames: string[]
   type: 'BelongsTo'
   as: string
-  primaryKey: (associationInstance?: Dream) => keyof DB[TableName] & string
+  primaryKey: (
+    associationInstance?: Dream | undefined,
+    opts?: { associatedClassOverride?: typeof Dream | undefined }
+  ) => keyof DB[TableName] & string
   primaryKeyValue: (associationInstance: Dream | null) => any
   primaryKeyOverride?: (keyof DB[TableName] & string) | null
   foreignKey: () => DreamColumnNames<BaseInstance> & string

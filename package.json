@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "dream orm",
   "repository": {
     "type": "git",

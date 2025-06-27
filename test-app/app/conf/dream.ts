@@ -1,3 +1,4 @@
+import { debuglog } from 'node:util'
 import { DreamApp } from '../../../src/index.js'
 import srcPath from '../system/srcPath.js'
 import AppEnv from './AppEnv.js'
@@ -68,7 +69,7 @@ export default async function (dreamApp: DreamApp) {
   dreamApp.on('db:log', event => {
     __cacheMessageForTests('db:log')
 
-    if (process.env.SQL_LOGGING !== '1') return
+    if (!debuglog('sql').enabled) return
 
     if (event.level === 'error') {
       console.error('the following db query encountered an unexpected error: ', {

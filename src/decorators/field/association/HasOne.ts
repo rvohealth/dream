@@ -20,25 +20,28 @@ import {
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
 >(
   globalAssociationName: AssociationGlobalName,
-  opts?: HasOneOptions<BaseInstance, AssociationGlobalName>
+  opts?: HasOneOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName>
 ): any
 
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
 >(
   globalAssociationNameOrNames: AssociationGlobalName,
-  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalName>
+  opts?: HasOneThroughOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName>
 ): any
 
 export default function HasOne<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
 >(
   globalAssociationNameOrNames: AssociationGlobalName,
-  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalName>
+  opts?: PolymorphicHasOneOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName>
 ): any
 
 /**

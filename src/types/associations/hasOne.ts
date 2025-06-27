@@ -13,14 +13,17 @@ export type HasOneStatement<
 export type HasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasOptions<BaseInstance, AssociationGlobalName>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = HasOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName>
 
 export type PolymorphicHasOneOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = PolymorphicHasOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName>
 
 export type HasOneThroughOptions<
   BaseInstance extends Dream,
   AssociationGlobalName extends keyof GlobalModelNameTableMap<BaseInstance>,
-> = HasThroughOptions<BaseInstance, AssociationGlobalName>
+  ThroughAssociationName extends keyof BaseInstance['schema'][BaseInstance['table']]['associations'],
+> = HasThroughOptions<BaseInstance, AssociationGlobalName, ThroughAssociationName>

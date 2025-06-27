@@ -32,7 +32,7 @@ export default class MissingThroughAssociationSource extends Error {
       this.throughClass.sanitizedName
     }\`.
 
-Dream expects association \`${this.association.source}\` to be defiend on \`${
+Dream expects association \`${this.association.source}\` to be defined on \`${
       this.throughClass.sanitizedName
     }\`, but \`${this.throughClass.sanitizedName}\` does not define association \`${this.association.source}\`.
 
