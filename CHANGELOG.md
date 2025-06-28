@@ -4,6 +4,8 @@
 
 - Fix HasOne/Many through source type
 
+- sync process is now fail-safe, leveraging a utility which caches old copies of files before writing to them. If an exception is thrown at any point during the process, dream will revert all files written using the new `CliFileWriter` class
+
 ## 1.0.4
 
 - properly exclude type from `DreamParamSafeColumnNames`
