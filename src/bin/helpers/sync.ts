@@ -9,6 +9,7 @@ import EnvInternal from '../../helpers/EnvInternal.js'
 import dreamPath from '../../helpers/path/dreamPath.js'
 import snakeify from '../../helpers/snakeify.js'
 import sspawn from '../../helpers/sspawn.js'
+import { CliFileWriter } from '../../cli/CliFileWriter.js'
 
 export default async function writeSyncFile() {
   const dreamApp = DreamApp.getOrFail()
@@ -16,6 +17,8 @@ export default async function writeSyncFile() {
 
   const dbSyncFilePath = path.join(dreamPath('types'), 'db.ts')
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
+
+  await CliFileWriter.cache(absoluteDbSyncPath)
 
   await sspawn(
     `kysely-codegen --dialect=postgres --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`,
@@ -33,7 +36,7 @@ export default async function writeSyncFile() {
   const file = (await fs.readFile(absoluteDbSyncPath)).toString()
   const enhancedSchema = enhanceSchema(file)
 
-  await fs.writeFile(absoluteDbSyncPath, enhancedSchema)
+  await CliFileWriter.write(absoluteDbSyncPath, enhancedSchema)
 }
 
 // begin: schema helpers

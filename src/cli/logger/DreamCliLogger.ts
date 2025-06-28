@@ -12,6 +12,16 @@ export default class DreamCliLogger {
     loggable.render()
   }
 
+  public async logProgress(
+    text: string,
+    cb: () => void | Promise<void>,
+    { logPrefix = '✺ ┌', logPrefixColor, logPrefixBgColor }: DreamCliLoggerLogOpts = {}
+  ) {
+    this.log(text, { logPrefix, logPrefixColor, logPrefixBgColor })
+    await cb()
+    this.logEndProgress()
+  }
+
   public logStartProgress(
     text: string,
     { logPrefix = '✺ ┌', logPrefixColor, logPrefixBgColor }: DreamCliLoggerLogOpts = {}

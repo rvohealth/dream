@@ -1,4 +1,5 @@
 export { default as DreamBin } from './bin/index.js'
+export { CliFileWriter } from './cli/CliFileWriter.js'
 export { default as DreamCLI } from './cli/index.js'
 export { closeAllDbConnections, dreamDbConnections } from './db/DreamDbConnection.js'
 export { pgErrorType } from './db/errors.js'

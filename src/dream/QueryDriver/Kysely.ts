@@ -15,6 +15,7 @@ import {
 } from 'kysely'
 import pluralize from 'pluralize-esm'
 import writeSyncFile from '../../bin/helpers/sync.js'
+import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
@@ -151,39 +152,50 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     onSync: () => Promise<void> | void,
     options: { schemaOnly?: boolean } = {}
   ) {
-    if (!options?.schemaOnly) {
-      DreamCLI.logger.logStartProgress('writing db schema...')
-      await writeSyncFile()
-      DreamCLI.logger.logEndProgress()
-    }
+    try {
+      if (!options?.schemaOnly) {
+        await DreamCLI.logger.logProgress('writing db schema...', async () => {
+          await writeSyncFile()
+        })
+      }
 
-    DreamCLI.logger.logStartProgress('building dream schema...')
-    const schemaBuilder = new SchemaBuilder()
-    await schemaBuilder.build()
-    DreamCLI.logger.logEndProgress()
+      const schemaBuilder = new SchemaBuilder()
 
-    if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
-      DreamCLI.logger.logStartProgress('triggering resync to correct for foreign key errors...')
-
-      // TODO: make this customizable to enable dream apps to separate
-      const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
-
-      await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
-        onStdout: str => {
-          DreamCLI.logger.logContinueProgress(`${str}`, {
-            logPrefix: '  ├ [resync]',
-            logPrefixColor: 'blue',
-          })
-        },
+      await DreamCLI.logger.logProgress('building dream schema...', async () => {
+        await schemaBuilder.build()
       })
 
-      DreamCLI.logger.logEndProgress()
-    }
+      if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
+        await DreamCLI.logger.logProgress(
+          'triggering resync to correct for foreign key errors...',
 
-    if (!options?.schemaOnly) {
-      // intentionally leaving logs off here, since it allows other
-      // onSync handlers to determine their own independent logging approach
-      await onSync()
+          async () => {
+            // TODO: make this customizable to enable dream apps to separate
+            const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
+
+            await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
+              onStdout: str => {
+                DreamCLI.logger.logContinueProgress(`${str}`, {
+                  logPrefix: '  ├ [resync]',
+                  logPrefixColor: 'blue',
+                })
+              },
+            })
+          }
+        )
+      }
+
+      if (!options?.schemaOnly) {
+        // intentionally leaving logs off here, since it allows other
+        // onSync handlers to determine their own independent logging approach
+        await onSync()
+      }
+    } catch (error) {
+      console.error(error)
+
+      await DreamCLI.logger.logProgress('sync failed, reverting file contents...', async () => {
+        await CliFileWriter.revert()
+      })
     }
   }
 
