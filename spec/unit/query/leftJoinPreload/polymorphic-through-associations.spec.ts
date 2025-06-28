@@ -17,14 +17,34 @@ describe(
   () => {
     it('can load HasMany through polymorphic', async () => {
       const user = await PolymorphicUser.create({ name: 'Mountain Dew' })
-      const chore = await Chore.create({ name: 'dishes' })
+      await Chore.create({ name: 'dishes' })
+      const chore = await Chore.create({ name: 'sweep' })
       const workout = await Workout.create({ name: 'sword squats' })
       await PolymorphicTask.create({ user, taskable: chore })
       await PolymorphicTask.create({ user, taskable: workout })
 
-      const userWithPreloads = await PolymorphicUser.leftJoinPreload('chores').findOrFail(user.id)
+      const userWithPreloads = await PolymorphicUser.leftJoinPreload('chores', {
+        and: { name: 'sweep' },
+      }).findOrFail(user.id)
 
       expect(userWithPreloads.chores).toMatchDreamModels([chore])
+    })
+
+    context('aliasing the association', () => {
+      it('aliases the table of the actual association even though the namespacing appears on a through association', async () => {
+        const user = await PolymorphicUser.create({ name: 'Mountain Dew' })
+        await Chore.create({ name: 'sweep' })
+        const chore = await Chore.create({ name: 'dishes' })
+        const workout = await Workout.create({ name: 'sword squats' })
+        await PolymorphicTask.create({ user, taskable: chore })
+        await PolymorphicTask.create({ user, taskable: workout })
+
+        const userWithPreloads = await PolymorphicUser.leftJoinPreload('chores as ch')
+          .where({ ['ch.name']: 'dishes' })
+          .findOrFail(user.id)
+
+        expect(userWithPreloads.chores).toMatchDreamModels([chore])
+      })
     })
 
     context('through association on another model to polymorphic association on this model', () => {
@@ -44,6 +64,26 @@ describe(
         }).findOrFail(metaUser.id)
 
         expect(metaUserWithPreloads.chores).toMatchDreamModels([chore])
+      })
+
+      context('aliasing the association', () => {
+        it('aliases the table of the actual association even though the namespacing appears on a through association', async () => {
+          const user = await PolymorphicUser.create({ name: 'Mountain Dew' })
+          const metaUser = await PolymorphicMetaUser.create({ name: 'Meta Do' })
+          await PolymorphicUserMetaUser.create({ polymorphicUser: user, polymorphicMetaUser: metaUser })
+
+          await Chore.create({ name: 'dishes' })
+          const chore = await Chore.create({ name: 'sweep' })
+          const workout = await Workout.create({ name: 'sword squats' })
+          await PolymorphicTask.create({ user, taskable: chore })
+          await PolymorphicTask.create({ user, taskable: workout })
+
+          const metaUserWithPreloads = await PolymorphicMetaUser.leftJoinPreload('chores as ch')
+            .where({ ['ch.name']: 'sweep' })
+            .findOrFail(metaUser.id)
+
+          expect(metaUserWithPreloads.chores).toMatchDreamModels([chore])
+        })
       })
     })
 
