@@ -1,4 +1,3 @@
-import CannotAssociateThroughMultiplePolymorphics from '../../../../src/errors/associations/CannotAssociateThroughMultiplePolymorphics.js'
 import Chore from '../../../../test-app/app/models/Polymorphic/Chore.js'
 import PolymorphicLocalizedText from '../../../../test-app/app/models/Polymorphic/LocalizedText.js'
 import PolymorphicMetaUser from '../../../../test-app/app/models/Polymorphic/MetaUser.js'
@@ -58,7 +57,7 @@ describe(
         await PolymorphicTask.create({ user, taskable: chore })
         await PolymorphicTask.create({ user, taskable: workout })
 
-        await PolymorphicLocalizedText.create({
+        const choreLocalizedText = await PolymorphicLocalizedText.create({
           localizable: chore,
           locale: 'en-US',
           title: 'My chore task',
@@ -69,9 +68,10 @@ describe(
           title: 'My workout task',
         })
 
-        await expect(
-          PolymorphicMetaUser.preload('choreLocalizedTexts').findOrFail(metaUser.id)
-        ).rejects.toThrow(CannotAssociateThroughMultiplePolymorphics)
+        const metaUserWithPreloads = await PolymorphicMetaUser.preload('choreLocalizedTexts').findOrFail(
+          metaUser.id
+        )
+        expect(metaUserWithPreloads.choreLocalizedTexts).toMatchDreamModels([choreLocalizedText])
       })
     })
   }

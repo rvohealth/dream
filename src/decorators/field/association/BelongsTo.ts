@@ -1,5 +1,6 @@
 import lookupModelByGlobalNameOrNames from '../../../dream-app/helpers/lookupModelByGlobalNameOrNames.js'
 import Dream from '../../../Dream.js'
+import ArrayTargetOnlyOnPolymorphicBelongsTo from '../../../errors/associations/ArrayTargetOnlyOnPolymorphicBelongsTo.js'
 import {
   BelongsToStatement,
   NonPolymorphicBelongsToOptions,
@@ -90,6 +91,9 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
         delete (this as any)[key]
         return
       }
+
+      if (Array.isArray(globalAssociationNameOrNames) && !polymorphic)
+        throw new ArrayTargetOnlyOnPolymorphicBelongsTo({ dreamClass, associationName: key })
 
       const partialAssociation = associationPrimaryKeyAccessors(
         {
