@@ -1,3 +1,12 @@
+## 1.0.6
+
+- Fix joining after a through a polymorphic BelongsTo
+  association.
+
+- Improve join implementation
+
+- Disable leftJoinPreload preloadThroughColumns since it doesn't actually work on through associations that resolve to a source that doesn't match the association name (and we were unnecessarily including columns in the leftJoinPreload statement even when there was no `preloadThroughColumns`, thereby bloating the queries unnecessarily)
+
 ## 1.0.5
 
 - Support HasOne/Many through polymorphic BelongsTo (trick is that it uses the associated model from the HasOne/Many to limit the BelongsTo to a single associated class / table)
