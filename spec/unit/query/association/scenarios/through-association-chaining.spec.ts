@@ -1,3 +1,4 @@
+import ThroughAssociationConditionsIncompatibleWithThroughAssociationSource from '../../../../../src/errors/associations/ThroughAssociationConditionsIncompatibleWithThroughAssociationSource.js'
 import A from '../../../../../test-app/app/models/Through/A.js'
 import AToOtherModelJoinModel from '../../../../../test-app/app/models/Through/AToOtherModelJoinModel.js'
 import B from '../../../../../test-app/app/models/Through/B.js'
@@ -21,22 +22,20 @@ describe('through association chaining', () => {
     })
   })
 
-  // context('conditions on a through association on one model', () => {
-  //   it('loads the expected model', async () => {
-  //     const myModel = await MyModel.create({ name: 'My model' })
-  //     const otherModel = await OtherModel.create({ name: 'Other model', myModel })
-  //     const a = await A.create({ name: 'A' })
-  //     const b = await B.create({ name: 'B', a })
-  //     await AToOtherModelJoinModel.create({ a, otherModel })
-  //     const beautifulA = await A.create({ name: 'Beautiful A' })
-  //     const beautifulB = await B.create({ name: 'B2', a: beautifulA })
-  //     await AToOtherModelJoinModel.create({ a: beautifulA, otherModel })
+  context('conditions on a through association with a source that is itself a through association', () => {
+    it('throws ThroughAssociationConditionsIncompatibleWithThroughAssociationSource', async () => {
+      const myModel = await MyModel.create({ name: 'My model' })
+      const otherModel = await OtherModel.create({ name: 'Other model', myModel })
+      const a = await A.create({ name: 'A' })
+      await B.create({ name: 'B', a })
+      await AToOtherModelJoinModel.create({ a, otherModel })
+      const beautifulA = await A.create({ name: 'Beautiful A' })
+      await B.create({ name: 'B2', a: beautifulA })
+      await AToOtherModelJoinModel.create({ a: beautifulA, otherModel })
 
-  //     const associatedA = await myModel.associationQuery('myConditionalA').first()
-  //     expect(associatedA).toMatchDreamModel(beautifulA)
-
-  //     const associatedB = await myModel.associationQuery('myConditionalB').first()
-  //     expect(associatedB).toMatchDreamModel(beautifulB)
-  //   })
-  // })
+      await expect(myModel.associationQuery('myConditionalA').first()).rejects.toThrow(
+        ThroughAssociationConditionsIncompatibleWithThroughAssociationSource
+      )
+    })
+  })
 })
