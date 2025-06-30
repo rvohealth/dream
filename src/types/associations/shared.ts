@@ -310,7 +310,6 @@ export interface HasStatement<
   // association, each of which may HaveOne of the subsequent
   // association
   polymorphic: boolean
-  preloadThroughColumns?: string[] | Record<string, string>
   primaryKey: (associationInstance?: Dream) => DreamColumnNames<BaseInstance>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
   primaryKeyValue: (associationInstance: Dream) => any
@@ -361,7 +360,6 @@ interface HasOptionsBase<
   >[]
 
   polymorphic?: boolean
-  preloadThroughColumns?: string[] | Record<string, string>
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
 
   selfAnd?: SelfOnStatement<
@@ -399,7 +397,7 @@ type ThroughIncompatibleOptions =
   | 'withoutDefaultScopes'
   | ForeignKeyOption
   | PolymorphicOption
-type ThroughOnlyOptions = 'through' | 'source' | 'preloadThroughColumns'
+type ThroughOnlyOptions = 'through' | 'source'
 
 export type HasOptions<
   BaseInstance extends Dream,
@@ -446,15 +444,7 @@ type partialTypeFields =
   | 'primaryKey'
   | 'primaryKeyValue'
   | 'primaryKeyOverride'
-type hasOneManySpecificFields =
-  | 'source'
-  | 'through'
-  | 'preloadThroughColumns'
-  | 'and'
-  | 'andNot'
-  | 'andAny'
-  | 'selfAnd'
-  | 'selfAndNot'
+type hasOneManySpecificFields = 'source' | 'through' | 'and' | 'andNot' | 'andAny' | 'selfAnd' | 'selfAndNot'
 type belongsToSpecificFields = 'optional'
 
 export type PartialAssociationStatement =

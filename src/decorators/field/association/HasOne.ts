@@ -68,7 +68,6 @@ export default function HasOne<
  * @param opts.andNot - A not and-clause to be applied when this association is loaded
  * @param opts.andAny - An andAny clause to be applied when this association is loaded
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
- * @param opts.preloadThroughColumns - An array of columns to pluck off the through association attached to this association. Can only be set if `through` is also set.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
  * @param opts.selfAnd - Adds an and-clause to an association between a column on the associated model and a column on this model.
  * @param opts.selfAndNot - Adds a not and-clause to an association between a column on the associated model and a column on this model.
@@ -87,7 +86,6 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
     andNot,
     andAny,
     polymorphic = false,
-    preloadThroughColumns,
     primaryKeyOverride = null,
     selfAnd,
     selfAndNot,
@@ -132,7 +130,6 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
           andNot,
           andAny,
           polymorphic,
-          preloadThroughColumns,
           primaryKeyOverride,
           selfAnd,
           selfAndNot,

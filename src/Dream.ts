@@ -18,6 +18,7 @@ import associationUpdateQuery from './dream/internal/associations/associationUpd
 import createAssociation from './dream/internal/associations/createAssociation.js'
 import destroyAssociation from './dream/internal/associations/destroyAssociation.js'
 import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js'
+import associationStringToNameAndAlias from './dream/internal/associationStringToNameAndAlias.js'
 import destroyDream from './dream/internal/destroyDream.js'
 import {
   DestroyOptions,
@@ -26,7 +27,6 @@ import {
   undestroyOptions,
 } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
-import associationStringToNameAndAlias from './dream/internal/extractAssociationMetadataFromAssociationName.js'
 import { RecursiveSerializerInfo } from './dream/internal/extractNestedPaths.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 import reload from './dream/internal/reload.js'
@@ -2305,7 +2305,6 @@ export default class Dream {
    * //       as: 'ratings',
    * //       polymorphic: true,
    * //       source: 'ratings',
-   * //       preloadThroughColumns: undefined,
    * //       where: undefined,
    * //       whereNot: undefined,
    * //       selfWhere: undefined,
