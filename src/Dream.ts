@@ -26,7 +26,7 @@ import {
   undestroyOptions,
 } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
-import extractAssociationMetadataFromAssociationName from './dream/internal/extractAssociationMetadataFromAssociationName.js'
+import associationStringToNameAndAlias from './dream/internal/extractAssociationMetadataFromAssociationName.js'
 import { RecursiveSerializerInfo } from './dream/internal/extractNestedPaths.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 import reload from './dream/internal/reload.js'
@@ -831,7 +831,7 @@ export default class Dream {
     I extends InstanceType<T>,
     Schema extends I['schema'],
   >(this: T, associationName: Schema[I['table']]['associations'][number]) {
-    return this.associationMetadataMap()[extractAssociationMetadataFromAssociationName(associationName).name]
+    return this.associationMetadataMap()[associationStringToNameAndAlias(associationName).name]
   }
 
   /**

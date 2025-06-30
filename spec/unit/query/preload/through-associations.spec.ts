@@ -1,4 +1,4 @@
-import JoinAttemptedOnMissingAssociation from '../../../../src/errors/associations/JoinAttemptedOnMissingAssociation.js'
+import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
 import { DateTime } from '../../../../src/index.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -625,12 +625,12 @@ describe('Query#preload through', () => {
   })
 
   context('with a missing association', () => {
-    it('throws JoinAttemptedOnMissingAssociation', async () => {
+    it('throws MissingThroughAssociation', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
       const query = User.query().preload('nonExtantCompositionAssets1').first()
 
-      await expect(query).rejects.toThrow(JoinAttemptedOnMissingAssociation)
+      await expect(query).rejects.toThrow(MissingThroughAssociation)
     })
   })
 

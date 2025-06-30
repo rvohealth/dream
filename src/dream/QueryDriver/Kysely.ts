@@ -22,8 +22,7 @@ import associationToGetterSetterProp from '../../decorators/field/association/as
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
 import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
-import ArrayTargetsIncompatibleWithThroughAssociation from '../../errors/associations/ArrayTargetsIncompatibleWithThroughAssociation.js'
-import CannotAssociateThroughMultiplePolymorphics from '../../errors/associations/CannotAssociateThroughMultiplePolymorphics.js'
+import ArrayTargetIncompatibleWithThroughAssociation from '../../errors/associations/ArrayTargetIncompatibleWithThroughAssociation.js'
 import CannotJoinPolymorphicBelongsToError from '../../errors/associations/CannotJoinPolymorphicBelongsToError.js'
 import JoinAttemptedOnMissingAssociation from '../../errors/associations/JoinAttemptedOnMissingAssociation.js'
 import MissingRequiredAssociationAndClause from '../../errors/associations/MissingRequiredAssociationAndClause.js'
@@ -88,7 +87,7 @@ import {
 import { DreamConst } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
-import extractAssociationMetadataFromAssociationName from '../internal/extractAssociationMetadataFromAssociationName.js'
+import associationStringToNameAndAlias from '../internal/extractAssociationMetadataFromAssociationName.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
@@ -908,13 +907,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let nextColumnAliasCounter = 0
 
     aliases.forEach((aliasOrExpression: string) => {
-      const alias = extractAssociationMetadataFromAssociationName(aliasOrExpression).alias
-      if (alias === undefined) throw new UnexpectedUndefined()
+      const { name, alias: _alias } = associationStringToNameAndAlias(aliasOrExpression)
+      const alias = _alias || name
 
       associationAliasToColumnAliasMap[alias] ||= {}
       const aliasedDreamClass = aliasToDreamClassesMap[alias]
       if (aliasedDreamClass === undefined) throw new UnexpectedUndefined()
-      const association = aliasToAssociationsMap[alias]
 
       const columns =
         alias === this.query['baseSqlAlias']
@@ -932,28 +930,28 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         columnAliasMap[column] = columnAlias
       })
 
-      if (association?.type === 'HasOne' || association?.type === 'HasMany') {
-        const setupPreloadData = (dbColumnName: string) => {
-          const columnAlias = `dr${nextColumnAliasCounter++}`
-          const columnAliasMap = associationAliasToColumnAliasMap[association.through!]
-          if (columnAliasMap === undefined) throw new UnexpectedUndefined()
+      // if (association?.type === 'HasOne' || association?.type === 'HasMany') {
+      //   const setupPreloadData = (dbColumnName: string) => {
+      //     const columnAlias = `dr${nextColumnAliasCounter++}`
+      //     const columnAliasMap = associationAliasToColumnAliasMap[association.through!]
+      //     if (columnAliasMap === undefined) throw new UnexpectedUndefined()
 
-          columnAliasMap[dbColumnName] = columnAlias
-          kyselyQuery = kyselyQuery.select(
-            `${this.namespaceColumn(dbColumnName, association.through)} as ${columnAlias}`
-          )
-        }
+      //     columnAliasMap[dbColumnName] = columnAlias
+      //     kyselyQuery = kyselyQuery.select(
+      //       `${this.namespaceColumn(dbColumnName, association.through)} as ${columnAlias}`
+      //     )
+      //   }
 
-        if (association.through && association.preloadThroughColumns) {
-          if (isObject(association.preloadThroughColumns)) {
-            const preloadMap = association.preloadThroughColumns as Record<string, string>
-            Object.keys(preloadMap).forEach(columnName => setupPreloadData(columnName))
-          } else {
-            const preloadArray = association.preloadThroughColumns as string[]
-            preloadArray.forEach(columnName => setupPreloadData(columnName))
-          }
-        }
-      }
+      //   if (association.through && association.preloadThroughColumns) {
+      //     if (isObject(association.preloadThroughColumns)) {
+      //       const preloadMap = association.preloadThroughColumns as Record<string, string>
+      //       Object.keys(preloadMap).forEach(columnName => setupPreloadData(columnName))
+      //     } else {
+      //       const preloadArray = association.preloadThroughColumns as string[]
+      //       preloadArray.forEach(columnName => setupPreloadData(columnName))
+      //     }
+      //   }
+      // }
     })
 
     const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
@@ -1025,20 +1023,20 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       )
       const dream = this.dbResultToDreamInstance(columnValueMap, dreamClass)
 
-      const association = aliasToAssociationsMap[currentAlias] as
-        | HasOneStatement<any, any, any, any>
-        | HasManyStatement<any, any, any, any>
-      if (association && association.through && association.preloadThroughColumns) {
-        const throughAssociationColumnToColumnAliasMap = associationAliasToColumnAliasMap[association.through]
-        if (throughAssociationColumnToColumnAliasMap === undefined) throw new UnexpectedUndefined()
+      // const association = aliasToAssociationsMap[currentAlias] as
+      //   | HasOneStatement<any, any, any, any>
+      //   | HasManyStatement<any, any, any, any>
+      // if (association && association.through && association.preloadThroughColumns) {
+      //   const throughAssociationColumnToColumnAliasMap = associationAliasToColumnAliasMap[association.through]
+      //   if (throughAssociationColumnToColumnAliasMap === undefined) throw new UnexpectedUndefined()
 
-        this.hydratePreloadedThroughColumns({
-          association,
-          columnToColumnAliasMap: throughAssociationColumnToColumnAliasMap,
-          dream,
-          singleSqlResult,
-        })
-      }
+      //   this.hydratePreloadedThroughColumns({
+      //     association,
+      //     columnToColumnAliasMap: throughAssociationColumnToColumnAliasMap,
+      //     dream,
+      //     singleSqlResult,
+      //   })
+      // }
 
       aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)]?.set(primaryKeyValue, dream)
     }
@@ -1046,7 +1044,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const dream = aliasToDreamIdMap[currentAlias].get(primaryKeyValue)
 
     Object.keys(leftJoinStatements).forEach(nextAlias => {
-      const { name: associationName, alias } = extractAssociationMetadataFromAssociationName(nextAlias)
+      const { name: associationName, alias: _alias } = associationStringToNameAndAlias(nextAlias)
+      const alias = _alias || associationName
 
       const association = dreamClass['getAssociationMetadata'](associationName)
       if (association === undefined) throw new UnexpectedUndefined()
@@ -1220,7 +1219,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         joinStatement: query['innerJoinStatements'],
         joinAndStatements: query['innerJoinAndStatements'],
         dreamClass: query['dreamClass'],
-        previousAssociationTableOrAlias: this.query['baseSqlAlias'],
+        // As recursivelyJoin progresses through the chain of associations that
+        // the developer has inclued in a join statement (e.g. `leftJoinPreload('hello as ho', 'world as wd')`),
+        // previousTableAlias will be modified so that the join statement can properly reference
+        // what we are joining on. When an `associationQuery` is the start of a join, then `baseSqlAlias` is set,
+        // this is passed into the very beginning of recursivelyJoin.
+        previousTableAlias: this.query['baseSqlAlias'],
         joinType: 'inner',
       })
     }
@@ -1231,7 +1235,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         joinStatement: query['leftJoinStatements'],
         joinAndStatements: query['leftJoinAndStatements'],
         dreamClass: query['dreamClass'],
-        previousAssociationTableOrAlias: this.query['baseSqlAlias'],
+        // As recursivelyJoin progresses through the chain of associations that
+        // the developer has inclued in a join statement (e.g. `leftJoinPreload('hello as ho', 'world as wd')`),
+        // previousTableAlias will be modified so that the join statement can properly reference
+        // what we are joining on. When an `associationQuery` is the start of a join, then `baseSqlAlias` is set,
+        // this is passed into the very beginning of recursivelyJoin.
+        previousTableAlias: this.query['baseSqlAlias'],
         joinType: 'left',
       })
     }
@@ -1487,43 +1496,62 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       | SelectQueryBuilder<any, any, any>
       | UpdateQueryBuilder<any, any, any, any>
       | DeleteQueryBuilder<any, any, any>,
+    DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
   >({
     query,
     joinStatement,
     joinAndStatements,
     dreamClass,
-    previousAssociationTableOrAlias,
+    previousTableAlias,
     joinType,
   }: {
     query: QueryType
     joinStatement: RelaxedJoinStatement
     joinAndStatements: RelaxedJoinAndStatement<any, any>
     dreamClass: typeof Dream
-    previousAssociationTableOrAlias: TableOrAssociationName<Schema>
+    previousTableAlias: string
     joinType: 'inner' | 'left'
   }): QueryType {
-    for (const currentAssociationTableOrAlias of Object.keys(joinStatement)) {
+    for (const associationString of Object.keys(joinStatement)) {
+      const joinAndStatement = joinAndStatements[associationString] as RelaxedJoinAndStatement<DB, Schema>
+
+      const { association, alias } = associationStringToAssociationAndMaybeAlias({
+        dreamClass,
+        associationString,
+      })
+
       const results = this.applyOneJoin({
         query,
         dreamClass,
-        previousAssociationTableOrAlias,
-        currentAssociationTableOrAlias,
-        joinAndStatements,
+        association,
+        previousTableAlias,
+        explicitAlias: alias,
+        joinAndStatement,
         joinType,
-        baseThroughAssociation: undefined,
-        polymorphicCount: { count: 0 },
+        previousThroughAssociation: undefined,
+        dreamClassThroughAssociationWantsToHydrate: undefined,
       })
 
       query = results.query
-      const association = results.association
+
+      /**
+       * If the returned association links to multiple models, then it is a polymorphic BelongsTo association,
+       * and we can only join through a polymorphic BelongsTo association when the association included in
+       * the join statement is a `through` association that clamps the types on the other side of the polymorphic
+       * BelongsTo down to a single Dream model. So if an array, use the associated type of the association
+       * included in the join statement.
+       */
+      const nextDreamClass = Array.isArray(results.association.modelCB())
+        ? association.modelCB()
+        : results.association.modelCB()
 
       query = this.recursivelyJoin({
         query,
-        joinStatement: joinStatement[currentAssociationTableOrAlias] as any,
-        joinAndStatements: joinAndStatements[currentAssociationTableOrAlias] as any,
-        dreamClass: association.modelCB() as typeof Dream,
-        previousAssociationTableOrAlias: currentAssociationTableOrAlias,
+        joinStatement: joinStatement[associationString] as RelaxedJoinStatement,
+        joinAndStatements: joinAndStatement,
+        dreamClass: nextDreamClass as typeof Dream,
+        previousTableAlias: alias || association.as,
         joinType,
       })
     }
@@ -1610,25 +1638,25 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const associationsToDreamClassesMap: AssociationNameToAssociationDataAndDreamClassMap = {}
 
     associationNames.reduce((dreamClass: typeof Dream, associationName: string) => {
-      const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
+      const { name, alias: _alias } = associationStringToNameAndAlias(associationName)
+      const alias = _alias || name
       const association = dreamClass['getAssociationMetadata'](name)
       if (association === undefined) throw new UnexpectedUndefined()
 
-      const through = (association as any).through
+      // const through = (association as any).through
 
-      if (through) {
-        const { throughAssociation, throughAssociationDreamClass } = this.throughAssociationDetails(
-          dreamClass,
-          through
-        )
-        associationsToDreamClassesMap[through] = {
-          association: throughAssociation,
-          dreamClass: throughAssociationDreamClass,
-        }
-      }
+      // if (through) {
+      //   const { throughAssociation, throughAssociationDreamClass } = this.throughAssociationDetails(
+      //     dreamClass,
+      //     through
+      //   )
+      //   associationsToDreamClassesMap[through] = {
+      //     association: throughAssociation,
+      //     dreamClass: throughAssociationDreamClass,
+      //   }
+      // }
 
       const nextDreamClass = association.modelCB() as typeof Dream
-      if (alias === undefined) throw new UnexpectedUndefined()
       associationsToDreamClassesMap[alias] = { association, dreamClass: nextDreamClass }
       return nextDreamClass
     }, this.dreamClass)
@@ -1783,279 +1811,328 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       | SelectQueryBuilder<any, any, any>
       | UpdateQueryBuilder<any, any, any, any>
       | DeleteQueryBuilder<any, any, any>,
-    Schema extends DreamInstance['schema'],
   >({
     query,
-    dreamClass,
-    association,
-    previousAssociationTableOrAlias,
-    throughAssociations,
+    dreamClassTheAssociationIsDefinedOn,
+    throughAssociation,
+    /**
+     * If the join statement includes an explicit alias, e.g.,
+     * `leftJoinPreload('hello as ho', 'world as wd')`
+     * then explicitAlias is set (e.g., to 'ho' the first time that `recursivelyJoin`
+     * calls this method and to 'ho' the second time `recursivelyJoin` is called)
+     * If only implicit aliasing happens (based on association name)
+     * (e.g. `leftJoinPreload('hello', 'world')`), then explicitAlias is null
+     */
+    explicitAlias,
+    /**
+     * previousTableAlias is always set
+     */
+    previousTableAlias,
+    joinAndStatement,
     joinType,
-    baseThroughAssociation,
-    polymorphicCount,
   }: {
     query: QueryType
-    dreamClass: typeof Dream
-    association: AssociationStatement
-    previousAssociationTableOrAlias: TableOrAssociationName<Schema>
-    throughAssociations: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
+    dreamClassTheAssociationIsDefinedOn: typeof Dream
+    throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    explicitAlias: string | undefined
+    previousTableAlias: string
+    joinAndStatement: RelaxedJoinAndStatement<any, any>
     joinType: JoinTypes
-    baseThroughAssociation:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | undefined
-    polymorphicCount: { count: number }
   }): {
     query: QueryType
-    dreamClass: typeof Dream
     association: AssociationStatement
-    throughClass?: typeof Dream | null
-    previousAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
-    if (association.type === 'BelongsTo' || !association.through) {
-      return {
-        query,
-        dreamClass,
-        association,
-        previousAssociationTableOrAlias,
-      }
-    } else {
-      throughAssociations.push(association)
+    // 1. We start with an association on a Dream class that is a through association.
 
-      // We have entered joinsBridgeThroughAssociations with the
-      // CompositionAssetAudits HasOne User association, which
-      // is through compositionAsset
-      // We now apply the compositionAsset association (a BelongsTo)
-      // to the query
-      const { query: queryWithThroughAssociationApplied } = this.applyOneJoin({
-        query,
-        dreamClass,
-        previousAssociationTableOrAlias,
-        currentAssociationTableOrAlias: association.through as TableOrAssociationName<Schema>,
-        throughAssociations,
-        joinType,
-        baseThroughAssociation,
-        polymorphicCount,
-      })
+    // 2. We then get the association that that through association points to and
+    //    assign it to `associationReferencedByThroughAssociation`
+    /**
+     * `through` associations always point to other associations on the same model
+     * they are defined on. So when we want to find an association referenced by a
+     * through association, we look on the same model as the through association
+     */
+    const associationReferencedByThroughAssociation = dreamClassTheAssociationIsDefinedOn[
+      'getAssociationMetadata'
+    ](throughAssociation.through)
 
-      // The through association has both a `through` and a `source`. The `source`
-      // is the association on the model that has now been joined. In our example,
-      // the `source` is the `user` association on the CompositionAsset model
-      const { newAssociation, throughAssociation, throughClass } = this.followThroughAssociation(
-        dreamClass,
-        association
-      )
-
-      if ((newAssociation as any).through) {
-        // This new association is itself a through association, so we recursively
-        // call joinsBridgeThroughAssociations
-        return this.joinsBridgeThroughAssociations({
-          query: queryWithThroughAssociationApplied,
-          dreamClass: throughClass,
-          association: newAssociation,
-          previousAssociationTableOrAlias: throughAssociation.as as TableOrAssociationName<Schema>,
-          throughAssociations,
-          joinType,
-          baseThroughAssociation,
-          polymorphicCount,
-        })
-      } else {
-        // This new association is not a through association, so
-        // this is the target association we were looking for
-        return {
-          query: queryWithThroughAssociationApplied,
-          dreamClass: association.modelCB(),
-          association: newAssociation,
-          throughClass,
-          previousAssociationTableOrAlias: association.through as TableOrAssociationName<Schema>,
-        }
-      }
-    }
-  }
-
-  /**
-   * @internal
-   *
-   * Used to bridge through associations
-   */
-  private followThroughAssociation(
-    dreamClass: typeof Dream,
-    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-  ) {
-    const throughAssociation =
-      association.through && dreamClass['getAssociationMetadata'](association.through)
-    if (!throughAssociation)
+    if (!associationReferencedByThroughAssociation) {
+      // Type protection on association declarations should protect against this ever actually being reached
       throw new MissingThroughAssociation({
-        dreamClass,
-        association,
+        dreamClass: dreamClassTheAssociationIsDefinedOn,
+        association: throughAssociation,
+      })
+    }
+
+    // 3. Recursively follow through associations, building up the query and storing the last association
+    //    added to the query so that we know what alias to reference when joining the other side of this
+    //    through association (its source association)
+    let recursiveResult: {
+      query: QueryType
+      association: AssociationStatement
+    }
+
+    const addingNestedThroughAssociation =
+      associationReferencedByThroughAssociation.type !== 'BelongsTo' &&
+      associationReferencedByThroughAssociation.through
+
+    if (addingNestedThroughAssociation) {
+      /**
+       * This new association is itself a through association, so we recursively
+       * call joinsBridgeThroughAssociations
+       */
+      recursiveResult = this.joinsBridgeThroughAssociations({
+        query,
+        /**
+         * `through` associations always point to other associations on the same model
+         * they are defined on. So when this association is a through association,
+         * we can simply pass the dreamClassAssociationDefinedIn we already have
+         */
+        dreamClassTheAssociationIsDefinedOn,
+        throughAssociation: associationReferencedByThroughAssociation,
+        explicitAlias: undefined,
+        previousTableAlias,
+        joinAndStatement: {},
+        joinType,
       })
 
-    const throughClass = throughAssociation.modelCB() as typeof Dream
-    if (Array.isArray(throughClass))
-      throw new ArrayTargetsIncompatibleWithThroughAssociation({
-        dreamClass,
-        association,
+      //
+    } else {
+      /**
+       * We have reached a non-through association.
+       * Write that association into the query.
+       */
+
+      recursiveResult = this.addAssociationJoinStatementToQuery({
+        query,
+        dreamClass: dreamClassTheAssociationIsDefinedOn,
+        association: associationReferencedByThroughAssociation,
+        /**
+         * The explicit alias is reserved for the final association, not intermediary join tables
+         */
+        explicitAlias: undefined,
+        previousTableAlias,
+        selfTableAlias: previousTableAlias,
+        /**
+         * The joinAndStatement is reserved for the final association, not intermediary join tables
+         */
+        joinAndStatement: {},
+        previousThroughAssociation: undefined,
+        joinType,
+        dreamClassThroughAssociationWantsToHydrate: undefined,
+      })
+    }
+
+    // 4. Each through association references a single Dream class.
+    //
+    const dreamClassOnOtherSideOfThrough = associationReferencedByThroughAssociation.modelCB() as typeof Dream
+
+    if (Array.isArray(dreamClassOnOtherSideOfThrough))
+      throw new ArrayTargetIncompatibleWithThroughAssociation({
+        dreamClass: dreamClassTheAssociationIsDefinedOn,
+        association: throughAssociation,
       })
 
-    const newAssociation = getSourceAssociation(throughClass, association.source)
-    if (!newAssociation)
+    const sourceAssociation = getSourceAssociation(dreamClassOnOtherSideOfThrough, throughAssociation.source)
+    if (!sourceAssociation)
       throw new MissingThroughAssociationSource({
-        dreamClass,
-        throughClass,
-        association,
+        dreamClass: dreamClassTheAssociationIsDefinedOn,
+        association: throughAssociation,
+        throughClass: dreamClassOnOtherSideOfThrough,
       })
 
-    return { throughAssociation, throughClass, newAssociation }
-  }
+    /**
+     * When the source is a polymorphic BelongsTo association, use the target of the through
+     * association to determine which class to target.
+     */
+    const dreamClassThroughAssociationWantsToHydrate = Array.isArray(sourceAssociation.modelCB())
+      ? throughAssociation.modelCB()
+      : undefined
 
-  /**
-   * Each association in the chain is pushed onto `throughAssociations`
-   * and `applyOneJoin` is recursively called. The trick is that the
-   * through associations don't get written into the SQL; they
-   * locate the next association we need to build into the SQL,
-   * which is only run by the association that started the `through`
-   * chain. The final association at the end of the `through` chain _is_
-   * written into the SQL as a full association, but the modifications from
-   * the `through` association are only added when the recursion returns
-   * back to the association that kicked off the through associations.
-   */
+    /**
+     * We have passed through one or more associations and found the source association that
+     * will result in an actual join between tables.
+     *
+     * Since we know we have hit at least one `through` association (the condition at the top
+     * of this method would have bailed out early if we hadn't), we know that at this point,
+     * we are still completing a through association and we're just going through this association
+     * to the source on the other side. However, the source on the other side may also be a through
+     * association.
+     *
+     * We need to follow the through associations to a non-through association. Render the non-through
+     * association to join. Then continue with the source on the other side of the through association.
+     */
+
+    return this.applyOneJoin({
+      query: recursiveResult.query,
+      dreamClass: dreamClassOnOtherSideOfThrough,
+      association: sourceAssociation,
+      // since joinsBridgeThroughAssociations passes undefined to explicitAlias recursively, we know this is only set on the
+      // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
+      // the last source association to be added to the statement
+      explicitAlias,
+      previousTableAlias: recursiveResult.association.as,
+      selfTableAlias:
+        (throughAssociation.selfAnd ?? throughAssociation.selfAndNot)
+          ? previousTableAlias
+          : recursiveResult.association.as,
+      // since joinsBridgeThroughAssociations passes {} to joinAndStatement recursively, we know this is only set on the
+      // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
+      // the last source association to be added to the statement
+      joinAndStatement,
+      previousThroughAssociation: throughAssociation,
+      joinType,
+      dreamClassThroughAssociationWantsToHydrate,
+    })
+  }
 
   private applyOneJoin<
     QueryType extends
       | SelectQueryBuilder<any, any, any>
       | UpdateQueryBuilder<any, any, any, any>
       | DeleteQueryBuilder<any, any, any>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
   >({
     query,
     dreamClass,
-    previousAssociationTableOrAlias,
-    currentAssociationTableOrAlias,
-    joinAndStatements = {},
-    throughAssociations = [],
+    association,
+    /**
+     * If the join statement includes an explicit alias, e.g.,
+     * `leftJoinPreload('hello as ho', 'world as wd')`
+     * then explicitAlias is set (e.g., to 'ho' the first time that `recursivelyJoin`
+     * calls this method and to 'ho' the second time `recursivelyJoin` is called)
+     * If only implicit aliasing happens (based on association name)
+     * (e.g. `leftJoinPreload('hello', 'world')`), then explicitAlias is null
+     */
+    explicitAlias,
+    /**
+     * previousTableAlias is always set
+     */
+    previousTableAlias,
+    selfTableAlias = previousTableAlias,
+    joinAndStatement = {},
+    previousThroughAssociation,
     joinType,
-    baseThroughAssociation,
-    polymorphicCount,
+    dreamClassThroughAssociationWantsToHydrate,
   }: {
     query: QueryType
     dreamClass: typeof Dream
-    previousAssociationTableOrAlias: TableOrAssociationName<Schema>
-    currentAssociationTableOrAlias: TableOrAssociationName<Schema>
-    joinAndStatements?: RelaxedJoinAndStatement<any, any>
-    throughAssociations?: (HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)[]
-
-    joinType: JoinTypes
-    baseThroughAssociation:
+    association:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>
+    explicitAlias: string | undefined
+    previousTableAlias: string
+    selfTableAlias?: string
+    joinAndStatement?: RelaxedJoinAndStatement<any, any>
+    previousThroughAssociation:
       | HasOneStatement<any, any, any, any>
       | HasManyStatement<any, any, any, any>
       | undefined
-    polymorphicCount: { count: number }
+
+    joinType: JoinTypes
+    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
   }): {
     query: QueryType
     association: AssociationStatement
-    previousAssociationTableOrAlias: TableOrAssociationName<Schema>
-    currentAssociationTableOrAlias: TableOrAssociationName<Schema>
   } {
-    const { name, alias } = extractAssociationMetadataFromAssociationName(currentAssociationTableOrAlias)
-    const joinAndStatement = joinAndStatements[currentAssociationTableOrAlias] as RelaxedJoinAndStatement<
-      DB,
-      Schema
-    >
-
-    previousAssociationTableOrAlias = extractAssociationMetadataFromAssociationName(
-      previousAssociationTableOrAlias
-    ).alias
-    currentAssociationTableOrAlias = alias
-
-    let association = dreamClass['getAssociationMetadata'](name)
-    if (association?.polymorphic) polymorphicCount.count++
-
-    if (!association) {
-      throw new JoinAttemptedOnMissingAssociation({
-        dreamClass,
-        associationName: currentAssociationTableOrAlias,
+    if (association.type !== 'BelongsTo' && association.through) {
+      return this.joinsBridgeThroughAssociations({
+        query,
+        dreamClassTheAssociationIsDefinedOn: dreamClass,
+        throughAssociation: association,
+        explicitAlias,
+        previousTableAlias,
+        joinAndStatement,
+        joinType,
       })
     }
 
-    baseThroughAssociation ??= (
-      association as HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-    ).through
-      ? (association as HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>)
-      : undefined
-
-    const results = this.joinsBridgeThroughAssociations({
+    return this.addAssociationJoinStatementToQuery({
       query,
       dreamClass,
       association,
-      previousAssociationTableOrAlias,
-      throughAssociations,
+      explicitAlias,
+      previousTableAlias,
+      selfTableAlias,
+      joinAndStatement,
+      previousThroughAssociation,
       joinType,
-      baseThroughAssociation,
-      polymorphicCount,
+      dreamClassThroughAssociationWantsToHydrate,
     })
+  }
 
-    query = results.query
-    dreamClass = results.dreamClass
+  private addAssociationJoinStatementToQuery<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+  >({
+    query,
+    dreamClass,
+    association,
+    /**
+     * If the join statement includes an explicit alias, e.g.,
+     * `leftJoinPreload('hello as ho', 'world as wd')`
+     * then explicitAlias is set (e.g., to 'ho' the first time that `recursivelyJoin`
+     * calls this method and to 'ho' the second time `recursivelyJoin` is called)
+     * If only implicit aliasing happens (based on association name)
+     * (e.g. `leftJoinPreload('hello', 'world')`), then explicitAlias is null
+     */
+    explicitAlias,
+    /**
+     * previousTableAlias is always set
+     */
+    previousTableAlias,
+    selfTableAlias,
+    joinAndStatement,
+    previousThroughAssociation,
+    joinType,
+    dreamClassThroughAssociationWantsToHydrate,
+  }: {
+    query: QueryType
+    dreamClass: typeof Dream
+    association:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | BelongsToStatement<any, any, any, any>
+    explicitAlias: string | undefined
+    previousTableAlias: string
+    selfTableAlias: string
+    joinAndStatement: RelaxedJoinAndStatement<any, any>
+    previousThroughAssociation:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | undefined
 
-    association = results.association
-    if (association?.polymorphic) polymorphicCount.count++
+    joinType: JoinTypes
+    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
+  }): {
+    query: QueryType
+    association: AssociationStatement
+  } {
+    const currentTableAlias = explicitAlias ?? association.as
 
-    const timeToApplyThroughAssociations =
-      throughAssociations.length && throughAssociations[0]?.source === association.as
+    const baseThroughAssociationToApply = Array.isArray(association.modelCB())
+      ? dreamClassThroughAssociationWantsToHydrate
+      : undefined
 
-    const baseThroughAssociationToApply = association.polymorphic ? baseThroughAssociation : undefined
+    if (previousThroughAssociation?.type === 'HasMany') {
+      if ((query as SelectQueryBuilder<any, any, any>)?.distinctOn && previousThroughAssociation.distinct) {
+        query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
+          this.distinctColumnNameForAssociation({
+            association: previousThroughAssociation,
+            tableNameOrAlias: currentTableAlias,
+            foreignKey: previousThroughAssociation.primaryKey(),
+          }) as string
+        ) as QueryType
+      }
 
-    if (baseThroughAssociationToApply && polymorphicCount.count > 1)
-      throw new CannotAssociateThroughMultiplePolymorphics({
-        dreamClass,
-        association,
-        innerJoinStatements: this.query['innerJoinStatements'],
-        leftJoinStatements: this.query['leftJoinStatements'],
-      })
-
-    const originalPreviousAssociationTableOrAlias = previousAssociationTableOrAlias
-    previousAssociationTableOrAlias = results.previousAssociationTableOrAlias
-    const throughClass = results.throughClass
-
-    if (timeToApplyThroughAssociations) {
-      /**
-       * Each association in the chain is pushed onto `throughAssociations`
-       * and `applyOneJoin` is recursively called. The trick is that the
-       * through associations don't get written into the SQL; they
-       * locate the next association we need to build into the SQL,
-       * which is only run by the association that started the `through`
-       * chain (thus the
-       * `throughAssociations.length && throughAssociations[0].source === association.as`
-       * above). The final association at the end of the `through` chain _is_
-       * written into the SQL as a full association, but the modifications from
-       * the `through` association are only added when the recursion returns
-       * back to the association that kicked off the through associations.
-       */
-
-      throughAssociations.forEach(
-        (throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>) => {
-          if (throughAssociation.type === 'HasMany') {
-            if ((query as SelectQueryBuilder<any, any, any>)?.distinctOn && throughAssociation.distinct) {
-              query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
-                this.distinctColumnNameForAssociation({
-                  association: throughAssociation,
-                  tableNameOrAlias: currentAssociationTableOrAlias,
-                  foreignKey: throughAssociation.primaryKey(),
-                }) as string
-              ) as QueryType
-            }
-
-            if (throughAssociation.order) {
-              query = this.applyOrderStatementForAssociation({
-                query,
-                association: throughAssociation,
-                tableNameOrAlias: currentAssociationTableOrAlias,
-              })
-            }
-          }
-        }
-      )
+      if (previousThroughAssociation?.order) {
+        query = this.applyOrderStatementForAssociation({
+          query,
+          association: previousThroughAssociation,
+          tableNameOrAlias: currentTableAlias,
+        })
+      }
     }
 
     if (association.type === 'BelongsTo') {
@@ -2067,73 +2144,56 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           leftJoinStatements: this.query['leftJoinStatements'],
         })
 
-      const to = ((baseThroughAssociationToApply ?? association).modelCB() as typeof Dream).table
+      const to = (baseThroughAssociationToApply ?? (association.modelCB() as typeof Dream)).table
       const joinTableExpression =
-        currentAssociationTableOrAlias === to
-          ? currentAssociationTableOrAlias
-          : `${to} as ${currentAssociationTableOrAlias}`
+        snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
 
       query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
         (join: JoinBuilder<any, any>) => {
           join = join.onRef(
-            this.namespaceColumn(association.foreignKey(), previousAssociationTableOrAlias),
+            this.namespaceColumn(association.foreignKey(), previousTableAlias),
             '=',
             this.namespaceColumn(
               association.primaryKey(undefined, {
-                associatedClassOverride: baseThroughAssociationToApply?.modelCB(),
+                associatedClassOverride: baseThroughAssociationToApply,
               }),
-              currentAssociationTableOrAlias
+              currentTableAlias
             )
           )
 
-          if (baseThroughAssociationToApply) {
-            /**
-             * At this point, all `through` associations have been bridged and a
-             * real association has been reached that is a polymorphic BelongsTo (it
-             * is polymorphic and has an array of target models). Join with that
-             * table conditionally based on the polymorphic foreign key type,
-             * namespaced to the name of that association (which we know from the
-             * target of the final `through` association)
-             */
-            join = join.on((eb: ExpressionBuilder<any, any>) =>
-              this.whereStatementToExpressionWrapper(
-                eb,
-                this.aliasWhereStatement(
-                  {
-                    [association.foreignKeyTypeField()]:
-                      baseThroughAssociationToApply.modelCB().sanitizedName,
-                  } as WhereStatement<any, any, any>,
-                  throughAssociations.at(-1)!.through!
+          if (previousThroughAssociation) {
+            if (baseThroughAssociationToApply) {
+              join = join.on((eb: ExpressionBuilder<any, any>) =>
+                this.whereStatementToExpressionWrapper(
+                  eb,
+                  this.aliasWhereStatement(
+                    {
+                      [association.foreignKeyTypeField()]: baseThroughAssociationToApply.sanitizedName,
+                    } as WhereStatement<any, any, any>,
+                    previousThroughAssociation.through!
+                  )
                 )
               )
-            )
-          }
+            }
 
-          if (timeToApplyThroughAssociations) {
-            throughAssociations.forEach(
-              (
-                throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-              ) => {
-                join = this.applyAssociationAndStatementsToJoinStatement({
-                  join,
-                  association: throughAssociation,
-                  currentAssociationTableOrAlias,
-                  previousAssociationTableOrAlias: originalPreviousAssociationTableOrAlias,
-                  joinAndStatements,
-                })
-              }
-            )
+            join = this.applyAssociationAndStatementsToJoinStatement({
+              join,
+              association: previousThroughAssociation,
+              currentTableAlias,
+              selfTableAlias,
+              joinAndStatement,
+            })
           }
 
           join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
             join,
-            tableNameOrAlias: currentAssociationTableOrAlias,
+            tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride: baseThroughAssociationToApply?.modelCB(),
+            throughAssociatedClassOverride: baseThroughAssociationToApply,
           })
 
-          join = this.applyJoinAndStatement(join, joinAndStatement, currentAssociationTableOrAlias)
+          join = this.applyJoinAndStatement(join, joinAndStatement, currentTableAlias)
 
           return join
         }
@@ -2141,17 +2201,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     } else {
       const to = association.modelCB().table
       const joinTableExpression =
-        currentAssociationTableOrAlias === to
-          ? currentAssociationTableOrAlias
-          : `${to} as ${currentAssociationTableOrAlias}`
+        snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
 
       query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
         (join: JoinBuilder<any, any>) => {
           join = join.onRef(
-            this.namespaceColumn(association.primaryKey(), previousAssociationTableOrAlias),
+            this.namespaceColumn(association.primaryKey(), previousTableAlias),
             '=',
-            this.namespaceColumn(association.foreignKey(), currentAssociationTableOrAlias)
+            this.namespaceColumn(association.foreignKey(), currentTableAlias)
           )
 
           if (association.polymorphic) {
@@ -2160,48 +2218,42 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
                 eb,
                 this.aliasWhereStatement(
                   {
-                    [association.foreignKeyTypeField()]: throughClass
-                      ? throughClass['stiBaseClassOrOwnClassName']
+                    [association.foreignKeyTypeField()]: dreamClassThroughAssociationWantsToHydrate
+                      ? dreamClassThroughAssociationWantsToHydrate['stiBaseClassOrOwnClassName']
                       : dreamClass['stiBaseClassOrOwnClassName'],
                   } as any,
-                  currentAssociationTableOrAlias
+                  currentTableAlias
                 )
               )
             )
           }
 
-          if (timeToApplyThroughAssociations) {
-            throughAssociations.forEach(
-              (
-                throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-              ) => {
-                join = this.applyAssociationAndStatementsToJoinStatement({
-                  join,
-                  association: throughAssociation,
-                  currentAssociationTableOrAlias,
-                  previousAssociationTableOrAlias: originalPreviousAssociationTableOrAlias,
-                  joinAndStatements,
-                })
-              }
-            )
+          if (previousThroughAssociation) {
+            join = this.applyAssociationAndStatementsToJoinStatement({
+              join,
+              association: previousThroughAssociation,
+              currentTableAlias,
+              selfTableAlias,
+              joinAndStatement,
+            })
           }
 
           join = this.applyAssociationAndStatementsToJoinStatement({
             join,
             association,
-            currentAssociationTableOrAlias,
-            previousAssociationTableOrAlias,
-            joinAndStatements,
+            currentTableAlias,
+            selfTableAlias,
+            joinAndStatement,
           })
 
           join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
             join,
-            tableNameOrAlias: currentAssociationTableOrAlias,
+            tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride: baseThroughAssociationToApply?.modelCB(),
+            throughAssociatedClassOverride: baseThroughAssociationToApply,
           })
 
-          join = this.applyJoinAndStatement(join, joinAndStatement, currentAssociationTableOrAlias)
+          join = this.applyJoinAndStatement(join, joinAndStatement, currentTableAlias)
 
           return join
         }
@@ -2211,7 +2263,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         if (association.order) {
           query = this.applyOrderStatementForAssociation({
             query,
-            tableNameOrAlias: currentAssociationTableOrAlias,
+            tableNameOrAlias: currentTableAlias,
             association,
           })
         }
@@ -2220,7 +2272,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
             this.distinctColumnNameForAssociation({
               association,
-              tableNameOrAlias: currentAssociationTableOrAlias,
+              tableNameOrAlias: currentTableAlias,
               foreignKey: association.foreignKey(),
             }) as string
           ) as QueryType
@@ -2231,8 +2283,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return {
       query,
       association,
-      previousAssociationTableOrAlias,
-      currentAssociationTableOrAlias,
     }
   }
 
@@ -2282,31 +2332,24 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private applyAssociationAndStatementsToJoinStatement({
     join,
-    currentAssociationTableOrAlias,
-    previousAssociationTableOrAlias,
+    currentTableAlias,
+    selfTableAlias,
     association,
-    joinAndStatements,
+    joinAndStatement,
   }: {
     join: JoinBuilder<any, any>
-    currentAssociationTableOrAlias: string
-    previousAssociationTableOrAlias: string
+    currentTableAlias: string
+    selfTableAlias: string
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-    joinAndStatements: RelaxedJoinAndStatement<any, any>
+    joinAndStatement: RelaxedJoinAndStatement<any, any>
   }) {
     if (association.and) {
-      this.throwUnlessAllRequiredWhereClausesProvided(
-        association,
-        currentAssociationTableOrAlias,
-        joinAndStatements
-      )
+      this.throwUnlessAllRequiredWhereClausesProvided(association, currentTableAlias, joinAndStatement)
 
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         this.whereStatementToExpressionWrapper(
           eb,
-          this.aliasWhereStatement(
-            association.and as WhereStatement<any, any, any>,
-            currentAssociationTableOrAlias
-          ),
+          this.aliasWhereStatement(association.and as WhereStatement<any, any, any>, currentTableAlias),
           { disallowSimilarityOperator: false }
         )
       )
@@ -2316,10 +2359,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         this.whereStatementToExpressionWrapper(
           eb,
-          this.aliasWhereStatement(
-            association.andNot as WhereStatement<any, any, any>,
-            currentAssociationTableOrAlias
-          ),
+          this.aliasWhereStatement(association.andNot as WhereStatement<any, any, any>, currentTableAlias),
           { negate: true }
         )
       )
@@ -2331,7 +2371,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           (association.andAny as WhereStatement<any, any, any>[]).map(whereAnyStatement =>
             this.whereStatementToExpressionWrapper(
               eb,
-              this.aliasWhereStatement(whereAnyStatement, currentAssociationTableOrAlias),
+              this.aliasWhereStatement(whereAnyStatement, currentTableAlias),
               { disallowSimilarityOperator: false }
             )
           )
@@ -2345,7 +2385,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           eb,
           this.rawifiedSelfOnClause({
             associationAlias: association.as,
-            selfAlias: previousAssociationTableOrAlias,
+            selfAlias: selfTableAlias,
             selfAndClause: association.selfAnd as any,
           })
         )
@@ -2358,7 +2398,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           eb,
           this.rawifiedSelfOnClause({
             associationAlias: association.as,
-            selfAlias: previousAssociationTableOrAlias,
+            selfAlias: selfTableAlias,
             selfAndClause: association.selfAndNot as any,
           }),
           { negate: true }
@@ -2381,7 +2421,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }, [] as string[])
 
     const missingRequiredWhereStatements = columnsRequiringAndStatements.filter(
-      column => (joinAndStatements[namespace] as any)?.and?.[column] === undefined
+      column => (joinAndStatements as any)?.and?.[column] === undefined
     )
 
     if (missingRequiredWhereStatements.length)
@@ -2600,7 +2640,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const dream = dreams.find(dream => dream['getAssociationMetadata'](associationName))!
     if (!dream) return
 
-    const { name, alias } = extractAssociationMetadataFromAssociationName(associationName)
+    const { name, alias: _alias } = associationStringToNameAndAlias(associationName)
+    const alias = _alias || name
 
     const association = dream['getAssociationMetadata'](name)
     if (association === undefined) throw new UnexpectedUndefined()
@@ -2699,4 +2740,35 @@ function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceNam
     (dream as Dream)['getAssociationMetadata'](sourceName) ||
     (dream as Dream)['getAssociationMetadata'](pluralize.singular(sourceName))
   )
+}
+
+const associationStringToAssociationAndMaybeAlias = function ({
+  dreamClass,
+  associationString,
+}: {
+  dreamClass: typeof Dream
+  associationString: string
+}): {
+  association:
+    | HasOneStatement<any, any, any, any>
+    | HasManyStatement<any, any, any, any>
+    | BelongsToStatement<any, any, any, any>
+  alias: string | undefined
+} {
+  const { name, alias: _alias } = associationStringToNameAndAlias(associationString)
+  const alias = _alias || name
+
+  const association = dreamClass['getAssociationMetadata'](name)
+
+  if (!association) {
+    throw new JoinAttemptedOnMissingAssociation({
+      dreamClass,
+      associationName: associationString,
+    })
+  }
+
+  return {
+    association,
+    alias,
+  }
 }

@@ -12,7 +12,7 @@ export default class JoinAttemptedOnMissingAssociation extends Error {
 
   public override get message() {
     return `
-A joins call has been attempted on \`${this.dreamClass.sanitizedName}\` association \`${this.associationName}\`,
+A join call has been attempted on \`${this.dreamClass.sanitizedName}\` association \`${this.associationName}\`,
 but \`${this.dreamClass.sanitizedName}\` does not define association \`${this.associationName}\`.
 
 

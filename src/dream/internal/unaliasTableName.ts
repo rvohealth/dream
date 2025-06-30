@@ -1,5 +1,5 @@
-import extractAssociationMetadataFromAssociationName from './extractAssociationMetadataFromAssociationName.js'
+import associationStringToNameAndAlias from './extractAssociationMetadataFromAssociationName.js'
 
 export default function unaliasTableName(tableName: string) {
-  return extractAssociationMetadataFromAssociationName(tableName).name
+  return associationStringToNameAndAlias(tableName).name
 }

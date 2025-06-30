@@ -2,7 +2,7 @@ import Dream from '../../Dream.js'
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import { HasOneStatement } from '../../types/associations/hasOne.js'
 
-export default class ArrayTargetsIncompatibleWithThroughAssociation extends Error {
+export default class ArrayTargetIncompatibleWithThroughAssociation extends Error {
   public dreamClass: typeof Dream
   public association: HasManyStatement<any, any, any, any> | HasOneStatement<any, any, any, any>
 
