@@ -1795,15 +1795,54 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   /**
-   * Each association in the chain is pushed onto `throughAssociations`
-   * and `applyOneJoin` is recursively called. The trick is that the
-   * through associations don't get written into the SQL; they
-   * locate the next association we need to build into the SQL,
-   * which is only run by the association that started the `through`
-   * chain. The final association at the end of the `through` chain _is_
-   * written into the SQL as a full association, but the modifications from
-   * the `through` association are only added when the recursion returns
-   * back to the association that kicked off the through associations.
+   * Recursively traverse the through association chain until we reach a non-through association.
+   * The non-through association is the association that joins the model with the through
+   * association's intended source (the model that it wants to pull into scope). The non-through
+   * association is added to the query, and then the process continues with the source on the other
+   * side of that association, which may itself be a through association, resulting in another
+   * recursive call to joinsBridgeThroughAssociations.
+   *
+   * A chain of through associations on a single Dream model class may be used to join through
+   * several other models. For example, given the following:
+   *
+   * ```
+   * model MyModel
+   *   @deco.HasOne('OtherModel')
+   *   public otherModel
+   *
+   *   @deco.HasOne('A', { through: 'otherModel', source: 'a' })
+   *   public myA
+   *
+   *   @deco.HasOne('B', { through: 'myA', source: 'b' })
+   *   public myB
+   *
+   * model OtherModel
+   *   @deco.hasOne('AToOtherModelJoinModel')
+   *   public aToOtherModelJoinModel
+   *
+   *   @deco.HasOne('A', { through: 'aToOtherModelJoinModel' })
+   *   public a
+   *
+   * model AToOtherModelJoinModel
+   *   @deco.HasOne('A')
+   *   public a
+   *
+   * model A
+   *   @deco.HasOne('B')
+   *   public b
+   * ```
+   *
+   * Then `MyModel.leftJoinPreload('myB')` is processed as follows:
+   * - `applyOneJoin` is called with the `myB` association
+   *   - `joinsBridgeThroughAssociations` is called with the `myB` association
+   *     - `joinsBridgeThroughAssociations` is called with the `myA` association
+   *       - `addAssociationJoinStatementToQuery` is called with the `otherModel` association
+   *       - `applyOneJoin` is called with the `a` association from OtherModel
+   *         - `joinsBridgeThroughAssociations` is called with the `a` association from OtherModel
+   *           - `addAssociationJoinStatementToQuery` is called with the `aToOtherModelJoinModel` association
+   *           - `applyOneJoin` is called with the `a` association from AToOtherModelJoinModel with conditions on `a` defined on OtherModel
+   *             // this means we lose any conditions applied to myA in MyModel
+   *     - `applyOneJoin` is called with the `b` association from A with conditions from `myB` defined on MyModel
    */
 
   private joinsBridgeThroughAssociations<
@@ -1842,10 +1881,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     query: QueryType
     association: AssociationStatement
   } {
-    // 1. We start with an association on a Dream class that is a through association.
-
-    // 2. We then get the association that that through association points to and
-    //    assign it to `associationReferencedByThroughAssociation`
     /**
      * `through` associations always point to other associations on the same model
      * they are defined on. So when we want to find an association referenced by a
@@ -1863,9 +1898,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
     }
 
-    // 3. Recursively follow through associations, building up the query and storing the last association
-    //    added to the query so that we know what alias to reference when joining the other side of this
-    //    through association (its source association)
     let recursiveResult: {
       query: QueryType
       association: AssociationStatement
@@ -1878,7 +1910,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     if (addingNestedThroughAssociation) {
       /**
        * This new association is itself a through association, so we recursively
-       * call joinsBridgeThroughAssociations
+       * call joinsBridgeThroughAssociations.
        */
       recursiveResult = this.joinsBridgeThroughAssociations({
         query,
@@ -1898,8 +1930,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       //
     } else {
       /**
-       * We have reached a non-through association.
-       * Write that association into the query.
+       * We have reached the association at the end of the through chain, the final
+       * association that we pass _through_ to reach the model class on which the
+       * _source_ association of the through association is found. That source
+       * association will be added to the query as the next step at the end of this
+       * method.
        */
 
       recursiveResult = this.addAssociationJoinStatementToQuery({
@@ -1922,8 +1957,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
     }
 
-    // 4. Each through association references a single Dream class.
-    //
     const dreamClassOnOtherSideOfThrough = associationReferencedByThroughAssociation.modelCB() as typeof Dream
 
     if (Array.isArray(dreamClassOnOtherSideOfThrough))
@@ -1949,17 +1982,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       : undefined
 
     /**
-     * We have passed through one or more associations and found the source association that
-     * will result in an actual join between tables.
+     * Add the source that `sourceAssociation` points to. Note that since joinsBridgeThroughAssociations
+     * is recursive, it may have added other through associations to the query in between when this
+     * particular method call started and now.
      *
-     * Since we know we have hit at least one `through` association (the condition at the top
-     * of this method would have bailed out early if we hadn't), we know that at this point,
-     * we are still completing a through association and we're just going through this association
-     * to the source on the other side. However, the source on the other side may also be a through
-     * association.
-     *
-     * We need to follow the through associations to a non-through association. Render the non-through
-     * association to join. Then continue with the source on the other side of the through association.
+     * `applyOneJoin` is called not only with the source association but also the through association.
+     * The through association does not result in a new join statement being added to the query, but
+     * it can result in modifications to the query such as and/andNot/andAny or order clauses.
      */
 
     return this.applyOneJoin({
@@ -1968,7 +1997,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       association: sourceAssociation,
       // since joinsBridgeThroughAssociations passes undefined to explicitAlias recursively, we know this is only set on the
       // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
-      // the last source association to be added to the statement
+      // the last source association to be added to the statement (because joinsBridgeThroughAssociations was called
+      // recursively and therefore may have added other through associations and their sources prior to reaching this point)
       explicitAlias,
       previousTableAlias: recursiveResult.association.as,
       selfTableAlias:
@@ -1977,7 +2007,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           : recursiveResult.association.as,
       // since joinsBridgeThroughAssociations passes {} to joinAndStatement recursively, we know this is only set on the
       // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
-      // the last source association to be added to the statement
+      // the last source association to be added to the statement (because joinsBridgeThroughAssociations was called
+      // recursively and therefore may have added other through associations and their sources prior to reaching this point)
       joinAndStatement,
       previousThroughAssociation: throughAssociation,
       joinType,
