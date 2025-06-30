@@ -29,6 +29,7 @@ import MissingRequiredAssociationAndClause from '../../errors/associations/Missi
 import MissingRequiredPassthroughForAssociationAndClause from '../../errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
 import MissingThroughAssociation from '../../errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../errors/associations/MissingThroughAssociationSource.js'
+import ThroughAssociationConditionsIncompatibleWithThroughAssociationSource from '../../errors/associations/ThroughAssociationConditionsIncompatibleWithThroughAssociationSource.js'
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
@@ -85,6 +86,7 @@ import {
 } from '../../types/query.js'
 import { DreamConst } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
+import throughAssociationHasOptionsBesidesThroughAndSource from '../internal/associations/throughAssociationHasOptionsBesidesThroughAndSource.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
 import associationStringToNameAndAlias from '../internal/extractAssociationMetadataFromAssociationName.js'
 import orderByDirection from '../internal/orderByDirection.js'
@@ -1722,15 +1724,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    *   public myB
    *
    * model OtherModel
-   *   @deco.hasOne('AToOtherModelJoinModel')
+   *   @deco.HasOne('AToOtherModelJoinModel')
    *   public aToOtherModelJoinModel
    *
    *   @deco.HasOne('A', { through: 'aToOtherModelJoinModel' })
    *   public a
    *
    * model AToOtherModelJoinModel
-   *   @deco.HasOne('A')
+   *   @deco.BelongsTo('A')
    *   public a
+   *
+   *   @deco.BelongsTo('OtherModel
+   *   public otherModel
    *
    * model A
    *   @deco.HasOne('B')
@@ -1744,10 +1749,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    *       - `addAssociationJoinStatementToQuery` is called with the `otherModel` association
    *       - `applyOneJoin` is called with the `a` association from OtherModel
    *         - `joinsBridgeThroughAssociations` is called with the `a` association from OtherModel
+   *           // throw ThroughAssociationConditionsIncompatibleWithThroughAssociationSource if
+   *           // myA in MyModel defines conditions, distinct, or order
    *           - `addAssociationJoinStatementToQuery` is called with the `aToOtherModelJoinModel` association
    *           - `applyOneJoin` is called with the `a` association from AToOtherModelJoinModel with conditions on `a` defined on OtherModel
-   *             // this means we lose any conditions applied to myA in MyModel
+   *             - `addAssociationJoinStatementToQuery` is called with the `myA` association
    *     - `applyOneJoin` is called with the `b` association from A with conditions from `myB` defined on MyModel
+   *     - `addAssociationJoinStatementToQuery` is called with the `myB` association
    */
 
   private joinsBridgeThroughAssociations<
@@ -1971,6 +1979,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     association: AssociationStatement
   } {
     if (association.type !== 'BelongsTo' && association.through) {
+      if (throughAssociationHasOptionsBesidesThroughAndSource(previousThroughAssociation)) {
+        throw new ThroughAssociationConditionsIncompatibleWithThroughAssociationSource({
+          dreamClass,
+          association,
+        })
+      }
+
       return this.joinsBridgeThroughAssociations({
         query,
         dreamClassTheAssociationIsDefinedOn: dreamClass,

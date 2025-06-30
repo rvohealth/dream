@@ -662,6 +662,45 @@ export interface Shapes {
   updatedAt: Timestamp;
 }
 
+export interface ThroughAs {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface ThroughAToOtherModelJoinModels {
+  aId: Int8;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  otherModelId: Int8;
+  position: number;
+  updatedAt: Timestamp;
+}
+
+export interface ThroughBs {
+  aId: Int8;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface ThroughMyModels {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  updatedAt: Timestamp;
+}
+
+export interface ThroughOtherModels {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  myModelId: Int8;
+  name: string;
+  updatedAt: Timestamp;
+}
+
 export interface UnscopedSortableModels {
   createdAt: Timestamp;
   id: Generated<Int8>;
@@ -742,6 +781,11 @@ export interface DB {
   ratings: Ratings;
   sandbags: Sandbags;
   shapes: Shapes;
+  through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels;
+  through_as: ThroughAs;
+  through_bs: ThroughBs;
+  through_my_models: ThroughMyModels;
+  through_other_models: ThroughOtherModels;
   unscoped_sortable_models: UnscopedSortableModels;
   user_settings: UserSettings;
   users: Users;
@@ -791,6 +835,11 @@ export class DBClass {
   ratings: Ratings
   sandbags: Sandbags
   shapes: Shapes
+  through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels
+  through_as: ThroughAs
+  through_bs: ThroughBs
+  through_my_models: ThroughMyModels
+  through_other_models: ThroughOtherModels
   unscoped_sortable_models: UnscopedSortableModels
   user_settings: UserSettings
   users: Users
