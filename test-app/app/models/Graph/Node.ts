@@ -28,12 +28,11 @@ export default class Node extends ApplicationModel {
   @deco.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', order: 'position' })
   public orderedEdgeNodes: EdgeNode[]
 
-  @deco.HasMany('Graph/Edge', { through: 'edgeNodes', preloadThroughColumns: ['position', 'createdAt'] })
+  @deco.HasMany('Graph/Edge', { through: 'edgeNodes' })
   public edges: GraphEdge[]
 
   @deco.HasMany('Graph/Edge', {
     through: 'edgeNodes',
-    preloadThroughColumns: { position: 'aliasedPosition', createdAt: 'aliasedCreatedAt' },
     source: 'edge',
   })
   public edgesWithAliasedPreloads: GraphEdge[]
