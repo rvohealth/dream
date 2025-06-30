@@ -1722,15 +1722,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    *   public myB
    *
    * model OtherModel
-   *   @deco.hasOne('AToOtherModelJoinModel')
+   *   @deco.HasOne('AToOtherModelJoinModel')
    *   public aToOtherModelJoinModel
    *
    *   @deco.HasOne('A', { through: 'aToOtherModelJoinModel' })
    *   public a
    *
    * model AToOtherModelJoinModel
-   *   @deco.HasOne('A')
+   *   @deco.BelongsTo('A')
    *   public a
+   *
+   *   @deco.BelongsTo('OtherModel
+   *   public otherModel
    *
    * model A
    *   @deco.HasOne('B')
