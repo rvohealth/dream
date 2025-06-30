@@ -44,7 +44,6 @@ import loadPgClient from '../../helpers/db/loadPgClient.js'
 import runMigration from '../../helpers/db/runMigration.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import isEmpty from '../../helpers/isEmpty.js'
-import isObject from '../../helpers/isObject.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
 import normalizeUnicode from '../../helpers/normalizeUnicode.js'
 import objectPathsToArrays from '../../helpers/objectPathsToArrays.js'
@@ -929,29 +928,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
         columnAliasMap[column] = columnAlias
       })
-
-      // if (association?.type === 'HasOne' || association?.type === 'HasMany') {
-      //   const setupPreloadData = (dbColumnName: string) => {
-      //     const columnAlias = `dr${nextColumnAliasCounter++}`
-      //     const columnAliasMap = associationAliasToColumnAliasMap[association.through!]
-      //     if (columnAliasMap === undefined) throw new UnexpectedUndefined()
-
-      //     columnAliasMap[dbColumnName] = columnAlias
-      //     kyselyQuery = kyselyQuery.select(
-      //       `${this.namespaceColumn(dbColumnName, association.through)} as ${columnAlias}`
-      //     )
-      //   }
-
-      //   if (association.through && association.preloadThroughColumns) {
-      //     if (isObject(association.preloadThroughColumns)) {
-      //       const preloadMap = association.preloadThroughColumns as Record<string, string>
-      //       Object.keys(preloadMap).forEach(columnName => setupPreloadData(columnName))
-      //     } else {
-      //       const preloadArray = association.preloadThroughColumns as string[]
-      //       preloadArray.forEach(columnName => setupPreloadData(columnName))
-      //     }
-      //   }
-      // }
     })
 
     const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
@@ -1023,21 +999,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       )
       const dream = this.dbResultToDreamInstance(columnValueMap, dreamClass)
 
-      // const association = aliasToAssociationsMap[currentAlias] as
-      //   | HasOneStatement<any, any, any, any>
-      //   | HasManyStatement<any, any, any, any>
-      // if (association && association.through && association.preloadThroughColumns) {
-      //   const throughAssociationColumnToColumnAliasMap = associationAliasToColumnAliasMap[association.through]
-      //   if (throughAssociationColumnToColumnAliasMap === undefined) throw new UnexpectedUndefined()
-
-      //   this.hydratePreloadedThroughColumns({
-      //     association,
-      //     columnToColumnAliasMap: throughAssociationColumnToColumnAliasMap,
-      //     dream,
-      //     singleSqlResult,
-      //   })
-      // }
-
       aliasToDreamIdMap[protectAgainstPollutingAssignment(currentAlias)]?.set(primaryKeyValue, dream)
     }
 
@@ -1078,49 +1039,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     return dream
-  }
-
-  private hydratePreloadedThroughColumns({
-    association,
-    columnToColumnAliasMap,
-    dream,
-    singleSqlResult,
-  }: {
-    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-    columnToColumnAliasMap: Record<string, string>
-    dream: Dream
-    singleSqlResult: any
-  }) {
-    if (!association.through) return
-    if (!(dream as any).preloadedThroughColumns) return
-
-    let columnNames: string[] = []
-    const columnNameToPreloadedThroughColumnNameMap: Record<string, string> = {}
-
-    if (isObject(association.preloadThroughColumns)) {
-      const preloadMap = association.preloadThroughColumns as Record<string, string>
-      columnNames = Object.keys(preloadMap).map(columnName => {
-        columnNameToPreloadedThroughColumnNameMap[columnName] = preloadMap[columnName]!
-        return columnName
-      })
-    } else if (Array.isArray(association.preloadThroughColumns)) {
-      columnNames = association.preloadThroughColumns.map(columnName => {
-        columnNameToPreloadedThroughColumnNameMap[columnName] = columnName
-        return columnName
-      })
-    }
-
-    columnNames.forEach(columnName => {
-      const preloadedThroughColumnName = columnNameToPreloadedThroughColumnNameMap[columnName]
-      if (preloadedThroughColumnName === undefined) throw new UnexpectedUndefined()
-
-      const columnAlias = columnToColumnAliasMap[columnName]
-      if (columnAlias === undefined) {
-        throw new UnexpectedUndefined()
-      }
-
-      ;(dream as any).preloadedThroughColumns[preloadedThroughColumnName] = singleSqlResult[columnAlias]
-    })
   }
 
   private applyJoinAndStatement<Schema extends DreamInstance['schema']>(
@@ -1642,19 +1560,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       const alias = _alias || name
       const association = dreamClass['getAssociationMetadata'](name)
       if (association === undefined) throw new UnexpectedUndefined()
-
-      // const through = (association as any).through
-
-      // if (through) {
-      //   const { throughAssociation, throughAssociationDreamClass } = this.throughAssociationDetails(
-      //     dreamClass,
-      //     through
-      //   )
-      //   associationsToDreamClassesMap[through] = {
-      //     association: throughAssociation,
-      //     dreamClass: throughAssociationDreamClass,
-      //   }
-      // }
 
       const nextDreamClass = association.modelCB() as typeof Dream
       associationsToDreamClassesMap[alias] = { association, dreamClass: nextDreamClass }
@@ -2687,31 +2592,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       )
 
     const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
-    const throughColumnsToHydrate: any[] = []
 
     const columnsToPluck = dreamClassToHydrateColumns.map(column =>
       this.namespaceColumn(column.toString(), alias)
     ) as any[]
-
-    const asHasAssociation = association as
-      | HasManyStatement<any, any, any, any>
-      | HasOneStatement<any, any, any, any>
-
-    if (asHasAssociation.through && asHasAssociation.preloadThroughColumns) {
-      if (isObject(asHasAssociation.preloadThroughColumns)) {
-        const preloadMap = asHasAssociation.preloadThroughColumns as Record<string, string>
-        Object.keys(preloadMap).forEach(preloadThroughColumn => {
-          throughColumnsToHydrate.push(preloadMap[preloadThroughColumn])
-          columnsToPluck.push(this.namespaceColumn(preloadThroughColumn, asHasAssociation.through))
-        })
-      } else {
-        const preloadArray = asHasAssociation.preloadThroughColumns as string[]
-        preloadArray.forEach(preloadThroughColumn => {
-          throughColumnsToHydrate.push(preloadThroughColumn)
-          columnsToPluck.push(this.namespaceColumn(preloadThroughColumn, asHasAssociation.through))
-        })
-      }
-    }
 
     columnsToPluck.push(this.namespaceColumn(dreamClass.primaryKey, dreamClass.table))
 
@@ -2744,12 +2628,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         )
 
         const hydratedDream = this.dbResultToDreamInstance(attributes, dreamClassToHydrate)
-
-        throughColumnsToHydrate.forEach(
-          (throughAssociationColumn, index) =>
-            ((hydratedDream as any).preloadedThroughColumns[throughAssociationColumn] =
-              pluckedData[dreamClassToHydrateColumns.length + index])
-        )
 
         return {
           dream: hydratedDream,

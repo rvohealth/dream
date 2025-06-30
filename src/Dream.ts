@@ -2305,7 +2305,6 @@ export default class Dream {
    * //       as: 'ratings',
    * //       polymorphic: true,
    * //       source: 'ratings',
-   * //       preloadThroughColumns: undefined,
    * //       where: undefined,
    * //       whereNot: undefined,
    * //       selfWhere: undefined,

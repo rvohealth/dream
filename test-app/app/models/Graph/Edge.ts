@@ -21,12 +21,6 @@ export default class Edge extends ApplicationModel {
   public weight: DreamColumn<Edge, 'weight'>
   public createdAt: DreamColumn<Edge, 'createdAt'>
   public updatedAt: DreamColumn<Edge, 'updatedAt'>
-  public preloadedThroughColumns: {
-    position?: DreamColumn<EdgeNode, 'position'>
-    createdAt?: DreamColumn<EdgeNode, 'createdAt'>
-    aliasedPosition?: DreamColumn<EdgeNode, 'position'>
-    aliasedCreatedAt?: DreamColumn<EdgeNode, 'createdAt'>
-  } = {}
 
   @deco.HasMany('Graph/EdgeNode', { foreignKey: 'edgeId' })
   public edgeNodes: EdgeNode[]
