@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Remove support for preloadThroughColumns. They were broken, fixing them would be overly complex, and the same effect can be obtained using flatten on a serializer rendersOne
+
 ## 1.0.6
 
 - Fix joining after a through a polymorphic BelongsTo
