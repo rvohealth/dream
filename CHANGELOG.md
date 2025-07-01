@@ -1,3 +1,7 @@
+## 1.1.2
+
+- CliFileWriter does not raise error if the file we are writing is not in the file system yet.
+
 ## 1.1.1
 
 - Add fs.writeFile options as third argument to CliFileWriter.write, enabling psychic to provide custom flags when writing openapi.json files.

@@ -39,8 +39,13 @@ export class CliFileWriter {
   }
 
   public async cache(filepath: string) {
-    const originalContents = (await fs.readFile(filepath)).toString()
-    this.fileCache[filepath] = originalContents
+    try {
+      const originalContents = (await fs.readFile(filepath)).toString()
+      this.fileCache[filepath] = originalContents
+    } catch {
+      // ignore error, since it is ok if this file
+      // doesn't exist; we only cache for existing files.
+    }
   }
 }
 
