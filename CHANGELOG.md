@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Add fs.writeFile options as third argument to CliFileWriter.write, enabling psychic to provide custom flags when writing openapi.json files.
+
 ## 1.1.0
 
 - Remove support for preloadThroughColumns. They were broken, fixing them would be overly complex, and the same effect can be obtained using flatten on a serializer rendersOne
