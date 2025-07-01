@@ -10,6 +10,7 @@ import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
 import { ScopeStatement } from './decorators/static-method/Scope.js'
+import DreamApp from './dream-app/index.js'
 import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
 import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
 import DreamTransaction from './dream/DreamTransaction.js'
@@ -882,6 +883,27 @@ export default class Dream {
    */
   public static removeAllDefaultScopes<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
     return this.query().removeAllDefaultScopes()
+  }
+
+  /**
+   * imports an object from the IOC. This is usually done in rare cases,
+   * in order to avoid circular dependencies, since you can always
+   * use regular imports to import models or serializers otherwise.
+   *
+   * @returns the found model or serializer, depending on what you are looking for
+   */
+  public static lookup<
+    T extends typeof Dream,
+    GlobalSchema = InstanceType<T>['globalSchema'],
+    GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+    ModelGlobalNames = keyof GlobalNames['models' & keyof GlobalNames],
+    SerializerGlobalNames = (GlobalNames['serializers' & keyof GlobalNames] & unknown[])[number],
+    LookupName extends SerializerGlobalNames | ModelGlobalNames = SerializerGlobalNames | ModelGlobalNames,
+  >(this: T, lookupName: LookupName) {
+    const dreamApp = DreamApp.getOrFail()
+    const models = dreamApp.models
+    const serializers = dreamApp.serializers
+    return models[lookupName as keyof typeof models] || serializers[lookupName as keyof typeof serializers]
   }
 
   /**

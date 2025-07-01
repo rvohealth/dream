@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Add Dream.import, enabling devs to tap into the IOC provided by dream to dodge circular import issues
+
 ## 1.1.2
 
 - CliFileWriter does not raise error if the file we are writing is not in the file system yet.
