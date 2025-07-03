@@ -2,7 +2,13 @@ import { CalendarDate, DateTime } from '../../src/index.js'
 import ModelForOpenapiTypeSpecs from '../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 
 export default async function fleshedOutModelForOpenapiTypeSpecs() {
-  return await ModelForOpenapiTypeSpecs.create({
+  const model = unpersistedFleshedOutModelForOpenapiTypeSpecs()
+  await model.save()
+  return model
+}
+
+export function unpersistedFleshedOutModelForOpenapiTypeSpecs() {
+  return ModelForOpenapiTypeSpecs.new({
     name: 'Charles Brown',
     passwordDigest: 'xxxxxxxxx',
     nicknames: ['Charlie', 'Chuck'],

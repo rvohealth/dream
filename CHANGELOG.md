@@ -1,6 +1,10 @@
+## 1.2.1
+
+- Throw DataTypeColumnTypeMismatch when Postgres throws an error attempting to save to a column with a value that can't be cast to the column type.
+
 ## 1.2.0
 
-- Add Dream.import, enabling devs to tap into the IOC provided by dream to dodge circular import issues
+- Add Dream.lookup, enabling devs to tap into the IOC provided by dream to dodge circular import issues
 
 ## 1.1.2
 

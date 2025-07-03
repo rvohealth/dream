@@ -40,6 +40,11 @@ export default function sqlAttributes(dream: Dream) {
   )
 }
 
+/**
+ * Convert datetimes to UTC
+ */
 function valueToDatetime(val: any) {
-  return typeof val === 'string' ? DateTime.fromISO(val, { zone: 'UTC' }) : val
+  if (typeof val !== 'string') return val
+  const datetime = DateTime.fromISO(val, { zone: 'UTC' })
+  return datetime.isValid ? datetime : val
 }
