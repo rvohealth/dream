@@ -1,3 +1,7 @@
+## 1.2.2
+
+- sti-child generator includes check constraint instead of not-null since the column should only be not-null for that STI child (or modified by hand to accommodate more than one STI child)
+
 ## 1.2.1
 
 - Throw DataTypeColumnTypeMismatch when Postgres throws an error attempting to save to a column with a value that can't be cast to the column type.

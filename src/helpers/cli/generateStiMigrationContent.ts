@@ -5,10 +5,18 @@ export default function generateStiMigrationContent({
   table,
   columnsWithTypes = [],
   primaryKeyType = 'bigserial',
+  stiChildClassName,
 }: {
   table?: string
   columnsWithTypes?: string[]
   primaryKeyType?: PrimaryKeyType
-} = {}) {
-  return generateMigrationContent({ table, columnsWithTypes, primaryKeyType, createOrAlter: 'alter' })
+  stiChildClassName?: string
+}) {
+  return generateMigrationContent({
+    table,
+    columnsWithTypes,
+    primaryKeyType,
+    createOrAlter: 'alter',
+    stiChildClassName,
+  })
 }
