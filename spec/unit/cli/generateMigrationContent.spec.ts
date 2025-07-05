@@ -31,6 +31,84 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
+  context('stiChildClassName', () => {
+    it('creates a check constraint rather than notNull', () => {
+      const res = generateMigrationContent({
+        table: 'rooms',
+        columnsWithTypes: ['hello:string', 'world:integer'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+        stiChildClassName: 'RoomsLivingRoom',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .addColumn('hello', 'varchar(255)')
+    .addColumn('world', 'integer')
+    .execute()
+
+  await db.schema
+    .alterTable('rooms')
+    .addCheckConstraint(
+      'rooms_not_null_hello',
+      sql\`type != 'RoomsLivingRoom' OR hello IS NOT NULL\`,
+    )
+    .execute()
+
+  await db.schema
+    .alterTable('rooms')
+    .addCheckConstraint(
+      'rooms_not_null_world',
+      sql\`type != 'RoomsLivingRoom' OR world IS NOT NULL\`,
+    )
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .dropColumn('hello')
+    .dropColumn('world')
+    .execute()
+}`)
+    })
+
+    context('optional columns', () => {
+      it('omit the check constraint', () => {
+        const res = generateMigrationContent({
+          table: 'rooms',
+          columnsWithTypes: ['hello:string:optional'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          stiChildClassName: 'RoomsLivingRoom',
+        })
+        expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .addColumn('hello', 'varchar(255)')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .dropColumn('hello')
+    .execute()
+}`)
+      })
+    })
+  })
+
   context('with no attributes', () => {
     it('generates a migration with only primary key, created_at, and updated_at columns', () => {
       const res = generateMigrationContent({

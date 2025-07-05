@@ -20,20 +20,26 @@ export default function generateMigrationContent({
   columnsWithTypes = [],
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
+  stiChildClassName,
 }: {
   table?: string | undefined
   columnsWithTypes?: string[] | undefined
   primaryKeyType?: PrimaryKeyType | undefined
   createOrAlter?: 'create' | 'alter' | undefined
+  stiChildClassName?: string | undefined
 } = {}) {
   const altering = createOrAlter === 'alter'
   let requireCitextExtension = false
+  const checkConstraints: string[] = []
 
   const { columnDefs, columnDrops, indexDefs, indexDrops } = columnsWithTypes.reduce(
-    (acc: ColumnDefsAndDrops, attribute: string) => {
+    (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
-      const [nonStandardAttributeName, attributeType, ...descriptors] = attribute.split(':')
-      const optional = optionalFromDescriptors(descriptors)
+      const [nonStandardAttributeName, attributeType, ...descriptors] = attributeDeclaration.split(':')
+      const userWantsThisOptional = optionalFromDescriptors(descriptors)
+      // when creating a migration for an STI child, we don't want to include notNull;
+      // instead, we'll add a check constraint that uses the STI child class name
+      const optional = userWantsThisOptional || !!stiChildClassName
       const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
       let attributeName = snakeify(nonStandardAttributeName)
@@ -42,6 +48,18 @@ export default function generateMigrationContent({
       if (attributeType !== undefined && ['has_one', 'has_many'].includes(attributeType)) return acc
 
       if (attributeType === 'citext') requireCitextExtension = true
+
+      if (stiChildClassName && !userWantsThisOptional) {
+        checkConstraints.push(`
+
+  await db.schema
+    .alterTable('${table}')
+    .addCheckConstraint(
+      '${table}_not_null_${attributeName}',
+      sql\`type != '${stiChildClassName}' OR ${attributeName} IS NOT NULL\`,
+    )
+    .execute()`)
+      }
 
       switch (attributeType) {
         case 'belongs_to':
@@ -140,7 +158,7 @@ ${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
           newlineDoubleIndent +
           ".addColumn('updated_at', 'timestamp', col => col.notNull())"
     }
-    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(newlineDoubleIndent)}
+    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(newlineDoubleIndent)}${checkConstraints.join('')}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
