@@ -151,6 +151,10 @@ export default class DreamCLI {
         'create a new Dream model that extends another Dream model, leveraging STI (single table inheritance)'
       )
       .option('--no-serializer')
+      .option(
+        '--no-classname-namespace',
+        'when generating an STI child in a namespace (e.g. Room/Kitchen), use only the word after the final slash (e.g. "Kitchen") as the class name'
+      )
       .argument(
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -169,7 +173,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           extendsWord: string,
           parentModelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean }
+          options: { serializer: boolean; classnameNamespace: boolean }
         ) => {
           await initializeDreamApp()
           if (extendsWord !== 'extends')

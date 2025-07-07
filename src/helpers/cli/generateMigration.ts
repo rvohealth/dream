@@ -35,6 +35,7 @@ export default async function generateMigration({
       table: snakeify(pluralize(pascalizePath(fullyQualifiedParentName))),
       columnsWithTypes,
       primaryKeyType: primaryKeyType(),
+      stiChildClassName: pascalizePath(fullyQualifiedModelName!),
     })
   } else if (fullyQualifiedModelName) {
     finalContent = generateMigrationContent({

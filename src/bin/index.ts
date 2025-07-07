@@ -40,7 +40,7 @@ export default class DreamBin {
     fullyQualifiedModelName: string,
     fullyQualifiedParentName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean }
+    options: { serializer: boolean; classnameNamespace: boolean }
   ) {
     await generateDream({
       fullyQualifiedModelName,

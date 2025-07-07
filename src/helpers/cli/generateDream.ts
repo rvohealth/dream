@@ -20,6 +20,7 @@ export default async function generateDream({
     serializer: boolean
     stiBaseSerializer: boolean
     includeAdminSerializers: boolean
+    classnameNamespace: boolean
   }
   fullyQualifiedParentName?: string | undefined
 }) {
@@ -41,6 +42,7 @@ export default async function generateDream({
         fullyQualifiedParentName,
         serializer: options.serializer,
         includeAdminSerializers: options.includeAdminSerializers,
+        classnameNamespace: options.classnameNamespace,
       })
     )
   } catch (error) {
@@ -53,8 +55,12 @@ export default async function generateDream({
     `)
   }
 
-  await generateUnitSpec({ fullyQualifiedModelName })
-  await generateFactory({ fullyQualifiedModelName, columnsWithTypes })
+  await generateUnitSpec({ fullyQualifiedModelName, classnameNamespace: options.classnameNamespace })
+  await generateFactory({
+    fullyQualifiedModelName,
+    columnsWithTypes,
+    classnameNamespace: options.classnameNamespace,
+  })
   if (options.serializer)
     await generateSerializer({
       fullyQualifiedModelName,
@@ -62,6 +68,7 @@ export default async function generateDream({
       fullyQualifiedParentName,
       stiBaseSerializer: options.stiBaseSerializer,
       includeAdminSerializers: options.includeAdminSerializers,
+      classnameNamespace: options.classnameNamespace,
     })
 
   const isSTI = !!fullyQualifiedParentName
@@ -71,6 +78,7 @@ export default async function generateDream({
       columnsWithTypes,
       fullyQualifiedModelName,
       fullyQualifiedParentName,
+      classnameNamespace: options.classnameNamespace,
     })
   }
 }
