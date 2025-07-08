@@ -171,7 +171,7 @@ export default class Dream {
    * property is set.
    *
    */
-  protected columnSetterGuardActivated: boolean = false
+  private columnSetterGuardActivated: boolean = false
 
   /**
    * @internal
@@ -306,7 +306,7 @@ export default class Dream {
    *   @deco.HasMany
    *   @deco.BelongsTo
    */
-  protected static associationMetadataByType: AssociationStatementsMap = blankAssociationsFactory(this, {
+  private static associationMetadataByType: AssociationStatementsMap = blankAssociationsFactory(this, {
     freeze: true,
   })
 
@@ -318,7 +318,7 @@ export default class Dream {
    * always an array rather than undefined,
    * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static scopes: {
+  private static scopes: {
     default: readonly ScopeStatement[] | ScopeStatement[]
     named: readonly ScopeStatement[] | ScopeStatement[]
   } = Object.freeze({
@@ -334,7 +334,7 @@ export default class Dream {
    * always an array rather than undefined,
    * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static virtualAttributes: readonly VirtualAttributeStatement[] | VirtualAttributeStatement[] =
+  private static virtualAttributes: readonly VirtualAttributeStatement[] | VirtualAttributeStatement[] =
     Object.freeze([])
 
   /**
@@ -344,7 +344,7 @@ export default class Dream {
    * methods. Set on the inheriting class when using the Virtual decorator (this default
    * assignment simply ensures that it is always an array rather than undefined)
    */
-  protected static explicitUnsafeParamColumns: readonly string[] | string[] = Object.freeze([])
+  private static explicitUnsafeParamColumns: readonly string[] | string[] = Object.freeze([])
 
   /**
    * @internal
@@ -354,14 +354,14 @@ export default class Dream {
    * freezing ensures that we never modify the static array on the inherited Dream class)
    *
    */
-  protected static sortableFields: readonly SortableFieldConfig[] | SortableFieldConfig[] = Object.freeze([])
+  private static sortableFields: readonly SortableFieldConfig[] | SortableFieldConfig[] = Object.freeze([])
 
   /**
    * @internal
    *
    * Model storage for STI metadata, set when using the STI decorator
    */
-  protected static extendedBy: (typeof Dream)[] | null = null
+  private static extendedBy: (typeof Dream)[] | null = null
 
   /**
    * @internal
@@ -370,7 +370,7 @@ export default class Dream {
    *  (this default assignment simply ensures that it is always a valid object rather than undefined,
    * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static sti: {
+  private static sti: {
     active: boolean
     baseClass: typeof Dream | null
     value: string | null
@@ -397,7 +397,7 @@ export default class Dream {
    *   AfterDestroy
    *   AfterDestroyCommit
    */
-  protected static hooks: Readonly<HookStatementMap> = blankHooksFactory(this, { freeze: true })
+  private static hooks: Readonly<HookStatementMap> = blankHooksFactory(this, { freeze: true })
 
   /**
    * @internal
@@ -406,7 +406,7 @@ export default class Dream {
    * (this default assignment simply ensures that it is always an array rather than undefined,
    * freezing ensures that we never modify the static array on the inherited Dream class)
    */
-  protected static validations: readonly ValidationStatement[] | ValidationStatement[] = Object.freeze([])
+  private static validations: readonly ValidationStatement[] | ValidationStatement[] = Object.freeze([])
 
   /**
    * @internal
@@ -416,21 +416,21 @@ export default class Dream {
    * freezing ensures that we never modify the static array on the inherited Dream class)
    *
    */
-  protected static customValidations: readonly string[] | string[] = Object.freeze([])
+  private static customValidations: readonly string[] | string[] = Object.freeze([])
 
   /**
    * @internal
    *
    * Model storage for replica-safe metadata, set when using the ReplicaSafe decorator
    */
-  protected static replicaSafe = false
+  private static replicaSafe = false
 
   /**
    * @internal
    *
    * Model storage for soft-delete metadata, set when using the SoftDelete decorator
    */
-  protected static softDelete = false
+  private static softDelete = false
 
   /**
    * @internal
@@ -450,7 +450,7 @@ export default class Dream {
    *
    * @returns boolean
    */
-  protected static get isSTIBase() {
+  private static get isSTIBase() {
     return !!this.extendedBy?.length && !this.isSTIChild
   }
 
@@ -461,7 +461,7 @@ export default class Dream {
    *
    * @returns boolean
    */
-  protected static get isSTIChild() {
+  private static get isSTIChild() {
     return !!this.sti?.active
   }
 
@@ -472,7 +472,7 @@ export default class Dream {
    *
    * @returns A dream class
    */
-  protected static get stiBaseClassOrOwnClass(): typeof Dream {
+  private static get stiBaseClassOrOwnClass(): typeof Dream {
     return this.sti.baseClass || this
   }
 
@@ -496,7 +496,7 @@ export default class Dream {
    *
    * @returns string
    */
-  protected static get stiBaseClassOrOwnClassName(): string {
+  private static get stiBaseClassOrOwnClassName(): string {
     return this.stiBaseClassOrOwnClass.sanitizedName
   }
 
@@ -522,7 +522,7 @@ export default class Dream {
    *
    * @returns A dream class
    */
-  protected get stiBaseClassOrOwnClass(): typeof Dream {
+  private get stiBaseClassOrOwnClass(): typeof Dream {
     return (this.constructor as typeof Dream).stiBaseClassOrOwnClass
   }
 
@@ -533,7 +533,7 @@ export default class Dream {
    *
    * @returns A string
    */
-  protected get stiBaseClassOrOwnClassName(): string {
+  private get stiBaseClassOrOwnClassName(): string {
     return (this.constructor as typeof Dream).stiBaseClassOrOwnClassName
   }
 
@@ -556,7 +556,7 @@ export default class Dream {
    * @param statement - the statement to couple to the provided hookType
    * @returns void
    */
-  protected static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
+  private static addHook(hookType: keyof typeof this.hooks, statement: HookStatement) {
     const existingHook = this.hooks[hookType].find(hook => hook.method === statement.method)
     if (existingHook) return
     ;(this.hooks as HookStatementMap)[hookType] = [...this.hooks[hookType], statement]
@@ -587,7 +587,7 @@ export default class Dream {
     this._globalName = globalName
   }
 
-  protected static serializationMap<
+  private static serializationMap<
     T extends typeof Dream,
     I extends InstanceType<T>,
     SerializerKey extends DreamSerializerKey<I>,
@@ -598,7 +598,7 @@ export default class Dream {
     return this.recursiveSerializationMap(serializer)
   }
 
-  protected static displaySerialization<
+  private static displaySerialization<
     T extends typeof Dream,
     I extends InstanceType<T>,
     SerializerKey extends DreamSerializerKey<I>,
@@ -615,7 +615,7 @@ export default class Dream {
     })
   }
 
-  protected static recursiveSerializationMap(
+  private static recursiveSerializationMap(
     serializer: DreamModelSerializerType | SimpleObjectSerializerType,
     {
       forDisplay = false,
@@ -759,7 +759,7 @@ export default class Dream {
     return defaultParams as ReturnVal
   }
 
-  protected static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
+  private static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
@@ -2629,7 +2629,7 @@ export default class Dream {
     return this._isPersisted || false
   }
 
-  protected set isPersisted(val: boolean) {
+  private set isPersisted(val: boolean) {
     this._isPersisted = val
   }
 
@@ -2728,7 +2728,7 @@ export default class Dream {
    *
    * Used for determining which attributes to update
    */
-  protected static extractAttributesFromUpdateableProperties<T extends typeof Dream>(
+  private static extractAttributesFromUpdateableProperties<T extends typeof Dream>(
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
@@ -2894,11 +2894,11 @@ export default class Dream {
    * every Dream model is initialized to delete the instance accessors so that
    * the prototype accessors can be reached.
    */
-  protected unshadowColumnPropertyPrototypeAccessors() {
+  private unshadowColumnPropertyPrototypeAccessors() {
     ;(this.constructor as typeof Dream).columns().forEach(column => delete (this as any)[column])
   }
 
-  protected finalizeConstruction() {
+  private finalizeConstruction() {
     /**
      *
      * Modern Javascript sets all properties that do not have an explicit
@@ -3059,7 +3059,7 @@ export default class Dream {
    *
    * Returns the db type stored within the database
    */
-  protected static cachedTypeFor<
+  private static cachedTypeFor<
     T extends typeof Dream,
     DB extends InstanceType<T>['DB'],
     TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
@@ -3436,7 +3436,7 @@ export default class Dream {
    *
    * Used for changes API
    */
-  protected freezeAttributes() {
+  private freezeAttributes() {
     this.frozenAttributes = { ...this.getAttributes() }
   }
 
