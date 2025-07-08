@@ -2,6 +2,9 @@ import { RecursiveSerializerInfo } from '../../../src/dream/internal/extractNest
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
+import PolymorphicTask from '../../../test-app/app/models/Polymorphic/Task.js'
+import Workout from '../../../test-app/app/models/Polymorphic/Workout.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -71,6 +74,37 @@ describe('Dream.serializationMap', () => {
               },
             },
           },
+        },
+      } satisfies RecursiveSerializerInfo)
+    })
+  })
+
+  context('on the other side of a polymorphic belongs-to', () => {
+    it('includes all associations on the other side of the polymorphic belongs-to', () => {
+      expect(PolymorphicTask['serializationMap']()).toEqual({
+        taskable: {
+          parentDreamClass: PolymorphicTask,
+          nestedSerializerInfo: {
+            cleaningSupplies: {
+              parentDreamClass: Chore,
+              nestedSerializerInfo: {},
+            },
+            workoutType: {
+              parentDreamClass: Workout,
+              nestedSerializerInfo: {},
+            },
+          },
+        },
+      } satisfies RecursiveSerializerInfo)
+    })
+  })
+
+  context('with an explicitly provided serializer', () => {
+    it('includes all associations on the other side of the polymorphic belongs-to', () => {
+      expect(PolymorphicTask['serializationMap']('renderViaExplicitSerializer')).toEqual({
+        taskable: {
+          parentDreamClass: PolymorphicTask,
+          nestedSerializerInfo: {},
         },
       } satisfies RecursiveSerializerInfo)
     })

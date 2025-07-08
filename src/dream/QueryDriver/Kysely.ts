@@ -2575,12 +2575,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    */
   private async applyOnePreload(
     this: KyselyQueryDriver<DreamInstance>,
-    associationName: string,
+    associationNameAndMaybeAlias: string,
     dreams: Dream | Dream[],
     onStatement: RelaxedPreloadOnStatement<any, any> = {}
   ): Promise<Dream[]> {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
+    const { name: associationName } = associationStringToNameAndAlias(associationNameAndMaybeAlias)
     dreams = dreams.filter(dream => dream.hasAssociation(associationName))
 
     const groupedDreams = groupBy(dreams, dream => dream.sanitizedConstructorName)

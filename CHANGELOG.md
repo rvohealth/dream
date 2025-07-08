@@ -8,6 +8,10 @@
 
 - fix preloading association on the other side of a polymorphic belongs-to since the same association name may be defined differently on different models. For example, taskable may be a Chore or a Workout, both of which have an `images` association, but `images` goes through ChoreImage on Chore and through WorkoutImage on Workout
 
+- fix preloadFor when a rendersOne/Many renders a polymorphic belongs-to (was only preloading serializer associations for one of the polymorphically associated models)
+
+- fix preloadFor when an explicit serializer option is provided to a rendersOne/Many
+
 ## 1.2.1
 
 - Throw DataTypeColumnTypeMismatch when Postgres throws an error attempting to save to a column with a value that can't be cast to the column type.

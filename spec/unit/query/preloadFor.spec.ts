@@ -8,6 +8,7 @@ import CleaningSupply from '../../../test-app/app/models/Polymorphic/CleaningSup
 import PolymorphicTask from '../../../test-app/app/models/Polymorphic/Task.js'
 import PolymorphicUser from '../../../test-app/app/models/Polymorphic/User.js'
 import Workout from '../../../test-app/app/models/Polymorphic/Workout.js'
+import WorkoutType from '../../../test-app/app/models/Polymorphic/WorkoutType.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
@@ -101,7 +102,8 @@ describe('Dream.preloadFor(serializerKey)', () => {
   it('preloads associations on the other side of a poplyorphic belongs-to', async () => {
     const user = await PolymorphicUser.create()
     const chore = await Chore.create()
-    const workout = await Workout.create()
+    const workoutType = await WorkoutType.create({ workoutType: 'cycling' })
+    const workout = await Workout.create({ workoutType })
     const cleaningSupply = await CleaningSupply.create()
 
     await ChoreCleaningSupply.create({ chore, cleaningSupply })
@@ -109,7 +111,9 @@ describe('Dream.preloadFor(serializerKey)', () => {
     const choreTask = await PolymorphicTask.create({ user, taskable: chore })
     const workoutTask = await PolymorphicTask.create({ user, taskable: workout })
 
-    const userWithPreloads = await PolymorphicUser.preloadFor('default').firstOrFail()
+    const userWithPreloads = await PolymorphicUser.preloadFor('default')
+      // .preload('tasks', 'taskable', 'workoutType' as any)
+      .firstOrFail()
 
     const loadedChoreTask = userWithPreloads.tasks.find(
       (task): task is PolymorphicTask & { taskable: Chore } => task.taskableType === 'Chore'
@@ -124,5 +128,6 @@ describe('Dream.preloadFor(serializerKey)', () => {
     expect(loadedChoreTask.taskable).toMatchDreamModel(chore)
     expect(loadedWorkoutTask.taskable).toMatchDreamModel(workout)
     expect(loadedChoreTask.taskable.cleaningSupplies).toMatchDreamModels([cleaningSupply])
+    expect(loadedWorkoutTask.taskable.workoutType).toMatchDreamModel(workoutType)
   })
 })

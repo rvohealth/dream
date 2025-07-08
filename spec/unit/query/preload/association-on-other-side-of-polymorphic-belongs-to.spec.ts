@@ -23,6 +23,9 @@ describe('preloading associations on the other side of a polymorphic belongs-to'
   let workoutTask: PolymorphicTask
 
   beforeEach(async () => {
+    // reset sequences to ensure that the id of the chore and the id of the workout both start
+    // from 1, which enabled the spec failure because both the Chore and the Workout were (incorrectly)
+    // having the cleaning supply loaded on them
     await Promise.all([
       sql`ALTER SEQUENCE polymorphic_users_id_seq RESTART 1;`.execute(db('primary')),
       sql`ALTER SEQUENCE polymorphic_tasks_id_seq RESTART 1;`.execute(db('primary')),

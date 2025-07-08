@@ -25,9 +25,9 @@ export default class Workout extends ApplicationModel {
   public createdAt: DreamColumn<Workout, 'createdAt'>
   public updatedAt: DreamColumn<Workout, 'updatedAt'>
 
-  @deco.BelongsTo('Polymorphic/WorkoutType')
+  @deco.BelongsTo('Polymorphic/WorkoutType', { optional: true })
   public workoutType: WorkoutType
-  public polymorphicWorkoutTypeId: DreamColumn<Workout, 'polymorphicWorkoutTypesId'>
+  public polymorphicWorkoutTypeId: DreamColumn<Workout, 'polymorphicWorkoutTypeId'>
 
   @deco.HasMany('Polymorphic/LocalizedText', {
     polymorphic: true,

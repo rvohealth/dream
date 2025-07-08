@@ -22,7 +22,8 @@ export function serializerForAssociatedClass<ObjectType extends Dream | ViewMode
 
   const dream = object as Dream
   const association = dream['getAssociationMetadata'](associationName)
-  const associatedClasses = association!.modelCB()
-  const associatedClass = Array.isArray(associatedClasses) ? associatedClasses[0] : associatedClasses
+  const associatedClass = association!.modelCB()
+  if (Array.isArray(associatedClass))
+    throw new Error('rendersOne flatten is incompatible with a polymorphic belongs-to association')
   return inferSerializersFromDreamClassOrViewModelClass(associatedClass, options.serializerKey)[0] ?? null
 }

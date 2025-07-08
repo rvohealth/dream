@@ -643,7 +643,7 @@ export interface PolymorphicWorkouts {
   createdAt: Timestamp;
   id: Generated<Int8>;
   name: string | null;
-  polymorphicWorkoutTypeId: Int8;
+  polymorphicWorkoutTypeId: Int8 | null;
   updatedAt: Timestamp;
 }
 

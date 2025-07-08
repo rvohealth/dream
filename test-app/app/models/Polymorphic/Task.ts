@@ -1,6 +1,9 @@
 import { Decorators } from '../../../../src/index.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
-import { PolymorphicTaskSerializer } from '../../serializers/Polymorphic/TaskSerializer.js'
+import {
+  PolymorphicTaskSerializer,
+  PolymorphicTaskWithExplicitRendersOneSerializer,
+} from '../../serializers/Polymorphic/TaskSerializer.js'
 import ApplicationModel from '../ApplicationModel.js'
 import Chore from './Chore.js'
 import PolymorphicUser from './User.js'
@@ -16,6 +19,7 @@ export default class PolymorphicTask extends ApplicationModel {
   public get serializers() {
     return {
       default: PolymorphicTaskSerializer,
+      renderViaExplicitSerializer: PolymorphicTaskWithExplicitRendersOneSerializer,
     }
   }
 
