@@ -1848,7 +1848,7 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['aDatetime', 'bio', 'birthdate', 'collarCount', 'collarCountInt', 'collarCountNumeric', 'createdAt', 'createdOn', 'email', 'favoriteBigint', 'favoriteBigints', 'favoriteBooleans', 'favoriteCitext', 'favoriteCitexts', 'favoriteDates', 'favoriteDatetimes', 'favoriteIntegers', 'favoriteNumerics', 'favoriteTexts', 'favoriteTreats', 'favoriteUuids', 'id', 'likesTreats', 'likesWalks', 'name', 'nicknames', 'notes', 'optionalUuid', 'passwordDigest', 'requiredCollarCount', 'requiredCollarCountInt', 'requiredFavoriteBigint', 'requiredFavoriteBigints', 'requiredFavoriteBooleans', 'requiredFavoriteCitext', 'requiredFavoriteCitexts', 'requiredFavoriteDates', 'requiredFavoriteDatetimes', 'requiredFavoriteIntegers', 'requiredFavoriteNumerics', 'requiredFavoriteTexts', 'requiredFavoriteUuids', 'requiredNicknames', 'species', 'updatedAt', 'uuid', 'volume'],
+    nonJsonColumnNames: ['aDatetime', 'activateConstraint', 'bio', 'birthdate', 'collarCount', 'collarCountInt', 'collarCountNumeric', 'createdAt', 'createdOn', 'email', 'favoriteBigint', 'favoriteBigints', 'favoriteBooleans', 'favoriteCitext', 'favoriteCitexts', 'favoriteDates', 'favoriteDatetimes', 'favoriteIntegers', 'favoriteNumerics', 'favoriteTexts', 'favoriteTreats', 'favoriteUuids', 'id', 'likesTreats', 'likesWalks', 'myConstrainedField', 'name', 'nicknames', 'notes', 'optionalUuid', 'passwordDigest', 'requiredCollarCount', 'requiredCollarCountInt', 'requiredFavoriteBigint', 'requiredFavoriteBigints', 'requiredFavoriteBooleans', 'requiredFavoriteCitext', 'requiredFavoriteCitexts', 'requiredFavoriteDates', 'requiredFavoriteDatetimes', 'requiredFavoriteIntegers', 'requiredFavoriteNumerics', 'requiredFavoriteTexts', 'requiredFavoriteUuids', 'requiredNicknames', 'species', 'updatedAt', 'uuid', 'volume'],
     columns: {
       aDatetime: {
         coercedType: {} as DateTime | null,
@@ -1857,6 +1857,15 @@ export const schema = {
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: true,
+        isArray: false,
+      },
+      activateConstraint: {
+        coercedType: {} as boolean,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'boolean',
+        allowNull: false,
         isArray: false,
       },
       bio: {
@@ -2099,6 +2108,15 @@ export const schema = {
         enumArrayType: null,
         enumValues: null,
         dbType: 'boolean',
+        allowNull: true,
+        isArray: false,
+      },
+      myConstrainedField: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'character varying',
         allowNull: true,
         isArray: false,
       },

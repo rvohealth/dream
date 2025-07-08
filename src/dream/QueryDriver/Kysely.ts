@@ -17,7 +17,7 @@ import pluralize from 'pluralize-esm'
 import writeSyncFile from '../../bin/helpers/sync.js'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
-import { pgErrorType } from '../../db/errors.js'
+import { CHECK_VIOLATION, INVALID_INPUT_SYNTAX, NOT_NULL_VIOLATION, pgErrorType } from '../../db/errors.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
@@ -33,7 +33,9 @@ import MissingThroughAssociationSource from '../../errors/associations/MissingTh
 import ThroughAssociationConditionsIncompatibleWithThroughAssociationSource from '../../errors/associations/ThroughAssociationConditionsIncompatibleWithThroughAssociationSource.js'
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
+import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
@@ -580,10 +582,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       }
     } catch (error) {
       switch (pgErrorType(error)) {
-        case 'INVALID_INPUT_SYNTAX':
+        case INVALID_INPUT_SYNTAX:
           throw new DataTypeColumnTypeMismatch({
             dream,
             error: error instanceof Error ? error : new Error('database column type error'),
+          })
+
+        case NOT_NULL_VIOLATION:
+          throw new NotNullViolation({
+            dream,
+            error: error instanceof Error ? error : new Error('not null violation'),
+          })
+
+        case CHECK_VIOLATION:
+          throw new CheckConstraintViolation({
+            dream,
+            error: error instanceof Error ? error : new Error('check constraint violation'),
           })
       }
 

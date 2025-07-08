@@ -1,7 +1,7 @@
 import { CompiledQuery, Updateable } from 'kysely'
 
 import yoctocolors from 'yoctocolors'
-import { pgErrorType } from './db/errors.js'
+import { pgErrorType, UNIQUE_VIOLATION } from './db/errors.js'
 import db from './db/index.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
@@ -1184,7 +1184,7 @@ export default class Dream {
       await dreamModel.save()
       return dreamModel
     } catch (err) {
-      if (pgErrorType(err) === 'UNIQUE_CONSTRAINT_VIOLATION') {
+      if (pgErrorType(err) === UNIQUE_VIOLATION) {
         const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
@@ -1250,7 +1250,7 @@ export default class Dream {
         skipHooks ? { skipHooks } : undefined
       )
     } catch (err) {
-      if (pgErrorType(err) === 'UNIQUE_CONSTRAINT_VIOLATION') {
+      if (pgErrorType(err) === UNIQUE_VIOLATION) {
         const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
         if (!existingRecord) throw new CreateOrUpdateByFailedToCreateAndUpdate(this)
         const { with: attrs } = extraOpts

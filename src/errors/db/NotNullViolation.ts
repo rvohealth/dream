@@ -1,6 +1,6 @@
 import Dream from '../../Dream.js'
 
-export default class DataTypeColumnTypeMismatch extends Error {
+export default class NotNullViolation extends Error {
   public dream: Dream
   public error: Error
 

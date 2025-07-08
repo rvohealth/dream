@@ -1,3 +1,9 @@
+## 1.3.1
+
+- throw NotNullViolation when Postgres throws a not null violation
+
+- throw CheckViolation when Postgres throws a check violation
+
 ## 1.3.0
 
 - sti-child generator includes check constraint instead of not-null since the column should only be not-null for that STI child (or modified by hand to accommodate more than one STI child)

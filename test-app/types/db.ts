@@ -409,6 +409,7 @@ export interface LocalizedTexts {
 
 export interface ModelForOpenapiTypeSpecs {
   aDatetime: Timestamp | null;
+  activateConstraint: Generated<boolean>;
   bio: Generated<string>;
   birthdate: Timestamp | null;
   collarCount: Int8 | null;
@@ -436,6 +437,7 @@ export interface ModelForOpenapiTypeSpecs {
   jsonbData: Json | null;
   likesTreats: Generated<boolean>;
   likesWalks: boolean | null;
+  myConstrainedField: string | null;
   name: string | null;
   nicknames: string[] | null;
   notes: string | null;

@@ -66,6 +66,9 @@ export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public likesWalks: DreamColumn<ModelForOpenapiTypeSpecs, 'likesWalks'>
   public likesTreats: DreamColumn<ModelForOpenapiTypeSpecs, 'likesTreats'>
 
+  public activateConstraint: DreamColumn<ModelForOpenapiTypeSpecs, 'activateConstraint'>
+  public myConstrainedField: DreamColumn<ModelForOpenapiTypeSpecs, 'myConstrainedField'>
+
   public createdOn: DreamColumn<ModelForOpenapiTypeSpecs, 'createdOn'>
   public createdAt: DreamColumn<ModelForOpenapiTypeSpecs, 'createdAt'>
   public updatedAt: DreamColumn<ModelForOpenapiTypeSpecs, 'updatedAt'>

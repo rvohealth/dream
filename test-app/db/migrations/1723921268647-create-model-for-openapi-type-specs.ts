@@ -72,6 +72,16 @@ export async function up(db: Kysely<any>): Promise<void> {
 
     .addColumn('created_at', 'timestamp', col => col.defaultTo(sql`now()`).notNull())
     .addColumn('updated_at', 'timestamp', col => col.defaultTo(sql`now()`).notNull())
+    .addColumn('activate_constraint', 'boolean', col => col.notNull().defaultTo(false))
+    .addColumn('my_constrained_field', 'varchar')
+    .execute()
+
+  await db.schema
+    .alterTable('model_for_openapi_type_specs')
+    .addCheckConstraint(
+      'model_for_openapi_type_specs_check_constraint',
+      sql`NOT activate_constraint OR my_constrained_field IS NOT NULL`
+    )
     .execute()
 }
 
