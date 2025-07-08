@@ -1,5 +1,6 @@
 import { Decorators } from '../../../../src/index.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
+import { ChoreSerializer } from '../../serializers/Polymorphic/ChoreSerializer.js'
 import ApplicationModel from '../ApplicationModel.js'
 import ChoreCleaningSupply from './ChoreCleaningSupply.js'
 import CleaningSupply from './CleaningSupply.js'
@@ -10,6 +11,12 @@ const deco = new Decorators<typeof Chore>()
 export default class Chore extends ApplicationModel {
   public override get table() {
     return 'polymorphic_chores' as const
+  }
+
+  public get serializers() {
+    return {
+      default: ChoreSerializer,
+    }
   }
 
   public id: DreamColumn<Chore, 'id'>

@@ -3548,7 +3548,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -3622,7 +3622,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -3844,7 +3844,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -4005,7 +4005,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -4079,7 +4079,7 @@ export const schema = {
     createdAtField: 'createdAt',
     updatedAtField: 'updatedAt',
     deletedAtField: 'deletedAt',
-    serializerKeys: [],
+    serializerKeys: ['default'],
     scopes: {
       default: [],
       named: [],
@@ -5757,6 +5757,11 @@ export const globalSchema = {
       'PetSerializer',
       'PetSummarySerializer',
       'PetUnderstudyJoinModelSerializer',
+      'Polymorphic/ChoreSerializer',
+      'Polymorphic/CleaningSupplySerializer',
+      'Polymorphic/TaskSerializer',
+      'Polymorphic/UserSerializer',
+      'Polymorphic/WorkoutSerializer',
       'PostSerializer',
       'PostVisibilitySerializer',
       'RatingDeepSerializer',
