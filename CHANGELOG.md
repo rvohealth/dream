@@ -6,6 +6,8 @@
 
 - fix preloading associations on other side of a polyorphic belongs-to association so that we don't set an association on a dream model that doesn't define that association
 
+- fix preloading association on the other side of a polymorphic belongs-to since the same association name may be defined differently on different models. For example, taskable may be a Chore or a Workout, both of which have an `images` association, but `images` goes through ChoreImage on Chore and through WorkoutImage on Workout
+
 ## 1.2.1
 
 - Throw DataTypeColumnTypeMismatch when Postgres throws an error attempting to save to a column with a value that can't be cast to the column type.

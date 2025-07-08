@@ -77,7 +77,7 @@ export default class DreamSerializerBuilder<
       | (keyof DataType & string),
     AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
       ? never
-      : keyof DataType & string,
+      : Exclude<keyof DataType, keyof Dream> & string,
     Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(
     name: AttributeName,

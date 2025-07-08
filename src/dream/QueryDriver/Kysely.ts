@@ -46,6 +46,7 @@ import _dropDb from '../../helpers/db/dropDb.js'
 import loadPgClient from '../../helpers/db/loadPgClient.js'
 import runMigration from '../../helpers/db/runMigration.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
+import groupBy from '../../helpers/groupBy.js'
 import isEmpty from '../../helpers/isEmpty.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
 import normalizeUnicode from '../../helpers/normalizeUnicode.js'
@@ -1655,7 +1656,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         this.applyablePreloadOnStatements(preloadOnStatements[key] as RelaxedPreloadOnStatement<any, any>)
       )
 
-      if (nestedDreams) {
+      if (nestedDreams.length) {
         await this.applyPreload((preloadStatement as any)[key], preloadOnStatements[key] as any, nestedDreams)
       }
     }
@@ -2577,11 +2578,29 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     associationName: string,
     dreams: Dream | Dream[],
     onStatement: RelaxedPreloadOnStatement<any, any> = {}
-  ) {
+  ): Promise<Dream[]> {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
     dreams = dreams.filter(dream => dream.hasAssociation(associationName))
-    if (!dreams.length) return
+
+    const groupedDreams = groupBy(dreams, dream => dream.sanitizedConstructorName)
+
+    return (
+      await Promise.all(
+        Object.keys(groupedDreams).map(key =>
+          this._applyOnePreload(associationName, groupedDreams[key]!, onStatement)
+        )
+      )
+    ).flat()
+  }
+
+  private async _applyOnePreload(
+    this: KyselyQueryDriver<DreamInstance>,
+    associationName: string,
+    dreams: Dream[],
+    onStatement: RelaxedPreloadOnStatement<any, any> = {}
+  ): Promise<Dream[]> {
+    if (!dreams.length) return []
     const dream = dreams[0]!
 
     const { name, alias: _alias } = associationStringToNameAndAlias(associationName)

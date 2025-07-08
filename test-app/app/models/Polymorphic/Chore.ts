@@ -4,7 +4,9 @@ import { ChoreSerializer } from '../../serializers/Polymorphic/ChoreSerializer.j
 import ApplicationModel from '../ApplicationModel.js'
 import ChoreCleaningSupply from './ChoreCleaningSupply.js'
 import CleaningSupply from './CleaningSupply.js'
+import Image from './Image.js'
 import PolymorphicLocalizedText from './LocalizedText.js'
+import TaskableImage from './TaskableImage.js'
 
 const deco = new Decorators<typeof Chore>()
 
@@ -35,4 +37,19 @@ export default class Chore extends ApplicationModel {
 
   @deco.HasMany('Polymorphic/CleaningSupply', { through: 'choreCleaningSupplies' })
   public cleaningSupplies: CleaningSupply[]
+
+  @deco.HasMany('Polymorphic/TaskableImage', {
+    polymorphic: true,
+    foreignKey: 'taskableId',
+  })
+  public taskableImages: TaskableImage[]
+
+  @deco.HasMany('Polymorphic/Image', { through: 'taskableImages', source: 'image' })
+  public imagesThroughTaskableImages: Image[]
+
+  @deco.HasMany('Polymorphic/ChoreImage')
+  public choreImages: TaskableImage[]
+
+  @deco.HasMany('Polymorphic/Image', { through: 'choreImages' })
+  public images: Image[]
 }
