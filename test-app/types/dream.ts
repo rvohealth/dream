@@ -3574,12 +3574,12 @@ export const schema = {
         isArray: false,
       },
       name: {
-        coercedType: {} as string,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -3648,12 +3648,12 @@ export const schema = {
         isArray: false,
       },
       name: {
-        coercedType: {} as string,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -3789,12 +3789,12 @@ export const schema = {
         isArray: false,
       },
       name: {
-        coercedType: {} as string,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -4031,12 +4031,12 @@ export const schema = {
         isArray: false,
       },
       name: {
-        coercedType: {} as string,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -4105,12 +4105,12 @@ export const schema = {
         isArray: false,
       },
       name: {
-        coercedType: {} as string,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
         dbType: 'character varying',
-        allowNull: false,
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {

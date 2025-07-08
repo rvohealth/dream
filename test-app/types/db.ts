@@ -546,14 +546,14 @@ export interface PolymorphicChoreCleaningSupplies {
 export interface PolymorphicChores {
   createdAt: Timestamp;
   id: Generated<Int8>;
-  name: string;
+  name: string | null;
   updatedAt: Timestamp;
 }
 
 export interface PolymorphicCleaningSupplies {
   createdAt: Timestamp;
   id: Generated<Int8>;
-  name: string;
+  name: string | null;
   updatedAt: Timestamp;
 }
 
@@ -570,7 +570,7 @@ export interface PolymorphicLocalizedTexts {
 export interface PolymorphicMetaUsers {
   createdAt: Timestamp;
   id: Generated<Int8>;
-  name: string;
+  name: string | null;
   updatedAt: Timestamp;
 }
 
@@ -594,14 +594,14 @@ export interface PolymorphicUserMetaUsers {
 export interface PolymorphicUsers {
   createdAt: Timestamp;
   id: Generated<Int8>;
-  name: string;
+  name: string | null;
   updatedAt: Timestamp;
 }
 
 export interface PolymorphicWorkouts {
   createdAt: Timestamp;
   id: Generated<Int8>;
-  name: string;
+  name: string | null;
   updatedAt: Timestamp;
 }
 

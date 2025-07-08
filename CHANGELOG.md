@@ -1,6 +1,10 @@
-## 1.2.2
+## 1.3.0
 
 - sti-child generator includes check constraint instead of not-null since the column should only be not-null for that STI child (or modified by hand to accommodate more than one STI child)
+
+- add `Dream#hasAssociation`
+
+- fix preloading associations on other side of a polyorphic belongs-to association so that we don't set an association on a dream model that doesn't define that association
 
 ## 1.2.1
 

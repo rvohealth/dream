@@ -2449,36 +2449,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   private async preloadPolymorphicBelongsTo(
     this: KyselyQueryDriver<DreamInstance>,
     association: BelongsToStatement<any, any, any, string>,
+    associatedModels: (typeof Dream)[],
     dreams: Dream[]
   ) {
-    if (!association.polymorphic)
-      throw new Error(
-        `Association ${association.as} points to an array of models but is not designated polymorphic`
+    return compact(
+      await Promise.all(
+        associatedModels.map(associatedModel =>
+          this.preloadPolymorphicAssociationModel(dreams, association, associatedModel)
+        )
       )
-    if (association.type !== 'BelongsTo')
-      throw new Error(
-        `Polymorphic association ${association.as} points to an array of models but is ${association.type as string}. Only BelongsTo associations may point to an array of models.`
-      )
-
-    const nestedDreamsForNextRoundOfPreloading: Dream[] = []
-
-    for (const associatedModel of association.modelCB() as (typeof Dream)[]) {
-      await this.preloadPolymorphicAssociationModel(
-        dreams,
-        association,
-        associatedModel,
-        nestedDreamsForNextRoundOfPreloading
-      )
-    }
-
-    return nestedDreamsForNextRoundOfPreloading
+    ).flat()
   }
 
   private async preloadPolymorphicAssociationModel(
     dreams: Dream[],
     association: BelongsToStatement<any, any, any, string>,
-    associatedDreamClass: typeof Dream,
-    nestedDreamsForNextRoundOfPreloading: Dream[]
+    associatedDreamClass: typeof Dream
   ) {
     const relevantAssociatedModels = dreams.filter((dream: any) => {
       const field = association.foreignKeyTypeField()
@@ -2503,10 +2489,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         })
         .all()
 
-      loadedAssociations.forEach((loadedAssociation: Dream) =>
-        nestedDreamsForNextRoundOfPreloading.push(loadedAssociation)
-      )
-
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Associate each loaded association with each dream based on primary key and foreign key type
       //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2525,6 +2507,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       ///////////////////////////////////////////////////////////////////////////////////////////////////
       // end: Associate each loaded association with each dream based on primary key and foreign key type
       ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+      return loadedAssociations
     }
   }
 
@@ -2596,8 +2580,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   ) {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
-    const dream = dreams.find(dream => dream['getAssociationMetadata'](associationName))!
-    if (!dream) return
+    dreams = dreams.filter(dream => dream.hasAssociation(associationName))
+    if (!dreams.length) return
+    const dream = dreams[0]!
 
     const { name, alias: _alias } = associationStringToNameAndAlias(associationName)
     const alias = _alias || name
@@ -2608,11 +2593,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const dreamClass = dream.constructor as typeof Dream
     const dreamClassToHydrate = association.modelCB() as typeof Dream
 
-    if ((association.polymorphic && association.type === 'BelongsTo') || Array.isArray(dreamClassToHydrate))
-      return this.preloadPolymorphicBelongsTo(
+    if (Array.isArray(dreamClassToHydrate)) {
+      const preloadedPolymorphicBelongsTos = await this.preloadPolymorphicBelongsTo(
         association as BelongsToStatement<any, any, any, string>,
+        dreamClassToHydrate,
         dreams
       )
+
+      return preloadedPolymorphicBelongsTos
+    }
 
     const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
 

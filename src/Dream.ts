@@ -859,11 +859,60 @@ export default class Dream {
   }
 
   /**
-   * @internal
+   * Checks whether the specified association has been defined on this Dream model.
    *
-   * Returns all of the association names for this dream class
+   * ```ts
+   * const user = User.new()
    *
-   * @returns All of the association names for this dream class
+   * user.hasAssociation('posts')
+   * // true (if User has a posts association defined)
+   *
+   * user.hasAssociation('nonExistentAssociation')
+   * // false
+   *
+   * // Useful for conditional association handling
+   * if (user.hasAssociation('posts')) {
+   *   user = await user.load('posts').execute()
+   * }
+   * ```
+   *
+   * @param associationName - The name of the association to check for
+   * @returns `true` if the association exists on this model, `false` otherwise
+   */
+  public hasAssociation(associationName: string): boolean {
+    return !!(
+      this.associationMetadataByType.belongsTo.find(association => association.as === associationName) ||
+      this.associationMetadataByType.hasOne.find(association => association.as === associationName) ||
+      this.associationMetadataByType.hasMany.find(association => association.as === associationName)
+    )
+  }
+
+  /**
+   * Returns all of the association names for this Dream class.
+   * This includes all BelongsTo, HasOne, and HasMany associations
+   * defined on the model.
+   *
+   * This is useful for introspection, debugging, or dynamically working
+   * with all associations on a model.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @deco.HasMany('Post')
+   *   public posts: Post[]
+   *
+   *   @deco.HasOne('Profile')
+   *   public profile: Profile
+   *
+   *   @deco.BelongsTo('Company')
+   *   public company: Company
+   * }
+   *
+   * User.associationNames
+   * // ['posts', 'profile', 'company']
+   * })
+   * ```
+   *
+   * @returns An array containing all association names defined on this Dream class
    */
   public static get associationNames() {
     const allAssociations = [
