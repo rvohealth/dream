@@ -39,6 +39,17 @@ describe('Query#preload with simple associations', () => {
     })
   })
 
+  it('aliases can be used to shorten the alias used in the query', async () => {
+    const pet = await Pet.create({ name: 'Snoopy' })
+    const collar = await Collar.create({ pet, tagName: 'hello' })
+
+    const reloaded = await Pet.query()
+      .preload('associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz as a1')
+      .firstOrFail()
+    expect(reloaded.associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz).toMatchDreamModels([collar])
+    expect(reloaded.associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz[0]!.tagName).toEqual('hello')
+  })
+
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

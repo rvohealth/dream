@@ -3394,6 +3394,13 @@ export const schema = {
         optional: null,
         requiredOnClauses: null,
       },
+      associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz: {
+        type: 'HasMany',
+        foreignKey: 'petId',
+        tables: ['collars'],
+        optional: null,
+        requiredOnClauses: null,
+      },
       collars: {
         type: 'HasMany',
         foreignKey: 'petId',

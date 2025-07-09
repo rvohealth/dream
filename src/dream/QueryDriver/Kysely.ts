@@ -2603,7 +2603,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return (
       await Promise.all(
         Object.keys(groupedDreams).map(key =>
-          this._applyOnePreload(associationName, groupedDreams[key]!, onStatement)
+          this._applyOnePreload(associationNameAndMaybeAlias, groupedDreams[key]!, onStatement)
         )
       )
     ).flat()

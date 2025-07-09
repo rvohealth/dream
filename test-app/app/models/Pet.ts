@@ -70,6 +70,9 @@ export default class Pet extends ApplicationModel {
   @deco.HasMany('Collar', { dependent: 'destroy' })
   public collars: Collar[]
 
+  @deco.HasMany('Collar', { dependent: 'destroy' })
+  public associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz: Collar[]
+
   @deco.HasOne('Collar', { and: { lost: false } })
   public currentCollar: Collar
 

@@ -1,3 +1,7 @@
+## 1.3.2
+
+- restore aliasing in preload/load queries
+
 ## 1.3.1
 
 - throw NotNullViolation when Postgres throws a not null violation
