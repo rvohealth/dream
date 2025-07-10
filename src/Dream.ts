@@ -477,26 +477,42 @@ export default class Dream {
   }
 
   /**
-   * @internal
+   * Returns the string value representing this model type that will be stored in the
+   * database for STI children or polymorphic associations.
    *
-   * Returns either the base STI class name, or else this class name
+   * This value is used to identify the specific model class when querying polymorphic
+   * associations or STI records. For STI models, this returns the base class' sanitized name.
+   * For regular models, it returns the model's sanitized class name.
    *
-   * NOTE: This is necessary due to changes in esbuild strategy WRT esm,
-   * compiled class names can contain a prefixing underscore if they contain
-   * private fields.
+   * When building queries manually, use this method for the type or polymorphic type part of
+   * the query. For example:
    *
-   * This can create confusion when the class name is used as an attribute,
-   * as is done in the case of polymorphic associations, which use the class
-   * name as the "type" value for the polymorphic association.
+   * ```ts
+   * // Using in polymorphic queries
+   * const localizedTexts = await LocalizedText.passthrough({ locale })
+   *   .whereAny(
+   *     modelsWithTextAssociation.map(
+   *       model => ({
+   *         localizableId: model.primaryKeyValue,
+   *         localizableType: model.referenceTypeString,
+   *       })
+   *     )
+   *   )
+   *   .all()
    *
-   * As such, any time the class name is being used as a value, it should be
-   * done using this value, rather than going to the class name directly.
+   * // Example values for different model types
+   * const user = User.new()
+   * user.referenceTypeString // 'User'
    *
-   * see https://github.com/evanw/esbuild/issues/1260 for more information
+   * // For STI child classes, returns the base class name
+   * const mylarBalloon = MylarBalloon.new() // extends Balloon (STI base)
+   * mylarBalloon.referenceTypeString // 'Balloon'
+   * ```
    *
-   * @returns string
+   * @returns The string identifier for this model type used in database storage
    */
-  private static get stiBaseClassOrOwnClassName(): string {
+
+  public static get referenceTypeString(): string {
     return this.stiBaseClassOrOwnClass.sanitizedName
   }
 
@@ -527,14 +543,43 @@ export default class Dream {
   }
 
   /**
-   * @internal
+   * Returns the string value representing this model type that will be stored in the
+   * database for STI children or polymorphic associations.
    *
-   * Shadows .stiBaseClassOrOwnClassName. Returns a string
+   * This value is used to identify the specific model class when querying polymorphic
+   * associations or STI records. For STI models, this returns the base class' sanitized name.
+   * For regular models, it returns the model's sanitized class name.
    *
-   * @returns A string
+   * When building queries manually, use this method for the type or polymorphic type part of
+   * the query. For example:
+   *
+   * ```ts
+   * // Using in polymorphic queries
+   * const localizedTexts = await LocalizedText.passthrough({ locale })
+   *   .whereAny(
+   *     modelsWithTextAssociation.map(
+   *       model => ({
+   *         localizableId: model.primaryKeyValue,
+   *         localizableType: model.referenceTypeString,
+   *       })
+   *     )
+   *   )
+   *   .all()
+   *
+   * // Example values for different model types
+   * const user = User.new()
+   * user.referenceTypeString // 'User'
+   *
+   * // For STI child classes, returns the base class name
+   * const mylarBalloon = MylarBalloon.new() // extends Balloon (STI base)
+   * mylarBalloon.referenceTypeString // 'Balloon'
+   * ```
+   *
+   * @returns The string identifier for this model type used in database storage
    */
-  private get stiBaseClassOrOwnClassName(): string {
-    return (this.constructor as typeof Dream).stiBaseClassOrOwnClassName
+
+  public get referenceTypeString(): string {
+    return (this.constructor as typeof Dream).referenceTypeString
   }
 
   /**
@@ -2868,7 +2913,7 @@ export default class Dream {
 
         if (belongsToAssociationMetaData.polymorphic) {
           const foreignKeyTypeField = belongsToAssociationMetaData.foreignKeyTypeField()
-          returnValues[foreignKeyTypeField] = associatedObject?.stiBaseClassOrOwnClassName
+          returnValues[foreignKeyTypeField] = associatedObject?.referenceTypeString
           setAttributeOnDreamInstance(foreignKeyTypeField, returnValues[foreignKeyTypeField])
         }
       } else {

@@ -50,7 +50,7 @@ export default async function createAssociation<
         ...opts,
       }
       if (hasAssociation.polymorphic) {
-        modifiedOpts[hasAssociation.foreignKeyTypeField()] = dream['stiBaseClassOrOwnClassName']
+        modifiedOpts[hasAssociation.foreignKeyTypeField()] = dream.referenceTypeString
       }
 
       hasresult = await associationClass.txn(txn).create(modifiedOpts)

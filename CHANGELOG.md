@@ -1,3 +1,7 @@
+## 1.3.3
+
+- make `referenceTypeString` public
+
 ## 1.3.2
 
 - restore aliasing in preload/load queries

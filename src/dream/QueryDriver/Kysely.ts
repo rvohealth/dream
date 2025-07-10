@@ -2193,8 +2193,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
                 this.aliasWhereStatement(
                   {
                     [association.foreignKeyTypeField()]: dreamClassThroughAssociationWantsToHydrate
-                      ? dreamClassThroughAssociationWantsToHydrate['stiBaseClassOrOwnClassName']
-                      : dreamClass['stiBaseClassOrOwnClassName'],
+                      ? dreamClassThroughAssociationWantsToHydrate.referenceTypeString
+                      : dreamClass.referenceTypeString,
                   } as any,
                   currentTableAlias
                 )
@@ -2483,7 +2483,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   ) {
     const relevantAssociatedModels = dreams.filter((dream: any) => {
       const field = association.foreignKeyTypeField()
-      return dream[field] === associatedDreamClass['stiBaseClassOrOwnClassName'] || dream[field] === null
+      return dream[field] === associatedDreamClass.referenceTypeString || dream[field] === null
     })
 
     if (relevantAssociatedModels.length) {
@@ -2511,7 +2511,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         dreams
           .filter(
             (dream: any) =>
-              dream[association.foreignKeyTypeField()] === loadedAssociation['stiBaseClassOrOwnClassName'] &&
+              dream[association.foreignKeyTypeField()] === loadedAssociation.referenceTypeString &&
               dream[association.foreignKey()] === association.primaryKeyValue(loadedAssociation)
           )
           .forEach((dream: any) => {
