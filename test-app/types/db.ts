@@ -107,6 +107,13 @@ export const CatTreatsValues = [
 ] as const
 
 
+export type CircularRefLocalizableTypesEnum = "ModelA" | "ModelB";
+export const CircularRefLocalizableTypesEnumValues = [
+  "ModelA",
+  "ModelB"
+] as const
+
+
 export type ExtraRateableTypesEnum = "Balloon" | "Composition" | "Post";
 export const ExtraRateableTypesEnumValues = [
   "Balloon",
@@ -279,6 +286,38 @@ export interface BeautifulBalloons {
   updatedAt: Timestamp;
   userId: Int8 | null;
   volume: Numeric | null;
+}
+
+export interface CircularReferenceLocalizedTexts {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  locale: LocalesEnum;
+  localizableId: Int8;
+  localizableType: CircularRefLocalizableTypesEnum;
+  markdown: string | null;
+  title: string;
+  updatedAt: Timestamp;
+}
+
+export interface CircularReferenceModelAs {
+  circularReferenceModelBId: Int8 | null;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
+export interface CircularReferenceModelBs {
+  circularReferenceModelAId: Int8 | null;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
+export interface CircularReferenceModels {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  parentId: Int8 | null;
+  updatedAt: Timestamp;
 }
 
 export interface Collars {
@@ -794,6 +833,10 @@ export interface DB {
   balloon_spotter_balloons: BalloonSpotterBalloons;
   balloon_spotters: BalloonSpotters;
   beautiful_balloons: BeautifulBalloons;
+  circular_reference_localized_texts: CircularReferenceLocalizedTexts;
+  circular_reference_model_as: CircularReferenceModelAs;
+  circular_reference_model_bs: CircularReferenceModelBs;
+  circular_reference_models: CircularReferenceModels;
   collars: Collars;
   composition_asset_audits: CompositionAssetAudits;
   composition_assets: CompositionAssets;
@@ -853,6 +896,10 @@ export class DBClass {
   balloon_spotter_balloons: BalloonSpotterBalloons
   balloon_spotters: BalloonSpotters
   beautiful_balloons: BeautifulBalloons
+  circular_reference_localized_texts: CircularReferenceLocalizedTexts
+  circular_reference_model_as: CircularReferenceModelAs
+  circular_reference_model_bs: CircularReferenceModelBs
+  circular_reference_models: CircularReferenceModels
   collars: Collars
   composition_asset_audits: CompositionAssetAudits
   composition_assets: CompositionAssets

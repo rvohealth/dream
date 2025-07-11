@@ -1,3 +1,7 @@
+## 1.3.4
+
+- fix `preloadFor` infinite loop when serializers have circular references
+
 ## 1.3.3
 
 - make `referenceTypeString` public
