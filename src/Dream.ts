@@ -58,8 +58,10 @@ import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFa
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import MissingSerializersDefinition from './errors/serializers/MissingSerializersDefinition.js'
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import compact from './helpers/compact.js'
 import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
@@ -129,6 +131,8 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
+
+const RECURSIVE_SERIALIZATION_MAX_REPEATS = 4
 
 export default class Dream {
   public DB: any
@@ -665,11 +669,18 @@ export default class Dream {
     {
       forDisplay = false,
       forDisplayDepth = 0,
+      repeatedAssociationTracker = {},
     }: {
       forDisplay?: boolean
       forDisplayDepth?: number
+      repeatedAssociationTracker?: Record<string, number>
     } = {}
   ) {
+    const depthTrackerId = this.globalName
+    repeatedAssociationTracker[depthTrackerId] ??= 0
+    if (repeatedAssociationTracker[depthTrackerId] + 1 > RECURSIVE_SERIALIZATION_MAX_REPEATS) return {}
+    repeatedAssociationTracker[depthTrackerId]++
+
     const serializerBuilder = serializer(undefined as any, undefined as any) as DreamSerializerBuilder<
       any,
       any
@@ -682,7 +693,7 @@ export default class Dream {
       | InternalAnyTypedSerializerDelegatedAttribute
     )[]
 
-    return serializerAssociations.reduce((accumulator, serializerAssociation) => {
+    const mappedAssociations = serializerAssociations.reduce((accumulator, serializerAssociation) => {
       const serializerAssociationName =
         (serializerAssociation as InternalAnyTypedSerializerDelegatedAttribute).targetName ??
         serializerAssociation.name
@@ -711,17 +722,21 @@ export default class Dream {
          * `serializers` is an array because `associatedClass` may be an STI
          * base, with each of its STI children having its own serializer
          */
-        const serializers = (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer
-          ? [(serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer]
-          : inferSerializersFromDreamClassOrViewModelClass(
-              associatedClass,
-              (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
-            )
+        let serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[] = []
 
-        if (!serializers.length)
-          throw new Error(
-            `No serializer found to render ${serializerAssociationName} on ${this.sanitizedName}`
-          )
+        try {
+          serializers = (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer
+            ? compact([(serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer])
+            : compact(
+                inferSerializersFromDreamClassOrViewModelClass(
+                  associatedClass,
+                  (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
+                )
+              )
+        } catch (error) {
+          if (!(error instanceof MissingSerializersDefinition)) throw error
+          serializers = []
+        }
 
         return serializers.map(
           serializer =>
@@ -754,6 +769,7 @@ export default class Dream {
             ...associatedClass['recursiveSerializationMap'](associatedSerializer, {
               forDisplay,
               forDisplayDepth: forDisplayDepth + 1,
+              repeatedAssociationTracker,
             }),
           }
         },
@@ -771,6 +787,12 @@ export default class Dream {
 
       return accumulator
     }, {} as RecursiveSerializerInfo)
+
+    // reduce the depth as we're coming up so that other branches of the serialization tree don't stop
+    // rendering this association on this class
+    repeatedAssociationTracker[depthTrackerId]--
+
+    return mappedAssociations
   }
 
   /**

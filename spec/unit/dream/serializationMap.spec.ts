@@ -1,5 +1,6 @@
 import { RecursiveSerializerInfo } from '../../../src/dream/internal/extractNestedPaths.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
@@ -105,6 +106,32 @@ describe('Dream.serializationMap', () => {
         taskable: {
           parentDreamClass: PolymorphicTask,
           nestedSerializerInfo: {},
+        },
+      } satisfies RecursiveSerializerInfo)
+    })
+  })
+
+  context('circular serializer reference', () => {
+    it('limits the number of times we’ll follow a particular association', () => {
+      expect(CircularReferenceModel['serializationMap']('default')).toEqual({
+        child: {
+          parentDreamClass: CircularReferenceModel,
+          nestedSerializerInfo: {
+            child: {
+              parentDreamClass: CircularReferenceModel,
+              nestedSerializerInfo: {
+                child: {
+                  parentDreamClass: CircularReferenceModel,
+                  nestedSerializerInfo: {
+                    child: {
+                      parentDreamClass: CircularReferenceModel,
+                      nestedSerializerInfo: {},
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       } satisfies RecursiveSerializerInfo)
     })
