@@ -144,6 +144,9 @@ describe('DreamSerializer attributes', () => {
         .attribute('email')
         .attribute('birthdate')
         .attribute('aDatetime')
+        .attribute('aSmallInteger')
+        .attribute('anInteger')
+        .attribute('aReal')
 
         .attribute('volume')
 
@@ -233,6 +236,10 @@ describe('DreamSerializer attributes', () => {
         email: 'charlie@peanuts.com',
         birthdate: '1950-10-02',
         aDatetime: '1950-10-02T00:00:00.000Z',
+
+        aSmallInteger: 7,
+        anInteger: 77777777,
+        aReal: 1.03e7,
 
         volume: 7.778,
 

@@ -29,7 +29,7 @@ describe('Dream.find', () => {
 
   context('when passed the id of a nonextant User', () => {
     it('returns null', async () => {
-      expect(await User.find(parseInt(user.id as string) + 1)).toBeNull()
+      expect(await User.find((parseInt(user.id) + 1).toString())).toBeNull()
     })
   })
 

@@ -151,7 +151,7 @@ async function setNewPosition({
   const dbOrTxn = txn ? txn.kyselyTransaction : db('primary')
   await dbOrTxn
     .updateTable(dream.table as any)
-    .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
+    .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
     .set({
       [positionField]: newPosition,
     })
@@ -210,7 +210,7 @@ async function updateConflictingRecords({
 
   let kyselyQuery = query
     .txn(txn)
-    .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
+    .whereNot({ [dream['_primaryKey']]: dream.primaryKeyValue() })
     .where({
       [positionField]: increasing
         ? range(previousPosition!, newPosition)
@@ -259,7 +259,7 @@ async function updatePositionForRecord(
 ) {
   await txn.kyselyTransaction
     .updateTable(dream.table as any)
-    .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
+    .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
     .set({
       [positionField]: position,
     })

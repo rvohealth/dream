@@ -49,7 +49,7 @@ export default function SoftDelete(): ClassDecorator {
     dreamClass['softDelete'] = true
 
     target[SOFT_DELETE_SCOPE_NAME] = function (query: Query<any, any>) {
-      return query.where({ [dreamClass.prototype.deletedAtField]: null } as any)
+      return query.where({ [dreamClass.prototype['_deletedAtField']]: null } as any)
     }
 
     scopeImplementation(target, SOFT_DELETE_SCOPE_NAME, { default: true })

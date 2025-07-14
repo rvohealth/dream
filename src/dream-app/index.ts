@@ -23,6 +23,7 @@ import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
   findEnumArrayOids,
+  parsePostgresBigint,
   parsePostgresDate,
   parsePostgresDatetime,
   parsePostgresDecimal,
@@ -133,6 +134,8 @@ export default class DreamApp {
 
     pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
 
+    pgTypes.setTypeParser(pgTypes.builtins.INT8, parsePostgresBigint)
+
     const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
     if (textArrayOid) {
       let oid: number | undefined
@@ -140,7 +143,11 @@ export default class DreamApp {
       const textArrayParser = pgTypes.getTypeParser(textArrayOid)
 
       function transformPostgresArray(
-        transformer: typeof parsePostgresDate | typeof parsePostgresDatetime | typeof parsePostgresDecimal
+        transformer:
+          | typeof parsePostgresDate
+          | typeof parsePostgresDatetime
+          | typeof parsePostgresDecimal
+          | typeof parsePostgresBigint
       ) {
         return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
       }
@@ -165,6 +172,9 @@ export default class DreamApp {
 
       oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
       if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.INT8)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresBigint))
     }
   }
 

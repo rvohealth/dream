@@ -16,7 +16,7 @@ export default async function reload<DreamInstance extends Dream>(
   // we have persisted are not yet propagated
   else query = query.connection('primary')
 
-  query = query.removeAllDefaultScopes().where({ [dream.primaryKey as any]: dream.primaryKeyValue } as any)
+  query = query.removeAllDefaultScopes().where({ [dream['_primaryKey']]: dream.primaryKeyValue() } as any)
 
   const reloadedRecord = await query.firstOrFail()
   dream.setAttributes(reloadedRecord.getAttributes() as any)

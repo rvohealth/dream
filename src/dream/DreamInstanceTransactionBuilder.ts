@@ -963,8 +963,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I
   ): Query<DreamInstance> {
     const dreamClass = this.dreamInstance.constructor as DreamConstructorType<DreamInstance>
-    const id = this.dreamInstance.primaryKeyValue
+    const id = this.dreamInstance.primaryKeyValue()
 
-    return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance.primaryKey]: id } as any)
+    return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance['_primaryKey']]: id } as any)
   }
 }

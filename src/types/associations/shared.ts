@@ -2,6 +2,8 @@ import {
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   SelectQueryBuilder,
   Updateable,
+  UpdateKeys,
+  UpdateType,
 } from 'kysely'
 import Dream from '../../Dream.js'
 import { DreamConst } from '../../dream/constants.js'
@@ -17,7 +19,7 @@ import {
   DreamBelongsToAssociationMetadata,
   DreamColumnNames,
   GlobalModelNameTableMap,
-  IdType,
+  ModelColumnType,
   OrderDir,
   TableColumnEnumTypeArray,
   TableColumnNames,
@@ -65,6 +67,8 @@ export type AssociatedModelParam<
         },
 > = Partial<UnionToIntersection<RetObj>>
 
+type TypesAllowedForBigintAgainstTheDb = string | bigint | number
+
 export type PassthroughOnClause<PassthroughColumns extends string[]> = Partial<
   Record<PassthroughColumns[number], any>
 >
@@ -81,41 +85,47 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   Schema,
   TableName,
   Column,
+  ModelPropertyType = ModelColumnType<Schema, TableName, Column>,
   ColumnType = TableColumnType<Schema, TableName, Column>,
   EnumTypeArray extends string[] | null = TableColumnEnumTypeArray<Schema, TableName, Column>,
+  //
   PermanentOpsValTypes = null | readonly [],
-  OpsValType = EnumTypeArray extends string[]
-    ? EnumTypeArray[number] | PermanentOpsValTypes
-    : ColumnType | PermanentOpsValTypes,
+  OpsValType = EnumTypeArray extends null
+    ? ColumnType extends 'bigint'
+      ? TypesAllowedForBigintAgainstTheDb | PermanentOpsValTypes
+      : ModelPropertyType extends DateTime | CalendarDate | number | string
+        ? ModelPropertyType | PermanentOpsValTypes
+        : never
+    : EnumTypeArray extends string[]
+      ? EnumTypeArray[number] | PermanentOpsValTypes
+      : never,
+  //
   PartialTypes = EnumTypeArray extends null
-    ? ColumnType extends DateTime
+    ? ModelPropertyType extends DateTime
       ?
-          | DateTime[]
           | Range<DateTime>
           | (() => Range<DateTime>)
           | Range<CalendarDate>
           | (() => Range<CalendarDate>)
           | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
-      : ColumnType extends CalendarDate
+      : ModelPropertyType extends CalendarDate
         ?
-            | CalendarDate[]
             | Range<CalendarDate>
             | (() => Range<CalendarDate>)
             | Range<DateTime>
             | (() => Range<DateTime>)
             | OpsStatement<KyselyComparisonOperatorExpression, OpsValType>
-        : ColumnType extends number
+        : ColumnType extends 'bigint'
           ?
-              | (number | bigint)[]
-              | Range<number>
+              | Range<TypesAllowedForBigintAgainstTheDb>
               | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
-          : ColumnType extends string
-            ?
-                | string[]
-                | OpsStatement<KyselyComparisonOperatorExpression, string, any>
-                | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
-            : ColumnType extends IdType
-              ? IdType[] | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+          : ModelPropertyType extends number
+            ? Range<ModelPropertyType> | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+            : ModelPropertyType extends string
+              ?
+                  | Range<string>
+                  | OpsStatement<KyselyComparisonOperatorExpression, string, any>
+                  | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
               : never
     : EnumTypeArray extends string[]
       ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
@@ -181,11 +191,15 @@ type JoinedAssociationColumnNames<
         Inc<Depth>
       >
 
+type Whereable<R> = {
+  [K in UpdateKeys<R>]?: UpdateType<R[K]> | UpdateType<R[K]>[]
+}
+
 export type WhereStatement<
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = Partial<MergeUnionOfRecordTypes<Updateable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
+> = Partial<MergeUnionOfRecordTypes<Whereable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
 
 export type OnStatementForAssociation<
   DB,

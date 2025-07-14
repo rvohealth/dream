@@ -1,5 +1,4 @@
 import { Query } from '../../../src/index.js'
-import { IdType } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -7,7 +6,7 @@ import User from '../../../test-app/app/models/User.js'
 describe('Dream#removeDefaultScope', () => {
   let user: User
   let pet: Pet
-  let petId: IdType
+  let petId: string
 
   beforeEach(async () => {
     user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

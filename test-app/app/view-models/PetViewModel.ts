@@ -1,9 +1,9 @@
-import { CatTreats, IdType, Species } from '../../types/db.js'
+import { CatTreats, Species } from '../../types/db.js'
 import PetSerializer, { PetSummarySerializer } from '../serializers/view-model/PetSerializer.js'
 import UserViewModel from './UserViewModel.js'
 
 export default class PetViewModel {
-  public id: IdType
+  public id: string
   public name: string | undefined
   public user: UserViewModel | undefined
   public species: Species | undefined
@@ -16,7 +16,7 @@ export default class PetViewModel {
     user,
     favoriteTreats = [],
   }: {
-    id: IdType
+    id: string
     name?: string
     species?: Species
     user?: UserViewModel

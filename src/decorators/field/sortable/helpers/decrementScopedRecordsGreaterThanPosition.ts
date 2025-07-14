@@ -20,7 +20,7 @@ export default async function decrementPositionForScopedRecordsGreaterThanPositi
   }
 ) {
   let kyselyQuery = query
-    .whereNot({ [dream.primaryKey]: dream.primaryKeyValue as any })
+    .whereNot({ [dream['_primaryKey']]: dream.primaryKeyValue() })
     .where({
       [positionField]: ops.greaterThanOrEqualTo(position),
     })

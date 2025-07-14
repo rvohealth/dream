@@ -92,7 +92,7 @@ async function maybeDestroyDream<I extends Dream>(
   } else if (!dream['_preventDeletion']) {
     await txn.kyselyTransaction
       .deleteFrom(dream.table as any)
-      .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
+      .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
       .execute()
   }
 }

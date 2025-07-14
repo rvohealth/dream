@@ -23,14 +23,14 @@ describe('Query#findOrFail', () => {
 
   context('when passed null', () => {
     it('raises an exception', async () => {
-      await expect(async () => await User.query().findOrFail(null as any)).rejects.toThrow(RecordNotFound)
+      await expect(async () => await User.query().findOrFail(null)).rejects.toThrow(RecordNotFound)
     })
   })
 
   context('when passed the id of a nonextant User', () => {
     it('raises an exception', async () => {
       await expect(
-        async () => await User.query().findOrFail(parseInt(user.id as string) + 1)
+        async () => await User.query().findOrFail((parseInt(user.id) + 1).toString())
       ).rejects.toThrow(RecordNotFound)
     })
   })
@@ -60,7 +60,7 @@ describe('Query#findOrFail', () => {
     context('when no record is found', () => {
       it('raises an exception', async () => {
         await ApplicationModel.transaction(async txn => {
-          await expect(User.query().txn(txn).findOrFail(0)).rejects.toThrow(RecordNotFound)
+          await expect(User.query().txn(txn).findOrFail('0')).rejects.toThrow(RecordNotFound)
         })
       })
     })

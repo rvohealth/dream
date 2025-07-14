@@ -74,7 +74,7 @@ describe('replicaSafe specific specs', () => {
 
   describe('Dream#associationQuery', () => {
     it('queries the replica database', async () => {
-      const user = await User.findOrFail(1)
+      const user = await User.findOrFail('1')
 
       const primaryPost = await user.associationQuery('posts').firstOrFail()
       expect(primaryPost.body).toEqual('primary body')

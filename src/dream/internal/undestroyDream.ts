@@ -73,8 +73,8 @@ async function undestroyDreamWithTransaction<I extends Dream>(
 async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction<I>) {
   let query = txn.kyselyTransaction
     .updateTable(dream.table as any)
-    .where(dream.primaryKey as any, '=', dream.primaryKeyValue)
-    .set({ [dream.deletedAtField]: null } as any)
+    .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
+    .set({ [dream['_deletedAtField']]: null } as any)
 
   const dreamClass = dream.constructor as typeof Dream
 

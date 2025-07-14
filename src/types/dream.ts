@@ -19,7 +19,17 @@ import { AliasedSchemaAssociation, RequiredOnClauseKeys } from './variadic.js'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
-export type IdType = string | number | bigint
+export type DreamPrimaryKeyType<
+  I extends Dream,
+  Schema extends I['schema'] = I['schema'],
+  TableName extends keyof Schema = I['table'] & keyof Schema,
+  PrimaryKey extends I['primaryKey' & keyof I] extends undefined
+    ? 'id'
+    : I['primaryKey' & keyof I] = I['primaryKey' & keyof I] extends undefined
+    ? 'id'
+    : I['primaryKey' & keyof I],
+> = Schema[TableName]['columns'][PrimaryKey & keyof Schema[TableName]['columns']]['coercedType']
+
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 export type MAX_VARIADIC_DEPTH = 25
@@ -35,13 +45,10 @@ export interface SortableOptions<T extends Dream> {
 
 export type PrimaryKeyForFind<
   I extends Dream,
-  Schema extends I['schema'] = I['schema'],
-  TableName extends keyof Schema = I['table'] & keyof Schema,
-> =
-  | Schema[TableName]['columns'][I['primaryKey'] & keyof Schema[TableName]['columns']]['coercedType']
-  | string
-  | null
-  | undefined
+  PrimaryKeyType extends DreamPrimaryKeyType<I> = DreamPrimaryKeyType<I>,
+> = PrimaryKeyType extends bigint
+  ? bigint | number | string | null | undefined
+  : PrimaryKeyType | string | null | undefined
 
 export type DreamColumnNames<
   DreamInstance extends Dream,
@@ -68,15 +75,21 @@ export type NonJsonDreamColumnNames<
 export type DreamParamSafeColumnNames<
   DreamInstance extends Dream,
   BelongsToForeignKeys = DreamBelongsToForeignKeys<DreamInstance>,
-  Schema = DreamInstance['schema'],
-  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
 > = Exclude<
   keyof UpdateableProperties<DreamInstance>,
   | BelongsToForeignKeys
-  | TableSchema['primaryKey' & keyof TableSchema]
-  | TableSchema['createdAtField' & keyof TableSchema]
-  | TableSchema['updatedAtField' & keyof TableSchema]
-  | TableSchema['deletedAtField' & keyof TableSchema]
+  | (DreamInstance['primaryKey' & keyof DreamInstance] extends undefined
+      ? 'id'
+      : DreamInstance['primaryKey' & keyof DreamInstance])
+  | (DreamInstance['createdAtField' & keyof DreamInstance] extends undefined
+      ? 'createdAt'
+      : DreamInstance['createdAtField' & keyof DreamInstance])
+  | (DreamInstance['updatedAtField' & keyof DreamInstance] extends undefined
+      ? 'updatedAt'
+      : DreamInstance['updatedAtField' & keyof DreamInstance])
+  | (DreamInstance['deletedAtField' & keyof DreamInstance] extends undefined
+      ? 'deletedAt'
+      : DreamInstance['deletedAtField' & keyof DreamInstance])
   | 'type'
 >
 
@@ -193,7 +206,7 @@ export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]
 >
 
-export type TableColumnType<
+export type ModelColumnType<
   Schema,
   TableName,
   Column,
@@ -204,6 +217,19 @@ export type TableColumnType<
     keyof TableColumns],
   ColumnType extends TableColumnMetadata['coercedType' &
     keyof TableColumnMetadata] = TableColumnMetadata['coercedType' & keyof TableColumnMetadata],
+> = ColumnType
+
+export type TableColumnType<
+  Schema,
+  TableName,
+  Column,
+  TableSchema extends Schema[TableName & keyof Schema] = Schema[TableName & keyof Schema],
+  TableColumns extends TableSchema['columns' & keyof TableSchema] = TableSchema['columns' &
+    keyof TableSchema],
+  TableColumnMetadata extends TableColumns[Column & keyof TableColumns] = TableColumns[Column &
+    keyof TableColumns],
+  ColumnType extends TableColumnMetadata['dbType' &
+    keyof TableColumnMetadata] = TableColumnMetadata['dbType' & keyof TableColumnMetadata],
 > = ColumnType
 
 export type TableColumnEnumTypeArray<

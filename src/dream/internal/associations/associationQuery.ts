@@ -44,7 +44,7 @@ export default function associationQuery<
   const dreamClassOrTransaction = (txn ? dreamClass.txn(txn) : dreamClass) as typeof dreamClass
 
   let baseSelectQuery: Query<Dream, any> = dreamClassOrTransaction.where({
-    [dream.primaryKey]: dream.primaryKeyValue,
+    [dream['_primaryKey']]: dream.primaryKeyValue(),
   })
 
   if (joinAndStatements && (joinAndStatements.and || joinAndStatements.andNot || joinAndStatements.andAny))

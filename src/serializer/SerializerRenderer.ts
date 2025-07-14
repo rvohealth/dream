@@ -269,6 +269,7 @@ function _applyRenderingOptionsToAttribute(
     return value.render(passthroughData, renderOptions)
   if (value instanceof DateTime) return value.toISO()
   if (value instanceof CalendarDate) return value.toISO()
+  if (typeof value === 'bigint') return value.toString()
   const precision = options?.precision
   if (typeof value === 'number' && typeof precision === 'number') return round(value, precision)
   return value ?? null

@@ -1,7 +1,7 @@
 import Dream from '../Dream.js'
 import UnexpectedUndefined from '../errors/UnexpectedUndefined.js'
 import { PassthroughOnClause } from '../types/associations/shared.js'
-import { DreamSerializerKey, IdType, PassthroughColumnNames } from '../types/dream.js'
+import { DreamSerializerKey, PassthroughColumnNames } from '../types/dream.js'
 import {
   LoadForModifierFn,
   PreloadedDreamsAndWhatTheyPointTo,
@@ -155,7 +155,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
         [this.dream],
         associationMetadata,
         this.associationToPreloadedDreamsAndWhatTheyPointTo({
-          pointsToPrimaryKey: this.dream.primaryKeyValue,
+          pointsToPrimaryKey: this.dream.primaryKeyValue(),
           associatedModels: (dreamWithLoadedAssociations as any)[associationName] as Dream | Dream[],
         })
       )
@@ -168,7 +168,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     pointsToPrimaryKey,
     associatedModels,
   }: {
-    pointsToPrimaryKey: IdType
+    pointsToPrimaryKey: string | number
     associatedModels: Dream | Dream[]
   }): PreloadedDreamsAndWhatTheyPointTo[] {
     return [associatedModels].flat().map(dream => ({ dream, pointsToPrimaryKey }))

@@ -34,7 +34,7 @@ describe('Dream#isPersisted', () => {
   context('when the record’s primary key is manually set by the user', () => {
     it('is false ', () => {
       const user = User.new({ email: 'hi@there', password: 'howyadoin' })
-      user.id = 5
+      user.id = '5'
       expect(user.isPersisted).toBe(false)
     })
   })

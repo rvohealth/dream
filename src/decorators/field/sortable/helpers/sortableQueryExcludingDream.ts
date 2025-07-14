@@ -8,7 +8,7 @@ export default function sortableQueryExcludingDream(
   scope?: string | string[]
 ) {
   query = query.whereNot({
-    [dream.primaryKey]: dream.primaryKeyValue as any,
+    [dream['_primaryKey']]: dream.primaryKeyValue(),
   })
   return applySortableScopeToQuery(query, dream, scope)
 }

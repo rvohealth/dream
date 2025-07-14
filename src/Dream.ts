@@ -89,8 +89,8 @@ import {
   DreamColumnNames,
   DreamConstructorType,
   DreamParamSafeColumnNames,
+  DreamPrimaryKeyType,
   DreamSerializerKey,
-  IdType,
   JoinAndStatements,
   NextPreloadArgumentType,
   OrderDir,
@@ -244,7 +244,7 @@ export default class Dream {
    * @returns string
    */
   public static get primaryKey() {
-    return this.prototype.primaryKey
+    return this.prototype._primaryKey
   }
 
   /**
@@ -258,8 +258,9 @@ export default class Dream {
   }
 
   /**
-   * A getter which can be overwritten to customize the automatic createdAt timestamp field
-   * for a given model.
+   * @internal
+   *
+   * The `createdAt` field may be customized on a Dream model:
    *
    * ```ts
    *  class User extends ApplicationModel {
@@ -273,13 +274,14 @@ export default class Dream {
    *
    * @returns string
    */
-  public get createdAtField(): Readonly<string> {
-    return 'createdAt' as const
+  private get _createdAtField() {
+    return (this as any).createdAtField || 'createdAt'
   }
 
   /**
-   * A getter which can be overwritten to customize the automatic updatedAt timestamp field
-   * for a given model.
+   * @internal
+   *
+   * The `updatedAt` field may be customized on a Dream model:
    *
    * ```ts
    *  class User extends ApplicationModel {
@@ -294,12 +296,31 @@ export default class Dream {
    *
    * @returns string
    */
-  public get updatedAtField(): Readonly<string> {
-    return 'updatedAt' as const
+  private get _updatedAtField() {
+    return (this as any).updatedAtField || 'updatedAt'
   }
 
-  public get deletedAtField(): Readonly<string> {
-    return 'deletedAt' as const
+  /**
+   * @internal
+   *
+   * The `deletedAt` field may be customized on a Dream model:
+   *
+   * ```ts
+   *  class User extends ApplicationModel {
+   *    public get deletedAtField() {
+   *       return 'deletedAtTimestamp' as const
+   *    }
+   *  }
+   *
+   * const user = await User.first()
+   * await user.destroy()
+   * user.deletedAtTimestamp // returns the DateTime that this user was soft-deleted
+   * ```
+   *
+   * @returns string
+   */
+  private get _deletedAtField() {
+    return (this as any).deletedAtField || 'deletedAt'
   }
 
   /**
@@ -497,7 +518,7 @@ export default class Dream {
    *   .whereAny(
    *     modelsWithTextAssociation.map(
    *       model => ({
-   *         localizableId: model.primaryKeyValue,
+   *         localizableId: model.primaryKeyValue(),
    *         localizableType: model.referenceTypeString,
    *       })
    *     )
@@ -563,7 +584,7 @@ export default class Dream {
    *   .whereAny(
    *     modelsWithTextAssociation.map(
    *       model => ({
-   *         localizableId: model.primaryKeyValue,
+   *         localizableId: model.primaryKeyValue(),
    *         localizableType: model.referenceTypeString,
    *       })
    *     )
@@ -844,7 +865,7 @@ export default class Dream {
         >[]
       : DreamParamSafeColumnNames<I>[],
   >(this: T): ReturnVal {
-    let defaultParams = this.defaultParamSafeColumns()
+    let defaultParams = this.defaultParamSafeColumns() as ReturnVal
     const userDefinedParams = (this.prototype as any).paramSafeColumns as ReturnVal
     const userDefinedUnsafeParams = (this.prototype as any).paramUnsafeColumns as ReturnVal
 
@@ -855,20 +876,20 @@ export default class Dream {
     }
 
     if (Array.isArray(userDefinedParams)) {
-      return userDefinedParams.filter(param => defaultParams.includes(param)) as ReturnVal
+      return userDefinedParams.filter(param => defaultParams.includes(param as any)) as ReturnVal
     }
 
-    return defaultParams as ReturnVal
+    return defaultParams
   }
 
   private static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
-      if (this.prototype.primaryKey === column) return false
-      if (this.prototype.createdAtField === column) return false
-      if (this.prototype.updatedAtField === column) return false
-      if (this.prototype.deletedAtField === column) return false
+      if (this.prototype._primaryKey === column) return false
+      if (this.prototype._createdAtField === column) return false
+      if (this.prototype._updatedAtField === column) return false
+      if (this.prototype._deletedAtField === column) return false
       if (this.explicitUnsafeParamColumns.includes(column)) return false
       if (this.isBelongsToAssociationForeignKey(column)) return false
       if (this.isBelongsToAssociationPolymorphicTypeField(column)) return false
@@ -1456,7 +1477,7 @@ export default class Dream {
    */
   public query<I extends Dream>(this: I): Query<I> {
     const dreamClass = this.constructor as DreamConstructorType<I>
-    return dreamClass.where({ [this.primaryKey]: this.primaryKeyValue } as any)
+    return dreamClass.where({ [this._primaryKey]: this.primaryKeyValue() } as any)
   }
 
   /**
@@ -2668,9 +2689,9 @@ export default class Dream {
   }
 
   /**
-   * The name of the primary key column on this model.
-   * NOTE: Must specify `as const` when defining a custom
-   * primary key.
+   * @internal
+   *
+   * The primary key may be customized on a Dream model:
    *
    * ```ts
    * class User extends ApplicationModel {
@@ -2684,8 +2705,8 @@ export default class Dream {
    *
    * @returns The primary key column name
    */
-  public get primaryKey() {
-    return 'id' as const
+  private get _primaryKey() {
+    return (this as any).primaryKey || 'id'
   }
 
   /**
@@ -2693,8 +2714,8 @@ export default class Dream {
    *
    * @returns The value of the primary key field for this Dream instance
    */
-  public get primaryKeyValue(): IdType {
-    return (this as any)[this.primaryKey] || null
+  public primaryKeyValue<I extends Dream>(this: I): DreamPrimaryKeyType<I> {
+    return (this as any)[this._primaryKey] || null
   }
 
   /**
@@ -3579,7 +3600,7 @@ export default class Dream {
   }
 
   public get comparisonKey(): string {
-    return `${(this.constructor as typeof Dream).globalName}:${this.primaryKeyValue}`
+    return `${(this.constructor as typeof Dream).globalName}:${this.primaryKeyValue()}`
   }
 
   /**
@@ -3601,9 +3622,9 @@ export default class Dream {
     const clone = this.clone({ includeAssociations: false })
 
     clone.isPersisted = false
-    ;(clone as any)[clone.primaryKey] = undefined
-    ;(clone as any)[clone.createdAtField] = undefined
-    ;(clone as any)[clone.updatedAtField] = undefined
+    ;(clone as any)[clone._primaryKey] = undefined
+    ;(clone as any)[clone._createdAtField] = undefined
+    ;(clone as any)[clone._updatedAtField] = undefined
 
     const dreamClass = this.constructor as typeof Dream
     dreamClass.sortableFields.forEach(data => {

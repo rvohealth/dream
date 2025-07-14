@@ -129,20 +129,6 @@ describe('SchemaBuilder', () => {
       })
     })
 
-    context('primaryKey', () => {
-      it('sets the primaryKey', () => {
-        expect(User.prototype.schema.users.primaryKey).toEqual('id')
-      })
-    })
-
-    context('createdAtField', () => {
-      it('sets the createdAtField', () => {
-        expect(User.prototype.schema.users.createdAtField).toEqual('createdAt')
-        // createdAt intentionally points to updatedAt on this model
-        expect(User.prototype.schema.model_without_custom_deleted_ats.createdAtField).toEqual('updatedAt')
-      })
-    })
-
     context('scopes', () => {
       it('sets the default and non-default scopes', () => {
         expect(User.prototype.schema.model_without_deleted_ats.scopes.default).toEqual([
@@ -170,22 +156,6 @@ describe('SchemaBuilder', () => {
             'delegated',
           ])
         })
-      })
-    })
-
-    context('updatedAtField', () => {
-      it('sets the updatedAtField', () => {
-        expect(User.prototype.schema.users.updatedAtField).toEqual('updatedAt')
-        // updatedAt intentionally points to createdAt on this model
-        expect(User.prototype.schema.model_without_custom_deleted_ats.updatedAtField).toEqual('createdAt')
-      })
-    })
-
-    context('deletedAtField', () => {
-      it('sets the deletedAtField', () => {
-        expect(User.prototype.schema.users.deletedAtField).toEqual('deletedAt')
-        // deleteAt intentionally points to id on this model
-        expect(User.prototype.schema.model_without_custom_deleted_ats.deletedAtField).toEqual('id')
       })
     })
 

@@ -1,7 +1,7 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import Decorators from '../../../src/decorators/Decorators.js'
 import { Query, ReplicaSafe } from '../../../src/index.js'
-import { DreamColumn, IdType } from '../../../src/types/dream.js'
+import { DreamColumn } from '../../../src/types/dream.js'
 import { BalloonTypesEnum } from '../../types/db.js'
 import ApplicationModel from './ApplicationModel.js'
 import BalloonLine from './BalloonLine.js'
@@ -51,7 +51,7 @@ export default class Balloon extends ApplicationModel {
 
   @deco.BelongsTo('User', { optional: true })
   public user: User
-  public userId: IdType
+  public userId: DreamColumn<Balloon, 'userId'>
 
   @deco.HasOne('BalloonLine', { foreignKey: 'balloonId' })
   public balloonLine: BalloonLine

@@ -457,7 +457,7 @@ export default class Query<
     if (!primaryKey) return null
 
     return await this.where({
-      [this.dreamInstance.primaryKey]: primaryKey,
+      [this.dreamInstance['_primaryKey']]: primaryKey,
     } as any).first()
   }
 
@@ -554,14 +554,16 @@ export default class Query<
 
     do {
       if (lastId)
-        records = await query.where({ [this.dreamInstance.primaryKey]: ops.greaterThan(lastId) } as any).all()
+        records = await query
+          .where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
+          .all()
       else records = await query.all()
 
       for (const record of records) {
         await cb(record)
       }
 
-      lastId = records.at(-1)?.primaryKeyValue
+      lastId = records.at(-1)?.primaryKeyValue?.()
     } while (records.length > 0 && records.length === batchSize)
   }
 
@@ -1532,7 +1534,7 @@ export default class Query<
     if (column === true) {
       return this.clone({
         distinctColumn: this.namespaceColumn(
-          this.dreamInstance.primaryKey
+          this.dreamInstance['_primaryKey']
         ) as DreamColumnNames<DreamInstance>,
       })
     } else if (column === false) {

@@ -1,4 +1,3 @@
-import { IdType } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -20,7 +19,7 @@ describe('Dream#pluckEach', () => {
 
   context('with chunk size specified', () => {
     it('plucks the specified attributes and returns them as raw data', async () => {
-      const ids: IdType[] = []
+      const ids: string[] = []
       await User.pluckEach(
         'id',
         id => {

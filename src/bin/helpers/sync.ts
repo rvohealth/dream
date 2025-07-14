@@ -1,5 +1,6 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
 import colorize from '../../cli/logger/loggable/colorize.js'
 import DreamApp from '../../dream-app/index.js'
@@ -9,7 +10,6 @@ import EnvInternal from '../../helpers/EnvInternal.js'
 import dreamPath from '../../helpers/path/dreamPath.js'
 import snakeify from '../../helpers/snakeify.js'
 import sspawn from '../../helpers/sspawn.js'
-import { CliFileWriter } from '../../cli/CliFileWriter.js'
 
 export default async function writeSyncFile() {
   const dreamApp = DreamApp.getOrFail()
@@ -76,8 +76,7 @@ export class DBClass {
 function removeUnwantedExports(file: string) {
   return file.replace(
     /\nexport type Timestamp = ColumnType<.*/,
-    `export type IdType = string | number | bigint
-export type Timestamp = ColumnType<DateTime | CalendarDate>`
+    `export type Timestamp = ColumnType<DateTime | CalendarDate>`
   )
 }
 

@@ -1,7 +1,7 @@
 import { Nullable } from 'kysely'
 import Dream from '../Dream.js'
 import Query from '../dream/Query.js'
-import { IdType, TableColumnType } from './dream.js'
+import { ModelColumnType } from './dream.js'
 import { FindInterfaceWithValue } from './utils.js'
 import { JoinedAssociation, QueryTypeOptions } from './variadic.js'
 
@@ -62,7 +62,7 @@ export type DefaultQueryTypeOptions<
 
 export interface PreloadedDreamsAndWhatTheyPointTo {
   dream: Dream
-  pointsToPrimaryKey: IdType
+  pointsToPrimaryKey: string | bigint | number
 }
 
 export interface FindEachOpts {
@@ -107,7 +107,7 @@ export type NamespacedColumnType<
   JoinedTable = JoinedAssociation['table'] extends never
     ? DreamInstance['table']
     : JoinedAssociation['table'],
-  ReturnType = TableColumnType<DreamInstance['schema'], JoinedTable, RealColumnName>,
+  ReturnType = ModelColumnType<DreamInstance['schema'], JoinedTable, RealColumnName>,
 > = ReturnType
 type NamespacedColumnTypes<ColumnNames, Q extends Query<any, any>, DreamInstance extends Dream> =
   ColumnNames extends Readonly<[infer First, ...infer Rest]>
@@ -120,7 +120,7 @@ type NamespacedColumnTypes<ColumnNames, Q extends Query<any, any>, DreamInstance
 export type BaseModelColumnTypes<ColumnNames, DreamInstance extends Dream> =
   ColumnNames extends Readonly<[infer First, ...infer Rest]>
     ? [
-        TableColumnType<DreamInstance['schema'], DreamInstance['table'], First>,
+        ModelColumnType<DreamInstance['schema'], DreamInstance['table'], First>,
         ...BaseModelColumnTypes<Readonly<Rest>, DreamInstance>,
       ]
     : []

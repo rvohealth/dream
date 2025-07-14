@@ -235,7 +235,6 @@ export const SpeciesTypesEnumValues = [
   "noncat"
 ] as const
 
-export type IdType = string | number | bigint
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
 export type WorkoutTypesEnum = "cycling" | "running" | "strength_training" | "walking";
@@ -448,7 +447,10 @@ export interface LocalizedTexts {
 
 export interface ModelForOpenapiTypeSpecs {
   aDatetime: Timestamp | null;
+  aReal: number | null;
+  aSmallInteger: number | null;
   activateConstraint: Generated<boolean>;
+  anInteger: number | null;
   bio: Generated<string>;
   birthdate: Timestamp | null;
   collarCount: Int8 | null;

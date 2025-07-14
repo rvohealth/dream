@@ -149,7 +149,7 @@ export function associationPrimaryKeyAccessors(
       { associatedClassOverride }: { associatedClassOverride?: typeof Dream | undefined } = {}
     ) {
       if (this.primaryKeyOverride) return this.primaryKeyOverride
-      if (associationInstance) return associationInstance.primaryKey
+      if (associationInstance) return associationInstance['_primaryKey']
 
       const associationClass = associatedClassOverride ?? this.modelCB()
       if (Array.isArray(associationClass)) {

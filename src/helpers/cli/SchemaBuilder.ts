@@ -93,10 +93,6 @@ export const schema = {
 
       return `\
 ${tableName}: {
-    primaryKey: '${tableData.primaryKey}',
-    createdAtField: '${tableData.createdAtField}',
-    updatedAtField: '${tableData.updatedAtField}',
-    deletedAtField: '${tableData.deletedAtField}',
     serializerKeys: ${stringifyArray(tableData.serializerKeys)},
     scopes: {
       default: ${stringifyArray(defaultScopeNames)},
@@ -222,10 +218,6 @@ may need to update the table getter in the corresponding Dream.
     const serializerKeys = intersection(...eachModelSerializerKeys)
 
     return {
-      primaryKey: baseModel.prototype.primaryKey,
-      createdAtField: baseModel.prototype.createdAtField,
-      updatedAtField: baseModel.prototype.updatedAtField,
-      deletedAtField: baseModel.prototype.deletedAtField,
       scopes: {
         default: uniq(
           models.flatMap(model => model['scopes'].default.map(scopeStatement => scopeStatement.method))
@@ -463,7 +455,7 @@ may need to update the table getter in the corresponding Dream.
 
           case 'Int8':
           case 'Int8[]':
-            return `IdType${postfix}`
+            return `string${postfix}`
 
           default:
             return individualType
@@ -508,10 +500,6 @@ interface SchemaData {
 }
 
 interface TableData {
-  primaryKey: string
-  createdAtField: string
-  updatedAtField: string
-  deletedAtField: string
   serializerKeys: readonly string[]
   scopes: {
     default: readonly string[]

@@ -6,7 +6,7 @@ export default class MissingDeletedAtFieldForSoftDelete extends Error {
   }
 
   public override get message() {
-    const deletedAtField = this.dreamClass.prototype.deletedAtField
+    const deletedAtField = this.dreamClass.prototype['_deletedAtField']
     return `
 Expected "${deletedAtField}" to be a valid column for the ${this.dreamClass.name} model.
 Whenever the using SoftDelete decorator, you must have either a deletedAt column,

@@ -16,7 +16,7 @@ describe('Query#leftJoinPreload with aliased associations', () => {
       .where({ 'c2.name': '2', 'compositionAssets.name': '1' })
       .firstOrFail()
 
-    expect(reloaded.compositionAssets).toMatchDreamModel([compositionAsset])
+    expect(reloaded.compositionAssets).toMatchDreamModels([compositionAsset])
     expect(reloaded.compositions[0]!.compositionAssets).toMatchDreamModels([otherCompositionAsset])
   })
 
@@ -39,7 +39,7 @@ describe('Query#leftJoinPreload with aliased associations', () => {
           .firstOrFail()
       })
 
-      expect(reloaded!.compositionAssets).toMatchDreamModel([compositionAsset!])
+      expect(reloaded!.compositionAssets).toMatchDreamModels([compositionAsset!])
       expect(reloaded!.compositions[0]!.compositionAssets).toMatchDreamModels([otherCompositionAsset!])
     })
   })

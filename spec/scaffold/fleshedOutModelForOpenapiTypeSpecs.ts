@@ -16,6 +16,9 @@ export function unpersistedFleshedOutModelForOpenapiTypeSpecs() {
     email: 'charlie@peanuts.com',
     birthdate: CalendarDate.fromISO('1950-10-02'),
     aDatetime: DateTime.fromISO('1950-10-02'),
+    aSmallInteger: 7,
+    anInteger: 77777777,
+    aReal: 1.03e7,
 
     volume: 7.77777,
 

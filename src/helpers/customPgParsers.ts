@@ -39,3 +39,13 @@ export function parsePostgresDatetime(datetimeString: string | null) {
 export function parsePostgresDecimal(numberString: string | null) {
   return numberString ? parseFloat(numberString) : numberString
 }
+
+export function parsePostgresBigint(numberString: string | null) {
+  /**
+   * JSON.stringify() throws an error when it encounters a bigint anywhere, and they are
+   * troublesome overall to handle. Instead, we serialize bigints as strings, but allow
+   * numerical operations to be performed on them in the database (e.g. when passing an
+   * `ops` query ina `where` clause)
+   */
+  return numberString
+}

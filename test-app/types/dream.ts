@@ -74,7 +74,6 @@ import {
   ExtraRateableTypesEnumValues,
   ExtraRatingTypesEnum,
   ExtraRatingTypesEnumValues,
-  IdType,
   Json,
   LocalesEnum,
   LocalesEnumValues,
@@ -100,10 +99,6 @@ import {
 
 export const schema = {
   balloon_lines: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default', 'summary'],
     scopes: {
       default: [],
@@ -112,7 +107,7 @@ export const schema = {
     nonJsonColumnNames: ['balloonId', 'createdAt', 'id', 'material', 'updatedAt'],
     columns: {
       balloonId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -130,7 +125,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -169,10 +164,6 @@ export const schema = {
     },
   },
   balloon_spotter_balloons: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -181,7 +172,7 @@ export const schema = {
     nonJsonColumnNames: ['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'],
     columns: {
       balloonId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -190,7 +181,7 @@ export const schema = {
         isArray: false,
       },
       balloonSpotterId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -208,7 +199,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -226,7 +217,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -261,10 +252,6 @@ export const schema = {
     },
   },
   balloon_spotters: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -282,7 +269,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -335,10 +322,6 @@ export const schema = {
     },
   },
   beautiful_balloons: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['allBalloonStiChildren', 'default', 'delegated'],
     scopes: {
       default: ['dream:STI', 'dream:SoftDelete'],
@@ -374,7 +357,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -419,7 +402,7 @@ export const schema = {
         isArray: false,
       },
       shapableId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -455,7 +438,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -513,10 +496,6 @@ export const schema = {
     },
   },
   circular_reference_localized_texts: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -534,7 +513,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -552,7 +531,7 @@ export const schema = {
         isArray: false,
       },
       localizableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -609,10 +588,6 @@ export const schema = {
     },
   },
   circular_reference_model_as: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default', 'summary'],
     scopes: {
       default: [],
@@ -621,7 +596,7 @@ export const schema = {
     nonJsonColumnNames: ['circularReferenceModelBId', 'createdAt', 'id', 'updatedAt'],
     columns: {
       circularReferenceModelBId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -639,7 +614,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -697,10 +672,6 @@ export const schema = {
     },
   },
   circular_reference_model_bs: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default', 'summary'],
     scopes: {
       default: [],
@@ -709,7 +680,7 @@ export const schema = {
     nonJsonColumnNames: ['circularReferenceModelAId', 'createdAt', 'id', 'updatedAt'],
     columns: {
       circularReferenceModelAId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -727,7 +698,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -778,10 +749,6 @@ export const schema = {
     },
   },
   circular_reference_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default', 'summary'],
     scopes: {
       default: [],
@@ -799,7 +766,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -808,7 +775,7 @@ export const schema = {
         isArray: false,
       },
       parentId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -845,10 +812,6 @@ export const schema = {
     },
   },
   collars: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['deep', 'default', 'summary'],
     scopes: {
       default: ['dream:SoftDelete', 'hideHiddenCollars'],
@@ -857,7 +820,7 @@ export const schema = {
     nonJsonColumnNames: ['balloonId', 'createdAt', 'deletedAt', 'hidden', 'id', 'lost', 'petId', 'position', 'tagName', 'updatedAt'],
     columns: {
       balloonId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -893,7 +856,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -911,7 +874,7 @@ export const schema = {
         isArray: false,
       },
       petId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -966,10 +929,6 @@ export const schema = {
     },
   },
   composition_asset_audits: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -987,7 +946,7 @@ export const schema = {
         isArray: false,
       },
       compositionAssetId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1005,7 +964,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1058,10 +1017,6 @@ export const schema = {
     },
   },
   composition_assets: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -1070,7 +1025,7 @@ export const schema = {
     nonJsonColumnNames: ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'],
     columns: {
       compositionId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1088,7 +1043,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1189,10 +1144,6 @@ export const schema = {
     },
   },
   compositions: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -1219,7 +1170,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1273,7 +1224,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1357,10 +1308,6 @@ export const schema = {
     },
   },
   edge_case_attributes: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -1378,7 +1325,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1429,10 +1376,6 @@ export const schema = {
     },
   },
   extra_ratings: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: ['dream:STI'],
@@ -1459,7 +1402,7 @@ export const schema = {
         isArray: false,
       },
       extraRateableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1477,7 +1420,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1513,7 +1456,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1541,10 +1484,6 @@ export const schema = {
     },
   },
   graph_edge_nodes: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: ['dream:SoftDelete'],
@@ -1571,7 +1510,7 @@ export const schema = {
         isArray: false,
       },
       edgeId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1580,7 +1519,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1598,7 +1537,7 @@ export const schema = {
         isArray: false,
       },
       nodeId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1693,10 +1632,6 @@ export const schema = {
     },
   },
   graph_edges: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -1714,7 +1649,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1769,10 +1704,6 @@ export const schema = {
     },
   },
   graph_nodes: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -1790,7 +1721,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1894,10 +1825,6 @@ export const schema = {
     },
   },
   incompatible_foreign_key_type_examples: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -1915,7 +1842,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1954,10 +1881,6 @@ export const schema = {
     },
   },
   invalid_association_sortable_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -1975,7 +1898,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2014,10 +1937,6 @@ export const schema = {
     },
   },
   invalid_scope_sortable_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -2035,7 +1954,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2068,10 +1987,6 @@ export const schema = {
     },
   },
   localized_texts: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -2098,7 +2013,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2116,7 +2031,7 @@ export const schema = {
         isArray: false,
       },
       localizableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2173,16 +2088,12 @@ export const schema = {
     },
   },
   model_for_openapi_type_specs: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['aDatetime', 'activateConstraint', 'bio', 'birthdate', 'collarCount', 'collarCountInt', 'collarCountNumeric', 'createdAt', 'createdOn', 'email', 'favoriteBigint', 'favoriteBigints', 'favoriteBooleans', 'favoriteCitext', 'favoriteCitexts', 'favoriteDates', 'favoriteDatetimes', 'favoriteIntegers', 'favoriteNumerics', 'favoriteTexts', 'favoriteTreats', 'favoriteUuids', 'id', 'likesTreats', 'likesWalks', 'myConstrainedField', 'name', 'nicknames', 'notes', 'optionalUuid', 'passwordDigest', 'requiredCollarCount', 'requiredCollarCountInt', 'requiredFavoriteBigint', 'requiredFavoriteBigints', 'requiredFavoriteBooleans', 'requiredFavoriteCitext', 'requiredFavoriteCitexts', 'requiredFavoriteDates', 'requiredFavoriteDatetimes', 'requiredFavoriteIntegers', 'requiredFavoriteNumerics', 'requiredFavoriteTexts', 'requiredFavoriteUuids', 'requiredNicknames', 'species', 'updatedAt', 'uuid', 'volume'],
+    nonJsonColumnNames: ['aDatetime', 'aReal', 'aSmallInteger', 'activateConstraint', 'anInteger', 'bio', 'birthdate', 'collarCount', 'collarCountInt', 'collarCountNumeric', 'createdAt', 'createdOn', 'email', 'favoriteBigint', 'favoriteBigints', 'favoriteBooleans', 'favoriteCitext', 'favoriteCitexts', 'favoriteDates', 'favoriteDatetimes', 'favoriteIntegers', 'favoriteNumerics', 'favoriteTexts', 'favoriteTreats', 'favoriteUuids', 'id', 'likesTreats', 'likesWalks', 'myConstrainedField', 'name', 'nicknames', 'notes', 'optionalUuid', 'passwordDigest', 'requiredCollarCount', 'requiredCollarCountInt', 'requiredFavoriteBigint', 'requiredFavoriteBigints', 'requiredFavoriteBooleans', 'requiredFavoriteCitext', 'requiredFavoriteCitexts', 'requiredFavoriteDates', 'requiredFavoriteDatetimes', 'requiredFavoriteIntegers', 'requiredFavoriteNumerics', 'requiredFavoriteTexts', 'requiredFavoriteUuids', 'requiredNicknames', 'species', 'updatedAt', 'uuid', 'volume'],
     columns: {
       aDatetime: {
         coercedType: {} as DateTime | null,
@@ -2193,6 +2104,24 @@ export const schema = {
         allowNull: true,
         isArray: false,
       },
+      aReal: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'real',
+        allowNull: true,
+        isArray: false,
+      },
+      aSmallInteger: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'smallint',
+        allowNull: true,
+        isArray: false,
+      },
       activateConstraint: {
         coercedType: {} as boolean,
         enumType: null,
@@ -2200,6 +2129,15 @@ export const schema = {
         enumValues: null,
         dbType: 'boolean',
         allowNull: false,
+        isArray: false,
+      },
+      anInteger: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
         isArray: false,
       },
       bio: {
@@ -2221,7 +2159,7 @@ export const schema = {
         isArray: false,
       },
       collarCount: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2275,7 +2213,7 @@ export const schema = {
         isArray: false,
       },
       favoriteBigint: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2284,7 +2222,7 @@ export const schema = {
         isArray: false,
       },
       favoriteBigints: {
-        coercedType: {} as IdType[] | null,
+        coercedType: {} as string[] | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2401,7 +2339,7 @@ export const schema = {
         isArray: true,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2500,7 +2438,7 @@ export const schema = {
         isArray: false,
       },
       requiredCollarCount: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2518,7 +2456,7 @@ export const schema = {
         isArray: false,
       },
       requiredFavoriteBigint: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2527,7 +2465,7 @@ export const schema = {
         isArray: false,
       },
       requiredFavoriteBigints: {
-        coercedType: {} as IdType[],
+        coercedType: {} as string[],
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2704,10 +2642,6 @@ export const schema = {
     },
   },
   model_with_date_time_conditional_hooks: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -2734,7 +2668,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2776,10 +2710,6 @@ export const schema = {
     },
   },
   model_with_param_safe_and_unsafe_columns: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -2851,7 +2781,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2875,10 +2805,6 @@ export const schema = {
     },
   },
   model_with_param_unsafe_columns: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -2932,7 +2858,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -2956,10 +2882,6 @@ export const schema = {
     },
   },
   model_with_serial_primary_keys: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -3001,10 +2923,6 @@ export const schema = {
     },
   },
   model_without_custom_deleted_ats: {
-    primaryKey: 'id',
-    createdAtField: 'updatedAt',
-    updatedAtField: 'createdAt',
-    deletedAtField: 'id',
     serializerKeys: [],
     scopes: {
       default: ['dream:SoftDelete'],
@@ -3031,7 +2949,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3055,10 +2973,6 @@ export const schema = {
     },
   },
   model_without_deleted_ats: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: ['dream:SoftDelete', 'howyadoin'],
@@ -3076,7 +2990,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3100,10 +3014,6 @@ export const schema = {
     },
   },
   model_without_updated_at: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -3130,7 +3040,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3154,10 +3064,6 @@ export const schema = {
     },
   },
   pet_understudy_join_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -3175,7 +3081,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3184,7 +3090,7 @@ export const schema = {
         isArray: false,
       },
       petId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3193,7 +3099,7 @@ export const schema = {
         isArray: false,
       },
       understudyId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3230,10 +3136,6 @@ export const schema = {
     },
   },
   pets: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['deep', 'default', 'summary'],
     scopes: {
       default: ['dream:SoftDelete'],
@@ -3278,7 +3180,7 @@ export const schema = {
         isArray: true,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3323,7 +3225,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3829,10 +3731,6 @@ export const schema = {
     },
   },
   polymorphic_chore_cleaning_supplies: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -3850,7 +3748,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3859,7 +3757,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicChoreId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3868,7 +3766,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicCleaningSupplyId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3905,10 +3803,6 @@ export const schema = {
     },
   },
   polymorphic_chore_images: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -3926,7 +3820,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3935,7 +3829,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicChoreId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3944,7 +3838,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicImageId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3981,10 +3875,6 @@ export const schema = {
     },
   },
   polymorphic_chores: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -4002,7 +3892,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4083,10 +3973,6 @@ export const schema = {
     },
   },
   polymorphic_cleaning_supplies: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -4104,7 +3990,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4137,10 +4023,6 @@ export const schema = {
     },
   },
   polymorphic_images: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -4158,7 +4040,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4191,10 +4073,6 @@ export const schema = {
     },
   },
   polymorphic_localized_texts: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -4212,7 +4090,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4230,7 +4108,7 @@ export const schema = {
         isArray: false,
       },
       localizableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4278,10 +4156,6 @@ export const schema = {
     },
   },
   polymorphic_meta_users: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -4299,7 +4173,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4359,10 +4233,6 @@ export const schema = {
     },
   },
   polymorphic_taskable_images: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -4380,7 +4250,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4389,7 +4259,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicImageId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4398,7 +4268,7 @@ export const schema = {
         isArray: false,
       },
       taskableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4444,10 +4314,6 @@ export const schema = {
     },
   },
   polymorphic_tasks: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default', 'renderViaExplicitSerializer'],
     scopes: {
       default: [],
@@ -4465,7 +4331,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4474,7 +4340,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicUserId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4483,7 +4349,7 @@ export const schema = {
         isArray: false,
       },
       taskableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4529,10 +4395,6 @@ export const schema = {
     },
   },
   polymorphic_user_meta_users: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -4550,7 +4412,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4559,7 +4421,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicMetaUserId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4568,7 +4430,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicUserId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4605,10 +4467,6 @@ export const schema = {
     },
   },
   polymorphic_users: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -4626,7 +4484,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4679,10 +4537,6 @@ export const schema = {
     },
   },
   polymorphic_workout_images: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -4700,7 +4554,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4709,7 +4563,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicImageId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4718,7 +4572,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicWorkoutId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4755,10 +4609,6 @@ export const schema = {
     },
   },
   polymorphic_workout_types: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -4776,7 +4626,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4809,10 +4659,6 @@ export const schema = {
     },
   },
   polymorphic_workouts: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -4830,7 +4676,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4848,7 +4694,7 @@ export const schema = {
         isArray: false,
       },
       polymorphicWorkoutTypeId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4913,10 +4759,6 @@ export const schema = {
     },
   },
   post_comments: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: ['dream:SoftDelete'],
@@ -4952,7 +4794,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4961,7 +4803,7 @@ export const schema = {
         isArray: false,
       },
       postId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -4998,10 +4840,6 @@ export const schema = {
     },
   },
   post_visibilities: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -5019,7 +4857,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5067,10 +4905,6 @@ export const schema = {
     },
   },
   posts: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: ['dream:SoftDelete'],
@@ -5106,7 +4940,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5124,7 +4958,7 @@ export const schema = {
         isArray: false,
       },
       postVisibilityId: {
-        coercedType: {} as IdType | null,
+        coercedType: {} as string | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5142,7 +4976,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5219,10 +5053,6 @@ export const schema = {
     },
   },
   ratings: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['deep', 'default'],
     scopes: {
       default: ['nonNullBodies'],
@@ -5249,7 +5079,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5258,7 +5088,7 @@ export const schema = {
         isArray: false,
       },
       rateableId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5294,7 +5124,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5329,10 +5159,6 @@ export const schema = {
     },
   },
   sandbags: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default'],
     scopes: {
       default: [],
@@ -5341,7 +5167,7 @@ export const schema = {
     nonJsonColumnNames: ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight', 'weightKgs', 'weightTons'],
     columns: {
       balloonId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5359,7 +5185,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5416,10 +5242,6 @@ export const schema = {
     },
   },
   shapes: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['default', 'summary'],
     scopes: {
       default: ['dream:STI'],
@@ -5437,7 +5259,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5479,10 +5301,6 @@ export const schema = {
     },
   },
   through_a_to_other_model_join_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5491,7 +5309,7 @@ export const schema = {
     nonJsonColumnNames: ['aId', 'createdAt', 'id', 'otherModelId', 'position', 'updatedAt'],
     columns: {
       aId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5509,7 +5327,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5518,7 +5336,7 @@ export const schema = {
         isArray: false,
       },
       otherModelId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5564,10 +5382,6 @@ export const schema = {
     },
   },
   through_as: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5585,7 +5399,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5624,10 +5438,6 @@ export const schema = {
     },
   },
   through_bs: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5636,7 +5446,7 @@ export const schema = {
     nonJsonColumnNames: ['aId', 'createdAt', 'id', 'name', 'updatedAt'],
     columns: {
       aId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5654,7 +5464,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5693,10 +5503,6 @@ export const schema = {
     },
   },
   through_my_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5714,7 +5520,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5781,10 +5587,6 @@ export const schema = {
     },
   },
   through_other_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5802,7 +5604,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5811,7 +5613,7 @@ export const schema = {
         isArray: false,
       },
       myModelId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5864,10 +5666,6 @@ export const schema = {
     },
   },
   unscoped_sortable_models: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5885,7 +5683,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5918,10 +5716,6 @@ export const schema = {
     },
   },
   user_settings: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: [],
     scopes: {
       default: [],
@@ -5939,7 +5733,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5966,7 +5760,7 @@ export const schema = {
         isArray: false,
       },
       userId: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -5987,10 +5781,6 @@ export const schema = {
     },
   },
   users: {
-    primaryKey: 'id',
-    createdAtField: 'createdAt',
-    updatedAtField: 'updatedAt',
-    deletedAtField: 'deletedAt',
     serializerKeys: ['deep', 'default', 'summary'],
     scopes: {
       default: ['hideDeleted'],
@@ -6098,7 +5888,7 @@ export const schema = {
         isArray: false,
       },
       id: {
-        coercedType: {} as IdType,
+        coercedType: {} as string,
         enumType: null,
         enumArrayType: null,
         enumValues: null,

@@ -114,7 +114,6 @@ export {
   type DreamSerializers,
   type DreamTableSchema,
   type DreamVirtualColumns,
-  type IdType,
   type PrimaryKeyType,
   type Timestamp,
   type UpdateableAssociationProperties,

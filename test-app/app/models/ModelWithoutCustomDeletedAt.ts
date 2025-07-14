@@ -14,15 +14,15 @@ export default class ModelWithoutCustomDeletedAt extends ApplicationModel {
     return 'model_without_custom_deleted_ats' as const
   }
 
-  public override get deletedAtField() {
+  public get deletedAtField() {
     return 'id' as const
   }
 
-  public override get createdAtField() {
+  public get createdAtField() {
     return 'updatedAt' as const
   }
 
-  public override get updatedAtField() {
+  public get updatedAtField() {
     return 'createdAt' as const
   }
 

@@ -1,11 +1,10 @@
 import { CalendarDate, DreamSerializers } from '../../../src/index.js'
-import { IdType } from '../../types/db.js'
 import ApplicationModel from '../models/ApplicationModel.js'
 import Balloon from '../models/Balloon.js'
 import PetViewModel from './PetViewModel.js'
 
 export default class UserViewModel {
-  public id: IdType
+  public id: string
   public name: string | undefined
   public birthdate: CalendarDate | undefined
   public favoriteWord: string | undefined
@@ -20,7 +19,7 @@ export default class UserViewModel {
     pets = [],
     balloons = [],
   }: {
-    id: IdType
+    id: string
     name?: string | undefined
     birthdate?: CalendarDate
     favoriteWord?: string

@@ -5,7 +5,7 @@ import isDatetimeOrDatetimeArrayColumn from '../../helpers/db/types/isDatetimeOr
 import DreamTransaction from '../DreamTransaction.js'
 
 export default async function softDeleteDream(dream: Dream, txn: DreamTransaction<any>) {
-  const deletedAtField = dream.deletedAtField
+  const deletedAtField = dream['_deletedAtField']
   const dreamClass = dream.constructor as typeof Dream
 
   if (!isDatetimeOrDatetimeArrayColumn(dreamClass, deletedAtField)) {
@@ -14,8 +14,8 @@ export default async function softDeleteDream(dream: Dream, txn: DreamTransactio
 
   let query = txn.kyselyTransaction
     .updateTable(dream.table)
-    .where(dream.primaryKey, '=', dream.primaryKeyValue)
-    .set(dream.deletedAtField, DateTime.now())
+    .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
+    .set(dream['_deletedAtField'], DateTime.now())
 
   dreamClass['sortableFields']?.forEach(sortableFieldMetadata => {
     const positionColumn = sortableFieldMetadata.positionField

@@ -467,7 +467,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     const countClause = distinctColumn
       ? count(sql`DISTINCT ${distinctColumn}`)
-      : count(query['namespaceColumn'](query.dreamInstance.primaryKey))
+      : count(query['namespaceColumn'](query.dreamInstance['_primaryKey']))
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
 
@@ -568,7 +568,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         const query = db
           .updateTable(dream.table)
           .set(sqlifiedAttributes as any)
-          .where(namespaceColumn(dream.primaryKey, dream.table), '=', dream.primaryKeyValue)
+          .where(namespaceColumn(dream['_primaryKey'], dream.table), '=', dream.primaryKeyValue())
         return await executeDatabaseQuery(
           query.returning([...dream.columns()] as any),
           'executeTakeFirstOrThrow'
@@ -781,7 +781,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     preloadedDreamsAndWhatTheyPointTo.forEach(preloadedDreamAndWhatItPointsTo => {
       dreams
-        .filter(dream => dream.primaryKeyValue === preloadedDreamAndWhatItPointsTo.pointsToPrimaryKey)
+        .filter(dream => dream.primaryKeyValue() === preloadedDreamAndWhatItPointsTo.pointsToPrimaryKey)
         .forEach((dream: any) => {
           if (association.type === 'HasMany') {
             dream[association.as].push(preloadedDreamAndWhatItPointsTo.dream)
@@ -886,9 +886,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   >(this: T, kyselyQuery: QueryType): { kyselyQuery: QueryType; clone: Query<DreamInstance> } {
     if (this.query['limitStatement'] || this.query['orderStatements'].length) {
       kyselyQuery = (kyselyQuery as any).where((eb: ExpressionBuilder<any, any>) => {
-        const subquery = this.query.nestedSelect(this.dreamInstance.primaryKey)
+        const subquery = this.query.nestedSelect(this.dreamInstance['_primaryKey'])
 
-        return eb(this.dreamInstance.primaryKey as any, 'in', subquery)
+        return eb(this.dreamInstance['_primaryKey'], 'in', subquery)
       }) as typeof kyselyQuery
 
       return {
@@ -2658,7 +2658,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       // regardless of default scopes on that Dream's class.
       bypassAllDefaultScopesExceptOnAssociations: true,
     }).where({
-      [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue),
+      [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue()),
     })
 
     const hydrationData: any[][] = await associationDataScope['_connection'](this.connectionOverride)

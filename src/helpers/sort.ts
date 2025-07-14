@@ -1,7 +1,7 @@
 import sortBy from './sortBy.js'
 
 /**
- * Returns a copy of array containing strings, numbers, bigints, and/or IdTypes, sorted in ascending order.
+ * Returns a copy of array containing strings, numbers, bigints, sorted in ascending order.
  * To sort other types use {@link sortBy}.
  *
  *  ```ts

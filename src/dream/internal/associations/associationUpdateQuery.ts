@@ -52,7 +52,7 @@ export default function associationUpdateQuery<
   else nestedScope = nestedScope.innerJoin(association.as)
 
   const nestedSelect = nestedScope
-    .where({ [dream.primaryKey]: dream.primaryKeyValue as any })
+    .where({ [dream['_primaryKey']]: dream.primaryKeyValue() })
     .nestedSelect(namespaceColumn(associationClass.primaryKey, association.as))
 
   const whereClause = {

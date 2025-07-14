@@ -1,4 +1,4 @@
-import { DateTime, IdType } from '../../../../src/index.js'
+import { DateTime } from '../../../../src/index.js'
 import ops from '../../../../src/ops/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
@@ -92,7 +92,7 @@ describe('Query#pluck', () => {
 
   context('when in a transaction', () => {
     it('correctly applies scope to transaction', async () => {
-      let plucked: IdType[] = []
+      let plucked: string[] = []
       await ApplicationModel.transaction(async txn => {
         const ids = await User.txn(txn).pluck('id')
         plucked = ids

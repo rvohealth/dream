@@ -1,8 +1,14 @@
-## 1.3.4
+## 1.4.0
 
 - fix `preloadFor` infinite loop when serializers have circular references
 
 - generated STI base serializer updated to only include the single type of the particular STI child in the OpenAPI shape for that child
+
+- change `primaryKeyValue` from a getter to a method so it can return the correct type even when `primaryKey` has been overridden on a particular Dream model
+
+- remove `IdType`, an unnecessary abstraction that caused type inconsistencies
+
+- explicitly handle bigint from the database as string
 
 ## 1.3.3
 

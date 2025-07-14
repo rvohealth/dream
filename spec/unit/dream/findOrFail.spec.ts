@@ -29,7 +29,7 @@ describe('Dream.findOrFail', () => {
 
   context('when passed the id of a nonextant User', () => {
     it('raises an exception', async () => {
-      await expect(User.findOrFail(parseInt(user.id as string) + 1)).rejects.toThrow(RecordNotFound)
+      await expect(User.findOrFail((parseInt(user.id) + 1).toString())).rejects.toThrow(RecordNotFound)
     })
   })
 
@@ -51,7 +51,7 @@ describe('Dream.findOrFail', () => {
     context('when no record is found', () => {
       it('raises an exception', async () => {
         await ApplicationModel.transaction(async txn => {
-          await expect(User.txn(txn).findOrFail(0)).rejects.toThrow(RecordNotFound)
+          await expect(User.txn(txn).findOrFail('0')).rejects.toThrow(RecordNotFound)
         })
       })
     })
