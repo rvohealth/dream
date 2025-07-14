@@ -115,7 +115,7 @@ describe('Query#joins with polymorphic associations', () => {
       expect(reloaded).toMatchDreamModel(post)
 
       const noResults = await Post.query()
-        .innerJoin('ratings', { and: { id: parseInt(rating.id.toString()) + 1 } })
+        .innerJoin('ratings', { and: { id: (parseInt(rating.id.toString()) + 1).toString() } })
         .first()
       expect(noResults).toBeNull()
     })

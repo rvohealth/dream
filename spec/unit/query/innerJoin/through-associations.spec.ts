@@ -133,7 +133,9 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .innerJoin('mainCompositionAsset', { and: { id: parseInt(compositionAsset.id.toString()) + 1 } })
+          .innerJoin('mainCompositionAsset', {
+            and: { id: (parseInt(compositionAsset.id.toString()) + 1).toString() },
+          })
           .all()
         expect(noResults).toEqual([])
       })
@@ -189,7 +191,7 @@ describe('Query#joins through with simple associations', () => {
           const noResults = await User.query()
             .innerJoin(
               'compositions',
-              { and: { id: parseInt(composition.id.toString()) + 1 } },
+              { and: { id: (parseInt(composition.id.toString()) + 1).toString() } },
               'compositionAssets'
             )
             .all()
@@ -214,7 +216,7 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedCompositionAssets).toMatchDreamModels([compositionAsset])
 
         const noResults = await CompositionAsset.query()
-          .innerJoin('user', { and: { id: parseInt(user.id.toString()) + 1 } })
+          .innerJoin('user', { and: { id: (parseInt(user.id.toString()) + 1).toString() } })
           .all()
         expect(noResults).toEqual([])
       })
@@ -233,7 +235,9 @@ describe('Query#joins through with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults = await User.query()
-          .innerJoin('compositionAssets', { and: { id: parseInt(compositionAsset.id.toString()) + 1 } })
+          .innerJoin('compositionAssets', {
+            and: { id: (parseInt(compositionAsset.id.toString()) + 1).toString() },
+          })
           .all()
         expect(noResults).toEqual([])
       })
@@ -256,7 +260,7 @@ describe('Query#joins through with simple associations', () => {
 
         const noResults = await User.query()
           .innerJoin('compositionAssetAudits', {
-            and: { id: parseInt(compositionAssetAudit.id.toString()) + 1 },
+            and: { id: (parseInt(compositionAssetAudit.id.toString()) + 1).toString() },
           })
           .all()
         expect(noResults).toEqual([])

@@ -1,9 +1,7 @@
 import {
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
+  Selectable,
   SelectQueryBuilder,
-  Updateable,
-  UpdateKeys,
-  UpdateType,
 } from 'kysely'
 import Dream from '../../Dream.js'
 import { DreamConst } from '../../dream/constants.js'
@@ -192,7 +190,7 @@ type JoinedAssociationColumnNames<
       >
 
 type Whereable<R> = {
-  [K in UpdateKeys<R>]?: UpdateType<R[K]> | UpdateType<R[K]>[]
+  [K in keyof Selectable<R>]?: Selectable<R>[K] | Selectable<R>[K][]
 }
 
 export type WhereStatement<
@@ -221,7 +219,7 @@ type OnStatementForAssociationDefinition<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<
-    | Updateable<DB[TableName]>
+    | Partial<Selectable<DB[TableName]>>
     | Partial<{
         [ColumnName in keyof DB[TableName]]:
           | NonKyselySupportedSupplementalWhereClauseValues<DB, Schema, TableName, ColumnName>

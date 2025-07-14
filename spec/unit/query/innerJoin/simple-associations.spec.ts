@@ -71,7 +71,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .innerJoin('mainComposition', { and: { id: parseInt(composition.id.toString()) + 1 } })
+        .innerJoin('mainComposition', { and: { id: (parseInt(composition.id.toString()) + 1).toString() } })
         .all()
       expect(noResults).toEqual([])
     })
@@ -90,7 +90,10 @@ describe('Query#joins with simple associations', () => {
         const noResults = await User.query()
           .innerJoin('mainComposition', {
             and: {
-              id: [parseInt(composition.id.toString()) + 1, parseInt(composition.id.toString()) + 2],
+              id: [
+                (parseInt(composition.id.toString()) + 1).toString(),
+                (parseInt(composition.id.toString()) + 2).toString(),
+              ],
             },
           })
           .all()
@@ -193,7 +196,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedUsers).toMatchDreamModels([user])
 
       const noResults = await User.query()
-        .innerJoin('compositions', { and: { id: parseInt(composition.id.toString()) + 1 } })
+        .innerJoin('compositions', { and: { id: (parseInt(composition.id.toString()) + 1).toString() } })
         .all()
       expect(noResults).toEqual([])
     })
@@ -211,7 +214,7 @@ describe('Query#joins with simple associations', () => {
       expect(reloadedComposition).toMatchDreamModels([composition])
 
       const noResults = await Composition.query()
-        .innerJoin('user', { and: { id: parseInt(user.id.toString()) + 1 } })
+        .innerJoin('user', { and: { id: (parseInt(user.id.toString()) + 1).toString() } })
         .all()
       expect(noResults).toEqual([])
     })
@@ -263,7 +266,7 @@ describe('Query#joins with simple associations', () => {
 
         const noResults = await User.query()
           .innerJoin('mainComposition', 'compositionAssets', {
-            and: { id: parseInt(compositionAsset.id.toString()) + 1 },
+            and: { id: (parseInt(compositionAsset.id.toString()) + 1).toString() },
           })
           .all()
         expect(noResults).toEqual([])
@@ -284,7 +287,7 @@ describe('Query#joins with simple associations', () => {
         expect(reloadedUsers).toMatchDreamModels([user])
 
         const noResults1 = await User.query()
-          .innerJoin('compositions', { and: { id: parseInt(composition.id.toString()) + 1 } })
+          .innerJoin('compositions', { and: { id: (parseInt(composition.id.toString()) + 1).toString() } })
           .innerJoin('mainComposition', 'compositionAssets', { and: { id: compositionAsset.id } })
           .all()
         expect(noResults1).toEqual([])
@@ -292,7 +295,7 @@ describe('Query#joins with simple associations', () => {
         const noResults2 = await User.query()
           .innerJoin('compositions', { and: { id: composition.id } })
           .innerJoin('mainComposition', 'compositionAssets', {
-            and: { id: parseInt(compositionAsset.id.toString()) + 1 },
+            and: { id: (parseInt(compositionAsset.id.toString()) + 1).toString() },
           })
           .all()
         expect(noResults2).toEqual([])
