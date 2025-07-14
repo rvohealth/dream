@@ -2,6 +2,8 @@
 
 - fix `preloadFor` infinite loop when serializers have circular references
 
+- generated STI base serializer updated to only include the single type of the particular STI child in the OpenAPI shape for that child
+
 ## 1.3.3
 
 - make `referenceTypeString` public

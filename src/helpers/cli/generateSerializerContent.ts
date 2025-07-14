@@ -88,7 +88,7 @@ export default function generateSerializerContent({
       if (name === undefined) return ''
       if (['belongs_to', 'has_one', 'has_many'].includes(type as any)) return ''
 
-      return `\n    ${attribute(name, type, attr)}`
+      return `\n    ${attribute(name, type, attr, stiBaseSerializer)}`
     })
     .join('')}`
 
@@ -107,7 +107,11 @@ ${defaultSerializer.replace(serializerClassName, adminSerializerClassName).repla
 `
 }
 
-function attribute(name: string, type: string | undefined, attr: string) {
+function attribute(name: string, type: string | undefined, attr: string, stiBaseSerializer: boolean) {
+  if (name === 'type' && stiBaseSerializer) {
+    return `.attribute('type', { openapi: { type: 'string', enum: [StiChildClass.sanitizedName] } })`
+  }
+
   switch (type) {
     case 'json':
     case 'jsonb':

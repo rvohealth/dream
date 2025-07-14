@@ -67,7 +67,7 @@ export const ArticleAdminSerializer = (article: Article) =>
       it('alters the serializer to include a generic', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Balloon',
-          columnsWithTypes: ['hello'],
+          columnsWithTypes: ['hello', 'type:enum:balloon_types:Mylar,Latex'],
           stiBaseSerializer: true,
           includeAdminSerializers: false,
         })
@@ -84,6 +84,7 @@ export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeo
 export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
   BalloonSummarySerializer(StiChildClass, balloon)
     .attribute('hello')
+    .attribute('type', { openapi: { type: 'string', enum: [StiChildClass.sanitizedName] } })
 `
         )
       })

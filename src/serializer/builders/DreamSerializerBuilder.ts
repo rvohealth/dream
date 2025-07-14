@@ -7,6 +7,7 @@ import {
 } from '../../types/dream.js'
 import {
   AutomaticSerializerAttributeOptions,
+  AutomaticSerializerAttributeOptionsForType,
   InternalAnyTypedSerializerAttribute,
   InternalAnyTypedSerializerCustomAttribute,
   InternalAnyTypedSerializerDelegatedAttribute,
@@ -70,11 +71,15 @@ export default class DreamSerializerBuilder<
    * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
   public attribute<
-    MaybeAttributeName extends
-      | NonJsonDreamColumnNames<DataType>
-      // don't attempt to exclude 'serializers' because it breaks types when adding
-      // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
-      | (keyof DataType & string),
+    AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & 'type',
+    Options extends AutomaticSerializerAttributeOptionsForType,
+  >(
+    name: AttributeName,
+    options?: Options
+  ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
+
+  public attribute<
+    MaybeAttributeName extends NonJsonDreamColumnNames<DataType> | (keyof DataType & string),
     AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
       ? never
       : Exclude<keyof DataType, keyof Dream> & string,

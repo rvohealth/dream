@@ -74,6 +74,14 @@ export type AutomaticSerializerAttributeOptions<
     : never
 }
 
+export type AutomaticSerializerAttributeOptionsForType = {
+  as?: string
+  openapi?: OpenapiDescription & {
+    type?: 'string'
+    enum?: string[] | Readonly<string[]>
+  }
+}
+
 export type NonAutomaticSerializerAttributeOptions = {
   as?: string
   default?: any
