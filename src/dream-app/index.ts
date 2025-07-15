@@ -67,6 +67,12 @@ export default class DreamApp {
 
     await dreamApp.inflections?.()
 
+    if (!dreamApp.serializers) setCachedSerializers({})
+
+    cacheDreamApp(dreamApp)
+
+    if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
+
     await deferCb?.(dreamApp)
 
     for (const plugin of dreamApp.plugins) {
@@ -76,12 +82,6 @@ export default class DreamApp {
     dreamApp.validateAppBuildIntegrity({
       bypassModelIntegrityCheck: opts.bypassModelIntegrityCheck || false,
     })
-
-    if (!dreamApp.serializers) setCachedSerializers({})
-
-    cacheDreamApp(dreamApp)
-
-    if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
 
     return dreamApp
   }

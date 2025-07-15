@@ -1,3 +1,7 @@
+## 1.4.1
+
+- cache Dream app earlier in the initialization sequence
+
 ## 1.4.0
 
 - fix `preloadFor` infinite loop when serializers have circular references
