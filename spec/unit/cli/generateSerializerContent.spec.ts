@@ -1,4 +1,5 @@
 import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent.js'
+import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:serializer <name> [...attributes]', () => {
   context('when provided attributes', () => {
@@ -306,6 +307,95 @@ export const UserSerializer = (user: User) =>
             )
           })
         })
+      })
+    })
+  })
+
+  context('importExtension is set on DreamApp', () => {
+    context('importExtension=.js', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('.js')
+      })
+
+      it('styles all imports to have .js suffix', () => {
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'user',
+          columnsWithTypes: ['organization:belongs_to'],
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
+        })
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer } from '@rvoh/dream'
+import User from '../models/User.js'
+
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
+
+export const UserSerializer = (user: User) =>
+  UserSummarySerializer(user)
+`
+        )
+      })
+    })
+
+    context('importExtension=.ts', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('.ts')
+      })
+
+      it('styles all imports to have .ts suffix', () => {
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'user',
+          columnsWithTypes: ['organization:belongs_to'],
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
+        })
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer } from '@rvoh/dream'
+import User from '../models/User.ts'
+
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
+
+export const UserSerializer = (user: User) =>
+  UserSummarySerializer(user)
+`
+        )
+      })
+    })
+
+    context('importExtension=none', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('none')
+      })
+
+      it('styles all imports to have no suffix', () => {
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'user',
+          columnsWithTypes: ['organization:belongs_to'],
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
+        })
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer } from '@rvoh/dream'
+import User from '../models/User'
+
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
+
+export const UserSerializer = (user: User) =>
+  UserSummarySerializer(user)
+`
+        )
       })
     })
   })

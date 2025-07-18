@@ -23,6 +23,7 @@ export default async function (dreamApp: DreamApp) {
     },
   })
 
+  dreamApp.set('importExtension', '.js') // this is the default, but this ensures we are able to set it
   dreamApp.set('projectRoot', projectRoot)
   dreamApp.set('primaryKeyType', 'bigserial')
   dreamApp.set('inflections', inflections)

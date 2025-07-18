@@ -1,3 +1,7 @@
+## 1.4.2
+
+- add ability to set custom import extension, which will be used when generating new files for your application
+
 ## 1.4.1
 
 - cache Dream app earlier in the initialization sequence
