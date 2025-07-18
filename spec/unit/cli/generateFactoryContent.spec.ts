@@ -1,4 +1,5 @@
 import generateFactoryContent from '../../../src/helpers/cli/generateFactoryContent.js'
+import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:model <name> [...attributes] (factory context)', () => {
   context('when provided with a pascalized table name', () => {
@@ -203,6 +204,98 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
 import { UpdateableProperties } from '@rvoh/dream'
 import MyNestedUser from '../../../../app/models/My/Nested/User.js'
 import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory.js'
+
+let counter = 0
+
+export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
+  return await MyNestedUser.create({
+    myNestedDoubleNestedOrganization: attrs.myNestedDoubleNestedOrganization ? null : await createMyNestedDoubleNestedOrganization(),
+    name: \`My/Nested/User name \${++counter}\`,
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+  })
+
+  context('importExtension is set on DreamApp', () => {
+    context('importExtension=.js', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('.js')
+      })
+
+      it('styles all imports to have .js suffix', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'My/Nested/User',
+          columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream'
+import MyNestedUser from '../../../../app/models/My/Nested/User.js'
+import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory.js'
+
+let counter = 0
+
+export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
+  return await MyNestedUser.create({
+    myNestedDoubleNestedOrganization: attrs.myNestedDoubleNestedOrganization ? null : await createMyNestedDoubleNestedOrganization(),
+    name: \`My/Nested/User name \${++counter}\`,
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
+    context('importExtension=.ts', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('.ts')
+      })
+
+      it('styles all imports to have .ts suffix', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'My/Nested/User',
+          columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream'
+import MyNestedUser from '../../../../app/models/My/Nested/User.ts'
+import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory.ts'
+
+let counter = 0
+
+export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
+  return await MyNestedUser.create({
+    myNestedDoubleNestedOrganization: attrs.myNestedDoubleNestedOrganization ? null : await createMyNestedDoubleNestedOrganization(),
+    name: \`My/Nested/User name \${++counter}\`,
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
+    context('importExtension=none', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('none')
+      })
+
+      it('styles all imports to have no suffix', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'My/Nested/User',
+          columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream'
+import MyNestedUser from '../../../../app/models/My/Nested/User'
+import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory'
 
 let counter = 0
 

@@ -290,6 +290,11 @@ Try setting it to something valid, like:
     return this._packageManager
   }
 
+  private _importExtension: GeneratorImportStyle = '.js'
+  public get importExtension() {
+    return this._importExtension
+  }
+
   protected loadedModels: boolean = false
 
   constructor(opts?: Partial<DreamAppOpts>) {
@@ -378,23 +383,25 @@ Try setting it to something valid, like:
         ? DreamAppEncryptionOptions
         : ApplyOpt extends 'primaryKeyType'
           ? (typeof primaryKeyTypes)[number]
-          : ApplyOpt extends 'logger'
-            ? DreamLogger
-            : ApplyOpt extends 'projectRoot'
-              ? string
-              : ApplyOpt extends 'inflections'
-                ? () => void | Promise<void>
-                : ApplyOpt extends 'packageManager'
-                  ? DreamAppAllowedPackageManagersEnum
-                  : ApplyOpt extends 'paths'
-                    ? DreamDirectoryPaths
-                    : ApplyOpt extends 'parallelTests'
-                      ? number
-                      : ApplyOpt extends 'unicodeNormalization'
-                        ? UnicodeNormalizationForm
-                        : ApplyOpt extends 'paginationPageSize'
-                          ? number
-                          : never
+          : ApplyOpt extends 'importExtension'
+            ? GeneratorImportStyle
+            : ApplyOpt extends 'logger'
+              ? DreamLogger
+              : ApplyOpt extends 'projectRoot'
+                ? string
+                : ApplyOpt extends 'inflections'
+                  ? () => void | Promise<void>
+                  : ApplyOpt extends 'packageManager'
+                    ? DreamAppAllowedPackageManagersEnum
+                    : ApplyOpt extends 'paths'
+                      ? DreamDirectoryPaths
+                      : ApplyOpt extends 'parallelTests'
+                        ? number
+                        : ApplyOpt extends 'unicodeNormalization'
+                          ? UnicodeNormalizationForm
+                          : ApplyOpt extends 'paginationPageSize'
+                            ? number
+                            : never
   ) {
     switch (applyOption) {
       case 'db':
@@ -407,6 +414,10 @@ Try setting it to something valid, like:
 
       case 'primaryKeyType':
         this._primaryKeyType = options as (typeof primaryKeyTypes)[number]
+        break
+
+      case 'importExtension':
+        this._importExtension = options as GeneratorImportStyle
         break
 
       case 'logger':
@@ -502,6 +513,7 @@ export type DreamAppSetOption =
   | 'db'
   | 'encryption'
   | 'inflections'
+  | 'importExtension'
   | 'logger'
   | 'paths'
   | 'primaryKeyType'
@@ -573,3 +585,9 @@ export interface KyselyLogEvent {
 
 export const DreamAppAllowedPackageManagersEnumValues = ['yarn', 'npm', 'pnpm'] as const
 export type DreamAppAllowedPackageManagersEnum = (typeof DreamAppAllowedPackageManagersEnumValues)[number]
+
+// GeneratorImportStyles are used by CLI generators to determine how
+// to style import suffixes. When integrating with other apps, this
+// suffix style can change, and may need to be configured.
+export const GeneratorImportStyles = ['.js', '.ts', 'none'] as const
+export type GeneratorImportStyle = (typeof GeneratorImportStyles)[number]

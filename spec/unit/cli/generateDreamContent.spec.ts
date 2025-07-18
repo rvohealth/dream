@@ -1,4 +1,5 @@
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent.js'
+import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {
@@ -650,6 +651,143 @@ export default class Composition extends ApplicationModel {
 `
           )
         })
+      })
+    })
+  })
+
+  context('importExtension is set on DreamApp', () => {
+    context('importExtension=.js', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('.js')
+      })
+
+      it('styles all imports to have .js suffix', () => {
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'composition',
+          columnsWithTypes: ['user:belongs_to'],
+          serializer: true,
+          includeAdminSerializers: false,
+        })
+        expect(res).toEqual(
+          `\
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import ApplicationModel from './ApplicationModel.js'
+import User from './User.js'
+
+const deco = new Decorators<typeof Composition>()
+
+export default class Composition extends ApplicationModel {
+  public override get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @deco.BelongsTo('User')
+  public user: User
+  public userId: DreamColumn<Composition, 'userId'>
+}
+`
+        )
+      })
+    })
+
+    context('importExtension=.ts', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('.ts')
+      })
+
+      it('styles all imports to have .ts suffix', () => {
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'composition',
+          columnsWithTypes: ['user:belongs_to'],
+          serializer: true,
+          includeAdminSerializers: false,
+        })
+        expect(res).toEqual(
+          `\
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import ApplicationModel from './ApplicationModel.ts'
+import User from './User.ts'
+
+const deco = new Decorators<typeof Composition>()
+
+export default class Composition extends ApplicationModel {
+  public override get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @deco.BelongsTo('User')
+  public user: User
+  public userId: DreamColumn<Composition, 'userId'>
+}
+`
+        )
+      })
+    })
+
+    context('importExtension=none', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importExtension', 'get').mockReturnValue('none')
+      })
+
+      it('styles all imports to have no suffix', () => {
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'composition',
+          columnsWithTypes: ['user:belongs_to'],
+          serializer: true,
+          includeAdminSerializers: false,
+        })
+        expect(res).toEqual(
+          `\
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import ApplicationModel from './ApplicationModel'
+import User from './User'
+
+const deco = new Decorators<typeof Composition>()
+
+export default class Composition extends ApplicationModel {
+  public override get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @deco.BelongsTo('User')
+  public user: User
+  public userId: DreamColumn<Composition, 'userId'>
+}
+`
+        )
       })
     })
   })
