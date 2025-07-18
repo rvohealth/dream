@@ -1,3 +1,4 @@
+import addImportSuffix from '../cli/addImportSuffix.js'
 import pascalize from '../pascalize.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import dreamPath, { DreamPaths } from './dreamPath.js'
@@ -40,13 +41,13 @@ export default function (
       return destinationPath
 
     case 'factories':
-      return `${destinationPath}${fullyQualifiedDestinationModelName}Factory.js`
+      return addImportSuffix(`${destinationPath}${fullyQualifiedDestinationModelName}Factory.js`)
 
     case 'serializers':
-      return `${destinationPath}${fullyQualifiedDestinationModelName}Serializer.js`
+      return addImportSuffix(`${destinationPath}${fullyQualifiedDestinationModelName}Serializer.js`)
 
     default:
-      return `${destinationPath}${fullyQualifiedDestinationModelName}.js`
+      return addImportSuffix(`${destinationPath}${fullyQualifiedDestinationModelName}.js`)
   }
 }
 
