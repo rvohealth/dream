@@ -71,7 +71,7 @@ export default class DreamApp {
 
     cacheDreamApp(dreamApp)
 
-    if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers()
+    if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers(dreamApp)
 
     await deferCb?.(dreamApp)
 
@@ -123,58 +123,60 @@ export default class DreamApp {
    *
    *
    */
-  private static async setDatabaseTypeParsers() {
-    const kyselyDb = db('primary')
+  private static async setDatabaseTypeParsers(dreamApp: DreamApp) {
+    for (const connectionName of Object.keys(dreamApp._dbCredentials)) {
+      const kyselyDb = db(connectionName, 'primary')
 
-    pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
+      pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
 
-    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
+      pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
 
-    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
+      pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
 
-    pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
+      pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
 
-    pgTypes.setTypeParser(pgTypes.builtins.INT8, parsePostgresBigint)
+      pgTypes.setTypeParser(pgTypes.builtins.INT8, parsePostgresBigint)
 
-    const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
-    if (textArrayOid) {
-      let oid: number | undefined
+      const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
+      if (textArrayOid) {
+        let oid: number | undefined
 
-      const textArrayParser = pgTypes.getTypeParser(textArrayOid)
+        const textArrayParser = pgTypes.getTypeParser(textArrayOid)
 
-      function transformPostgresArray(
-        transformer:
-          | typeof parsePostgresDate
-          | typeof parsePostgresDatetime
-          | typeof parsePostgresDecimal
-          | typeof parsePostgresBigint
-      ) {
-        return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
+        function transformPostgresArray(
+          transformer:
+            | typeof parsePostgresDate
+            | typeof parsePostgresDatetime
+            | typeof parsePostgresDecimal
+            | typeof parsePostgresBigint
+        ) {
+          return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
+        }
+
+        const enumArrayOids = await findEnumArrayOids(kyselyDb)
+        enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
+
+        oid = await findCitextArrayOid(kyselyDb)
+        if (oid) pgTypes.setTypeParser(oid, textArrayParser)
+
+        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
+        if (oid) pgTypes.setTypeParser(oid, textArrayParser)
+
+        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
+        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDate))
+
+        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
+        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
+        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
+        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
+
+        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.INT8)
+        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresBigint))
       }
-
-      const enumArrayOids = await findEnumArrayOids(kyselyDb)
-      enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
-
-      oid = await findCitextArrayOid(kyselyDb)
-      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
-      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDate))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.INT8)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresBigint))
     }
   }
 
@@ -225,9 +227,16 @@ Try setting it to something valid, like:
     return this._specialHooks
   }
 
-  private _dbCredentials: DreamDbCredentialOptions
+  private _dbCredentials: Record<string, DreamDbCredentialOptions> = {}
   public get dbCredentials() {
     return this._dbCredentials
+  }
+
+  // TODO: maybe harden typing for connectionName
+  // TODO: maybe raise exception instead of returning null?
+  public dbCredentialsFor(connectionName: string): DreamDbCredentialOptions | null {
+    if (this._dbCredentials[connectionName]) return this._dbCredentials[connectionName]
+    return null
   }
 
   private _encryption: DreamAppEncryptionOptions
@@ -298,7 +307,7 @@ Try setting it to something valid, like:
   protected loadedModels: boolean = false
 
   constructor(opts?: Partial<DreamAppOpts>) {
-    if (opts?.db) this._dbCredentials = opts.db
+    if (opts?.db) this._dbCredentials['default'] = opts.db
     if (opts?.primaryKeyType) this._primaryKeyType = opts.primaryKeyType
     if (opts?.projectRoot) this._projectRoot = opts.projectRoot
     if (opts?.inflections) this._inflections = opts.inflections
@@ -324,26 +333,36 @@ Try setting it to something valid, like:
     return getSerializersOrFail()
   }
 
-  public dbName(connection: DbConnectionType): string {
-    const conf = this.dbConnectionConfig(connection)
+  // TODO: maybe harden connectionName type
+  public dbName(connectionName: string, connection: DbConnectionType): string {
+    const conf = this.dbConnectionConfig(connectionName, connection)
     return this.parallelDatabasesEnabled ? `${conf.name}_${process.env.VITEST_POOL_ID}` : conf.name
   }
 
-  public dbConnectionConfig(connection: DbConnectionType): SingleDbCredential {
-    const conf = this.dbCredentials?.[connection] || this.dbCredentials?.primary
+  // TODO: maybe harden connectionName type
+  public dbConnectionConfig(connectionName: string, connection: DbConnectionType): SingleDbCredential {
+    const conf =
+      this.dbCredentialsFor(connectionName)?.[connection] || this.dbCredentialsFor(connectionName)?.primary
 
-    if (!conf)
+    if (!conf) {
+      console.log(this.dbCredentials)
       throw new Error(`
       Cannot find a connection config given the following connection and node environment:
+        connectionName: ${connectionName}
         connection: ${connection}
         NODE_ENV: ${EnvInternal.nodeEnv}
     `)
+    }
 
     return conf
   }
 
-  public get hasReplicaConfig() {
-    return !!this.dbCredentials.replica
+  public dbConnectionKeys(): string[] {
+    return Object.keys(this.dbCredentials)
+  }
+
+  public hasReplicaConfig(connectionName: string) {
+    return !!this.dbCredentials[connectionName]?.replica
   }
 
   public get parallelDatabasesEnabled(): boolean {
@@ -378,7 +397,7 @@ Try setting it to something valid, like:
   public set<ApplyOpt extends DreamAppSetOption>(
     applyOption: ApplyOpt,
     options: ApplyOpt extends 'db'
-      ? DreamDbCredentialOptions
+      ? DreamDbCredentialOptions | string
       : ApplyOpt extends 'encryption'
         ? DreamAppEncryptionOptions
         : ApplyOpt extends 'primaryKeyType'
@@ -401,11 +420,16 @@ Try setting it to something valid, like:
                           ? UnicodeNormalizationForm
                           : ApplyOpt extends 'paginationPageSize'
                             ? number
-                            : never
+                            : never,
+    secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
       case 'db':
-        this._dbCredentials = options as DreamDbCredentialOptions
+        if (typeof options === 'string') {
+          this._dbCredentials[options] = secondaryOptions as DreamDbCredentialOptions
+        } else {
+          this._dbCredentials['default'] = options as DreamDbCredentialOptions
+        }
         break
 
       case 'encryption':

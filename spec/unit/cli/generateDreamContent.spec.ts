@@ -791,4 +791,46 @@ export default class Composition extends ApplicationModel {
       })
     })
   })
+
+  context('with an alternate connection provided', () => {
+    it('uses the alternate connection name to formulate the base model name', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'composition',
+        columnsWithTypes: ['user:belongs_to'],
+        serializer: true,
+        includeAdminSerializers: false,
+        connectionName: 'howyadoin',
+      })
+      expect(res).toEqual(
+        `\
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import HowyadoinApplicationModel from './HowyadoinApplicationModel.js'
+import User from './User.js'
+
+const deco = new Decorators<typeof Composition>()
+
+export default class Composition extends HowyadoinApplicationModel {
+  public override get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @deco.BelongsTo('User')
+  public user: User
+  public userId: DreamColumn<Composition, 'userId'>
+}
+`
+      )
+    })
+  })
 })

@@ -6237,6 +6237,7 @@ export const globalSchema = {
   ],
   globalNames: {
     models: {
+      'AlternateDbConnectionUser': 'alternate_db_connection_users',
       'Balloon/Latex/Animal': 'beautiful_balloons',
       'Balloon/Latex': 'beautiful_balloons',
       'Balloon/Mylar': 'beautiful_balloons',
@@ -6306,6 +6307,8 @@ export const globalSchema = {
       'UserSettings': 'user_settings'
     },
     serializers: [
+      'AlternateDbConnectionUserSerializer',
+      'AlternateDbConnectionUserSummarySerializer',
       'BallonLineSummarySerializer',
       'Balloon/DelegatedAttributeSerializer',
       'Balloon/Latex/AnimalSerializer',

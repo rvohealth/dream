@@ -3,13 +3,18 @@ import { DbConnectionType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 
-export default async function createDb(connection: DbConnectionType, dbName?: string | null) {
+export default async function createDb(
+  connectionName: string,
+  connectionType: DbConnectionType,
+  dbName?: string | null
+  // TODO: maybe harden type for connectionName
+) {
   // this was only ever written to clear the db between tests or in development,
   // so there is no way to drop in production
   if (EnvInternal.isProduction) return false
 
   const dreamApp = DreamApp.getOrFail()
-  const dbConf = dreamApp.dbConnectionConfig(connection)
+  const dbConf = dreamApp.dbConnectionConfig(connectionName, connectionType)
 
   dbName ||= dbConf.name || null
   if (!dbName)
@@ -17,7 +22,7 @@ export default async function createDb(connection: DbConnectionType, dbName?: st
       'Must either pass a dbName to the create function, or else ensure that DB_NAME is set in the env'
     )
 
-  const client = await loadPgClient({ useSystemDb: true })
+  const client = await loadPgClient({ useSystemDb: true, connectionName })
   await client.query(`CREATE DATABASE ${dbName};`)
   await client.end()
 }

@@ -37,7 +37,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * migrate the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async migrate() {
+  public static async migrate(
+    // TODO: maybe harden type for connectionName
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
     throw new Error('override migrate in child class')
   }
 
@@ -45,7 +49,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * rollback the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async rollback(_: { steps: number }) {
+  public static async rollback(_: {
+    // TODO: maybe harden type for connectionName
+    connectionName: string
+    steps: number
+  }) {
     throw new Error('override rollback in child class')
   }
 
@@ -53,7 +61,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * create the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async dbCreate() {
+  public static async dbCreate(
+    // TODO: maybe harden type for connectionName
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
     throw new Error('override dbCreate on child class')
   }
 
@@ -61,7 +73,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * delete the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async dbDrop() {
+  public static async dbDrop(
+    // TODO: maybe harden type for connectionName
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
     throw new Error('override dbDrop on child class')
   }
 
@@ -73,8 +89,15 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * is sorted by date in the file tree, and, more importantly, so
    * they can be run in order by your migration runner.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async generateMigration(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    migrationName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    columnsWithTypes: string[]
+  ) {
     throw new Error('override generateMigration in child class')
   }
 

@@ -17,6 +17,7 @@ export default async function generateDream({
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   options: {
+    connectionName: string
     serializer: boolean
     stiBaseSerializer: boolean
     includeAdminSerializers: boolean
@@ -41,6 +42,7 @@ export default async function generateDream({
         fullyQualifiedParentName,
         serializer: options.serializer,
         includeAdminSerializers: options.includeAdminSerializers,
+        connectionName: options.connectionName,
       })
     )
   } catch (error) {
@@ -67,6 +69,7 @@ export default async function generateDream({
   const isSTI = !!fullyQualifiedParentName
   if (columnsWithTypes.length || !isSTI) {
     await generateMigration({
+      connectionName: options.connectionName,
       migrationName: `Create${fullyQualifiedModelName}`,
       columnsWithTypes,
       fullyQualifiedModelName,

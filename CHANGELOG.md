@@ -1,3 +1,64 @@
+## 1.5.0
+
+- add support for multiple database connections in a single dream application. To take advantage of this new feature, you can do the following:
+
+1. Add a new connection configuration to your conf/dream.ts file, providing it an explicit alternate connection name as the second argument, like so:
+
+```ts
+dreamApp.set('db', 'myAlternateConnection', {
+  primary: {
+    user: AppEnv.string('DB_USER'),
+    password: AppEnv.string('DB_PASSWORD', { optional: !AppEnv.isProduction }),
+    host: AppEnv.string('DB_HOST', { optional: true }),
+    name: AppEnv.string('DB_NAME_2', { optional: true }),
+    port: AppEnv.integer('DB_PORT_2', { optional: true }),
+    useSsl: false,
+  },
+})
+```
+
+Be sure to add any new environment variables to your .env and .env.test files.
+
+2. Run sync
+
+```sh
+yarn psy sync
+```
+
+3. add a new application model for your new connection, naming it the name of your connection, pascalized, with the string `ApplicationModel` at the end, like so:
+
+```ts
+// app/models/MyAlternateConnectionApplicationModel.ts
+
+import Dream from '../../../src/Dream.js'
+import { DBClass } from '../../types/db.alternateConnection.js'
+import { globalSchema, schema } from '../../types/dream.alternateConnection.js'
+
+export default class MyAlternateConnectionApplicationModel extends Dream {
+  declare public DB: DBClass
+
+  public override get connectionName() {
+    return 'alternateConnection' as const
+  }
+
+  public override get schema(): any {
+    return schema
+  }
+
+  public override get globalSchema() {
+    return globalSchema
+  }
+}
+```
+
+4. Now you can proceed to generate a model for your new connection, like so:
+
+```sh
+yarn psy g:model MyNewModel someField:text --connection-name=myAlternateConnection
+```
+
+Dream will automatically read the connectionName and use it to derive the `MyAlternateConnectionApplicationModel` automatically, though if this isn't correct, you will need to manually adjust it.
+
 ## 1.4.2
 
 - add ability to set custom import extension, which will be used when generating new files for your application

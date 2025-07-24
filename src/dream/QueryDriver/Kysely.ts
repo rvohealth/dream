@@ -14,7 +14,7 @@ import {
   UpdateQueryBuilder,
 } from 'kysely'
 import pluralize from 'pluralize-esm'
-import writeSyncFile from '../../bin/helpers/sync.js'
+import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
 import { CHECK_VIOLATION, INVALID_INPUT_SYNTAX, NOT_NULL_VIOLATION, pgErrorType } from '../../db/errors.js'
@@ -114,43 +114,57 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     sqlCommandType: SqlCommandType
   ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType))
+    return _db<DreamInstance>(
+      this.dreamInstance.connectionName || 'default',
+      this.dbConnectionType(sqlCommandType)
+    )
   }
 
   /**
    * migrate the database. Must respond to the NODE_ENV value.
    */
-  public static override async migrate() {
+  public static override async migrate(
+    // TODO: maybe harden type for connectionName
+    connectionName: string
+  ) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
     DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
 
-    await runMigration({ mode: 'migrate' })
+    await runMigration({ connectionName, mode: 'migrate' })
     DreamCLI.logger.logEndProgress()
 
-    await this.duplicateDatabase()
+    await this.duplicateDatabase(connectionName)
   }
 
   /**
    * rollback the database. Must respond to the NODE_ENV value.
    */
-  public static override async rollback(opts: { steps: number }) {
+  public static override async rollback(opts: {
+    // TODO: maybe harden type for connectionName
+    connectionName: string
+    steps: number
+  }) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(opts.connectionName || 'default', 'primary')
     DreamCLI.logger.logStartProgress(`rolling back ${primaryDbConf.name}...`)
 
     let step = opts.steps
     while (step > 0) {
-      await runMigration({ mode: 'rollback' })
+      await runMigration({ connectionName: opts.connectionName, mode: 'rollback' })
       step -= 1
     }
     DreamCLI.logger.logEndProgress()
 
-    await this.duplicateDatabase()
+    await this.duplicateDatabase(opts.connectionName)
   }
 
-  public static override async generateMigration(migrationName: string, columnsWithTypes: string[]) {
-    await generateMigration({ migrationName, columnsWithTypes })
+  public static override async generateMigration(
+    connectionName: string,
+    migrationName: string,
+    columnsWithTypes: string[]
+  ) {
+    await generateMigration({ migrationName, columnsWithTypes, connectionName })
   }
 
   public static override async sync(
@@ -160,34 +174,40 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     try {
       if (!options?.schemaOnly) {
         await DreamCLI.logger.logProgress('writing db schema...', async () => {
-          await writeSyncFile()
+          await syncDbTypesFiles()
         })
       }
 
-      const schemaBuilder = new SchemaBuilder()
+      const dreamApp = DreamApp.getOrFail()
+      for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+        const schemaBuilder = new SchemaBuilder(connectionName)
 
-      await DreamCLI.logger.logProgress('building dream schema...', async () => {
-        await schemaBuilder.build()
-      })
-
-      if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
         await DreamCLI.logger.logProgress(
-          'triggering resync to correct for foreign key errors...',
-
+          `building dream schema for connection ${connectionName}...`,
           async () => {
-            // TODO: make this customizable to enable dream apps to separate
-            const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
-
-            await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
-              onStdout: str => {
-                DreamCLI.logger.logContinueProgress(`${str}`, {
-                  logPrefix: '  ├ [resync]',
-                  logPrefixColor: 'blue',
-                })
-              },
-            })
+            await schemaBuilder.build()
           }
         )
+
+        if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
+          await DreamCLI.logger.logProgress(
+            'triggering resync to correct for foreign key errors...',
+
+            async () => {
+              // TODO: make this customizable to enable dream apps to separate
+              const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
+
+              await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
+                onStdout: str => {
+                  DreamCLI.logger.logContinueProgress(`${str}`, {
+                    logPrefix: '  ├ [resync]',
+                    logPrefixColor: 'blue',
+                  })
+                },
+              })
+            }
+          )
+        }
       }
 
       if (!options?.schemaOnly) {
@@ -207,18 +227,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * create the database. Must respond to the NODE_ENV value.
    */
-  public static override async dbCreate() {
+  public static override async dbCreate(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
 
     DreamCLI.logger.logStartProgress(`creating ${primaryDbConf.name}...`)
-    await createDb('primary')
+    await createDb(connectionName, 'primary')
     DreamCLI.logger.logEndProgress()
 
     // TODO: add support for creating replicas. Began doing it below, but it is very tricky,
     // and we don't need it at the moment, so kicking off for future development when we have more time
     // to flesh this out.
-    // if (connectionRetriever.hasReplicaConfig()) {
+    // if (connectionRetriever.hasReplicaConfig(connectionName)) {
     //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
     //   console.log(`creating ${process.env[replicaDbConf.name]}`)
     //   await createDb('replica')
@@ -228,18 +248,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * delete the database. Must respond to the NODE_ENV value.
    */
-  public static override async dbDrop() {
+  public static override async dbDrop(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
 
     DreamCLI.logger.logStartProgress(`dropping ${primaryDbConf.name}...`)
-    await _dropDb('primary')
+    await _dropDb(connectionName, 'primary')
     DreamCLI.logger.logEndProgress()
 
     // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,
     // and we don't need it at the moment, so kicking off for future development when we have more time
     // to flesh this out.
-    // if (connectionRetriever.hasReplicaConfig()) {
+    // if (connectionRetriever.hasReplicaConfig(connectionName)) {
     //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
     //   console.log(`dropping ${process.env[replicaDbConf.name]}`)
     //   await _dropDb('replica')
@@ -559,7 +579,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * subsequent model hooks that are fired.
    */
   public static override async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
-    const db = txn?.kyselyTransaction ?? _db('primary')
+    const connectionName = (dream as any).connectionName || 'default'
+
+    const db = txn?.kyselyTransaction ?? _db(connectionName, 'primary')
 
     const sqlifiedAttributes = sqlAttributes(dream)
 
@@ -812,14 +834,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     )
   }
 
-  public static async duplicateDatabase() {
+  public static async duplicateDatabase(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
     const parallelTests = dreamApp.parallelTests
     if (!parallelTests) return
 
     DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
-    const dbConf = dreamApp.dbConnectionConfig('primary')
-    const client = await loadPgClient({ useSystemDb: true })
+    const dbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
+    const client = await loadPgClient({ useSystemDb: true, connectionName })
 
     if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`

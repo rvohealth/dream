@@ -1,4 +1,5 @@
 import DreamCLI from '../cli/index.js'
+import DreamApp from '../dream-app/index.js'
 import Query from '../dream/Query.js'
 import generateDream from '../helpers/cli/generateDream.js'
 import sspawn from '../helpers/sspawn.js'
@@ -9,25 +10,37 @@ export default class DreamBin {
   }
 
   public static async dbCreate() {
-    await Query.dbDriverClass().dbCreate()
+    const dreamApp = DreamApp.getOrFail()
+    for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+      await Query.dbDriverClass().dbCreate(connectionName)
+    }
   }
 
   public static async dbDrop() {
-    await Query.dbDriverClass().dbDrop()
+    const dreamApp = DreamApp.getOrFail()
+    for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+      await Query.dbDriverClass().dbDrop(connectionName)
+    }
   }
 
   public static async dbMigrate() {
-    await Query.dbDriverClass().migrate()
+    const dreamApp = DreamApp.getOrFail()
+    for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+      await Query.dbDriverClass().migrate(connectionName)
+    }
   }
 
   public static async dbRollback(opts: { steps: number }) {
-    await Query.dbDriverClass().rollback(opts)
+    const dreamApp = DreamApp.getOrFail()
+    for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+      await Query.dbDriverClass().rollback({ ...opts, connectionName })
+    }
   }
 
   public static async generateDream(
     fullyQualifiedModelName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean; stiBaseSerializer: boolean }
+    options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
   ) {
     await generateDream({
       fullyQualifiedModelName,
@@ -40,7 +53,7 @@ export default class DreamBin {
     fullyQualifiedModelName: string,
     fullyQualifiedParentName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean }
+    options: { serializer: boolean; connectionName: string }
   ) {
     await generateDream({
       fullyQualifiedModelName,
@@ -50,8 +63,12 @@ export default class DreamBin {
     })
   }
 
-  public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {
-    await Query.dbDriverClass().generateMigration(migrationName, columnsWithTypes)
+  public static async generateMigration(
+    migrationName: string,
+    columnsWithTypes: string[],
+    connectionName: string
+  ) {
+    await Query.dbDriverClass().generateMigration(connectionName, migrationName, columnsWithTypes)
   }
 
   // though this is a private method, it is still used internally.

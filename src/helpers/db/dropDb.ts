@@ -5,13 +5,18 @@ import { DbConnectionType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 
-export default async function dropDb(connection: DbConnectionType, dbName?: string | null) {
+export default async function dropDb(
+  // TODO: maybe harden type for connectionName
+  connectionName: string,
+  connection: DbConnectionType,
+  dbName?: string | null
+) {
   // this was only ever written to clear the db between tests or in development,
   // so there is no way to drop in production
   if (EnvInternal.isProduction) return false
 
   const dreamApp = DreamApp.getOrFail()
-  const dbConf = dreamApp.dbConnectionConfig(connection)
+  const dbConf = dreamApp.dbConnectionConfig(connectionName, connection)
 
   dbName ||= dbConf.name || null
   if (!dbName)
@@ -19,7 +24,7 @@ export default async function dropDb(connection: DbConnectionType, dbName?: stri
       'Must either pass a dbName to the drop function, or else ensure that DB_NAME is set in the env'
     )
 
-  const client = await loadPgClient({ useSystemDb: true })
+  const client = await loadPgClient({ useSystemDb: true, connectionName })
 
   await maybeDropDuplicateDatabases(client, dbName)
   await client.query(`DROP DATABASE IF EXISTS ${dbName};`)

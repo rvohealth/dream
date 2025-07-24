@@ -112,12 +112,19 @@ export default class DreamCLI {
       .alias('g:migration')
       .description('create a new migration')
       .argument('<migrationName>', 'end with -to-table-name to prepopulate with an alterTable command')
+      .option('--connection-name <connectionName>', 'the connection name you wish to use for your migration')
       .argument('[columnsWithTypes...]', columnsWithTypesDescriptionForMigration)
-      .action(async (migrationName: string, columnsWithTypes: string[]) => {
-        await initializeDreamApp()
-        await DreamBin.generateMigration(migrationName, columnsWithTypes)
-        process.exit()
-      })
+      .action(
+        async (migrationName: string, columnsWithTypes: string[], options: { connectionName?: string }) => {
+          await initializeDreamApp()
+          await DreamBin.generateMigration(
+            migrationName,
+            columnsWithTypes,
+            options.connectionName || 'default'
+          )
+          process.exit()
+        }
+      )
 
     program
       .command('generate:model')
@@ -125,6 +132,11 @@ export default class DreamCLI {
       .alias('generate:dream')
       .alias('g:dream')
       .option('--no-serializer')
+      .option(
+        '--connection-name <connectionName>',
+        'the db connection you want this attached to (defaults to the default db connection)',
+        'default'
+      )
       .option('--sti-base-serializer')
       .description('create a new Dream model')
       .argument(
@@ -136,7 +148,7 @@ export default class DreamCLI {
         async (
           modelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; stiBaseSerializer: boolean }
+          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
         ) => {
           await initializeDreamApp()
           await DreamBin.generateDream(modelName, columnsWithTypes, options)
@@ -151,6 +163,11 @@ export default class DreamCLI {
         'create a new Dream model that extends another Dream model, leveraging STI (single table inheritance)'
       )
       .option('--no-serializer')
+      .option(
+        '--connection-name',
+        'the db connection you want this model attached to (defaults to the default connection)',
+        'default'
+      )
       .argument(
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -169,7 +186,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           extendsWord: string,
           parentModelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean }
+          options: { serializer: boolean; connectionName: string }
         ) => {
           await initializeDreamApp()
           if (extendsWord !== 'extends')
