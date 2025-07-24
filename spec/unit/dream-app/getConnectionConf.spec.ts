@@ -39,61 +39,12 @@ describe('DreamApp#getConnectionConf', () => {
 
   const subject = () => {
     updateDbCredentials()
-    return DreamApp.getOrFail().dbConnectionConfig(connection)
+    return DreamApp.getOrFail().dbConnectionConfig('default', connection)
   }
 
-  context('with no connection passed', () => {
-    it('returns config for primary connection', () => {
-      expect(subject()).toEqual({
-        name: 'DB_NAME',
-        host: 'DB_HOST',
-        port: 3333,
-        password: 'DB_PASSWORD',
-        user: 'DB_USER',
-        useSsl: false,
-      })
-    })
-  })
-
-  context('with primary connection passed', () => {
-    beforeEach(() => {
-      connection = 'primary'
-    })
-
-    it('returns config for primary connection', () => {
-      expect(subject()).toEqual({
-        name: 'DB_NAME',
-        host: 'DB_HOST',
-        port: 3333,
-        password: 'DB_PASSWORD',
-        user: 'DB_USER',
-        useSsl: false,
-      })
-    })
-  })
-
-  context('with replica connection passed', () => {
-    beforeEach(() => {
-      connection = 'replica'
-    })
-
-    it('returns config for replica connection', () => {
-      expect(subject()).toEqual({
-        name: 'DB_REPLICA_NAME',
-        host: 'DB_REPLICA_HOST',
-        port: 4444,
-        password: 'DB_REPLICA_PASSWORD',
-        user: 'DB_REPLICA_USER',
-        useSsl: true,
-      })
-    })
-
-    context('with no replica config set', () => {
-      beforeEach(() => {
-        replicaConfig = undefined
-      })
-
-      it('returns primary replica', () => {
+  context('default connectionName', () => {
+    context('with no connection passed', () => {
+      it('returns config for primary connection', () => {
         expect(subject()).toEqual({
           name: 'DB_NAME',
           host: 'DB_HOST',
@@ -103,6 +54,63 @@ describe('DreamApp#getConnectionConf', () => {
           useSsl: false,
         })
       })
+    })
+
+    context('with primary connection passed', () => {
+      beforeEach(() => {
+        connection = 'primary'
+      })
+
+      it('returns config for primary connection', () => {
+        expect(subject()).toEqual({
+          name: 'DB_NAME',
+          host: 'DB_HOST',
+          port: 3333,
+          password: 'DB_PASSWORD',
+          user: 'DB_USER',
+          useSsl: false,
+        })
+      })
+    })
+
+    context('with replica connection passed', () => {
+      beforeEach(() => {
+        connection = 'replica'
+      })
+
+      it('returns config for replica connection', () => {
+        expect(subject()).toEqual({
+          name: 'DB_REPLICA_NAME',
+          host: 'DB_REPLICA_HOST',
+          port: 4444,
+          password: 'DB_REPLICA_PASSWORD',
+          user: 'DB_REPLICA_USER',
+          useSsl: true,
+        })
+      })
+
+      context('with no replica config set', () => {
+        beforeEach(() => {
+          replicaConfig = undefined
+        })
+
+        it('returns primary replica', () => {
+          expect(subject()).toEqual({
+            name: 'DB_NAME',
+            host: 'DB_HOST',
+            port: 3333,
+            password: 'DB_PASSWORD',
+            user: 'DB_USER',
+            useSsl: false,
+          })
+        })
+      })
+    })
+  })
+
+  context('secondary connections', () => {
+    it('enables connecting to secondary database', async () => {
+      // TODO: implement
     })
   })
 })

@@ -67,6 +67,17 @@ export default async function (dreamApp: DreamApp) {
       : undefined,
   })
 
+  dreamApp.set('db', 'alternateConnection', {
+    primary: {
+      user: AppEnv.string('DB_USER'),
+      password: AppEnv.string('DB_PASSWORD', { optional: !AppEnv.isProduction }),
+      host: AppEnv.string('DB_HOST', { optional: true }),
+      name: AppEnv.string('DB_NAME_2', { optional: true }),
+      port: AppEnv.integer('DB_PORT_2', { optional: true }),
+      useSsl: false,
+    },
+  })
+
   dreamApp.on('db:log', event => {
     __cacheMessageForTests('db:log')
 

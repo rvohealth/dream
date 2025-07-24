@@ -74,7 +74,7 @@ describe('Dream.findEach', () => {
       await User.findEach(() => {})
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary')
     })
   })
 })

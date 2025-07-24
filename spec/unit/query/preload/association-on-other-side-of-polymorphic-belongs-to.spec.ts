@@ -27,12 +27,14 @@ describe('preloading associations on the other side of a polymorphic belongs-to'
     // from 1, which enabled the spec failure because both the Chore and the Workout were (incorrectly)
     // having the cleaning supply loaded on them
     await Promise.all([
-      sql`ALTER SEQUENCE polymorphic_users_id_seq RESTART 1;`.execute(db('primary')),
-      sql`ALTER SEQUENCE polymorphic_tasks_id_seq RESTART 1;`.execute(db('primary')),
-      sql`ALTER SEQUENCE polymorphic_chores_id_seq RESTART 1;`.execute(db('primary')),
-      sql`ALTER SEQUENCE polymorphic_workouts_id_seq RESTART 1;`.execute(db('primary')),
-      sql`ALTER SEQUENCE polymorphic_cleaning_supplies_id_seq RESTART 1;`.execute(db('primary')),
-      sql`ALTER SEQUENCE polymorphic_chore_cleaning_supplies_id_seq RESTART 1;`.execute(db('primary')),
+      sql`ALTER SEQUENCE polymorphic_users_id_seq RESTART 1;`.execute(db('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_tasks_id_seq RESTART 1;`.execute(db('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_chores_id_seq RESTART 1;`.execute(db('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_workouts_id_seq RESTART 1;`.execute(db('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_cleaning_supplies_id_seq RESTART 1;`.execute(db('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_chore_cleaning_supplies_id_seq RESTART 1;`.execute(
+        db('default', 'primary')
+      ),
     ])
 
     const user = await PolymorphicUser.create()

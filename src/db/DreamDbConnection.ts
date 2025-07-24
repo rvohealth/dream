@@ -11,19 +11,24 @@ import pg from 'pg'
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
 import DreamApp, { KyselyLogEvent, SingleDbCredential } from '../dream-app/index.js'
 import { DbConnectionType } from '../types/db.js'
+import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 
-let connections = {} as { [key: string]: Kysely<any> }
+let connections = {} as { [key: string]: { [key: string]: Kysely<any> } }
 
 export default class DreamDbConnection {
-  public static getConnection<DB>(connectionType: DbConnectionType): Kysely<DB> {
+  public static getConnection<DB>(
+    // TODO: maybe harden type for connectionName
+    connectionName: string,
+    connectionType: DbConnectionType
+  ): Kysely<DB> {
     const dreamApp = DreamApp.getOrFail()
-    const connectionName = this.getConnectionTypeName(connectionType)
-    const connection = connections[connectionName]
+    const connectionTypeName = this.getConnectionTypeName(connectionType)
+    const connection = connections[connectionName]?.[connectionTypeName]
     if (connection) {
       return connection
     }
 
-    const connectionConf = dreamApp.dbConnectionConfig(connectionType)
+    const connectionConf = dreamApp.dbConnectionConfig(connectionName, connectionType)
 
     const dbConn = new Kysely<DB>({
       log(event) {
@@ -37,7 +42,7 @@ export default class DreamDbConnection {
         pool: new pg.Pool({
           user: connectionConf.user || '',
           password: connectionConf.password || '',
-          database: dreamApp.dbName(connectionType),
+          database: dreamApp.dbName(connectionName, connectionType),
           host: connectionConf.host || 'localhost',
           port: connectionConf.port || 5432,
           ssl: connectionConf.useSsl ? sslConfig(connectionConf) : false,
@@ -46,16 +51,11 @@ export default class DreamDbConnection {
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
-    connections[this.getConnectionTypeName(connectionType)] = dbConn
+    const protectedName = protectAgainstPollutingAssignment(connectionName)
+    connections[protectedName] ||= {}
+    connections[protectedName][this.getConnectionTypeName(connectionType)] = dbConn
 
     return dbConn
-  }
-
-  public static async dropAllConnections() {
-    for (const key of Object.keys(connections)) {
-      await connections[key]?.destroy()
-      delete connections[key]
-    }
   }
 
   private static getConnectionTypeName(connectionType: DbConnectionType): string {
@@ -81,6 +81,20 @@ export function dreamDbConnections() {
 }
 
 export async function closeAllDbConnections() {
-  await Promise.all(Object.values(connections).map(conn => conn.destroy()))
+  const connectionNames = Object.keys(connections)
+  for (const connectionName of connectionNames) {
+    await closeAllConnectionsForConnectionName(connectionName)
+  }
   connections = {}
+}
+
+export async function closeAllConnectionsForConnectionName(connectionName: string) {
+  const protectedName = protectAgainstPollutingAssignment(connectionName)
+  return await Promise.allSettled(
+    Object.keys(connections[connectionName]!).map(async key => {
+      const conn = connections[connectionName]![key]!
+      await conn.destroy()
+      delete connections[protectedName]![key]
+    })
+  )
 }
