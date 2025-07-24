@@ -1,6 +1,7 @@
 import { FileMigrationProvider, MigrationResult, Migrator } from 'kysely'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+import DreamCLI from '../../../../cli/index.js'
 import colorize from '../../../../cli/logger/loggable/colorize.js'
 import {
   closeAllConnectionsForConnectionName,
@@ -8,7 +9,6 @@ import {
 } from '../../../../db/DreamDbConnection.js'
 import db from '../../../../db/index.js'
 import DreamApp from '../../../../dream-app/index.js'
-import DreamCLI from '../../../../cli/index.js'
 
 type MigrationModes = 'migrate' | 'rollback'
 
