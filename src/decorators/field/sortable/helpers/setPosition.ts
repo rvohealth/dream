@@ -148,7 +148,7 @@ async function setNewPosition({
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
-  const dbOrTxn = txn ? txn.kyselyTransaction : db('primary')
+  const dbOrTxn = txn ? txn.kyselyTransaction : db(dream.connectionName || 'default', 'primary')
   await dbOrTxn
     .updateTable(dream.table as any)
     .where(dream['_primaryKey'], '=', dream.primaryKeyValue())

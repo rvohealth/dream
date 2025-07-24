@@ -36,7 +36,7 @@ describe('DreamApp#hasReplicaConfig', () => {
 
   const subject = () => {
     updateDbCredentials()
-    return DreamApp.getOrFail().hasReplicaConfig
+    return DreamApp.getOrFail().hasReplicaConfig('default')
   }
 
   context('when replica config is present', () => {

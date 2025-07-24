@@ -14,8 +14,8 @@ import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#preload with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary'))
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('primary'))
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('default', 'primary'))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('default', 'primary'))
   })
 
   context('HasMany', () => {

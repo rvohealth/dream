@@ -45,7 +45,10 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
     sqlCommandType: SqlCommandType
   ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType))
+    return _db<DreamInstance>(
+      this.dreamInstance.connectionName || 'default',
+      this.dbConnectionType(sqlCommandType)
+    )
   }
 
   private isReplicaSafe(): boolean {

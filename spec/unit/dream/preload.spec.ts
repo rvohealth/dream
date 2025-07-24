@@ -71,8 +71,8 @@ describe('Dream.preload', () => {
 
     await User.connection('replica').preload('compositions', 'compositionAssets').all()
 
-    expect(spy).toHaveBeenCalledWith('replica')
-    expect(spy).not.toHaveBeenCalledWith('primary')
+    expect(spy).toHaveBeenCalledWith('default', 'replica')
+    expect(spy).not.toHaveBeenCalledWith('default', 'primary')
   })
 
   it('supports overriding the connection when using a where clause', async () => {
@@ -85,8 +85,8 @@ describe('Dream.preload', () => {
       .preload('compositions', { and: { id: composition.id } }, 'compositionAssets')
       .all()
 
-    expect(spy).toHaveBeenCalledWith('replica')
-    expect(spy).not.toHaveBeenCalledWith('primary')
+    expect(spy).toHaveBeenCalledWith('default', 'replica')
+    expect(spy).not.toHaveBeenCalledWith('default', 'primary')
   })
 
   context('STI with a polymorphic belongs-to association to another STI model', () => {

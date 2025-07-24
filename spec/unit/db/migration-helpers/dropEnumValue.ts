@@ -6,7 +6,7 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
   let _db: Kysely<any>
 
   beforeEach(async () => {
-    _db = db('primary')
+    _db = db('default', 'primary')
     await _db.schema.createType('temp_enum').asEnum(['a', 'b', 'c']).execute()
   })
 

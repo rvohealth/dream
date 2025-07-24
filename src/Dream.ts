@@ -192,6 +192,10 @@ export default class Dream {
     throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'schema')
   }
 
+  public get connectionName(): any {
+    return 'default' as const
+  }
+
   public get globalSchema(): any {
     throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'globalSchema')
   }
@@ -2207,7 +2211,8 @@ export default class Dream {
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await db('primary')
+    // TODO: move this to kysely class
+    await db(this.prototype.connectionName || 'default', 'primary')
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction

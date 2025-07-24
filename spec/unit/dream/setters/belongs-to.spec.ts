@@ -46,8 +46,8 @@ describe('BelongsTo setters', () => {
     })
 
     it('the original foreign key and type are stored in the changedAttributes foreign key and type', async () => {
-      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('primary'))
-      await sql`ALTER SEQUENCE posts_id_seq RESTART 100;`.execute(db('primary'))
+      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('default', 'primary'))
+      await sql`ALTER SEQUENCE posts_id_seq RESTART 100;`.execute(db('default', 'primary'))
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const composition = await Composition.create({ user })

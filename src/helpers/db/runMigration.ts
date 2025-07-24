@@ -3,21 +3,28 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import DreamCLI from '../../cli/index.js'
 import colorize from '../../cli/logger/loggable/colorize.js'
-import DreamDbConnection from '../../db/DreamDbConnection.js'
 import db from '../../db/index.js'
 import DreamApp from '../../dream-app/index.js'
+import { closeAllConnectionsForConnectionName, closeAllDbConnections } from '../../db/DreamDbConnection.js'
 
 type MigrationModes = 'migrate' | 'rollback'
 
 interface MigrationOpts {
+  connectionName: string
   mode?: MigrationModes
 }
 
-export default async function runMigration({ mode = 'migrate' }: MigrationOpts = {}) {
+export default async function runMigration({ connectionName, mode = 'migrate' }: MigrationOpts) {
   const dreamApp = DreamApp.getOrFail()
-  const migrationFolder = path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
+  const migrationFolder =
+    connectionName === 'default'
+      ? path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations')
+      : path.join(dreamApp.projectRoot, dreamApp.paths.db, 'migrations', connectionName)
 
-  const kyselyDb = db('primary')
+  // Ensure the migration folder exists
+  await fs.mkdir(migrationFolder, { recursive: true })
+
+  const kyselyDb = db(connectionName, 'primary')
 
   const migrator = new Migrator({
     db: kyselyDb,
@@ -35,7 +42,7 @@ export default async function runMigration({ mode = 'migrate' }: MigrationOpts =
     await rollback(migrator)
   }
 
-  await DreamDbConnection.dropAllConnections()
+  await closeAllConnectionsForConnectionName(connectionName)
 }
 
 async function migrate(migrator: Migrator) {
@@ -106,7 +113,7 @@ async function rollback(migrator: Migrator) {
 }
 
 async function handleError(error: any, mode: MigrationModes) {
-  await DreamDbConnection.dropAllConnections()
+  await closeAllDbConnections()
   DreamApp.logWithLevel('error', `failed to ${migratedActionCurrentTense(mode)}`)
   DreamApp.logWithLevel('error', error)
   process.exit(1)

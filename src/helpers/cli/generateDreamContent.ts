@@ -6,6 +6,7 @@ import relativeDreamPath from '../path/relativeDreamPath.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
+import pascalize from '../pascalize.js'
 
 export default function generateDreamContent({
   fullyQualifiedModelName,
@@ -13,10 +14,12 @@ export default function generateDreamContent({
   fullyQualifiedParentName,
   serializer,
   includeAdminSerializers,
+  connectionName = 'default',
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   fullyQualifiedParentName?: string | undefined
+  connectionName?: string
   serializer: boolean
   includeAdminSerializers: boolean
 }) {
@@ -34,9 +37,11 @@ export default function generateDreamContent({
   }
 
   const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
+  const applicationModelName =
+    connectionName === 'default' ? 'ApplicationModel' : `${pascalize(connectionName)}ApplicationModel`
   const modelImportStatements: string[] = isSTI
     ? [importStatementForModel(fullyQualifiedModelName, fullyQualifiedParentName)]
-    : [importStatementForModel(fullyQualifiedModelName, 'ApplicationModel')]
+    : [importStatementForModel(fullyQualifiedModelName, applicationModelName)]
 
   const attributeStatements = columnsWithTypes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
@@ -103,7 +108,7 @@ import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImport
 const deco = new Decorators<typeof ${modelClassName}>()
 
 ${isSTI ? `\n@STI(${parentModelClassName})` : ''}
-export default class ${modelClassName} extends ${isSTI ? parentModelClassName : 'ApplicationModel'} {
+export default class ${modelClassName} extends ${isSTI ? parentModelClassName : applicationModelName} {
 ${
   isSTI
     ? ''

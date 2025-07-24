@@ -21,8 +21,8 @@ describe('replicaSafe specific specs', () => {
   let fakeReplicaConnection: Kysely<unknown>
 
   beforeEach(async () => {
-    const originalPrimaryConnection = DreamDbConnection.getConnection('primary')
-    const connectionConf = DreamApp.getOrFail().dbConnectionConfig('primary')
+    const originalPrimaryConnection = DreamDbConnection.getConnection('default', 'primary')
+    const connectionConf = DreamApp.getOrFail().dbConnectionConfig('default', 'primary')
 
     const fakeReplicaName = `replica_test_${connectionConf.name}`
     fakeReplicaConnection = new Kysely<unknown>({
@@ -40,31 +40,32 @@ describe('replicaSafe specific specs', () => {
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
-    vi.spyOn(DreamDbConnection, 'getConnection').mockImplementation((connectionType: DbConnectionType) =>
-      connectionType === 'replica' ? fakeReplicaConnection : originalPrimaryConnection
+    vi.spyOn(DreamDbConnection, 'getConnection').mockImplementation(
+      (connectionName: string, connectionType: DbConnectionType) =>
+        connectionType === 'replica' ? fakeReplicaConnection : originalPrimaryConnection
     )
 
     // Spec suite truncation does not hit the fake replica database, so delete all data explicitly
-    await sql`DELETE FROM users;`.execute(db('replica'))
-    await sql`DELETE FROM posts;`.execute(db('replica'))
+    await sql`DELETE FROM users;`.execute(db('default', 'replica'))
+    await sql`DELETE FROM posts;`.execute(db('default', 'replica'))
     // end: Spec suite truncation does not hit the fake replica database, so delete all data explicitly
 
     const resetUserSequenceSql = sql`ALTER SEQUENCE users_id_seq RESTART 1;`
     const resetPostsSequenceSql = sql`ALTER SEQUENCE posts_id_seq RESTART 1;`
     const userSql = sql`INSERT INTO users (email, password_digest, created_at, updated_at) VALUES ('fred@frewd.com', 'xxxxxxxxxxxxxxxx', '2025-01-13', '2025-01-13');`
 
-    await resetUserSequenceSql.execute(db('primary'))
-    await resetPostsSequenceSql.execute(db('primary'))
-    await userSql.execute(db('primary'))
+    await resetUserSequenceSql.execute(db('default', 'primary'))
+    await resetPostsSequenceSql.execute(db('default', 'primary'))
+    await userSql.execute(db('default', 'primary'))
     await sql`INSERT INTO posts (user_id, body, created_at, updated_at) VALUES ('1', 'primary body', '2025-01-13', '2025-01-13');`.execute(
-      db('primary')
+      db('default', 'primary')
     )
 
-    await resetUserSequenceSql.execute(db('replica'))
-    await resetPostsSequenceSql.execute(db('replica'))
-    await userSql.execute(db('replica'))
+    await resetUserSequenceSql.execute(db('default', 'replica'))
+    await resetPostsSequenceSql.execute(db('default', 'replica'))
+    await userSql.execute(db('default', 'replica'))
     await sql`INSERT INTO posts (user_id, body, created_at, updated_at) VALUES ('1', 'replica body', '2025-01-13', '2025-01-13');`.execute(
-      db('replica')
+      db('default', 'replica')
     )
   })
 
