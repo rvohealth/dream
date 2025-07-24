@@ -1,8 +1,9 @@
 import pluralize from 'pluralize-esm'
+import Dream from '../../Dream.js'
+import Query from '../../dream/Query.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
 import { PrimaryKeyType } from '../../types/dream.js'
 import compact from '../compact.js'
-import foreignKeyTypeFromPrimaryKey from '../db/foreignKeyTypeFromPrimaryKey.js'
 import snakeify from '../snakeify.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
@@ -304,7 +305,8 @@ function generateBelongsToStr(
     optional: boolean
   }
 ) {
-  const dataType = foreignKeyTypeFromPrimaryKey(primaryKeyType)
+  const dbDriverClass = Query.dbDriverClass<Dream>()
+  const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
   return `.addColumn('${associationNameToForeignKey(associationName)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }

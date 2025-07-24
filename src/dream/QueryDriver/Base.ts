@@ -1,7 +1,12 @@
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
-import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
+import {
+  DreamColumnNames,
+  DreamConstructorType,
+  DreamTableSchema,
+  PrimaryKeyType,
+} from '../../types/dream.js'
 import {
   PreloadedDreamsAndWhatTheyPointTo,
   QueryToKyselyDBType,
@@ -37,7 +42,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * migrate the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async migrate() {
+  public static async migrate(
+    // TODO: maybe harden type for connectionName
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
     throw new Error('override migrate in child class')
   }
 
@@ -45,7 +54,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * rollback the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async rollback(_: { steps: number }) {
+  public static async rollback(_: {
+    // TODO: maybe harden type for connectionName
+    connectionName: string
+    steps: number
+  }) {
     throw new Error('override rollback in child class')
   }
 
@@ -53,7 +66,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * create the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async dbCreate() {
+  public static async dbCreate(
+    // TODO: maybe harden type for connectionName
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
     throw new Error('override dbCreate on child class')
   }
 
@@ -61,7 +78,11 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * delete the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async dbDrop() {
+  public static async dbDrop(
+    // TODO: maybe harden type for connectionName
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
     throw new Error('override dbDrop on child class')
   }
 
@@ -73,8 +94,15 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * is sorted by date in the file tree, and, more importantly, so
    * they can be run in order by your migration runner.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async generateMigration(migrationName: string, columnsWithTypes: string[]) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async generateMigration(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    migrationName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    columnsWithTypes: string[]
+  ) {
     throw new Error('override generateMigration in child class')
   }
 
@@ -124,6 +152,51 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   >(type: QueryType): ToKyselyReturnType {
     throw new Error('implement toKysely in child class (if it makes sense)')
+  }
+
+  /**
+   * Builds a new DreamTransaction instance, provides
+   * the instance to the provided callback.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).create({ email: 'how@yadoin' })
+   *   await Pet.txn(txn).create({ user })
+   * })
+   * ```
+   *
+   * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
+   * @returns void
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async transaction<
+    DreamInstance extends Dream,
+    CB extends (txn: DreamTransaction<DreamInstance>) => unknown,
+    RetType extends ReturnType<CB>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  >(dreamInstance: DreamInstance, callback: CB): Promise<RetType> {
+    throw new Error('implement transaction in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * returns the foreign key type based on the primary key received.
+   * gives the driver the opportunity to switch i.e. bigserial to bigint.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType) {
+    throw new Error('implement foreignKeyTypeFromPrimaryKey in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * used to return the computed primary key type based
+   * on the primaryKeyType set in the DreamApp class.
+   */
+  public static primaryKeyType() {
+    throw new Error('implement primaryKeyType in child class')
   }
 
   /**

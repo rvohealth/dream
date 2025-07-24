@@ -14,18 +14,26 @@ import generateStiMigrationContent from './generateStiMigrationContent.js'
 export default async function generateMigration({
   migrationName,
   columnsWithTypes,
+  connectionName,
   fullyQualifiedModelName,
   fullyQualifiedParentName,
 }: {
   migrationName: string
   columnsWithTypes: string[]
+  connectionName: string
   fullyQualifiedModelName?: string | undefined
   fullyQualifiedParentName?: string | undefined
 }) {
-  const { relFilePath, absFilePath } = dreamFileAndDirPaths(
-    path.join(dreamPath('db'), 'migrations'),
-    `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
-  )
+  const { relFilePath, absFilePath } =
+    connectionName === 'default'
+      ? dreamFileAndDirPaths(
+          path.join(dreamPath('db'), 'migrations'),
+          `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
+        )
+      : dreamFileAndDirPaths(
+          path.join(dreamPath('db'), 'migrations', connectionName),
+          `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
+        )
 
   const isSTI = !!fullyQualifiedParentName
   let finalContent: string = ''

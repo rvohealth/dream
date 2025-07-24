@@ -8,7 +8,8 @@ import DreamDbConnection from './DreamDbConnection.js'
 if (EnvInternal.string('TZ', { optional: true })) Settings.defaultZone = EnvInternal.string('TZ')
 
 export default function db<T extends Dream, DB extends T['DB'] = T['DB']>(
+  connectionName: string,
   connectionType: DbConnectionType = 'primary'
 ): Kysely<DB> {
-  return DreamDbConnection.getConnection<DB>(connectionType)
+  return DreamDbConnection.getConnection<DB>(connectionName, connectionType)
 }

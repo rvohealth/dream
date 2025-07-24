@@ -1,3 +1,13 @@
+// after building for esm, importing pg using the following:
+//
+//  import * as pg from 'pg'
+//
+// will crash. This is difficult to discover, since it only happens
+// when being imported from our esm build.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import pg from 'pg'
+
 import {
   AliasedExpression,
   DeleteQueryBuilder,
@@ -14,10 +24,11 @@ import {
   UpdateQueryBuilder,
 } from 'kysely'
 import pluralize from 'pluralize-esm'
-import writeSyncFile from '../../bin/helpers/sync.js'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
+import { isPrimitiveDataType } from '../../db/dataTypes.js'
 import { CHECK_VIOLATION, INVALID_INPUT_SYNTAX, NOT_NULL_VIOLATION, pgErrorType } from '../../db/errors.js'
+import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
@@ -40,19 +51,31 @@ import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
-import SchemaBuilder from '../../helpers/cli/SchemaBuilder.js'
+import SchemaBuilder, {
+  SchemaBuilderAssociationData,
+  SchemaBuilderColumnData,
+  SchemaBuilderInformationSchemaRow,
+} from '../../helpers/cli/SchemaBuilder.js'
 import compact from '../../helpers/compact.js'
+import {
+  findCitextArrayOid,
+  findCorrespondingArrayOid,
+  findEnumArrayOids,
+  parsePostgresBigint,
+  parsePostgresDate,
+  parsePostgresDatetime,
+  parsePostgresDecimal,
+} from '../../helpers/customPgParsers.js'
 import { DateTime } from '../../helpers/DateTime.js'
-import createDb from '../../helpers/db/createDb.js'
-import _dropDb from '../../helpers/db/dropDb.js'
-import loadPgClient from '../../helpers/db/loadPgClient.js'
-import runMigration from '../../helpers/db/runMigration.js'
+import _dropDb from './helpers/kysely/dropDb.js'
+import loadPgClient from './helpers/kysely/loadPgClient.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import groupBy from '../../helpers/groupBy.js'
 import isEmpty from '../../helpers/isEmpty.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
 import normalizeUnicode from '../../helpers/normalizeUnicode.js'
 import objectPathsToArrays from '../../helpers/objectPathsToArrays.js'
+import pascalize from '../../helpers/pascalize.js'
 import protectAgainstPollutingAssignment from '../../helpers/protectAgainstPollutingAssignment.js'
 import { Range } from '../../helpers/range.js'
 import snakeify from '../../helpers/snakeify.js'
@@ -75,6 +98,7 @@ import {
   DreamTableSchema,
   JoinAndStatements,
   OrderDir,
+  PrimaryKeyType,
   RelaxedJoinAndStatement,
   RelaxedJoinStatement,
   RelaxedPreloadOnStatement,
@@ -89,7 +113,7 @@ import {
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
 } from '../../types/query.js'
-import { DreamConst } from '../constants.js'
+import { DreamConst, primaryKeyTypes } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
 import throughAssociationHasOptionsBesidesThroughAndSource from '../internal/associations/throughAssociationHasOptionsBesidesThroughAndSource.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
@@ -100,6 +124,10 @@ import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
+import createDb from './helpers/kysely/createDb.js'
+import runMigration from './helpers/kysely/runMigration.js'
+
+const pgTypes = pg.types
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   // ATTENTION FRED
@@ -114,45 +142,83 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     sqlCommandType: SqlCommandType
   ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
     if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(this.dbConnectionType(sqlCommandType))
+    return _db<DreamInstance>(
+      this.dreamInstance.connectionName || 'default',
+      this.dbConnectionType(sqlCommandType)
+    )
   }
 
   /**
    * migrate the database. Must respond to the NODE_ENV value.
    */
-  public static override async migrate() {
+  public static override async migrate(
+    // TODO: maybe harden type for connectionName
+    connectionName: string
+  ) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
     DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
 
-    await runMigration({ mode: 'migrate' })
+    await runMigration({ connectionName, mode: 'migrate' })
     DreamCLI.logger.logEndProgress()
 
-    await this.duplicateDatabase()
+    await this.duplicateDatabase(connectionName)
   }
 
   /**
    * rollback the database. Must respond to the NODE_ENV value.
    */
-  public static override async rollback(opts: { steps: number }) {
+  public static override async rollback(opts: {
+    // TODO: maybe harden type for connectionName
+    connectionName: string
+    steps: number
+  }) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(opts.connectionName || 'default', 'primary')
     DreamCLI.logger.logStartProgress(`rolling back ${primaryDbConf.name}...`)
 
     let step = opts.steps
     while (step > 0) {
-      await runMigration({ mode: 'rollback' })
+      await runMigration({ connectionName: opts.connectionName, mode: 'rollback' })
       step -= 1
     }
     DreamCLI.logger.logEndProgress()
 
-    await this.duplicateDatabase()
+    await this.duplicateDatabase(opts.connectionName)
   }
 
-  public static override async generateMigration(migrationName: string, columnsWithTypes: string[]) {
-    await generateMigration({ migrationName, columnsWithTypes })
+  /**
+   * This should build a new migration file in the migrations folder
+   * of your application. This will then need to be read and run
+   * whenever the `migrate` method is called. The filename should
+   * contain a timestamp at the front of the filename, so that it
+   * is sorted by date in the file tree, and, more importantly, so
+   * they can be run in order by your migration runner.
+   */
+  public static override async generateMigration(
+    connectionName: string,
+    migrationName: string,
+    columnsWithTypes: string[]
+  ) {
+    await generateMigration({ migrationName, columnsWithTypes, connectionName })
   }
 
+  /**
+   * defines the syncing behavior for dream and psychic,
+   * which is run whenever the `sync` command is called.
+   * This is an important step, and will be incredibly
+   * comlpex to override. You will need to do the following
+   * when overriding this method:
+   *
+   * 1. introspect the db and use it to generate a db.ts file in the
+   *    same shape as the existing one. Currently, the process for generating
+   *    this file is extremely complex and messy, and will be difficult
+   *    to achieve.
+   * 2. generate a types/dream.ts file in the same shape as the existing
+   *    one. This is normally done using `await new SchemaBuilder().build()`,
+   *    but this will likely need to be overridden to tailor to your custom
+   *    database engine.
+   */
   public static override async sync(
     onSync: () => Promise<void> | void,
     options: { schemaOnly?: boolean } = {}
@@ -160,34 +226,40 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     try {
       if (!options?.schemaOnly) {
         await DreamCLI.logger.logProgress('writing db schema...', async () => {
-          await writeSyncFile()
+          await syncDbTypesFiles()
         })
       }
 
-      const schemaBuilder = new SchemaBuilder()
+      const dreamApp = DreamApp.getOrFail()
+      for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+        const schemaBuilder = new SchemaBuilder(connectionName)
 
-      await DreamCLI.logger.logProgress('building dream schema...', async () => {
-        await schemaBuilder.build()
-      })
-
-      if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
         await DreamCLI.logger.logProgress(
-          'triggering resync to correct for foreign key errors...',
-
+          `building dream schema for connection ${connectionName}...`,
           async () => {
-            // TODO: make this customizable to enable dream apps to separate
-            const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
-
-            await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
-              onStdout: str => {
-                DreamCLI.logger.logContinueProgress(`${str}`, {
-                  logPrefix: '  ├ [resync]',
-                  logPrefixColor: 'blue',
-                })
-              },
-            })
+            await schemaBuilder.build()
           }
         )
+
+        if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
+          await DreamCLI.logger.logProgress(
+            'triggering resync to correct for foreign key errors...',
+
+            async () => {
+              // TODO: make this customizable to enable dream apps to separate
+              const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
+
+              await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
+                onStdout: str => {
+                  DreamCLI.logger.logContinueProgress(`${str}`, {
+                    logPrefix: '  ├ [resync]',
+                    logPrefixColor: 'blue',
+                  })
+                },
+              })
+            }
+          )
+        }
       }
 
       if (!options?.schemaOnly) {
@@ -205,20 +277,66 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   /**
+   * @internal
+   *
+   * returns the foreign key type based on the primary key received.
+   * gives the driver the opportunity to switch i.e. bigserial to bigint.
+   */
+  public static override foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType) {
+    switch (primaryKey) {
+      case 'bigserial':
+        return 'bigint'
+
+      default:
+        return primaryKey
+    }
+  }
+
+  /**
+   * @internal
+   *
+   * used to return the computed primary key type based
+   * on the primaryKeyType set in the DreamApp class.
+   */
+  public static override primaryKeyType() {
+    const dreamconf = DreamApp.getOrFail()
+
+    switch (dreamconf.primaryKeyType) {
+      case 'bigint':
+      case 'bigserial':
+      case 'uuid':
+      case 'integer':
+        return dreamconf.primaryKeyType
+
+      default: {
+        // protection so that if a new EncryptAlgorithm is ever added, this will throw a type error at build time
+        const _never: never = dreamconf.primaryKeyType
+        throw new Error(`
+  ATTENTION!
+
+    unrecognized primary key type "${_never as string}" found in .dream.yml.
+    please use one of the allowed primary key types:
+      ${primaryKeyTypes.join(', ')}
+        `)
+      }
+    }
+  }
+
+  /**
    * create the database. Must respond to the NODE_ENV value.
    */
-  public static override async dbCreate() {
+  public static override async dbCreate(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
 
     DreamCLI.logger.logStartProgress(`creating ${primaryDbConf.name}...`)
-    await createDb('primary')
+    await createDb(connectionName, 'primary')
     DreamCLI.logger.logEndProgress()
 
     // TODO: add support for creating replicas. Began doing it below, but it is very tricky,
     // and we don't need it at the moment, so kicking off for future development when we have more time
     // to flesh this out.
-    // if (connectionRetriever.hasReplicaConfig()) {
+    // if (connectionRetriever.hasReplicaConfig(connectionName)) {
     //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
     //   console.log(`creating ${process.env[replicaDbConf.name]}`)
     //   await createDb('replica')
@@ -228,18 +346,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * delete the database. Must respond to the NODE_ENV value.
    */
-  public static override async dbDrop() {
+  public static override async dbDrop(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig('primary')
+    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
 
     DreamCLI.logger.logStartProgress(`dropping ${primaryDbConf.name}...`)
-    await _dropDb('primary')
+    await _dropDb(connectionName, 'primary')
     DreamCLI.logger.logEndProgress()
 
     // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,
     // and we don't need it at the moment, so kicking off for future development when we have more time
     // to flesh this out.
-    // if (connectionRetriever.hasReplicaConfig()) {
+    // if (connectionRetriever.hasReplicaConfig(connectionName)) {
     //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
     //   console.log(`dropping ${process.env[replicaDbConf.name]}`)
     //   await _dropDb('replica')
@@ -287,6 +405,154 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         throw new Error(`Unhandled QueryType: ${_never as string}`)
       }
     }
+  }
+
+  /**
+   * Builds a new DreamTransaction instance, provides
+   * the instance to the provided callback.
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await User.txn(txn).create({ email: 'how@yadoin' })
+   *   await Pet.txn(txn).create({ user })
+   * })
+   * ```
+   *
+   * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
+   * @returns void
+   */
+  public static override async transaction<
+    DreamInstance extends Dream,
+    CB extends (txn: DreamTransaction<DreamInstance>) => unknown,
+    RetType extends ReturnType<CB>,
+  >(dreamInstance: DreamInstance, callback: CB): Promise<RetType> {
+    const dreamTransaction = new DreamTransaction()
+    let callbackResponse: RetType = undefined as RetType
+
+    // TODO: move this to kysely class
+    await _db(dreamInstance.connectionName || 'default', 'primary')
+      .transaction()
+      .execute(async kyselyTransaction => {
+        dreamTransaction.kyselyTransaction = kyselyTransaction
+        callbackResponse = (await (callback as (txn: DreamTransaction<DreamInstance>) => Promise<unknown>)(
+          dreamTransaction
+        )) as RetType
+      })
+
+    await dreamTransaction.runAfterCommitHooks(dreamTransaction)
+
+    return callbackResponse
+  }
+
+  public static async setDatabaseTypeParsers(connectionName: string) {
+    const kyselyDb = _db(connectionName, 'primary')
+
+    pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
+
+    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
+
+    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
+
+    pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
+
+    pgTypes.setTypeParser(pgTypes.builtins.INT8, parsePostgresBigint)
+
+    const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
+    if (textArrayOid) {
+      let oid: number | undefined
+
+      const textArrayParser = pgTypes.getTypeParser(textArrayOid)
+
+      function transformPostgresArray(
+        transformer:
+          | typeof parsePostgresDate
+          | typeof parsePostgresDatetime
+          | typeof parsePostgresDecimal
+          | typeof parsePostgresBigint
+      ) {
+        return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
+      }
+
+      const enumArrayOids = await findEnumArrayOids(kyselyDb)
+      enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
+
+      oid = await findCitextArrayOid(kyselyDb)
+      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
+      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDate))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.INT8)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresBigint))
+    }
+  }
+
+  /**
+   * @internal
+
+   * this is used by the SchemaBuilder to store column data permanently
+   * within the types/dream.ts file.
+   */
+  public static async getColumnData(
+    connectionName: string,
+    tableName: string,
+    associationData: { [key: string]: SchemaBuilderAssociationData }
+  ) {
+    const db = _db(connectionName, 'primary')
+    const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
+    const columnToDBTypeMap = await sqlQuery.execute(db)
+    const rows = columnToDBTypeMap.rows as SchemaBuilderInformationSchemaRow[]
+
+    const columnData: {
+      [key: string]: SchemaBuilderColumnData
+    } = {}
+    rows.forEach(row => {
+      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
+      const isArray = ['ARRAY'].includes(row.dataType)
+      const associationMetadata = associationData[row.columnName]
+
+      columnData[camelize(row.columnName)] = {
+        dbType: row.udtName,
+        allowNull: row.isNullable === 'YES',
+        enumType: isEnum ? this.enumType(row) : null,
+        enumValues: isEnum ? `${this.enumType(row)}Values` : null,
+        isArray,
+        foreignKey: associationMetadata?.foreignKey || null,
+      }
+    })
+
+    return Object.keys(columnData)
+      .sort()
+      .reduce(
+        (acc, key) => {
+          if (columnData[key] === undefined) return acc
+          acc[key] = columnData[key]
+          return acc
+        },
+        {} as { [key: string]: SchemaBuilderColumnData }
+      )
+  }
+
+  /**
+   * @internal
+   *
+   * this is used by getColumnData to serialize enums
+   */
+  public static enumType(row: SchemaBuilderInformationSchemaRow) {
+    const enumName = pascalize(row.udtName.replace(/\[\]$/, ''))
+    return enumName
   }
 
   /**
@@ -559,7 +825,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * subsequent model hooks that are fired.
    */
   public static override async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
-    const db = txn?.kyselyTransaction ?? _db('primary')
+    const connectionName = (dream as any).connectionName || 'default'
+
+    const db = txn?.kyselyTransaction ?? _db(connectionName, 'primary')
 
     const sqlifiedAttributes = sqlAttributes(dream)
 
@@ -812,14 +1080,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     )
   }
 
-  public static async duplicateDatabase() {
+  public static async duplicateDatabase(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
     const parallelTests = dreamApp.parallelTests
     if (!parallelTests) return
 
     DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
-    const dbConf = dreamApp.dbConnectionConfig('primary')
-    const client = await loadPgClient({ useSystemDb: true })
+    const dbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
+    const client = await loadPgClient({ useSystemDb: true, connectionName })
 
     if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`

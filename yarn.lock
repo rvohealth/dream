@@ -692,16 +692,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rvoh/dream-spec-helpers@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@rvoh/dream-spec-helpers@npm:1.1.0"
+"@rvoh/dream-spec-helpers@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@rvoh/dream-spec-helpers@npm:1.1.1"
   dependencies:
     lodash.sortby: "npm:^4.7.0"
   peerDependencies:
     "@types/node": "*"
     "@types/pg": "*"
     pg: "*"
-  checksum: 10c0/8bb829c9e568f58e20ab55480183bbf616d0a79ea55ae8f54caa2729eff84279321317af9cc0ecc4f8b8929b116376a69c97b624ed8a58ff9307fb91fd2228ef
+  checksum: 10c0/9e85894f49030a1ea0e49a6d0295684943c716319154f026facf0ff136b10bbd6d83440d66528abaa39289ebef3465fe7f6fa328bce0c486ef54f857e273f564
   languageName: node
   linkType: hard
 
@@ -710,7 +710,7 @@ __metadata:
   resolution: "@rvoh/dream@workspace:."
   dependencies:
     "@eslint/js": "npm:=9.0.0"
-    "@rvoh/dream-spec-helpers": "npm:^1.1.0"
+    "@rvoh/dream-spec-helpers": "npm:^1.1.1"
     "@types/node": "npm:^22.5.1"
     "@types/pg": "npm:^8.11.11"
     "@types/winston": "npm:^2.4.4"

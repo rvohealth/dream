@@ -8,11 +8,19 @@
 // @ts-ignore
 import pg from 'pg'
 
-import DreamApp from '../../dream-app/index.js'
+import DreamApp from '../../../../dream-app/index.js'
 
-export default async function loadPgClient({ useSystemDb }: { useSystemDb?: boolean } = {}) {
+export default async function loadPgClient({
+  connectionName,
+  useSystemDb,
+  // TODO: maybe harden connectionName type
+}: {
+  connectionName: string
+  useSystemDb?: boolean
+}) {
   const dreamconf = DreamApp.getOrFail()
-  const creds = dreamconf.dbCredentials.primary
+  const creds = dreamconf.dbCredentialsFor(connectionName)?.primary
+  if (!creds) throw new Error(`failed to load db credentials for connection: ${connectionName}`)
 
   const client = new pg.Client({
     host: creds.host || 'localhost',

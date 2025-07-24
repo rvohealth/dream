@@ -3,7 +3,13 @@ import { Env } from '../../../src/index.js'
 class AppEnvClass extends Env<{
   boolean: 'CONSOLE_SERVICE' | 'CLIENT' | 'DB_NO_SSL' | 'REQUEST_LOGGING' | 'WEB_SERVICE' | 'WORKER_SERVICE'
 
-  integer: 'BG_JOBS_REDIS_PORT' | 'DB_PORT' | 'DREAM_PARALLEL_TESTS' | 'REPLICA_DB_PORT' | 'WS_REDIS_PORT'
+  integer:
+    | 'BG_JOBS_REDIS_PORT'
+    | 'DB_PORT'
+    | 'DB_PORT_2'
+    | 'DREAM_PARALLEL_TESTS'
+    | 'REPLICA_DB_PORT'
+    | 'WS_REDIS_PORT'
 
   string:
     | 'APP_ENCRYPTION_KEY'
@@ -13,6 +19,7 @@ class AppEnvClass extends Env<{
     | 'CORS_HOSTS'
     | 'DB_HOST'
     | 'DB_NAME'
+    | 'DB_NAME_2'
     | 'DB_PASSWORD'
     | 'DB_USER'
     | 'REPLICA_DB_HOST'
