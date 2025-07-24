@@ -1,8 +1,8 @@
 import { Client } from 'pg'
-import DreamCLI from '../../cli/index.js'
-import DreamApp from '../../dream-app/index.js'
-import { DbConnectionType } from '../../types/db.js'
-import EnvInternal from '../EnvInternal.js'
+import DreamCLI from '../../../../cli/index.js'
+import DreamApp from '../../../../dream-app/index.js'
+import { DbConnectionType } from '../../../../types/db.js'
+import EnvInternal from '../../../../helpers/EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 
 export default async function dropDb(

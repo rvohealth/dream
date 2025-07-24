@@ -8,7 +8,7 @@
 // @ts-ignore
 import pg from 'pg'
 
-import DreamApp from '../../dream-app/index.js'
+import DreamApp from '../../../../dream-app/index.js'
 
 export default async function loadPgClient({
   connectionName,
