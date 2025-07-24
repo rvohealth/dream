@@ -1,12 +1,11 @@
-import { sql } from 'kysely'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
-import { isPrimitiveDataType } from '../../db/dataTypes.js'
-import _db from '../../db/index.js'
 import dbTypesFilenameForConnection from '../../db/helpers/dbTypesFilenameForConnection.js'
 import DreamApp from '../../dream-app/index.js'
+import Dream from '../../Dream.js'
 import { DreamConst } from '../../dream/constants.js'
+import Query from '../../dream/Query.js'
 import FailedToIdentifyAssociation from '../../errors/schema-builder/FailedToIdentifyAssociation.js'
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import camelize from '../camelize.js'
@@ -241,43 +240,15 @@ may need to update the table getter in the corresponding Dream.
     }
   }
 
-  private async getColumnData(tableName: string, associationData: { [key: string]: AssociationData }) {
-    const db = _db(this.connectionName, 'primary')
-    const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
-    const columnToDBTypeMap = await sqlQuery.execute(db)
-    const rows = columnToDBTypeMap.rows as InformationSchemaRow[]
-
-    const columnData: {
-      [key: string]: ColumnData
-    } = {}
-    rows.forEach(row => {
-      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
-      const isArray = ['ARRAY'].includes(row.dataType)
-      const associationMetadata = associationData[row.columnName]
-
-      columnData[camelize(row.columnName)] = {
-        dbType: row.udtName,
-        allowNull: row.isNullable === 'YES',
-        enumType: isEnum ? this.enumType(row) : null,
-        enumValues: isEnum ? `${this.enumType(row)}Values` : null,
-        isArray,
-        foreignKey: associationMetadata?.foreignKey || null,
-      }
-    })
-
-    return Object.keys(columnData)
-      .sort()
-      .reduce(
-        (acc, key) => {
-          if (columnData[key] === undefined) return acc
-          acc[key] = columnData[key]
-          return acc
-        },
-        {} as { [key: string]: ColumnData }
-      )
+  private async getColumnData(
+    tableName: string,
+    associationData: { [key: string]: SchemaBuilderAssociationData }
+  ) {
+    const dbDriverClass = Query.dbDriverClass<Dream>()
+    return await dbDriverClass.getColumnData(this.connectionName, tableName, associationData)
   }
 
-  private enumType(row: InformationSchemaRow) {
+  private enumType(row: SchemaBuilderInformationSchemaRow) {
     const enumName = pascalize(row.udtName.replace(/\[\]$/, ''))
     return enumName
   }
@@ -296,7 +267,7 @@ may need to update the table getter in the corresponding Dream.
   private getAssociationData(tableName: string, targetAssociationType?: string) {
     const dreamApp = DreamApp.getOrFail()
     const models = sortBy(Object.values(dreamApp.models), m => m.table)
-    const tableAssociationData: { [key: string]: AssociationData } = {}
+    const tableAssociationData: { [key: string]: SchemaBuilderAssociationData } = {}
 
     for (const model of models.filter(model => model.table === tableName)) {
       for (const associationName of model.associationNames) {
@@ -376,7 +347,7 @@ may need to update the table getter in the corresponding Dream.
           acc[key] = tableAssociationData[key]
           return acc
         },
-        {} as { [key: string]: AssociationData }
+        {} as { [key: string]: SchemaBuilderAssociationData }
       )
   }
 
@@ -515,12 +486,12 @@ interface TableData {
     default: readonly string[]
     named: readonly string[]
   }
-  columns: Readonly<{ [key: string]: ColumnData }>
+  columns: Readonly<{ [key: string]: SchemaBuilderColumnData }>
   virtualColumns: readonly string[]
-  associations: Readonly<{ [key: string]: AssociationData }>
+  associations: Readonly<{ [key: string]: SchemaBuilderAssociationData }>
 }
 
-interface AssociationData {
+export interface SchemaBuilderAssociationData {
   tables: string[]
   type: 'BelongsTo' | 'HasOne' | 'HasMany'
   polymorphic: boolean
@@ -529,7 +500,7 @@ interface AssociationData {
   where: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.required> | null
 }
 
-interface ColumnData {
+export interface SchemaBuilderColumnData {
   dbType: string
   allowNull: boolean
   enumType: string | null
@@ -538,7 +509,7 @@ interface ColumnData {
   foreignKey: string | null
 }
 
-interface InformationSchemaRow {
+export interface SchemaBuilderInformationSchemaRow {
   columnName: string
   udtName: string
   dataType: string

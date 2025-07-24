@@ -2,7 +2,6 @@ import { CompiledQuery, Selectable } from 'kysely'
 
 import yoctocolors from 'yoctocolors'
 import { pgErrorType, UNIQUE_VIOLATION } from './db/errors.js'
-import db from './db/index.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
@@ -2208,22 +2207,8 @@ export default class Dream {
     CB extends (txn: DreamTransaction<InstanceType<T>>) => unknown,
     RetType extends ReturnType<CB>,
   >(this: T, callback: CB): Promise<RetType> {
-    const dreamTransaction = new DreamTransaction()
-    let callbackResponse: RetType = undefined as RetType
-
-    // TODO: move this to kysely class
-    await db(this.prototype.connectionName || 'default', 'primary')
-      .transaction()
-      .execute(async kyselyTransaction => {
-        dreamTransaction.kyselyTransaction = kyselyTransaction
-        callbackResponse = (await (callback as (txn: DreamTransaction<InstanceType<T>>) => Promise<unknown>)(
-          dreamTransaction
-        )) as RetType
-      })
-
-    await dreamTransaction.runAfterCommitHooks(dreamTransaction)
-
-    return callbackResponse
+    const dbDriverClass = Query.dbDriverClass<InstanceType<T>>()
+    return (await dbDriverClass.transaction(this.prototype, callback)) as RetType
   }
 
   /**

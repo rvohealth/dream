@@ -9,6 +9,9 @@ describe('DreamApp#getConnectionConf', () => {
       primary: primaryConfig,
       replica: replicaConfig,
     })
+    dreamApp.set('db', 'alternateConnection', {
+      primary: alternateConnectionPrimaryConfig,
+    })
     cacheDreamApp(dreamApp)
     return dreamApp
   }
@@ -16,9 +19,18 @@ describe('DreamApp#getConnectionConf', () => {
   let connection: DbConnectionType
   let primaryConfig: SingleDbCredential
   let replicaConfig: SingleDbCredential | undefined
+  let alternateConnectionPrimaryConfig: SingleDbCredential
 
   beforeEach(() => {
     connection = 'primary'
+    alternateConnectionPrimaryConfig = {
+      name: 'DB_NAME_2',
+      host: 'DB_HOST',
+      port: 3333,
+      password: 'DB_PASSWORD',
+      user: 'DB_USER_2',
+      useSsl: false,
+    }
     primaryConfig = {
       name: 'DB_NAME',
       host: 'DB_HOST',
@@ -109,8 +121,17 @@ describe('DreamApp#getConnectionConf', () => {
   })
 
   context('secondary connections', () => {
-    it('enables connecting to secondary database', async () => {
-      // TODO: implement
+    it('enables connecting to secondary database', () => {
+      updateDbCredentials()
+      const res = DreamApp.getOrFail().dbConnectionConfig('alternateConnection', connection)
+      expect(res).toEqual({
+        name: 'DB_NAME_2',
+        host: 'DB_HOST',
+        port: 3333,
+        password: 'DB_PASSWORD',
+        user: 'DB_USER_2',
+        useSsl: false,
+      })
     })
   })
 })
