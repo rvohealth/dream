@@ -1,33 +1,14 @@
-// after building for esm, importing pg using the following:
-//
-//  import * as pg from 'pg'
-//
-// will crash. This is difficult to discover, since it only happens
-// when being imported from our esm build.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import pg from 'pg'
-
 import { CompiledQuery } from 'kysely'
 import * as util from 'node:util'
 import { Context } from 'node:vm'
-import db from '../db/index.js'
 import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
 import { primaryKeyTypes } from '../dream/constants.js'
+import Query from '../dream/Query.js'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
 import DreamAppInitMissingCallToLoadModels from '../errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
 import CalendarDate from '../helpers/CalendarDate.js'
-import {
-  findCitextArrayOid,
-  findCorrespondingArrayOid,
-  findEnumArrayOids,
-  parsePostgresBigint,
-  parsePostgresDate,
-  parsePostgresDatetime,
-  parsePostgresDecimal,
-} from '../helpers/customPgParsers.js'
 import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import { DbConnectionType } from '../types/db.js'
@@ -38,8 +19,6 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
-
-const pgTypes = pg.types
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -125,58 +104,8 @@ export default class DreamApp {
    */
   private static async setDatabaseTypeParsers(dreamApp: DreamApp) {
     for (const connectionName of Object.keys(dreamApp._dbCredentials)) {
-      const kyselyDb = db(connectionName, 'primary')
-
-      pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
-
-      pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
-
-      pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
-
-      pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
-
-      pgTypes.setTypeParser(pgTypes.builtins.INT8, parsePostgresBigint)
-
-      const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
-      if (textArrayOid) {
-        let oid: number | undefined
-
-        const textArrayParser = pgTypes.getTypeParser(textArrayOid)
-
-        function transformPostgresArray(
-          transformer:
-            | typeof parsePostgresDate
-            | typeof parsePostgresDatetime
-            | typeof parsePostgresDecimal
-            | typeof parsePostgresBigint
-        ) {
-          return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
-        }
-
-        const enumArrayOids = await findEnumArrayOids(kyselyDb)
-        enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
-
-        oid = await findCitextArrayOid(kyselyDb)
-        if (oid) pgTypes.setTypeParser(oid, textArrayParser)
-
-        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
-        if (oid) pgTypes.setTypeParser(oid, textArrayParser)
-
-        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
-        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDate))
-
-        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
-        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
-
-        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
-        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
-
-        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
-        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
-
-        oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.INT8)
-        if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresBigint))
-      }
+      const dbDriverClass = Query.dbDriverClass<Dream>()
+      await dbDriverClass.setDatabaseTypeParsers(connectionName)
     }
   }
 

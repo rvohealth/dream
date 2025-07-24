@@ -1,6 +1,6 @@
-import DreamApp from '../../dream-app/index.js'
-import { DbConnectionType } from '../../types/db.js'
-import EnvInternal from '../EnvInternal.js'
+import DreamApp from '../../../../dream-app/index.js'
+import { DbConnectionType } from '../../../../types/db.js'
+import EnvInternal from '../../../../helpers/EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 
 export default async function createDb(
