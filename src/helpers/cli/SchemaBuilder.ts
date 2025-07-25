@@ -252,7 +252,7 @@ may need to update the table getter in the corresponding Dream.
     tableName: string,
     associationData: { [key: string]: SchemaBuilderAssociationData }
   ) {
-    const dbDriverClass = Query.dbDriverClass<Dream>()
+    const dbDriverClass = Query.dbDriverClass<Dream>(this.connectionName)
     return await dbDriverClass.getColumnData(this.connectionName, tableName, associationData)
   }
 

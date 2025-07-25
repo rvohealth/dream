@@ -1,5 +1,4 @@
 import { sql } from 'kysely'
-import db from '../../../../src/db/index.js'
 import Chore from '../../../../test-app/app/models/Polymorphic/Chore.js'
 import ChoreCleaningSupply from '../../../../test-app/app/models/Polymorphic/ChoreCleaningSupply.js'
 import ChoreImage from '../../../../test-app/app/models/Polymorphic/ChoreImage.js'
@@ -11,6 +10,7 @@ import PolymorphicUser from '../../../../test-app/app/models/Polymorphic/User.js
 import Workout from '../../../../test-app/app/models/Polymorphic/Workout.js'
 import WorkoutImage from '../../../../test-app/app/models/Polymorphic/WorkoutImage.js'
 import WorkoutType from '../../../../test-app/app/models/Polymorphic/WorkoutType.js'
+import testDb from '../../../helpers/testDb.js'
 
 describe('preloading associations on the other side of a polymorphic belongs-to', () => {
   let chore: Chore
@@ -27,13 +27,15 @@ describe('preloading associations on the other side of a polymorphic belongs-to'
     // from 1, which enabled the spec failure because both the Chore and the Workout were (incorrectly)
     // having the cleaning supply loaded on them
     await Promise.all([
-      sql`ALTER SEQUENCE polymorphic_users_id_seq RESTART 1;`.execute(db('default', 'primary')),
-      sql`ALTER SEQUENCE polymorphic_tasks_id_seq RESTART 1;`.execute(db('default', 'primary')),
-      sql`ALTER SEQUENCE polymorphic_chores_id_seq RESTART 1;`.execute(db('default', 'primary')),
-      sql`ALTER SEQUENCE polymorphic_workouts_id_seq RESTART 1;`.execute(db('default', 'primary')),
-      sql`ALTER SEQUENCE polymorphic_cleaning_supplies_id_seq RESTART 1;`.execute(db('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_users_id_seq RESTART 1;`.execute(testDb('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_tasks_id_seq RESTART 1;`.execute(testDb('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_chores_id_seq RESTART 1;`.execute(testDb('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_workouts_id_seq RESTART 1;`.execute(testDb('default', 'primary')),
+      sql`ALTER SEQUENCE polymorphic_cleaning_supplies_id_seq RESTART 1;`.execute(
+        testDb('default', 'primary')
+      ),
       sql`ALTER SEQUENCE polymorphic_chore_cleaning_supplies_id_seq RESTART 1;`.execute(
-        db('default', 'primary')
+        testDb('default', 'primary')
       ),
     ])
 

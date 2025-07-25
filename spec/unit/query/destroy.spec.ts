@@ -375,7 +375,7 @@ describe('Query#destroy', () => {
       await User.where({ email: 'fred@fred' }).destroy()
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
     })
 
     context('with replica connection specified', () => {
@@ -387,7 +387,7 @@ describe('Query#destroy', () => {
 
         // should always call to primary for update, regardless of replica-safe status
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
       })
     })
   })
