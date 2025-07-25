@@ -71,7 +71,7 @@ import DreamTransaction from './DreamTransaction.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
 import extractNestedPaths from './internal/extractNestedPaths.js'
-import PostgresQueryDriver from './QueryDriver/Postgres.js'
+import QueryDriverBase from './QueryDriver/Base.js'
 
 export default class Query<
   DreamInstance extends Dream,
@@ -1738,13 +1738,18 @@ export default class Query<
     return await this.dbDriverInstance().takeAll(options)
   }
 
-  public static dbDriverClass<T extends Dream>() {
-    return PostgresQueryDriver<T>
+  public static dbDriverClass<T extends Dream>(connectionName: string): typeof QueryDriverBase<T> {
+    const dreamApp = DreamApp.getOrFail()
+    return dreamApp.dbConnectionQueryDriverClass(connectionName)
   }
 
-  public dbDriverInstance(query: Query<DreamInstance, any> = this) {
-    const driverClass = Query.dbDriverClass<DreamInstance>()
+  public dbDriverInstance(query: Query<DreamInstance, any> = this): QueryDriverBase<DreamInstance> {
+    const driverClass = Query.dbDriverClass<DreamInstance>(this.connectionName)
     return new driverClass(query)
+  }
+
+  public get connectionName() {
+    return this.dreamInstance.connectionName || 'default'
   }
 
   /**
@@ -1863,7 +1868,7 @@ export default class Query<
     const query = this.orderStatements.length
       ? this
       : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
-    const dbDriverClass = Query.dbDriverClass<DreamInstance>()
+    const dbDriverClass = Query.dbDriverClass<DreamInstance>(this.connectionName)
     return await new dbDriverClass(query).takeOne()
   }
 
@@ -1905,7 +1910,7 @@ export default class Query<
       ? this.invertOrder()
       : this.order({ [this.namespacedPrimaryKey]: 'desc' } as any)
 
-    const dbDriverClass = Query.dbDriverClass<DreamInstance>()
+    const dbDriverClass = Query.dbDriverClass<DreamInstance>(this.connectionName)
     return await new dbDriverClass(query).takeOne()
   }
 

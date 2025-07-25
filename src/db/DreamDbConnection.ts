@@ -6,17 +6,20 @@
 // when being imported from our esm build.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import pg from 'pg'
 
-import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely'
+import { CamelCasePlugin, Kysely } from 'kysely'
 import DreamApp, { KyselyLogEvent, SingleDbCredential } from '../dream-app/index.js'
-import { DbConnectionType } from '../types/db.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
+import { DbConnectionType } from '../types/db.js'
 
 let connections = {} as { [key: string]: { [key: string]: Kysely<any> } }
 
 export default class DreamDbConnection {
-  public static getConnection<DB>(connectionName: string, connectionType: DbConnectionType): Kysely<DB> {
+  public static getConnection<DB>(
+    connectionName: string,
+    connectionType: DbConnectionType,
+    dialectProvider: DialectProviderCb
+  ): Kysely<DB> {
     const dreamApp = DreamApp.getOrFail()
     const connectionTypeName = this.getConnectionTypeName(connectionType)
     const connection = connections[connectionName]?.[connectionTypeName]
@@ -34,16 +37,7 @@ export default class DreamDbConnection {
         })
       },
 
-      dialect: new PostgresDialect({
-        pool: new pg.Pool({
-          user: connectionConf.user || '',
-          password: connectionConf.password || '',
-          database: dreamApp.dbName(connectionName, connectionType),
-          host: connectionConf.host || 'localhost',
-          port: connectionConf.port || 5432,
-          ssl: connectionConf.useSsl ? sslConfig(connectionConf) : false,
-        }),
-      }),
+      dialect: dialectProvider(connectionConf),
       plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
     })
 
@@ -58,17 +52,6 @@ export default class DreamDbConnection {
     return DreamApp.getOrFail().parallelDatabasesEnabled
       ? `${connectionType}_${process.env.VITEST_POOL_ID}`
       : connectionType
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function sslConfig(connectionConf: SingleDbCredential) {
-  // TODO: properly configure (https://rvohealth.atlassian.net/browse/PDTC-2914)
-  return {
-    rejectUnauthorized: false,
-    // ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
-    // key: fs.readFileSync('/path/to/client-key/postgresql.key').toString(),
-    // cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),
   }
 }
 
@@ -94,3 +77,4 @@ export async function closeAllConnectionsForConnectionName(connectionName: strin
     })
   )
 }
+export type DialectProviderCb = (connectionConf: SingleDbCredential) => any

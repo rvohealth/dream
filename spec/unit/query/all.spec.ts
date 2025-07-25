@@ -57,10 +57,14 @@ describe('Query#all', () => {
       await User.all()
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary')
+      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith('default', 'replica')
+      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
+        'default',
+        'replica',
+        expect.anything()
+      )
     })
 
     context('with replica connection specified', () => {
@@ -71,7 +75,7 @@ describe('Query#all', () => {
         await CustomUser.query().all()
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'replica')
+        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'replica', expect.anything())
       })
 
       context('with explicit primary connection override', () => {
@@ -79,12 +83,17 @@ describe('Query#all', () => {
           await CustomUser.query().connection('primary').all()
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary')
+          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith(
+            'default',
+            'primary',
+            expect.anything()
+          )
 
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
             'replica',
-            expect.objectContaining({})
+            expect.objectContaining({}),
+            expect.anything()
           )
         })
       })

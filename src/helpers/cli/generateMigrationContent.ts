@@ -17,12 +17,14 @@ interface ColumnDefsAndDrops {
 }
 
 export default function generateMigrationContent({
+  connectionName = 'default',
   table,
   columnsWithTypes = [],
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
   stiChildClassName,
 }: {
+  connectionName?: string
   table?: string | undefined
   columnsWithTypes?: string[] | undefined
   primaryKeyType?: PrimaryKeyType | undefined
@@ -65,7 +67,7 @@ export default function generateMigrationContent({
       switch (attributeType) {
         case 'belongs_to':
           columnDefs.push(
-            generateBelongsToStr(attributeName, {
+            generateBelongsToStr(connectionName, attributeName, {
               primaryKeyType,
               optional,
             })
@@ -296,6 +298,7 @@ function attributeTypeString(attributeType: string) {
 }
 
 function generateBelongsToStr(
+  connectionName: string,
   associationName: string,
   {
     primaryKeyType,
@@ -305,7 +308,7 @@ function generateBelongsToStr(
     optional: boolean
   }
 ) {
-  const dbDriverClass = Query.dbDriverClass<Dream>()
+  const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
   const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
   return `.addColumn('${associationNameToForeignKey(associationName)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`

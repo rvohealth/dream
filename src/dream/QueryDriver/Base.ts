@@ -1,6 +1,10 @@
-import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
+import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
+import CalendarDate from '../../helpers/CalendarDate.js'
+import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/SchemaBuilder.js'
+import { DateTime } from '../../helpers/DateTime.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
+import { DbConnectionType } from '../../types/db.js'
 import {
   DreamColumnNames,
   DreamConstructorType,
@@ -14,8 +18,6 @@ import {
 } from '../../types/query.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
-import PostgresQueryDriver from './Postgres.js'
-import { DbConnectionType } from '../../types/db.js'
 
 export default class QueryDriverBase<DreamInstance extends Dream> {
   protected readonly dreamClass: DreamConstructorType<DreamInstance>
@@ -115,8 +117,13 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    *    but this will likely need to be overridden to tailor to your custom
    *    database engine.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async sync(_: () => Promise<void> | void) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async sync(
+    connectionName: string,
+    _: () => Promise<void> | void,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options: { schemaOnly?: boolean } = {}
+  ) {
     throw new Error('override sync on child class')
   }
 
@@ -178,7 +185,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * gives the driver the opportunity to switch i.e. bigserial to bigint.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType) {
+  public static foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType): PrimaryKeyType {
     throw new Error('implement foreignKeyTypeFromPrimaryKey in child class')
   }
 
@@ -190,6 +197,48 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   public static primaryKeyType() {
     throw new Error('implement primaryKeyType in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * this method is called when dream is initializing, and is used
+   * to configure the database to utilize custom type parsers for
+   * a variety of data types.
+   *
+   * @param connectionName - the name of the connection you are doing this for
+   * @returns void
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async setDatabaseTypeParsers(connectionName: string) {}
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async duplicateDatabase(connectionName: string) {}
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async getColumnData(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    tableName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    associationData: { [key: string]: SchemaBuilderAssociationData }
+  ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
+    throw new Error('implement getColumnData in child class')
+  }
+
+  public static serializeDbType(type: GenericDbType, val: any) {
+    switch (type) {
+      case 'datetime':
+      case 'date':
+        if (val instanceof DateTime || val instanceof CalendarDate) {
+          return val.toSQL()
+        }
+        throw new Error(`unrecognized value found when trying to serialize for date/datetime: ${val}`)
+
+      default:
+        return val
+    }
   }
 
   /**
@@ -225,7 +274,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * @returns A dream instance or null
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async takeOne(this: PostgresQueryDriver<DreamInstance>): Promise<DreamInstance | null> {
+  public async takeOne(this: QueryDriverBase<DreamInstance>): Promise<DreamInstance | null> {
     throw new Error('implement takeOne in child class')
   }
 
@@ -328,10 +377,10 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * @returns A Kysely SelectQueryBuilder instance
    */
   public nestedSelect<SimpleFieldType extends keyof DreamColumnNames<DreamInstance>, PluckThroughFieldType>(
-    this: PostgresQueryDriver<DreamInstance>,
+    this: QueryDriverBase<DreamInstance>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     selection: SimpleFieldType | PluckThroughFieldType
-  ) {
+  ): SelectQueryBuilder<any, any, any> {
     throw new Error('implement nestedSelect in child class')
   }
 
@@ -360,10 +409,26 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * subsequent model hooks that are fired.
    */
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
+  public static async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null): Promise<any> {
     throw new Error('implement saveDream in child class')
   }
 
+  /**
+   * destroys a dream, possibly implementing soft delete if reallyDestroy is false
+   * and the record being deleted implements soft delete.
+   *
+   * @param dream - the dream instance you wish to destroy
+   * @param txn - a transaction to encapsulate, consistently provided by underlying dream mechanisms
+   * @param reallyDestroy - whether or not to reallyDestroy. If false, soft delete will be attempted when relevant
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public static async destroyDream(dream: Dream, txn: DreamTransaction<Dream>, reallyDestroy: boolean) {
+    throw new Error('implement destroyDream in child class')
+  }
+
+  public static get syncDialect(): string {
+    return 'postgres'
+  }
   /**
    * Returns the sql that would be executed by this Query
    *
@@ -396,7 +461,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * @returns An object representing the underlying sql statement
    *
    */
-  public sql() {
+  public sql(): CompiledQuery<object> {
     throw new Error('implement sql in child class')
   }
 
@@ -426,3 +491,5 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     throw new Error('define hydratePreload on child class')
   }
 }
+
+export type GenericDbType = 'datetime' | 'date'

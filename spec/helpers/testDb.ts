@@ -1,6 +1,6 @@
 import PostgresQueryDriver from '../../src/dream/QueryDriver/Postgres.js'
 import { DbConnectionType } from '../../src/index.js'
 
-export default function db(connectionName: string, connectionType: DbConnectionType = 'primary') {
+export default function testDb(connectionName: string, connectionType: DbConnectionType) {
   return PostgresQueryDriver.dbFor(connectionName, connectionType)
 }

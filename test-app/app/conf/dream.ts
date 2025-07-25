@@ -4,6 +4,7 @@ import srcPath from '../system/srcPath.js'
 import AppEnv from './AppEnv.js'
 import inflections from './inflections.js'
 import logger from './logger.js'
+import MysqlQueryDriver from './mysql/MysqlQueryDriver.js'
 
 export default async function (dreamApp: DreamApp) {
   const projectRoot = srcPath('..')
@@ -74,6 +75,18 @@ export default async function (dreamApp: DreamApp) {
       host: AppEnv.string('DB_HOST', { optional: true }),
       name: AppEnv.string('DB_NAME_2', { optional: true }),
       port: AppEnv.integer('DB_PORT_2', { optional: true }),
+      useSsl: false,
+    },
+  })
+
+  dreamApp.set('db', 'mysql', {
+    queryDriverClass: MysqlQueryDriver,
+    primary: {
+      user: AppEnv.string('DB_USER_MYSQL'),
+      password: AppEnv.string('DB_PASSWORD_MYSQL', { optional: !AppEnv.isProduction }),
+      host: AppEnv.string('DB_HOST_MYSQL', { optional: true }),
+      name: AppEnv.string('DB_NAME_MYSQL', { optional: true }),
+      port: AppEnv.integer('DB_PORT_MYSQL', { optional: true }),
       useSsl: false,
     },
   })
