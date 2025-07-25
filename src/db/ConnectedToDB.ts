@@ -1,5 +1,3 @@
-import { Kysely, Transaction as KyselyTransaction } from 'kysely'
-import _db from '../db/index.js'
 import Dream from '../Dream.js'
 import DreamTransaction from '../dream/DreamTransaction.js'
 import { DbConnectionType } from '../types/db.js'
@@ -37,18 +35,6 @@ export default class ConnectedToDB<DreamInstance extends Dream> {
       default:
         return 'primary'
     }
-  }
-
-  // ATTENTION FRED
-  // stop trying to make this async. You never learn...
-  public dbFor(
-    sqlCommandType: SqlCommandType
-  ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
-    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(
-      this.dreamInstance.connectionName || 'default',
-      this.dbConnectionType(sqlCommandType)
-    )
   }
 
   private isReplicaSafe(): boolean {

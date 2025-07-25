@@ -1,4 +1,5 @@
 import { Kysely } from 'kysely'
+import { SingleDbCredential } from '../dream-app/index.js'
 import Dream from '../Dream.js'
 import { Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
@@ -9,7 +10,8 @@ if (EnvInternal.string('TZ', { optional: true })) Settings.defaultZone = EnvInte
 
 export default function db<T extends Dream, DB extends T['DB'] = T['DB']>(
   connectionName: string,
-  connectionType: DbConnectionType = 'primary'
+  connectionType: DbConnectionType,
+  dialectProvider: (connectionConf: SingleDbCredential) => any
 ): Kysely<DB> {
-  return DreamDbConnection.getConnection<DB>(connectionName, connectionType)
+  return DreamDbConnection.getConnection<DB>(connectionName, connectionType, dialectProvider)
 }

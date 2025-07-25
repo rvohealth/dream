@@ -42,21 +42,21 @@ export default async function generateMigration({
     finalContent = generateStiMigrationContent({
       table: snakeify(pluralize(pascalizePath(fullyQualifiedParentName))),
       columnsWithTypes,
-      primaryKeyType: primaryKeyType(),
+      primaryKeyType: primaryKeyType(connectionName)!,
       stiChildClassName: pascalizePath(fullyQualifiedModelName!),
     })
   } else if (fullyQualifiedModelName) {
     finalContent = generateMigrationContent({
       table: snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
       columnsWithTypes,
-      primaryKeyType: primaryKeyType(),
+      primaryKeyType: primaryKeyType(connectionName)!,
     })
   } else {
     const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
     finalContent = generateMigrationContent({
       table: tableName ? pluralize(snakeify(tableName)) : '<table-name>',
       columnsWithTypes,
-      primaryKeyType: primaryKeyType(),
+      primaryKeyType: primaryKeyType(connectionName)!,
       createOrAlter: 'alter',
     })
   }

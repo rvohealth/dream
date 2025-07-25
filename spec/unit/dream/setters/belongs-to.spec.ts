@@ -1,9 +1,9 @@
 import { sql } from 'kysely'
-import db from '../../../../src/db/index.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
+import testDb from '../../../helpers/testDb.js'
 
 describe('BelongsTo setters', () => {
   it('the getter is updated to the new model', async () => {
@@ -46,8 +46,8 @@ describe('BelongsTo setters', () => {
     })
 
     it('the original foreign key and type are stored in the changedAttributes foreign key and type', async () => {
-      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('default', 'primary'))
-      await sql`ALTER SEQUENCE posts_id_seq RESTART 100;`.execute(db('default', 'primary'))
+      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+      await sql`ALTER SEQUENCE posts_id_seq RESTART 100;`.execute(testDb('default', 'primary'))
 
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const composition = await Composition.create({ user })
