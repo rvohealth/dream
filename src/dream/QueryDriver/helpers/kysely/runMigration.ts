@@ -6,6 +6,7 @@ import colorize from '../../../../cli/logger/loggable/colorize.js'
 import {
   closeAllConnectionsForConnectionName,
   closeAllDbConnections,
+  DialectProviderCb,
 } from '../../../../db/DreamDbConnection.js'
 import db from '../../../../db/index.js'
 import DreamApp from '../../../../dream-app/index.js'
@@ -14,10 +15,15 @@ type MigrationModes = 'migrate' | 'rollback'
 
 interface MigrationOpts {
   connectionName: string
+  dialectProvider: DialectProviderCb
   mode?: MigrationModes
 }
 
-export default async function runMigration({ connectionName, mode = 'migrate' }: MigrationOpts) {
+export default async function runMigration({
+  connectionName,
+  mode = 'migrate',
+  dialectProvider,
+}: MigrationOpts) {
   const dreamApp = DreamApp.getOrFail()
   const migrationFolder =
     connectionName === 'default'
@@ -27,7 +33,7 @@ export default async function runMigration({ connectionName, mode = 'migrate' }:
   // Ensure the migration folder exists
   await fs.mkdir(migrationFolder, { recursive: true })
 
-  const kyselyDb = db(connectionName, 'primary')
+  const kyselyDb = db(connectionName, 'primary', dialectProvider)
 
   const migrator = new Migrator({
     db: kyselyDb,

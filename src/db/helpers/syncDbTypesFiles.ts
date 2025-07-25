@@ -12,36 +12,35 @@ import snakeify from '../../helpers/snakeify.js'
 import sspawn from '../../helpers/sspawn.js'
 import dbTypesFilenameForConnection from './dbTypesFilenameForConnection.js'
 
-export default async function syncDbTypesFiles() {
+export default async function syncDbTypesFiles(connectionName: string) {
   const dreamApp = DreamApp.getOrFail()
 
-  for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
-    const dbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
+  const dbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
+  const driverClass = dreamApp.dbConnectionQueryDriverClass(connectionName)
 
-    const dbFilename = dbTypesFilenameForConnection(connectionName)
-    const dbSyncFilePath = path.join(dreamPath('types'), dbFilename)
-    const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
+  const dbFilename = dbTypesFilenameForConnection(connectionName)
+  const dbSyncFilePath = path.join(dreamPath('types'), dbFilename)
+  const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
-    await CliFileWriter.cache(absoluteDbSyncPath)
+  await CliFileWriter.cache(absoluteDbSyncPath)
 
-    await sspawn(
-      `kysely-codegen --dialect=postgres --url=postgres://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`,
-      {
-        onStdout: message => {
-          DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
-            logPrefixColor: 'cyan',
-          })
-        },
-      }
-    )
+  await sspawn(
+    `kysely-codegen --dialect=${driverClass.syncDialect} --url=${driverClass.syncDialect}://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`,
+    {
+      onStdout: message => {
+        DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
+          logPrefixColor: 'cyan',
+        })
+      },
+    }
+  )
 
-    // intentionally bypassing helpers here, since they often end up referencing
-    // from the dist folder, whereas dirname here is pointing to true src folder.
-    const file = (await fs.readFile(absoluteDbSyncPath)).toString()
-    const enhancedSchema = enhanceSchema(file)
+  // intentionally bypassing helpers here, since they often end up referencing
+  // from the dist folder, whereas dirname here is pointing to true src folder.
+  const file = (await fs.readFile(absoluteDbSyncPath)).toString()
+  const enhancedSchema = enhanceSchema(file)
 
-    await CliFileWriter.write(absoluteDbSyncPath, enhancedSchema)
-  }
+  await CliFileWriter.write(absoluteDbSyncPath, enhancedSchema)
 }
 
 // begin: schema helpers

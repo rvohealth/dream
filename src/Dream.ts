@@ -2211,7 +2211,7 @@ export default class Dream {
     CB extends (txn: DreamTransaction<InstanceType<T>>) => unknown,
     RetType extends ReturnType<CB>,
   >(this: T, callback: CB): Promise<RetType> {
-    const dbDriverClass = Query.dbDriverClass<InstanceType<T>>()
+    const dbDriverClass = Query.dbDriverClass<InstanceType<T>>(this.prototype.connectionName)
     return (await dbDriverClass.transaction(this.prototype, callback)) as RetType
   }
 

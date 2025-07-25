@@ -1,8 +1,9 @@
 import { ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
-import db from '../../../../db/index.js'
+import DreamApp from '../../../../dream-app/index.js'
 import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
+import PostgresQueryDriver from '../../../../dream/QueryDriver/Postgres.js'
 import range from '../../../../helpers/range.js'
 import getColumnForSortableScope from './getColumnForSortableScope.js'
 import scopeArray from './scopeArray.js'
@@ -148,7 +149,12 @@ async function setNewPosition({
 }) {
   const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
 
-  const dbOrTxn = txn ? txn.kyselyTransaction : db(dream.connectionName || 'default', 'primary')
+  const queryDriverClass = getPostgresQueryDriver(dream.connectionName || 'default')
+
+  const dbOrTxn = txn
+    ? txn.kyselyTransaction
+    : queryDriverClass.dbFor(dream.connectionName || 'default', 'primary')
+
   await dbOrTxn
     .updateTable(dream.table as any)
     .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
@@ -264,4 +270,16 @@ async function updatePositionForRecord(
       [positionField]: position,
     })
     .execute()
+}
+
+export function getPostgresQueryDriver(connectionName: string): typeof PostgresQueryDriver {
+  const queryDriverClass = DreamApp.getOrFail().dbConnectionQueryDriverClass(connectionName)
+  if (!(queryDriverClass === PostgresQueryDriver)) {
+    throw new Error(`
+      ${queryDriverClass.name} is not an instance of PostgresQueryDriver.
+      You must be using the PostgresQueryDriver when leveraging the Sortable decorator
+      `)
+  }
+
+  return queryDriverClass as typeof PostgresQueryDriver
 }
