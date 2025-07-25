@@ -1,10 +1,11 @@
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely'
 import { Pool } from 'pg'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import db from '../../../src/db/index.js'
 import { DreamApp } from '../../../src/index.js'
 import { DbConnectionType } from '../../../src/types/db.js'
 import User from '../../../test-app/app/models/User.js'
+import testDb from '../../helpers/testDb.js'
+import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 
 /**
  * NOTE: for our replica safe specs, we use a database that is not actually set up
@@ -21,7 +22,11 @@ describe('replicaSafe specific specs', () => {
   let fakeReplicaConnection: Kysely<unknown>
 
   beforeEach(async () => {
-    const originalPrimaryConnection = DreamDbConnection.getConnection('default', 'primary')
+    const originalPrimaryConnection = DreamDbConnection.getConnection(
+      'default',
+      'primary',
+      PostgresQueryDriver.dialectProvider('default', 'primary')
+    )
     const connectionConf = DreamApp.getOrFail().dbConnectionConfig('default', 'primary')
 
     const fakeReplicaName = `replica_test_${connectionConf.name}`
@@ -46,26 +51,26 @@ describe('replicaSafe specific specs', () => {
     )
 
     // Spec suite truncation does not hit the fake replica database, so delete all data explicitly
-    await sql`DELETE FROM users;`.execute(db('default', 'replica'))
-    await sql`DELETE FROM posts;`.execute(db('default', 'replica'))
+    await sql`DELETE FROM users;`.execute(testDb('default', 'replica'))
+    await sql`DELETE FROM posts;`.execute(testDb('default', 'replica'))
     // end: Spec suite truncation does not hit the fake replica database, so delete all data explicitly
 
     const resetUserSequenceSql = sql`ALTER SEQUENCE users_id_seq RESTART 1;`
     const resetPostsSequenceSql = sql`ALTER SEQUENCE posts_id_seq RESTART 1;`
     const userSql = sql`INSERT INTO users (email, password_digest, created_at, updated_at) VALUES ('fred@frewd.com', 'xxxxxxxxxxxxxxxx', '2025-01-13', '2025-01-13');`
 
-    await resetUserSequenceSql.execute(db('default', 'primary'))
-    await resetPostsSequenceSql.execute(db('default', 'primary'))
-    await userSql.execute(db('default', 'primary'))
+    await resetUserSequenceSql.execute(testDb('default', 'primary'))
+    await resetPostsSequenceSql.execute(testDb('default', 'primary'))
+    await userSql.execute(testDb('default', 'primary'))
     await sql`INSERT INTO posts (user_id, body, created_at, updated_at) VALUES ('1', 'primary body', '2025-01-13', '2025-01-13');`.execute(
-      db('default', 'primary')
+      testDb('default', 'primary')
     )
 
-    await resetUserSequenceSql.execute(db('default', 'replica'))
-    await resetPostsSequenceSql.execute(db('default', 'replica'))
-    await userSql.execute(db('default', 'replica'))
+    await resetUserSequenceSql.execute(testDb('default', 'replica'))
+    await resetPostsSequenceSql.execute(testDb('default', 'replica'))
+    await userSql.execute(testDb('default', 'replica'))
     await sql`INSERT INTO posts (user_id, body, created_at, updated_at) VALUES ('1', 'replica body', '2025-01-13', '2025-01-13');`.execute(
-      db('default', 'replica')
+      testDb('default', 'replica')
     )
   })
 

@@ -17,6 +17,7 @@ import {
   Kysely,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   Transaction as KyselyTransaction,
+  PostgresDialect,
   SelectQueryBuilder,
   sql,
   SqlBool,
@@ -26,13 +27,13 @@ import {
 import pluralize from 'pluralize-esm'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
-import { isPrimitiveDataType } from '../../db/dataTypes.js'
+import { DialectProviderCb } from '../../db/DreamDbConnection.js'
 import { CHECK_VIOLATION, INVALID_INPUT_SYNTAX, NOT_NULL_VIOLATION, pgErrorType } from '../../db/errors.js'
 import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
-import DreamApp from '../../dream-app/index.js'
+import DreamApp, { SingleDbCredential } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import ArrayTargetIncompatibleWithThroughAssociation from '../../errors/associations/ArrayTargetIncompatibleWithThroughAssociation.js'
 import CannotJoinPolymorphicBelongsToError from '../../errors/associations/CannotJoinPolymorphicBelongsToError.js'
@@ -51,24 +52,9 @@ import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
-import SchemaBuilder, {
-  SchemaBuilderAssociationData,
-  SchemaBuilderColumnData,
-  SchemaBuilderInformationSchemaRow,
-} from '../../helpers/cli/SchemaBuilder.js'
+import SchemaBuilder, { SchemaBuilderInformationSchemaRow } from '../../helpers/cli/SchemaBuilder.js'
 import compact from '../../helpers/compact.js'
-import {
-  findCitextArrayOid,
-  findCorrespondingArrayOid,
-  findEnumArrayOids,
-  parsePostgresBigint,
-  parsePostgresDate,
-  parsePostgresDatetime,
-  parsePostgresDecimal,
-} from '../../helpers/customPgParsers.js'
 import { DateTime } from '../../helpers/DateTime.js'
-import _dropDb from './helpers/kysely/dropDb.js'
-import loadPgClient from './helpers/kysely/loadPgClient.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import groupBy from '../../helpers/groupBy.js'
 import isEmpty from '../../helpers/isEmpty.js'
@@ -124,10 +110,8 @@ import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
-import createDb from './helpers/kysely/createDb.js'
 import runMigration from './helpers/kysely/runMigration.js'
-
-const pgTypes = pg.types
+import softDeleteDream from '../internal/softDeleteDream.js'
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   // ATTENTION FRED
@@ -141,11 +125,47 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public dbFor(
     sqlCommandType: SqlCommandType
   ): Kysely<DreamInstance['DB']> | KyselyTransaction<DreamInstance['DB']> {
-    if (this.dreamTransaction?.kyselyTransaction) return this.dreamTransaction?.kyselyTransaction
-    return _db<DreamInstance>(
-      this.dreamInstance.connectionName || 'default',
-      this.dbConnectionType(sqlCommandType)
+    const constructor = this.constructor as typeof KyselyQueryDriver
+    return constructor.dbFor(
+      this.dreamInstance.connectionName,
+      this.dbConnectionType(sqlCommandType),
+      this.dreamTransaction
     )
+  }
+
+  // if you are attempting to leverage a kysely-based connection using a different driver,
+  // you would want to extend this KyselyQueryDriver class, and then change this method
+  // to return a custom kysely instance, tailored to the specific database connection
+  // you are attempting to support. By default, dream is postgres-only, so our internal _db
+  // function will return a kysely instance, tightly coupled to a postgres-specific connection.
+  public static dbFor<I extends Dream>(
+    connectionName: string,
+    dbConnectionType: DbConnectionType,
+    dreamTransaction?: DreamTransaction<I> | null
+  ): Kysely<I['DB']> | KyselyTransaction<I['DB']> {
+    if (dreamTransaction?.kyselyTransaction) return dreamTransaction?.kyselyTransaction
+    return _db<I>(
+      connectionName || 'default',
+      dbConnectionType,
+      this.dialectProvider(connectionName, dbConnectionType)
+    )
+  }
+
+  public static dialectProvider(
+    connectionName: string,
+    dbConnectionType: DbConnectionType
+  ): DialectProviderCb {
+    return (connectionConf: SingleDbCredential) =>
+      new PostgresDialect({
+        pool: new pg.Pool({
+          user: connectionConf.user || '',
+          password: connectionConf.password || '',
+          database: DreamApp.getOrFail().dbName(connectionName, dbConnectionType),
+          host: connectionConf.host || 'localhost',
+          port: connectionConf.port || 5432,
+          ssl: connectionConf.useSsl ? defaultPostgresSslConfig(connectionConf) : false,
+        }),
+      })
   }
 
   /**
@@ -156,7 +176,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
     DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
 
-    await runMigration({ connectionName, mode: 'migrate' })
+    await runMigration({
+      connectionName,
+      mode: 'migrate',
+      dialectProvider: this.dialectProvider(connectionName, 'primary'),
+    })
     DreamCLI.logger.logEndProgress()
 
     await this.duplicateDatabase(connectionName)
@@ -172,7 +196,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     let step = opts.steps
     while (step > 0) {
-      await runMigration({ connectionName: opts.connectionName, mode: 'rollback' })
+      await runMigration({
+        connectionName: opts.connectionName,
+        mode: 'rollback',
+        dialectProvider: this.dialectProvider(opts.connectionName, 'primary'),
+      })
       step -= 1
     }
     DreamCLI.logger.logEndProgress()
@@ -213,46 +241,47 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    *    database engine.
    */
   public static override async sync(
+    connectionName: string,
     onSync: () => Promise<void> | void,
     options: { schemaOnly?: boolean } = {}
   ) {
     try {
       if (!options?.schemaOnly) {
-        await DreamCLI.logger.logProgress('writing db schema...', async () => {
-          await syncDbTypesFiles()
-        })
-      }
-
-      const dreamApp = DreamApp.getOrFail()
-      for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
-        const schemaBuilder = new SchemaBuilder(connectionName)
-
         await DreamCLI.logger.logProgress(
-          `building dream schema for connection ${connectionName}...`,
+          `introspecting db for connection: ${connectionName}...`,
           async () => {
-            await schemaBuilder.build()
+            await syncDbTypesFiles(connectionName)
           }
         )
+      }
 
-        if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
-          await DreamCLI.logger.logProgress(
-            'triggering resync to correct for foreign key errors...',
+      const schemaBuilder = new SchemaBuilder(connectionName)
 
-            async () => {
-              // TODO: make this customizable to enable dream apps to separate
-              const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
-
-              await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
-                onStdout: str => {
-                  DreamCLI.logger.logContinueProgress(`${str}`, {
-                    logPrefix: '  ├ [resync]',
-                    logPrefixColor: 'blue',
-                  })
-                },
-              })
-            }
-          )
+      await DreamCLI.logger.logProgress(
+        `building dream schema for connection ${connectionName}...`,
+        async () => {
+          await schemaBuilder.build()
         }
+      )
+
+      if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
+        await DreamCLI.logger.logProgress(
+          'triggering resync to correct for foreign key errors...',
+
+          async () => {
+            // TODO: make this customizable to enable dream apps to separate
+            const cliCmd = EnvInternal.boolean('DREAM_CORE_DEVELOPMENT') ? 'dream' : 'psy'
+
+            await DreamCLI.spawn(PackageManager.runCmd(`${cliCmd} sync --schema-only`), {
+              onStdout: str => {
+                DreamCLI.logger.logContinueProgress(`${str}`, {
+                  logPrefix: '  ├ [resync]',
+                  logPrefixColor: 'blue',
+                })
+              },
+            })
+          }
+        )
       }
 
       await SchemaBuilder.buildGlobalTypes()
@@ -269,6 +298,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         await CliFileWriter.revert()
       })
     }
+  }
+
+  public static override get syncDialect(): string {
+    return 'postgres'
   }
 
   /**
@@ -318,45 +351,26 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   /**
-   * create the database. Must respond to the NODE_ENV value.
+   * destroys a dream, possibly implementing soft delete if reallyDestroy is false
+   * and the record being deleted implements soft delete.
+   *
+   * @param dream - the dream instance you wish to destroy
+   * @param txn - a transaction to encapsulate, consistently provided by underlying dream mechanisms
+   * @param reallyDestroy - whether or not to reallyDestroy. If false, soft delete will be attempted when relevant
    */
-  public static override async dbCreate(connectionName: string) {
-    const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
-
-    DreamCLI.logger.logStartProgress(`creating ${primaryDbConf.name}...`)
-    await createDb(connectionName, 'primary')
-    DreamCLI.logger.logEndProgress()
-
-    // TODO: add support for creating replicas. Began doing it below, but it is very tricky,
-    // and we don't need it at the moment, so kicking off for future development when we have more time
-    // to flesh this out.
-    // if (connectionRetriever.hasReplicaConfig(connectionName)) {
-    //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
-    //   console.log(`creating ${process.env[replicaDbConf.name]}`)
-    //   await createDb('replica')
-    // }
-  }
-
-  /**
-   * delete the database. Must respond to the NODE_ENV value.
-   */
-  public static override async dbDrop(connectionName: string) {
-    const dreamApp = DreamApp.getOrFail()
-    const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
-
-    DreamCLI.logger.logStartProgress(`dropping ${primaryDbConf.name}...`)
-    await _dropDb(connectionName, 'primary')
-    DreamCLI.logger.logEndProgress()
-
-    // TODO: add support for dropping replicas. Began doing it below, but it is very tricky,
-    // and we don't need it at the moment, so kicking off for future development when we have more time
-    // to flesh this out.
-    // if (connectionRetriever.hasReplicaConfig(connectionName)) {
-    //   const replicaDbConf = connectionRetriever.getConnectionConf('replica')
-    //   console.log(`dropping ${process.env[replicaDbConf.name]}`)
-    //   await _dropDb('replica')
-    // }
+  public static override async destroyDream(
+    dream: Dream,
+    txn: DreamTransaction<Dream>,
+    reallyDestroy: boolean
+  ) {
+    if (shouldSoftDelete(dream, reallyDestroy)) {
+      await softDeleteDream(dream, txn)
+    } else if (!dream['_preventDeletion']) {
+      await txn.kyselyTransaction
+        .deleteFrom(dream.table as any)
+        .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
+        .execute()
+    }
   }
 
   /**
@@ -424,7 +438,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    await _db(dreamInstance.connectionName || 'default', 'primary')
+    await this.dbFor(dreamInstance.connectionName || 'default', 'primary')
       .transaction()
       .execute(async kyselyTransaction => {
         dreamTransaction.kyselyTransaction = kyselyTransaction
@@ -436,107 +450,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     await dreamTransaction.runAfterCommitHooks(dreamTransaction)
 
     return callbackResponse
-  }
-
-  public static async setDatabaseTypeParsers(connectionName: string) {
-    const kyselyDb = _db(connectionName, 'primary')
-
-    pgTypes.setTypeParser(pgTypes.builtins.DATE, parsePostgresDate)
-
-    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
-
-    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
-
-    pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
-
-    pgTypes.setTypeParser(pgTypes.builtins.INT8, parsePostgresBigint)
-
-    const textArrayOid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TEXT)
-    if (textArrayOid) {
-      let oid: number | undefined
-
-      const textArrayParser = pgTypes.getTypeParser(textArrayOid)
-
-      function transformPostgresArray(
-        transformer:
-          | typeof parsePostgresDate
-          | typeof parsePostgresDatetime
-          | typeof parsePostgresDecimal
-          | typeof parsePostgresBigint
-      ) {
-        return (value: string) => (textArrayParser(value) as string[]).map(str => transformer(str))
-      }
-
-      const enumArrayOids = await findEnumArrayOids(kyselyDb)
-      enumArrayOids.forEach((enumArrayOid: number) => pgTypes.setTypeParser(enumArrayOid, textArrayParser))
-
-      oid = await findCitextArrayOid(kyselyDb)
-      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.UUID)
-      if (oid) pgTypes.setTypeParser(oid, textArrayParser)
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.DATE)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDate))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMP)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))
-
-      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.INT8)
-      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresBigint))
-    }
-  }
-
-  /**
-   * @internal
-
-   * this is used by the SchemaBuilder to store column data permanently
-   * within the types/dream.ts file.
-   */
-  public static async getColumnData(
-    connectionName: string,
-    tableName: string,
-    associationData: { [key: string]: SchemaBuilderAssociationData }
-  ) {
-    const db = _db(connectionName, 'primary')
-    const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
-    const columnToDBTypeMap = await sqlQuery.execute(db)
-    const rows = columnToDBTypeMap.rows as SchemaBuilderInformationSchemaRow[]
-
-    const columnData: {
-      [key: string]: SchemaBuilderColumnData
-    } = {}
-    rows.forEach(row => {
-      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
-      const isArray = ['ARRAY'].includes(row.dataType)
-      const associationMetadata = associationData[row.columnName]
-
-      columnData[camelize(row.columnName)] = {
-        dbType: row.udtName,
-        allowNull: row.isNullable === 'YES',
-        enumType: isEnum ? this.enumType(row) : null,
-        enumValues: isEnum ? `${this.enumType(row)}Values` : null,
-        isArray,
-        foreignKey: associationMetadata?.foreignKey || null,
-      }
-    })
-
-    return Object.keys(columnData)
-      .sort()
-      .reduce(
-        (acc, key) => {
-          if (columnData[key] === undefined) return acc
-          acc[key] = columnData[key]
-          return acc
-        },
-        {} as { [key: string]: SchemaBuilderColumnData }
-      )
   }
 
   /**
@@ -605,7 +518,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       return (await new driverClass(query)['executeJoinLoad']())[0] || null
     }
 
-    const kyselyQuery = new KyselyQueryDriver(this.query.limit(1)).buildSelect()
+    const kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query.limit(1)).buildSelect()
     const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
@@ -670,7 +583,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async max(columnName: string): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
-    let kyselyQuery = new KyselyQueryDriver(this.query).buildSelect({
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
     })
@@ -697,7 +610,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async min(columnName: string): Promise<any> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
-    let kyselyQuery = new KyselyQueryDriver(this.query).buildSelect({
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
     })
@@ -723,7 +636,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const distinctColumn = this.query['distinctColumn']
     const query = this.query.clone({ distinctColumn: null })
 
-    let kyselyQuery = new KyselyQueryDriver(query).buildSelect({ bypassSelectAll: true, bypassOrder: true })
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(query).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
 
     const countClause = distinctColumn
       ? count(sql`DISTINCT ${distinctColumn}`)
@@ -744,7 +660,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * @returns An array of plucked values
    */
   public override async pluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
-    let kyselyQuery = new KyselyQueryDriver(
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(
       this.query['removeAllDefaultScopesExceptOnAssociations']()
     ).buildSelect({
       bypassSelectAll: true,
@@ -784,7 +700,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override nestedSelect<
     SimpleFieldType extends keyof DreamColumnNames<DreamInstance>,
     PluckThroughFieldType,
-  >(this: KyselyQueryDriver<DreamInstance>, selection: SimpleFieldType | PluckThroughFieldType) {
+  >(
+    this: KyselyQueryDriver<DreamInstance>,
+    selection: SimpleFieldType | PluckThroughFieldType
+  ): SelectQueryBuilder<any, any, any> {
     const query = this.buildSelect({
       bypassSelectAll: true,
       bypassOrder: true,
@@ -821,7 +740,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public static override async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
     const connectionName = (dream as any).connectionName || 'default'
 
-    const db = txn?.kyselyTransaction ?? _db(connectionName, 'primary')
+    const db = txn?.kyselyTransaction ?? this.dbFor(connectionName, 'primary')
 
     const sqlifiedAttributes = sqlAttributes(dream)
 
@@ -929,7 +848,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     )
 
     const results = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery as any)
-    return new KyselyQueryDriver(results.clone).buildCommon(results.kyselyQuery)
+    return new (this.constructor as typeof KyselyQueryDriver)(results.clone).buildCommon(results.kyselyQuery)
   }
 
   private buildSelect(
@@ -952,7 +871,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       const query = connectionOverride
         ? this.query['baseSelectQuery'].connection(connectionOverride)
         : this.query['baseSelectQuery']
-      kyselyQuery = new KyselyQueryDriver(query).buildSelect({ bypassSelectAll: true })
+      kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(query).buildSelect({
+        bypassSelectAll: true,
+      })
     } else {
       const from =
         this.query['baseSqlAlias'] === this.query['tableName']
@@ -976,7 +897,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       this.query['orderStatements'].forEach(orderStatement => {
         kyselyQuery = kyselyQuery.orderBy(
           this.namespaceColumn(orderStatement.column),
-          orderByDirection(orderStatement.direction)
+          this.orderByDirection(orderStatement.direction)
         )
       })
     }
@@ -1000,6 +921,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return kyselyQuery
   }
 
+  public orderByDirection(direction: OrderDir | null) {
+    return orderByDirection(direction)
+  }
+
   private buildUpdate<DB extends DreamInstance['DB']>(
     attributes: Updateable<DreamInstance['table']>
   ): UpdateQueryBuilder<DB, any, any, object> {
@@ -1010,7 +935,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
 
     const results = this.attachLimitAndOrderStatementsToNonSelectQuery(kyselyQuery as any)
-    return new KyselyQueryDriver(results.clone).buildCommon(results.kyselyQuery)
+    return new (this.constructor as typeof KyselyQueryDriver)(results.clone).buildCommon(results.kyselyQuery)
   }
 
   /**
@@ -1072,40 +997,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       this.query['preloadOnStatements'] as any,
       dream
     )
-  }
-
-  public static async duplicateDatabase(connectionName: string) {
-    const dreamApp = DreamApp.getOrFail()
-    const parallelTests = dreamApp.parallelTests
-    if (!parallelTests) return
-
-    DreamCLI.logger.logStartProgress(`duplicating db for parallel tests...`)
-    const dbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
-    const client = await loadPgClient({ useSystemDb: true, connectionName })
-
-    if (EnvInternal.boolean('DREAM_CORE_DEVELOPMENT')) {
-      const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
-      DreamCLI.logger.logContinueProgress(
-        `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
-      )
-      await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
-      await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
-    }
-
-    for (let i = 2; i <= parallelTests; i++) {
-      const workerDatabaseName = `${dbConf.name}_${i}`
-
-      DreamCLI.logger.logContinueProgress(
-        `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
-      )
-      await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
-      await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
-    }
-    await client.end()
-
-    DreamCLI.logger.logEndProgress()
   }
 
   private aliasWhereStatements(whereStatements: Readonly<WhereStatement<any, any, any>[]>, alias: string) {
@@ -1184,7 +1075,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   ): Promise<DreamInstance[]> {
     const query = this.query['limit'](null).offset(null as any)
 
-    let kyselyQuery = new KyselyQueryDriver(query).buildSelect({ bypassSelectAll: true })
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(query).buildSelect({
+      bypassSelectAll: true,
+    })
 
     const aliasToDreamClassesMap = {
       [this.query['baseSqlAlias']]: this.dreamClass,
@@ -2988,4 +2881,20 @@ const associationStringToAssociationAndMaybeAlias = function ({
     association,
     alias,
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function defaultPostgresSslConfig(connectionConf: SingleDbCredential) {
+  // TODO: properly configure (https://rvohealth.atlassian.net/browse/PDTC-2914)
+  return {
+    rejectUnauthorized: false,
+    // ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
+    // key: fs.readFileSync('/path/to/client-key/postgresql.key').toString(),
+    // cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),
+  }
+}
+
+function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {
+  const dreamClass = dream.constructor as typeof Dream
+  return dreamClass['softDelete'] && !reallyDestroy
 }

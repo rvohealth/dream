@@ -1,5 +1,4 @@
 import { sql } from 'kysely'
-import db from '../../../../src/db/index.js'
 import { DateTime } from '../../../../src/index.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -11,11 +10,12 @@ import NonNullRating from '../../../../test-app/app/models/NonNullRating.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
+import testDb from '../../../helpers/testDb.js'
 
 describe('Query#preload with polymorphic associations', () => {
   beforeEach(async () => {
-    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(db('default', 'primary'))
-    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(db('default', 'primary'))
+    await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+    await sql`ALTER SEQUENCE posts_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
   })
 
   context('HasMany', () => {

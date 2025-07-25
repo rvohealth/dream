@@ -19,6 +19,8 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
+import QueryDriverBase from '../dream/QueryDriver/Base.js'
+import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -104,7 +106,7 @@ export default class DreamApp {
    */
   private static async setDatabaseTypeParsers(dreamApp: DreamApp) {
     for (const connectionName of Object.keys(dreamApp._dbCredentials)) {
-      const dbDriverClass = Query.dbDriverClass<Dream>()
+      const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
       await dbDriverClass.setDatabaseTypeParsers(connectionName)
     }
   }
@@ -279,6 +281,22 @@ Try setting it to something valid, like:
     }
 
     return conf
+  }
+
+  public dbConnectionQueryDriverClass<T extends Dream = Dream>(
+    connectionName: string
+  ): typeof QueryDriverBase<T> {
+    const conf = this.dbCredentialsFor(connectionName)
+
+    if (!conf) {
+      throw new Error(`
+      Cannot find a db credentials for the given connectionName:
+        connectionName: ${connectionName}
+        NODE_ENV: ${EnvInternal.nodeEnv}
+    `)
+    }
+
+    return conf.queryDriverClass<T> || PostgresQueryDriver<T>
   }
 
   public dbConnectionKeys(): string[] {
@@ -485,6 +503,7 @@ export interface DreamDirectoryPaths {
 export interface DreamDbCredentialOptions {
   primary: SingleDbCredential
   replica?: SingleDbCredential | undefined
+  queryDriverClass?: typeof QueryDriverBase
 }
 
 type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'

@@ -14,6 +14,7 @@ import { TRIGRAM_OPERATORS } from '../../constants.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import similaritySelectSql from './similaritySelectSql.js'
 import similarityWhereSql from './similarityWhereSql.js'
+import { getPostgresQueryDriver } from '../../../decorators/field/sortable/helpers/setPosition.js'
 
 export default class SimilarityBuilder<
   DreamInstance extends Dream,
@@ -273,8 +274,13 @@ export default class SimilarityBuilder<
     const primaryKeyName = this.dreamClass.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
 
+    const queryDriverClass = getPostgresQueryDriver(this.dreamInstance.connectionName)
+
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { ref } = this.dbFor('select').dynamic
+    const { ref } = queryDriverClass.dbFor(
+      this.dreamInstance.connectionName,
+      this.dbConnectionType('select')
+    ).dynamic
 
     const validatedTableAlias = validateTableAlias(tableAlias)
     const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
@@ -332,7 +338,10 @@ export default class SimilarityBuilder<
     })
 
     const trigramSearchAlias = this.similaritySearchId(tableAlias, columnName)
-    const selectQuery = this.dbFor('select')
+
+    const queryDriverClass = getPostgresQueryDriver(this.dreamInstance.connectionName)
+    const selectQuery = queryDriverClass
+      .dbFor(this.dreamInstance.connectionName, this.dbConnectionType('select'))
       .selectFrom(validatedTableAlias)
       .select(`${trigramSearchAlias}.trigram_search_id`)
       .innerJoin(nestedQuery.as(trigramSearchAlias), join =>
@@ -363,7 +372,9 @@ export default class SimilarityBuilder<
     const validatedTable = validateTable(schema, tableName)
     const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
 
-    let nestedQuery = this.dbFor('select')
+    const queryDriverClass = getPostgresQueryDriver(this.dreamInstance.connectionName)
+    let nestedQuery = queryDriverClass
+      .dbFor(this.dreamInstance.connectionName, this.dbConnectionType('select'))
       .selectFrom(tableName as any)
       .select(eb => {
         const tableNameRef = eb.ref<any>(validatedTable)
