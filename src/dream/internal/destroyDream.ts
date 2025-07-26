@@ -1,9 +1,9 @@
+import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import destroyAssociatedRecords from './destroyAssociatedRecords.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
 import runHooksFor from './runHooksFor.js'
-import softDeleteDream from './softDeleteDream.js'
 
 type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 export interface ReallyDestroyOptions<DreamInstance extends Dream> extends DestroyOptions<DreamInstance> {
@@ -87,12 +87,6 @@ async function maybeDestroyDream<I extends Dream>(
   txn: DreamTransaction<I>,
   reallyDestroy: boolean
 ) {
-  if (shouldSoftDelete(dream, reallyDestroy)) {
-    await softDeleteDream(dream, txn)
-  } else if (!dream['_preventDeletion']) {
-    await txn.kyselyTransaction
-      .deleteFrom(dream.table as any)
-      .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
-      .execute()
-  }
+  const dbDriverClass = DreamApp.getOrFail().dbConnectionQueryDriverClass(dream.connectionName)
+  await dbDriverClass.destroyDream(dream, txn, reallyDestroy)
 }

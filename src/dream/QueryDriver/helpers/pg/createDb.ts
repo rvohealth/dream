@@ -7,7 +7,6 @@ export default async function createDb(
   connectionName: string,
   connectionType: DbConnectionType,
   dbName?: string | null
-  // TODO: maybe harden type for connectionName
 ) {
   // this was only ever written to clear the db between tests or in development,
   // so there is no way to drop in production

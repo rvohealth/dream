@@ -38,7 +38,7 @@ export default async function saveDream<DreamInstance extends Dream>(
   // BeforeSave/Update actions may clear all the data that we intended to save, leaving us with
   // an invalid update command. The Sortable decorator is an example of this.
   if (!alreadyPersisted || hasUnsavedData) {
-    const data = await Query.dbDriverClass().saveDream(dream, txn)
+    const data = await Query.dbDriverClass(dream.connectionName || 'default').saveDream(dream, txn)
 
     dream['isPersisted'] = true
     dream.setAttributes(data)

@@ -62,7 +62,7 @@ import { type DateTime } from '../../src/helpers/DateTime.js'
 
 
 export const schema = {
-  alternate_db_connection_users: {
+  mysql_users: {
     serializerKeys: ['default', 'summary'],
     scopes: {
       default: [],
@@ -71,11 +71,11 @@ export const schema = {
     nonJsonColumnNames: ['createdAt', 'email', 'id', 'name', 'updatedAt'],
     columns: {
       createdAt: {
-        coercedType: {} as DateTime,
+        coercedType: {} as Date,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
+        dbType: 'timestamp',
         allowNull: false,
         isArray: false,
       },
@@ -84,12 +84,12 @@ export const schema = {
         enumType: null,
         enumArrayType: null,
         enumValues: null,
-        dbType: 'character varying',
+        dbType: 'varchar(255)',
         allowNull: false,
         isArray: false,
       },
       id: {
-        coercedType: {} as string,
+        coercedType: {} as number,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -102,16 +102,16 @@ export const schema = {
         enumType: null,
         enumArrayType: null,
         enumValues: null,
-        dbType: 'character varying',
+        dbType: 'varchar(255)',
         allowNull: false,
         isArray: false,
       },
       updatedAt: {
-        coercedType: {} as DateTime,
+        coercedType: {} as Date,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
-        dbType: 'timestamp without time zone',
+        dbType: 'timestamp',
         allowNull: false,
         isArray: false,
       },
