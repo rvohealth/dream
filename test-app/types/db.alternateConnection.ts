@@ -72,6 +72,14 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
 export type Timestamp = ColumnType<DateTime | CalendarDate>
 
+export interface AlternateDbConnectionPosts {
+  alternateDbConnectionUserId: Int8;
+  body: string;
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  updatedAt: Timestamp;
+}
+
 export interface AlternateDbConnectionUsers {
   createdAt: Timestamp;
   email: string;
@@ -81,10 +89,12 @@ export interface AlternateDbConnectionUsers {
 }
 
 export interface DB {
+  alternate_db_connection_posts: AlternateDbConnectionPosts;
   alternate_db_connection_users: AlternateDbConnectionUsers;
 }
 
 
 export class DBClass {
+  alternate_db_connection_posts: AlternateDbConnectionPosts
   alternate_db_connection_users: AlternateDbConnectionUsers
 }

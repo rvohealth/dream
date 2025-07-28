@@ -46,22 +46,29 @@ ${importStr}
 
 ${schemaConstContent}
 
-export const dreamTypeConfig = {
+export const connectionTypeConfig = {
   passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
   allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
   globalNames: {
     models: ${this.globalModelNames()},
-    serializers: ${stringifyArray(Object.keys(dreamApp.serializers || {}).sort(), { indent: 6 })},
   },
 } as const
 `
-    // const newSchemaFileContents = `\
-    // ${schemaConstContent}
-    // `
     const schemaPath =
       this.connectionName === 'default'
         ? path.join(dreamApp.projectRoot, dreamApp.paths.types, 'dream.ts')
         : path.join(dreamApp.projectRoot, dreamApp.paths.types, `dream.${camelize(this.connectionName)}.ts`)
+    await CliFileWriter.write(schemaPath, newSchemaFileContents)
+  }
+
+  public static async buildGlobalTypes() {
+    const dreamApp = DreamApp.getOrFail()
+    const newSchemaFileContents = `\
+export const globalTypeConfig = {
+  serializers: ${stringifyArray(Object.keys(dreamApp.serializers || {}).sort(), { indent: 6 })},
+} as const
+`
+    const schemaPath = path.join(dreamApp.projectRoot, dreamApp.paths.types, 'dream.globals.ts')
     await CliFileWriter.write(schemaPath, newSchemaFileContents)
   }
 
@@ -71,6 +78,7 @@ export const dreamTypeConfig = {
 
     return `{
       ${Object.keys(models)
+        .filter(key => models[key]?.prototype?.connectionName === this.connectionName)
         .map(key => `'${key}': '${models[key]?.prototype?.table}'`)
         .join(',\n      ')}
     }`

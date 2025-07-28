@@ -90,6 +90,8 @@ import {
   DreamParamSafeColumnNames,
   DreamPrimaryKeyType,
   DreamSerializerKey,
+  GlobalModelNames,
+  GlobalSerializerName,
   JoinAndStatements,
   NextPreloadArgumentType,
   OrderDir,
@@ -195,8 +197,12 @@ export default class Dream {
     return 'default' as const
   }
 
-  public get dreamTypeConfig(): any {
-    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'dreamTypeConfig')
+  public get connectionTypeConfig(): any {
+    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'connectionTypeConfig')
+  }
+
+  public get globalTypeConfig(): any {
+    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'globalTypeConfig')
   }
 
   /**
@@ -1069,11 +1075,9 @@ export default class Dream {
    */
   public static lookup<
     T extends typeof Dream,
-    dreamTypeConfig = InstanceType<T>['dreamTypeConfig'],
-    GlobalNames = dreamTypeConfig['globalNames' & keyof dreamTypeConfig],
-    ModelGlobalNames = keyof GlobalNames['models' & keyof GlobalNames],
-    SerializerGlobalNames = (GlobalNames['serializers' & keyof GlobalNames] & unknown[])[number],
-    LookupName extends SerializerGlobalNames | ModelGlobalNames = SerializerGlobalNames | ModelGlobalNames,
+    LookupName extends GlobalSerializerName<InstanceType<T>> | GlobalModelNames<InstanceType<T>> =
+      | GlobalSerializerName<InstanceType<T>>
+      | GlobalModelNames<InstanceType<T>>,
   >(this: T, lookupName: LookupName) {
     const dreamApp = DreamApp.getOrFail()
     const models = dreamApp.models

@@ -1,8 +1,9 @@
-import { DreamColumn, DreamSerializers } from '../../../src/index.js'
+import { Decorators, DreamColumn, DreamConst, DreamSerializers, Query } from '../../../src/index.js'
 import { DBClass as AlternateDBClass } from '../../types/db.alternateConnection.js'
 import AlternateConnectionApplicationModel from './AlternateConnectionApplicationModel.js'
+import AlternateDbConnectionPost from './AlternateDbConnectionPost.js'
 
-// const deco = new Decorators<typeof AlternateDbConnectionUser>()
+const deco = new Decorators<typeof AlternateDbConnectionUser>()
 
 export default class AlternateDbConnectionUser extends AlternateConnectionApplicationModel {
   declare public DB: AlternateDBClass
@@ -17,6 +18,18 @@ export default class AlternateDbConnectionUser extends AlternateConnectionApplic
       summary: 'AlternateDbConnectionUserSummarySerializer',
     }
   }
+
+  @deco.Scope()
+  public static testScope(query: Query<AlternateDbConnectionUser>) {
+    return query.where({ name: 'howyadoin' })
+  }
+
+  @deco.HasMany('AlternateDbConnectionPost', {
+    and: {
+      body: DreamConst.passthrough,
+    },
+  })
+  public passthroughPosts: AlternateDbConnectionPost[]
 
   public id: DreamColumn<AlternateDbConnectionUser, 'id'>
   public email: DreamColumn<AlternateDbConnectionUser, 'email'>

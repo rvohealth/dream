@@ -391,8 +391,8 @@ export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
 
 export type GlobalModelNameTableMap<
   I extends Dream,
-  dreamTypeConfig = I['dreamTypeConfig'],
-  GlobalNames = dreamTypeConfig['globalNames' & keyof dreamTypeConfig],
+  connectionTypeConfig = I['connectionTypeConfig'],
+  GlobalNames = connectionTypeConfig['globalNames' & keyof connectionTypeConfig],
 > = GlobalNames['models' & keyof GlobalNames]
 // end:Model global names and tables
 
@@ -401,9 +401,8 @@ export type GlobalSerializerName<I extends Dream> = GlobalSerializerNames<I>[num
 
 type GlobalSerializerNames<
   I extends Dream,
-  dreamTypeConfig = I['dreamTypeConfig'],
-  GlobalNames = dreamTypeConfig['globalNames' & keyof dreamTypeConfig],
-> = GlobalNames['serializers' & keyof GlobalNames]
+  GlobalTypeConfig = I['globalTypeConfig'],
+> = GlobalTypeConfig['serializers' & keyof GlobalTypeConfig]
 // end:Serializer global names
 
 export type DreamSerializers<I extends Dream> = Record<'default', GlobalSerializerName<I>> &
@@ -551,8 +550,8 @@ export interface SimilarityStatement {
 
 export type PassthroughColumnNames<
   DreamConf,
-  dreamTypeConfig = DreamConf['dreamTypeConfig' & keyof DreamConf],
-  PassthroughColumns = dreamTypeConfig['passthroughColumns' & keyof dreamTypeConfig],
+  connectionTypeConfig = DreamConf['connectionTypeConfig' & keyof DreamConf],
+  PassthroughColumns = connectionTypeConfig['passthroughColumns' & keyof connectionTypeConfig],
 > = PassthroughColumns
 
 export type DefaultScopeName<
@@ -574,8 +573,8 @@ export type DefaultScopeNameForTable<
 
 export type AllDefaultScopeNames<
   DreamConf,
-  dreamTypeConfig = DreamConf['dreamTypeConfig' & keyof DreamConf],
-  AllNames = dreamTypeConfig['allDefaultScopeNames' & keyof dreamTypeConfig],
+  connectionTypeConfig = DreamConf['connectionTypeConfig' & keyof DreamConf],
+  AllNames = connectionTypeConfig['allDefaultScopeNames' & keyof connectionTypeConfig],
 > =
   // it is not valid to remove the STI scope
   Exclude<AllNames[number & keyof AllNames], typeof STI_SCOPE_NAME>

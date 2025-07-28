@@ -262,6 +262,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         }
       }
 
+      await SchemaBuilder.buildGlobalTypes()
+
       if (!options?.schemaOnly) {
         // intentionally leaving logs off here, since it allows other
         // onSync handlers to determine their own independent logging approach
