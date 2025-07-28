@@ -43,7 +43,6 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async migrate(
-    // TODO: maybe harden type for connectionName
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     connectionName: string
   ) {
@@ -54,11 +53,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * rollback the database. Must respond to the NODE_ENV value.
    */
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async rollback(_: {
-    // TODO: maybe harden type for connectionName
-    connectionName: string
-    steps: number
-  }) {
+  public static async rollback(_: { connectionName: string; steps: number }) {
     throw new Error('override rollback in child class')
   }
 
@@ -67,7 +62,6 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async dbCreate(
-    // TODO: maybe harden type for connectionName
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     connectionName: string
   ) {
@@ -79,7 +73,6 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async dbDrop(
-    // TODO: maybe harden type for connectionName
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     connectionName: string
   ) {

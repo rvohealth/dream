@@ -151,10 +151,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * migrate the database. Must respond to the NODE_ENV value.
    */
-  public static override async migrate(
-    // TODO: maybe harden type for connectionName
-    connectionName: string
-  ) {
+  public static override async migrate(connectionName: string) {
     const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig(connectionName, 'primary')
     DreamCLI.logger.logStartProgress(`migrating ${primaryDbConf.name}...`)
@@ -168,11 +165,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * rollback the database. Must respond to the NODE_ENV value.
    */
-  public static override async rollback(opts: {
-    // TODO: maybe harden type for connectionName
-    connectionName: string
-    steps: number
-  }) {
+  public static override async rollback(opts: { connectionName: string; steps: number }) {
     const dreamApp = DreamApp.getOrFail()
     const primaryDbConf = dreamApp.dbConnectionConfig(opts.connectionName || 'default', 'primary')
     DreamCLI.logger.logStartProgress(`rolling back ${primaryDbConf.name}...`)
@@ -261,6 +254,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           )
         }
       }
+
+      await SchemaBuilder.buildGlobalTypes()
 
       if (!options?.schemaOnly) {
         // intentionally leaving logs off here, since it allows other
@@ -429,7 +424,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const dreamTransaction = new DreamTransaction()
     let callbackResponse: RetType = undefined as RetType
 
-    // TODO: move this to kysely class
     await _db(dreamInstance.connectionName || 'default', 'primary')
       .transaction()
       .execute(async kyselyTransaction => {

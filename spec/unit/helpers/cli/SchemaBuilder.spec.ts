@@ -2,24 +2,33 @@
 // we can simply examine the types/dream.ts file to ensure that it is properly
 // written
 
+import AlternateDbConnectionUser from '../../../../test-app/app/models/AlternateDbConnectionUser.js'
 import User from '../../../../test-app/app/models/User.js'
 import { BalloonColorsEnumValues } from '../../../../test-app/types/db.js'
 
 describe('SchemaBuilder', () => {
   describe('#build', () => {
-    context('global schema', () => {
-      context('globalNames', () => {
-        it('renders models key value pairs', () => {
-          expect(User.prototype.dreamTypeConfig.globalNames.models).toEqual(
-            expect.objectContaining({ 'Graph/Edge': 'graph_edges', User: 'users' })
-          )
-        })
+    context('globalNames', () => {
+      it('renders models key value pairs per-connection', () => {
+        const defaultConnectionValues = { 'Graph/Edge': 'graph_edges', User: 'users' }
+        const alternateConnectionValues = {
+          AlternateDbConnectionUser: 'alternate_db_connection_users',
+          AlternateDbConnectionPost: 'alternate_db_connection_posts',
+        }
 
-        it('renders serializers array', () => {
-          expect(User.prototype.dreamTypeConfig.globalNames.serializers).toEqual(
-            expect.arrayContaining(['UserSerializer', 'LocalizedText/BaseSerializer'])
-          )
-        })
+        expect(User.prototype.connectionTypeConfig.globalNames.models).toEqual(
+          expect.objectContaining(defaultConnectionValues)
+        )
+        expect(User.prototype.connectionTypeConfig.globalNames.models).not.toEqual(
+          expect.objectContaining(alternateConnectionValues)
+        )
+
+        expect(AlternateDbConnectionUser.prototype.connectionTypeConfig.globalNames.models).toEqual(
+          expect.objectContaining(alternateConnectionValues)
+        )
+        expect(AlternateDbConnectionUser.prototype.connectionTypeConfig.globalNames.models).not.toEqual(
+          expect.objectContaining(defaultConnectionValues)
+        )
       })
     })
 
@@ -141,6 +150,31 @@ describe('SchemaBuilder', () => {
         ])
         expect(User.prototype.schema.users.scopes.named).toEqual(['withFunnyName'])
       })
+
+      context('alternate connections', () => {
+        it('renders unique scopes for alternate connections', () => {
+          expect(
+            AlternateDbConnectionUser.prototype.schema.alternate_db_connection_users.scopes.default
+          ).toEqual([])
+          expect(
+            AlternateDbConnectionUser.prototype.schema.alternate_db_connection_users.scopes.named
+          ).toEqual(['testScope'])
+        })
+      })
+    })
+
+    context('passthrough', () => {
+      it('sets the default and non-default scopes', () => {
+        expect(User.prototype.connectionTypeConfig.passthroughColumns).toEqual(['locale'])
+      })
+
+      context('alternate connections', () => {
+        it('renders unique scopes for alternate connections', () => {
+          expect(AlternateDbConnectionUser.prototype.connectionTypeConfig.passthroughColumns).toEqual([
+            'body',
+          ])
+        })
+      })
     })
 
     context('serializerKeys', () => {
@@ -179,6 +213,14 @@ describe('SchemaBuilder', () => {
           requiredOnClauses: ['locale'],
         })
       })
+    })
+  })
+
+  describe('.buildGlobalTypes', () => {
+    it('renders serializers array', () => {
+      expect(User.prototype.globalTypeConfig.serializers).toEqual(
+        expect.arrayContaining(['UserSerializer', 'LocalizedText/BaseSerializer'])
+      )
     })
   })
 })
