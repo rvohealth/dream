@@ -391,8 +391,8 @@ export type GlobalModelNames<I extends Dream> = keyof GlobalModelNameTableMap<I>
 
 export type GlobalModelNameTableMap<
   I extends Dream,
-  GlobalSchema = I['globalSchema'],
-  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+  dreamTypeConfig = I['dreamTypeConfig'],
+  GlobalNames = dreamTypeConfig['globalNames' & keyof dreamTypeConfig],
 > = GlobalNames['models' & keyof GlobalNames]
 // end:Model global names and tables
 
@@ -401,8 +401,8 @@ export type GlobalSerializerName<I extends Dream> = GlobalSerializerNames<I>[num
 
 type GlobalSerializerNames<
   I extends Dream,
-  GlobalSchema = I['globalSchema'],
-  GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+  dreamTypeConfig = I['dreamTypeConfig'],
+  GlobalNames = dreamTypeConfig['globalNames' & keyof dreamTypeConfig],
 > = GlobalNames['serializers' & keyof GlobalNames]
 // end:Serializer global names
 
@@ -551,8 +551,8 @@ export interface SimilarityStatement {
 
 export type PassthroughColumnNames<
   DreamConf,
-  GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
-  PassthroughColumns = GlobalSchema['passthroughColumns' & keyof GlobalSchema],
+  dreamTypeConfig = DreamConf['dreamTypeConfig' & keyof DreamConf],
+  PassthroughColumns = dreamTypeConfig['passthroughColumns' & keyof dreamTypeConfig],
 > = PassthroughColumns
 
 export type DefaultScopeName<
@@ -574,8 +574,8 @@ export type DefaultScopeNameForTable<
 
 export type AllDefaultScopeNames<
   DreamConf,
-  GlobalSchema = DreamConf['globalSchema' & keyof DreamConf],
-  AllNames = GlobalSchema['allDefaultScopeNames' & keyof GlobalSchema],
+  dreamTypeConfig = DreamConf['dreamTypeConfig' & keyof DreamConf],
+  AllNames = dreamTypeConfig['allDefaultScopeNames' & keyof dreamTypeConfig],
 > =
   // it is not valid to remove the STI scope
   Exclude<AllNames[number & keyof AllNames], typeof STI_SCOPE_NAME>

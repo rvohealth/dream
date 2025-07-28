@@ -46,7 +46,7 @@ ${importStr}
 
 ${schemaConstContent}
 
-export const globalSchema = {
+export const dreamTypeConfig = {
   passthroughColumns: ${stringifyArray(uniq(passthroughColumns.sort()), { indent: 4 })},
   allDefaultScopeNames: ${stringifyArray(uniq(allDefaultScopeNames.sort()), { indent: 4 })},
   globalNames: {
