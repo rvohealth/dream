@@ -10,13 +10,13 @@ describe('SchemaBuilder', () => {
     context('global schema', () => {
       context('globalNames', () => {
         it('renders models key value pairs', () => {
-          expect(User.prototype.globalSchema.globalNames.models).toEqual(
+          expect(User.prototype.dreamTypeConfig.globalNames.models).toEqual(
             expect.objectContaining({ 'Graph/Edge': 'graph_edges', User: 'users' })
           )
         })
 
         it('renders serializers array', () => {
-          expect(User.prototype.globalSchema.globalNames.serializers).toEqual(
+          expect(User.prototype.dreamTypeConfig.globalNames.serializers).toEqual(
             expect.arrayContaining(['UserSerializer', 'LocalizedText/BaseSerializer'])
           )
         })

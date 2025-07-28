@@ -195,8 +195,8 @@ export default class Dream {
     return 'default' as const
   }
 
-  public get globalSchema(): any {
-    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'globalSchema')
+  public get dreamTypeConfig(): any {
+    throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'dreamTypeConfig')
   }
 
   /**
@@ -1069,8 +1069,8 @@ export default class Dream {
    */
   public static lookup<
     T extends typeof Dream,
-    GlobalSchema = InstanceType<T>['globalSchema'],
-    GlobalNames = GlobalSchema['globalNames' & keyof GlobalSchema],
+    dreamTypeConfig = InstanceType<T>['dreamTypeConfig'],
+    GlobalNames = dreamTypeConfig['globalNames' & keyof dreamTypeConfig],
     ModelGlobalNames = keyof GlobalNames['models' & keyof GlobalNames],
     SerializerGlobalNames = (GlobalNames['serializers' & keyof GlobalNames] & unknown[])[number],
     LookupName extends SerializerGlobalNames | ModelGlobalNames = SerializerGlobalNames | ModelGlobalNames,

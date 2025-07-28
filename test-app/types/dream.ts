@@ -6225,7 +6225,7 @@ export const schema = {
   },
 } as const
 
-export const globalSchema = {
+export const dreamTypeConfig = {
   passthroughColumns: ['locale'],
   allDefaultScopeNames: [
     'dream:STI',

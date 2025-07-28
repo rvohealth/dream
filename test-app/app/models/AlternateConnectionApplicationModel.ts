@@ -1,6 +1,6 @@
 import Dream from '../../../src/Dream.js'
 import { DBClass } from '../../types/db.alternateConnection.js'
-import { globalSchema, schema } from '../../types/dream.alternateConnection.js'
+import { dreamTypeConfig, schema } from '../../types/dream.alternateConnection.js'
 
 export default class AlternateConnectionApplicationModel extends Dream {
   declare public DB: DBClass
@@ -13,8 +13,8 @@ export default class AlternateConnectionApplicationModel extends Dream {
     return schema
   }
 
-  public override get globalSchema() {
-    return globalSchema
+  public override get dreamTypeConfig() {
+    return dreamTypeConfig
   }
 }
 
