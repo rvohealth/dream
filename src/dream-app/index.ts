@@ -161,8 +161,6 @@ Try setting it to something valid, like:
     return this._dbCredentials
   }
 
-  // TODO: maybe harden typing for connectionName
-  // TODO: maybe raise exception instead of returning null?
   public dbCredentialsFor(connectionName: string): DreamDbCredentialOptions | null {
     if (this._dbCredentials[connectionName]) return this._dbCredentials[connectionName]
     return null
@@ -262,19 +260,16 @@ Try setting it to something valid, like:
     return getSerializersOrFail()
   }
 
-  // TODO: maybe harden connectionName type
   public dbName(connectionName: string, connection: DbConnectionType): string {
     const conf = this.dbConnectionConfig(connectionName, connection)
     return this.parallelDatabasesEnabled ? `${conf.name}_${process.env.VITEST_POOL_ID}` : conf.name
   }
 
-  // TODO: maybe harden connectionName type
   public dbConnectionConfig(connectionName: string, connection: DbConnectionType): SingleDbCredential {
     const conf =
       this.dbCredentialsFor(connectionName)?.[connection] || this.dbCredentialsFor(connectionName)?.primary
 
     if (!conf) {
-      console.log(this.dbCredentials)
       throw new Error(`
       Cannot find a connection config given the following connection and node environment:
         connectionName: ${connectionName}

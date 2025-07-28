@@ -6,7 +6,6 @@ import EnvInternal from '../../../../helpers/EnvInternal.js'
 import loadPgClient from './loadPgClient.js'
 
 export default async function dropDb(
-  // TODO: maybe harden type for connectionName
   connectionName: string,
   connection: DbConnectionType,
   dbName?: string | null

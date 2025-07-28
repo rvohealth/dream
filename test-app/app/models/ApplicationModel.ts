@@ -1,6 +1,7 @@
 import Dream from '../../../src/Dream.js'
 import { DBClass } from '../../types/db.js'
-import { dreamTypeConfig, schema } from '../../types/dream.js'
+import { connectionTypeConfig, schema } from '../../types/dream.js'
+import { globalTypeConfig } from '../../types/dream.globals.js'
 
 export default class ApplicationModel extends Dream {
   declare public DB: DBClass
@@ -9,8 +10,12 @@ export default class ApplicationModel extends Dream {
     return schema
   }
 
-  public override get dreamTypeConfig() {
-    return dreamTypeConfig
+  public override get connectionTypeConfig() {
+    return connectionTypeConfig
+  }
+
+  public override get globalTypeConfig() {
+    return globalTypeConfig
   }
 }
 

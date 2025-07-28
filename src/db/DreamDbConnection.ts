@@ -16,11 +16,7 @@ import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutin
 let connections = {} as { [key: string]: { [key: string]: Kysely<any> } }
 
 export default class DreamDbConnection {
-  public static getConnection<DB>(
-    // TODO: maybe harden type for connectionName
-    connectionName: string,
-    connectionType: DbConnectionType
-  ): Kysely<DB> {
+  public static getConnection<DB>(connectionName: string, connectionType: DbConnectionType): Kysely<DB> {
     const dreamApp = DreamApp.getOrFail()
     const connectionTypeName = this.getConnectionTypeName(connectionType)
     const connection = connections[connectionName]?.[connectionTypeName]
