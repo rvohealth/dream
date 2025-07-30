@@ -70,8 +70,8 @@ export async function closeAllDbConnections() {
 export async function closeAllConnectionsForConnectionName(connectionName: string) {
   const protectedName = protectAgainstPollutingAssignment(connectionName)
   return await Promise.allSettled(
-    Object.keys(connections[connectionName]!).map(async key => {
-      const conn = connections[connectionName]![key]!
+    Object.keys(connections[protectedName]!).map(async key => {
+      const conn = connections[protectedName]![key]!
       await conn.destroy()
       delete connections[protectedName]![key]
     })

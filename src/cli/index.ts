@@ -16,25 +16,37 @@ ${INDENT}    subtitle:string:optional
 ${INDENT}
 ${INDENT}supported types:
 ${INDENT}    - citext:
+${INDENT}    - citext[]:
 ${INDENT}        case insensitive text (indexes and queries are automatically case insensitive)
 ${INDENT}
 ${INDENT}    - string:
+${INDENT}    - string[]:
 ${INDENT}        varchar; allowed length defaults to 255, but may be customized, e.g.: subtitle:string:128 or subtitle:string:128:optional
 ${INDENT}
 ${INDENT}    - text
+${INDENT}    - text[]
 ${INDENT}    - date
+${INDENT}    - date[]
 ${INDENT}    - datetime
+${INDENT}    - datetime[]
 ${INDENT}    - integer
+${INDENT}    - integer[]
 ${INDENT}
 ${INDENT}    - decimal:
+${INDENT}    - decimal[]:
 ${INDENT}        scale,precision is required, e.g.: volume:decimal:3,2 or volume:decimal:3,2:optional
+${INDENT}        
+${INDENT}        leveraging arrays, add the "[]" suffix, e.g.: volume:decimal[]:3,2
 ${INDENT}
 ${INDENT}    - enum:
+${INDENT}    - enum[]:
 ${INDENT}        include the enum name to automatically create the enum:
 ${INDENT}          type:enum:room_types:bathroom,kitchen,bedroom or type:enum:room_types:bathroom,kitchen,bedroom:optional
 ${INDENT}
 ${INDENT}        omit the enum values to leverage an existing enum (omits the enum type creation):
-${INDENT}          type:enum:room_types or type:enum:room_types:optional`
+${INDENT}          type:enum:room_types or type:enum:room_types:optional
+${INDENT}
+${INDENT}        leveraging arrays, add the "[]" suffix, e.g.: type:enum[]:room_types:bathroom,kitchen,bedroom`
 
 const columnsWithTypesDescription =
   baseColumnsWithTypesDescription +
