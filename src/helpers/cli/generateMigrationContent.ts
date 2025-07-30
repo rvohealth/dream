@@ -79,10 +79,21 @@ export default function generateMigrationContent({
           columnDefs.push(generateEnumStr(attributeName, { descriptors, optional }))
           break
 
+        case 'enum[]':
+          columnDefs.push(generateEnumStr(attributeName, { descriptors, optional, asArray: true }))
+          break
+
         case 'decimal':
           columnDefs.push(generateDecimalStr(attributeName, { descriptors, optional }))
           break
 
+        case 'decimal[]':
+          columnDefs.push(generateDecimalStr(attributeName, { descriptors, optional, asArray: true }))
+          break
+
+        // array case for booleans can be handled with the default block.
+        // the only thing that is customized for a boolean field is the default
+        // value, which doesn't need to be special for boolean[]
         case 'boolean':
           columnDefs.push(generateBooleanStr(attributeName, { optional }))
           break
@@ -90,6 +101,10 @@ export default function generateMigrationContent({
         case 'encrypted':
           columnDefs.push(generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors, { optional }))
           break
+
+        // TODO: determine if we need to support encrypted[] in the future
+        case 'encrypted[]':
+          throw new Error('the "encrypted[]" column type is not supported')
 
         default:
           if (sqlAttributeType !== undefined) {
@@ -180,8 +195,14 @@ function getAttributeType(attributeType: string | undefined, descriptors: string
     case 'string':
       return `varchar(${descriptors[0] || 255})`
 
+    case 'string[]':
+      return `varchar(${descriptors[0] || 255})[]`
+
     case 'enum':
       return enumAttributeType(descriptors)
+
+    case 'enum[]':
+      return enumAttributeType(descriptors, true)
 
     case 'datetime':
       return 'timestamp'
@@ -191,12 +212,15 @@ function getAttributeType(attributeType: string | undefined, descriptors: string
   }
 }
 
-function enumAttributeType(descriptors: string[]) {
-  return `sql\`${descriptors[0]}_enum\``
+function enumAttributeType(descriptors: string[], asArray: boolean = false) {
+  const suffix = asArray ? '[]' : ''
+  return `sql\`${descriptors[0]}_enum${suffix}\``
 }
 
+const ENUM_OR_ENUM_ARRAY_REGEX = /:enum:.*:|:enum\[\]:.*:/
+
 function generateEnumStatements(columnsWithTypes: string[]) {
-  const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
+  const enumStatements = columnsWithTypes.filter(attribute => ENUM_OR_ENUM_ARRAY_REGEX.test(attribute))
   const finalStatements = compact(
     enumStatements.map(statement => {
       const [, , enumName, ...descriptors] = statement.split(':')
@@ -217,7 +241,7 @@ function generateEnumStatements(columnsWithTypes: string[]) {
 }
 
 function generateEnumDropStatements(columnsWithTypes: string[]) {
-  const enumStatements = columnsWithTypes.filter(attribute => /:enum:.*:/.test(attribute))
+  const enumStatements = columnsWithTypes.filter(attribute => ENUM_OR_ENUM_ARRAY_REGEX.test(attribute))
   const finalStatements = compact(
     enumStatements.map(statement => {
       const [, , enumName, ...descriptors] = statement.split(':')
@@ -237,21 +261,27 @@ function generateBooleanStr(attributeName: string, { optional }: { optional: boo
 
 function generateEnumStr(
   attributeName: string,
-  { descriptors, optional }: { descriptors: string[]; optional: boolean }
+  { descriptors, optional, asArray = false }: { descriptors: string[]; optional: boolean; asArray?: boolean }
 ) {
-  const computedAttributeType = enumAttributeType(descriptors)
+  const computedAttributeType = enumAttributeType(descriptors, asArray)
   if (attributeName === undefined) return ''
-  return `.addColumn('${attributeName}', ${computedAttributeType}${optional ? '' : ', col => col.notNull()'})`
+
+  const columnModifiers = asArray ? "col.notNull().defaultTo('{}')" : 'col.notNull()'
+  return `.addColumn('${attributeName}', ${computedAttributeType}${optional ? '' : `, col => ${columnModifiers}`})`
 }
 
 function generateDecimalStr(
   attributeName: string,
-  { descriptors, optional }: { descriptors: string[]; optional: boolean }
+  { descriptors, optional, asArray = false }: { descriptors: string[]; optional: boolean; asArray?: boolean }
 ) {
   const [scale, precision] = descriptors[0]?.split(',') || [null, null]
   if (!scale || !precision) throw new InvalidDecimalFieldPassedToGenerator(attributeName)
 
-  return `.addColumn('${attributeName}', 'decimal(${scale}, ${precision})'${optional ? '' : ', col => col.notNull()'})`
+  const columnModifiers = asArray ? "col.notNull().defaultTo('{}')" : 'col.notNull()'
+  const decimalStatement = asArray
+    ? `sql\`decimal(${scale}, ${precision})[]\``
+    : `'decimal(${scale}, ${precision})'`
+  return `.addColumn('${attributeName}', ${decimalStatement}${optional ? '' : `, col => ${columnModifiers}`})`
 }
 
 function generateColumnStr(
@@ -266,10 +296,12 @@ function generateColumnStr(
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
   const notNull = !optional
   const hasExtraValues = providedDefault || notNull
+  const isArray = /\[\]$/.test(attributeType)
 
   if (hasExtraValues) returnStr += ', col => col'
   if (notNull) returnStr += '.notNull()'
   if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
+  else if (isArray) returnStr += `.defaultTo('{}')`
 
   returnStr = `${returnStr})`
 
@@ -286,6 +318,8 @@ function attributeTypeString(attributeType: string) {
   const attributeTypesRequiringSql = ['citext']
   if (attributeTypesRequiringSql.includes(attributeType)) return `sql\`${attributeType}\``
 
+  const isArray = /\[\]$/.test(attributeType)
+
   switch (attributeType) {
     case 'varbit':
     case 'bitvarying':
@@ -293,7 +327,11 @@ function attributeTypeString(attributeType: string) {
     case 'txid_snapshot':
       return "'txid_snapshot'"
     default:
-      return `'${attributeType.replace(/_/g, ' ')}'`
+      if (isArray) {
+        return `sql\`${attributeType.replace(/_/g, ' ')}\``
+      } else {
+        return `'${attributeType.replace(/_/g, ' ')}'`
+      }
   }
 }
 

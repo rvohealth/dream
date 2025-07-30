@@ -155,7 +155,7 @@ describe('SchemaBuilder', () => {
         it('renders unique scopes for alternate connections', () => {
           expect(
             AlternateDbConnectionUser.prototype.schema.alternate_db_connection_users.scopes.default
-          ).toEqual([])
+          ).toEqual(['testDefaultScope'])
           expect(
             AlternateDbConnectionUser.prototype.schema.alternate_db_connection_users.scopes.named
           ).toEqual(['testScope'])

@@ -61,20 +61,45 @@ export default function generateFactoryContent({
         counterVariableIncremented = true
         break
 
+      case 'string[]':
+      case 'text[]':
+      case 'citext[]':
+        attributeDefaults.push(
+          `${attributeVariable}: [\`${fullyQualifiedModelName} ${attributeVariable} ${counterVariableIncremented ? '${counter}' : '${++counter}'}\`],`
+        )
+        counterVariableIncremented = true
+        break
+
       case 'enum':
         attributeDefaults.push(`${attributeVariable}: '${(descriptors.at(-1) || '<tbd>').split(',')[0]}',`)
+        break
+
+      case 'enum[]':
+        attributeDefaults.push(`${attributeVariable}: ['${(descriptors.at(-1) || '<tbd>').split(',')[0]}'],`)
         break
 
       case 'integer':
         attributeDefaults.push(`${attributeVariable}: 1,`)
         break
 
+      case 'integer[]':
+        attributeDefaults.push(`${attributeVariable}: [1],`)
+        break
+
       case 'bigint':
         attributeDefaults.push(`${attributeVariable}: '11111111111111111',`)
         break
 
+      case 'bigint[]':
+        attributeDefaults.push(`${attributeVariable}: ['11111111111111111'],`)
+        break
+
       case 'decimal':
         attributeDefaults.push(`${attributeVariable}: 1.1,`)
+        break
+
+      case 'decimal[]':
+        attributeDefaults.push(`${attributeVariable}: [1.1],`)
         break
 
       case 'date':
@@ -82,12 +107,25 @@ export default function generateFactoryContent({
         attributeDefaults.push(`${attributeVariable}: CalendarDate.today(),`)
         break
 
+      case 'date[]':
+        dreamImports.push('CalendarDate')
+        attributeDefaults.push(`${attributeVariable}: [CalendarDate.today()],`)
+        break
+
       case 'datetime':
         dreamImports.push('DateTime')
         attributeDefaults.push(`${attributeVariable}: DateTime.now(),`)
         break
 
+      case 'datetime[]':
+        dreamImports.push('DateTime')
+        attributeDefaults.push(`${attributeVariable}: [DateTime.now()],`)
+        break
+
       default:
+        if (/\[\]$/.test(attributeType)) {
+          attributeDefaults.push(`${attributeVariable}: [],`)
+        }
       // noop
     }
   }
