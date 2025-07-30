@@ -15,5 +15,6 @@ beforeEach(async () => {
     console.error(err)
     throw err
   }
-  await truncate(DreamApp)
+
+  await Promise.all([truncate(DreamApp, 'default'), truncate(DreamApp, 'alternateConnection')])
 }, 15000)

@@ -63,6 +63,50 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       )
     })
 
+    context('with array attrs', () => {
+      it('defaults are provided when not supplied', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: [
+            'types:enum[]:post_type:WeeklyPost,GuestPost',
+            'styles:enum[]:building_style:formal,informal',
+            'titles:citext[]',
+            'subtitles:string[]',
+            'body_markdowns:text[]',
+            'ratings:decimal[]:3,2',
+            'ratingInts:integer[]',
+            'big_ratings:bigint[]',
+            'signed_ons:date[]',
+            'signed_ats:datetime[]',
+          ],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties, CalendarDate, DateTime } from '@rvoh/dream'
+import Post from '../../app/models/Post.js'
+
+let counter = 0
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
+    types: ['WeeklyPost'],
+    styles: ['formal'],
+    titles: [\`Post titles \${++counter}\`],
+    subtitles: [\`Post subtitles \${counter}\`],
+    bodyMarkdowns: [\`Post bodyMarkdowns \${counter}\`],
+    ratings: [1.1],
+    ratingInts: [1],
+    bigRatings: ['11111111111111111'],
+    signedOns: [CalendarDate.today()],
+    signedAts: [DateTime.now()],
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
     it('defaults are omitted for optional arguments', () => {
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',

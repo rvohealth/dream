@@ -336,6 +336,50 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
+    context('array attributes', () => {
+      it('generates array column statements', () => {
+        const res = generateMigrationContent({
+          table: 'chalupas',
+          columnsWithTypes: [
+            'name:text[]',
+            'phone_number:string[]',
+            'deliciousness:decimal[]:4,2',
+            'my_bools:boolean[]',
+            'my_dates:date[]',
+            'my_datetimes:datetime[]',
+          ],
+          primaryKeyType: 'bigserial',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('chalupas')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('name', sql\`text[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('phone_number', sql\`varchar(255)[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('deliciousness', sql\`decimal(4, 2)[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('my_bools', sql\`boolean[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('my_dates', sql\`date[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('my_datetimes', sql\`datetime[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('chalupas').execute()
+}\
+`
+        )
+      })
+    })
+
     context('enum attributes', () => {
       it('generates a kysely migration with non-null enum', () => {
         const res = generateMigrationContent({
@@ -390,6 +434,63 @@ export async function down(db: Kysely<any>): Promise<void> {
 }\
 `
         )
+      })
+
+      context('enum[] attributes', () => {
+        it('generates a kysely migration with non-null enum', () => {
+          const res = generateMigrationContent({
+            table: 'chalupas',
+            columnsWithTypes: [
+              'topping:enum[]:topping:lettuce,cheese,baja_sauce',
+              'protein_type:enum[]:protein:beef,nonbeef',
+              'existing_enum:enum[]:my_existing_enum',
+            ],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createType('topping_enum')
+    .asEnum([
+      'lettuce',
+      'cheese',
+      'baja_sauce'
+    ])
+    .execute()
+
+  await db.schema
+    .createType('protein_enum')
+    .asEnum([
+      'beef',
+      'nonbeef'
+    ])
+    .execute()
+
+  await db.schema
+    .createTable('chalupas')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('topping', sql\`topping_enum[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('protein_type', sql\`protein_enum[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('existing_enum', sql\`my_existing_enum_enum[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('chalupas').execute()
+
+  await db.schema.dropType('topping_enum').execute()
+  await db.schema.dropType('protein_enum').execute()
+}\
+`
+          )
+        })
       })
     })
 
