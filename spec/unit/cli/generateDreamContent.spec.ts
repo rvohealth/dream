@@ -257,6 +257,49 @@ export default class Chalupa extends ApplicationModel {
 `
         )
       })
+
+      context('with enum[] attributes', () => {
+        it('generates a dream model with multiple enum fields', () => {
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'chalupa',
+            columnsWithTypes: [
+              'topping:enum[]:topping:cheese,baja_sauce',
+              'protein:enum[]:protein:beef,non_beef',
+              'existing_enum:enum[]:my_existing_enum',
+            ],
+            serializer: true,
+            includeAdminSerializers: false,
+          })
+          expect(res).toEqual(
+            `\
+import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import ApplicationModel from './ApplicationModel.js'
+
+const deco = new Decorators<typeof Chalupa>()
+
+export default class Chalupa extends ApplicationModel {
+  public override get table() {
+    return 'chalupas' as const
+  }
+
+  public get serializers(): DreamSerializers<Chalupa> {
+    return {
+      default: 'ChalupaSerializer',
+      summary: 'ChalupaSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Chalupa, 'id'>
+  public topping: DreamColumn<Chalupa, 'topping'>
+  public protein: DreamColumn<Chalupa, 'protein'>
+  public existingEnum: DreamColumn<Chalupa, 'existingEnum'>
+  public createdAt: DreamColumn<Chalupa, 'createdAt'>
+  public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
+}
+`
+          )
+        })
+      })
     })
 
     context('when name has an uncountable rule applied in inflections conf', () => {
