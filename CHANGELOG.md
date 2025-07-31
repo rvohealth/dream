@@ -64,6 +64,21 @@ yarn psy g:model MyNewModel someField:text --connection-name=myAlternateConnecti
 
 Dream will automatically read the connectionName and use it to derive the `MyAlternateConnectionApplicationModel` automatically, though if this isn't correct, you will need to manually adjust it.
 
+5. Alternate db engine support
+
+If you would like to use an alternate db engine, this is also now supported. To do this, you will need to provide a query driver class that extends one of our base query driver classes. As an example, I recommend you take a look at the `MysqlQueryDriver.ts` file housed within the test-app folder of this repo. This class is not ready for production use, but is a good jumping off point for those interested in supporting a different query driver for dream.
+
+To utilize this feature, simply provide a different query driver class in your db connection config, like so:
+
+```ts
+// conf/dream.ts
+
+  app.set('db', {
+    queryDriverClass: MyCustomQueryDriverClass,
+    ...
+  })
+```
+
 ## 1.4.2
 
 - add ability to set custom import extension, which will be used when generating new files for your application
