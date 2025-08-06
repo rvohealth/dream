@@ -110,7 +110,9 @@ async function findNextMigrationRequiringNewTransaction(
   for (const notYetRunMigration of notYetRunMigrations) {
     const upAndDownString =
       notYetRunMigration.migration.up.toString() + (notYetRunMigration.migration.down || '').toString()
-    const migrationRequiresNewTransaction = upAndDownString.includes('DreamMigrationHelpers.dropEnumValue')
+    const migrationRequiresNewTransaction =
+      upAndDownString.includes('DreamMigrationHelpers.dropEnumValue') ||
+      upAndDownString.includes('DreamMigrationHelpers.newTransaction')
     if (migrationRequiresNewTransaction) return notYetRunMigration
   }
 }

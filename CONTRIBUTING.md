@@ -4,26 +4,69 @@
 
 In order to use dream, you must be using node = 18.15.0. A `.node-version` file exists at the root of this repo to flag the node version, but it will not work unless `nodenv` has been correctly installed on your machine.
 
+### Install postgres and mysql
+
+Homebrew example:
+
+```sh
+brew install postgresql
+# follow post-install instructions
+brew install mysql
+# follow post-install instructions
+```
+
 ### Add ENV files
 
 make sure to add the following files to the root of the project:
 
 ```
 # .env
-DREAM_CORE_DEVELOPMENT=1
-DB_USER=YOUR_PG_USERNAME
-DB_NAME=dream_core_dev
+DB_USER=<your username>
 DB_PORT=5432
+DB_NAME=dream_app_development
 DB_HOST=localhost
+REPLICA_DB_NAME=dream_app_development
+REPLICA_DB_HOST=localhost
+
+DB_PORT_2=5432
+DB_NAME_2=dream_core_development_alternate
+
+DB_USER_MYSQL=root
+DB_PORT_MYSQL=3306
+DB_NAME_MYSQL=dream_core_development_mysql
+DB_HOST_MYSQL=localhost
+DB_PASSWORD_MYSQL=
+PRIMARY_DB_HOST_MYSQL=127.0.0.1
+REPLICA_DB_HOST_MYSQL=127.0.0.1
+
+APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
+LEGACY_APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
+TZ=UTC
 ```
 
 ```
 # .env.test
-DREAM_CORE_DEVELOPMENT=1
-DB_USER=YOUR_PG_USERNAME
-DB_NAME=dream_core_test
+DB_USER=<your username>
 DB_PORT=5432
+DB_NAME=dream_app_test
 DB_HOST=localhost
+REPLICA_DB_NAME=dream_app_test
+REPLICA_DB_HOST=localhost
+
+DB_PORT_2=5432
+DB_NAME_2=dream_core_test_alternate
+
+DB_USER_MYSQL=root
+DB_PORT_MYSQL=3306
+DB_NAME_MYSQL=dream_core_test_mysql
+DB_HOST_MYSQL=localhost
+DB_PASSWORD_MYSQL=
+PRIMARY_DB_HOST_MYSQL=127.0.0.1
+REPLICA_DB_HOST_MYSQL=127.0.0.1
+
+APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
+LEGACY_APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
+TZ=UTC
 ```
 
 ### Build db and sync schema
@@ -32,8 +75,8 @@ DB_HOST=localhost
 yarn install
 NODE_ENV=development yarn dream db:create
 NODE_ENV=development yarn dream db:migrate
-NODE_ENV=test yarn dream db:create
-NODE_ENV=test yarn dream db:migrate
+yarn dream db:create
+yarn dream db:migrate
 ```
 
 ## Global CLI

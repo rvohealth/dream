@@ -1,3 +1,7 @@
+## 1.5.1
+
+Add `DreamMigrationHelpers.newTransaction()` to support explicitly starting a new transaction within a migration.
+
 ## 1.5.0
 
 - add support for multiple database connections in a single dream application. To take advantage of this new feature, you can do the following:

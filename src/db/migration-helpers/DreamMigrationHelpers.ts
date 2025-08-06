@@ -119,6 +119,43 @@ export default class DreamMigrationHelpers {
   }
 
   /**
+   * Forces a new transaction boundary in migration execution.
+   *
+   * When called in a migration file, this method ensures that any existing transaction
+   * is committed before this migration runs, and a new transaction is started before the
+   * migration in this file. This is essential for migrations that depend on previously
+   * committed changes.
+   *
+   * Some database operations require that dependent changes be committed before they can
+   * be executed. For example, check constraints that reference enum values require those
+   * enum values to be committed to the database first.
+   *
+   * ```ts
+   * // first migration file: Add enum value
+   * export async function up(db: Kysely<any>): Promise<void> {
+   *   await DreamMigrationHelpers.addEnumValue(db, {
+   *     enumName: 'user_status',
+   *     value: 'premium'
+   *   })
+   * }
+   *
+   * // second migration file: Add check constraint that depends on the enum value
+   * export async function up(db: Kysely<any>): Promise<void> {
+   *   DreamMigrationHelpers.newTransaction() // Ensure enum value is committed first
+   *
+   *   await db.schema
+   *     .alterTable('users')
+   *     .addCheckConstraint(
+   *       'check_premium_users',
+   *       sql`status = 'premium' OR credits < 100`
+   *     )
+   *     .execute()
+   * }
+   * ```
+   */
+  public static newTransaction() {}
+
+  /**
    * Drop a value from an enum and replace it (or optionally remove it from array columns)
    *
    * @param db - The Kysely database object passed into the migration up/down function

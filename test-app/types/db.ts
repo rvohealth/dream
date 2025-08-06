@@ -221,11 +221,12 @@ export const ShapeTypesEnumValues = [
 ] as const
 
 
-export type Species = "cat" | "dog" | "frog";
+export type Species = "cat" | "dog" | "frog" | "migration_transaction_test";
 export const SpeciesValues = [
   "cat",
   "dog",
-  "frog"
+  "frog",
+  "migration_transaction_test"
 ] as const
 
 
