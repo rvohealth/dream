@@ -266,8 +266,10 @@ type RecursiveWhereStatementForJoinedAssociation<
   NextOnStatement = NonNamespacedAssociationOnStatement extends never
     ? OriginalOnStatement
     : OriginalOnStatement & {
-        [K in keyof NonNamespacedAssociationOnStatement as `${AssociationName & string}.${K & string}`]: NonNamespacedAssociationOnStatement[K &
-          keyof NonNamespacedAssociationOnStatement]
+        [K in keyof NonNamespacedAssociationOnStatement as `${AssociationName & string}.${K & string}`]:
+          | NonNamespacedAssociationOnStatement[K & keyof NonNamespacedAssociationOnStatement]
+          // `| null` so that we can query for models that don't have a particular association
+          | null
       },
 > = JoinedAssociations['length'] extends 0
   ? OriginalOnStatement

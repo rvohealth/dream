@@ -3,6 +3,7 @@
 - Don't require `openapi` for virtual attributes
 - Fix Sortable with null value in scope column
 - Enable sanitization of serialized attributes
+- Enable `<association>.<column>: null` where statements even when the column can't be null so that queries can be constructed to locate models that don't have a particular association
 
 ## 1.5.1
 

@@ -417,4 +417,32 @@ describe('Query#leftJoinPreload with simple associations', () => {
     // single query does not allow name collisions
     await Edge.leftJoinPreload('nodes', 'edges').all()
   })
+
+  context('where association.property is null', () => {
+    it('can find models that don’t have a particular association', async () => {
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin' })
+      await Composition.create({ user: user1 })
+
+      const users = await User.query()
+        .leftJoinPreload('compositions')
+        .where({ 'compositions.id': null })
+        .all()
+      expect(users).toMatchDreamModels([user2])
+    })
+
+    it('can find associations that don’t have a particular association', async () => {
+      const user = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user })
+      const composition2 = await Composition.create({ user })
+      await CompositionAsset.create({ composition: composition2 })
+
+      const users = await User.query()
+        .leftJoinPreload('compositions', 'compositionAssets')
+        .where({ 'compositionAssets.id': null })
+        .all()
+      expect(users).toMatchDreamModels([user])
+      expect(users[0]?.compositions).toMatchDreamModels([composition1])
+    })
+  })
 })
