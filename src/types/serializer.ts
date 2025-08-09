@@ -82,6 +82,11 @@ export type AutomaticSerializerAttributeOptionsForType = {
   }
 }
 
+export type SerializerAttributeOptionsForVirtualColumn = {
+  as?: string
+  openapi?: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+}
+
 export type NonAutomaticSerializerAttributeOptions = {
   as?: string
   default?: any

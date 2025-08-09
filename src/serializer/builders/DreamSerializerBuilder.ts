@@ -1,6 +1,7 @@
 import Dream from '../../Dream.js'
 import {
   DreamOrViewModelSerializerKey,
+  DreamVirtualColumns,
   NonJsonDreamColumnNames,
   ViewModel,
   ViewModelClass,
@@ -15,6 +16,7 @@ import {
   InternalAnyTypedSerializerRendersOne,
   NonAutomaticSerializerAttributeOptions,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
+  SerializerAttributeOptionsForVirtualColumn,
   SerializerType,
 } from '../../types/serializer.js'
 import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRenderer.js'
@@ -70,6 +72,8 @@ export default class DreamSerializerBuilder<
    *
    * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
+
+  // `type` attribute
   public attribute<
     AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & 'type',
     Options extends AutomaticSerializerAttributeOptionsForType,
@@ -78,7 +82,19 @@ export default class DreamSerializerBuilder<
     options?: Options
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
+  // attribute is a virtual column
   public attribute<
+    AttributeName extends DreamVirtualColumns<DataType>[number],
+    Options extends SerializerAttributeOptionsForVirtualColumn,
+  >(
+    name: AttributeName,
+    options?: Options
+  ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
+
+  // attribute is not a non-json dream column name
+  public attribute<
+    // `keyof DataType` includes columns listed as properties, so, in order to exclude
+    // non-json columns, we include NonJsonDreamColumnNames and then set those properties as `never`
     MaybeAttributeName extends NonJsonDreamColumnNames<DataType> | (keyof DataType & string),
     AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
       ? never
@@ -89,6 +105,7 @@ export default class DreamSerializerBuilder<
     options: Options
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
+  // attribute is a non-json dream column name
   public attribute<
     AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & string,
     Options extends AutomaticSerializerAttributeOptions<DataType, AttributeName>,

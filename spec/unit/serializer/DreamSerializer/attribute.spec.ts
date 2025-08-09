@@ -35,6 +35,27 @@ describe('DreamSerializer attributes', () => {
     })
   })
 
+  it('can render virtual Dream attributes without specifying OpenAPI shape', () => {
+    const MySerializer = (data: User) => DreamSerializer(User, data).attribute('lbs')
+
+    const serializer = MySerializer(User.new({ lbs: 180.1 }))
+
+    expect(serializer.render()).toEqual({
+      lbs: 180.1,
+    })
+  })
+
+  it('can render virtual Dream attributes specifying only a description in the OpenAPI shape', () => {
+    const MySerializer = (data: User) =>
+      DreamSerializer(User, data).attribute('lbs', { openapi: { description: 'Weight' } })
+
+    const serializer = MySerializer(User.new({ lbs: 180.1 }))
+
+    expect(serializer.render()).toEqual({
+      lbs: 180.1,
+    })
+  })
+
   context('default value', () => {
     it('converts undefined to the default', () => {
       const MySerializer = (data: User) =>

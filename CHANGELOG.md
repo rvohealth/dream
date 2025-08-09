@@ -1,3 +1,7 @@
+## 1.5.2
+
+- Don't require `openapi` for virtual attributes
+
 ## 1.5.1
 
 Add `DreamMigrationHelpers.newTransaction()` to support explicitly starting a new transaction within a migration.
