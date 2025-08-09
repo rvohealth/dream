@@ -246,11 +246,20 @@ export function applySortableScopesToQuery<
   for (const singleScope of scopeArray(scope)) {
     const column = getColumnForSortableScope(dream, singleScope)
     if (column) {
-      kyselyQuery = (kyselyQuery as UpdateQueryBuilder<any, string, string, any>).where(
-        column,
-        '=',
-        whereValueCB(column)
-      ) as QB
+      const columnValue = whereValueCB(column)
+      if (columnValue === null) {
+        kyselyQuery = (kyselyQuery as UpdateQueryBuilder<any, string, string, any>).where(
+          column,
+          'is',
+          null
+        ) as QB
+      } else {
+        kyselyQuery = (kyselyQuery as UpdateQueryBuilder<any, string, string, any>).where(
+          column,
+          '=',
+          columnValue
+        ) as QB
+      }
     }
   }
 

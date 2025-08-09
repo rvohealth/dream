@@ -1,6 +1,7 @@
 ## 1.5.2
 
 - Don't require `openapi` for virtual attributes
+- Fix Sortable with null value in scope column
 
 ## 1.5.1
 

@@ -30,6 +30,12 @@ export default class Collar extends ApplicationModel {
   @deco.Sortable({ scope: ['pet', 'tagName'] })
   public position: DreamColumn<Collar, 'position'>
 
+  @deco.Sortable({ scope: 'balloon' })
+  public positionOnBalloon: DreamColumn<Collar, 'positionOnBalloon'>
+
+  @deco.Sortable({ scope: ['balloon', 'pet'] })
+  public positionOnBalloonAndPet: DreamColumn<Collar, 'positionOnBalloonAndPet'>
+
   @deco.BelongsTo('Pet')
   public pet: Pet
   public petId: DreamColumn<Collar, 'petId'>

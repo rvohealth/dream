@@ -107,11 +107,11 @@ import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
+import softDeleteDream from '../internal/softDeleteDream.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
 import runMigration from './helpers/kysely/runMigration.js'
-import softDeleteDream from '../internal/softDeleteDream.js'
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   // ATTENTION FRED
@@ -1505,11 +1505,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     b: KyselyComparisonOperatorExpression,
     c: any[]
   ): ExpressionWrapper<any, any, SqlBool> {
-    const isNullStatement = eb(a, 'is not', null)
+    const isNotNullStatement = eb(a, 'is not', null)
     const compactedC = compact(c)
 
-    if (compactedC.length) return eb.and([eb(a, 'not in', compactedC), isNullStatement])
-    return isNullStatement
+    if (compactedC.length) return eb.and([eb(a, 'not in', compactedC), isNotNullStatement])
+    return isNotNullStatement
   }
 
   private dreamWhereStatementToExpressionBuilderParts(attr: string, val: any) {

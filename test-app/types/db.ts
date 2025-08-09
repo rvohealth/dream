@@ -329,6 +329,8 @@ export interface Collars {
   lost: boolean | null;
   petId: Int8 | null;
   position: number | null;
+  positionOnBalloon: number | null;
+  positionOnBalloonAndPet: number | null;
   tagName: string | null;
   updatedAt: Timestamp;
 }

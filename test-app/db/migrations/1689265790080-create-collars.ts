@@ -10,6 +10,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('hidden', 'boolean', col => col.defaultTo(false))
     .addColumn('tag_name', 'varchar(255)')
     .addColumn('position', 'integer')
+    .addColumn('position_on_balloon', 'integer')
+    .addColumn('position_on_balloon_and_pet', 'integer')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .addColumn('deleted_at', 'timestamp')

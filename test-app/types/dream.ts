@@ -817,7 +817,7 @@ export const schema = {
       default: ['dream:SoftDelete', 'hideHiddenCollars'],
       named: [],
     },
-    nonJsonColumnNames: ['balloonId', 'createdAt', 'deletedAt', 'hidden', 'id', 'lost', 'petId', 'position', 'tagName', 'updatedAt'],
+    nonJsonColumnNames: ['balloonId', 'createdAt', 'deletedAt', 'hidden', 'id', 'lost', 'petId', 'position', 'positionOnBalloon', 'positionOnBalloonAndPet', 'tagName', 'updatedAt'],
     columns: {
       balloonId: {
         coercedType: {} as string | null,
@@ -883,6 +883,24 @@ export const schema = {
         isArray: false,
       },
       position: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
+      positionOnBalloon: {
+        coercedType: {} as number | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'integer',
+        allowNull: true,
+        isArray: false,
+      },
+      positionOnBalloonAndPet: {
         coercedType: {} as number | null,
         enumType: null,
         enumArrayType: null,

@@ -806,6 +806,90 @@ describe('@Sortable', () => {
     })
   })
 
+  context('with a null column as the scope', () => {
+    it('sorts all records with null in that column', async () => {
+      const pet = await Pet.create({ species: 'dog' })
+      const balloon = await Latex.create()
+
+      const collarWithoutBalloon1 = await Collar.create({ pet })
+      const collarWithBalloon1 = await Collar.create({ pet, balloon })
+      const collarWithBalloon2 = await Collar.create({ pet, balloon })
+      const collarWithoutBalloon2 = await Collar.create({ pet })
+
+      expect(collarWithoutBalloon1.positionOnBalloonAndPet).toEqual(1)
+      expect(collarWithoutBalloon2.positionOnBalloonAndPet).toEqual(2)
+      expect(collarWithBalloon1.positionOnBalloonAndPet).toEqual(1)
+      expect(collarWithBalloon2.positionOnBalloonAndPet).toEqual(2)
+    })
+
+    context('updating position', () => {
+      it('sorts all records with null in that column', async () => {
+        const pet = await Pet.create({ species: 'dog' })
+        const balloon = await Latex.create()
+
+        const collarWithoutBalloon1 = await Collar.create({ pet })
+        const collarWithBalloon1 = await Collar.create({ pet, balloon })
+        const collarWithBalloon2 = await Collar.create({ pet, balloon })
+        const collarWithoutBalloon2 = await Collar.create({ pet })
+
+        await collarWithoutBalloon2.update({ positionOnBalloonAndPet: 1 })
+
+        await collarWithoutBalloon1.reload()
+        await collarWithoutBalloon2.reload()
+        await collarWithBalloon1.reload()
+        await collarWithBalloon2.reload()
+
+        expect(collarWithoutBalloon1.positionOnBalloonAndPet).toEqual(2)
+        expect(collarWithoutBalloon2.positionOnBalloonAndPet).toEqual(1)
+        expect(collarWithBalloon1.positionOnBalloonAndPet).toEqual(1)
+        expect(collarWithBalloon2.positionOnBalloonAndPet).toEqual(2)
+      })
+    })
+  })
+
+  context('on multiple columns, one of which is null', () => {
+    it('sets the position based on the column that exists', async () => {
+      const petA = await Pet.create({ species: 'dog' })
+      const petB = await Pet.create({ species: 'dog' })
+
+      const collarA1 = await Collar.create({ pet: petA })
+      const collarA2 = await Collar.create({ pet: petA })
+
+      const collarB1 = await Collar.create({ pet: petB })
+      const collarB2 = await Collar.create({ pet: petB })
+
+      expect(collarA1.positionOnBalloonAndPet).toEqual(1)
+      expect(collarA2.positionOnBalloonAndPet).toEqual(2)
+      expect(collarB1.positionOnBalloonAndPet).toEqual(1)
+      expect(collarB2.positionOnBalloonAndPet).toEqual(2)
+    })
+
+    context('updating position', () => {
+      it('sets the position based on the column that exists', async () => {
+        const petA = await Pet.create({ species: 'dog' })
+        const petB = await Pet.create({ species: 'dog' })
+
+        const collarA1 = await Collar.create({ pet: petA })
+        const collarA2 = await Collar.create({ pet: petA })
+
+        const collarB1 = await Collar.create({ pet: petB })
+        const collarB2 = await Collar.create({ pet: petB })
+
+        await collarA2.update({ positionOnBalloonAndPet: 1 })
+
+        await collarA1.reload()
+        await collarA2.reload()
+        await collarB1.reload()
+        await collarB2.reload()
+
+        expect(collarA1.positionOnBalloonAndPet).toEqual(2)
+        expect(collarA2.positionOnBalloonAndPet).toEqual(1)
+        expect(collarB1.positionOnBalloonAndPet).toEqual(1)
+        expect(collarB2.positionOnBalloonAndPet).toEqual(2)
+      })
+    })
+  })
+
   context('with an invalid scope provided', () => {
     context('with a scope pointing to a non-existent association', () => {
       it('raises a targeted exception', async () => {
