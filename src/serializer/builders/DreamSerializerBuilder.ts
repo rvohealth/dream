@@ -6,6 +6,7 @@ import {
   ViewModel,
   ViewModelClass,
 } from '../../types/dream.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import {
   AutomaticSerializerAttributeOptions,
   AutomaticSerializerAttributeOptionsForType,
@@ -14,7 +15,6 @@ import {
   InternalAnyTypedSerializerDelegatedAttribute,
   InternalAnyTypedSerializerRendersMany,
   InternalAnyTypedSerializerRendersOne,
-  NonAutomaticSerializerAttributeOptions,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   SerializerAttributeOptionsForVirtualColumn,
   SerializerType,
@@ -218,7 +218,10 @@ export default class DreamSerializerBuilder<
    * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
   public customAttribute<
-    Options extends Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean },
+    Options extends {
+      openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+      flatten?: boolean
+    },
     CallbackFn extends () => unknown,
   >(name: string, fn: CallbackFn, options: Options) {
     this.attributes.push({

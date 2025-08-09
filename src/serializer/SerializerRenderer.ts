@@ -4,6 +4,7 @@ import CalendarDate from '../helpers/CalendarDate.js'
 import compact from '../helpers/compact.js'
 import { DateTime } from '../helpers/DateTime.js'
 import round from '../helpers/round.js'
+import sanitizeString from '../helpers/sanitizeString.js'
 import snakeify from '../helpers/snakeify.js'
 import { ViewModel } from '../types/dream.js'
 import {
@@ -70,7 +71,9 @@ export default class SerializerRenderer {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const value = data[attribute.name] ?? attribute.options?.default
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
-            value,
+            attribute.options?.sanitize && typeof value === 'string'
+              ? sanitizeString(value, attribute.options.sanitize)
+              : value,
             attribute.options,
             this.passthroughData,
             this.renderOpts
@@ -90,7 +93,9 @@ export default class SerializerRenderer {
           const target = data[attribute.targetName]
           const value = target?.[attribute.name] ?? attribute.options?.default
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
-            value,
+            attribute.options?.sanitize && typeof value === 'string'
+              ? sanitizeString(value, attribute.options.sanitize)
+              : value,
             attribute.options,
             this.passthroughData,
             this.renderOpts

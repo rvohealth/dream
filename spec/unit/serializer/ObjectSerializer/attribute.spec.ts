@@ -80,6 +80,17 @@ describe('ObjectSerializer attributes', () => {
     })
   })
 
+  it('supports `sanitize` option to convert HTML-dangerous characters to safe representations', () => {
+    const MySerializer = (data: User) =>
+      ObjectSerializer(data).attribute('name', { sanitize: 'htmlEntity', openapi: 'string' })
+
+    const serializer = MySerializer({ name: 'He<\\/>o&World', email: 'abc', password: '123' })
+
+    expect(serializer.render()).toEqual({
+      name: 'He&lt;\\&#x2F;&gt;o&amp;World',
+    })
+  })
+
   context('with casing specified', () => {
     const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
       ObjectSerializer(data).attribute('requiredNicknames', { openapi: 'string[]' })

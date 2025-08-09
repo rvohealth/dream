@@ -68,6 +68,7 @@ export { default as relativeDreamPath } from './helpers/path/relativeDreamPath.j
 export { default as sharedPathPrefix } from './helpers/path/sharedPathPrefix.js'
 export { Range, default as range } from './helpers/range.js'
 export { default as round, type RoundingPrecision } from './helpers/round.js'
+export { default as sanitizeString } from './helpers/sanitizeString.js'
 export { default as snakeify } from './helpers/snakeify.js'
 export { default as sort } from './helpers/sort.js'
 export { default as sortBy } from './helpers/sortBy.js'

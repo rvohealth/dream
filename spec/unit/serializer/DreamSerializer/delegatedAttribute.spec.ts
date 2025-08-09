@@ -39,6 +39,23 @@ describe('DreamSerializer delegated attributes', () => {
     })
   })
 
+  it('supports `sanitize` option to convert HTML-dangerous characters to safe representations', () => {
+    const user = User.new({ name: 'He<\\/>o&World' })
+    const pet = Pet.new({ user, name: 'Snoopy' })
+
+    const MySerializer = (data: Pet) =>
+      DreamSerializer(Pet, data).delegatedAttribute('user', 'name', {
+        sanitize: 'htmlEntity',
+        openapi: 'string',
+      })
+
+    const serializer = MySerializer(pet)
+
+    expect(serializer.render()).toEqual({
+      name: 'He&lt;\\&#x2F;&gt;o&amp;World',
+    })
+  })
+
   context('when the target object is null', () => {
     it('returns null', () => {
       const pet = Pet.new({ user: null, name: 'Snoopy' })

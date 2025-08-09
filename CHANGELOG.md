@@ -2,6 +2,7 @@
 
 - Don't require `openapi` for virtual attributes
 - Fix Sortable with null value in scope column
+- Enable sanitization of serialized attributes
 
 ## 1.5.1
 
