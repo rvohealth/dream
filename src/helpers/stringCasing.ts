@@ -1,3 +1,4 @@
+import Dream from '../Dream.js'
 import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from '../types/utils.js'
 import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
@@ -140,7 +141,7 @@ function recursiveStringCase(target: any, stringCaser: (x: string) => string): a
   if (isObject(target)) {
     if (target instanceof DateTime) return target
     if (target instanceof CalendarDate) return target
-    if (target?.isDreamInstance) return target
+    if (target instanceof Dream) return target
 
     return Object.keys(target).reduce(
       (stringCasedObject, targetKey) => {

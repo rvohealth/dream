@@ -2597,16 +2597,6 @@ export default class Dream {
   }
 
   /**
-   * Returns true. This is useful for identifying
-   * dream instances from other objects
-   *
-   * @returns true
-   */
-  public get isDreamInstance() {
-    return true
-  }
-
-  /**
    * Runs validation checks against all validations
    * declared using the Validate and Validates decorators,
    * and returns true if any of them fail.
@@ -3589,8 +3579,8 @@ export default class Dream {
    * @returns A boolean
    */
   public equals(other: any): boolean {
-    if (!(other as Dream)?.isDreamInstance) return false
-    return this.comparisonKey === (other as Dream).comparisonKey
+    if (!(other instanceof Dream)) return false
+    return this.comparisonKey === other.comparisonKey
   }
 
   public get comparisonKey(): string {

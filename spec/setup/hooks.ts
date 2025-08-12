@@ -2,10 +2,10 @@ import 'jest-extended'
 
 import { provideDreamViteMatchers, truncate } from '@rvoh/dream-spec-helpers'
 import { toBeOneOf } from 'jest-extended'
-import { DreamApp } from '../../src/index.js'
+import { Dream, DreamApp } from '../../src/index.js'
 import initializeDreamApp from '../../test-app/cli/helpers/initializeDreamApp.js'
 
-provideDreamViteMatchers()
+provideDreamViteMatchers(Dream)
 expect.extend({ toBeOneOf } as any)
 
 beforeEach(async () => {

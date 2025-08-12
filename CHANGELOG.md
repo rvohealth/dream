@@ -1,3 +1,8 @@
+## 1.7.0
+
+- Remove `Dream#isDreamInstance` and `DreamSerializerBuilder/ObjectSerializerBuilder#isSerializer`
+- Export `MissingSerializersDefinition`
+
 ## 1.6.0
 
 - Move sanitization to Psychic so it can sanitize to real unicode representations

@@ -18,7 +18,7 @@ function areEqualOrUndefined(a: any, b: any): boolean | undefined {
   if (Array.isArray(a))
     return Array.isArray(b) && a.length === b.length && !a.find((value, index) => !areEqual(value, b[index]))
 
-  if ((a as Dream)?.isDreamInstance) return (a as Dream).equals(b)
+  if (a instanceof Dream) return a.equals(b)
 
   return undefined
 }

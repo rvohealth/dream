@@ -44,6 +44,7 @@ export { default as DataTypeColumnTypeMismatch } from './errors/db/DataTypeColum
 export { default as NotNullViolation } from './errors/db/NotNullViolation.js'
 export { default as GlobalNameNotSet } from './errors/dream-app/GlobalNameNotSet.js'
 export { default as RecordNotFound } from './errors/RecordNotFound.js'
+export { default as MissingSerializersDefinition } from './errors/serializers/MissingSerializersDefinition.js'
 export { default as ValidationError } from './errors/ValidationError.js'
 export { default as Benchmark } from './helpers/benchmark.js'
 export { default as CalendarDate } from './helpers/CalendarDate.js'

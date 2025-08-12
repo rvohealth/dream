@@ -35,10 +35,6 @@ export default class DreamSerializerBuilder<
     | InternalAnyTypedSerializerRendersMany<DataType>
   )[] = []
 
-  public get isSerializer() {
-    return true
-  }
-
   constructor(
     protected $typeForOpenapi: DataTypeForOpenapi,
     protected data: MaybeNullDataType,

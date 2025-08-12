@@ -28,7 +28,7 @@ export default function cloneDeepSafe<T>(original: T, unsupportedTypeCloneFuncti
   if (original instanceof Range) return original
   if (original instanceof OpsStatement) return original
 
-  if ((original as unknown as Dream)?.isDreamInstance) return (original as unknown as Dream)['clone']() as T
+  if (original instanceof Dream) return original['clone']() as T
   if ((original as unknown as Query<Dream>)?.isDreamQuery)
     return (original as unknown as Query<Dream>).clone() as T
   if ((original as unknown as SelectQueryBuilder<any, any, any>)?.isSelectQueryBuilder) return original

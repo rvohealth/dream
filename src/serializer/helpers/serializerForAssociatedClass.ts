@@ -18,9 +18,9 @@ export function serializerForAssociatedClass<ObjectType extends Dream | ViewMode
   options: InternalAnyRendersOneOrManyOpts
 ): DreamModelSerializerType | SimpleObjectSerializerType | null {
   if (options.serializer) return options.serializer
-  if (!(object as Dream).isDreamInstance) return null
+  if (!(object instanceof Dream)) return null
 
-  const dream = object as Dream
+  const dream = object
   const association = dream['getAssociationMetadata'](associationName)
   const associatedClass = association!.modelCB()
   if (Array.isArray(associatedClass))

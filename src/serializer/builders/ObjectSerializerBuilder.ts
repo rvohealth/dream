@@ -25,10 +25,6 @@ export default class ObjectSerializerBuilder<
     | InternalAnyTypedSerializerRendersMany<DataType>
   )[] = []
 
-  public get isSerializer() {
-    return true
-  }
-
   constructor(
     protected data: MaybeNullDataType,
     protected passthroughData: PassthroughDataType = {} as PassthroughDataType
