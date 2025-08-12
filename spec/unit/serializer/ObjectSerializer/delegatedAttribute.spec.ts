@@ -44,23 +44,6 @@ describe('ObjectSerializer delegated attributes', () => {
     })
   })
 
-  it('supports `sanitize` option to convert HTML-dangerous characters to safe representations', () => {
-    const user: User = { name: 'He<\\/>o&World' }
-    const pet: Pet = { user, name: 'Snoopy' }
-
-    const MySerializer = (data: Pet) =>
-      ObjectSerializer(data).delegatedAttribute('user', 'name', {
-        sanitize: 'htmlEntity',
-        openapi: 'string',
-      })
-
-    const serializer = MySerializer(pet)
-
-    expect(serializer.render()).toEqual({
-      name: 'He&lt;\\&#x2F;&gt;o&amp;World',
-    })
-  })
-
   context('when the target object is null', () => {
     it('delegates value and type to the specified target', () => {
       const pet: Pet = { name: 'Snoopy' }

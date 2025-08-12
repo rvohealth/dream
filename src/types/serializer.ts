@@ -11,7 +11,6 @@ import {
 } from './openapi.js'
 
 export type SerializerCasing = 'camel' | 'snake'
-export type AttributeSerializationSanitizationStrategy = 'unicodeString' | 'htmlEntity' | ((val: any) => any)
 export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
 
 export interface InternalAnyTypedSerializerAttribute<> {
@@ -69,7 +68,6 @@ export type AutomaticSerializerAttributeOptions<
 > = {
   as?: string
   default?: any
-  sanitize?: AttributeSerializationSanitizationStrategy
   openapi?: OpenapiDescription
   precision?: DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypesIncludingDbTypes
     ? RoundingPrecision
@@ -87,14 +85,12 @@ export type AutomaticSerializerAttributeOptionsForType = {
 export type SerializerAttributeOptionsForVirtualColumn = {
   as?: string
   default?: any
-  sanitize?: AttributeSerializationSanitizationStrategy
   openapi?: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 
 export type NonAutomaticSerializerAttributeOptions = {
   as?: string
   default?: any
-  sanitize?: AttributeSerializationSanitizationStrategy
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 }
 

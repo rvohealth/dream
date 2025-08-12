@@ -1,3 +1,7 @@
+## 1.6.0
+
+- Move sanitization to Psychic so it can sanitize to real unicode representations
+
 ## 1.5.2
 
 - Don't require `openapi` for virtual attributes
