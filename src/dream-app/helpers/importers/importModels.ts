@@ -24,7 +24,8 @@ export default async function importModels(
   _models = {}
 
   for (const [modelPath, modelClass] of modelClasses) {
-    if (modelClass.isDream) {
+    // `?` in case modelClass is undefined (e.g. a file without a default export exists in the models directory hierarchy)
+    if (modelClass?.isDream) {
       try {
         // Don't create a global lookup for ApplicationModel
         // ApplicationModel does not have a table
@@ -42,7 +43,8 @@ export default async function importModels(
   }
 
   for (const [, modelClass] of modelClasses) {
-    if (modelClass.isDream) {
+    // `?` in case modelClass is undefined (e.g. a file without a default export exists in the models directory hierarchy)
+    if (modelClass?.isDream) {
       try {
         /**
          * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)

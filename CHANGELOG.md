@@ -1,5 +1,9 @@
 ## 1.7.0
 
+- fix error when file without default export exists in the models directory hierarchy
+
+## 1.7.0
+
 - Remove `Dream#isDreamInstance` and `DreamSerializerBuilder/ObjectSerializerBuilder#isSerializer`
 - Export `MissingSerializersDefinition`
 
