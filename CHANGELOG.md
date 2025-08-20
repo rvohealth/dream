@@ -1,3 +1,7 @@
+## 1.7.3
+
+remove unnecessary token, now that we are open-sourced
+
 ## 1.7.2
 
 Fix issue causing generators to generate invalid uuid primary keys
