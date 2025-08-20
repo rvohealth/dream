@@ -358,9 +358,8 @@ function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
       return `\
 .addColumn('id', 'uuid', col =>
       col
-        .notNull()
-        .defaultTo(sql\`uuid_generate_v4()\`)
-        .unique(),
+        .primaryKey()
+        .defaultTo(sql\`uuid_generate_v4()\`),
     )`
 
     default:
