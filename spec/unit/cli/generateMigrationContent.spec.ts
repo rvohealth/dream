@@ -646,11 +646,11 @@ export async function down(db: Kysely<any>): Promise<void> {
         })
       })
 
-      context('when useUUID=false', () => {
-        it('generates a kysely model with the belongsTo association', () => {
+      context('when useUUID=true', () => {
+        it('generates a kysely model with the belongsTo association, providing correct usage of uuid in each case', () => {
           const res = generateMigrationContent({
             table: 'compositions',
-            columnsWithTypes: ['user:belongs_to'],
+            columnsWithTypes: ['user:belongs_to', 'some_uuid:uuid'],
             primaryKeyType: 'uuid',
           })
 
@@ -664,11 +664,11 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('compositions')
     .addColumn('id', 'uuid', col =>
       col
-        .notNull()
-        .defaultTo(sql\`uuid_generate_v4()\`)
-        .unique(),
+        .primaryKey()
+        .defaultTo(sql\`uuid_generate_v4()\`),
     )
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
+    .addColumn('some_uuid', 'uuid', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -702,9 +702,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('compositions')
     .addColumn('id', 'uuid', col =>
       col
-        .notNull()
-        .defaultTo(sql\`uuid_generate_v4()\`)
-        .unique(),
+        .primaryKey()
+        .defaultTo(sql\`uuid_generate_v4()\`),
     )
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -738,9 +737,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('compositions')
     .addColumn('id', 'uuid', col =>
       col
-        .notNull()
-        .defaultTo(sql\`uuid_generate_v4()\`)
-        .unique(),
+        .primaryKey()
+        .defaultTo(sql\`uuid_generate_v4()\`),
     )
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

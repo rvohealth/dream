@@ -1,4 +1,8 @@
-## 1.7.0
+## 1.7.2
+
+Fix issue causing generators to generate invalid uuid primary keys
+
+## 1.7.1
 
 - fix error when file without default export exists in the models directory hierarchy
 
