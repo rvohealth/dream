@@ -1,3 +1,4 @@
+import { SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import { applySortableScopesToQuery } from '../../decorators/field/sortable/helpers/setPosition.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
@@ -71,8 +72,14 @@ async function undestroyDreamWithTransaction<I extends Dream>(
  * deleting by one of the beforeDestroy model hooks
  */
 async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction<I>) {
-  let query = txn.kyselyTransaction
-    .updateTable(dream.table as any)
+  const updateStatement = txn.kyselyTransaction.updateTable(dream.table as any) as UpdateQueryBuilder<
+    any,
+    any,
+    any,
+    any
+  >
+
+  let query = updateStatement
     .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
     .set({ [dream['_deletedAtField']]: null } as any)
 
@@ -84,11 +91,13 @@ async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction
       eb =>
         ({
           [positionColumn]: eb(
-            applySortableScopesToQuery(
-              dream,
-              txn.kyselyTransaction.selectFrom(dream.table),
-              column => (dream as any)[column],
-              sortableFieldMetadata.scope
+            (
+              applySortableScopesToQuery(
+                dream,
+                txn.kyselyTransaction.selectFrom(dream.table),
+                column => (dream as any)[column],
+                sortableFieldMetadata.scope
+              ) as SelectQueryBuilder<any, any, any>
             ).select(eb => eb.fn.max(positionColumn).as(positionColumn + '_max')) as any,
             '+',
             1

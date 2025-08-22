@@ -1,4 +1,4 @@
-import { MysqlDialect, sql } from 'kysely'
+import { MysqlDialect, OrderByItemBuilder, sql } from 'kysely'
 import { createPool } from 'mysql2'
 import DreamCLI from '../../../../src/cli/index.js'
 import { isPrimitiveDataType } from '../../../../src/db/dataTypes.js'
@@ -257,15 +257,17 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
     }
   }
 
-  public override orderByDirection(direction: OrderDir | null) {
+  public override orderByDirection(
+    direction: OrderDir | null
+  ): (obj: OrderByItemBuilder) => OrderByItemBuilder {
     switch (direction) {
       case 'asc':
       case null:
-        return sql`asc`
+        return obj => obj.asc()
       // return sql`column_with_nulls IS NULL DESC, column_with_nulls ASC`
 
       case 'desc':
-        return sql`desc`
+        return obj => obj.desc()
       // return sql`column_with_nulls IS NULL DESC, column_with_nulls DESC`
 
       default: {
