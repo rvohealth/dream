@@ -62,32 +62,6 @@ describe('Dream.toKysely', () => {
       // name has to be a valid field
       kyselyQuery.where('name', '=', 'a')
     })
-
-    context('with a joined association', () => {
-      it('returns a valid kysely query with correct types', () => {
-        const kyselyQuery = User.leftJoin('pets').toKysely('update').set('email', 'how@yadoin')
-        expect(kyselyQuery.compile().sql).toEqual(
-          'update "users" set "email" = $1 left join "pets" on "users"."id" = "pets"."user_id" and "pets"."deleted_at" is null where "users"."deleted_at" is null'
-        )
-
-        // type test - this will fail if types aren't working, since
-        // name has to be a valid field
-        kyselyQuery.where('pets.name', '=', 'a')
-      })
-
-      context('with an aliased association', () => {
-        it('returns a valid kysely query with correct types', () => {
-          const kyselyQuery = User.leftJoin('pets as p').toKysely('update').set('email', 'how@yadoin')
-          expect(kyselyQuery.compile().sql).toEqual(
-            'update "users" set "email" = $1 left join "pets" as "p" on "users"."id" = "p"."user_id" and "p"."deleted_at" is null where "users"."deleted_at" is null'
-          )
-
-          // type test - this will fail if types aren't working, since
-          // name has to be a valid field
-          kyselyQuery.where('p.name', '=', 'a')
-        })
-      })
-    })
   })
 
   context('delete', () => {

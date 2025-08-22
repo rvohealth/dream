@@ -1,14 +1,16 @@
-import { sql } from 'kysely'
+import { OrderByItemBuilder } from 'kysely'
 import { OrderDir } from '../../types/dream.js'
 
-export default function orderByDirection(dir: OrderDir | null) {
+export default function orderByDirection(
+  dir: OrderDir | null
+): (obj: OrderByItemBuilder) => OrderByItemBuilder {
   switch (dir) {
     case 'asc':
     case null:
-      return sql`asc nulls first`
+      return (obj: OrderByItemBuilder) => obj.asc().nullsFirst()
 
     case 'desc':
-      return sql`desc nulls last`
+      return (obj: OrderByItemBuilder) => obj.desc().nullsLast()
 
     default: {
       // protection so that if a new OrderDir is ever added, this will throw a type error at build time
