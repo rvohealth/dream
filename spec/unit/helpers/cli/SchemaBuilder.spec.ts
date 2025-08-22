@@ -200,6 +200,7 @@ describe('SchemaBuilder', () => {
           tables: ['pets'],
           optional: false,
           foreignKey: 'petId',
+          foreignKeyTypeColumn: null,
           requiredOnClauses: null,
         })
       })
@@ -208,9 +209,18 @@ describe('SchemaBuilder', () => {
         expect(User.prototype.schema.compositions.associations.requiredCurrentLocalizedText).toEqual({
           type: 'HasOne',
           foreignKey: 'localizableId',
+          foreignKeyTypeColumn: 'localizableType',
           tables: ['localized_texts'],
           optional: null,
           requiredOnClauses: ['locale'],
+        })
+      })
+
+      context('polymorphic type fields', () => {
+        it('includes polymorphic type field', () => {
+          expect(User.prototype.schema.localized_texts.associations.localizable.foreignKeyTypeColumn).toEqual(
+            'localizableType'
+          )
         })
       })
     })

@@ -164,6 +164,7 @@ ${tableName}: {
           return `${associationName}: {
         type: '${associationMetadata.type}',
         foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
+        foreignKeyTypeColumn: ${associationMetadata.foreignKeyTypeColumn ? `'${associationMetadata.foreignKeyTypeColumn}'` : 'null'},
         tables: ${stringifyArray(associationMetadata.tables)},
         optional: ${associationMetadata.optional},
         requiredOnClauses: ${requiredOnClauses.length === 0 ? 'null' : stringifyArray(requiredOnClauses)},
@@ -323,6 +324,9 @@ may need to update the table getter in the corresponding Dream.
           type: associationMetaData.type,
           polymorphic: associationMetaData.polymorphic,
           foreignKey,
+          foreignKeyTypeColumn: associationMetaData.polymorphic
+            ? associationMetaData?.foreignKeyTypeField?.() || null
+            : null,
           optional,
           where,
         }
@@ -505,6 +509,7 @@ export interface SchemaBuilderAssociationData {
   polymorphic: boolean
   optional: boolean | null
   foreignKey: string | null
+  foreignKeyTypeColumn: string | null
   where: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.required> | null
 }
 
@@ -513,8 +518,8 @@ export interface SchemaBuilderColumnData {
   allowNull: boolean
   enumType: string | null
   enumValues: string | null
-  isArray: boolean
   foreignKey: string | null
+  isArray: boolean
 }
 
 export interface SchemaBuilderInformationSchemaRow {

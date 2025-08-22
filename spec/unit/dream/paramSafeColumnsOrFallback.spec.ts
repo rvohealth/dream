@@ -1,6 +1,8 @@
 import { Dream } from '../../../src/index.js'
+import { DreamParamUnsafeColumnNames } from '../../../src/types/dream.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
 import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns.js'
 import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns.js'
 import Pet from '../../../test-app/app/models/Pet.js'
@@ -9,6 +11,31 @@ import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#paramSafeColumnsOrFallback', () => {
   const subject = (model: typeof Dream) => model.paramSafeColumnsOrFallback()
+
+  context('type tests', () => {
+    // intentionally skipped, this should cause build:test-app
+    // to fail unless the types are correctly lining up.
+    it.skip('includes fields that are safe for updating', () => {
+      switch (LocalizedText.paramSafeColumnsOrFallback()[0]!) {
+        case 'body':
+        case 'name':
+        case 'locale':
+        case 'title':
+      }
+
+      let unsafeParams: DreamParamUnsafeColumnNames<LocalizedText>
+      switch (unsafeParams!) {
+        case 'createdAt':
+        case 'updatedAt':
+        case 'deletedAt':
+        case 'id':
+        case 'localizable':
+        case 'localizableId':
+        case 'type':
+        case 'localizableType':
+      }
+    })
+  })
 
   it('includes fields that are safe for updating', () => {
     expect(subject(User)).toEqual(

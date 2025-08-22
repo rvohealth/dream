@@ -72,12 +72,19 @@ export type NonJsonDreamColumnNames<
     string = Exclude<Schema[TableName]['nonJsonColumnNames'][number], keyof Dream> & string,
 > = AttributeName
 
-export type DreamParamSafeColumnNames<
+export type DreamParamSafeColumnNames<DreamInstance extends Dream> = Exclude<
+  keyof UpdateableProperties<DreamInstance>,
+  DreamParamUnsafeColumnNames<DreamInstance>
+>
+
+export type DreamParamUnsafeColumnNames<
   DreamInstance extends Dream,
   BelongsToForeignKeys = DreamBelongsToForeignKeys<DreamInstance>,
-> = Exclude<
-  keyof UpdateableProperties<DreamInstance>,
+  BelongsToForeignKeyTypes = DreamBelongsToForeignKeyTypes<DreamInstance>,
+  AssociationNames = DreamAssociationNames<DreamInstance>,
+> =
   | BelongsToForeignKeys
+  | BelongsToForeignKeyTypes
   | (DreamInstance['primaryKey' & keyof DreamInstance] extends undefined
       ? 'id'
       : DreamInstance['primaryKey' & keyof DreamInstance])
@@ -90,14 +97,23 @@ export type DreamParamSafeColumnNames<
   | (DreamInstance['deletedAtField' & keyof DreamInstance] extends undefined
       ? 'deletedAt'
       : DreamInstance['deletedAtField' & keyof DreamInstance])
+  | AssociationNames
   | 'type'
->
+
+export type DreamBelongsToForeignKeyTypes<
+  DreamInstance extends Dream,
+  AssociationSchema = DreamAssociationMetadata<DreamInstance>,
+  BelongsToAssociationSchema = AssociationSchema[keyof DreamBelongsToAssociationMetadata<DreamInstance> &
+    keyof AssociationSchema],
+  BelongsToForeignKeys = Exclude<
+    BelongsToAssociationSchema['foreignKeyTypeColumn' & keyof BelongsToAssociationSchema],
+    null
+  >,
+> = BelongsToForeignKeys
 
 export type DreamBelongsToForeignKeys<
   DreamInstance extends Dream,
-  Schema = DreamInstance['schema'],
-  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
-  AssociationSchema = TableSchema['associations' & keyof TableSchema],
+  AssociationSchema = DreamAssociationMetadata<DreamInstance>,
   BelongsToAssociationSchema = AssociationSchema[keyof DreamBelongsToAssociationMetadata<DreamInstance> &
     keyof AssociationSchema],
   BelongsToForeignKeys = Exclude<

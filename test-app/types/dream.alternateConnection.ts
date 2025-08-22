@@ -121,6 +121,7 @@ export const schema = {
       alternateDbConnectionUser: {
         type: 'BelongsTo',
         foreignKey: 'alternateDbConnectionUserId',
+        foreignKeyTypeColumn: null,
         tables: ['alternate_db_connection_users'],
         optional: false,
         requiredOnClauses: null,
@@ -186,6 +187,7 @@ export const schema = {
       passthroughPosts: {
         type: 'HasMany',
         foreignKey: 'alternateDbConnectionUserId',
+        foreignKeyTypeColumn: null,
         tables: ['alternate_db_connection_posts'],
         optional: null,
         requiredOnClauses: null,
