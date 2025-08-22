@@ -17,6 +17,7 @@ import {
   Kysely,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   Transaction as KyselyTransaction,
+  OrderByItemBuilder,
   PostgresDialect,
   SelectQueryBuilder,
   sql,
@@ -934,16 +935,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return kyselyQuery
   }
 
-  public orderByDirection(direction: OrderDir | null) {
+  public orderByDirection(direction: OrderDir | null): (obj: OrderByItemBuilder) => OrderByItemBuilder {
     return orderByDirection(direction)
   }
 
-  private buildUpdate<DB extends DreamInstance['DB']>(
+  private buildUpdate(
     attributes: Updateable<DreamInstance['table']>
-  ): UpdateQueryBuilder<DB, any, any, object> {
-    let kyselyQuery = this.dbFor('update')
-      .updateTable(this.query['tableName'] as DreamInstance['table'])
-      .set(attributes as any)
+  ): UpdateQueryBuilder<any, any, any, any> {
+    let kyselyQuery = this.dbFor('update').updateTable(
+      this.query['tableName'] as DreamInstance['table']
+    ) as UpdateQueryBuilder<any, any, any, any>
+
+    kyselyQuery = kyselyQuery.set(attributes as any)
 
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToUpdate(kyselyQuery)
 

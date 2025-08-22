@@ -241,7 +241,7 @@ async function updateConflictingRecords({
 }
 
 export function applySortableScopesToQuery<
-  QB extends UpdateQueryBuilder<any, string, string, any> | SelectQueryBuilder<any, any, any>,
+  QB extends UpdateQueryBuilder<any, any, any, any> | SelectQueryBuilder<any, any, any>,
 >(dream: Dream, kyselyQuery: QB, whereValueCB: (column: string) => any, scope?: string | string[]): QB {
   for (const singleScope of scopeArray(scope)) {
     const column = getColumnForSortableScope(dream, singleScope)
