@@ -1,16 +1,3 @@
-import Dream from '../../Dream.js'
+import DataIncompatibleWithDatabaseField from './DataIncompatibleWithDatabaseField.js'
 
-export default class DataTypeColumnTypeMismatch extends Error {
-  public dream: Dream
-  public error: Error
-
-  constructor({ dream, error }: { dream: Dream; error: Error }) {
-    super()
-    this.dream = dream
-    this.error = error
-  }
-
-  public override get message() {
-    return this.error.message
-  }
-}
+export default class DataTypeColumnTypeMismatch extends DataIncompatibleWithDatabaseField {}

@@ -11,7 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('model_for_openapi_type_specs')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('name', 'varchar')
+    .addColumn('name', 'varchar(64)')
     .addColumn('nicknames', sql`varchar[]`)
     .addColumn('required_nicknames', sql`varchar[]`, col => col.defaultTo('{}').notNull())
     .addColumn('email', 'varchar', col => col.notNull())

@@ -28,7 +28,13 @@ import pluralize from 'pluralize-esm'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
 import { DialectProviderCb } from '../../db/DreamDbConnection.js'
-import { CHECK_VIOLATION, INVALID_INPUT_SYNTAX, NOT_NULL_VIOLATION, pgErrorType } from '../../db/errors.js'
+import {
+  CHECK_VIOLATION,
+  COLUMN_OVERFLOW,
+  INVALID_INPUT_SYNTAX,
+  NOT_NULL_VIOLATION,
+  pgErrorType,
+} from '../../db/errors.js'
 import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import _db from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
@@ -46,6 +52,7 @@ import ThroughAssociationConditionsIncompatibleWithThroughAssociationSource from
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
+import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
 import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
@@ -763,6 +770,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       }
     } catch (error) {
       switch (pgErrorType(error)) {
+        case COLUMN_OVERFLOW:
+          throw new ColumnOverflow({
+            dream,
+            error: error instanceof Error ? error : new Error('database column overflow'),
+          })
+
         case INVALID_INPUT_SYNTAX:
           throw new DataTypeColumnTypeMismatch({
             dream,

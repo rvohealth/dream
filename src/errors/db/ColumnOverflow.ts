@@ -1,3 +1,3 @@
 import DataIncompatibleWithDatabaseField from './DataIncompatibleWithDatabaseField.js'
 
-export default class NotNullViolation extends DataIncompatibleWithDatabaseField {}
+export default class ColumnOverflow extends DataIncompatibleWithDatabaseField {}

@@ -1,10 +1,15 @@
+## 1.8.0
+
+- throw ColumnOverflow when saving too long a string / number to a database column
+- make all of these errors extend the same error so Psychic can check a single error type when deciding to return 400
+
 ## 1.7.3
 
-remove unnecessary token, now that we are open-sourced
+- remove unnecessary token, now that we are open-sourced
 
 ## 1.7.2
 
-Fix issue causing generators to generate invalid uuid primary keys
+- fix issue causing generators to generate invalid uuid primary keys
 
 ## 1.7.1
 
