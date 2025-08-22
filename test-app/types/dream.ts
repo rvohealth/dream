@@ -157,6 +157,7 @@ export const schema = {
       balloon: {
         type: 'BelongsTo',
         foreignKey: 'balloonId',
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: false,
         requiredOnClauses: null,
@@ -231,6 +232,7 @@ export const schema = {
       balloon: {
         type: 'BelongsTo',
         foreignKey: 'balloonId',
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: false,
         requiredOnClauses: null,
@@ -238,6 +240,7 @@ export const schema = {
       balloonSpotter: {
         type: 'BelongsTo',
         foreignKey: 'balloonSpotterId',
+        foreignKeyTypeColumn: null,
         tables: ['balloon_spotters'],
         optional: false,
         requiredOnClauses: null,
@@ -245,6 +248,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: true,
         requiredOnClauses: null,
@@ -301,6 +305,7 @@ export const schema = {
       balloonSpotterBalloons: {
         type: 'HasMany',
         foreignKey: 'balloonSpotterId',
+        foreignKeyTypeColumn: null,
         tables: ['balloon_spotter_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -308,6 +313,7 @@ export const schema = {
       balloons: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -315,6 +321,7 @@ export const schema = {
       users: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,
@@ -461,6 +468,7 @@ export const schema = {
       balloonLine: {
         type: 'HasOne',
         foreignKey: 'balloonId',
+        foreignKeyTypeColumn: null,
         tables: ['balloon_lines'],
         optional: null,
         requiredOnClauses: null,
@@ -468,6 +476,7 @@ export const schema = {
       heartRatings: {
         type: 'HasMany',
         foreignKey: 'extraRateableId',
+        foreignKeyTypeColumn: 'extraRateableType',
         tables: ['extra_ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -475,6 +484,7 @@ export const schema = {
       sandbags: {
         type: 'HasMany',
         foreignKey: 'balloonId',
+        foreignKeyTypeColumn: null,
         tables: ['sandbags'],
         optional: null,
         requiredOnClauses: null,
@@ -482,6 +492,7 @@ export const schema = {
       shapable: {
         type: 'BelongsTo',
         foreignKey: 'shapableId',
+        foreignKeyTypeColumn: 'shapableType',
         tables: ['shapes'],
         optional: true,
         requiredOnClauses: null,
@@ -489,6 +500,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: true,
         requiredOnClauses: null,
@@ -581,6 +593,7 @@ export const schema = {
       localizable: {
         type: 'BelongsTo',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['circular_reference_model_as', 'circular_reference_model_bs'],
         optional: false,
         requiredOnClauses: null,
@@ -637,6 +650,7 @@ export const schema = {
       currentLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['circular_reference_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -644,6 +658,7 @@ export const schema = {
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['circular_reference_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -651,6 +666,7 @@ export const schema = {
       modelBChild: {
         type: 'HasOne',
         foreignKey: 'circularReferenceModelAId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_model_bs'],
         optional: null,
         requiredOnClauses: null,
@@ -658,6 +674,7 @@ export const schema = {
       modelBChild2: {
         type: 'HasOne',
         foreignKey: 'circularReferenceModelAId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_model_bs'],
         optional: null,
         requiredOnClauses: null,
@@ -665,6 +682,7 @@ export const schema = {
       modelBParent: {
         type: 'BelongsTo',
         foreignKey: 'circularReferenceModelBId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_model_bs'],
         optional: true,
         requiredOnClauses: null,
@@ -721,6 +739,7 @@ export const schema = {
       currentLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['circular_reference_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -728,6 +747,7 @@ export const schema = {
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['circular_reference_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -735,6 +755,7 @@ export const schema = {
       modelAChild: {
         type: 'HasOne',
         foreignKey: 'circularReferenceModelBId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_model_as'],
         optional: null,
         requiredOnClauses: null,
@@ -742,6 +763,7 @@ export const schema = {
       modelAParent: {
         type: 'BelongsTo',
         foreignKey: 'circularReferenceModelAId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_model_as'],
         optional: true,
         requiredOnClauses: null,
@@ -798,6 +820,7 @@ export const schema = {
       child: {
         type: 'HasOne',
         foreignKey: 'parentId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_models'],
         optional: null,
         requiredOnClauses: null,
@@ -805,6 +828,7 @@ export const schema = {
       parent: {
         type: 'BelongsTo',
         foreignKey: 'parentId',
+        foreignKeyTypeColumn: null,
         tables: ['circular_reference_models'],
         optional: true,
         requiredOnClauses: null,
@@ -933,6 +957,7 @@ export const schema = {
       balloon: {
         type: 'BelongsTo',
         foreignKey: 'balloonId',
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: true,
         requiredOnClauses: null,
@@ -940,6 +965,7 @@ export const schema = {
       pet: {
         type: 'BelongsTo',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: false,
         requiredOnClauses: null,
@@ -1014,6 +1040,7 @@ export const schema = {
       composition: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -1021,6 +1048,7 @@ export const schema = {
       compositionAsset: {
         type: 'BelongsTo',
         foreignKey: 'compositionAssetId',
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: false,
         requiredOnClauses: null,
@@ -1028,6 +1056,7 @@ export const schema = {
       user: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,
@@ -1120,6 +1149,7 @@ export const schema = {
       composition: {
         type: 'BelongsTo',
         foreignKey: 'compositionId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: false,
         requiredOnClauses: null,
@@ -1127,6 +1157,7 @@ export const schema = {
       compositionAssetAudits: {
         type: 'HasMany',
         foreignKey: 'compositionAssetId',
+        foreignKeyTypeColumn: null,
         tables: ['composition_asset_audits'],
         optional: null,
         requiredOnClauses: null,
@@ -1134,6 +1165,7 @@ export const schema = {
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -1141,6 +1173,7 @@ export const schema = {
       passthroughCurrentLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -1148,6 +1181,7 @@ export const schema = {
       requiredCurrentLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: ['locale'],
@@ -1155,6 +1189,7 @@ export const schema = {
       user: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,
@@ -1256,6 +1291,7 @@ export const schema = {
       cascadeDeletableLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -1263,6 +1299,7 @@ export const schema = {
       compositionAssetAudits: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_asset_audits'],
         optional: null,
         requiredOnClauses: null,
@@ -1270,6 +1307,7 @@ export const schema = {
       compositionAssets: {
         type: 'HasMany',
         foreignKey: 'compositionId',
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -1277,6 +1315,7 @@ export const schema = {
       heartRatings: {
         type: 'HasMany',
         foreignKey: 'extraRateableId',
+        foreignKeyTypeColumn: 'extraRateableType',
         tables: ['extra_ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -1284,6 +1323,7 @@ export const schema = {
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -1291,6 +1331,7 @@ export const schema = {
       mainCompositionAsset: {
         type: 'HasOne',
         foreignKey: 'compositionId',
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -1298,6 +1339,7 @@ export const schema = {
       mainCompositionAssetAudits: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_asset_audits'],
         optional: null,
         requiredOnClauses: null,
@@ -1305,6 +1347,7 @@ export const schema = {
       passthroughCurrentLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -1312,6 +1355,7 @@ export const schema = {
       requiredCurrentLocalizedText: {
         type: 'HasOne',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['localized_texts'],
         optional: null,
         requiredOnClauses: ['locale'],
@@ -1319,6 +1363,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: false,
         requiredOnClauses: null,
@@ -1488,6 +1533,7 @@ export const schema = {
       extraRateable: {
         type: 'BelongsTo',
         foreignKey: 'extraRateableId',
+        foreignKeyTypeColumn: 'extraRateableType',
         tables: ['beautiful_balloons', 'compositions', 'posts'],
         optional: false,
         requiredOnClauses: null,
@@ -1495,6 +1541,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: false,
         requiredOnClauses: null,
@@ -1587,6 +1634,7 @@ export const schema = {
       edge: {
         type: 'BelongsTo',
         foreignKey: 'edgeId',
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: false,
         requiredOnClauses: null,
@@ -1594,6 +1642,7 @@ export const schema = {
       headSibling: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1601,6 +1650,7 @@ export const schema = {
       justThisSibling: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1608,6 +1658,7 @@ export const schema = {
       node: {
         type: 'BelongsTo',
         foreignKey: 'nodeId',
+        foreignKeyTypeColumn: null,
         tables: ['graph_nodes'],
         optional: false,
         requiredOnClauses: null,
@@ -1615,6 +1666,7 @@ export const schema = {
       orderedSiblings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1622,6 +1674,7 @@ export const schema = {
       orderedSiblingsWithOrderOnSource: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1629,6 +1682,7 @@ export const schema = {
       siblings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1636,6 +1690,7 @@ export const schema = {
       siblingsIncludingMe: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1643,6 +1698,7 @@ export const schema = {
       tailSiblings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1708,6 +1764,7 @@ export const schema = {
       edgeNodes: {
         type: 'HasMany',
         foreignKey: 'edgeId',
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1715,6 +1772,7 @@ export const schema = {
       nodes: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1780,6 +1838,7 @@ export const schema = {
       edgeNodes: {
         type: 'HasMany',
         foreignKey: 'nodeId',
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1787,6 +1846,7 @@ export const schema = {
       edges: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: null,
         requiredOnClauses: null,
@@ -1794,6 +1854,7 @@ export const schema = {
       edgesOrderedByName: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: null,
         requiredOnClauses: null,
@@ -1801,6 +1862,7 @@ export const schema = {
       edgesOrderedByPosition: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: null,
         requiredOnClauses: null,
@@ -1808,6 +1870,7 @@ export const schema = {
       edgesWithAliasedPreloads: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: null,
         requiredOnClauses: null,
@@ -1815,6 +1878,7 @@ export const schema = {
       nonNodeNameEdgesOnThroughAssociation: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: null,
         requiredOnClauses: null,
@@ -1822,6 +1886,7 @@ export const schema = {
       nonOmittedPositionEdgeNodes: {
         type: 'HasMany',
         foreignKey: 'nodeId',
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1829,6 +1894,7 @@ export const schema = {
       nonOmittedPositionEdges: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['graph_edges'],
         optional: null,
         requiredOnClauses: null,
@@ -1836,6 +1902,7 @@ export const schema = {
       orderedEdgeNodes: {
         type: 'HasMany',
         foreignKey: 'nodeId',
+        foreignKeyTypeColumn: null,
         tables: ['graph_edge_nodes'],
         optional: null,
         requiredOnClauses: null,
@@ -1892,6 +1959,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: false,
         requiredOnClauses: null,
@@ -1948,6 +2016,7 @@ export const schema = {
       users: {
         type: 'HasMany',
         foreignKey: 'id',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: null,
         requiredOnClauses: null,
@@ -2099,6 +2168,7 @@ export const schema = {
       localizable: {
         type: 'BelongsTo',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['composition_assets', 'compositions'],
         optional: false,
         requiredOnClauses: null,
@@ -3140,6 +3210,7 @@ export const schema = {
       pet: {
         type: 'BelongsTo',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: false,
         requiredOnClauses: null,
@@ -3147,6 +3218,7 @@ export const schema = {
       understudy: {
         type: 'BelongsTo',
         foreignKey: 'understudyId',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: false,
         requiredOnClauses: null,
@@ -3266,6 +3338,7 @@ export const schema = {
       andAny_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3273,6 +3346,7 @@ export const schema = {
       andAny_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3280,6 +3354,7 @@ export const schema = {
       andAny_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3287,6 +3362,7 @@ export const schema = {
       andAny_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3294,6 +3370,7 @@ export const schema = {
       andAny_opsEqual_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3301,6 +3378,7 @@ export const schema = {
       andAny_opsEqual_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3308,6 +3386,7 @@ export const schema = {
       andAny_opsIn_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3315,6 +3394,7 @@ export const schema = {
       andAny_opsIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3322,6 +3402,7 @@ export const schema = {
       andAny_opsIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3329,6 +3410,7 @@ export const schema = {
       andAny_opsIn_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3336,6 +3418,7 @@ export const schema = {
       andAny_opsNotEqual_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3343,6 +3426,7 @@ export const schema = {
       andAny_opsNotEqual_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3350,6 +3434,7 @@ export const schema = {
       andAny_opsNotIn_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3357,6 +3442,7 @@ export const schema = {
       andAny_opsNotIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3364,6 +3450,7 @@ export const schema = {
       andAny_opsNotIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3371,6 +3458,7 @@ export const schema = {
       andAny_opsNotIn_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3378,6 +3466,7 @@ export const schema = {
       andAny_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3385,6 +3474,7 @@ export const schema = {
       andAny_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3392,6 +3482,7 @@ export const schema = {
       andNot_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3399,6 +3490,7 @@ export const schema = {
       andNot_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3406,6 +3498,7 @@ export const schema = {
       andNot_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3413,6 +3506,7 @@ export const schema = {
       andNot_multipleClauses: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3420,6 +3514,7 @@ export const schema = {
       andNot_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3427,6 +3522,7 @@ export const schema = {
       andNot_opsEqual_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3434,6 +3530,7 @@ export const schema = {
       andNot_opsEqual_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3441,6 +3538,7 @@ export const schema = {
       andNot_opsIn_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3448,6 +3546,7 @@ export const schema = {
       andNot_opsIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3455,6 +3554,7 @@ export const schema = {
       andNot_opsIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3462,6 +3562,7 @@ export const schema = {
       andNot_opsIn_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3469,6 +3570,7 @@ export const schema = {
       andNot_opsNotEqual_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3476,6 +3578,7 @@ export const schema = {
       andNot_opsNotEqual_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3483,6 +3586,7 @@ export const schema = {
       andNot_opsNotIn_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3490,6 +3594,7 @@ export const schema = {
       andNot_opsNotIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3497,6 +3602,7 @@ export const schema = {
       andNot_opsNotIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3504,6 +3610,7 @@ export const schema = {
       andNot_opsNotIn_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3511,6 +3618,7 @@ export const schema = {
       andNot_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3518,6 +3626,7 @@ export const schema = {
       andNot_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3525,6 +3634,7 @@ export const schema = {
       and_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3532,6 +3642,7 @@ export const schema = {
       and_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3539,6 +3650,7 @@ export const schema = {
       and_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3546,6 +3658,7 @@ export const schema = {
       and_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3553,6 +3666,7 @@ export const schema = {
       and_opsEqual_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3560,6 +3674,7 @@ export const schema = {
       and_opsEqual_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3567,6 +3682,7 @@ export const schema = {
       and_opsIn_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3574,6 +3690,7 @@ export const schema = {
       and_opsIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3581,6 +3698,7 @@ export const schema = {
       and_opsIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3588,6 +3706,7 @@ export const schema = {
       and_opsIn_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3595,6 +3714,7 @@ export const schema = {
       and_opsNotEqual_null: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3602,6 +3722,7 @@ export const schema = {
       and_opsNotEqual_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3609,6 +3730,7 @@ export const schema = {
       and_opsNotIn_arrayWithNull: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3616,6 +3738,7 @@ export const schema = {
       and_opsNotIn_arrayWithNullAndRed: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3623,6 +3746,7 @@ export const schema = {
       and_opsNotIn_emptyArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3630,6 +3754,7 @@ export const schema = {
       and_opsNotIn_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3637,6 +3762,7 @@ export const schema = {
       and_red: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3644,6 +3770,7 @@ export const schema = {
       and_redArray: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3651,6 +3778,7 @@ export const schema = {
       associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz: {
         type: 'HasMany',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -3658,6 +3786,7 @@ export const schema = {
       collars: {
         type: 'HasMany',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -3665,6 +3794,7 @@ export const schema = {
       currentCollar: {
         type: 'HasOne',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -3672,6 +3802,7 @@ export const schema = {
       distinctBalloons: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3679,6 +3810,7 @@ export const schema = {
       featuredPost: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -3686,6 +3818,7 @@ export const schema = {
       featuredRatings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -3693,6 +3826,7 @@ export const schema = {
       notLostCollar: {
         type: 'HasOne',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -3700,6 +3834,7 @@ export const schema = {
       petUnderstudies: {
         type: 'HasMany',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['pet_understudy_join_models'],
         optional: null,
         requiredOnClauses: null,
@@ -3707,6 +3842,7 @@ export const schema = {
       ratings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -3714,6 +3850,7 @@ export const schema = {
       understudies: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: null,
         requiredOnClauses: null,
@@ -3721,6 +3858,7 @@ export const schema = {
       uniqueBalloons: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -3728,6 +3866,7 @@ export const schema = {
       uniqueCollars: {
         type: 'HasMany',
         foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -3735,6 +3874,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: true,
         requiredOnClauses: null,
@@ -3742,6 +3882,7 @@ export const schema = {
       userThroughUuid: {
         type: 'BelongsTo',
         foreignKey: 'userUuid',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: true,
         requiredOnClauses: null,
@@ -3807,6 +3948,7 @@ export const schema = {
       chore: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicChoreId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chores'],
         optional: false,
         requiredOnClauses: null,
@@ -3814,6 +3956,7 @@ export const schema = {
       cleaningSupply: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicCleaningSupplyId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_cleaning_supplies'],
         optional: false,
         requiredOnClauses: null,
@@ -3879,6 +4022,7 @@ export const schema = {
       chore: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicChoreId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chores'],
         optional: false,
         requiredOnClauses: null,
@@ -3886,6 +4030,7 @@ export const schema = {
       image: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicImageId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: false,
         requiredOnClauses: null,
@@ -3942,6 +4087,7 @@ export const schema = {
       choreCleaningSupplies: {
         type: 'HasMany',
         foreignKey: 'polymorphicChoreId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chore_cleaning_supplies'],
         optional: null,
         requiredOnClauses: null,
@@ -3949,6 +4095,7 @@ export const schema = {
       choreImages: {
         type: 'HasMany',
         foreignKey: 'polymorphicChoreId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chore_images'],
         optional: null,
         requiredOnClauses: null,
@@ -3956,6 +4103,7 @@ export const schema = {
       cleaningSupplies: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_cleaning_supplies'],
         optional: null,
         requiredOnClauses: null,
@@ -3963,6 +4111,7 @@ export const schema = {
       images: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: null,
         requiredOnClauses: null,
@@ -3970,6 +4119,7 @@ export const schema = {
       imagesThroughTaskableImages: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: null,
         requiredOnClauses: null,
@@ -3977,6 +4127,7 @@ export const schema = {
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['polymorphic_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -3984,6 +4135,7 @@ export const schema = {
       taskableImages: {
         type: 'HasMany',
         foreignKey: 'taskableId',
+        foreignKeyTypeColumn: 'taskableType',
         tables: ['polymorphic_taskable_images'],
         optional: null,
         requiredOnClauses: null,
@@ -4167,6 +4319,7 @@ export const schema = {
       localizable: {
         type: 'BelongsTo',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['polymorphic_chores', 'polymorphic_workouts'],
         optional: false,
         requiredOnClauses: null,
@@ -4223,6 +4376,7 @@ export const schema = {
       choreLocalizedTexts: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -4230,6 +4384,7 @@ export const schema = {
       chores: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chores'],
         optional: null,
         requiredOnClauses: null,
@@ -4237,6 +4392,7 @@ export const schema = {
       polymorphicUser: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_users'],
         optional: null,
         requiredOnClauses: null,
@@ -4244,6 +4400,7 @@ export const schema = {
       userMetaUsers: {
         type: 'HasMany',
         foreignKey: 'polymorphicMetaUserId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_user_meta_users'],
         optional: null,
         requiredOnClauses: null,
@@ -4318,6 +4475,7 @@ export const schema = {
       image: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicImageId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: false,
         requiredOnClauses: null,
@@ -4325,6 +4483,7 @@ export const schema = {
       taskable: {
         type: 'BelongsTo',
         foreignKey: 'taskableId',
+        foreignKeyTypeColumn: 'taskableType',
         tables: ['polymorphic_chores', 'polymorphic_workouts'],
         optional: false,
         requiredOnClauses: null,
@@ -4399,6 +4558,7 @@ export const schema = {
       taskable: {
         type: 'BelongsTo',
         foreignKey: 'taskableId',
+        foreignKeyTypeColumn: 'taskableType',
         tables: ['polymorphic_chores', 'polymorphic_workouts'],
         optional: false,
         requiredOnClauses: null,
@@ -4406,6 +4566,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicUserId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_users'],
         optional: false,
         requiredOnClauses: null,
@@ -4471,6 +4632,7 @@ export const schema = {
       polymorphicMetaUser: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicMetaUserId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_meta_users'],
         optional: false,
         requiredOnClauses: null,
@@ -4478,6 +4640,7 @@ export const schema = {
       polymorphicUser: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicUserId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_users'],
         optional: false,
         requiredOnClauses: null,
@@ -4534,6 +4697,7 @@ export const schema = {
       chores: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chores'],
         optional: null,
         requiredOnClauses: null,
@@ -4541,6 +4705,7 @@ export const schema = {
       favoriteChore: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_chores'],
         optional: null,
         requiredOnClauses: null,
@@ -4548,6 +4713,7 @@ export const schema = {
       tasks: {
         type: 'HasMany',
         foreignKey: 'polymorphicUserId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_tasks'],
         optional: null,
         requiredOnClauses: null,
@@ -4613,6 +4779,7 @@ export const schema = {
       image: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicImageId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: false,
         requiredOnClauses: null,
@@ -4620,6 +4787,7 @@ export const schema = {
       workout: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicWorkoutId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_workouts'],
         optional: false,
         requiredOnClauses: null,
@@ -4735,6 +4903,7 @@ export const schema = {
       images: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: null,
         requiredOnClauses: null,
@@ -4742,6 +4911,7 @@ export const schema = {
       imagesThroughTaskableImages: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_images'],
         optional: null,
         requiredOnClauses: null,
@@ -4749,6 +4919,7 @@ export const schema = {
       localizedTexts: {
         type: 'HasMany',
         foreignKey: 'localizableId',
+        foreignKeyTypeColumn: 'localizableType',
         tables: ['polymorphic_localized_texts'],
         optional: null,
         requiredOnClauses: null,
@@ -4756,6 +4927,7 @@ export const schema = {
       taskableImages: {
         type: 'HasMany',
         foreignKey: 'taskableId',
+        foreignKeyTypeColumn: 'taskableType',
         tables: ['polymorphic_taskable_images'],
         optional: null,
         requiredOnClauses: null,
@@ -4763,6 +4935,7 @@ export const schema = {
       workoutImages: {
         type: 'HasMany',
         foreignKey: 'polymorphicWorkoutId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_workout_images'],
         optional: null,
         requiredOnClauses: null,
@@ -4770,6 +4943,7 @@ export const schema = {
       workoutType: {
         type: 'BelongsTo',
         foreignKey: 'polymorphicWorkoutTypeId',
+        foreignKeyTypeColumn: null,
         tables: ['polymorphic_workout_types'],
         optional: true,
         requiredOnClauses: null,
@@ -4844,6 +5018,7 @@ export const schema = {
       post: {
         type: 'BelongsTo',
         foreignKey: 'postId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: false,
         requiredOnClauses: null,
@@ -4851,6 +5026,7 @@ export const schema = {
       postEvenIfDeleted: {
         type: 'BelongsTo',
         foreignKey: 'postId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: false,
         requiredOnClauses: null,
@@ -4916,6 +5092,7 @@ export const schema = {
       post: {
         type: 'HasOne',
         foreignKey: 'postVisibilityId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -5008,6 +5185,7 @@ export const schema = {
       allComments: {
         type: 'HasMany',
         foreignKey: 'postId',
+        foreignKeyTypeColumn: null,
         tables: ['post_comments'],
         optional: null,
         requiredOnClauses: null,
@@ -5015,6 +5193,7 @@ export const schema = {
       comments: {
         type: 'HasMany',
         foreignKey: 'postId',
+        foreignKeyTypeColumn: null,
         tables: ['post_comments'],
         optional: null,
         requiredOnClauses: null,
@@ -5022,6 +5201,7 @@ export const schema = {
       heartRatings: {
         type: 'HasMany',
         foreignKey: 'extraRateableId',
+        foreignKeyTypeColumn: 'extraRateableType',
         tables: ['extra_ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -5029,6 +5209,7 @@ export const schema = {
       invalidWhereNotPostComments: {
         type: 'HasMany',
         foreignKey: 'postId',
+        foreignKeyTypeColumn: null,
         tables: ['post_comments'],
         optional: null,
         requiredOnClauses: null,
@@ -5036,6 +5217,7 @@ export const schema = {
       invalidWherePostComments: {
         type: 'HasMany',
         foreignKey: 'postId',
+        foreignKeyTypeColumn: null,
         tables: ['post_comments'],
         optional: null,
         requiredOnClauses: null,
@@ -5043,6 +5225,7 @@ export const schema = {
       overriddenNonNullRatings: {
         type: 'HasMany',
         foreignKey: 'rateableId',
+        foreignKeyTypeColumn: 'rateableType',
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -5050,6 +5233,7 @@ export const schema = {
       postVisibility: {
         type: 'BelongsTo',
         foreignKey: 'postVisibilityId',
+        foreignKeyTypeColumn: null,
         tables: ['post_visibilities'],
         optional: true,
         requiredOnClauses: null,
@@ -5057,6 +5241,7 @@ export const schema = {
       ratings: {
         type: 'HasMany',
         foreignKey: 'rateableId',
+        foreignKeyTypeColumn: 'rateableType',
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -5064,6 +5249,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: false,
         requiredOnClauses: null,
@@ -5156,6 +5342,7 @@ export const schema = {
       rateable: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',
+        foreignKeyTypeColumn: 'rateableType',
         tables: ['compositions', 'posts'],
         optional: false,
         requiredOnClauses: null,
@@ -5163,6 +5350,7 @@ export const schema = {
       rateableEvenIfDeleted: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',
+        foreignKeyTypeColumn: 'rateableType',
         tables: ['compositions', 'posts'],
         optional: false,
         requiredOnClauses: null,
@@ -5170,6 +5358,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: false,
         requiredOnClauses: null,
@@ -5253,6 +5442,7 @@ export const schema = {
       mylar: {
         type: 'BelongsTo',
         foreignKey: 'balloonId',
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: false,
         requiredOnClauses: null,
@@ -5386,6 +5576,7 @@ export const schema = {
       a: {
         type: 'BelongsTo',
         foreignKey: 'aId',
+        foreignKeyTypeColumn: null,
         tables: ['through_as'],
         optional: false,
         requiredOnClauses: null,
@@ -5393,6 +5584,7 @@ export const schema = {
       otherModel: {
         type: 'BelongsTo',
         foreignKey: 'otherModelId',
+        foreignKeyTypeColumn: null,
         tables: ['through_other_models'],
         optional: false,
         requiredOnClauses: null,
@@ -5449,6 +5641,7 @@ export const schema = {
       b: {
         type: 'HasOne',
         foreignKey: 'aId',
+        foreignKeyTypeColumn: null,
         tables: ['through_bs'],
         optional: null,
         requiredOnClauses: null,
@@ -5514,6 +5707,7 @@ export const schema = {
       a: {
         type: 'BelongsTo',
         foreignKey: 'aId',
+        foreignKeyTypeColumn: null,
         tables: ['through_as'],
         optional: false,
         requiredOnClauses: null,
@@ -5570,6 +5764,7 @@ export const schema = {
       myA: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['through_as'],
         optional: null,
         requiredOnClauses: null,
@@ -5577,6 +5772,7 @@ export const schema = {
       myB: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['through_bs'],
         optional: null,
         requiredOnClauses: null,
@@ -5584,6 +5780,7 @@ export const schema = {
       myConditionalA: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['through_as'],
         optional: null,
         requiredOnClauses: null,
@@ -5591,6 +5788,7 @@ export const schema = {
       myConditionalB: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['through_bs'],
         optional: null,
         requiredOnClauses: null,
@@ -5598,6 +5796,7 @@ export const schema = {
       otherModel: {
         type: 'HasMany',
         foreignKey: 'myModelId',
+        foreignKeyTypeColumn: null,
         tables: ['through_other_models'],
         optional: null,
         requiredOnClauses: null,
@@ -5663,6 +5862,7 @@ export const schema = {
       a: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['through_as'],
         optional: null,
         requiredOnClauses: null,
@@ -5670,6 +5870,7 @@ export const schema = {
       aToOtherModelJoinModel: {
         type: 'HasOne',
         foreignKey: 'otherModelId',
+        foreignKeyTypeColumn: null,
         tables: ['through_a_to_other_model_join_models'],
         optional: null,
         requiredOnClauses: null,
@@ -5677,6 +5878,7 @@ export const schema = {
       myModel: {
         type: 'BelongsTo',
         foreignKey: 'myModelId',
+        foreignKeyTypeColumn: null,
         tables: ['through_my_models'],
         optional: false,
         requiredOnClauses: null,
@@ -5792,6 +5994,7 @@ export const schema = {
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['users'],
         optional: false,
         requiredOnClauses: null,
@@ -5983,6 +6186,7 @@ export const schema = {
       allPets: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: null,
         requiredOnClauses: null,
@@ -5990,6 +6194,7 @@ export const schema = {
       allPostComments: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['post_comments'],
         optional: null,
         requiredOnClauses: null,
@@ -5997,6 +6202,7 @@ export const schema = {
       allPosts: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -6004,6 +6210,7 @@ export const schema = {
       asterPet: {
         type: 'HasOne',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: null,
         requiredOnClauses: null,
@@ -6011,6 +6218,7 @@ export const schema = {
       balloonLines: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['balloon_lines'],
         optional: null,
         requiredOnClauses: null,
@@ -6018,6 +6226,7 @@ export const schema = {
       balloons: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -6025,6 +6234,7 @@ export const schema = {
       balloonsFromUuid: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['beautiful_balloons'],
         optional: null,
         requiredOnClauses: null,
@@ -6032,6 +6242,7 @@ export const schema = {
       collarsFromUuid: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -6039,6 +6250,7 @@ export const schema = {
       compositionAssetAudits: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_asset_audits'],
         optional: null,
         requiredOnClauses: null,
@@ -6046,6 +6258,7 @@ export const schema = {
       compositionAssets: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -6053,6 +6266,7 @@ export const schema = {
       compositions: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6060,6 +6274,7 @@ export const schema = {
       featuredPost: {
         type: 'HasOne',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -6067,6 +6282,7 @@ export const schema = {
       featuredRatings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -6074,6 +6290,7 @@ export const schema = {
       firstCollarFromUuid: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['collars'],
         optional: null,
         requiredOnClauses: null,
@@ -6081,6 +6298,7 @@ export const schema = {
       firstPetFromUuid: {
         type: 'HasOne',
         foreignKey: 'userUuid',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: null,
         requiredOnClauses: null,
@@ -6088,6 +6306,7 @@ export const schema = {
       heartRatings: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['extra_ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -6095,6 +6314,7 @@ export const schema = {
       incompatibleForeignKeyTypeExamples: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['incompatible_foreign_key_type_examples'],
         optional: null,
         requiredOnClauses: null,
@@ -6102,6 +6322,7 @@ export const schema = {
       mainComposition: {
         type: 'HasOne',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6109,6 +6330,7 @@ export const schema = {
       mainCompositionAsset: {
         type: 'HasOne',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -6116,6 +6338,7 @@ export const schema = {
       nonExtantCompositionAssets1: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -6123,6 +6346,7 @@ export const schema = {
       nonExtantCompositionAssets2: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -6130,6 +6354,7 @@ export const schema = {
       notRecentCompositions: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6137,6 +6362,7 @@ export const schema = {
       orderedPosts: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -6144,6 +6370,7 @@ export const schema = {
       pets: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: null,
         requiredOnClauses: null,
@@ -6151,6 +6378,7 @@ export const schema = {
       petsFromUuid: {
         type: 'HasMany',
         foreignKey: 'userUuid',
+        foreignKeyTypeColumn: null,
         tables: ['pets'],
         optional: null,
         requiredOnClauses: null,
@@ -6158,6 +6386,7 @@ export const schema = {
       postComments: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['post_comments'],
         optional: null,
         requiredOnClauses: null,
@@ -6165,6 +6394,7 @@ export const schema = {
       postRatings: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -6172,6 +6402,7 @@ export const schema = {
       posts: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['posts'],
         optional: null,
         requiredOnClauses: null,
@@ -6179,6 +6410,7 @@ export const schema = {
       ratings: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -6186,6 +6418,7 @@ export const schema = {
       ratingsThroughPostsThatMatchUserTargetRating: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['ratings'],
         optional: null,
         requiredOnClauses: null,
@@ -6193,6 +6426,7 @@ export const schema = {
       recentCompositionAssets: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -6200,6 +6434,7 @@ export const schema = {
       recentCompositions: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6207,6 +6442,7 @@ export const schema = {
       recentMainCompositionAssets: {
         type: 'HasMany',
         foreignKey: null,
+        foreignKeyTypeColumn: null,
         tables: ['composition_assets'],
         optional: null,
         requiredOnClauses: null,
@@ -6214,6 +6450,7 @@ export const schema = {
       reverseOrderedCompositions: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6221,6 +6458,7 @@ export const schema = {
       sortedCompositions: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6228,6 +6466,7 @@ export const schema = {
       sortedCompositions2: {
         type: 'HasMany',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['compositions'],
         optional: null,
         requiredOnClauses: null,
@@ -6235,6 +6474,7 @@ export const schema = {
       userSettings: {
         type: 'HasOne',
         foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
         tables: ['user_settings'],
         optional: null,
         requiredOnClauses: null,

@@ -1,3 +1,12 @@
+## 1.9.0
+
+Fix broken param safe type columns so that:
+
+1. polymorphic type fields are excluded from param safe types
+2. association names are excluded
+
+Bumping minor, since it could introduce breaking changes for those reliant on previous param safe behavior.
+
 ## 1.8.0
 
 - throw ColumnOverflow when saving too long a string / number to a database column
