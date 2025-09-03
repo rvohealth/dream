@@ -91,9 +91,11 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   OpsValType = EnumTypeArray extends null
     ? ColumnType extends 'bigint'
       ? TypesAllowedForBigintAgainstTheDb | PermanentOpsValTypes
-      : ModelPropertyType extends DateTime | CalendarDate | number | string
-        ? ModelPropertyType | PermanentOpsValTypes
-        : never
+      : ModelPropertyType extends DateTime | CalendarDate
+        ? DateTime | CalendarDate
+        : ModelPropertyType extends number | string
+          ? ModelPropertyType | PermanentOpsValTypes
+          : never
     : EnumTypeArray extends string[]
       ? EnumTypeArray[number] | PermanentOpsValTypes
       : never,

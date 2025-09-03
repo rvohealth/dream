@@ -1,6 +1,7 @@
 ## 1.9.1
 
-Fix where clause range types to allow mixing of CalendarDate and DateTime between start and end of range
+- fix where clause range types to allow mixing of CalendarDate and DateTime between start and end of range
+- DateTime and CalendarDate may be used in ops when comparing against a date or datetime column
 
 ## 1.9.0
 

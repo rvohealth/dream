@@ -878,7 +878,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a DateTime range', () => {
+  context('DateTime comparisons', () => {
     const begin = DateTime.now()
     const end = DateTime.now().plus({ day: 1 })
 
@@ -892,7 +892,7 @@ describe('Query#where', () => {
       user0 = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
-        createdAt: begin.minus({ hour: 1 }),
+        createdAt: begin.minus({ day: 1 }),
       })
       user1 = await User.create({
         email: 'fred@frezd',
@@ -935,6 +935,24 @@ describe('Query#where', () => {
       expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
     })
 
+    it('is able to apply DateTime ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ createdAt: ops.greaterThanOrEqualTo(begin.plus({ hour: 1 })) })
+        .all()
+
+      expect(records.length).toEqual(3)
+      expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+    })
+
+    it('is able to apply CalendarDate ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ createdAt: ops.greaterThanOrEqualTo(CalendarDate.fromDateTime(begin)) })
+        .all()
+
+      expect(records.length).toEqual(4)
+      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id, user4.id])
+    })
+
     context('end is not passed', () => {
       it('finds all dates after the start', async () => {
         const records = await User.order('id')
@@ -969,7 +987,7 @@ describe('Query#where', () => {
     })
   })
 
-  context('a CalendarDate', () => {
+  context('CalendarDate comparisons', () => {
     const begin = CalendarDate.today()
     const end = CalendarDate.today().plus({ days: 3 })
 
@@ -983,43 +1001,79 @@ describe('Query#where', () => {
       user0 = await User.create({
         email: 'fred@frewd',
         password: 'howyadoin',
-        createdAt: begin.minus({ day: 1 }),
+        birthdate: begin.minus({ day: 1 }),
       })
       user1 = await User.create({
         email: 'fred@frezd',
         password: 'howyadoin',
-        createdAt: begin,
+        birthdate: begin,
       })
       user2 = await User.create({
         email: 'fred@frwwd',
         password: 'howyadoin',
-        createdAt: begin.plus({ day: 1 }),
+        birthdate: begin.plus({ day: 1 }),
       })
       user3 = await User.create({
         email: 'fred@frewdzsd',
         password: 'howyadoin',
-        createdAt: end,
+        birthdate: end,
       })
       user4 = await User.create({
         email: 'fred@frwewdzsd',
         password: 'howyadoin',
-        createdAt: end.plus({ day: 1 }),
+        birthdate: end.plus({ day: 1 }),
       })
     })
 
-    it('is able to apply DateTime ranges to where clause', async () => {
+    it('is able to apply CalendarDate ranges to where clause', async () => {
       const records = await User.order('id')
-        .where({ createdAt: range(begin, end) })
+        .where({ birthdate: range(begin, end) })
         .all()
 
       expect(records.length).toEqual(3)
       expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
     })
 
+    it('is able to apply DateTime ranges to where clause', async () => {
+      const records = await User.order('id')
+        .where({ birthdate: range(begin.toDateTime(), end.toDateTime()) })
+        .all()
+
+      expect(records.length).toEqual(3)
+      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+    })
+
+    it('is able to mix DateTime and CalendarDate in ranges to where clause', async () => {
+      const records = await User.order('id')
+        .where({ birthdate: range(begin.toDateTime(), end) })
+        .all()
+
+      expect(records.length).toEqual(3)
+      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+    })
+
+    it('is able to apply DateTime ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ birthdate: ops.greaterThanOrEqualTo(begin.plus({ day: 1 }).toDateTime()!) })
+        .all()
+
+      expect(records.length).toEqual(3)
+      expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+    })
+
+    it('is able to apply CalendarDate ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ birthdate: ops.greaterThanOrEqualTo(begin.plus({ day: 1 })) })
+        .all()
+
+      expect(records.length).toEqual(3)
+      expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+    })
+
     context('end is not passed', () => {
       it('finds all dates after the start', async () => {
         const records = await User.order('id')
-          .where({ createdAt: range(begin.plus({ day: 1 })) })
+          .where({ birthdate: range(begin.plus({ day: 1 })) })
           .all()
 
         expect(records.length).toEqual(3)
@@ -1030,7 +1084,7 @@ describe('Query#where', () => {
     context('start is not passed', () => {
       it('finds all dates before the end', async () => {
         const records = await User.order('id')
-          .where({ createdAt: range(null, begin.plus({ day: 1 })) })
+          .where({ birthdate: range(null, begin.plus({ day: 1 })) })
           .all()
 
         expect(records.length).toEqual(3)
@@ -1041,7 +1095,7 @@ describe('Query#where', () => {
     context('excludeEnd is passed', () => {
       it('omits a record landing exactly on the end date', async () => {
         const records = await User.order('id')
-          .where({ createdAt: range(begin, end, true) })
+          .where({ birthdate: range(begin, end, true) })
           .all()
 
         expect(records.length).toEqual(2)
