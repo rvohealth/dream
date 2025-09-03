@@ -1,3 +1,7 @@
+## 1.9.2
+
+- allow null for ops argument to a where clause on a datetime or date column
+
 ## 1.9.1
 
 - fix where clause range types to allow mixing of CalendarDate and DateTime between start and end of range

@@ -953,6 +953,15 @@ describe('Query#where', () => {
       expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id, user4.id])
     })
 
+    it('is able to not null ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ createdAt: ops.not.equal(null) })
+        .all()
+
+      expect(records.length).toEqual(5)
+      expect(records.map(r => r.id)).toEqual([user0.id, user1.id, user2.id, user3.id, user4.id])
+    })
+
     context('end is not passed', () => {
       it('finds all dates after the start', async () => {
         const records = await User.order('id')
@@ -1068,6 +1077,15 @@ describe('Query#where', () => {
 
       expect(records.length).toEqual(3)
       expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+    })
+
+    it('is able to not null ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ birthdate: ops.not.equal(null) })
+        .all()
+
+      expect(records.length).toEqual(5)
+      expect(records.map(r => r.id)).toEqual([user0.id, user1.id, user2.id, user3.id, user4.id])
     })
 
     context('end is not passed', () => {
