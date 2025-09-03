@@ -72,6 +72,7 @@ export type AutomaticSerializerAttributeOptions<
   precision?: DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypesIncludingDbTypes
     ? RoundingPrecision
     : never
+  required?: false
 }
 
 export type AutomaticSerializerAttributeOptionsForType = {
@@ -86,12 +87,14 @@ export type SerializerAttributeOptionsForVirtualColumn = {
   as?: string
   default?: any
   openapi?: OpenapiDescription | OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+  required?: false
 }
 
 export type NonAutomaticSerializerAttributeOptions = {
   as?: string
   default?: any
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+  required?: false
 }
 
 export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption =

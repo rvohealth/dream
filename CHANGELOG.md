@@ -1,3 +1,7 @@
+## 1.9.3
+
+- serializer builder attribute option types allow `required: false`; this will be used by Psychic to omit attributes from the required array in OpenaAPI
+
 ## 1.9.2
 
 - allow null for ops argument to a where clause on a datetime or date column
