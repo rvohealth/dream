@@ -912,13 +912,23 @@ describe('Query#where', () => {
       user4 = await User.create({
         email: 'fred@frwewdzsd',
         password: 'howyadoin',
-        createdAt: end.plus({ hour: 1 }),
+        createdAt: end.plus({ day: 1 }),
       })
     })
 
     it('is able to apply DateTime ranges to where clause', async () => {
       const records = await User.order('id')
         .where({ createdAt: range(begin, end) })
+        .all()
+
+      expect(records.length).toEqual(3)
+      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+    })
+
+    it('is able to mix DateTime and CalendarDate between start and end', async () => {
+      const endDate = CalendarDate.fromDateTime(end).plus({ day: 1 })
+      const records = await User.order('id')
+        .where({ createdAt: range(begin, endDate) })
         .all()
 
       expect(records.length).toEqual(3)

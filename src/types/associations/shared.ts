@@ -101,27 +101,32 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   PartialTypes = EnumTypeArray extends null
     ? ModelPropertyType extends DateTime
       ?
-          | Range<DateTime>
-          | (() => Range<DateTime>)
-          | Range<CalendarDate>
-          | (() => Range<CalendarDate>)
+          | Range<DateTime | CalendarDate>
+          | Range<null, DateTime | CalendarDate>
+          | (() => Range<DateTime | CalendarDate>)
+          | (() => Range<null, DateTime | CalendarDate>)
           | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
       : ModelPropertyType extends CalendarDate
         ?
-            | Range<CalendarDate>
-            | (() => Range<CalendarDate>)
-            | Range<DateTime>
-            | (() => Range<DateTime>)
+            | Range<DateTime | CalendarDate>
+            | Range<null, DateTime | CalendarDate>
+            | (() => Range<DateTime | CalendarDate>)
+            | (() => Range<null, DateTime | CalendarDate>)
             | OpsStatement<KyselyComparisonOperatorExpression, OpsValType>
         : ColumnType extends 'bigint'
           ?
               | Range<TypesAllowedForBigintAgainstTheDb>
+              | Range<null, TypesAllowedForBigintAgainstTheDb>
               | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
           : ModelPropertyType extends number
-            ? Range<ModelPropertyType> | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+            ?
+                | Range<ModelPropertyType>
+                | Range<null, ModelPropertyType>
+                | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
             : ModelPropertyType extends string
               ?
                   | Range<string>
+                  | Range<null, string>
                   | OpsStatement<KyselyComparisonOperatorExpression, string, any>
                   | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
               : never

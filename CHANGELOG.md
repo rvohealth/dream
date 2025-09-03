@@ -1,3 +1,7 @@
+## 1.9.1
+
+Fix where clause range types to allow mixing of CalendarDate and DateTime between start and end of range
+
 ## 1.9.0
 
 Fix broken param safe type columns so that:
