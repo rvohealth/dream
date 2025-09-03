@@ -69,6 +69,7 @@ export default class SerializerRenderer {
         case 'attribute': {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const value = data[attribute.name] ?? attribute.options?.default
+          if (value === undefined && attribute.options?.required === false) return accumulator
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
             value,
             attribute.options,
@@ -89,6 +90,7 @@ export default class SerializerRenderer {
           const outputAttributeName = this.setCase(attribute.options?.as ?? attribute.name)
           const target = data[attribute.targetName]
           const value = target?.[attribute.name] ?? attribute.options?.default
+          if (value === undefined && attribute.options?.required === false) return accumulator
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
             value,
             attribute.options,
@@ -110,14 +112,17 @@ export default class SerializerRenderer {
           // customAttributes don't support rendering options since the custom function should handle all
           // manipulation of the value
 
+          const value = attribute.fn()
+          if (value === undefined && attribute.options?.required === false) return accumulator
+
           if (attribute.options.flatten) {
             return {
               ...accumulator,
-              ...applyRenderingOptionsToAttribute(attribute.fn(), {}, this.passthroughData, this.renderOpts),
+              ...applyRenderingOptionsToAttribute(value, {}, this.passthroughData, this.renderOpts),
             }
           } else {
             accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
-              attribute.fn(),
+              value,
               {},
               this.passthroughData,
               this.renderOpts

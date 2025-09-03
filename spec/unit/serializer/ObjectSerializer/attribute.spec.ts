@@ -80,6 +80,29 @@ describe('ObjectSerializer attributes', () => {
     })
   })
 
+  context('undefined attributes', () => {
+    it('are rendered as null', () => {
+      const MySerializer = (data: User) => ObjectSerializer(data).attribute('email', { openapi: 'string' })
+
+      const serializer = MySerializer({ email: undefined as unknown as string, password: '123' })
+
+      expect(serializer.render()).toEqual({
+        email: null,
+      })
+    })
+
+    context('when required: false', () => {
+      it('are rendered as undefined', () => {
+        const MySerializer = (data: User) =>
+          ObjectSerializer(data).attribute('email', { required: false, openapi: 'string' })
+
+        const serializer = MySerializer({ email: undefined as unknown as string, password: '123' })
+
+        expect(serializer.render()).toEqual({})
+      })
+    })
+  })
+
   context('with casing specified', () => {
     const MySerializer = (data: ModelForOpenapiTypeSpecs) =>
       ObjectSerializer(data).attribute('requiredNicknames', { openapi: 'string[]' })

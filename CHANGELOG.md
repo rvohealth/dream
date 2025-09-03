@@ -1,3 +1,7 @@
+## 1.9.4
+
+- if `required: false`, leave the property undefined rather than rendering as `null`
+
 ## 1.9.3
 
 - serializer builder attribute option types allow `required: false`; this will be used by Psychic to omit attributes from the required array in OpenaAPI

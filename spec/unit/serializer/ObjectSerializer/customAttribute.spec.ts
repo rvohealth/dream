@@ -67,4 +67,33 @@ describe('ObjectSerializer customAttributes', () => {
       expect(serializer.render()).toBeNull()
     })
   })
+
+  context('undefined attributes', () => {
+    it('are rendered as null', () => {
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('email', () => user.email, {
+          openapi: 'string',
+        })
+
+      const serializer = MySerializer({ email: undefined as unknown as string, password: '123' })
+
+      expect(serializer.render()).toEqual({
+        email: null,
+      })
+    })
+
+    context('when required: false', () => {
+      it('are rendered as undefined', () => {
+        const MySerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('email', () => user.email, {
+            required: false,
+            openapi: 'string',
+          })
+
+        const serializer = MySerializer({ email: undefined as unknown as string, password: '123' })
+
+        expect(serializer.render()).toEqual({})
+      })
+    })
+  })
 })

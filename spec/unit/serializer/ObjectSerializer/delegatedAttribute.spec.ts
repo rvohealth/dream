@@ -75,4 +75,32 @@ describe('ObjectSerializer delegated attributes', () => {
       })
     })
   })
+
+  context('undefined attributes', () => {
+    it('are rendered as null', () => {
+      const pet: Pet = { name: undefined as unknown as string }
+
+      const MySerializer = (data: Pet) =>
+        ObjectSerializer(data).delegatedAttribute('user', 'name', { openapi: 'string' })
+
+      const serializer = MySerializer(pet)
+
+      expect(serializer.render()).toEqual({
+        name: null,
+      })
+    })
+
+    context('when required: false', () => {
+      it('are rendered as undefined', () => {
+        const pet: Pet = { name: undefined as unknown as string }
+
+        const MySerializer = (data: Pet) =>
+          ObjectSerializer(data).delegatedAttribute('user', 'name', { required: false, openapi: 'string' })
+
+        const serializer = MySerializer(pet)
+
+        expect(serializer.render()).toEqual({})
+      })
+    })
+  })
 })
