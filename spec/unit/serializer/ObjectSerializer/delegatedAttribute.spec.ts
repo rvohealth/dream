@@ -10,7 +10,7 @@ interface Pet {
   user?: User
 }
 
-describe('ObjectSerializer delegated attributes', () => {
+describe('ObjectSerializer#delegatedAttribute', () => {
   it('delegates value and type to the specified target', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user: User = { name: 'Charlie', birthdate }

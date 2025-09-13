@@ -6,7 +6,7 @@ import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
-describe('DreamSerializer attributes', () => {
+describe('DreamSerializer#attribute', () => {
   it('can render Dream attributes', () => {
     const serializer = UserSerializer(
       User.new({

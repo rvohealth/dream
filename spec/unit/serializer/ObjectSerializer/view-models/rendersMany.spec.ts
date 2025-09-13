@@ -2,7 +2,7 @@ import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 
-describe('ObjectSerializer (on a view model) rendersMany', () => {
+describe('ObjectSerializer#rendersMany (on a view model)', () => {
   it('renders the associated objects', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = new UserViewModel({ id: '7', name: 'Charlie', birthdate })

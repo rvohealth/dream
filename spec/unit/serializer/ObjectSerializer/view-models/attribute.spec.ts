@@ -52,7 +52,7 @@ class ModelForOpenapiTypeSpecs {
   }
 }
 
-describe('ObjectSerializer (on a view model) attributes', () => {
+describe('ObjectSerializer#attribute (on a view model)', () => {
   it('can render Dream attributes', () => {
     const serializer = UserSerializer(
       new UserViewModel({

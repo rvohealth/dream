@@ -178,6 +178,7 @@ export type AliasedSchemaAssociation<
   ConcreteTableName extends keyof Schema,
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
 > = `${keyof SchemaAssociations & string} as ${string}`
+
 type VariadicRecurse<
   DB,
   Schema,
@@ -290,6 +291,7 @@ type VariadicRecurse<
       NextAliasedAssociationName,
       AllowedNextArgValues
     >
+
 type AllowedNextArgValuesForLoad<
   DB,
   Schema,
@@ -299,6 +301,7 @@ type AllowedNextArgValuesForLoad<
   | AssociationNamesForTable<Schema, TableName>
   | AssociationNamesForTable<Schema, TableName>[]
   | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+
 type AllowedNextArgValuesForLeftJoinLoad<
   DB,
   Schema,
@@ -309,6 +312,7 @@ type AllowedNextArgValuesForLeftJoinLoad<
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>[]
   | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+
 type AllowedNextArgValuesForJoin<
   DB,
   Schema,

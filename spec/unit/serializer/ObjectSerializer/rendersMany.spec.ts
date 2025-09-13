@@ -24,7 +24,7 @@ interface SimplePet {
   favoriteTreats?: CatTreats[]
 }
 
-describe('ObjectSerializer rendersMany', () => {
+describe('ObjectSerializer#rendersMany', () => {
   context('simple objects', () => {
     it('renders the associated objects using the provided serializer callback', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')

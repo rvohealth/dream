@@ -15,7 +15,7 @@ interface ModelForOpenapiTypeSpecs {
   birthdate?: CalendarDate
 }
 
-describe('ObjectSerializer customAttributes', () => {
+describe('ObjectSerializer#customAttribute', () => {
   it('can render the results of calling the callback function', () => {
     const MySerializer = (user: User) =>
       ObjectSerializer(user).customAttribute('email', () => `${user.email}@peanuts.com`, {

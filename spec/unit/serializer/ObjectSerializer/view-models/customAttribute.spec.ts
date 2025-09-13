@@ -37,7 +37,7 @@ class User {
   }
 }
 
-describe('ObjectSerializer (on a view model) customAttributes', () => {
+describe('ObjectSerializer#customAttribute (on a view model)', () => {
   context('with passthrough data', () => {
     it('can access the passthrough data in the function', () => {
       const MySerializer = (user: User, passthroughData: { locale: string }) =>

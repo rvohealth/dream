@@ -22,7 +22,7 @@ interface PetWithSimpleUser {
   species?: Species
 }
 
-describe('ObjectSerializer rendersOne', () => {
+describe('ObjectSerializer#rendersOne', () => {
   context('simple objects', () => {
     it('renders the associated objects using the provided serializer callback', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')

@@ -6,7 +6,7 @@ import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
-describe('DreamSerializer customAttributes', () => {
+describe('DreamSerializer#customAttribute', () => {
   it('can render the results of calling the callback function', () => {
     const MySerializer = (user: User) =>
       DreamSerializer(User, user).customAttribute('email', () => `${user.email}@peanuts.com`, {

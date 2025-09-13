@@ -2,7 +2,7 @@ import { CalendarDate, DreamSerializer } from '../../../../src/index.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
-describe('DreamSerializer rendersOne', () => {
+describe('DreamSerializer#rendersOne', () => {
   it('renders the Dream model’s default serializer and includes the referenced serializer in the returned referencedSerializers array', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ id: '7', name: 'Charlie', birthdate })

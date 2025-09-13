@@ -3,7 +3,7 @@ import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.j
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 import { SpeciesValues } from '../../../../../test-app/types/db.js'
 
-describe('ObjectSerializer (on a view model) rendersOne', () => {
+describe('ObjectSerializer#rendersOne (on a view model)', () => {
   it('renders the ViewModel’s default serializer and includes the referenced serializer in the returned referencedSerializers array', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = new UserViewModel({ id: '7', name: 'Charlie', birthdate })

@@ -35,7 +35,7 @@ class Pet {
   }
 }
 
-describe('ObjectSerializer (on a view model) delegated attributes', () => {
+describe('ObjectSerializer#delegatedAttribute (on a view model)', () => {
   it('delegates value and type to the specified target', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = new User({ name: 'Charlie', birthdate })

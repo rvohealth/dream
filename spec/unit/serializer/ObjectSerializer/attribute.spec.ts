@@ -13,7 +13,7 @@ interface ModelForOpenapiTypeSpecs {
   requiredNicknames?: string[]
 }
 
-describe('ObjectSerializer attributes', () => {
+describe('ObjectSerializer#attribute', () => {
   it('can render attributes', () => {
     const MySerializer = (data: User) => ObjectSerializer(data).attribute('email', { openapi: 'string' })
 
