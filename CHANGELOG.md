@@ -8,6 +8,7 @@
 - renameTable migration helper
 - the key function passed to `sortBy` may now also return a DateTime, a CalendarDate, or a bigint
 - fix `sort` on bigint arrays
+- `percent` function
 
 ## 1.9.4
 

@@ -1,12 +1,9 @@
 import round, { RoundingPrecision } from '../../../src/helpers/round.js'
 
 describe('round', () => {
-  const subject = () => round(value, precision)
-  let value: number
   let precision: RoundingPrecision | undefined
 
   beforeEach(() => {
-    value = 0.999999999999
     precision = undefined
   })
 
@@ -16,13 +13,11 @@ describe('round', () => {
     })
 
     it('it rounds the whole number UP if 5 or more', () => {
-      value = 0.5
-      expect(subject()).toEqual(1)
+      expect(round(0.5, precision)).toEqual(1)
     })
 
     it('it rounds the whole number DOWN if 4 or less', () => {
-      value = 0.4
-      expect(subject()).toEqual(0)
+      expect(round(0.4, precision)).toEqual(0)
     })
   })
 
@@ -32,13 +27,11 @@ describe('round', () => {
     })
 
     it('it rounds the 10th place UP if 5 or more', () => {
-      value = 0.15
-      expect(subject()).toEqual(0.2)
+      expect(round(0.15, precision)).toEqual(0.2)
     })
 
     it('it rounds the 10th place DOWN if 4 or less', () => {
-      value = 0.14
-      expect(subject()).toEqual(0.1)
+      expect(round(0.14, precision)).toEqual(0.1)
     })
   })
 
@@ -48,13 +41,11 @@ describe('round', () => {
     })
 
     it('it rounds the 100th place UP if 5 or more', () => {
-      value = 0.115
-      expect(subject()).toEqual(0.12)
+      expect(round(0.115, precision)).toEqual(0.12)
     })
 
     it('it rounds the 100th place DOWN if 4 or less', () => {
-      value = 0.114
-      expect(subject()).toEqual(0.11)
+      expect(round(0.114, precision)).toEqual(0.11)
     })
   })
 
@@ -64,13 +55,11 @@ describe('round', () => {
     })
 
     it('it rounds the 1000th place UP if 5 or more', () => {
-      value = 0.1115
-      expect(subject()).toEqual(0.112)
+      expect(round(0.1115, precision)).toEqual(0.112)
     })
 
     it('it rounds the 1000th place DOWN if 4 or less', () => {
-      value = 0.1114
-      expect(subject()).toEqual(0.111)
+      expect(round(0.1114, precision)).toEqual(0.111)
     })
   })
 })
