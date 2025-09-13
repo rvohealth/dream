@@ -5,6 +5,7 @@
 - cli command to ensure migrations have been run prior to running specs
 - fix ability to sync when type files don't reflect models
 - leverage Map instead of an object so don't need to prefix numeric keys with underscore to prevent them from being sorted by numeric value rather than by the order in which they were added to the map
+- renameTable migration helper
 
 ## 1.9.4
 

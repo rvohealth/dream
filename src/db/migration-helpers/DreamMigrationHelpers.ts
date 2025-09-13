@@ -2,6 +2,26 @@ import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 
 export default class DreamMigrationHelpers {
   /**
+   * Rename a table and its associated primary key sequence.
+   *
+   * This method renames both the table and its primary key sequence to keep them
+   * in sync. When PostgreSQL creates a table with a serial or bigserial primary key,
+   * it automatically creates a sequence named `{tablename}_id_seq`. If you only rename
+   * the table, the sequence keeps the old name, which can cause confusion and issues.
+   *
+   * This method is only suitable for tables that have a serial or bigserial primary
+   * key column named 'id'.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param from - The current name of the table to rename
+   * @param to - The new name for the table
+   */
+  public static async renameTable(db: Kysely<any>, from: string, to: string) {
+    await db.schema.alterTable(from).renameTo(to).execute()
+    await sql`ALTER SEQUENCE ${from}_id_seq RENAME TO ${to}_id_seq`.execute(db)
+  }
+
+  /**
    * Unique indexes cannot be populated by the same value even within a transaction,
    * but deferrable unique constraints can.
    *
