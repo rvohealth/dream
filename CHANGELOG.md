@@ -1,6 +1,7 @@
 ## 1.10.0
 
 - bump kysely
+- paginate includes default ordering on id
 
 ## 1.9.4
 

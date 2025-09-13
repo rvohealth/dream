@@ -12,10 +12,6 @@ describe('Dream.paginate', () => {
   let user4: User
 
   beforeEach(async () => {
-    user1 = await User.create({
-      email: 'a@aaaa',
-      password: 'howyadoin',
-    })
     user2 = await User.create({
       email: 'b@bbbb',
       password: 'howyadoin',
@@ -28,16 +24,35 @@ describe('Dream.paginate', () => {
       email: 'd@dddd',
       password: 'howyadoin',
     })
+    user1 = await User.create({
+      email: 'a@aaaa',
+      password: 'howyadoin',
+    })
   })
 
-  it('paginates the records', async () => {
-    const results = await User.order({ email: 'asc' }).paginate({ pageSize: 2, page: 1 })
+  context('without an explicit order', () => {
+    it('orders by primary key', async () => {
+      const results = await User.paginate({ pageSize: 2, page: 1 })
 
-    expect(results).toEqual({
-      recordCount: 4,
-      pageCount: 2,
-      currentPage: 1,
-      results: [expect.toMatchDreamModel(user1), expect.toMatchDreamModel(user2)],
+      expect(results).toEqual({
+        recordCount: 4,
+        pageCount: 2,
+        currentPage: 1,
+        results: [expect.toMatchDreamModel(user2), expect.toMatchDreamModel(user3)],
+      })
+    })
+  })
+
+  context('with an explicit order', () => {
+    it('paginates the records by the explicit order', async () => {
+      const results = await User.order({ email: 'asc' }).paginate({ pageSize: 2, page: 1 })
+
+      expect(results).toEqual({
+        recordCount: 4,
+        pageCount: 2,
+        currentPage: 1,
+        results: [expect.toMatchDreamModel(user1), expect.toMatchDreamModel(user2)],
+      })
     })
   })
 

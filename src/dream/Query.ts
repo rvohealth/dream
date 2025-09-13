@@ -1791,13 +1791,17 @@ export default class Query<
   ): Promise<PaginatedDreamQueryResult<DreamInstance>> {
     if (this.limitStatement) throw new CannotPaginateWithLimit()
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
-    const page = computedPaginatePage((opts as any).page)
 
+    const page = computedPaginatePage((opts as any).page)
     const recordCount = await this.count()
     const pageSize = (opts as any).pageSize || DreamApp.getOrFail().paginationPageSize
-
     const pageCount = Math.ceil(recordCount / pageSize)
-    const results = await (this as any)
+
+    const query = this.orderStatements.length
+      ? this
+      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+
+    const results = await (query as any)
       .limit(pageSize)
       .offset((page - 1) * pageSize)
       .all()
