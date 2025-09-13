@@ -5,6 +5,8 @@ import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
 import { primaryKeyTypes } from '../dream/constants.js'
 import Query from '../dream/Query.js'
+import QueryDriverBase from '../dream/QueryDriver/Base.js'
+import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
 import DreamAppInitMissingCallToLoadModels from '../errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
@@ -19,8 +21,6 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
-import QueryDriverBase from '../dream/QueryDriver/Base.js'
-import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -61,7 +61,7 @@ export default class DreamApp {
     }
 
     dreamApp.validateAppBuildIntegrity({
-      bypassModelIntegrityCheck: opts.bypassModelIntegrityCheck || false,
+      bypassDreamIntegrityChecks: opts.bypassDreamIntegrityChecks || false,
     })
 
     return dreamApp
@@ -74,7 +74,7 @@ export default class DreamApp {
    * that would render it in an invalid state
    *
    */
-  private validateAppBuildIntegrity({ bypassModelIntegrityCheck }: DreamAppInitOptions) {
+  private validateAppBuildIntegrity({ bypassDreamIntegrityChecks }: DreamAppInitOptions) {
     if (!this.projectRoot) throw new DreamAppInitMissingMissingProjectRoot()
     if (!this.loadedModels) throw new DreamAppInitMissingCallToLoadModels()
     if (this.encryption?.columns?.current)
@@ -84,7 +84,7 @@ export default class DreamApp {
         this.encryption.columns.current.algorithm
       )
 
-    if (!bypassModelIntegrityCheck) this.validateApplicationModels()
+    if (!bypassDreamIntegrityChecks) this.validateApplicationModels()
   }
 
   /**
@@ -540,7 +540,7 @@ export interface DreamAppSpecialHooks {
 }
 
 export interface DreamAppInitOptions {
-  bypassModelIntegrityCheck?: boolean
+  bypassDreamIntegrityChecks?: boolean
 }
 
 export interface KyselyLogEvent {

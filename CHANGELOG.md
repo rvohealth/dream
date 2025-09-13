@@ -2,6 +2,7 @@
 
 - bump kysely
 - paginate includes default ordering on id
+- cli command to ensure migrations have been run prior to running specs
 
 ## 1.9.4
 

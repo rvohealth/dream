@@ -37,7 +37,7 @@ import {
   pgErrorType,
 } from '../../db/errors.js'
 import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
-import _db from '../../db/index.js'
+import { default as _db } from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
 import DreamApp, { SingleDbCredential } from '../../dream-app/index.js'
@@ -119,6 +119,7 @@ import softDeleteDream from '../internal/softDeleteDream.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
+import checkForNeedToBeRunMigrations from './helpers/kysely/checkForNeedToBeRunMigrations.js'
 import runMigration from './helpers/kysely/runMigration.js'
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
@@ -174,6 +175,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           ssl: connectionConf.useSsl ? defaultPostgresSslConfig(connectionConf) : false,
         }),
       })
+  }
+
+  public static override async ensureAllMigrationsHaveBeenRun(connectionName: string) {
+    const migrationsNeedToBeRun = await checkForNeedToBeRunMigrations({
+      connectionName,
+      dialectProvider: this.dialectProvider(connectionName, 'primary'),
+    })
+
+    if (migrationsNeedToBeRun) throw new Error(`Migrations need to be run on ${connectionName} database`)
   }
 
   /**

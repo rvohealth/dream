@@ -40,6 +40,14 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     this.innerJoinDreamClasses = Object.freeze(query['originalOpts'].innerJoinDreamClasses || [])
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async ensureAllMigrationsHaveBeenRun(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ) {
+    throw new Error('override ensureAllMigrationsHaveBeenRun in child class')
+  }
+
   /**
    * migrate the database. Must respond to the NODE_ENV value.
    */

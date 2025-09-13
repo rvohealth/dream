@@ -35,7 +35,7 @@ ${INDENT}
 ${INDENT}    - decimal:
 ${INDENT}    - decimal[]:
 ${INDENT}        scale,precision is required, e.g.: volume:decimal:3,2 or volume:decimal:3,2:optional
-${INDENT}        
+${INDENT}
 ${INDENT}        leveraging arrays, add the "[]" suffix, e.g.: volume:decimal[]:3,2
 ${INDENT}
 ${INDENT}    - enum:
@@ -216,8 +216,19 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
 
-        await initializeDreamApp({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.dbCreate()
+        process.exit()
+      })
+
+    program
+      .command('db:integrity-check')
+      .description('db:integrity-check fails if migrations need to be run')
+      .action(async () => {
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+
+        await DreamBin.dbEnsureAllMigrationsHaveBeenRun()
+
         process.exit()
       })
 
@@ -226,7 +237,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .description('db:migrate runs any outstanding database migrations')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ skipSync }: { skipSync: boolean }) => {
-        await initializeDreamApp({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
         await DreamBin.dbMigrate()
 
@@ -243,7 +254,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
-        await initializeDreamApp({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.dbRollback({ steps })
 
         if (EnvInternal.isDevelopmentOrTest && !skipSync) {
@@ -260,7 +271,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       )
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApp({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.dbDrop()
         process.exit()
       })
@@ -270,13 +281,13 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
       .action(async () => {
         EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApp({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
         await DreamBin.dbDrop()
         await DreamBin.dbCreate()
 
         EnvInternal.unsetBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApp({ bypassModelIntegrityCheck: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
         await DreamBin.dbMigrate()
         await DreamBin.sync(onSync)

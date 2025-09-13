@@ -26,6 +26,13 @@ export default class DreamBin {
     }
   }
 
+  public static async dbEnsureAllMigrationsHaveBeenRun() {
+    const dreamApp = DreamApp.getOrFail()
+    for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
+      await Query.dbDriverClass(connectionName).ensureAllMigrationsHaveBeenRun(connectionName)
+    }
+  }
+
   public static async dbMigrate() {
     const dreamApp = DreamApp.getOrFail()
     for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
