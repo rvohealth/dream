@@ -57,6 +57,7 @@ import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFa
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
+import RecordNotFound from './errors/RecordNotFound.js'
 import MissingSerializersDefinition from './errors/serializers/MissingSerializersDefinition.js'
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
@@ -85,15 +86,18 @@ import {
   DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAttributes,
+  DreamBelongsToAssociationNames,
   DreamColumnNames,
   DreamConstructorType,
+  DreamHasManyAssociationNames,
+  DreamHasOneAssociationNames,
+  DreamModelAssociationNames,
   DreamParamSafeColumnNames,
   DreamPrimaryKeyType,
   DreamSerializerKey,
   GlobalModelNames,
   GlobalSerializerName,
   JoinAndStatements,
-  NextPreloadArgumentType,
   OrderDir,
   PassthroughColumnNames,
   PluckEachArgs,
@@ -4132,6 +4136,83 @@ export default class Dream {
   }
 
   /**
+   * If the association is already loaded on the instance, it returns the loaded value
+   * immediately without making a database query. If the association is not loaded,
+   * it performs a database query to fetch the association.
+   *
+   * If a query is performed, the association is set on the model so that future calls to
+   * access this association can access the already loaded value.
+   *
+   * ```ts
+   * // return the already loaded user if it exists or fetch it from the database otherwise
+   * const user = await post.associationOrFail('user')
+   * ```
+   *
+   * @param associationName - The name of the BelongsTo or HasOne association
+   * @returns The associated model instance or null
+   */
+  public async association<
+    I extends Dream,
+    AssociationName extends
+      | DreamBelongsToAssociationNames<I>
+      | DreamHasOneAssociationNames<I>
+      | DreamHasManyAssociationNames<I>,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
+      ? AssociationNameToDream<I, AssociationName>[]
+      : AssociationNameToDream<I, AssociationName> | null,
+  >(this: I, associationName: AssociationName): Promise<ReturnType> {
+    if (!this.loaded(associationName)) {
+      const association = this.getAssociationMetadata(associationName)
+
+      if (association?.type === 'HasMany') {
+        this[associationName] = (await this.associationQuery(associationName as any).all()) as any
+      } else {
+        this[associationName] = (await this.associationQuery(associationName as any).first()) as any
+      }
+    }
+
+    return this[associationName] as ReturnType
+  }
+
+  /**
+   * If the association is already loaded on the instance, it returns the loaded value
+   * immediately without making a database query. If the association is not loaded,
+   * it performs a database query to fetch the association.
+   *
+   * Unlike `association`, this method throws an exception if no associated
+   * record is found, guaranteeing a non-null result.
+   *
+   * If a query is performed, the association is set on the model so that future calls to
+   * access this association can access the already loaded value.
+   *
+   * ```ts
+   * // return the already loaded user if it exists or fetch it from the database otherwise,
+   * // throwing RecordNotFound either way if the associated model does not exist
+   * const user = await post.associationOrFail('user')
+   * ```
+   *
+   * @param associationName - The name of the BelongsTo or HasOne association
+   * @returns The associated model instance (never null)
+   * @throws RecordNotFound if no associated record exists
+   */
+  public async associationOrFail<
+    I extends Dream,
+    AssociationName extends
+      | DreamBelongsToAssociationNames<I>
+      | DreamHasOneAssociationNames<I>
+      | DreamHasManyAssociationNames<I>,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
+      ? AssociationNameToDream<I, AssociationName>[]
+      : AssociationNameToDream<I, AssociationName>,
+  >(this: I, associationName: AssociationName): Promise<ReturnType> {
+    const response = await this.association(associationName)
+
+    if (this[associationName] === null) throw new RecordNotFound(this['sanitizedConstructorName'])
+
+    return response as ReturnType
+  }
+
+  /**
    * Recursively loads all Dream associations referenced by `rendersOne` and `rendersMany`
    * in a DreamSerializer. This traverses the entire content tree of serializers to automatically
    * load all necessary associations, eliminating N+1 query problems and removing the need to
@@ -4196,8 +4277,8 @@ export default class Dream {
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
    *
-   * NOTE: {@link Dream.leftJoinPreload} is often a preferrable way of achieving the
-   * same goal.
+   * Note: Left join loading loads all data in a single SQL query but has trade-offs compared
+   * to regular preloading. See {@link Dream.leftJoinPreload} for details about limitations.
    *
    * ```ts
    * await user
@@ -4242,6 +4323,9 @@ export default class Dream {
    *
    * This method analyzes the serializer (specified by `serializerKey` or 'default') and
    * automatically preloads all associations that will be needed during serialization.
+   *
+   * Note: Left join loading loads all data in a single SQL query but has trade-offs compared
+   * to regular preloading. See {@link Dream.leftJoinPreload} for details about limitations.
    *
    * ```ts
    * // Instead of manually specifying all associations:
@@ -4307,7 +4391,7 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     //
-    AssociationName extends NextPreloadArgumentType<Schema, TableName>,
+    AssociationName extends DreamModelAssociationNames<Schema, TableName>,
   >(this: I, associationName: AssociationName) {
     try {
       ;(this as any)[associationName]

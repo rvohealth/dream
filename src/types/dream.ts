@@ -38,9 +38,9 @@ export type OrderDir = 'asc' | 'desc'
 
 export interface SortableOptions<T extends Dream> {
   scope?:
-    | keyof DreamBelongsToAssociationMetadata<T>
+    | DreamBelongsToAssociationNames<T>
     | DreamColumnNames<T>
-    | (keyof DreamBelongsToAssociationMetadata<T> | DreamColumnNames<T>)[]
+    | (DreamBelongsToAssociationNames<T> | DreamColumnNames<T>)[]
 }
 
 export type PrimaryKeyForFind<
@@ -103,7 +103,7 @@ export type DreamParamUnsafeColumnNames<
 export type DreamBelongsToForeignKeyTypes<
   DreamInstance extends Dream,
   AssociationSchema = DreamAssociationMetadata<DreamInstance>,
-  BelongsToAssociationSchema = AssociationSchema[keyof DreamBelongsToAssociationMetadata<DreamInstance> &
+  BelongsToAssociationSchema = AssociationSchema[DreamBelongsToAssociationNames<DreamInstance> &
     keyof AssociationSchema],
   BelongsToForeignKeys = Exclude<
     BelongsToAssociationSchema['foreignKeyTypeColumn' & keyof BelongsToAssociationSchema],
@@ -114,7 +114,7 @@ export type DreamBelongsToForeignKeyTypes<
 export type DreamBelongsToForeignKeys<
   DreamInstance extends Dream,
   AssociationSchema = DreamAssociationMetadata<DreamInstance>,
-  BelongsToAssociationSchema = AssociationSchema[keyof DreamBelongsToAssociationMetadata<DreamInstance> &
+  BelongsToAssociationSchema = AssociationSchema[DreamBelongsToAssociationNames<DreamInstance> &
     keyof AssociationSchema],
   BelongsToForeignKeys = Exclude<
     BelongsToAssociationSchema['foreignKey' & keyof BelongsToAssociationSchema],
@@ -174,6 +174,15 @@ export type DreamAssociationNames<
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
 > = keyof SchemaAssociations
 
+export type DreamBelongsToAssociationNames<DreamInstance extends Dream> =
+  keyof DreamBelongsToAssociationMetadata<DreamInstance>
+
+export type DreamHasOneAssociationNames<DreamInstance extends Dream> =
+  keyof DreamHasOneAssociationMetadata<DreamInstance>
+
+export type DreamHasManyAssociationNames<DreamInstance extends Dream> =
+  keyof DreamHasManyAssociationMetadata<DreamInstance>
+
 type VirtualColumnsForTable<
   Schema,
   TableName extends keyof Schema,
@@ -193,6 +202,26 @@ export type DreamBelongsToAssociationMetadata<
   },
   BelongsToKeys = keyof FilterInterface<SchemaTypeInterface, 'BelongsTo'> & string,
   TypeRecord = { [K in BelongsToKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
+> = TypeRecord
+
+export type DreamHasOneAssociationMetadata<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+  },
+  HasOneKeys = keyof FilterInterface<SchemaTypeInterface, 'HasOne'> & string,
+  TypeRecord = { [K in HasOneKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
+> = TypeRecord
+
+export type DreamHasManyAssociationMetadata<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['type' & keyof SchemaAssociations[K]]
+  },
+  HasManyKeys = keyof FilterInterface<SchemaTypeInterface, 'HasMany'> & string,
+  TypeRecord = { [K in HasManyKeys & string]: SchemaAssociations[K & keyof SchemaAssociations] },
 > = TypeRecord
 
 export type DreamAttributes<
@@ -432,16 +461,12 @@ export type ViewModel = {
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
 // preload
-export type NextPreloadArgumentType<
+export type DreamModelAssociationNames<
   Schema,
-  PreviousTableNames,
-  PreviousSchemaAssociations = PreviousTableNames extends undefined
-    ? undefined
-    : Schema[PreviousTableNames & keyof Schema]['associations' &
-        keyof Schema[PreviousTableNames & keyof Schema]],
-> = PreviousTableNames extends undefined
-  ? undefined
-  : (keyof PreviousSchemaAssociations & string) | (keyof PreviousSchemaAssociations & string)[]
+  TableName,
+  SchemaAssociations = Schema[TableName & keyof Schema]['associations' &
+    keyof Schema[TableName & keyof Schema]],
+> = (keyof SchemaAssociations & string) | (keyof SchemaAssociations & string)[]
 
 export type PreloadArgumentTypeAssociatedTableNames<
   Schema,
