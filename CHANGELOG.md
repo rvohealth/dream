@@ -1,3 +1,7 @@
+## 1.10.0
+
+- bump kysely
+
 ## 1.9.4
 
 - if `required: false`, leave the property undefined rather than rendering as `null`
