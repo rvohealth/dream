@@ -90,7 +90,7 @@ export default class DreamCLI {
       )
       .option('--schema-only')
       .action(async (options: { schemaOnly?: boolean } = {}) => {
-        await initializeDreamApp()
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.sync(() => {}, options)
 
         process.exit()

@@ -6,6 +6,10 @@ import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import { DreamConst } from '../../dream/constants.js'
 import Query from '../../dream/Query.js'
+import {
+  ExplicitForeignKeyRequired,
+  InvalidComputedForeignKey,
+} from '../../errors/associations/InvalidComputedForeignKey.js'
 import FailedToIdentifyAssociation from '../../errors/schema-builder/FailedToIdentifyAssociation.js'
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import camelize from '../camelize.js'
@@ -319,35 +323,40 @@ may need to update the table getter in the corresponding Dream.
           // console.error(err)
         }
 
-        tableAssociationData[associationName] ||= {
-          tables: [],
-          type: associationMetaData.type,
-          polymorphic: associationMetaData.polymorphic,
-          foreignKey,
-          foreignKeyTypeColumn: associationMetaData.polymorphic
-            ? associationMetaData?.foreignKeyTypeField?.() || null
-            : null,
-          optional,
-          where,
-        }
+        try {
+          tableAssociationData[associationName] ||= {
+            tables: [],
+            type: associationMetaData.type,
+            polymorphic: associationMetaData.polymorphic,
+            foreignKey,
+            foreignKeyTypeColumn: associationMetaData.polymorphic
+              ? associationMetaData?.foreignKeyTypeField?.() || null
+              : null,
+            optional,
+            where,
+          }
 
-        if (foreignKey) tableAssociationData[associationName]['foreignKey'] = foreignKey
+          if (foreignKey) tableAssociationData[associationName]['foreignKey'] = foreignKey
 
-        if (Array.isArray(dreamClassOrClasses)) {
-          const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.table)
+          if (Array.isArray(dreamClassOrClasses)) {
+            const tables: string[] = dreamClassOrClasses.map(dreamClass => dreamClass.table)
 
+            tableAssociationData[associationName].tables = [
+              ...tableAssociationData[associationName].tables,
+              ...tables,
+            ]
+          } else {
+            tableAssociationData[associationName].tables.push(dreamClassOrClasses.table)
+          }
+
+          // guarantee unique
           tableAssociationData[associationName].tables = [
-            ...tableAssociationData[associationName].tables,
-            ...tables,
+            ...new Set(tableAssociationData[associationName].tables),
           ]
-        } else {
-          tableAssociationData[associationName].tables.push(dreamClassOrClasses.table)
+        } catch (error) {
+          if (!(error instanceof ExplicitForeignKeyRequired || error instanceof InvalidComputedForeignKey))
+            throw error
         }
-
-        // guarantee unique
-        tableAssociationData[associationName].tables = [
-          ...new Set(tableAssociationData[associationName].tables),
-        ]
       }
     }
 

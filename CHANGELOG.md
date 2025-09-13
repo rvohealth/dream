@@ -3,6 +3,7 @@
 - bump kysely
 - paginate includes default ordering on id
 - cli command to ensure migrations have been run prior to running specs
+- fix ability to sync when type files don't reflect models
 
 ## 1.9.4
 
