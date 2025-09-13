@@ -45,6 +45,7 @@ export default function generateMigrationContent({
       const optional = userWantsThisOptional || !!stiChildClassName
       const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
+      if (nonStandardAttributeName === undefined) return acc
       let attributeName = snakeify(nonStandardAttributeName)
       if (attributeName === undefined) return acc
 
@@ -72,6 +73,7 @@ export default function generateMigrationContent({
               optional,
             })
           )
+          attributeName = snakeify(nonStandardAttributeName.split('/').pop()!)
           attributeName = associationNameToForeignKey(attributeName)
           break
 
@@ -349,7 +351,7 @@ function generateBelongsToStr(
   const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
   const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
-  return `.addColumn('${associationNameToForeignKey(associationName)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
+  return `.addColumn('${associationNameToForeignKey(associationName.split('/').pop()!)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
 
 function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {

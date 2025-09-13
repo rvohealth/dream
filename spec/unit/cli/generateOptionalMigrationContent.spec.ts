@@ -279,7 +279,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('omits notNull', () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          columnsWithTypes: ['admin/user:belongs_to:optional'],
+          columnsWithTypes: ['music/score:belongs_to:optional'],
           primaryKeyType: 'bigserial',
         })
 
@@ -292,7 +292,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('restrict'))
+    .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict'))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

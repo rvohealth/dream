@@ -2,11 +2,11 @@ import pluralize from 'pluralize-esm'
 import serializerGlobalNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerGlobalNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
+import pascalize from '../pascalize.js'
 import relativeDreamPath from '../path/relativeDreamPath.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
-import pascalize from '../pascalize.js'
 
 export default function generateDreamContent({
   fullyQualifiedModelName,
@@ -52,19 +52,21 @@ export default function generateDreamContent({
       fullyQualifiedModelName,
       fullyQualifiedAssociatedModelName
     )
-    const associationName = camelize(associationModelName)
 
     if (!attributeType)
       throw new Error(`must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
 
     switch (attributeType) {
-      case 'belongs_to':
+      case 'belongs_to': {
         modelImportStatements.push(associationImportStatement)
+        const associationName = camelize(fullyQualifiedAssociatedModelName.split('/').pop()!)
+        const associationForeignKey = `${associationName}Id`
         return `
-@deco.BelongsTo('${fullyQualifiedAssociatedModelName}'${descriptors.includes('optional') ? ', { optional: true }' : ''})
+@deco.BelongsTo('${fullyQualifiedAssociatedModelName}', { on: '${associationForeignKey}'${descriptors.includes('optional') ? ', optional: true' : ''} })
 public ${associationName}: ${associationModelName}${descriptors.includes('optional') ? ' | null' : ''}
-public ${associationName}Id: DreamColumn<${modelClassName}, '${associationName}Id'>
+public ${associationForeignKey}: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
+      }
 
       case 'has_one':
       case 'has_many':

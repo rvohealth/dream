@@ -173,7 +173,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     it('generates a kysely model with the belongsTo association', () => {
       const res = generateStiMigrationContent({
         table: 'compositions',
-        columnsWithTypes: ['admin/user:belongs_to'],
+        columnsWithTypes: ['music/score:belongs_to'],
         primaryKeyType: 'bigserial',
       })
 
@@ -185,7 +185,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .addColumn('admin_user_id', 'bigint', col => col.references('admin_users.id').onDelete('restrict').notNull())
+    .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict').notNull())
     .execute()
 }
 
@@ -193,7 +193,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
-    .dropColumn('admin_user_id')
+    .dropColumn('score_id')
     .execute()
 }\
 `

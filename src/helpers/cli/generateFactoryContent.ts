@@ -37,6 +37,7 @@ export default function generateFactoryContent({
 
     switch (attributeType) {
       case 'belongs_to': {
+        const attributeVariable = camelize(attributeName.split('/').pop()!)
         const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
         const associationModelName = globalClassNameFromFullyQualifiedModelName(
           fullyQualifiedAssociatedModelName

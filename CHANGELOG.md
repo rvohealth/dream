@@ -10,6 +10,7 @@
 - fix `sort` on bigint arrays
 - `percent` function
 - `association` and `associationOrFail` methods to encapsulate the loaded check or associationQuery ternary pattern
+- generated association name and id for a `belongs_to` association are based on the final part of the model name, not the entire namespace [requires Psychic update for generated resource controllers/specs to generate valid code]
 
 ## 1.9.4
 

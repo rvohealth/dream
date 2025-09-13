@@ -372,7 +372,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('GraphNode')
+  @deco.BelongsTo('GraphNode', { on: 'graphNodeId' })
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
@@ -412,7 +412,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('GraphNode', { optional: true })
+  @deco.BelongsTo('GraphNode', { on: 'graphNodeId', optional: true })
   public graphNode: GraphNode | null
   public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
 }
@@ -453,9 +453,9 @@ export default class CatToy extends ApplicationModel {
   public createdAt: DreamColumn<CatToy, 'createdAt'>
   public updatedAt: DreamColumn<CatToy, 'updatedAt'>
 
-  @deco.BelongsTo('Pet/Domestic/Cat')
-  public petDomesticCat: PetDomesticCat
-  public petDomesticCatId: DreamColumn<CatToy, 'petDomesticCatId'>
+  @deco.BelongsTo('Pet/Domestic/Cat', { on: 'catId' })
+  public cat: PetDomesticCat
+  public catId: DreamColumn<CatToy, 'catId'>
 }
 `
             )
@@ -492,7 +492,7 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @deco.BelongsTo('GraphNode')
+  @deco.BelongsTo('GraphNode', { on: 'graphNodeId' })
   public graphNode: GraphNode
   public graphNodeId: DreamColumn<PetDomesticCat, 'graphNodeId'>
 }
@@ -531,9 +531,9 @@ export default class PetDomesticCat extends ApplicationModel {
   public createdAt: DreamColumn<PetDomesticCat, 'createdAt'>
   public updatedAt: DreamColumn<PetDomesticCat, 'updatedAt'>
 
-  @deco.BelongsTo('Pet/Domestic/Dog')
-  public petDomesticDog: PetDomesticDog
-  public petDomesticDogId: DreamColumn<PetDomesticCat, 'petDomesticDogId'>
+  @deco.BelongsTo('Pet/Domestic/Dog', { on: 'dogId' })
+  public dog: PetDomesticDog
+  public dogId: DreamColumn<PetDomesticCat, 'dogId'>
 }
 `
             )
@@ -570,9 +570,9 @@ export default class PetWildCat extends ApplicationModel {
   public createdAt: DreamColumn<PetWildCat, 'createdAt'>
   public updatedAt: DreamColumn<PetWildCat, 'updatedAt'>
 
-  @deco.BelongsTo('Pet/Domestic/Dog')
-  public petDomesticDog: PetDomesticDog
-  public petDomesticDogId: DreamColumn<PetWildCat, 'petDomesticDogId'>
+  @deco.BelongsTo('Pet/Domestic/Dog', { on: 'dogId' })
+  public dog: PetDomesticDog
+  public dogId: DreamColumn<PetWildCat, 'dogId'>
 }
 `
             )
@@ -611,11 +611,11 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo('User', { on: 'userId' })
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 
-  @deco.BelongsTo('Chalupa')
+  @deco.BelongsTo('Chalupa', { on: 'chalupaId' })
   public chalupa: Chalupa
   public chalupaId: DreamColumn<Composition, 'chalupaId'>
 }
@@ -735,7 +735,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo('User', { on: 'userId' })
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 }
@@ -780,7 +780,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo('User', { on: 'userId' })
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 }
@@ -825,7 +825,7 @@ export default class Composition extends ApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo('User', { on: 'userId' })
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 }
@@ -868,7 +868,7 @@ export default class Composition extends HowyadoinApplicationModel {
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 
-  @deco.BelongsTo('User')
+  @deco.BelongsTo('User', { on: 'userId' })
   public user: User
   public userId: DreamColumn<Composition, 'userId'>
 }
