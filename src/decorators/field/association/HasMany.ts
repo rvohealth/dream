@@ -64,7 +64,7 @@ export default function HasMany<
  *
  * @param opts.dependent - Can be either "destroy" or undefined. If "destroy", this record will be cascade deleted if the base model is destroyed.
  * @param opts.distinct - Can be a column name, or else a boolean. If a column name, a distinct clause will be applied to the column. If true, a distinct clause will be applied to the primary key.
- * @param opts.foreignKey - A custom column name to use for the foreign key.
+ * @param opts.on - A custom column name to use for joining associations on.
  * @param opts.and - An and-clause to be applied when this association is loaded
  * @param opts.andNot - A not and-clause to be applied when this association is loaded
  * @param opts.andAny - An andAny clause to be applied when this association is loaded
@@ -84,7 +84,7 @@ export default function HasMany<BaseInstance extends Dream, AssociationGlobalNam
   const {
     dependent,
     distinct,
-    foreignKey,
+    on: foreignKey,
     and,
     andNot,
     andAny,

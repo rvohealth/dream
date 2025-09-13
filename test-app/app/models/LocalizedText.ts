@@ -26,7 +26,7 @@ export default class LocalizedText extends ApplicationModel {
   public updatedAt: DreamColumn<LocalizedText, 'updatedAt'>
 
   @deco.BelongsTo(['Composition', 'CompositionAsset'], {
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     polymorphic: true,
   })
   public localizable: Composition | CompositionAsset

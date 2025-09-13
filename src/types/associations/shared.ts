@@ -354,7 +354,7 @@ interface HasOptionsBase<
   >,
 > {
   dependent?: DependentOptions
-  foreignKey?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
+  on?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
 
   and?: OnStatementForAssociationDefinition<
     BaseInstance['DB'],
@@ -411,7 +411,7 @@ interface HasOptionsBase<
 }
 
 export type PolymorphicOption = 'polymorphic'
-export type ForeignKeyOption = 'foreignKey'
+export type ForeignKeyOption = 'on'
 type ThroughIncompatibleOptions =
   | 'dependent'
   | 'primaryKeyOverride'

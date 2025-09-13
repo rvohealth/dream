@@ -19,7 +19,7 @@ export default class PolymorphicLocalizedText extends ApplicationModel {
 
   @deco.BelongsTo(['Polymorphic/Chore', 'Polymorphic/Workout'], {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
   })
   public localizable: Chore | Workout
   public localizableId: DreamColumn<PolymorphicLocalizedText, 'localizableId'>

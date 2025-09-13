@@ -40,7 +40,7 @@ export default class Collar extends ApplicationModel {
   public pet: Pet
   public petId: DreamColumn<Collar, 'petId'>
 
-  @deco.BelongsTo('Balloon', { foreignKey: 'balloonId', optional: true })
+  @deco.BelongsTo('Balloon', { on: 'balloonId', optional: true })
   public balloon: Balloon
   public balloonId: DreamColumn<Collar, 'balloonId'>
 

@@ -31,13 +31,13 @@ export default class Workout extends ApplicationModel {
 
   @deco.HasMany('Polymorphic/LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
   })
   public localizedTexts: PolymorphicLocalizedText[]
 
   @deco.HasMany('Polymorphic/TaskableImage', {
     polymorphic: true,
-    foreignKey: 'taskableId',
+    on: 'taskableId',
   })
   public taskableImages: TaskableImage[]
 

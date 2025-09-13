@@ -28,7 +28,7 @@ export default class Chore extends ApplicationModel {
 
   @deco.HasMany('Polymorphic/LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
   })
   public localizedTexts: PolymorphicLocalizedText[]
 
@@ -40,7 +40,7 @@ export default class Chore extends ApplicationModel {
 
   @deco.HasMany('Polymorphic/TaskableImage', {
     polymorphic: true,
-    foreignKey: 'taskableId',
+    on: 'taskableId',
   })
   public taskableImages: TaskableImage[]
 

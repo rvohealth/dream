@@ -23,11 +23,10 @@ export class InvalidComputedForeignKey extends Error {
 
   public override get message() {
     return `
-Add an explicit foreignKey declaration to this association declaration:
+Add an explicit \`on\` declaration to this association definition:
   Dream class: ${this.dreamClass.sanitizedName}
   Association: ${this.partialAssociation.as}
-Dream tried ${this.computedForeignKey} automatically, but it isn't a column in table ${this.table}.
-    `
+Dream tried ${this.computedForeignKey} automatically, but it isn't a column in table ${this.table}.`
   }
 }
 

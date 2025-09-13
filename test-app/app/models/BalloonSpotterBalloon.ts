@@ -28,7 +28,7 @@ export default class BalloonSpotterBalloon extends ApplicationModel {
   public balloonSpotter: BalloonSpotter
   public balloonSpotterId: DreamColumn<BalloonSpotterBalloon, 'balloonSpotterId'>
 
-  @deco.BelongsTo('Balloon', { foreignKey: 'balloonId' })
+  @deco.BelongsTo('Balloon', { on: 'balloonId' })
   public balloon: Balloon
   public balloonId: DreamColumn<BalloonSpotterBalloon, 'balloonId'>
 }

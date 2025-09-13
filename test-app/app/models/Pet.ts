@@ -47,7 +47,7 @@ export default class Pet extends ApplicationModel {
   @deco.BelongsTo('User', {
     optional: true,
     primaryKeyOverride: 'uuid',
-    foreignKey: 'userUuid',
+    on: 'userUuid',
   })
   public userThroughUuid: User | null
   public userUuid: string
@@ -381,7 +381,7 @@ export default class Pet extends ApplicationModel {
   public andAny_opsNotIn_arrayWithNullAndRed: Balloon
   // end: andAny
 
-  @deco.HasMany('PetUnderstudyJoinModel', { foreignKey: 'petId' })
+  @deco.HasMany('PetUnderstudyJoinModel', { on: 'petId' })
   public petUnderstudies: PetUnderstudyJoinModel[]
 
   @deco.HasMany('Pet', {

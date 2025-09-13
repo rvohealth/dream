@@ -55,7 +55,7 @@ export default function BelongsTo<
  * }
  * ```
  *
- * @param opts.foreignKey - A custom column name to use for the foreign key.
+ * @param opts.on - A custom column name to use for joining associations on.
  * @param opts.optional - Whether or not this association is optional. Defaults to false.
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
@@ -66,7 +66,7 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
   opts: unknown = {}
 ): any {
   const {
-    foreignKey,
+    on: foreignKey,
     optional = false,
     polymorphic = false,
     primaryKeyOverride = null,

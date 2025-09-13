@@ -22,7 +22,7 @@ export default class PetUnderstudyJoinModel extends ApplicationModel {
   public pet: Pet
   public petId: DreamColumn<PetUnderstudyJoinModel, 'petId'>
 
-  @deco.BelongsTo('Pet', { foreignKey: 'understudyId' })
+  @deco.BelongsTo('Pet', { on: 'understudyId' })
   public understudy: Pet
   public understudyId: DreamColumn<PetUnderstudyJoinModel, 'understudyId'>
 }

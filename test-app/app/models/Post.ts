@@ -45,7 +45,7 @@ export default class Post extends ApplicationModel {
   public allComments: PostComment[]
 
   @deco.HasMany('Rating', {
-    foreignKey: 'rateableId',
+    on: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
   })
@@ -64,7 +64,7 @@ export default class Post extends ApplicationModel {
   // override the default scope, allowing us
   // to see null bodies
   @deco.HasMany('NonNullRating', {
-    foreignKey: 'rateableId',
+    on: 'rateableId',
     polymorphic: true,
     dependent: 'destroy',
     withoutDefaultScopes: ['nonNullBodies'],
@@ -72,7 +72,7 @@ export default class Post extends ApplicationModel {
   public overriddenNonNullRatings: NonNullRating[]
 
   @deco.HasMany('ExtraRating/HeartRating', {
-    foreignKey: 'extraRateableId',
+    on: 'extraRateableId',
     polymorphic: true,
     dependent: 'destroy',
   })

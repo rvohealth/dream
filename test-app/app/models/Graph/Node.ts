@@ -22,10 +22,10 @@ export default class Node extends ApplicationModel {
   public createdAt: DreamColumn<Node, 'createdAt'>
   public updatedAt: DreamColumn<Node, 'updatedAt'>
 
-  @deco.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId' })
+  @deco.HasMany('Graph/EdgeNode', { on: 'nodeId' })
   public edgeNodes: EdgeNode[]
 
-  @deco.HasMany('Graph/EdgeNode', { foreignKey: 'nodeId', order: 'position' })
+  @deco.HasMany('Graph/EdgeNode', { on: 'nodeId', order: 'position' })
   public orderedEdgeNodes: EdgeNode[]
 
   @deco.HasMany('Graph/Edge', { through: 'edgeNodes' })
@@ -44,7 +44,7 @@ export default class Node extends ApplicationModel {
   public edgesOrderedByPosition: GraphEdge[]
 
   @deco.HasMany('Graph/EdgeNode', {
-    foreignKey: 'nodeId',
+    on: 'nodeId',
     selfAndNot: { position: 'omittedEdgePosition' },
   })
   public nonOmittedPositionEdgeNodes: EdgeNode[]

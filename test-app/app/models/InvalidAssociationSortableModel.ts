@@ -16,6 +16,6 @@ export default class InvalidAssociationSortableModel extends ApplicationModel {
   @deco.Sortable({ scope: 'users' } as any)
   public position: DreamColumn<InvalidAssociationSortableModel, 'position'>
 
-  @deco.HasMany('User', { foreignKey: 'id' })
+  @deco.HasMany('User', { on: 'id' })
   public users: User[]
 }

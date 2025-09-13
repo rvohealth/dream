@@ -53,17 +53,17 @@ export default class Balloon extends ApplicationModel {
   public user: User
   public userId: DreamColumn<Balloon, 'userId'>
 
-  @deco.HasOne('BalloonLine', { foreignKey: 'balloonId' })
+  @deco.HasOne('BalloonLine', { on: 'balloonId' })
   public balloonLine: BalloonLine
 
-  @deco.HasMany('ExtraRating/HeartRating', { polymorphic: true, foreignKey: 'extraRateableId' })
+  @deco.HasMany('ExtraRating/HeartRating', { polymorphic: true, on: 'extraRateableId' })
   public heartRatings: HeartRating[]
 
-  @deco.HasMany('Sandbag', { foreignKey: 'balloonId' })
+  @deco.HasMany('Sandbag', { on: 'balloonId' })
   public sandbags: Sandbag[]
 
   @deco.BelongsTo(['Shape'], {
-    foreignKey: 'shapableId',
+    on: 'shapableId',
     polymorphic: true,
     optional: true,
   })

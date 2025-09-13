@@ -22,6 +22,6 @@ export default class PostComment extends ApplicationModel {
   public post: Post
   public postId: DreamColumn<PostComment, 'postId'>
 
-  @deco.BelongsTo('Post', { foreignKey: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
+  @deco.BelongsTo('Post', { on: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
   public postEvenIfDeleted: Post
 }

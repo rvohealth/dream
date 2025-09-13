@@ -15,6 +15,6 @@ export default class A extends ApplicationModel {
   public createdAt: DreamColumn<A, 'createdAt'>
   public updatedAt: DreamColumn<A, 'updatedAt'>
 
-  @deco.HasOne('Through/B', { foreignKey: 'aId' })
+  @deco.HasOne('Through/B', { on: 'aId' })
   public b: B
 }

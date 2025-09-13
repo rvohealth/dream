@@ -17,11 +17,11 @@ export default class AToOtherModelJoinModel extends ApplicationModel {
   public createdAt: DreamColumn<AToOtherModelJoinModel, 'createdAt'>
   public updatedAt: DreamColumn<AToOtherModelJoinModel, 'updatedAt'>
 
-  @deco.BelongsTo('Through/OtherModel', { foreignKey: 'otherModelId' })
+  @deco.BelongsTo('Through/OtherModel', { on: 'otherModelId' })
   public otherModel: OtherModel
   public otherModelId: DreamColumn<AToOtherModelJoinModel, 'otherModelId'>
 
-  @deco.BelongsTo('Through/A', { foreignKey: 'aId' })
+  @deco.BelongsTo('Through/A', { on: 'aId' })
   public a: A
   public aId: DreamColumn<AToOtherModelJoinModel, 'aId'>
 }

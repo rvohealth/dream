@@ -22,7 +22,7 @@ export default class Edge extends ApplicationModel {
   public createdAt: DreamColumn<Edge, 'createdAt'>
   public updatedAt: DreamColumn<Edge, 'updatedAt'>
 
-  @deco.HasMany('Graph/EdgeNode', { foreignKey: 'edgeId' })
+  @deco.HasMany('Graph/EdgeNode', { on: 'edgeId' })
   public edgeNodes: EdgeNode[]
 
   @deco.HasMany('Graph/Node', { through: 'edgeNodes' })

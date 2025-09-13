@@ -15,7 +15,7 @@ export default class B extends ApplicationModel {
   public createdAt: DreamColumn<B, 'createdAt'>
   public updatedAt: DreamColumn<B, 'updatedAt'>
 
-  @deco.BelongsTo('Through/A', { foreignKey: 'aId' })
+  @deco.BelongsTo('Through/A', { on: 'aId' })
   public a: A
   public aId: DreamColumn<B, 'aId'>
 }

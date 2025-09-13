@@ -27,13 +27,13 @@ export default class PolymorphicTask extends ApplicationModel {
   public createdAt: DreamColumn<PolymorphicTask, 'createdAt'>
   public updatedAt: DreamColumn<PolymorphicTask, 'updatedAt'>
 
-  @deco.BelongsTo('Polymorphic/User', { foreignKey: 'polymorphicUserId' })
+  @deco.BelongsTo('Polymorphic/User', { on: 'polymorphicUserId' })
   public user: PolymorphicUser
   public polymorphicUserId: DreamColumn<PolymorphicTask, 'polymorphicUserId'>
 
   @deco.BelongsTo(['Polymorphic/Chore', 'Polymorphic/Workout'], {
     polymorphic: true,
-    foreignKey: 'taskableId',
+    on: 'taskableId',
   })
   public taskable: Chore | Workout
   public taskableId: DreamColumn<PolymorphicTask, 'taskableId'>

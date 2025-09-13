@@ -49,7 +49,7 @@ export interface NonPolymorphicBelongsToOptions<
     AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
     keyof BaseInstance['DB'],
 > {
-  foreignKey?: DreamColumnNames<BaseInstance>
+  on?: DreamColumnNames<BaseInstance>
   primaryKeyOverride?: TableColumnNames<BaseInstance['DB'], AssociationTableName> | null
   optional?: boolean
   withoutDefaultScopes?: DefaultScopeNameForTable<BaseInstance['schema'], AssociationTableName>[]
@@ -71,7 +71,7 @@ export interface PolymorphicBelongsToOptions<
     AssociationTableNames<BaseInstance['DB'], BaseInstance['schema']> &
     keyof BaseInstance['DB'],
 > {
-  foreignKey: DreamColumnNames<BaseInstance>
+  on: DreamColumnNames<BaseInstance>
   primaryKeyOverride?: TableColumnNames<BaseInstance['DB'], AssociationTableName> | null
   optional?: boolean
   polymorphic: boolean

@@ -17,7 +17,7 @@ export default class MyModel extends ApplicationModel {
   public createdAt: DreamColumn<MyModel, 'createdAt'>
   public updatedAt: DreamColumn<MyModel, 'updatedAt'>
 
-  @deco.HasMany('Through/OtherModel', { foreignKey: 'myModelId' })
+  @deco.HasMany('Through/OtherModel', { on: 'myModelId' })
   public otherModel: OtherModel
 
   @deco.HasMany('Through/A', { through: 'otherModel', source: 'a' })

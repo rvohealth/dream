@@ -18,7 +18,7 @@ export default class TaskableImage extends ApplicationModel {
 
   @deco.BelongsTo(['Polymorphic/Chore', 'Polymorphic/Workout'], {
     polymorphic: true,
-    foreignKey: 'taskableId',
+    on: 'taskableId',
   })
   public taskable: Chore | Workout
   public taskableType: DreamColumn<TaskableImage, 'taskableType'>

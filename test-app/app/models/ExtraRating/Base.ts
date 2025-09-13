@@ -23,7 +23,7 @@ export default class BaseExtraRating extends ApplicationModel {
   public userId: DreamColumn<BaseExtraRating, 'userId'>
 
   @deco.BelongsTo(['Composition', 'Post', 'Balloon'], {
-    foreignKey: 'extraRateableId',
+    on: 'extraRateableId',
     polymorphic: true,
   })
   public extraRateable: Composition | Post | Balloon

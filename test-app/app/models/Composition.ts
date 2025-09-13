@@ -49,7 +49,7 @@ export default class Composition extends ApplicationModel {
   public mainCompositionAssetAudits: CompositionAssetAudit[]
 
   @deco.HasMany('ExtraRating/HeartRating', {
-    foreignKey: 'extraRateableId',
+    on: 'extraRateableId',
     polymorphic: true,
   })
   public heartRatings: HeartRating[]
@@ -99,27 +99,27 @@ export default class Composition extends ApplicationModel {
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     and: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     and: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     and: { name: 'cascade delete me' },
     dependent: 'destroy',
   })
   public cascadeDeletableLocalizedText: LocalizedText
 
-  @deco.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
+  @deco.HasMany('LocalizedText', { polymorphic: true, on: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }
 

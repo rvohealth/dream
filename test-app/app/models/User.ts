@@ -225,10 +225,10 @@ export default class User extends ApplicationModel {
   })
   public allPets: Pet[]
 
-  @deco.HasMany('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @deco.HasMany('Pet', { on: 'userUuid', primaryKeyOverride: 'uuid' })
   public petsFromUuid: Pet[]
 
-  @deco.HasOne('Pet', { foreignKey: 'userUuid', primaryKeyOverride: 'uuid' })
+  @deco.HasOne('Pet', { on: 'userUuid', primaryKeyOverride: 'uuid' })
   public firstPetFromUuid: Pet
 
   @deco.HasOne('Pet', { and: { name: 'Aster' } })

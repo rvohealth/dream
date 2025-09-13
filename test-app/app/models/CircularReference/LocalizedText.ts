@@ -19,7 +19,7 @@ export default class CircularReferenceLocalizedText extends ApplicationModel {
 
   @deco.BelongsTo(['CircularReference/ModelA', 'CircularReference/ModelB'], {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
   })
   public localizable: ModelA | ModelB
   public localizableType: DreamColumn<CircularReferenceLocalizedText, 'localizableType'>

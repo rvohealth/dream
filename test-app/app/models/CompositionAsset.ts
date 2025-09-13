@@ -65,18 +65,18 @@ export default class CompositionAsset extends ApplicationModel {
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     and: { locale: DreamConst.required },
   })
   public requiredCurrentLocalizedText: LocalizedText
 
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     and: { locale: DreamConst.passthrough },
   })
   public passthroughCurrentLocalizedText: LocalizedText
 
-  @deco.HasMany('LocalizedText', { polymorphic: true, foreignKey: 'localizableId' })
+  @deco.HasMany('LocalizedText', { polymorphic: true, on: 'localizableId' })
   public localizedTexts: LocalizedText[]
 }

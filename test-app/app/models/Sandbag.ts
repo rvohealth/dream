@@ -32,7 +32,7 @@ export default class Sandbag extends ApplicationModel {
       this.addError('weight', 'cannot include weightTons AND weight')
   }
 
-  @deco.BelongsTo('Balloon/Mylar', { foreignKey: 'balloonId' })
+  @deco.BelongsTo('Balloon/Mylar', { on: 'balloonId' })
   public mylar: Mylar
   public balloonId: DreamColumn<Sandbag, 'balloonId'>
 

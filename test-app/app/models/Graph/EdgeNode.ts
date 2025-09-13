@@ -29,11 +29,11 @@ export default class EdgeNode extends ApplicationModel {
   @deco.Sortable({ scope: ['edge', 'node'] })
   public multiScopedPosition: DreamColumn<EdgeNode, 'multiScopedPosition'>
 
-  @deco.BelongsTo('Graph/Edge', { foreignKey: 'edgeId' })
+  @deco.BelongsTo('Graph/Edge', { on: 'edgeId' })
   public edge: GraphEdge
   public edgeId: DreamColumn<EdgeNode, 'edgeId'>
 
-  @deco.BelongsTo('Graph/Node', { foreignKey: 'nodeId' })
+  @deco.BelongsTo('Graph/Node', { on: 'nodeId' })
   public node: GraphNode
   public nodeId: DreamColumn<EdgeNode, 'nodeId'>
 

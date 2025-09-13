@@ -31,13 +31,13 @@ export default class ModelB extends ApplicationModel {
 
   @deco.HasMany('CircularReference/LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
   })
   public localizedTexts: CircularReferenceLocalizedText[]
 
   @deco.HasOne('CircularReference/LocalizedText', {
     polymorphic: true,
-    foreignKey: 'localizableId',
+    on: 'localizableId',
     and: { locale: DreamConst.passthrough },
   })
   public currentLocalizedText: CircularReferenceLocalizedText
