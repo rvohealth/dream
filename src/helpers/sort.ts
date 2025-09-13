@@ -1,3 +1,5 @@
+import CalendarDate from './CalendarDate.js'
+import { DateTime } from './DateTime.js'
 import sortBy from './sortBy.js'
 
 /**
@@ -14,10 +16,8 @@ import sortBy from './sortBy.js'
  * // ['hello', 'Hello', 'world', 'World']
  * ```
  */
-export default function sort<ArrayType extends string[] | number[] | bigint[]>(array: ArrayType): ArrayType {
-  if (typeof array[0] === 'bigint') {
-    return sortBy(array as bigint[], a => String(a)) as ArrayType
-  }
-
+export default function sort<ArrayType extends string[] | number[] | bigint[] | (DateTime | CalendarDate)[]>(
+  array: ArrayType
+): ArrayType {
   return sortBy(array as number[], a => a) as ArrayType
 }
