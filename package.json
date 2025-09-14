@@ -51,7 +51,7 @@
     "@rvoh/dream-spec-helpers": "*",
     "@types/node": "*",
     "@types/pg": "*",
-    "kysely": "^0.27.4",
+    "kysely": "^0.28.5",
     "kysely-codegen": "~0.17.0",
     "pg": "*"
   },
