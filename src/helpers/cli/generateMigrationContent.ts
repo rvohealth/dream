@@ -45,25 +45,12 @@ export default function generateMigrationContent({
       const optional = userWantsThisOptional || !!stiChildClassName
       const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
-      if (nonStandardAttributeName === undefined) return acc
-      let attributeName = snakeify(nonStandardAttributeName)
-      if (attributeName === undefined) return acc
-
       if (attributeType !== undefined && ['has_one', 'has_many'].includes(attributeType)) return acc
 
       if (attributeType === 'citext') requireCitextExtension = true
 
-      if (stiChildClassName && !userWantsThisOptional) {
-        checkConstraints.push(`
-
-  await db.schema
-    .alterTable('${table}')
-    .addCheckConstraint(
-      '${table}_not_null_${attributeName}',
-      sql\`type != '${stiChildClassName}' OR ${attributeName} IS NOT NULL\`,
-    )
-    .execute()`)
-      }
+      if (nonStandardAttributeName === undefined) return acc
+      let attributeName = snakeify(nonStandardAttributeName)
 
       switch (attributeType) {
         case 'belongs_to':
@@ -117,7 +104,7 @@ export default function generateMigrationContent({
 
       columnDrops.push(`.dropColumn('${attributeName}')`)
 
-      if (COLUMNS_TO_INDEX.includes(attributeName)) {
+      if (attributeType === 'belongs_to' || COLUMNS_TO_INDEX.includes(attributeName)) {
         const indexName = `${table}_${attributeName}`
 
         indexDefs.push(`await db.schema
@@ -127,6 +114,18 @@ export default function generateMigrationContent({
     .execute()`)
 
         indexDrops.push(`await db.schema.dropIndex('${indexName}').execute()`)
+      }
+
+      if (stiChildClassName && !userWantsThisOptional) {
+        checkConstraints.push(`
+
+  await db.schema
+    .alterTable('${table}')
+    .addCheckConstraint(
+      '${table}_not_null_${attributeName}',
+      sql\`type != '${stiChildClassName}' OR ${attributeName} IS NOT NULL\`,
+    )
+    .execute()`)
       }
 
       return acc

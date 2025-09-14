@@ -604,10 +604,17 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
+
+  await db.schema
+    .createIndex('compositions_score_id')
+    .on('compositions')
+    .column('score_id')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -635,10 +642,17 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
+
+  await db.schema
+    .createIndex('compositions_score_id')
+    .on('compositions')
+    .column('score_id')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -672,10 +686,17 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
+
+  await db.schema
+    .createIndex('compositions_user_id')
+    .on('compositions')
+    .column('user_id')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_user_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `

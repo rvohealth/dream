@@ -187,10 +187,17 @@ export async function up(db: Kysely<any>): Promise<void> {
     .alterTable('compositions')
     .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict').notNull())
     .execute()
+
+  await db.schema
+    .createIndex('compositions_score_id')
+    .on('compositions')
+    .column('score_id')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema
     .alterTable('compositions')
     .dropColumn('score_id')
@@ -219,10 +226,17 @@ export async function up(db: Kysely<any>): Promise<void> {
     .alterTable('compositions')
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
     .execute()
+
+  await db.schema
+    .createIndex('compositions_user_id')
+    .on('compositions')
+    .column('user_id')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_user_id').execute()
   await db.schema
     .alterTable('compositions')
     .dropColumn('user_id')

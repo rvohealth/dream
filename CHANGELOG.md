@@ -16,6 +16,7 @@
     @deco.HasOne('BalloonLine', { on: 'balloonId' })
     public balloonLine: BalloonLine
   ```
+- generated migrations include index on foreign key
 
 ## 1.9.4
 
