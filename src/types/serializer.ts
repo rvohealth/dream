@@ -23,7 +23,7 @@ export interface InternalAnyTypedSerializerDelegatedAttribute<> {
   type: 'delegatedAttribute'
   targetName: string
   name: string
-  options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+  options: Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
 }
 
 export interface InternalAnyTypedSerializerCustomAttribute {

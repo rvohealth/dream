@@ -150,7 +150,7 @@ export default class DreamSerializerBuilder<
    */
   public delegatedAttribute<
     ProvidedModelType = undefined,
-    ProvidedAttributeName extends ProvidedModelType extends undefined
+    ProvidedTargetName extends ProvidedModelType extends undefined
       ? undefined
       : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
       ? undefined
@@ -158,20 +158,33 @@ export default class DreamSerializerBuilder<
     ActualDataType extends ProvidedModelType extends undefined
       ? DataType
       : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
-    TargetName extends ProvidedAttributeName extends undefined
+    TargetName extends ProvidedTargetName extends undefined
       ? Exclude<keyof ActualDataType, keyof Dream>
-      : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
+      : ProvidedTargetName & keyof ActualDataType = ProvidedTargetName extends undefined
       ? Exclude<keyof ActualDataType, keyof Dream>
-      : ProvidedAttributeName & keyof ActualDataType,
+      : ProvidedTargetName & keyof ActualDataType,
     //
 
-    TargetObject extends ActualDataType[TargetName] = ActualDataType[TargetName],
-    AttributeName extends TargetObject extends object
-      ? Exclude<keyof TargetObject, keyof Dream> & string
-      : never = TargetObject extends object ? Exclude<keyof TargetObject, keyof Dream> & string : never,
-    Options extends
-      NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption = NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
-  >(targetName: TargetName, name: AttributeName, options: Options) {
+    AssociatedModelType = Exclude<ActualDataType[TargetName], null>,
+    TargetAttributeName extends AssociatedModelType extends object
+      ? Exclude<keyof AssociatedModelType, keyof Dream> & string
+      : never = AssociatedModelType extends object
+      ? Exclude<keyof AssociatedModelType, keyof Dream> & string
+      : never,
+    Options = AssociatedModelType extends Dream
+      ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+          keyof AssociatedModelType &
+          'type'
+        ? AutomaticSerializerAttributeOptionsForType
+        : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
+          ? SerializerAttributeOptionsForVirtualColumn
+          : TargetAttributeName extends AssociatedModelType & keyof AssociatedModelType & string
+            ?
+                | AutomaticSerializerAttributeOptions<AssociatedModelType, TargetAttributeName>
+                | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+            : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
+  >(targetName: TargetName, name: TargetAttributeName, options?: Options) {
     this.attributes.push({
       type: 'delegatedAttribute',
       targetName: targetName as any,

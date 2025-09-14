@@ -17,6 +17,7 @@
     public balloonLine: BalloonLine
   ```
 - generated migrations include index on foreign key
+- don't require openapi for delegatedType when delegating to an association since we can derive the openapi type automatically [requires Psychic update for proper OpenAPI shape to be generated]
 
 ## 1.9.4
 
