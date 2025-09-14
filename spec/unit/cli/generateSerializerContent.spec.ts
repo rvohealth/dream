@@ -85,7 +85,7 @@ export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeo
 export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
   BalloonSummarySerializer(StiChildClass, balloon)
     .attribute('hello')
-    .attribute('type', { openapi: { type: 'string', enum: [StiChildClass.sanitizedName] } })
+    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Balloon).sanitizedName] } })
 `
         )
       })

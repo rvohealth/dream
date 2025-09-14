@@ -18,6 +18,7 @@
   ```
 - generated migrations include index on foreign key
 - don't require openapi for delegatedType when delegating to an association since we can derive the openapi type automatically [requires Psychic update for proper OpenAPI shape to be generated]
+- fix OpenAPI in generated STI base serializer
 
 ## 1.9.4
 
