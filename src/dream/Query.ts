@@ -9,6 +9,7 @@ import LeftJoinPreloadIncompatibleWithFindEach from '../errors/LeftJoinPreloadIn
 import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequiredCallbackFunctionToPluckEach.js'
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
+import CannotPaginateWithLeftJoinPreload from '../errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
 import RecordNotFound from '../errors/RecordNotFound.js'
@@ -51,6 +52,8 @@ import {
 import {
   DefaultQueryTypeOptions,
   ExtendQueryType,
+  FastPaginatedDreamQueryOptions,
+  FastPaginatedDreamQueryResult,
   FindEachOpts,
   LoadForModifierFn,
   NamespacedOrBaseModelColumnTypes,
@@ -441,15 +444,20 @@ export default class Query<
 
   /**
    * Finds a record matching the Query with the
-   * specified primary key. If not found, null
-   * is returned.
+   * specified primary key. Returns null if not found.
    *
    * ```ts
    * await User.query().find(123)
    * // User{id: 123}
+   *
+   * await User.query().find(null)
+   * // null
+   *
+   * await User.query().find(undefined)
+   * // null
    * ```
    *
-   * @param primaryKey - The primary key of the record to look up
+   * @param primaryKey - The primary key of the record to look up.
    * @returns Either the found record, or else null
    */
   public async find(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance | null> {
@@ -1510,25 +1518,39 @@ export default class Query<
   }
 
   /**
-   * Retrieves the number of records in the database
+   * Retrieves the number of records matching the Query
    *
    * ```ts
    * await User.query().count()
+   * // 42
+   *
+   * await User.where({ email: ops.ilike('%gmail.com') }).count()
+   * // 15
    * ```
    *
-   * @returns The number of records in the database
+   * @returns The number of records matching the Query
    */
   public async count() {
     return await this.dbDriverInstance().count()
   }
 
   /**
-   * Returns new Query with distinct clause applied
+   * Returns new Query with distinct clause applied.
+   * If no column is specified, applies distinct to the primary key.
+   * Pass true to apply distinct to primary key, false to disable distinct.
    *
    * ```ts
    * await User.query().distinct('name').pluck('name')
+   * // Returns unique names
+   *
+   * await User.query().distinct(true).pluck('id')
+   * // Returns unique primary keys
+   *
+   * await User.query().distinct(false).pluck('name')
+   * // Disables distinct, returns all names including duplicates
    * ```
    *
+   * @param column - The column name to apply distinct to, `true` to enable distinct on primary key, or `false` to disable a previously applied distinct call
    * @returns A cloned Query with the distinct clause applied
    */
   public distinct(column: TableColumnNames<DreamInstance['DB'], DreamInstance['table']> | boolean = true) {
@@ -1727,8 +1749,19 @@ export default class Query<
    *
    * ```ts
    * await User.query().all()
+   * // [User{id: 1}, User{id: 2}, ...] (ordered by id)
+   *
+   * // With specific columns (always includes primary key)
+   * await User.query().all({ columns: ['name'] })
+   * // Users will have both 'id' and 'name' properties
+   *
+   * // With custom ordering
+   * await User.order('email').all()
+   * // [User{email: 'a@a.com'}, User{email: 'b@b.com'}, ...]
    * ```
    *
+   * @param options - Query options
+   * @param options.columns - Array of column names to select. The primary key is always included automatically.
    * @returns an array of dreams
    */
   public async all(
@@ -1790,27 +1823,110 @@ export default class Query<
       ? 'paginate is incompatible with limit, offset, and leftJoinPreload'[]
       : PaginatedDreamQueryOptions
   ): Promise<PaginatedDreamQueryResult<DreamInstance>> {
+    const options = opts as PaginatedDreamQueryOptions
     if (this.limitStatement) throw new CannotPaginateWithLimit()
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
+    if (this.joinLoadActivated) throw new CannotPaginateWithLeftJoinPreload()
 
-    const page = computedPaginatePage((opts as any).page)
+    const page = computedPaginatePage(options.page)
     const recordCount = await this.count()
-    const pageSize = (opts as any).pageSize || DreamApp.getOrFail().paginationPageSize
+    const pageSize = Math.max(0, options.pageSize ?? 0) || DreamApp.getOrFail().paginationPageSize
     const pageCount = Math.ceil(recordCount / pageSize)
 
     const query = this.orderStatements.length
       ? this
       : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
 
-    const results = await (query as any)
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
+    const results = await query
+      .limit(pageSize as any)
+      .offset(((page - 1) * pageSize) as any)
       .all()
 
     return {
       recordCount,
       pageCount,
       currentPage: page,
+      results,
+    }
+  }
+
+  /**
+   * Fast paginates the results of your query using cursor-based pagination,
+   * accepting a pageSize and cursor argument. This method
+   * provides better performance for large datasets by using cursor-based
+   * pagination instead of offset-based pagination.
+   *
+   * ```ts
+   * // First page (using undefined to start from beginning)
+   * const firstPage = await User.order('email').scrollPaginate({ pageSize: 100, cursor: undefined })
+   * firstPage.results
+   * // [ { User{id: 1}, User{id: 2}, ...}]
+   *
+   * firstPage.cursor
+   * // "100" (or null if no more pages)
+   *
+   * // Next page using cursor from previous result
+   * const nextPage = await User.order('email').scrollPaginate({
+   *   pageSize: 100,
+   *   cursor: firstPage.cursor
+   * })
+   * ```
+   *
+   * @param opts - Fast pagination options
+   * @param opts.pageSize - the number of results per page (optional)
+   * @param opts.cursor - identifier of where to start the next page; undefined to start from the beginning; null when no more pages
+   * @returns results.cursor - identifier for the next page, or null if no more pages
+   * @returns results.results - An array of records for the current page
+   */
+  public async scrollPaginate<
+    Q extends Query<DreamInstance, any>,
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowPaginate: false }> ? true : false,
+  >(
+    this: Q,
+    opts: Incompatible extends true
+      ? 'scrollPaginate is incompatible with limit, offset, and leftJoinPreload'[]
+      : FastPaginatedDreamQueryOptions
+  ): Promise<FastPaginatedDreamQueryResult<DreamInstance>> {
+    const options = opts as FastPaginatedDreamQueryOptions
+    const pageSize = Math.max(0, options.pageSize ?? 0) || DreamApp.getOrFail().paginationPageSize
+    if (options === null) return { cursor: null, results: [] }
+    if (this.limitStatement) throw new CannotPaginateWithLimit()
+    if (this.offsetStatement) throw new CannotPaginateWithOffset()
+    if (this.joinLoadActivated) throw new CannotPaginateWithLeftJoinPreload()
+
+    const explicitOrdering = !!this.orderStatements.length
+
+    let query = explicitOrdering ? this : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+
+    if (options.cursor) {
+      if (explicitOrdering) {
+        const lastItem = await query
+          .where({ [this.dreamClass.primaryKey]: options.cursor } as any)
+          .firstOrFail()
+
+        this.orderStatements.forEach(orderStatement => {
+          const column = orderStatement.column
+          const direction = orderStatement.direction
+          switch (direction) {
+            case 'asc':
+              query = query.where({ [column]: ops.greaterThan(lastItem[column]) } as any) as typeof query
+              break
+            case 'desc':
+              query = query.where({ [column]: ops.lessThan(lastItem[column]) } as any) as typeof query
+              break
+          }
+        })
+      } else {
+        query = query.where({
+          [this.dreamClass.primaryKey]: ops.greaterThan(options.cursor),
+        } as any) as typeof query
+      }
+    }
+
+    const results = await query.limit(pageSize as any).all()
+
+    return {
+      cursor: (results.length === pageSize && results.at(-1)?.primaryKeyValue().toString()) || null,
       results,
     }
   }
@@ -1834,8 +1950,7 @@ export default class Query<
   }
 
   /**
-   * Returns true if a record exists for the given
-   * Query
+   * Returns true if a record exists for the given Query, false otherwise.
    *
    * ```ts
    * await User.query().exists()
@@ -1845,9 +1960,12 @@ export default class Query<
    *
    * await User.query().exists()
    * // true
+   *
+   * await User.where({ email: 'nonexistent@example.com' }).exists()
+   * // false
    * ```
    *
-   * @returns boolean
+   * @returns boolean - true if any records match the query, false otherwise
    */
   public async exists(): Promise<boolean> {
     // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
@@ -1864,7 +1982,10 @@ export default class Query<
    *
    * ```ts
    * await User.query().first()
-   * // User{id: 1}
+   * // User{id: 1} (first by primary key)
+   *
+   * await User.order('email').first()
+   * // User with lowest email alphabetically
    * ```
    *
    * @returns First record in the database, or null if no record exists
@@ -1885,11 +2006,12 @@ export default class Query<
    * an exception is raised.
    *
    * ```ts
-   * await User.query().first()
+   * await User.query().firstOrFail()
    * // User{id: 1}
    * ```
    *
-   * @returns First record in the database, or null if no record exists
+   * @returns First record in the database
+   * @throws RecordNotFound if no record exists
    */
   public async firstOrFail() {
     const record = await this.first()
@@ -1905,7 +2027,10 @@ export default class Query<
    *
    * ```ts
    * await User.query().last()
-   * // User{id: 99}
+   * // User{id: 99} (last by primary key)
+   *
+   * await User.order('email').last()
+   * // User with highest email alphabetically
    * ```
    *
    * @returns Last record in the database, or null if no record exists
@@ -1931,7 +2056,8 @@ export default class Query<
    * // User{id: 99}
    * ```
    *
-   * @returns Last record in the database, or null if no record exists
+   * @returns Last record in the database
+   * @throws RecordNotFound if no record exists
    */
   public async lastOrFail() {
     const record = await this.last()

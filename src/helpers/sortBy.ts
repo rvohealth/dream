@@ -6,23 +6,19 @@ export default function sortBy<T>(array: T[], valueToCompare: (value: T) => bigi
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => string): T[]
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => DateTime | CalendarDate): T[]
 /**
- * Returns a copy of the array, sorted by the value returned by calling the function in the second argument on each element in the array
- * Returns a copy of the array sorted by the return value of the function passed as the second argument.
- * ```ts
- * import { sortBy } from '@rvoh/dream'
+ * Returns a copy of the array, sorted by the value returned by calling the function in the second argument on each element in the array.
  *
- * sortBy(['aaa', 'a', 'aa'], (str: string) => str.length)
- * // ['a', 'aa', 'aaa']
+ * Examples:
+ *   sortBy(['aaa', 'a', 'aa'], str => str.length) // ['a', 'aa', 'aaa']
+ *   sortBy(['aaa', 'a', 'aa'], str => -str.length) // ['aaa', 'aa', 'a']
+ *   sortBy([5, 3, 7], num => num) // [3, 5, 7]
+ *   sortBy([5, 3, 7], num => -num) // [7, 5, 3]
+ *   sortBy([bigint1, bigint2], x => x) // sorted bigints
+ *   sortBy([obj1, obj2], obj => obj.prop) // sorted by property
  *
- * sortBy(['aaa', 'a', 'aa'], (str: string) => -str.length)
- * // ['aaa', 'aa', 'a']
- *
- * sortBy([5, 3, 7], (num: number) => num)
- * // [3, 5, 7]
- *
- * sortBy([5, 3, 7], (num: number) => -num)
- * // [7, 5, 3]
- * ```
+ * @param array - The array to sort
+ * @param valueToCompare - Function returning the value to sort by
+ * @returns A new sorted array
  */
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => unknown) {
   const arrayClone = [...array]

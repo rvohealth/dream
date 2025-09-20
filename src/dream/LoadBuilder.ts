@@ -53,6 +53,9 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    *   .load('posts', 'comments', 'replies', ['image', 'localizedText'])
    *   .execute()
    * ```
+   *
+   * @param args - A list of associations (and optional where clauses) to load
+   * @returns A chainable LoadBuilder instance
    */
   public load<
     I extends LoadBuilder<DreamInstance>,
@@ -119,7 +122,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   }
 
   /**
-   * executes a load builder query, binding
+   * Executes a load builder query, binding
    * all associations to their respective model
    * instances.
    *
@@ -130,6 +133,8 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    *   .load('posts', 'comments', 'replies', ['image', 'localizedText'])
    *   .execute()
    * ```
+   *
+   * @returns The Dream instance with all associations loaded
    */
   public async execute(): Promise<DreamInstance> {
     if (this.dreamTransaction) {

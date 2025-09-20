@@ -2,6 +2,8 @@
 
 - `association` and `associationOrFail` handle required and passthrough `and` clauses
 - `association` and `associationOrFail` compatible with transactions
+- `scrollPaginate` Query and static Dream methods
+- remove `paginate` from DreamClassTransactionBuilder
 
 ## 1.10.0
 

@@ -118,6 +118,8 @@ import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
   BaseModelColumnTypes,
   DefaultQueryTypeOptions,
+  FastPaginatedDreamQueryOptions,
+  FastPaginatedDreamQueryResult,
   FindEachOpts,
   LoadForModifierFn,
   PaginatedDreamQueryOptions,
@@ -1116,8 +1118,15 @@ export default class Dream {
    *
    * ```ts
    * await User.all()
+   * // [User{id: 1}, User{id: 2}...]
+   *
+   * // only load specific columns (always includes primary key)
+   * await User.all({ columns: ['name'] })
+   * // Users will have both 'id' and 'name' properties
    * ```
    *
+   * @param options - Query options
+   * @param options.columns - Array of column names to select. The primary key is always included automatically. For STI models, the type field is also automatically included.
    * @returns an array of dreams
    */
   public static async all<T extends typeof Dream>(
@@ -1166,6 +1175,42 @@ export default class Dream {
   }
 
   /**
+   * Fast paginates the results of your query using cursor-based pagination,
+   * accepting a pageSize and cursor argument. This method
+   * provides better performance for large datasets by using cursor-based
+   * pagination instead of offset-based pagination.
+   *
+   * ```ts
+   * // First page (using undefined to start from beginning)
+   * const firstPage = await User.scrollPaginate({ pageSize: 100, cursor: undefined })
+   * firstPage.results
+   * // [ { User{id: 1}, User{id: 2}, ...}]
+   *
+   * firstPage.cursor
+   * // "100" (or null if no more pages)
+   *
+   * // Next page using cursor from previous result
+   * const nextPage = await User.scrollPaginate({
+   *   pageSize: 100,
+   *   cursor: firstPage.cursor
+   * })
+   * ```
+   *
+   * @param opts - Fast pagination options
+   * @param opts.pageSize - the number of results per page
+   * @param opts.cursor - identifier of where to start the next page; use undefined to start from the beginning
+   * @returns A fast pagination result object containing:
+   * - `cursor` - identifier for the next page, or null if no more pages
+   * - `results` - An array of records for the current page
+   */
+  public static async scrollPaginate<T extends typeof Dream>(
+    this: T,
+    opts: FastPaginatedDreamQueryOptions
+  ): Promise<FastPaginatedDreamQueryResult<InstanceType<T>>> {
+    return await this.query().scrollPaginate(opts)
+  }
+
+  /**
    * Forces use of a database connection (e.g. 'primary') during the query.
    *
    * NOTE: all queries within a transaction always use the 'primary' replica, so
@@ -1186,6 +1231,11 @@ export default class Dream {
   /**
    * Retrieves the number of records corresponding
    * to this model.
+   *
+   * ```ts
+   * const userCount = await User.count()
+   * // 42
+   * ```
    *
    * @returns The number of records corresponding to this model
    */
@@ -1233,11 +1283,15 @@ export default class Dream {
   }
 
   /**
-   * Persists a new record, setting the provided attributes
+   * Persists a new record, setting the provided attributes.
+   * Automatically sets createdAt and updatedAt timestamps.
    *
    * ```ts
-   * const user = await User.create({ email: 'how@yadoin' })
+   * const user = await User.create({ email: 'how@yadoin', password: 'secure123' })
+   * // Creates and saves a User with the given attributes
+   *
    * await Post.create({ body: 'howdy', user })
+   * // Creates a Post with a BelongsTo association to the user
    * ```
    *
    * @param attributes - attributes or belongs to associations you wish to set on this model before persisting
@@ -1391,15 +1445,20 @@ export default class Dream {
 
   /**
    * Finds a record for the corresponding model with the
-   * specified primary key. If not found, null
-   * is returned
+   * specified primary key. Returns null if not found.
    *
    * ```ts
-   * await User.query().find(123)
+   * await User.find(123)
    * // User{id: 123}
+   *
+   * await User.find(null)
+   * // null
+   *
+   * await User.find(undefined)
+   * // null
    * ```
    *
-   * @param primaryKey - The primaryKey of the record to look up
+   * @param primaryKey - The primaryKey of the record to look up.
    * @returns Either the found record, or else null
    */
   public static async find<T extends typeof Dream, I extends InstanceType<T>>(

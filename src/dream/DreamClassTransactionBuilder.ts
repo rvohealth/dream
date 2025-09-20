@@ -20,8 +20,6 @@ import {
   BaseModelColumnTypes,
   FindEachOpts,
   LoadForModifierFn,
-  PaginatedDreamQueryOptions,
-  PaginatedDreamQueryResult,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
 } from '../types/query.js'
@@ -67,11 +65,17 @@ export default class DreamClassTransactionBuilder<
    * ```ts
    * await ApplicationModel.transaction(async txn => {
    *   await User.txn(txn).all()
+   *   // [User{id: 1}, User{id: 2}...]
+   *
+   *   // only load specific columns (always includes primary key)
+   *   await User.txn(txn).all({ columns: ['name'] })
+   *   // Users will have both 'id' and 'name' properties
    * })
    * ```
    *
-   * @param options.columns - Columns to select
-   * @returns An array of dreams
+   * @param options - Query options
+   * @param options.columns - Array of column names to select. The primary key is always included automatically. For STI models, the type field is also automatically included.
+   * @returns an array of dreams
    */
   public async all<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
@@ -83,44 +87,15 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
-   * Paginates the results of your query, accepting a pageSize and page argument,
-   * which it uses to segment your query into pages, leveraging limit and offset
-   * to deliver your query to you in pages.
+   * Retrieves the number of records corresponding
+   * to this model.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const paginated = await User.txn(txn).paginate({ pageSize: 100, page: 2 })
-   *   paginated.results
-   *   // [ { User{id: 101}, User{id: 102}, ...}]
-   *
-   *   paginated.recordCount
-   *   // 350
-   *
-   *   paginated.pageCount
-   *   // 4
-   *
-   *   paginated.currentPage
-   *   // 2
+   *   await User.txn(txn).count()
+   *   // 42
    * })
    * ```
-   *
-   * @param opts.page - the page number that you want to fetch results for
-   * @param opts.pageSize - the number of results per page (optional)
-   * @returns results.recordCount - A number representing the total number of records matching your query
-   * @returns results.pageCount - The number of pages needed to encapsulate all the matching records
-   * @returns results.currentPage - The current page (same as what is provided in the paginate args)
-   * @returns results.results - An array of records matching the current record
-   */
-  public async paginate<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
-    this: I,
-    opts: PaginatedDreamQueryOptions
-  ): Promise<PaginatedDreamQueryResult<DreamInstance>> {
-    return await this.queryInstance().paginate(opts)
-  }
-
-  /**
-   * Retrieves the number of records corresponding
-   * to this model.
    *
    * @returns The number of records corresponding to this model
    */
@@ -155,7 +130,7 @@ export default class DreamClassTransactionBuilder<
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).order('id').limit(2).all()
+   *   await User.txn(txn).order('id').offset(2).limit(2).all()
    *   // [User{id: 3}, User{id: 4}]
    * })
    * ```
@@ -213,16 +188,22 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
-   * Persists a new record, setting the provided attributes
+   * Persists a new record, setting the provided attributes.
+   * Automatically sets createdAt and updatedAt timestamps.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const user = await User.txn(txn).create({ email: 'how@yadoin' })
+   *   const user = await User.txn(txn).create({ email: 'how@yadoin', password: 'secure123' })
+   *   // Creates and saves a User with the given attributes
+   *
    *   await Post.txn(txn).create({ body: 'howdy', user })
+   *   // Creates a Post with a BelongsTo association to the user
    * })
    * ```
    *
-   * @param attributes - Attributes or belongs to associations you wish to set on this model before persisting
+   * @param attributes - attributes or belongs to associations you wish to set on this model before persisting
+   * @param __namedParameters - optional parameters
+   * @param __namedParameters.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A newly persisted dream instance
    */
   public async create<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
@@ -242,10 +223,16 @@ export default class DreamClassTransactionBuilder<
    * await ApplicationModel.transaction(async txn => {
    *   await User.txn(txn).find(123)
    *   // User{id: 123}
+   *
+   *   await User.txn(txn).find(null)
+   *   // null
+   *
+   *   await User.txn(txn).find(undefined)
+   *   // null
    * })
    * ```
    *
-   * @param primaryKey - The primary key of the record to look up
+   * @param primaryKey - The primaryKey of the record to look up.
    * @returns Either the found record, or else null
    */
   public async find<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
@@ -261,12 +248,12 @@ export default class DreamClassTransactionBuilder<
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await User.query().txn(txn).findOrFail(123)
+   *   await User.txn(txn).findOrFail(123)
+   *   // User{id: 123}
    * })
-   * // User{id: 123}
    * ```
    *
-   * @param primaryKey - The primary key of the record to look up
+   * @param primaryKey - The primaryKey of the record to look up
    * @returns The found record
    */
   public async findOrFail<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
@@ -326,11 +313,12 @@ export default class DreamClassTransactionBuilder<
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await User.txn(txn).findOrCreateBy({ email }, { createWith: params })
+   *   const user = await User.txn(txn).findOrCreateBy({ email }, { createWith: params })
    * })
    * ```
    *
    * @param attributes - The base attributes for finding, but also the attributes to use when creating
+   * @param extraOpts - Additional options
    * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
    * @returns A dream instance
    */
@@ -517,27 +505,29 @@ export default class DreamClassTransactionBuilder<
    * automatically preloads all associations that will be needed during serialization.
    *
    * ```ts
-   * // Instead of manually specifying all associations:
-   * await User.preload('posts', 'comments', 'replies').all()
+   * await ApplicationModel.transaction(async txn => {
+   *   // Instead of manually specifying all associations:
+   *   await User.txn(txn).preload('posts', 'comments', 'replies').all()
    *
-   * // Automatically preload everything needed for serialization:
-   * await User.preloadFor('summary').all()
+   *   // Automatically preload everything needed for serialization:
+   *   await User.txn(txn).preloadFor('summary').all()
    *
-   * // Add where conditions to specific associations during preloading:
-   * await User.txn(txn).leftJoinPreloadFor('detailed', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *     return { and: { published: true } }
-   *   }
-   * }).all()
+   *   // Add where conditions to specific associations during preloading:
+   *   await User.txn(txn).leftJoinPreloadFor('detailed', (associationName, dreamClass) => {
+   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *       return { and: { published: true } }
+   *     }
+   *   }).all()
    *
-   * // Skip preloading specific associations to handle them manually:
-   * await User.txn(txn).leftJoinPreloadFor('summary', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(User) && associationName === 'posts') {
-   *     return 'omit' // Handle posts preloading separately with custom logic
-   *   }
+   *   // Skip preloading specific associations to handle them manually:
+   *   await User.txn(txn).leftJoinPreloadFor('summary', (associationName, dreamClass) => {
+   *     if (dreamClass.typeof(User) && associationName === 'posts') {
+   *       return 'omit' // Handle posts preloading separately with custom logic
+   *     }
+   *   })
+   *   .preload('posts', { and: { featured: true } }) // Custom preloading
+   *   .all()
    * })
-   * .preload('posts', { and: { featured: true } }) // Custom preloading
-   * .all()
    * ```
    *
    * @param serializerKey - The serializer key to use for determining which associations to preload.
@@ -598,27 +588,29 @@ export default class DreamClassTransactionBuilder<
    * automatically preloads all associations that will be needed during serialization.
    *
    * ```ts
-   * // Instead of manually specifying all associations:
-   * await User.preload('posts', 'comments', 'replies').all()
+   * await ApplicationModel.transaction(async txn => {
+   *   // Instead of manually specifying all associations:
+   *   await User.txn(txn).preload('posts', 'comments', 'replies').all()
    *
-   * // Automatically preload everything needed for serialization:
-   * await User.preloadFor('summary').all()
+   *   // Automatically preload everything needed for serialization:
+   *   await User.txn(txn).preloadFor('summary').all()
    *
-   * // Add where conditions to specific associations during preloading:
-   * await User.txn(txn).preloadFor('detailed', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *     return { and: { published: true } }
-   *   }
-   * }).all()
+   *   // Add where conditions to specific associations during preloading:
+   *   await User.txn(txn).preloadFor('detailed', (associationName, dreamClass) => {
+   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *       return { and: { published: true } }
+   *     }
+   *   }).all()
    *
-   * // Skip preloading specific associations to handle them manually:
-   * await User.txn(txn).preloadFor('summary', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(User) && associationName === 'posts') {
-   *     return 'omit' // Handle posts preloading separately with custom logic
-   *   }
+   *   // Skip preloading specific associations to handle them manually:
+   *   await User.txn(txn).preloadFor('summary', (associationName, dreamClass) => {
+   *     if (dreamClass.typeof(User) && associationName === 'posts') {
+   *       return 'omit' // Handle posts preloading separately with custom logic
+   *     }
+   *   })
+   *   .preload('posts', { and: { featured: true } }) // Custom preloading
+   *   .all()
    * })
-   * .preload('posts', { and: { featured: true } }) // Custom preloading
-   * .all()
    * ```
    *
    * @param serializerKey - The serializer key to use for determining which associations to preload.

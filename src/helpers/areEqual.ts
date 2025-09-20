@@ -2,6 +2,21 @@ import Dream from '../Dream.js'
 import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
 
+/**
+ * Performs a deep equality check between two values, supporting primitives, arrays,
+ * Dream instances, CalendarDate, DateTime, and objects.
+ *
+ * Examples:
+ *   areEqual(undefined, undefined) // true
+ *   areEqual(null, null) // true
+ *   areEqual([1, 2], [1, 2]) // true
+ *   areEqual({ a: 1 }, { a: 1 }) // true
+ *   areEqual(new DateTime(), new DateTime()) // true if equal
+ *
+ * @param a - First value to compare
+ * @param b - Second value to compare
+ * @returns True if the values are deeply equal, false otherwise
+ */
 export default function areEqual(a: any, b: any): boolean {
   return areEqualOrUndefined(a, b) ?? areEqualOrUndefined(b, a) ?? JSON.stringify(a) === JSON.stringify(b)
 }

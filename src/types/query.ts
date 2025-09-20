@@ -204,6 +204,30 @@ export interface PaginatedDreamQueryResult<T extends Dream> {
   results: T[]
 }
 
+export interface FastPaginatedDreamQueryOptions {
+  /**
+   * the number of records you would like to be returned in each page
+   */
+  pageSize?: number
+
+  /**
+   * identifier of where to start the next page; undefined to start from the beginning; null when no more pages
+   */
+  cursor: string | null | undefined
+}
+
+export interface FastPaginatedDreamQueryResult<T extends Dream> {
+  /**
+   * identifier of where to start the next page; undefined to start from the beginning; null when no more pages
+   */
+  cursor: string | null | undefined
+
+  /**
+   * The results for the current page
+   */
+  results: T[]
+}
+
 export type LoadForModifierFn = (
   associationName: string,
   dreamClass: typeof Dream

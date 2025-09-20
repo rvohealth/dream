@@ -9,6 +9,16 @@ export function compact<
   }[keyof T],
 >(obj: T): { [K in NonNullKeys]: T[K] }
 //
+/**
+ * Removes all null and undefined values from an array or object.
+ *
+ * Examples:
+ *   compact(['a', 2, null, undefined]) // ['a', 2]
+ *   compact({ a: 1, b: 'b', c: null, d: undefined }) // { a: 1, b: 'b' }
+ *
+ * @param obj - The array or object to compact
+ * @returns A new array or object with all null and undefined values removed
+ */
 export default function compact<
   T extends any[] | { [key: string]: any },
   //

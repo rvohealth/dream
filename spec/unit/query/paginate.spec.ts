@@ -1,11 +1,10 @@
+import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
 import { DreamApp } from '../../../src/index.js'
-import { PaginatedDreamQueryResult } from '../../../src/types/query.js'
-import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
 
-describe('Dream.paginate', () => {
+describe('Query#paginate', () => {
   let user1: User
   let user2: User
   let user3: User
@@ -32,7 +31,7 @@ describe('Dream.paginate', () => {
 
   context('without an explicit order', () => {
     it('orders by primary key', async () => {
-      const results = await User.paginate({ pageSize: 2, page: 1 })
+      const results = await User.query().paginate({ pageSize: 2, page: 1 })
 
       expect(results).toEqual({
         recordCount: 4,
@@ -52,25 +51,6 @@ describe('Dream.paginate', () => {
         pageCount: 2,
         currentPage: 1,
         results: [expect.toMatchDreamModel(user1), expect.toMatchDreamModel(user2)],
-      })
-    })
-  })
-
-  context('in a transaction', () => {
-    it('enables pagination', async () => {
-      let res: PaginatedDreamQueryResult<User>
-      let user: User
-
-      await ApplicationModel.transaction(async txn => {
-        user = await User.txn(txn).create({ email: 'how@yadoin', password: 'howyadoin' })
-        res = await User.order('email').txn(txn).paginate({ pageSize: 4, page: 2 })
-      })
-
-      expect(res!).toEqual({
-        currentPage: 2,
-        pageCount: 2,
-        recordCount: 5,
-        results: [expect.toMatchDreamModel(user!)],
       })
     })
   })
@@ -138,6 +118,14 @@ describe('Dream.paginate', () => {
       await expect(async () => {
         await User.offset(100).paginate({ pageSize: 2, page: 1 } as any)
       }).rejects.toThrow(CannotPaginateWithOffset)
+    })
+  })
+
+  context('when a leftJoinPreload is applied to the query', () => {
+    it('throws an exception', async () => {
+      await expect(async () => {
+        await User.leftJoinPreloadFor('default').paginate({ pageSize: 2, page: 1 } as any)
+      }).rejects.toThrow(CannotPaginateWithLeftJoinPreload)
     })
   })
 

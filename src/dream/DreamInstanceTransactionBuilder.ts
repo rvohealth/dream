@@ -81,16 +81,19 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * same goal.
    *
    * ```ts
-   * await user
-   *  .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
-   *  .load('images')
-   *  .execute()
+   * await ApplicationModel.transaction(async txn => {
+   *   await user
+   *    .txn(txn)
+   *    .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *    .load('images')
+   *    .execute()
    *
-   * user.posts[0].comments[0].replies[0]
-   * // Reply{}
+   *   user.posts[0].comments[0].replies[0]
+   *   // Reply{}
    *
-   * user.images[0]
-   * // Image{}
+   *   user.images[0]
+   *   // Image{}
+   * })
    * ```
    *
    * @param args - A list of associations (and optional where clauses) to load
@@ -122,30 +125,31 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * automatically preloads all associations that will be needed during serialization.
    *
    * ```ts
-   * // Instead of manually specifying all associations:
-   * await User.preload('posts', 'comments', 'replies').all()
+   * await ApplicationModel.transaction(async txn => {
+   *   // Instead of manually specifying all associations:
+   *   await User.txn(txn).preload('posts', 'comments', 'replies').all()
    *
-   * // Automatically preload everything needed for serialization:
-   * await user.loadFor('summary').execute()
+   *   // Automatically preload everything needed for serialization:
+   *   await user.txn(txn).loadFor('summary').execute()
    *
-   * // Add where conditions to specific associations during preloading:
-   * await user.txn(txn).loadFor('detailed', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *     return { and: { published: true } }
-   *   }
-   * })
-   *    .execute()
-   *
-   * // Skip preloading specific associations to handle them manually:
-   * await user
-   *   .txn(txn)
-   *   .loadFor('summary', (associationName, dreamClass) => {
-   *     if (dreamClass.typeof(User) && associationName === 'posts') {
-   *       return 'omit' // Handle posts preloading separately with custom logic
+   *   // Add where conditions to specific associations during preloading:
+   *   await user.txn(txn).loadFor('detailed', (associationName, dreamClass) => {
+   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *       return { and: { published: true } }
    *     }
-   *   })
+   *   }).execute()
+   *
+   *   // Skip preloading specific associations to handle them manually:
+   *   await user
+   *     .txn(txn)
+   *     .loadFor('summary', (associationName, dreamClass) => {
+   *       if (dreamClass.typeof(User) && associationName === 'posts') {
+   *         return 'omit' // Handle posts preloading separately with custom logic
+   *       }
+   *     })
    *     .load('posts', { and: { featured: true } }) // Custom preloading
    *     .execute()
+   * })
    * ```
    *
    * @param serializerKey - The serializer key to use for determining which associations to preload.
@@ -225,30 +229,31 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * automatically preloads all associations that will be needed during serialization.
    *
    * ```ts
-   * // Instead of manually specifying all associations:
-   * await User.preload('posts', 'comments', 'replies').all()
+   * await ApplicationModel.transaction(async txn => {
+   *   // Instead of manually specifying all associations:
+   *   await User.txn(txn).preload('posts', 'comments', 'replies').all()
    *
-   * // Automatically preload everything needed for serialization:
-   * await user.leftJoinLoadFor('summary').execute()
+   *   // Automatically preload everything needed for serialization:
+   *   await user.txn(txn).leftJoinLoadFor('summary').execute()
    *
-   * // Add where conditions to specific associations during preloading:
-   * await user.txn(txn).leftJoinLoadFor('detailed', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *     return { and: { published: true } }
-   *   }
-   * })
-   *    .execute()
-   *
-   * // Skip preloading specific associations to handle them manually:
-   * await user
-   *   .txn(txn)
-   *   .leftJoinLoadFor('summary', (associationName, dreamClass) => {
-   *     if (dreamClass.typeof(User) && associationName === 'posts') {
-   *       return 'omit' // Handle posts preloading separately with custom logic
+   *   // Add where conditions to specific associations during preloading:
+   *   await user.txn(txn).leftJoinLoadFor('detailed', (associationName, dreamClass) => {
+   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
+   *       return { and: { published: true } }
    *     }
-   *   })
+   *   }).execute()
+   *
+   *   // Skip preloading specific associations to handle them manually:
+   *   await user
+   *     .txn(txn)
+   *     .leftJoinLoadFor('summary', (associationName, dreamClass) => {
+   *       if (dreamClass.typeof(User) && associationName === 'posts') {
+   *         return 'omit' // Handle posts preloading separately with custom logic
+   *       }
+   *     })
    *     .load('posts', { and: { featured: true } }) // Custom preloading
    *     .execute()
+   * })
    * ```
    *
    * @param serializerKey - The serializer key to use for determining which associations to preload.
