@@ -151,27 +151,24 @@ ${tableName}: {
         .map(associationName => {
           const associationMetadata = tableData.associations[associationName as keyof typeof tableData]
           if (associationMetadata === undefined) return ''
-          const whereStatement = associationMetadata.where
-          const requiredOnClauses =
-            whereStatement === null
+          const andStatement = associationMetadata.and
+          const requiredAndClauses =
+            andStatement === null
               ? []
-              : Object.keys(whereStatement).filter(column => whereStatement[column] === DreamConst.required)
-          passthroughColumns =
-            whereStatement === null
-              ? passthroughColumns
-              : [
-                  ...passthroughColumns,
-                  ...Object.keys(whereStatement).filter(
-                    column => whereStatement[column] === DreamConst.passthrough
-                  ),
-                ]
+              : Object.keys(andStatement).filter(column => andStatement[column] === DreamConst.required)
+          const passthroughAndClauses =
+            andStatement === null
+              ? []
+              : Object.keys(andStatement).filter(column => andStatement[column] === DreamConst.passthrough)
+          passthroughColumns = [...passthroughColumns, ...passthroughAndClauses]
           return `${associationName}: {
         type: '${associationMetadata.type}',
         foreignKey: ${associationMetadata.foreignKey ? `'${associationMetadata.foreignKey}'` : 'null'},
         foreignKeyTypeColumn: ${associationMetadata.foreignKeyTypeColumn ? `'${associationMetadata.foreignKeyTypeColumn}'` : 'null'},
         tables: ${stringifyArray(associationMetadata.tables)},
         optional: ${associationMetadata.optional},
-        requiredOnClauses: ${requiredOnClauses.length === 0 ? 'null' : stringifyArray(requiredOnClauses)},
+        requiredAndClauses: ${requiredAndClauses.length === 0 ? 'null' : stringifyArray(requiredAndClauses)},
+        passthroughAndClauses: ${passthroughAndClauses.length === 0 ? 'null' : stringifyArray(passthroughAndClauses)},
       },`
         })
         .join('\n      ')}
@@ -333,7 +330,7 @@ may need to update the table getter in the corresponding Dream.
               ? associationMetaData?.foreignKeyTypeField?.() || null
               : null,
             optional,
-            where,
+            and: where,
           }
 
           if (foreignKey) tableAssociationData[associationName]['foreignKey'] = foreignKey
@@ -519,7 +516,7 @@ export interface SchemaBuilderAssociationData {
   optional: boolean | null
   foreignKey: string | null
   foreignKeyTypeColumn: string | null
-  where: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.required> | null
+  and: Record<string, string | typeof DreamConst.passthrough | typeof DreamConst.required> | null
 }
 
 export interface SchemaBuilderColumnData {

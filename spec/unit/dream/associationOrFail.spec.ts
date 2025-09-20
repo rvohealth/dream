@@ -1,5 +1,8 @@
+import MissingRequiredAssociationAndClause from '../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
+import MissingRequiredPassthroughForAssociationAndClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
 import { RecordNotFound } from '../../../src/index.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#associationOrFail', () => {
@@ -65,6 +68,54 @@ describe('Dream#associationOrFail', () => {
         const compositions = await user.associationOrFail('compositions')
         expect(compositions).toMatchDreamModels([composition])
         expect(compositions[0]!.content).toEqual('original')
+      })
+    })
+
+    context('when the association has a required "and" clause', () => {
+      it('returns the association and loads it onto the model so it is memoized for future calls', async () => {
+        const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+        await Pet.create({ user, name: 'Snoopy' })
+        const woodstock = await Pet.create({ user, name: 'Woodstock' })
+
+        const pets = await user.associationOrFail('petsWithRequiredName', {
+          required: { name: 'Woodstock' },
+        })
+        expect(pets).toMatchDreamModels([woodstock])
+        expect(user.loaded('petsWithRequiredName')).toBe(true)
+      })
+
+      context('without the required clause', () => {
+        it('throws', async () => {
+          const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+
+          await expect(user.associationOrFail('petsWithRequiredName' as any)).rejects.toThrow(
+            MissingRequiredAssociationAndClause
+          )
+        })
+      })
+    })
+
+    context('when the association has a passthrough "and" clause', () => {
+      it('returns the association and loads it onto the model so it is memoized for future calls', async () => {
+        const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+        await Pet.create({ user, name: 'Snoopy' })
+        const woodstock = await Pet.create({ user, name: 'Woodstock' })
+
+        const pets = await user.associationOrFail('petsWithPassthroughName', {
+          passthrough: { name: 'Woodstock' },
+        })
+        expect(pets).toMatchDreamModels([woodstock])
+        expect(user.loaded('petsWithPassthroughName')).toBe(true)
+      })
+
+      context('without the passthrough clause', () => {
+        it('throws', async () => {
+          const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+
+          await expect(user.associationOrFail('petsWithPassthroughName' as any)).rejects.toThrow(
+            MissingRequiredPassthroughForAssociationAndClause
+          )
+        })
       })
     })
 

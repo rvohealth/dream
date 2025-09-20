@@ -73,6 +73,7 @@ import { HasOneStatement } from './types/associations/hasOne.js'
 import {
   AssociationMetadataMap,
   AssociationStatementsMap,
+  OnStatementForSpecificColumns,
   PassthroughOnClause,
   WhereStatement,
 } from './types/associations/shared.js'
@@ -85,6 +86,8 @@ import {
   DefaultOrNamedScopeName,
   DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredOnClauses,
+  DreamAssociationNamesWithPassthroughOnClauses,
+  DreamAssociationNamesWithRequiredOnClauses,
   DreamAttributes,
   DreamBelongsToAssociationNames,
   DreamColumnNames,
@@ -100,8 +103,10 @@ import {
   JoinAndStatements,
   OrderDir,
   PassthroughColumnNames,
+  PassthroughOnClauseKeys,
   PluckEachArgs,
   PrimaryKeyForFind,
+  RequiredOnClauseKeys,
   TableColumnNames,
   UpdateableAssociationProperties,
   UpdateableProperties,
@@ -131,7 +136,6 @@ import { ValidationStatement, ValidationType } from './types/validation.js'
 import {
   JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
-  RequiredOnClauseKeys,
   VariadicJoinsArgs,
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
@@ -3693,7 +3697,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNames<I>,
+    AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>,
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
@@ -3764,7 +3768,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNames<I>,
+    AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>,
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
@@ -3840,7 +3844,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNames<I>,
+    AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>,
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
@@ -3912,7 +3916,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNames<I>,
+    AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>,
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
@@ -3977,7 +3981,7 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
-    AssociationName extends DreamAssociationNames<I>,
+    AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>,
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<I, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
@@ -4135,6 +4139,9 @@ export default class Dream {
     return new LoadBuilder<I>(this).load(...(args as any))
   }
 
+  ///////////////////
+  // association
+  ///////////////////
   /**
    * If the association is already loaded on the instance, it returns the loaded value
    * immediately without making a database query. If the association is not loaded,
@@ -4153,6 +4160,90 @@ export default class Dream {
    */
   public async association<
     I extends Dream,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<I>
+      | DreamHasOneAssociationNames<I>
+      | DreamHasManyAssociationNames<I>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<I>
+      | DreamAssociationNamesWithRequiredOnClauses<I>
+      ? MaybeAssociationName
+      : never,
+    //
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
+    //
+
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['schema'],
+    Opts extends AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I> &
+      DreamAssociationNamesWithRequiredOnClauses<I>
+      ? {
+          passthrough: Required<
+            OnStatementForSpecificColumns<
+              DB,
+              Schema,
+              AssociationTableName,
+              PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+            >
+          >
+
+          required: Required<
+            OnStatementForSpecificColumns<
+              DB,
+              Schema,
+              AssociationTableName,
+              RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+            >
+          >
+        }
+      : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I>
+        ? {
+            passthrough: Required<
+              OnStatementForSpecificColumns<
+                DB,
+                Schema,
+                AssociationTableName,
+                PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+              >
+            >
+          }
+        : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>
+          ? {
+              required: Required<
+                OnStatementForSpecificColumns<
+                  DB,
+                  Schema,
+                  AssociationTableName,
+                  RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+                >
+              >
+            }
+          : never,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
+      ? AssociationNameToDream<I, AssociationName>[]
+      : AssociationNameToDream<I, AssociationName> | null,
+  >(this: I, associationName: AssociationName, options: Opts): Promise<ReturnType>
+
+  public async association<
+    I extends Dream,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<I>
+      | DreamHasOneAssociationNames<I>
+      | DreamHasManyAssociationNames<I>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<I>
+      | DreamAssociationNamesWithRequiredOnClauses<I>
+      ? never
+      : MaybeAssociationName,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
+      ? AssociationNameToDream<I, AssociationName>[]
+      : AssociationNameToDream<I, AssociationName> | null,
+  >(this: I, associationName: AssociationName): Promise<ReturnType>
+
+  public async association<
+    I extends Dream,
     AssociationName extends
       | DreamBelongsToAssociationNames<I>
       | DreamHasOneAssociationNames<I>
@@ -4160,20 +4251,34 @@ export default class Dream {
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
       ? AssociationNameToDream<I, AssociationName>[]
       : AssociationNameToDream<I, AssociationName> | null,
-  >(this: I, associationName: AssociationName): Promise<ReturnType> {
+  >(
+    this: I,
+    associationName: AssociationName,
+    options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+  ): Promise<ReturnType> {
     if (!this.loaded(associationName)) {
       const association = this.getAssociationMetadata(associationName)
+      const associationQueryOptions = options?.required && { and: options.required }
+      let scope = this.associationQuery(associationName as any, associationQueryOptions as any)
+
+      if (options?.passthrough) scope = scope.passthrough(options.passthrough)
 
       if (association?.type === 'HasMany') {
-        this[associationName] = (await this.associationQuery(associationName as any).all()) as any
+        this[associationName] = (await scope.all()) as any
       } else {
-        this[associationName] = (await this.associationQuery(associationName as any).first()) as any
+        this[associationName] = (await scope.first()) as any
       }
     }
 
     return this[associationName] as ReturnType
   }
+  ///////////////////
+  // end:association
+  ///////////////////
 
+  ///////////////////
+  // end:associationOrFail
+  ///////////////////
   /**
    * If the association is already loaded on the instance, it returns the loaded value
    * immediately without making a database query. If the association is not loaded,
@@ -4197,6 +4302,90 @@ export default class Dream {
    */
   public async associationOrFail<
     I extends Dream,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<I>
+      | DreamHasOneAssociationNames<I>
+      | DreamHasManyAssociationNames<I>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<I>
+      | DreamAssociationNamesWithRequiredOnClauses<I>
+      ? MaybeAssociationName
+      : never,
+    //
+    AssociationDream extends AssociationNameToDream<I, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
+    //
+
+    DB extends I['DB'],
+    TableName extends I['table'],
+    Schema extends I['schema'],
+    Opts extends AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I> &
+      DreamAssociationNamesWithRequiredOnClauses<I>
+      ? {
+          passthrough: Required<
+            OnStatementForSpecificColumns<
+              DB,
+              Schema,
+              AssociationTableName,
+              PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+            >
+          >
+
+          required: Required<
+            OnStatementForSpecificColumns<
+              DB,
+              Schema,
+              AssociationTableName,
+              RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+            >
+          >
+        }
+      : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I>
+        ? {
+            passthrough: Required<
+              OnStatementForSpecificColumns<
+                DB,
+                Schema,
+                AssociationTableName,
+                PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+              >
+            >
+          }
+        : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>
+          ? {
+              required: Required<
+                OnStatementForSpecificColumns<
+                  DB,
+                  Schema,
+                  AssociationTableName,
+                  RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+                >
+              >
+            }
+          : never,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
+      ? AssociationNameToDream<I, AssociationName>[]
+      : AssociationNameToDream<I, AssociationName>,
+  >(this: I, associationName: AssociationName, options: Opts): Promise<ReturnType>
+
+  public async associationOrFail<
+    I extends Dream,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<I>
+      | DreamHasOneAssociationNames<I>
+      | DreamHasManyAssociationNames<I>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<I>
+      | DreamAssociationNamesWithRequiredOnClauses<I>
+      ? never
+      : MaybeAssociationName,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
+      ? AssociationNameToDream<I, AssociationName>[]
+      : AssociationNameToDream<I, AssociationName>,
+  >(this: I, associationName: AssociationName): Promise<ReturnType>
+
+  public async associationOrFail<
+    I extends Dream,
     AssociationName extends
       | DreamBelongsToAssociationNames<I>
       | DreamHasOneAssociationNames<I>
@@ -4204,13 +4393,20 @@ export default class Dream {
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
       ? AssociationNameToDream<I, AssociationName>[]
       : AssociationNameToDream<I, AssociationName>,
-  >(this: I, associationName: AssociationName): Promise<ReturnType> {
-    const response = await this.association(associationName)
+  >(
+    this: I,
+    associationName: AssociationName,
+    options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+  ): Promise<ReturnType> {
+    const response = await this.association(associationName as any, options as any)
 
     if (this[associationName] === null) throw new RecordNotFound(this['sanitizedConstructorName'])
 
     return response as ReturnType
   }
+  ///////////////////
+  // end:associationOrFail
+  ///////////////////
 
   /**
    * Recursively loads all Dream associations referenced by `rendersOne` and `rendersMany`

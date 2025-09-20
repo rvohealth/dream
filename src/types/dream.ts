@@ -14,8 +14,8 @@ import {
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from './serializer.js'
-import { FilterInterface, Inc } from './utils.js'
-import { AliasedSchemaAssociation, RequiredOnClauseKeys } from './variadic.js'
+import { FilterInterface, Inc, RejectInterface } from './utils.js'
+import { AliasedSchemaAssociation } from './variadic.js'
 
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
@@ -164,10 +164,67 @@ export type DreamAssociationNamesWithoutRequiredOnClauses<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
   SchemaTypeInterface = {
-    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredOnClauses' & keyof SchemaAssociations[K]]
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredAndClauses' & keyof SchemaAssociations[K]]
   },
   RequiredOnClauses = keyof FilterInterface<SchemaTypeInterface, null> & string,
 > = RequiredOnClauses
+
+export type DreamAssociationNamesWithRequiredOnClauses<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['requiredAndClauses' & keyof SchemaAssociations[K]]
+  },
+  RequiredOnClauses = keyof RejectInterface<SchemaTypeInterface, null> & string,
+> = RequiredOnClauses
+
+export type DreamAssociationNamesWithPassthroughOnClauses<
+  DreamInstance extends Dream,
+  SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
+  SchemaTypeInterface = {
+    [K in keyof SchemaAssociations]: SchemaAssociations[K]['passthroughAndClauses' &
+      keyof SchemaAssociations[K]]
+  },
+  PassthroughOnClauses = keyof RejectInterface<SchemaTypeInterface, null> & string,
+> = PassthroughOnClauses
+
+export type RequiredOnClauseKeys<
+  Schema,
+  TableName,
+  AssociationName,
+  Associations = TableName extends null
+    ? null
+    : TableName extends keyof Schema & string
+      ? Schema[TableName]['associations' & keyof Schema[TableName]]
+      : null,
+  Association = Associations extends null
+    ? null
+    : AssociationName extends keyof Associations
+      ? Associations[AssociationName]
+      : null,
+  RequiredOnClauses = Association extends null
+    ? null
+    : Association['requiredAndClauses' & keyof Association] & (string[] | null),
+> = RequiredOnClauses
+
+export type PassthroughOnClauseKeys<
+  Schema,
+  TableName,
+  AssociationName,
+  Associations = TableName extends null
+    ? null
+    : TableName extends keyof Schema & string
+      ? Schema[TableName]['associations' & keyof Schema[TableName]]
+      : null,
+  Association = Associations extends null
+    ? null
+    : AssociationName extends keyof Associations
+      ? Associations[AssociationName]
+      : null,
+  PassthroughOnClauses = Association extends null
+    ? null
+    : Association['passthroughAndClauses' & keyof Association] & (string[] | null),
+> = PassthroughOnClauses
 
 export type DreamAssociationNames<
   DreamInstance extends Dream,

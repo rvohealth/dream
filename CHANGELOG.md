@@ -1,3 +1,7 @@
+## 1.11.0
+
+- `association` and `associationOrFail` handle required and passthrough `and` clauses
+
 ## 1.10.0
 
 - bump kysely

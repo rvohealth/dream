@@ -5,6 +5,7 @@ import {
   AssociationTableName,
   JoinAndStatements,
   MAX_VARIADIC_DEPTH,
+  RequiredOnClauseKeys,
 } from './dream.js'
 import { Inc, ReadonlyTail } from './utils.js'
 
@@ -110,24 +111,7 @@ export type VariadicJoinsArgs<
 ///////////////////////////////
 // end: VARIADIC JOINS
 ///////////////////////////////
-export type RequiredOnClauseKeys<
-  Schema,
-  TableName,
-  AssociationName,
-  Associations = TableName extends null
-    ? null
-    : TableName extends keyof Schema & string
-      ? Schema[TableName]['associations' & keyof Schema[TableName]]
-      : null,
-  Association = Associations extends null
-    ? null
-    : AssociationName extends keyof Associations
-      ? Associations[AssociationName]
-      : null,
-  RequiredOnClauses = Association extends null
-    ? null
-    : Association['requiredOnClauses' & keyof Association] & (string[] | null),
-> = RequiredOnClauses
+
 type VariadicCheckThenRecurse<
   DB,
   Schema,
