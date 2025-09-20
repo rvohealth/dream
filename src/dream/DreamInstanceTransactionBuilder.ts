@@ -3,16 +3,23 @@ import CannotAssociationQueryOnUnpersistedDream from '../errors/associations/Can
 import CannotCreateAssociationOnUnpersistedDream from '../errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
 import CannotDestroyAssociationOnUnpersistedDream from '../errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
 import CannotUpdateAssociationOnUnpersistedDream from '../errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
+import RecordNotFound from '../errors/RecordNotFound.js'
+import { OnStatementForSpecificColumns } from '../types/associations/shared.js'
 import {
   AllDefaultScopeNames,
   AssociationNameToDream,
   DreamAssociationNames,
   DreamAssociationNamesWithoutRequiredOnClauses,
+  DreamAssociationNamesWithPassthroughOnClauses,
   DreamAssociationNamesWithRequiredOnClauses,
   DreamAttributes,
+  DreamBelongsToAssociationNames,
   DreamConstructorType,
+  DreamHasManyAssociationNames,
+  DreamHasOneAssociationNames,
   DreamSerializerKey,
   JoinAndStatements,
+  PassthroughOnClauseKeys,
   RequiredOnClauseKeys,
   UpdateableAssociationProperties,
   UpdateableProperties,
@@ -34,6 +41,7 @@ import associationQuery from './internal/associations/associationQuery.js'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery.js'
 import createAssociation from './internal/associations/createAssociation.js'
 import destroyAssociation from './internal/associations/destroyAssociation.js'
+import loadedOrLoadAssociation from './internal/associations/loadedOrLoadAssociation.js'
 import undestroyAssociation from './internal/associations/undestroyAssociation.js'
 import destroyDream from './internal/destroyDream.js'
 import {
@@ -538,6 +546,286 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   ): Promise<void> {
     await saveDream(this.dreamInstance, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
   }
+
+  ///////////////////
+  // association
+  ///////////////////
+  /**
+   * If the association is already loaded on the instance, it returns the loaded value
+   * immediately without making a database query. If the association is not loaded,
+   * it performs a database query to fetch the association.
+   *
+   * If a query is performed, the association is set on the model so that future calls to
+   * access this association can access the already loaded value.
+   *
+   * For HasMany associations, returns an array (empty if no records). For BelongsTo/HasOne
+   * associations, returns the associated model or null if not found.
+   *
+   * ```ts
+   * // Basic association loading within a transaction
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await post.txn(txn).association('user')
+   *   const comments = await post.txn(txn).association('comments')
+   * })
+   *
+   * // With required clause (for associations with DreamConst.required `and` clauses)
+   * const pets = await user.txn(txn).association('petsWithRequiredName', {
+   *   required: { name: 'Woodstock' }
+   * })
+   *
+   * // With passthrough clause (for associations with DreamConst.passthrough `and` clauses)
+   * const pets = await user.txn(txn).association('petsWithPassthroughName', {
+   *   passthrough: { name: 'Woodstock' }
+   * })
+   *
+   * // With both required and passthrough clauses (for associations with DreamConst.required and DreamConst.passthrough `and` clauses)
+   * const text = await composition.txn(txn).association('passthroughAndRequiredCurrentLocalizedText', {
+   *   passthrough: { name: 'My Composition' },
+   *   required: { locale: 'de-DE' }
+   * })
+   * ```
+   *
+   * @param associationName - The name of the BelongsTo, HasOne, or HasMany association
+   * @param options - Optional configuration for required and passthrough clauses
+   * @param options.required - for associations with DreamConst.required `and` clauses
+   * @param options.passthrough - for associations with DreamConst.passthrough `and` clauses
+   * @returns The associated model instance(s) or null/empty array if not found
+   */
+  public async association<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<DreamInstance>
+      | DreamHasOneAssociationNames<DreamInstance>
+      | DreamHasManyAssociationNames<DreamInstance>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<DreamInstance>
+      | DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+      ? MaybeAssociationName
+      : never,
+    //
+    AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
+    //
+
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    PassthroughOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
+    RequiredOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
+    Opts extends AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<DreamInstance> &
+      DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+      ? {
+          passthrough: PassthroughOnStatement
+          required: RequiredOnStatement
+        }
+      : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<DreamInstance>
+        ? {
+            passthrough: PassthroughOnStatement
+          }
+        : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+          ? {
+              required: RequiredOnStatement
+            }
+          : never,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<DreamInstance>
+      ? AssociationNameToDream<DreamInstance, AssociationName>[]
+      : AssociationNameToDream<DreamInstance, AssociationName> | null,
+  >(this: I, associationName: AssociationName, options: Opts): Promise<ReturnType>
+
+  public async association<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<DreamInstance>
+      | DreamHasOneAssociationNames<DreamInstance>
+      | DreamHasManyAssociationNames<DreamInstance>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<DreamInstance>
+      | DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+      ? never
+      : MaybeAssociationName,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<DreamInstance>
+      ? AssociationNameToDream<DreamInstance, AssociationName>[]
+      : AssociationNameToDream<DreamInstance, AssociationName> | null,
+  >(this: I, associationName: AssociationName): Promise<ReturnType>
+
+  public async association<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends
+      | DreamBelongsToAssociationNames<DreamInstance>
+      | DreamHasOneAssociationNames<DreamInstance>
+      | DreamHasManyAssociationNames<DreamInstance>,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<DreamInstance>
+      ? AssociationNameToDream<DreamInstance, AssociationName>[]
+      : AssociationNameToDream<DreamInstance, AssociationName> | null,
+  >(
+    this: I,
+    associationName: AssociationName,
+    options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+  ): Promise<ReturnType> {
+    return await loadedOrLoadAssociation(this.dreamInstance, this, associationName, options)
+  }
+  ///////////////////
+  // end:association
+  ///////////////////
+
+  ///////////////////
+  // end:associationOrFail
+  ///////////////////
+  /**
+   * If the association is already loaded on the instance, it returns the loaded value
+   * immediately without making a database query. If the association is not loaded,
+   * it performs a database query to fetch the association.
+   *
+   * Unlike `association`, this method throws an exception if no associated
+   * record is found for BelongsTo/HasOne associations, guaranteeing a non-null result.
+   * For HasMany associations, returns an empty array instead of throwing when no records exist.
+   *
+   * If a query is performed, the association is set on the model so that future calls to
+   * access this association can access the already loaded value.
+   *
+   * For HasMany associations, returns an array (empty if no records). For BelongsTo/HasOne
+   * associations, returns the associated model or throws RecordNotFound if not found.
+   *
+   * ```ts
+   * // Basic association loading within a transaction - throws RecordNotFound if user doesn't exist
+   * await ApplicationModel.transaction(async txn => {
+   *   const user = await post.txn(txn).associationOrFail('user')
+   *   const comments = await post.txn(txn).associationOrFail('comments') // returns empty array if no comments
+   * })
+   *
+   * // With required clause (for associations with DreamConst.required `and` clauses)
+   * const pets = await user.txn(txn).associationOrFail('petsWithRequiredName', {
+   *   required: { name: 'Woodstock' }
+   * })
+   *
+   * // With passthrough clause (for associations with DreamConst.passthrough `and` clauses)
+   * const pets = await user.txn(txn).associationOrFail('petsWithPassthroughName', {
+   *   passthrough: { name: 'Woodstock' }
+   * })
+   *
+   * // With both required and passthrough clauses (for associations with DreamConst.required and DreamConst.passthrough `and` clauses)
+   * const text = await composition.txn(txn).associationOrFail('passthroughAndRequiredCurrentLocalizedText', {
+   *   passthrough: { name: 'My Composition' },
+   *   required: { locale: 'de-DE' }
+   * })
+   * ```
+   *
+   * @param associationName - The name of the BelongsTo, HasOne, or HasMany association
+   * @param options - Optional configuration for required and passthrough clauses
+   * @param options.required - for associations with DreamConst.required `and` clauses
+   * @param options.passthrough - for associations with DreamConst.passthrough `and` clauses
+   * @returns The associated model instance(s) (never null for BelongsTo/HasOne)
+   * @throws RecordNotFound if no associated record exists (BelongsTo/HasOne only)
+   */
+  public async associationOrFail<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<DreamInstance>
+      | DreamHasOneAssociationNames<DreamInstance>
+      | DreamHasManyAssociationNames<DreamInstance>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<DreamInstance>
+      | DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+      ? MaybeAssociationName
+      : never,
+    //
+    AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
+    AssociationTableName extends AssociationDream['table'],
+    //
+
+    DB extends DreamInstance['DB'],
+    TableName extends DreamInstance['table'],
+    Schema extends DreamInstance['schema'],
+    PassthroughOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
+    RequiredOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
+    Opts extends AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<DreamInstance> &
+      DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+      ? {
+          passthrough: PassthroughOnStatement
+          required: RequiredOnStatement
+        }
+      : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<DreamInstance>
+        ? {
+            passthrough: PassthroughOnStatement
+          }
+        : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+          ? {
+              required: RequiredOnStatement
+            }
+          : never,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<DreamInstance>
+      ? AssociationNameToDream<DreamInstance, AssociationName>[]
+      : AssociationNameToDream<DreamInstance, AssociationName>,
+  >(this: I, associationName: AssociationName, options: Opts): Promise<ReturnType>
+
+  public async associationOrFail<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    MaybeAssociationName extends
+      | DreamBelongsToAssociationNames<DreamInstance>
+      | DreamHasOneAssociationNames<DreamInstance>
+      | DreamHasManyAssociationNames<DreamInstance>,
+    AssociationName extends MaybeAssociationName extends
+      | DreamAssociationNamesWithPassthroughOnClauses<DreamInstance>
+      | DreamAssociationNamesWithRequiredOnClauses<DreamInstance>
+      ? never
+      : MaybeAssociationName,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<DreamInstance>
+      ? AssociationNameToDream<DreamInstance, AssociationName>[]
+      : AssociationNameToDream<DreamInstance, AssociationName>,
+  >(this: I, associationName: AssociationName): Promise<ReturnType>
+
+  public async associationOrFail<
+    I extends DreamInstanceTransactionBuilder<DreamInstance>,
+    AssociationName extends
+      | DreamBelongsToAssociationNames<DreamInstance>
+      | DreamHasOneAssociationNames<DreamInstance>
+      | DreamHasManyAssociationNames<DreamInstance>,
+    ReturnType extends AssociationName extends DreamHasManyAssociationNames<DreamInstance>
+      ? AssociationNameToDream<DreamInstance, AssociationName>[]
+      : AssociationNameToDream<DreamInstance, AssociationName>,
+  >(
+    this: I,
+    associationName: AssociationName,
+    options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+  ): Promise<ReturnType> {
+    const response = await this.association(associationName as any, options as any)
+
+    if (this.dreamInstance[associationName] === null)
+      throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
+
+    return response as ReturnType
+  }
+  ///////////////////
+  // end:associationOrFail
+  ///////////////////
 
   ///////////////////
   // associationQuery

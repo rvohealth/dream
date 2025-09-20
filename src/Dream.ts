@@ -17,6 +17,7 @@ import associationQuery from './dream/internal/associations/associationQuery.js'
 import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js'
 import createAssociation from './dream/internal/associations/createAssociation.js'
 import destroyAssociation from './dream/internal/associations/destroyAssociation.js'
+import loadedOrLoadAssociation from './dream/internal/associations/loadedOrLoadAssociation.js'
 import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js'
 import associationStringToNameAndAlias from './dream/internal/associationStringToNameAndAlias.js'
 import destroyDream from './dream/internal/destroyDream.js'
@@ -4150,13 +4151,36 @@ export default class Dream {
    * If a query is performed, the association is set on the model so that future calls to
    * access this association can access the already loaded value.
    *
+   * For HasMany associations, returns an array (empty if no records). For BelongsTo/HasOne
+   * associations, returns the associated model or null if not found.
+   *
    * ```ts
-   * // return the already loaded user if it exists or fetch it from the database otherwise
-   * const user = await post.associationOrFail('user')
+   * // Basic association loading
+   * const user = await post.association('user')
+   * const comments = await post.association('comments')
+   *
+   * // With required clause (for associations with DreamConst.required `and` clauses)
+   * const pets = await user.association('petsWithRequiredName', {
+   *   required: { name: 'Woodstock' }
+   * })
+   *
+   * // With passthrough clause (for associations with DreamConst.passthrough `and` clauses)
+   * const pets = await user.association('petsWithPassthroughName', {
+   *   passthrough: { name: 'Woodstock' }
+   * })
+   *
+   * // With both required and passthrough clauses (for associations with DreamConst.required and DreamConst.passthrough `and` clauses)
+   * const text = await composition.association('passthroughAndRequiredCurrentLocalizedText', {
+   *   passthrough: { name: 'My Composition' },
+   *   required: { locale: 'de-DE' }
+   * })
    * ```
    *
-   * @param associationName - The name of the BelongsTo or HasOne association
-   * @returns The associated model instance or null
+   * @param associationName - The name of the BelongsTo, HasOne, or HasMany association
+   * @param options - Optional configuration for required and passthrough clauses
+   * @param options.required - for associations with DreamConst.required `and` clauses
+   * @param options.passthrough - for associations with DreamConst.passthrough `and` clauses
+   * @returns The associated model instance(s) or null/empty array if not found
    */
   public async association<
     I extends Dream,
@@ -4177,48 +4201,35 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
+    PassthroughOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
+    RequiredOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
     Opts extends AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I> &
       DreamAssociationNamesWithRequiredOnClauses<I>
       ? {
-          passthrough: Required<
-            OnStatementForSpecificColumns<
-              DB,
-              Schema,
-              AssociationTableName,
-              PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
-            >
-          >
-
-          required: Required<
-            OnStatementForSpecificColumns<
-              DB,
-              Schema,
-              AssociationTableName,
-              RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
-            >
-          >
+          passthrough: PassthroughOnStatement
+          required: RequiredOnStatement
         }
       : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I>
         ? {
-            passthrough: Required<
-              OnStatementForSpecificColumns<
-                DB,
-                Schema,
-                AssociationTableName,
-                PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
-              >
-            >
+            passthrough: PassthroughOnStatement
           }
         : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>
           ? {
-              required: Required<
-                OnStatementForSpecificColumns<
-                  DB,
-                  Schema,
-                  AssociationTableName,
-                  RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
-                >
-              >
+              required: RequiredOnStatement
             }
           : never,
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
@@ -4256,21 +4267,7 @@ export default class Dream {
     associationName: AssociationName,
     options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
   ): Promise<ReturnType> {
-    if (!this.loaded(associationName)) {
-      const association = this.getAssociationMetadata(associationName)
-      const associationQueryOptions = options?.required && { and: options.required }
-      let scope = this.associationQuery(associationName as any, associationQueryOptions as any)
-
-      if (options?.passthrough) scope = scope.passthrough(options.passthrough)
-
-      if (association?.type === 'HasMany') {
-        this[associationName] = (await scope.all()) as any
-      } else {
-        this[associationName] = (await scope.first()) as any
-      }
-    }
-
-    return this[associationName] as ReturnType
+    return await loadedOrLoadAssociation(this, this, associationName, options)
   }
   ///////////////////
   // end:association
@@ -4285,20 +4282,45 @@ export default class Dream {
    * it performs a database query to fetch the association.
    *
    * Unlike `association`, this method throws an exception if no associated
-   * record is found, guaranteeing a non-null result.
+   * record is found for BelongsTo/HasOne associations, guaranteeing a non-null result.
+   * For HasMany associations, returns an empty array instead of throwing when no records exist.
    *
    * If a query is performed, the association is set on the model so that future calls to
    * access this association can access the already loaded value.
    *
+   * For HasMany associations, returns an array (empty if no records). For BelongsTo/HasOne
+   * associations, returns the associated model or throws RecordNotFound if not found.
+   *
    * ```ts
-   * // return the already loaded user if it exists or fetch it from the database otherwise,
-   * // throwing RecordNotFound either way if the associated model does not exist
+   * // Basic association loading - throws RecordNotFound if user doesn't exist
    * const user = await post.associationOrFail('user')
+   *
+   * // HasMany - returns empty array if no comments, never throws
+   * const comments = await post.associationOrFail('comments')
+   *
+   * // With required clause (for associations with DreamConst.required `and` clauses)
+   * const pets = await user.associationOrFail('petsWithRequiredName', {
+   *   required: { name: 'Woodstock' }
+   * })
+   *
+   * // With passthrough clause (for associations with DreamConst.passthrough `and` clauses)
+   * const pets = await user.associationOrFail('petsWithPassthroughName', {
+   *   passthrough: { name: 'Woodstock' }
+   * })
+   *
+   * // With both required and passthrough clauses (for associations with DreamConst.required and DreamConst.passthrough `and` clauses)
+   * const text = await composition.associationOrFail('passthroughAndRequiredCurrentLocalizedText', {
+   *   passthrough: { name: 'My Composition' },
+   *   required: { locale: 'de-DE' }
+   * })
    * ```
    *
-   * @param associationName - The name of the BelongsTo or HasOne association
-   * @returns The associated model instance (never null)
-   * @throws RecordNotFound if no associated record exists
+   * @param associationName - The name of the BelongsTo, HasOne, or HasMany association
+   * @param options - Optional configuration for required and passthrough clauses
+   * @param options.required - for associations with DreamConst.required `and` clauses
+   * @param options.passthrough - for associations with DreamConst.passthrough `and` clauses
+   * @returns The associated model instance(s) (never null for BelongsTo/HasOne)
+   * @throws RecordNotFound if no associated record exists (BelongsTo/HasOne only)
    */
   public async associationOrFail<
     I extends Dream,
@@ -4319,48 +4341,35 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Schema extends I['schema'],
+    PassthroughOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
+    RequiredOnStatement extends Required<
+      OnStatementForSpecificColumns<
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
+      >
+    >,
     Opts extends AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I> &
       DreamAssociationNamesWithRequiredOnClauses<I>
       ? {
-          passthrough: Required<
-            OnStatementForSpecificColumns<
-              DB,
-              Schema,
-              AssociationTableName,
-              PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
-            >
-          >
-
-          required: Required<
-            OnStatementForSpecificColumns<
-              DB,
-              Schema,
-              AssociationTableName,
-              RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
-            >
-          >
+          passthrough: PassthroughOnStatement
+          required: RequiredOnStatement
         }
       : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I>
         ? {
-            passthrough: Required<
-              OnStatementForSpecificColumns<
-                DB,
-                Schema,
-                AssociationTableName,
-                PassthroughOnClauseKeys<Schema, TableName, AssociationName> & string[]
-              >
-            >
+            passthrough: PassthroughOnStatement
           }
         : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>
           ? {
-              required: Required<
-                OnStatementForSpecificColumns<
-                  DB,
-                  Schema,
-                  AssociationTableName,
-                  RequiredOnClauseKeys<Schema, TableName, AssociationName> & string[]
-                >
-              >
+              required: RequiredOnStatement
             }
           : never,
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
