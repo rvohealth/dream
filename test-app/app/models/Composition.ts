@@ -114,6 +114,13 @@ export default class Composition extends ApplicationModel {
   @deco.HasOne('LocalizedText', {
     polymorphic: true,
     on: 'localizableId',
+    and: { locale: DreamConst.required, name: DreamConst.passthrough },
+  })
+  public passthroughAndRequiredCurrentLocalizedText: LocalizedText
+
+  @deco.HasOne('LocalizedText', {
+    polymorphic: true,
+    on: 'localizableId',
     and: { name: 'cascade delete me' },
     dependent: 'destroy',
   })

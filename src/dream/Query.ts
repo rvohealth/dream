@@ -331,7 +331,6 @@ export default class Query<
     this.dreamTransaction = opts.transaction || null
     this.connectionOverride = opts.connection
     this.innerJoinDreamClasses = Object.freeze(opts.innerJoinDreamClasses || [])
-
     this.passthroughOnStatement = Object.freeze(opts.passthroughOnStatement || {})
     this.whereStatements = Object.freeze(opts.where || [])
     this.whereNotStatements = Object.freeze(opts.whereNot || [])
@@ -1211,7 +1210,9 @@ export default class Query<
    * @returns A cloned Query with the passthrough data
    */
   public passthrough(passthroughOnStatement: PassthroughOnClause<PassthroughColumnNames<DreamInstance>>) {
-    return this.clone({ passthroughOnStatement: passthroughOnStatement })
+    const baseSelectQuery =
+      this.baseSelectQuery && this.baseSelectQuery.clone({ passthroughOnStatement: passthroughOnStatement })
+    return this.clone({ passthroughOnStatement: passthroughOnStatement, baseSelectQuery })
   }
 
   /**

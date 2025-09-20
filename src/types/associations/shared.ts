@@ -219,6 +219,14 @@ export type OnStatementForAssociation<
         Partial<Omit<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>>
     : never
 
+export type OnStatementForSpecificColumns<
+  DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
+  Columns extends string[],
+  OnStatement extends WhereStatement<DB, Schema, TableName> = WhereStatement<DB, Schema, TableName>,
+> = Pick<OnStatement, Columns[number] & keyof OnStatement>
+
 // on statement on an association definition
 type OnStatementForAssociationDefinition<
   DB,

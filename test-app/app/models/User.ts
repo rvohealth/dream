@@ -1,7 +1,7 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import Query from '../../../src/dream/Query.js'
 import range from '../../../src/helpers/range.js'
-import { DateTime, Decorators, round } from '../../../src/index.js'
+import { DateTime, Decorators, DreamConst, round } from '../../../src/index.js'
 import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
@@ -233,6 +233,12 @@ export default class User extends ApplicationModel {
 
   @deco.HasOne('Pet', { and: { name: 'Aster' } })
   public asterPet: Pet
+
+  @deco.HasMany('Pet', { and: { name: DreamConst.passthrough } })
+  public petsWithPassthroughName: Pet[]
+
+  @deco.HasMany('Pet', { and: { name: DreamConst.required } })
+  public petsWithRequiredName: Pet[]
 
   @deco.HasMany('Collar', { through: 'petsFromUuid', source: 'collars' })
   public collarsFromUuid: Collar[]

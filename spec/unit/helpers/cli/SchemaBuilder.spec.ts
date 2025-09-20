@@ -165,7 +165,7 @@ describe('SchemaBuilder', () => {
 
     context('passthrough', () => {
       it('sets the default and non-default scopes', () => {
-        expect(User.prototype.connectionTypeConfig.passthroughColumns).toEqual(['locale'])
+        expect(User.prototype.connectionTypeConfig.passthroughColumns).toEqual(['locale', 'name'])
       })
 
       context('alternate connections', () => {
@@ -201,18 +201,32 @@ describe('SchemaBuilder', () => {
           optional: false,
           foreignKey: 'petId',
           foreignKeyTypeColumn: null,
-          requiredOnClauses: null,
+          requiredAndClauses: null,
+          passthroughAndClauses: null,
         })
       })
 
-      it('renders required where clauses', () => {
+      it('renders required "and" clauses', () => {
         expect(User.prototype.schema.compositions.associations.requiredCurrentLocalizedText).toEqual({
           type: 'HasOne',
           foreignKey: 'localizableId',
           foreignKeyTypeColumn: 'localizableType',
           tables: ['localized_texts'],
           optional: null,
-          requiredOnClauses: ['locale'],
+          requiredAndClauses: ['locale'],
+          passthroughAndClauses: null,
+        })
+      })
+
+      it('renders passthrough "and" clauses', () => {
+        expect(User.prototype.schema.compositions.associations.passthroughCurrentLocalizedText).toEqual({
+          type: 'HasOne',
+          foreignKey: 'localizableId',
+          foreignKeyTypeColumn: 'localizableType',
+          tables: ['localized_texts'],
+          optional: null,
+          requiredAndClauses: null,
+          passthroughAndClauses: ['locale'],
         })
       })
 
