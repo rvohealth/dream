@@ -1,6 +1,7 @@
 ## 1.11.0
 
 - `association` and `associationOrFail` handle required and passthrough `and` clauses
+- `association` and `associationOrFail` compatible with transactions
 
 ## 1.10.0
 
