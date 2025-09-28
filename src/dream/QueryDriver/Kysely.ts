@@ -66,6 +66,7 @@ import { DateTime } from '../../helpers/DateTime.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import groupBy from '../../helpers/groupBy.js'
 import isEmpty from '../../helpers/isEmpty.js'
+import maybeNamespacedColumnNameToColumnName from '../../helpers/maybeNamespacedColumnNameToColumnName.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
 import normalizeUnicode from '../../helpers/normalizeUnicode.js'
 import objectPathsToArrays from '../../helpers/objectPathsToArrays.js'
@@ -678,9 +679,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * @returns An array of plucked values
    */
   public override async pluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
-    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(
-      this.query['removeAllDefaultScopesExceptOnAssociations']()
-    ).buildSelect({
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
       bypassSelectAll: true,
     })
     const aliases: string[] = []
@@ -1549,10 +1548,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     if (val instanceof Function && val !== DreamConst.passthrough) {
       val = val()
     } else if (val === DreamConst.passthrough) {
-      const column = attr.split('.').at(-1)
-      if ((this.query['passthroughOnStatement'] as any)[column!] === undefined)
-        throw new MissingRequiredPassthroughForAssociationAndClause(column!)
-      val = (this.query['passthroughOnStatement'] as any)[column!]
+      const column = maybeNamespacedColumnNameToColumnName(attr)
+      if ((this.query['passthroughOnStatement'] as any)[column] === undefined)
+        throw new MissingRequiredPassthroughForAssociationAndClause(column)
+      val = (this.query['passthroughOnStatement'] as any)[column]
     }
 
     if (val === null) {

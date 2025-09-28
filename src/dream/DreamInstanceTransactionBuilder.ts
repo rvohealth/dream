@@ -1259,6 +1259,17 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const dreamClass = this.dreamInstance.constructor as DreamConstructorType<DreamInstance>
     const id = this.dreamInstance.primaryKeyValue()
 
-    return dreamClass.txn(this.dreamTransaction).where({ [this.dreamInstance['_primaryKey']]: id } as any)
+    return dreamClass
+      .txn(this.dreamTransaction)
+      .where({ [this.dreamInstance['_primaryKey']]: id } as any)
+      [
+        /**
+         * The Dream may have default scopes that would preclude finding the instance, so the Query
+         * that finds the loaded model must be unscoped, but that unscoping should not carry through
+         * to other associations (thus the use of `removeAllDefaultScopesExceptOnAssociations`
+         * instead of `removeAllDefaultScopes`).
+         */
+        'removeAllDefaultScopesExceptOnAssociations'
+      ]()
   }
 }

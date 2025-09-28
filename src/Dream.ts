@@ -1552,7 +1552,15 @@ export default class Dream {
    */
   public query<I extends Dream>(this: I): Query<I> {
     const dreamClass = this.constructor as DreamConstructorType<I>
-    return dreamClass.where({ [this._primaryKey]: this.primaryKeyValue() } as any)
+    return dreamClass.where({ [this._primaryKey]: this.primaryKeyValue() } as any)[
+      /**
+       * The Dream may have default scopes that would preclude finding the instance, so the Query
+       * that finds the loaded model must be unscoped, but that unscoping should not carry through
+       * to other associations (thus the use of `removeAllDefaultScopesExceptOnAssociations`
+       * instead of `removeAllDefaultScopes`).
+       */
+      'removeAllDefaultScopesExceptOnAssociations'
+    ]()
   }
 
   /**

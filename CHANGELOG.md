@@ -1,5 +1,10 @@
 ## 1.11.0
 
+- fix `scrollPaginate` when the column being ordered by is not unique
+- fix `pluck` so it properly omits soft-deleted records
+
+## 1.11.0
+
 - `association` and `associationOrFail` handle required and passthrough `and` clauses
 - `association` and `associationOrFail` compatible with transactions
 - `scrollPaginate` Query and static Dream methods

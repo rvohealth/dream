@@ -6,6 +6,7 @@ import Composition from '../../../../test-app/app/models/Composition.js'
 import Edge from '../../../../test-app/app/models/Graph/Edge.js'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
 import Node from '../../../../test-app/app/models/Graph/Node.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#pluck', () => {
@@ -22,6 +23,19 @@ describe('Query#pluck', () => {
   it('plucks the specified attributes and returns them as raw data', async () => {
     const plucked = await User.order('id').pluck('id')
     expect(plucked).toEqual([user1.id, user2.id, user3.id])
+  })
+
+  context('soft-deleted records', () => {
+    it('are omitted', async () => {
+      const snoopy = await Pet.create({ name: 'Snoopy' })
+      const woodstock = await Pet.create({ name: 'Woodstock' })
+      const aster = await Pet.create({ name: 'Aster' })
+
+      expect(await Pet.order('id').pluck('id')).toEqual([snoopy.id, woodstock.id, aster.id])
+
+      await woodstock.destroy()
+      expect(await Pet.order('id').pluck('id')).toEqual([snoopy.id, aster.id])
+    })
   })
 
   context('on an associationQuery', () => {

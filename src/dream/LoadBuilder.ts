@@ -26,13 +26,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   ) {
     this.dream = dream['clone']()
 
-    // Load queries start from the table corresponding to an instance
-    // of a Dream. However, the Dream may have default scopes that would
-    // preclude finding that instance, so the Query that forms the base of
-    // a load must be unscoped, but that unscoping should not carry through
-    // to other associations (thus the use of `removeAllDefaultScopesExceptOnAssociations`
-    // instead of `removeAllDefaultScopes`).
-    this.query = (this.dream as any).query()['removeAllDefaultScopesExceptOnAssociations']()
+    this.query = (this.dream as any).query()
   }
 
   public passthrough<

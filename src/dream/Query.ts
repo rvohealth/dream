@@ -1894,33 +1894,72 @@ export default class Query<
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
     if (this.joinLoadActivated) throw new CannotPaginateWithLeftJoinPreload()
 
-    const explicitOrdering = !!this.orderStatements.length
+    const orderIncludesPrimaryKey = this.orderStatements.some(
+      orderStatement =>
+        orderStatement.column === this.dreamClass.primaryKey ||
+        orderStatement.column === this.namespacedPrimaryKey
+    )
 
-    let query = explicitOrdering ? this : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+    let query = orderIncludesPrimaryKey
+      ? this
+      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
 
     if (options.cursor) {
-      if (explicitOrdering) {
-        const lastItem = await query
-          .where({ [this.dreamClass.primaryKey]: options.cursor } as any)
-          .firstOrFail()
+      const orderStatements = query.orderStatements
 
-        this.orderStatements.forEach(orderStatement => {
-          const column = orderStatement.column
-          const direction = orderStatement.direction
-          switch (direction) {
+      /**
+       * if there is only one ordering, then that is the primary key (either added above or in the original),
+       * so we don't need to pluck values, and all we need is the primary key that we already have in the cursor
+       */
+      const endOfPreviousPageComparisonValues =
+        orderStatements.length === 1
+          ? [options.cursor]
+          : (
+              await query
+                .removeDefaultScopeExceptOnAssociations(
+                  SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>
+                )
+                .where({ [this.namespacedPrimaryKey]: options.cursor } as any)
+
+                .limit(1)
+                .order(null)
+                .pluck(...orderStatements.map(orderStatement => orderStatement.column))
+            )[0] || []
+
+      endOfPreviousPageComparisonValues.forEach((valueToCompare, index) => {
+        const orderStatement = orderStatements[index]!
+
+        if (
+          orderStatement.column === this.dreamClass.primaryKey ||
+          orderStatement.column === this.namespacedPrimaryKey
+        ) {
+          switch (orderStatement.direction) {
             case 'asc':
-              query = query.where({ [column]: ops.greaterThan(lastItem[column]) } as any) as typeof query
+              query = query.where({
+                [orderStatement.column]: ops.greaterThan(valueToCompare),
+              } as any) as typeof query
               break
             case 'desc':
-              query = query.where({ [column]: ops.lessThan(lastItem[column]) } as any) as typeof query
+              query = query.where({
+                [orderStatement.column]: ops.lessThan(valueToCompare),
+              } as any) as typeof query
               break
           }
-        })
-      } else {
-        query = query.where({
-          [this.dreamClass.primaryKey]: ops.greaterThan(options.cursor),
-        } as any) as typeof query
-      }
+        } else {
+          switch (orderStatement.direction) {
+            case 'asc':
+              query = query.where({
+                [orderStatement.column]: ops.greaterThanOrEqualTo(valueToCompare),
+              } as any) as typeof query
+              break
+            case 'desc':
+              query = query.where({
+                [orderStatement.column]: ops.lessThanOrEqualTo(valueToCompare),
+              } as any) as typeof query
+              break
+          }
+        }
+      })
     }
 
     const results = await query.limit(pageSize as any).all()

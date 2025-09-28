@@ -23,12 +23,34 @@ describe('Query#scrollPaginate', () => {
     })
   })
 
+  context('soft-deleted records', () => {
+    it('are omitted from the results', async () => {
+      await woodstock.destroy()
+      const results = await Pet.query().scrollPaginate({ pageSize: 2, cursor: undefined })
+      expect(results).toEqual({
+        cursor: aster.id,
+        results: [expect.toMatchDreamModel(snoopy), expect.toMatchDreamModel(aster)],
+      })
+    })
+  })
+
   context('passed cursor that is the primary key of a record', () => {
     it('includes records higher in the sort order than that record', async () => {
       const results = await Pet.query().scrollPaginate({ pageSize: 2, cursor: snoopy.id })
       expect(results).toEqual({
         cursor: aster.id,
         results: [expect.toMatchDreamModel(woodstock), expect.toMatchDreamModel(aster)],
+      })
+    })
+
+    context('when the record corresponding to the cursor has been soft-deleted', () => {
+      it('includes records higher in the sort order than that record', async () => {
+        await snoopy.destroy()
+        const results = await Pet.query().scrollPaginate({ pageSize: 2, cursor: snoopy.id })
+        expect(results).toEqual({
+          cursor: aster.id,
+          results: [expect.toMatchDreamModel(woodstock), expect.toMatchDreamModel(aster)],
+        })
       })
     })
   })
@@ -60,10 +82,84 @@ describe('Query#scrollPaginate', () => {
           results: [expect.toMatchDreamModel(woodstock)],
         })
       })
+
+      context('when the record corresponding to the cursor has been soft-deleted', () => {
+        it('includes records higher in the sort order than that record', async () => {
+          await snoopy.destroy()
+          const results = await Pet.query().order('name').scrollPaginate({ pageSize: 2, cursor: snoopy.id })
+          expect(results).toEqual({
+            cursor: null,
+            results: [expect.toMatchDreamModel(woodstock)],
+          })
+        })
+      })
+
+      context('when the record corresponding to the cursor has been deleted', () => {
+        it('treats it as if the cursor were undefined', async () => {
+          await snoopy.reallyDestroy()
+          const results = await Pet.query().order('name').scrollPaginate({ pageSize: 2, cursor: snoopy.id })
+          expect(results).toEqual({
+            cursor: woodstock.id,
+            results: [expect.toMatchDreamModel(aster), expect.toMatchDreamModel(woodstock)],
+          })
+        })
+      })
+    })
+
+    context('when the field is not unique', () => {
+      it('includes the primary key as a fallback sort so that no records are missed and no records are repeated', async () => {
+        const snoopy2 = await Pet.create({ name: 'Snoopy' })
+
+        const results = await Pet.query()
+          .order({ name: 'asc' })
+          .scrollPaginate({ pageSize: 2, cursor: undefined })
+        expect(results).toEqual({
+          cursor: snoopy.id,
+          results: [expect.toMatchDreamModel(aster), expect.toMatchDreamModel(snoopy)],
+        })
+
+        const results2 = await Pet.query()
+          .order({ name: 'asc' })
+          .scrollPaginate({ pageSize: 2, cursor: snoopy.id })
+        expect(results2).toEqual({
+          cursor: woodstock.id,
+          results: [expect.toMatchDreamModel(snoopy2), expect.toMatchDreamModel(woodstock)],
+        })
+      })
+    })
+
+    context('when the field is the primary key of a joined association', () => {
+      it('includes the primary key of the model being paginated as a fallback sort so that no records are missed and no records are repeated', async () => {
+        const snoopy2 = await Pet.create({ name: 'Snoopy' })
+
+        const user = await User.create({ email: 'a@b.com', password: 's3cr3t' })
+        await aster.update({ user })
+        await snoopy.update({ user })
+        await snoopy2.update({ user })
+        await woodstock.update({ user })
+
+        const results = await Pet.query()
+          .leftJoin('user')
+          .order({ 'pets.name': 'asc', 'user.id': 'asc' })
+          .scrollPaginate({ pageSize: 2, cursor: undefined })
+        expect(results).toEqual({
+          cursor: snoopy.id,
+          results: [expect.toMatchDreamModel(aster), expect.toMatchDreamModel(snoopy)],
+        })
+
+        const results2 = await Pet.query()
+          .leftJoin('user')
+          .order({ 'pets.name': 'asc', 'user.id': 'asc' })
+          .scrollPaginate({ pageSize: 2, cursor: snoopy.id })
+        expect(results2).toEqual({
+          cursor: woodstock.id,
+          results: [expect.toMatchDreamModel(snoopy2), expect.toMatchDreamModel(woodstock)],
+        })
+      })
     })
   })
 
-  context('a query ordered—ascending—by a non-primary key field', () => {
+  context('a query ordered—descending—by a non-primary key field', () => {
     it('cursor and results respect the order', async () => {
       const results = await Pet.query()
         .order({ name: 'desc' })
@@ -82,6 +178,28 @@ describe('Query#scrollPaginate', () => {
         expect(results).toEqual({
           cursor: null,
           results: [expect.toMatchDreamModel(aster)],
+        })
+      })
+    })
+
+    context('when the field is not unique', () => {
+      it('includes the primary key as a fallback sort so that no records are missed and no records are repeated', async () => {
+        const snoopy2 = await Pet.create({ name: 'Snoopy' })
+
+        const results = await Pet.query()
+          .order({ name: 'desc' })
+          .scrollPaginate({ pageSize: 2, cursor: undefined })
+        expect(results).toEqual({
+          cursor: snoopy.id,
+          results: [expect.toMatchDreamModel(woodstock), expect.toMatchDreamModel(snoopy)],
+        })
+
+        const results2 = await Pet.query()
+          .order({ name: 'desc' })
+          .scrollPaginate({ pageSize: 2, cursor: snoopy.id })
+        expect(results2).toEqual({
+          cursor: aster.id,
+          results: [expect.toMatchDreamModel(snoopy2), expect.toMatchDreamModel(aster)],
         })
       })
     })
