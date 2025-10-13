@@ -1,5 +1,10 @@
 ## 1.11.0
 
+- known valid CalendarDate types result in conversions to non-null
+- known valid CalendarDate types remain known valid
+
+## 1.11.0
+
 - fix `scrollPaginate` when the column being ordered by is not unique
 - fix `pluck` so it properly omits soft-deleted records
 

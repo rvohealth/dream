@@ -70,7 +70,7 @@ describe('areEqual', () => {
 
   it('can compare CalendarDates', () => {
     const date1 = CalendarDate.today()
-    const date2 = CalendarDate.fromISO(date1.toISO()!)
+    const date2 = CalendarDate.fromISO(date1.toISO())
     expect(areEqual(date1, date2)).toBe(true)
     expect(areEqual(date1, date1.plus({ day: 1 }))).toBe(false)
   })

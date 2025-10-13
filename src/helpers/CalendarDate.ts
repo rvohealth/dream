@@ -2,6 +2,7 @@ import { DateObjectUnits, DateTimeJSOptions, DateTimeUnit, LocaleOptions } from 
 import { DurationLikeObject, DurationObjectUnits } from '../types/luxon/duration.js'
 import { DateTimeFormatOptions } from '../types/luxon/misc.js'
 import { Zone } from '../types/luxon/zone.js'
+import compact from './compact.js'
 import { DateTime } from './DateTime.js'
 
 type CalendarDateDurationLike = Pick<
@@ -15,8 +16,10 @@ type CalendarDateDurationUnit = keyof Pick<
 >
 
 type CalendarDateUnit = Extract<DateTimeUnit, 'year' | 'quarter' | 'month' | 'week' | 'day'>
+type Valid = true
+type Invalid = false
 
-export default class CalendarDate {
+export default class CalendarDate<IsValid extends boolean = boolean> {
   private readonly luxonDateTime: DateTime | null
 
   constructor(source: DateTime | number | null, month: number = 1, day: number = 1) {
@@ -31,40 +34,52 @@ export default class CalendarDate {
     }
   }
 
-  public static fromDateTime(dateTime: DateTime): CalendarDate {
-    return new CalendarDate(dateTime)
+  public static fromDateTime<
+    T extends DateTime<Valid> | DateTime<Invalid> | DateTime<boolean>,
+    GenericType extends T extends DateTime<Valid> ? Valid : T extends DateTime<Invalid> ? Invalid : boolean,
+  >(dateTime: T): CalendarDate<GenericType> {
+    return new CalendarDate<GenericType>(dateTime)
   }
 
-  public static fromJSDate(javascriptDate: Date, { zone }: { zone?: string | Zone } = {}): CalendarDate {
-    return new CalendarDate(DateTime.fromJSDate(javascriptDate, zone ? { zone } : undefined))
+  public static fromJSDate(
+    javascriptDate: Date,
+    { zone }: { zone?: string | Zone } = {}
+  ): CalendarDate<Valid> {
+    return new CalendarDate<Valid>(DateTime.fromJSDate(javascriptDate, zone ? { zone } : undefined))
   }
 
-  public static newInvalidDate(): CalendarDate {
-    return new CalendarDate(null)
+  public static newInvalidDate(): CalendarDate<Invalid> {
+    return new CalendarDate<Invalid>(null)
   }
 
-  public static fromISO(str: string, { zone }: { zone?: string | Zone } = {}): CalendarDate {
+  public static fromISO(
+    str: string,
+    { zone }: { zone?: string | Zone } = {}
+  ): CalendarDate<Valid> | CalendarDate<Invalid> {
     if (zone) return new CalendarDate(DateTime.fromISO(str, { zone }))
     else return new CalendarDate(DateTime.fromISO(str, { setZone: true }))
   }
 
-  public static fromSQL(str: string): CalendarDate {
-    return new CalendarDate(DateTime.fromSQL(str, { zone: 'UTC' }))
+  public static fromSQL(str: string): CalendarDate<Valid> {
+    return new CalendarDate<Valid>(DateTime.fromSQL(str, { zone: 'UTC' }))
   }
 
-  public static fromObject(obj: DateObjectUnits, opts?: DateTimeJSOptions): CalendarDate {
+  public static fromObject(
+    obj: DateObjectUnits,
+    opts?: DateTimeJSOptions
+  ): CalendarDate<Valid> | CalendarDate<Invalid> {
     return new CalendarDate(DateTime.fromObject(obj, opts))
   }
 
-  public static today({ zone = 'UTC' }: { zone?: string | Zone } = {}): CalendarDate {
-    return new CalendarDate(DateTime.now().setZone(zone))
+  public static today({ zone = 'UTC' }: { zone?: string | Zone } = {}): CalendarDate<Valid> {
+    return new CalendarDate<Valid>(DateTime.now().setZone(zone))
   }
 
-  public static tomorrow(options: { zone?: string | Zone } = {}): CalendarDate {
+  public static tomorrow(options: { zone?: string | Zone } = {}): CalendarDate<Valid> {
     return CalendarDate.today(options).plus({ day: 1 })
   }
 
-  public static yesterday(options: { zone?: string | Zone } = {}): CalendarDate {
+  public static yesterday(options: { zone?: string | Zone } = {}): CalendarDate<Valid> {
     return CalendarDate.today(options).minus({ day: 1 })
   }
 
@@ -73,114 +88,144 @@ export default class CalendarDate {
     return this.luxonDateTime.isValid
   }
 
-  public toISO(): string | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.toISODate()
+  public toISO(): IsValid extends Valid ? string : string | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? string : string | null
+    return this.luxonDateTime.toISODate() as IsValid extends Valid ? string : string | null
   }
 
-  public toSQL(): string | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.toSQLDate()
+  public toSQL(): IsValid extends Valid ? string : string | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? string : string | null
+    return this.luxonDateTime.toSQLDate() as IsValid extends Valid ? string : string | null
   }
 
   public toJSON() {
     return this.toISO()
   }
 
-  public valueOf() {
-    return this.toISO()
+  public valueOf(): number {
+    if (this.luxonDateTime === null) return -1
+    return this.luxonDateTime.toMillis()
   }
 
   public toISODate() {
     return this.toISO()
   }
 
-  public toLocaleString(formatOpts?: DateTimeFormatOptions, opts?: LocaleOptions): string | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.toLocaleString(formatOpts, opts)
+  public toLocaleString(
+    formatOpts?: DateTimeFormatOptions,
+    opts?: LocaleOptions
+  ): IsValid extends Valid ? string : string | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? string : string | null
+    return this.luxonDateTime.toLocaleString(formatOpts, opts) as IsValid extends Valid
+      ? string
+      : string | null
   }
 
   public toString() {
     return this.toISO()
   }
 
-  public toDateTime(): DateTime | null {
-    return this.luxonDateTime
+  public toDateTime(): IsValid extends Valid
+    ? DateTime<Valid>
+    : IsValid extends Invalid
+      ? null
+      : DateTime | null {
+    return this.luxonDateTime as IsValid extends Valid
+      ? DateTime<Valid>
+      : IsValid extends Invalid
+        ? null
+        : DateTime | null
   }
 
-  public toJSDate(): Date | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.toJSDate()
+  public toJSDate(): IsValid extends Valid ? Date : Date | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? Date : Date | null
+    return this.luxonDateTime.toJSDate() as IsValid extends Valid ? Date : Date | null
   }
 
-  public get year(): number | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.year
+  public get year(): IsValid extends Valid ? number : number | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? number : number | null
+    return this.luxonDateTime.year as IsValid extends Valid ? number : number | null
   }
 
-  public get month(): number | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.month
+  public get month(): IsValid extends Valid ? number : number | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? number : number | null
+    return this.luxonDateTime.month as IsValid extends Valid ? number : number | null
   }
 
-  public get day(): number | null {
-    if (this.luxonDateTime === null) return null
-    return this.luxonDateTime.day
+  public get day(): IsValid extends Valid ? number : number | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? number : number | null
+    return this.luxonDateTime.day as IsValid extends Valid ? number : number | null
   }
 
-  public startOf(period: CalendarDateUnit): CalendarDate {
-    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate()
+  public startOf(period: CalendarDateUnit): CalendarDate<IsValid> {
+    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate() as CalendarDate<IsValid>
     return new CalendarDate(this.luxonDateTime.startOf(period))
   }
 
-  public endOf(period: CalendarDateUnit): CalendarDate {
-    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate()
+  public endOf(period: CalendarDateUnit): CalendarDate<IsValid> {
+    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate() as CalendarDate<IsValid>
     return new CalendarDate(this.luxonDateTime.endOf(period))
   }
 
-  public plus(duration: CalendarDateDurationLike): CalendarDate {
-    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate()
+  public plus(duration: CalendarDateDurationLike): CalendarDate<IsValid> {
+    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate() as CalendarDate<IsValid>
     return new CalendarDate(this.luxonDateTime.plus(duration))
   }
 
-  public minus(duration: CalendarDateDurationLike): CalendarDate {
-    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate()
+  public minus(duration: CalendarDateDurationLike): CalendarDate<IsValid> {
+    if (this.luxonDateTime === null) return CalendarDate.newInvalidDate() as CalendarDate<IsValid>
     return new CalendarDate(this.luxonDateTime.minus(duration))
   }
 
-  public static max(calendarDate: CalendarDate, otherCalendarDate: CalendarDate): CalendarDate {
-    const dateTime = calendarDate.toDateTime()
-    if (dateTime === null) return CalendarDate.newInvalidDate()
-    const otherDateTime = otherCalendarDate.toDateTime()
-    if (otherDateTime === null) return CalendarDate.newInvalidDate()
-    return new CalendarDate(DateTime.max(dateTime, otherDateTime))
+  public static max<AllValid extends boolean>(
+    ...calendarDates: Array<CalendarDate<AllValid>>
+  ):
+    | (AllValid extends true ? CalendarDate<Valid> : never)
+    | (AllValid extends false ? CalendarDate<Invalid> : never) {
+    const dateTimes = compact(calendarDates.map(calendarDate => calendarDate.toDateTime()))
+
+    return new CalendarDate(DateTime.max(...dateTimes)) as
+      | (AllValid extends true ? CalendarDate<Valid> : never)
+      | (AllValid extends false ? CalendarDate<Invalid> : never)
   }
 
-  public static min(calendarDate: CalendarDate, otherCalendarDate: CalendarDate): CalendarDate {
-    const dateTime = calendarDate.toDateTime()
-    if (dateTime === null) return CalendarDate.newInvalidDate()
-    const otherDateTime = otherCalendarDate.toDateTime()
-    if (otherDateTime === null) return CalendarDate.newInvalidDate()
-    return new CalendarDate(DateTime.min(dateTime, otherDateTime))
+  public static min<AllValid extends boolean>(
+    ...calendarDates: Array<CalendarDate<AllValid>>
+  ):
+    | (AllValid extends true ? CalendarDate<Valid> : never)
+    | (AllValid extends false ? CalendarDate<Invalid> : never) {
+    const dateTimes = compact(calendarDates.map(calendarDate => calendarDate.toDateTime()))
+
+    return new CalendarDate(DateTime.min(...dateTimes)) as
+      | (AllValid extends true ? CalendarDate<Valid> : never)
+      | (AllValid extends false ? CalendarDate<Invalid> : never)
   }
 
-  public hasSame(otherCalendarDate: CalendarDate, period: CalendarDateUnit): boolean {
+  public hasSame(
+    otherCalendarDate: CalendarDate<Valid> | CalendarDate<Invalid>,
+    period: CalendarDateUnit
+  ): boolean {
     if (this.luxonDateTime === null) return false
-    const otherDateTime = otherCalendarDate.toDateTime()
+    const otherDateTime = (otherCalendarDate as CalendarDate).toDateTime()
     if (otherDateTime === null) return false
     return this.luxonDateTime.hasSame(otherDateTime, period)
   }
 
-  public diff(otherCalendarDate: CalendarDate, duration: CalendarDateDurationUnit): number | null {
-    if (this.luxonDateTime === null) return null
-    const otherDateTime = otherCalendarDate.toDateTime()
-    if (otherDateTime === null) return null
-    return this.luxonDateTime.diff(otherDateTime, duration)[duration]
+  public diff<T extends CalendarDate<Valid> | CalendarDate<Invalid>>(
+    otherCalendarDate: T,
+    duration: CalendarDateDurationUnit
+  ): IsValid extends Valid ? (T extends CalendarDate<Valid> ? number : number | null) : number | null {
+    if (this.luxonDateTime === null) return null as any
+    const otherDateTime = (otherCalendarDate as CalendarDate).toDateTime()
+    if (otherDateTime === null) return null as any
+    return this.luxonDateTime.diff(otherDateTime, duration)[duration] as any
   }
 
-  public diffNow(duration: CalendarDateDurationUnit): number | null {
-    if (this.luxonDateTime === null) return null
-    return Math.ceil(this.luxonDateTime.diffNow(duration)[duration])
+  public diffNow(duration: CalendarDateDurationUnit): IsValid extends Valid ? number : number | null {
+    if (this.luxonDateTime === null) return null as IsValid extends Valid ? number : number | null
+    return Math.ceil(this.luxonDateTime.diffNow(duration)[duration]) as IsValid extends Valid
+      ? number
+      : number | null
   }
 
   public equals(otherCalendarDate: CalendarDate): boolean {

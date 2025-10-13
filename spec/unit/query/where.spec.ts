@@ -1063,7 +1063,7 @@ describe('Query#where', () => {
 
     it('is able to apply DateTime ops to the where clause', async () => {
       const records = await User.order('id')
-        .where({ birthdate: ops.greaterThanOrEqualTo(begin.plus({ day: 1 }).toDateTime()!) })
+        .where({ birthdate: ops.greaterThanOrEqualTo(begin.plus({ day: 1 }).toDateTime()) })
         .all()
 
       expect(records.length).toEqual(3)

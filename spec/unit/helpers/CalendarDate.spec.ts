@@ -63,7 +63,9 @@ describe('CalendarDate', () => {
 
   describe('.tomorrow', () => {
     it('is today plus 1 day', () => {
-      vi.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2023-12-31'))
+      vi.spyOn(CalendarDate, 'today').mockReturnValue(
+        CalendarDate.fromISO('2023-12-31') as unknown as CalendarDate<true>
+      )
       const tomorrow = CalendarDate.tomorrow()
       expect(tomorrow.toISO()).toEqual('2024-01-01')
     })
@@ -71,7 +73,9 @@ describe('CalendarDate', () => {
 
   describe('.yesterday', () => {
     it('is today minus 1 day ', () => {
-      vi.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2024-01-01'))
+      vi.spyOn(CalendarDate, 'today').mockReturnValue(
+        CalendarDate.fromISO('2024-01-01') as unknown as CalendarDate<true>
+      )
       const yesterday = CalendarDate.yesterday()
       expect(yesterday.toISO()).toEqual('2023-12-31')
     })
@@ -190,10 +194,9 @@ describe('CalendarDate', () => {
   })
 
   describe('#valueOf', () => {
-    it('aliases toISO', () => {
-      const calendarDate = CalendarDate.today()
-      vi.spyOn(calendarDate, 'toISO').mockReturnValue('hello world')
-      expect(calendarDate.valueOf()).toEqual('hello world')
+    it('gets milliseconds', () => {
+      const calendarDate = CalendarDate.fromISO('2025-10-12')
+      expect(calendarDate.valueOf()).toEqual(1760227200000)
     })
   })
 
@@ -270,26 +273,16 @@ describe('CalendarDate', () => {
     it('is the larger of the two CalendarDates', () => {
       const calendarDate = CalendarDate.fromISO('2024-02-27')
       const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
-      expect(CalendarDate.max(calendarDate, otherCalendarDate)).toEqualCalendarDate(otherCalendarDate)
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
-        expect(CalendarDate.max(calendarDate, otherCalendarDate)).toEqualCalendarDate(
-          CalendarDate.newInvalidDate()
-        )
-      })
+      const max = CalendarDate.max(calendarDate, otherCalendarDate)
+      expect(max).toEqualCalendarDate(otherCalendarDate)
     })
 
     context('with an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
+      it('the invalid CalendarDates are removed', () => {
         const calendarDate = CalendarDate.fromISO('2024-03-02')
         const otherCalendarDate = CalendarDate.newInvalidDate()
-        expect(CalendarDate.max(calendarDate, otherCalendarDate)).toEqualCalendarDate(
-          CalendarDate.newInvalidDate()
-        )
+        const max = CalendarDate.max(calendarDate, otherCalendarDate)
+        expect(max).toEqualCalendarDate(calendarDate)
       })
     })
   })
@@ -298,26 +291,16 @@ describe('CalendarDate', () => {
     it('is the larger of the two CalendarDates', () => {
       const calendarDate = CalendarDate.fromISO('2024-02-27')
       const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
-      expect(CalendarDate.min(calendarDate, otherCalendarDate)).toEqualCalendarDate(calendarDate)
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
-        expect(CalendarDate.min(calendarDate, otherCalendarDate)).toEqualCalendarDate(
-          CalendarDate.newInvalidDate()
-        )
-      })
+      const min = CalendarDate.min(calendarDate, otherCalendarDate)
+      expect(min).toEqualCalendarDate(calendarDate)
     })
 
     context('with an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
+      it('the invalid CalendarDates are removed', () => {
         const calendarDate = CalendarDate.fromISO('2024-03-02')
         const otherCalendarDate = CalendarDate.newInvalidDate()
-        expect(CalendarDate.min(calendarDate, otherCalendarDate)).toEqualCalendarDate(
-          CalendarDate.newInvalidDate()
-        )
+        const min = CalendarDate.min(calendarDate, otherCalendarDate)
+        expect(min).toEqualCalendarDate(calendarDate)
       })
     })
   })
@@ -327,7 +310,8 @@ describe('CalendarDate', () => {
       it('the positive difference in the specified units', () => {
         const calendarDate = CalendarDate.fromISO('2024-03-02')
         const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(4)
+        const diff = calendarDate.diff(otherCalendarDate, 'days')
+        expect(diff).toEqual(4)
       })
 
       context('across daylight savings time', () => {
@@ -398,10 +382,10 @@ describe('CalendarDate', () => {
     })
 
     context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
+      it('the valid is greater than the invalid', () => {
         const calendarDate = CalendarDate.newInvalidDate()
         const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate < otherCalendarDate).toBe(false)
+        expect(calendarDate < otherCalendarDate).toBe(true)
       })
     })
 
@@ -448,10 +432,10 @@ describe('CalendarDate', () => {
     })
 
     context('with an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
+      it('the valid is greater than the invalid', () => {
         const calendarDate = CalendarDate.fromISO('2024-03-02')
         const otherCalendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate > otherCalendarDate).toBe(false)
+        expect(calendarDate > otherCalendarDate).toBe(true)
       })
     })
   })

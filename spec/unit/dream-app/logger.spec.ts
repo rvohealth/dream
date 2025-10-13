@@ -64,7 +64,7 @@ describe('log functions', () => {
     it('works with a CalendarDate', () => {
       const today = CalendarDate.today()
       DreamApp.log(today)
-      expect(logSpy).toHaveBeenCalledWith(today.toISO()!)
+      expect(logSpy).toHaveBeenCalledWith(today.toISO())
     })
 
     it('works with an Error', () => {
@@ -133,7 +133,7 @@ describe('log functions', () => {
     it('works with a CalendarDate', () => {
       const today = CalendarDate.today()
       DreamApp.logWithLevel('warn', today)
-      expect(warnSpy).toHaveBeenCalledWith(today.toISO()!)
+      expect(warnSpy).toHaveBeenCalledWith(today.toISO())
     })
 
     it('works with an Error', () => {
