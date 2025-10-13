@@ -1,7 +1,6 @@
-## 1.11.0
+## 1.12.0
 
-- known valid CalendarDate types result in conversions to non-null
-- known valid CalendarDate types remain known valid
+- DateTime and CalendarDate are always valid and throw an error if invalid
 
 ## 1.11.0
 

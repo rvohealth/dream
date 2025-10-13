@@ -3557,7 +3557,7 @@ export default class Dream {
     if (!currentValue) return
     if (typeof currentValue === 'string') currentValue = DateTime.fromISO(currentValue)
     if (currentValue instanceof CalendarDate) currentValue = currentValue.toDateTime()
-    if (currentValue instanceof DateTime && currentValue.isValid) return currentValue.toMillis()
+    if (currentValue instanceof DateTime) return currentValue.toMillis()
   }
 
   /**
@@ -3567,7 +3567,7 @@ export default class Dream {
     if (!currentValue) return
     if (typeof currentValue === 'string') currentValue = CalendarDate.fromISO(currentValue)
     if (currentValue instanceof DateTime) currentValue = CalendarDate.fromDateTime(currentValue)
-    if (currentValue instanceof CalendarDate && currentValue.isValid) return currentValue.toISO()!
+    if (currentValue instanceof CalendarDate) return currentValue.toISO()
   }
 
   /**

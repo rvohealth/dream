@@ -33,7 +33,7 @@ describe('Dream#isDirty', () => {
 
     context('when the DateTime is a different object at the same time', () => {
       it('is false', () => {
-        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO()!)
+        user.updatedAt = DateTime.fromISO(user.updatedAt.toISO())
         expect(user.isDirty).toBe(false)
       })
     })
@@ -47,14 +47,14 @@ describe('Dream#isDirty', () => {
 
     context('when the DateTime is a string representation of the same time', () => {
       it('is false', () => {
-        user.updatedAt = user.updatedAt.toISO()! as any
+        user.updatedAt = user.updatedAt.toISO() as any
         expect(user.isDirty).toBe(false)
       })
     })
 
     context('when the DateTime is a string representation of a different time', () => {
       it('is true', () => {
-        user.updatedAt = user.updatedAt.plus({ second: 1 }).toISO()! as any
+        user.updatedAt = user.updatedAt.plus({ second: 1 }).toISO() as any
         expect(user.isDirty).toBe(true)
       })
     })
@@ -74,7 +74,7 @@ describe('Dream#isDirty', () => {
 
     context('when the CalendarDate is a different object at the same date', () => {
       it('is false', () => {
-        user.birthdate = CalendarDate.fromISO(user.birthdate!.toISO()!)
+        user.birthdate = CalendarDate.fromISO(user.birthdate!.toISO())
         expect(user.isDirty).toBe(false)
       })
     })

@@ -36,7 +36,7 @@ describe('ObjectSerializer#customAttribute', () => {
     const model = await fleshedOutModelForOpenapiTypeSpecs()
     const serializer = MySerializer({ birthdate: CalendarDate.fromISO('1950-10-02') })
     expect(serializer.render()).toEqual({
-      birthdate: model.birthdate!.toDateTime()!.toISO(),
+      birthdate: model.birthdate!.toDateTime().toISO(),
     })
   })
 

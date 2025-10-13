@@ -124,7 +124,7 @@ describe('DreamSerializer#customAttribute', () => {
     const model = await fleshedOutModelForOpenapiTypeSpecs()
     const serializer = MySerializer(model)
     expect(serializer.render()).toEqual({
-      birthdate: model.birthdate!.toDateTime()!.toISO(),
+      birthdate: model.birthdate!.toDateTime().toISO(),
     })
   })
 

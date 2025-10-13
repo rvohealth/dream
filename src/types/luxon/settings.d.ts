@@ -86,4 +86,6 @@ export class Settings {
  *
  * @see Settings.throwOnInvalid
  */
-export interface TSSettings {}
+export interface TSSettings {
+  throwOnInvalid: true
+}

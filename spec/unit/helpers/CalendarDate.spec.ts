@@ -1,12 +1,19 @@
-import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import CalendarDate, { InvalidCalendarDate } from '../../../src/helpers/CalendarDate.js'
 import { DateTime } from '../../../src/index.js'
 
 describe('CalendarDate', () => {
   describe('constructor', () => {
+    context('without an argument', () => {
+      it('sets itself to today', () => {
+        const calendarDate = new CalendarDate()
+        expect(calendarDate).toEqualCalendarDate(CalendarDate.today())
+      })
+    })
+
     context('with null', () => {
-      it('sets its DateTime to null', () => {
+      it('sets itself to today', () => {
         const calendarDate = new CalendarDate(null)
-        expect(calendarDate.toDateTime()).toBeNull()
+        expect(calendarDate).toEqualCalendarDate(CalendarDate.today())
       })
     })
 
@@ -15,13 +22,6 @@ describe('CalendarDate', () => {
         const calendarDate = new CalendarDate(DateTime.fromISO('2024-02-29'))
         expect(calendarDate.toDateTime()?.isValid).toBe(true)
         expect(calendarDate.toISO()).toEqual('2024-02-29')
-      })
-    })
-
-    context('with an invalid DateTime', () => {
-      it('sets its DateTime to null', () => {
-        const calendarDate = new CalendarDate(DateTime.fromISO('2023-02-29'))
-        expect(calendarDate.toDateTime()).toBeNull()
       })
     })
 
@@ -34,9 +34,8 @@ describe('CalendarDate', () => {
     })
 
     context('with an invalid series of year, month, day numbers', () => {
-      it('sets its DateTime to null', () => {
-        const calendarDate = new CalendarDate(2023, 2, 29)
-        expect(calendarDate.toDateTime()).toBeNull()
+      it('throws InvalidCalendarDate', () => {
+        expect(() => new CalendarDate(2023, 2, 29)).toThrow(InvalidCalendarDate)
       })
     })
   })
@@ -63,9 +62,7 @@ describe('CalendarDate', () => {
 
   describe('.tomorrow', () => {
     it('is today plus 1 day', () => {
-      vi.spyOn(CalendarDate, 'today').mockReturnValue(
-        CalendarDate.fromISO('2023-12-31') as unknown as CalendarDate<true>
-      )
+      vi.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2023-12-31'))
       const tomorrow = CalendarDate.tomorrow()
       expect(tomorrow.toISO()).toEqual('2024-01-01')
     })
@@ -73,18 +70,16 @@ describe('CalendarDate', () => {
 
   describe('.yesterday', () => {
     it('is today minus 1 day ', () => {
-      vi.spyOn(CalendarDate, 'today').mockReturnValue(
-        CalendarDate.fromISO('2024-01-01') as unknown as CalendarDate<true>
-      )
+      vi.spyOn(CalendarDate, 'today').mockReturnValue(CalendarDate.fromISO('2024-01-01'))
       const yesterday = CalendarDate.yesterday()
       expect(yesterday.toISO()).toEqual('2023-12-31')
     })
   })
 
   describe('.fromISO', () => {
-    it('creates a valid CalendarDate', () => {
+    it('creates a CalendarDate', () => {
       const calendarDate = CalendarDate.fromISO('2024-03-02')
-      expect(calendarDate.isValid).toBe(true)
+      expect(calendarDate.toISO()).toEqual('2024-03-02')
     })
 
     context('with a full ISO datetime string', () => {
@@ -114,37 +109,34 @@ describe('CalendarDate', () => {
     })
 
     context('with an invalid date string', () => {
-      it('creates an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromISO('2023-02-29')
-        expect(calendarDate.isValid).toBe(false)
+      it('throws InvalidCalendarDate', () => {
+        expect(() => CalendarDate.fromISO('2023-02-29')).toThrow(InvalidCalendarDate)
       })
     })
   })
 
   describe('.fromSQL', () => {
-    it('creates a valid CalendarDate', () => {
+    it('creates a CalendarDate', () => {
       const calendarDate = CalendarDate.fromSQL('2024-03-02')
-      expect(calendarDate.isValid).toBe(true)
+      expect(calendarDate.toISO()).toEqual('2024-03-02')
     })
 
     context('with an invalid date string', () => {
-      it('creates an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromSQL('2023-02-29')
-        expect(calendarDate.isValid).toBe(false)
+      it('throws InvalidCalendarDate', () => {
+        expect(() => CalendarDate.fromSQL('2023-02-29')).toThrow(InvalidCalendarDate)
       })
     })
   })
 
   describe('.fromObject', () => {
-    it('creates a valid CalendarDate', () => {
+    it('creates a CalendarDate', () => {
       const calendarDate = CalendarDate.fromObject({ year: 2023, month: 6, day: 16 })
-      expect(calendarDate.isValid).toBe(true)
+      expect(calendarDate.toISO()).toEqual('2023-06-16')
     })
 
     context('with an invalid date', () => {
-      it('creates an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromObject({ year: 2023, month: 2, day: 29 })
-        expect(calendarDate.isValid).toBe(false)
+      it('throws InvalidCalendarDate', () => {
+        expect(() => CalendarDate.fromObject({ year: 2023, month: 2, day: 29 })).toThrow(InvalidCalendarDate)
       })
     })
   })
@@ -154,26 +146,12 @@ describe('CalendarDate', () => {
       const calendarDate = CalendarDate.fromISO('2024-03-02')
       expect(calendarDate.toISO()).toEqual('2024-03-02')
     })
-
-    context('with an invalid date string', () => {
-      it('returns null', () => {
-        const calendarDate = CalendarDate.fromISO('2023-02-29')
-        expect(calendarDate.toISO()).toBeNull()
-      })
-    })
   })
 
   describe('#toSQL', () => {
     it('returns a YYYY-MM-DD string', () => {
       const calendarDate = CalendarDate.fromISO('2024-03-02')
       expect(calendarDate.toSQL()).toEqual('2024-03-02')
-    })
-
-    context('with an invalid date string', () => {
-      it('returns null', () => {
-        const calendarDate = CalendarDate.fromISO('2023-02-29')
-        expect(calendarDate.toSQL()).toBeNull()
-      })
     })
   })
 
@@ -246,26 +224,12 @@ describe('CalendarDate', () => {
       const calendarDate = CalendarDate.fromISO('2024-02-27')
       expect(calendarDate.plus({ days: 4 })).toEqualCalendarDate(CalendarDate.fromISO('2024-03-02'))
     })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate.plus({ days: 4 })).toEqualCalendarDate(CalendarDate.newInvalidDate())
-      })
-    })
   })
 
   describe('#minus', () => {
     it('subtracts the number of days from the date, accounting for leap year', () => {
       const calendarDate = CalendarDate.fromISO('2024-03-02')
       expect(calendarDate.minus({ days: 4 })).toEqualCalendarDate(CalendarDate.fromISO('2024-02-27'))
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate.minus({ days: 4 })).toEqualCalendarDate(CalendarDate.newInvalidDate())
-      })
     })
   })
 
@@ -276,15 +240,6 @@ describe('CalendarDate', () => {
       const max = CalendarDate.max(calendarDate, otherCalendarDate)
       expect(max).toEqualCalendarDate(otherCalendarDate)
     })
-
-    context('with an invalid CalendarDate', () => {
-      it('the invalid CalendarDates are removed', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.newInvalidDate()
-        const max = CalendarDate.max(calendarDate, otherCalendarDate)
-        expect(max).toEqualCalendarDate(calendarDate)
-      })
-    })
   })
 
   describe('.min', () => {
@@ -293,15 +248,6 @@ describe('CalendarDate', () => {
       const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
       const min = CalendarDate.min(calendarDate, otherCalendarDate)
       expect(min).toEqualCalendarDate(calendarDate)
-    })
-
-    context('with an invalid CalendarDate', () => {
-      it('the invalid CalendarDates are removed', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.newInvalidDate()
-        const min = CalendarDate.min(calendarDate, otherCalendarDate)
-        expect(min).toEqualCalendarDate(calendarDate)
-      })
     })
   })
 
@@ -338,22 +284,6 @@ describe('CalendarDate', () => {
         })
       })
     })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate.diff(otherCalendarDate, 'days')).toBeNull()
-      })
-    })
-
-    context('with an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate.diff(otherCalendarDate, 'days')).toBeNull()
-      })
-    })
   })
 
   describe('<', () => {
@@ -377,22 +307,6 @@ describe('CalendarDate', () => {
       it('is false', () => {
         const calendarDate = CalendarDate.fromISO('2024-02-27')
         const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate < otherCalendarDate).toBe(false)
-      })
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('the valid is greater than the invalid', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate < otherCalendarDate).toBe(true)
-      })
-    })
-
-    context('with an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.newInvalidDate()
         expect(calendarDate < otherCalendarDate).toBe(false)
       })
     })
@@ -422,22 +336,6 @@ describe('CalendarDate', () => {
         expect(calendarDate > otherCalendarDate).toBe(false)
       })
     })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate > otherCalendarDate).toBe(false)
-      })
-    })
-
-    context('with an invalid CalendarDate', () => {
-      it('the valid is greater than the invalid', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate > otherCalendarDate).toBe(true)
-      })
-    })
   })
 
   describe('#diffNow', () => {
@@ -452,29 +350,6 @@ describe('CalendarDate', () => {
       it('the negative difference in the specified units', () => {
         const calendarDate = CalendarDate.today().minus({ days: 7 })
         expect(calendarDate.diffNow('days')).toEqual(-7)
-      })
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate.diffNow('days')).toBeNull()
-      })
-    })
-  })
-
-  describe('#isValid getter', () => {
-    context('on an valid CalendarDate', () => {
-      it('is true', () => {
-        const calendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate.isValid).toBe(true)
-      })
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('is false', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate.isValid).toBe(false)
       })
     })
   })
@@ -504,9 +379,9 @@ describe('CalendarDate', () => {
   })
 
   describe('.fromJSDate', () => {
-    it('creates a valid CalendarDate', () => {
+    it('creates a CalendarDate', () => {
       const calendarDate = CalendarDate.fromJSDate(new Date('2024-03-02'))
-      expect(calendarDate.isValid).toBe(true)
+      expect(calendarDate.toISO()).toEqual('2024-03-02')
     })
 
     context('with a full ISO datetime string', () => {
@@ -536,13 +411,6 @@ describe('CalendarDate', () => {
         }
       )
     })
-
-    context('with an invalid date string', () => {
-      it('creates an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromISO('2023-02-29')
-        expect(calendarDate.isValid).toBe(false)
-      })
-    })
   })
 
   describe('#startOf', () => {
@@ -550,26 +418,12 @@ describe('CalendarDate', () => {
       const calendarDate = CalendarDate.fromISO('2024-07-18')
       expect(calendarDate.startOf('month')).toEqualCalendarDate(CalendarDate.fromISO('2024-07-01'))
     })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromISO('2023-02-29')
-        expect(calendarDate.startOf('month').isValid).toBe(false)
-      })
-    })
   })
 
   describe('#endOf', () => {
     it('returns a CalendarDate at the beginning of the specified time period', () => {
       const calendarDate = CalendarDate.fromISO('2024-07-18')
       expect(calendarDate.endOf('month')).toEqualCalendarDate(CalendarDate.fromISO('2024-07-31'))
-    })
-
-    context('on an invalid CalendarDate', () => {
-      it('returns an invalid CalendarDate', () => {
-        const calendarDate = CalendarDate.fromISO('2023-02-29')
-        expect(calendarDate.endOf('month').isValid).toBe(false)
-      })
     })
   })
 
@@ -596,21 +450,5 @@ describe('CalendarDate', () => {
         })
       }
     )
-
-    context('on an invalid CalendarDate', () => {
-      it('is false', () => {
-        const calendarDate = CalendarDate.newInvalidDate()
-        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        expect(calendarDate.hasSame(otherCalendarDate, 'day')).toBe(false)
-      })
-    })
-
-    context('with an invalid CalendarDate', () => {
-      it('is false', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.newInvalidDate()
-        expect(calendarDate.hasSame(otherCalendarDate, 'day')).toBe(false)
-      })
-    })
   })
 })

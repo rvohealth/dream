@@ -1,5 +1,6 @@
 import DreamApp from '../dream-app/index.js'
 import Dream from '../Dream.js'
+import DataTypeColumnTypeMismatch from '../errors/db/DataTypeColumnTypeMismatch.js'
 import CalendarDate from './CalendarDate.js'
 import { DateTime } from './DateTime.js'
 import isDatetimeOrDatetimeArrayColumn from './db/types/isDatetimeOrDatetimeArrayColumn.js'
@@ -17,10 +18,11 @@ export default function sqlAttributes(dream: Dream) {
       if (val === undefined) return result
 
       if (Array.isArray(val)) {
-        if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = val.map(valueToDatetime)
+        if (isDatetimeOrDatetimeArrayColumn(dreamClass, key))
+          val = val.map(aVal => valueToDatetime(dream, aVal))
         else if (isTextOrTextArrayColumn(dreamClass, key)) val = val.map(normalizeUnicode)
       } else {
-        if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = valueToDatetime(val)
+        if (isDatetimeOrDatetimeArrayColumn(dreamClass, key)) val = valueToDatetime(dream, val)
         else if (isTextOrTextArrayColumn(dreamClass, key)) val = normalizeUnicode(val)
       }
 
@@ -46,8 +48,18 @@ export default function sqlAttributes(dream: Dream) {
 /**
  * Convert datetimes to UTC
  */
-function valueToDatetime(val: any) {
+function valueToDatetime(dream: Dream, val: any) {
   if (typeof val !== 'string') return val
-  const datetime = DateTime.fromISO(val, { zone: 'UTC' })
+  let datetime: DateTime
+
+  try {
+    datetime = DateTime.fromISO(val, { zone: 'UTC' })
+  } catch (error) {
+    throw new DataTypeColumnTypeMismatch({
+      dream,
+      error: error instanceof Error ? error : new Error('database column type error'),
+    })
+  }
+
   return datetime.isValid ? datetime : val
 }
