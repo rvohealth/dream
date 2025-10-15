@@ -8,7 +8,7 @@ describe('dream generate:model <name> [...attributes] (factory context)', () => 
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvoh/dream'
-import User from '../../app/models/User.js'
+import User from '@models/User.js'
 
 export default async function createUser(attrs: UpdateableProperties<User> = {}) {
   return await User.create({
@@ -40,7 +40,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       expect(res).toEqual(
         `\
 import { UpdateableProperties, CalendarDate, DateTime } from '@rvoh/dream'
-import Post from '../../app/models/Post.js'
+import Post from '@models/Post.js'
 
 let counter = 0
 
@@ -83,7 +83,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         expect(res).toEqual(
           `\
 import { UpdateableProperties, CalendarDate, DateTime } from '@rvoh/dream'
-import Post from '../../app/models/Post.js'
+import Post from '@models/Post.js'
 
 let counter = 0
 
@@ -126,7 +126,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvoh/dream'
-import Post from '../../app/models/Post.js'
+import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
@@ -152,7 +152,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvoh/dream'
-import Post from '../../app/models/Post.js'
+import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
@@ -181,7 +181,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvoh/dream'
-import Post from '../../app/models/Post.js'
+import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
@@ -200,7 +200,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvoh/dream'
-import MyNestedUser from '../../../../app/models/My/Nested/User.js'
+import MyNestedUser from '@models/My/Nested/User.js'
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
@@ -221,8 +221,8 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvoh/dream'
-import Post from '../../app/models/Post.js'
-import createUser from './UserFactory.js'
+import Post from '@models/Post.js'
+import createUser from '@spec/factories/UserFactory.js'
 
 let counter = 0
 
@@ -246,8 +246,8 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvoh/dream'
-import MyNestedUser from '../../../../app/models/My/Nested/User.js'
-import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory.js'
+import MyNestedUser from '@models/My/Nested/User.js'
+import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory.js'
 
 let counter = 0
 
@@ -278,8 +278,8 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvoh/dream'
-import MyNestedUser from '../../../../app/models/My/Nested/User.js'
-import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory.js'
+import MyNestedUser from '@models/My/Nested/User.js'
+import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory.js'
 
 let counter = 0
 
@@ -308,8 +308,8 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvoh/dream'
-import MyNestedUser from '../../../../app/models/My/Nested/User.ts'
-import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory.ts'
+import MyNestedUser from '@models/My/Nested/User.ts'
+import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory.ts'
 
 let counter = 0
 
@@ -338,8 +338,8 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         expect(res).toEqual(
           `\
 import { UpdateableProperties } from '@rvoh/dream'
-import MyNestedUser from '../../../../app/models/My/Nested/User'
-import createMyNestedDoubleNestedOrganization from './DoubleNested/OrganizationFactory'
+import MyNestedUser from '@models/My/Nested/User'
+import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory'
 
 let counter = 0
 

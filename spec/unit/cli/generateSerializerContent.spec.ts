@@ -15,7 +15,7 @@ describe('dream generate:serializer <name> [...attributes]', () => {
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import Post from '../models/Post.js'
+import Post from '@models/Post.js'
 
 export const PostSummarySerializer = (post: Post) =>
   DreamSerializer(Post, post)
@@ -42,7 +42,7 @@ export const PostSerializer = (post: Post) =>
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import Article from '../models/Article.js'
+import Article from '@models/Article.js'
 
 export const ArticleSummarySerializer = (article: Article) =>
   DreamSerializer(Article, article)
@@ -76,7 +76,7 @@ export const ArticleAdminSerializer = (article: Article) =>
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import Balloon from '../models/Balloon.js'
+import Balloon from '@models/Balloon.js'
 
 export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
   DreamSerializer(StiChildClass ?? Balloon, balloon)
@@ -103,8 +103,8 @@ export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Ballo
 
         expect(res).toEqual(
           `\
-import { FooBarSerializer, FooBarSummarySerializer } from '../BarSerializer.js'
-import FooBarBaz from '../../../models/Foo/Bar/Baz.js'
+import { FooBarSerializer, FooBarSummarySerializer } from '@serializers/Foo/BarSerializer.js'
+import FooBarBaz from '@models/Foo/Bar/Baz.js'
 
 export const FooBarBazSummarySerializer = (fooBarBaz: FooBarBaz) =>
   FooBarSummarySerializer(FooBarBaz, fooBarBaz)
@@ -132,7 +132,7 @@ export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
           expect(res).toEqual(
             `\
 import { DreamSerializer } from '@rvoh/dream'
-import UserAdmin from '../../models/User/Admin.js'
+import UserAdmin from '@models/User/Admin.js'
 
 export const UserAdminSummarySerializer = (userAdmin: UserAdmin) =>
   DreamSerializer(UserAdmin, userAdmin)
@@ -156,7 +156,7 @@ export const UserAdminSerializer = (userAdmin: UserAdmin) =>
           expect(res).toEqual(
             `\
 import { DreamSerializer } from '@rvoh/dream'
-import ArticleComment from '../../models/Article/Comment.js'
+import ArticleComment from '@models/Article/Comment.js'
 
 export const ArticleCommentSummarySerializer = (articleComment: ArticleComment) =>
   DreamSerializer(ArticleComment, articleComment)
@@ -214,7 +214,7 @@ export const ArticleCommentAdminSerializer = (articleComment: ArticleComment) =>
           expect(res).toEqual(
             `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
+import User from '@models/User.js'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
@@ -295,7 +295,7 @@ export const UserSerializer = (user: User) =>
             expect(res).toEqual(
               `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
+import User from '@models/User.js'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
@@ -328,7 +328,7 @@ export const UserSerializer = (user: User) =>
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
+import User from '@models/User.js'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
@@ -357,7 +357,7 @@ export const UserSerializer = (user: User) =>
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.ts'
+import User from '@models/User.ts'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
@@ -386,7 +386,7 @@ export const UserSerializer = (user: User) =>
         expect(res).toEqual(
           `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User'
+import User from '@models/User'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
@@ -411,7 +411,7 @@ function expectAttributeType(startingAttributeType: string) {
   expect(res).toEqual(
     `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
+import User from '@models/User.js'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)
@@ -434,7 +434,7 @@ function expectJsonAttributeType(startingAttributeType: 'json' | 'jsonb' | 'json
   expect(res).toEqual(
     `\
 import { DreamSerializer } from '@rvoh/dream'
-import User from '../models/User.js'
+import User from '@models/User.js'
 
 export const UserSummarySerializer = (user: User) =>
   DreamSerializer(User, user)

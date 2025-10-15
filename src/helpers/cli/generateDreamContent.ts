@@ -3,7 +3,7 @@ import serializerGlobalNameFromFullyQualifiedModelName from '../../serializer/he
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import pascalize from '../pascalize.js'
-import relativeDreamPath from '../path/relativeDreamPath.js'
+import absoluteDreamPath from '../path/absoluteDreamPath.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
@@ -40,18 +40,15 @@ export default function generateDreamContent({
   const applicationModelName =
     connectionName === 'default' ? 'ApplicationModel' : `${pascalize(connectionName)}ApplicationModel`
   const modelImportStatements: string[] = isSTI
-    ? [importStatementForModel(fullyQualifiedModelName, fullyQualifiedParentName)]
-    : [importStatementForModel(fullyQualifiedModelName, applicationModelName)]
+    ? [importStatementForModel(fullyQualifiedParentName!)]
+    : [importStatementForModel(applicationModelName)]
 
   const attributeStatements = columnsWithTypes.map(attribute => {
     const [attributeName, attributeType, ...descriptors] = attribute.split(':')
     if (attributeName === undefined) return ''
     const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
     const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
-    const associationImportStatement = importStatementForModel(
-      fullyQualifiedModelName,
-      fullyQualifiedAssociatedModelName
-    )
+    const associationImportStatement = importStatementForModel(fullyQualifiedAssociatedModelName)
 
     if (!attributeType)
       throw new Error(`must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
@@ -147,6 +144,6 @@ function getAttributeType(attribute: string, modelClassName: string) {
   return `DreamColumn<${modelClassName}, '${camelize(attribute.split(':')[0])}'>`
 }
 
-function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
-  return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${relativeDreamPath('models', 'models', originModelName, destinationModelName)}'`
+function importStatementForModel(destinationModelName: string) {
+  return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${absoluteDreamPath('models', destinationModelName)}'`
 }

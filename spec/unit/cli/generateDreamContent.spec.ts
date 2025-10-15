@@ -13,7 +13,7 @@ describe('dream generate:model <name> [...attributes]', () => {
       expect(res).toEqual(
         `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof MealType>()
 
@@ -49,7 +49,7 @@ export default class MealType extends ApplicationModel {
       expect(res).toEqual(
         `\
 import { Decorators, DreamColumn } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof MealType>()
 
@@ -78,7 +78,7 @@ export default class MealType extends ApplicationModel {
       expect(res).toEqual(
         `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof MealType>()
 
@@ -117,7 +117,7 @@ export default class MealType extends ApplicationModel {
       expect(res).toEqual(
         `\
 import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
-import FooBar from '../Bar.js'
+import FooBar from '@models/Foo/Bar.js'
 
 const deco = new Decorators<typeof FooBarBaz>()
 
@@ -149,7 +149,7 @@ export default class FooBarBaz extends FooBar {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof User>()
 
@@ -187,7 +187,7 @@ export default class User extends ApplicationModel {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof User>()
 
@@ -231,7 +231,7 @@ export default class User extends ApplicationModel {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Chalupa>()
 
@@ -273,7 +273,7 @@ export default class Chalupa extends ApplicationModel {
           expect(res).toEqual(
             `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Chalupa>()
 
@@ -313,7 +313,7 @@ export default class Chalupa extends ApplicationModel {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Paper>()
 
@@ -351,8 +351,8 @@ export default class Paper extends ApplicationModel {
           expect(res).toEqual(
             `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
-import GraphNode from './GraphNode.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import GraphNode from '@models/GraphNode.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -391,8 +391,8 @@ export default class Composition extends ApplicationModel {
             expect(res).toEqual(
               `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
-import GraphNode from './GraphNode.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import GraphNode from '@models/GraphNode.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -432,8 +432,8 @@ export default class Composition extends ApplicationModel {
             expect(res).toEqual(
               `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
-import PetDomesticCat from './Pet/Domestic/Cat.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import PetDomesticCat from '@models/Pet/Domestic/Cat.js'
 
 const deco = new Decorators<typeof CatToy>()
 
@@ -471,8 +471,8 @@ export default class CatToy extends ApplicationModel {
             expect(res).toEqual(
               `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from '../../ApplicationModel.js'
-import GraphNode from '../../GraphNode.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import GraphNode from '@models/GraphNode.js'
 
 const deco = new Decorators<typeof PetDomesticCat>()
 
@@ -510,8 +510,8 @@ export default class PetDomesticCat extends ApplicationModel {
             expect(res).toEqual(
               `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from '../../ApplicationModel.js'
-import PetDomesticDog from './Dog.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import PetDomesticDog from '@models/Pet/Domestic/Dog.js'
 
 const deco = new Decorators<typeof PetDomesticCat>()
 
@@ -549,8 +549,8 @@ export default class PetDomesticCat extends ApplicationModel {
             expect(res).toEqual(
               `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from '../../ApplicationModel.js'
-import PetDomesticDog from '../Domestic/Dog.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import PetDomesticDog from '@models/Pet/Domestic/Dog.js'
 
 const deco = new Decorators<typeof PetWildCat>()
 
@@ -589,9 +589,9 @@ export default class PetWildCat extends ApplicationModel {
           expect(res).toEqual(
             `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
-import User from './User.js'
-import Chalupa from './Chalupa.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import User from '@models/User.js'
+import Chalupa from '@models/Chalupa.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -635,7 +635,7 @@ export default class Composition extends ApplicationModel {
           expect(res).toEqual(
             `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -671,7 +671,7 @@ export default class Composition extends ApplicationModel {
           expect(res).toEqual(
             `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
+import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -714,8 +714,8 @@ export default class Composition extends ApplicationModel {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.js'
-import User from './User.js'
+import ApplicationModel from '@models/ApplicationModel.js'
+import User from '@models/User.js'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -759,8 +759,8 @@ export default class Composition extends ApplicationModel {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel.ts'
-import User from './User.ts'
+import ApplicationModel from '@models/ApplicationModel.ts'
+import User from '@models/User.ts'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -804,8 +804,8 @@ export default class Composition extends ApplicationModel {
         expect(res).toEqual(
           `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import ApplicationModel from './ApplicationModel'
-import User from './User'
+import ApplicationModel from '@models/ApplicationModel'
+import User from '@models/User'
 
 const deco = new Decorators<typeof Composition>()
 
@@ -847,8 +847,8 @@ export default class Composition extends ApplicationModel {
       expect(res).toEqual(
         `\
 import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
-import HowyadoinApplicationModel from './HowyadoinApplicationModel.js'
-import User from './User.js'
+import HowyadoinApplicationModel from '@models/HowyadoinApplicationModel.js'
+import User from '@models/User.js'
 
 const deco = new Decorators<typeof Composition>()
 

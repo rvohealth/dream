@@ -1,3 +1,7 @@
+## 1.13.0
+
+- generated code uses absolute imports
+
 ## 1.12.0
 
 - DateTime and CalendarDate are always valid and throw an error if invalid

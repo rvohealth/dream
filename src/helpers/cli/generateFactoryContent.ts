@@ -1,6 +1,6 @@
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
-import relativeDreamPath from '../path/relativeDreamPath.js'
+import absoluteDreamPath from '../path/absoluteDreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
 import { optionalFromDescriptors } from './generateMigrationContent.js'
@@ -42,7 +42,7 @@ export default function generateFactoryContent({
         const associationModelName = globalClassNameFromFullyQualifiedModelName(
           fullyQualifiedAssociatedModelName
         )
-        const associationFactoryImportStatement = `import create${associationModelName} from '${relativeDreamPath('factories', 'factories', fullyQualifiedModelName, fullyQualifiedAssociatedModelName)}'`
+        const associationFactoryImportStatement = `import create${associationModelName} from '${absoluteDreamPath('factories', fullyQualifiedAssociatedModelName)}'`
 
         belongsToNames.push(attributeVariable)
         belongsToTypedNames.push(`${attributeVariable}: ${associationModelName}`)
@@ -131,7 +131,7 @@ export default function generateFactoryContent({
     }
   }
 
-  const relativePath = relativeDreamPath('factories', 'models', fullyQualifiedModelName)
+  const relativePath = absoluteDreamPath('models', fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   return `\

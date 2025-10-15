@@ -1,7 +1,7 @@
 import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
-import relativeDreamPath from '../path/relativeDreamPath.js'
+import absoluteDreamPath from '../path/absoluteDreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
 
@@ -154,14 +154,14 @@ function importStatementForSerializer(originModelName: string, destinationModelN
     )
   )
 
-  const importFrom = relativeDreamPath('serializers', 'serializers', originModelName, destinationModelName)
+  const importFrom = absoluteDreamPath('serializers', destinationModelName)
 
   return `import { ${defaultSerializer}, ${summarySerializer} } from '${importFrom}'\n`
 }
 
 function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
   const modelName = globalClassNameFromFullyQualifiedModelName(destinationModelName)
-  const importFrom = relativeDreamPath('serializers', 'models', originModelName, destinationModelName)
+  const importFrom = absoluteDreamPath('models', destinationModelName)
 
   return `import ${modelName} from '${importFrom}'\n`
 }
