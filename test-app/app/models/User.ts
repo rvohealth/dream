@@ -52,11 +52,11 @@ export default class User extends ApplicationModel {
   @deco.Encrypted('myOtherEncryptedSecret')
   public otherSecret: { token: string } | null
 
-  @deco.Virtual()
+  @deco.Virtual('string')
   public password: string | undefined
   public passwordDigest: DreamColumn<User, 'passwordDigest'>
 
-  @deco.Virtual()
+  @deco.Virtual('string')
   public randoVirtual: string
 
   @deco.Virtual('number')

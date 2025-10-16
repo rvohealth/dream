@@ -2,7 +2,7 @@ import Dream from '../../Dream.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 
-export default function Virtual(type?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand): any {
+export default function Virtual(type: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
 

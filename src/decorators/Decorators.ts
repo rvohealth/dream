@@ -373,7 +373,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *
    * ```ts
    * class BodyMeasurement {
-   *   @deco.Virtual()
+   *   @deco.Virtual('number')
    *   public get lbs() {
    *     const self: User = this
    *     return gramsToLbs(self.getAttribute('grams') ?? 0)
@@ -384,7 +384,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *     self.setAttribute('grams', lbsToGrams(lbs))
    *   }
    *
-   *   @deco.Virtual()
+   *   @deco.Virtual('number')
    *   public get kilograms() {
    *     const self: User = this
    *     return gramsToKilograms(self.getAttribute('grams') ?? 0)
@@ -400,7 +400,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *
    * ```ts
    * class User {
-   *   @deco.Virtual()
+   *   @deco.Virtual('string')
    *   public password: string
    *
    *   @deco.BeforeSave()
@@ -410,10 +410,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
-   * @returns An Virtual decorator
+   * @param openapi - Required. The OpenAPI shape that defines both the serializer OpenAPI shape and request body OpenAPI shape (in Psychic)
+   * @returns A Virtual decorator
    */
-  public Virtual(this: Decorators<TD>, type?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand) {
-    return Virtual(type)
+  public Virtual(this: Decorators<TD>, openapi: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand) {
+    return Virtual(openapi)
   }
 
   /**

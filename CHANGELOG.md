@@ -1,6 +1,7 @@
 ## 1.13.0
 
 - generated code uses absolute imports
+- `Virtual` decorator requires OpenAPI shape
 
 ## 1.12.0
 

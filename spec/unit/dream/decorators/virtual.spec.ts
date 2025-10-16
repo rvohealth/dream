@@ -6,7 +6,9 @@ describe('@deco.Virtual', () => {
   })
 
   it('adds the virtual columns to the Dream class’s virtualAttributes', () => {
-    expect(User['virtualAttributes']).toEqual(expect.arrayContaining([{ property: 'password' }]))
+    expect(User['virtualAttributes']).toEqual(
+      expect.arrayContaining([{ property: 'password', type: 'string' }])
+    )
   })
 
   it('allows the decorated property to be passed into #new as if it were a column on the database', () => {
