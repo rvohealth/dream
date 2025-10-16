@@ -1,10 +1,11 @@
-import { ExpressionBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
+import { ExpressionBuilder, SelectQueryBuilder, sql, UpdateQueryBuilder } from 'kysely'
 import DreamApp from '../../../../dream-app/index.js'
 import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
 import PostgresQueryDriver from '../../../../dream/QueryDriver/Postgres.js'
 import range from '../../../../helpers/range.js'
+import snakeify from '../../../../helpers/snakeify.js'
 import getColumnForSortableScope from './getColumnForSortableScope.js'
 import scopeArray from './scopeArray.js'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream.js'
@@ -119,6 +120,8 @@ async function applyUpdates({
   txn: DreamTransaction<any>
   newPosition: number
 }) {
+  await updatePositionForRecord(txn, dream, positionField, newPosition)
+
   await updateConflictingRecords({
     position,
     previousPosition,
@@ -128,8 +131,6 @@ async function applyUpdates({
     scope,
     txn,
   })
-
-  await updatePositionForRecord(txn, dream, positionField, newPosition)
 }
 
 async function setNewPosition({
@@ -213,18 +214,20 @@ async function updateConflictingRecords({
   if (newPosition === undefined && previousPosition === undefined) return
   const increasing =
     newPosition === undefined || (previousPosition !== undefined && previousPosition < newPosition)
+  const positionRange = increasing
+    ? range(previousPosition!, newPosition)
+    : range(newPosition, previousPosition)
+
+  const shiftOperator = previousPosition === null && newPosition !== undefined ? '+' : increasing ? '-' : '+'
+  const primaryKeyField = (dream.constructor as typeof Dream).primaryKey
 
   let kyselyQuery = query
     .txn(txn)
-    .whereNot({ [dream['_primaryKey']]: dream.primaryKeyValue() })
-    .where({
-      [positionField]: increasing
-        ? range(previousPosition!, newPosition)
-        : range(newPosition, previousPosition),
-    })
+    .whereNot({ [primaryKeyField]: dream.primaryKeyValue() })
+    .where({ [positionField]: positionRange })
     .toKysely('update')
     .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => ({
-      [positionField]: eb(positionField, increasing ? '-' : '+', 1),
+      [positionField]: eb(positionField, shiftOperator, 1),
     }))
 
   kyselyQuery = applySortableScopesToQuery(
@@ -238,6 +241,71 @@ async function updateConflictingRecords({
   )
 
   await kyselyQuery.execute()
+
+  await shiftNullRecords({
+    position,
+    positionField,
+    dream,
+    query,
+    scope,
+    txn,
+  })
+}
+
+async function shiftNullRecords({
+  position,
+  dream,
+  positionField,
+  query,
+  scope,
+  txn,
+}: {
+  dream: Dream
+  position?: number | undefined
+  positionField: string
+  query: Query<Dream>
+  scope: string | string[] | undefined
+  txn: DreamTransaction<any>
+}) {
+  const newPosition = position
+  if (!newPosition) return
+
+  const primaryKeyField = (dream.constructor as typeof Dream).primaryKey
+  const basePosition = Math.max((await query.txn(txn).max(positionField)) || 0, newPosition)
+  const dbOrTxn = txn.kyselyTransaction
+
+  const orderingField = dream.columns().has(dream['_createdAtField'])
+    ? snakeify(dream['_createdAtField'])
+    : primaryKeyField
+
+  await dbOrTxn
+    .with('numbered_nulls', db => {
+      const subquery = db
+        .selectFrom(dream.table as any)
+        .select([
+          sql.raw(primaryKeyField).as(primaryKeyField),
+          sql`ROW_NUMBER() OVER (ORDER BY ${sql.raw(orderingField)})`.as('row_num'),
+        ])
+        .where(snakeify(positionField), 'is', null)
+        .where(primaryKeyField, '!=', dream.primaryKeyValue())
+
+      return applySortableScopesToQuery(
+        dream,
+        subquery,
+        column =>
+          dream.savedChangeToAttribute(column)
+            ? (dream.changes()[column]?.was ?? (dream as any)[column])
+            : (dream as any)[column],
+        scope
+      )
+    })
+    .updateTable(dream.table as any)
+    .set({
+      [positionField]: sql`${basePosition} + nn.row_num`,
+    })
+    .from('numbered_nulls as nn')
+    .whereRef(`${dream.table}.${primaryKeyField}`, '=', 'nn.id')
+    .execute()
 }
 
 export function applySortableScopesToQuery<

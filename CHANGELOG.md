@@ -1,3 +1,7 @@
+## 1.12.1
+
+fix issues with sortable when confronting null position values in the database
+
 ## 1.12.0
 
 - DateTime and CalendarDate are always valid and throw an error if invalid

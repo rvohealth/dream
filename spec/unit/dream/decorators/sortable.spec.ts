@@ -39,6 +39,32 @@ describe('@Sortable', () => {
             const model = await UnscopedSortableModel.create()
             expect(model.position).toEqual(2)
           })
+
+          context('with some records containing null positions', () => {
+            let model1: UnscopedSortableModel
+            let model2: UnscopedSortableModel
+            let model3: UnscopedSortableModel
+            let model4: UnscopedSortableModel
+
+            beforeEach(async () => {
+              model1 = await UnscopedSortableModel.create()
+              model2 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+              model3 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+            })
+
+            it('correctly applies new position to records with null positions', async () => {
+              model4 = await UnscopedSortableModel.create({ position: 1 })
+
+              await model1.reload()
+              await model2.reload()
+              await model3.reload()
+
+              expect(model1.position).toEqual(2)
+              expect(model4.position).toEqual(1)
+              expect(model2.position).toEqual(3)
+              expect(model3.position).toEqual(4)
+            })
+          })
         })
       })
 
@@ -98,6 +124,54 @@ describe('@Sortable', () => {
             await Post.create({ body: 'hello', user: user2 })
             const post = await Post.create({ body: 'hello', user })
             expect(post.position).toEqual(2)
+          })
+
+          context('with some records containing null positions', () => {
+            let otherUserPost: Post
+            beforeEach(async () => {
+              const otherUser = await User.create({ email: 'other@user', password: 'howyadoin' })
+              otherUserPost = await Post.create({ body: 'hello', user: otherUser })
+            })
+
+            context('when shifting the position up', () => {
+              it('correctly applies new position to records with null positions', async () => {
+                const post1 = await Post.create({ body: 'hello', user })
+                const post2 = await Post.create({ body: 'hello', user, position: null }, { skipHooks: true })
+                const post3 = await Post.create({ body: 'hello', user, position: null }, { skipHooks: true })
+                await otherUserPost.update({ position: null }, { skipHooks: true })
+                const post4 = await Post.create({ body: 'hello', user, position: 1 })
+
+                await post1.reload()
+                await post2.reload()
+                await post3.reload()
+                await otherUserPost.reload()
+                expect(post1.position).toEqual(2)
+                expect(post4.position).toEqual(1)
+                expect(post2.position).toEqual(3)
+                expect(post3.position).toEqual(4)
+                expect(otherUserPost.position).toBeNull()
+              })
+            })
+
+            context('when shifting the position down', () => {
+              it('correctly applies new position to records with null positions', async () => {
+                const post1 = await Post.create({ body: 'hello', user })
+                const post2 = await Post.create({ body: 'hello', user })
+                const post3 = await Post.create({ body: 'hello', user })
+                await post1.update({ position: null }, { skipHooks: true })
+                await post2.update({ position: null }, { skipHooks: true })
+                await otherUserPost.update({ position: null }, { skipHooks: true })
+                await post3.update({ position: 1 })
+
+                await post1.reload()
+                await post2.reload()
+                await otherUserPost.reload()
+                expect(post3.position).toEqual(1)
+                expect(post1.position).toEqual(2)
+                expect(post2.position).toEqual(3)
+                expect(otherUserPost.position).toBeNull()
+              })
+            })
           })
         })
       })
@@ -298,6 +372,54 @@ describe('@Sortable', () => {
           expect(post2.position).toEqual(2)
           expect(post3.position).toEqual(3)
           expect(post4.position).toEqual(4)
+        })
+      })
+
+      context('with some records containing null positions', () => {
+        let model1: UnscopedSortableModel
+        let model2: UnscopedSortableModel
+        let model3: UnscopedSortableModel
+        let model4: UnscopedSortableModel
+
+        beforeEach(async () => {
+          model1 = await UnscopedSortableModel.create()
+          model2 = await UnscopedSortableModel.create()
+          model3 = await UnscopedSortableModel.create()
+          model4 = await UnscopedSortableModel.create()
+        })
+
+        context('when shifting the position up', () => {
+          it('correctly applies new position to records with null positions', async () => {
+            await model2.update({ position: null }, { skipHooks: true })
+            await model3.update({ position: null }, { skipHooks: true })
+            await model1.update({ position: 3 })
+
+            await model2.reload()
+            await model3.reload()
+            await model4.reload()
+
+            expect(model1.position).toEqual(3)
+            expect(model4.position).toEqual(4)
+            expect(model2.position).toEqual(5)
+            expect(model3.position).toEqual(6)
+          })
+        })
+
+        context('when shifting the position down', () => {
+          it('correctly applies new position to records with null positions', async () => {
+            await model2.update({ position: null }, { skipHooks: true })
+            await model3.update({ position: null }, { skipHooks: true })
+            await model3.update({ position: 1 })
+
+            await model1.reload()
+            await model2.reload()
+            await model4.reload()
+
+            expect(model1.position).toEqual(2)
+            expect(model2.position).toEqual(5)
+            expect(model3.position).toEqual(1)
+            expect(model4.position).toEqual(4)
+          })
         })
       })
     })
@@ -617,6 +739,57 @@ describe('@Sortable', () => {
             expect(post1.position).toEqual(2)
             expect(post2.position).toEqual(1)
             expect(post3.position).toEqual(3)
+          })
+        })
+      })
+
+      context('with some records containing null positions', () => {
+        let otherUserPost: Post
+        beforeEach(async () => {
+          const otherUser = await User.create({ email: 'other@user', password: 'howyadoin' })
+          otherUserPost = await Post.create({ body: 'hello', user: otherUser })
+        })
+
+        context('when shifting the position up', () => {
+          it('correctly applies new position to records with null positions', async () => {
+            const post1 = await Post.create({ body: 'hello', user })
+            const post2 = await Post.create({ body: 'hello', user })
+            const post3 = await Post.create({ body: 'hello', user })
+            const post4 = await Post.create({ body: 'hello', user })
+            await post2.update({ position: null }, { skipHooks: true })
+            await post3.update({ position: null }, { skipHooks: true })
+            await otherUserPost.update({ position: null }, { skipHooks: true })
+            await post1.update({ position: 3 })
+
+            await post2.reload()
+            await post3.reload()
+            await post4.reload()
+            await otherUserPost.reload()
+            expect(post1.position).toEqual(3)
+            expect(post4.position).toEqual(4)
+            expect(post2.position).toEqual(5)
+            expect(post3.position).toEqual(6)
+            expect(otherUserPost.position).toBeNull()
+          })
+        })
+
+        context('when shifting the position down', () => {
+          it('correctly applies new position to records with null positions', async () => {
+            const post1 = await Post.create({ body: 'hello', user })
+            const post2 = await Post.create({ body: 'hello', user })
+            const post3 = await Post.create({ body: 'hello', user })
+            await post1.update({ position: null }, { skipHooks: true })
+            await post2.update({ position: null }, { skipHooks: true })
+            await otherUserPost.update({ position: null }, { skipHooks: true })
+            await post3.update({ position: 1 })
+
+            await post1.reload()
+            await post2.reload()
+            await otherUserPost.reload()
+            expect(post3.position).toEqual(1)
+            expect(post1.position).toEqual(2)
+            expect(post2.position).toEqual(3)
+            expect(otherUserPost.position).toBeNull()
           })
         })
       })
