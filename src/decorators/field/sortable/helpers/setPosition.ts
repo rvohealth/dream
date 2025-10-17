@@ -5,7 +5,6 @@ import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
 import PostgresQueryDriver from '../../../../dream/QueryDriver/Postgres.js'
 import range from '../../../../helpers/range.js'
-import snakeify from '../../../../helpers/snakeify.js'
 import getColumnForSortableScope from './getColumnForSortableScope.js'
 import scopeArray from './scopeArray.js'
 import sortableQueryExcludingDream from './sortableQueryExcludingDream.js'
@@ -272,21 +271,20 @@ async function shiftNullRecords({
 
   const primaryKeyField = (dream.constructor as typeof Dream).primaryKey
   const basePosition = Math.max((await query.txn(txn).max(positionField)) || 0, newPosition)
-  const dbOrTxn = txn.kyselyTransaction
 
   const orderingField = dream.columns().has(dream['_createdAtField'])
-    ? snakeify(dream['_createdAtField'])
+    ? dream['_createdAtField']
     : primaryKeyField
 
-  await dbOrTxn
+  await txn.kyselyTransaction
     .with('numbered_nulls', db => {
       const subquery = db
         .selectFrom(dream.table as any)
         .select([
-          sql.raw(primaryKeyField).as(primaryKeyField),
-          sql`ROW_NUMBER() OVER (ORDER BY ${sql.raw(orderingField)})`.as('row_num'),
+          sql.ref(primaryKeyField).as(primaryKeyField),
+          sql`ROW_NUMBER() OVER (ORDER BY ${sql.ref(orderingField)})`.as('row_num'),
         ])
-        .where(snakeify(positionField), 'is', null)
+        .where(positionField, 'is', null)
         .where(primaryKeyField, '!=', dream.primaryKeyValue())
 
       return applySortableScopesToQuery(
