@@ -50,14 +50,10 @@ export default function Sortable(opts: SortableOpts = {}): any {
       const dreamPrototype = Object.getPrototypeOf(dream)
       // before saving, we remember the new value for position, but clear it from our
       // supervised attributes to prevent position from saving
-      dreamPrototype[beforeSaveMethodName] = async function (txn?: DreamTransaction<any>) {
-        let query = dreamClass.query().removeDefaultScope(STI_SCOPE_NAME)
-        if (txn) query = query.txn(txn)
-
-        await beforeSortableSave({
+      dreamPrototype[beforeSaveMethodName] = function () {
+        beforeSortableSave({
           dream: this,
           positionField,
-          query,
           scope: opts.scope,
         })
       }
@@ -72,8 +68,8 @@ export default function Sortable(opts: SortableOpts = {}): any {
           dream: this,
           positionField,
           query,
-          scope: opts.scope,
           txn,
+          scope: opts.scope,
         })
       }
       dreamPrototype[afterUpdateCommitMethodName] = async function (txn?: DreamTransaction<any>) {

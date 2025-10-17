@@ -3,8 +3,8 @@ import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
 import clearCachedSortableValues from '../helpers/clearCachedSortableValues.js'
 import setPosition from '../helpers/setPosition.js'
-import sortableCacheKeyName from '../helpers/sortableCacheKeyName.js'
 import sortableCacheValuesName from '../helpers/sortableCacheValuesName.js'
+import { SortableCache } from './beforeSortableSave.js'
 
 export default async function afterUpdateSortable({
   positionField,
@@ -19,26 +19,20 @@ export default async function afterUpdateSortable({
   txn?: DreamTransaction<any> | undefined
   scope: string | string[] | undefined
 }) {
-  const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)
+  const sortableCache: SortableCache = (dream as any)[cachedValuesName]
 
-  if (!(dream as any)[cacheKey]) return
-  if ((dream as any)[cachedValuesName]) {
-    await setPosition({
-      ...(dream as any)[cachedValuesName],
-      txn,
-    })
-  } else {
-    await setPosition({
-      position: (dream as any)[cacheKey],
-      dream: dream,
-      positionField,
-      scope,
-      previousPosition: dream.changes()[positionField]?.was,
-      query,
-      txn,
-    })
-  }
+  if (!sortableCache) return
+
+  await setPosition({
+    ...sortableCache,
+    dream,
+    positionField,
+    position: sortableCache.changingScope ? undefined : sortableCache.position,
+    query,
+    scope,
+    txn,
+  })
 
   clearCachedSortableValues(dream, positionField)
 }

@@ -3,7 +3,8 @@ import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
 import clearCachedSortableValues from '../helpers/clearCachedSortableValues.js'
 import setPosition from '../helpers/setPosition.js'
-import sortableCacheKeyName from '../helpers/sortableCacheKeyName.js'
+import sortableCacheValuesName from '../helpers/sortableCacheValuesName.js'
+import { SortableCache } from './beforeSortableSave.js'
 
 export default async function afterSortableCreate({
   positionField,
@@ -18,15 +19,19 @@ export default async function afterSortableCreate({
   txn?: DreamTransaction<any> | undefined
   scope: string | string[] | undefined
 }) {
-  const cacheKey = sortableCacheKeyName(positionField)
+  const cachedValuesName = sortableCacheValuesName(positionField)
+  const sortableCache: SortableCache | undefined = (dream as any)[cachedValuesName]
 
   await setPosition({
-    position: (dream as any)[cacheKey],
+    position: sortableCache?.position,
     dream,
     positionField,
     txn,
     scope,
     query,
+    changingScope: false,
+    previousPosition: undefined,
+    wasNewRecord: true,
   })
 
   clearCachedSortableValues(dream, positionField)

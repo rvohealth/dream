@@ -1,70 +1,54 @@
 import Dream from '../../../../Dream.js'
-import Query from '../../../../dream/Query.js'
 import positionIsInvalid from '../helpers/positionIsInvalid.js'
 import scopeArray from '../helpers/scopeArray.js'
-import sortableCacheKeyName from '../helpers/sortableCacheKeyName.js'
 import sortableCacheValuesName from '../helpers/sortableCacheValuesName.js'
 
-export default async function beforeSortableSave({
+export interface SortableCache {
+  changingScope: boolean
+  position: number | undefined
+  previousPosition: number | undefined
+  wasNewRecord: boolean
+}
+
+export default function beforeSortableSave({
   positionField,
   dream,
-  query,
   scope,
 }: {
   positionField: string
   dream: Dream
-  query: Query<Dream>
   scope: string | string[] | undefined
 }) {
-  const cacheKey = sortableCacheKeyName(positionField)
   const cachedValuesName = sortableCacheValuesName(positionField)
   const dreamAsAny = dream as any
 
-  const changingScope = scopeArray(scope).filter(scopeField => {
-    const association = dream['getAssociationMetadata'](scopeField)
+  const changingScope =
+    dream.isPersisted &&
+    scopeArray(scope).filter(scopeField => {
+      const association = dream['getAssociationMetadata'](scopeField)
 
-    return association
-      ? dream.willSaveChangeToAttribute(association.foreignKey())
-      : dream.willSaveChangeToAttribute(scopeField as any)
-  }).length
+      return association
+        ? dream.willSaveChangeToAttribute(association.foreignKey())
+        : dream.willSaveChangeToAttribute(scopeField as any)
+    }).length > 0
 
-  if (!dream.willSaveChangeToAttribute(positionField) && !changingScope) return
+  if (dream.willSaveChangeToAttribute(positionField) || changingScope) {
+    const position = dreamAsAny[positionField]
 
-  const onlyChangingScope = !dream.willSaveChangeToAttribute(positionField) && changingScope
-
-  const position = dreamAsAny[positionField]
-
-  if (onlyChangingScope) {
-    dreamAsAny[cacheKey] = position
-  } else if (await positionIsInvalid({ query, dream: dream, scope, position })) {
-    if (changingScope) {
-      dreamAsAny[cacheKey] = dream.changes()[positionField]?.was
-    } else {
-      if (dream.isPersisted) {
-        dreamAsAny[positionField] = undefined
-        return
-      } else {
-        dreamAsAny[cacheKey] = dream.changes()[positionField]?.was
-      }
+    // store values to be used in after create/update hook
+    const values: SortableCache = {
+      wasNewRecord: dream.isNewRecord,
+      changingScope,
+      position: positionIsInvalid(position) ? undefined : position,
+      previousPosition:
+        dream.isPersisted && dream.willSaveChangeToAttribute(positionField)
+          ? dream.changes()[positionField]?.was
+          : changingScope
+            ? position
+            : undefined,
     }
-  } else {
-    dreamAsAny[cacheKey] = position
+    dreamAsAny[cachedValuesName] = values
   }
-
-  // store values to be used in after create/update hook
-  const values = {
-    position: changingScope ? undefined : dreamAsAny[cacheKey],
-    dream,
-    positionField,
-    scope,
-    previousPosition: dream.willSaveChangeToAttribute(positionField)
-      ? dream.changes()[positionField]?.was
-      : changingScope
-        ? position
-        : undefined,
-    query,
-  }
-  dreamAsAny[cachedValuesName] = values
 
   if (dream.isNewRecord || changingScope) {
     // if the dream is not saved, or is being moved between scopes, set position to 0

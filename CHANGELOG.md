@@ -2,6 +2,9 @@
 
 - generated code uses absolute imports
 - `Virtual` decorator requires OpenAPI shape
+- don't let a null value in a `Sortable` column break future sorts (null may enter via a migration or `skipHooks`)
+- simplify and DRY up Sortable
+- Sortable keeps values within the range 1 to N
 
 ## 1.12.0
 

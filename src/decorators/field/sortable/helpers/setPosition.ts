@@ -5,222 +5,60 @@ import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
 import PostgresQueryDriver from '../../../../dream/QueryDriver/Postgres.js'
 import range from '../../../../helpers/range.js'
+import { SortableCache } from '../hooks/beforeSortableSave.js'
 import getColumnForSortableScope from './getColumnForSortableScope.js'
 import scopeArray from './scopeArray.js'
-import sortableQueryExcludingDream from './sortableQueryExcludingDream.js'
+import validPosition from './validPosition.js'
 
-export default async function setPosition({
-  position,
-  previousPosition,
-  dream,
-  positionField,
-  scope,
-  query,
-  txn,
-}: {
+interface SortableCacheWithOptionalTransaction extends SortableCache {
   dream: Dream
-  position: number
-  previousPosition?: number
   positionField: string
   query: Query<Dream>
   scope: string | string[] | undefined
-  txn: DreamTransaction<any> | undefined
-}) {
-  if (position) {
-    await setPositionFromValue({
-      position,
-      dream,
-      positionField,
-      scope,
-      previousPosition,
-      query,
-      txn,
-    })
-  } else {
-    await setNewPosition({
-      dream,
-      positionField,
-      scope,
-      previousPosition,
-      query,
-      txn,
-    })
-  }
+  txn?: DreamTransaction<any> | undefined
+}
+export interface SortableCacheWithRequiredTransaction extends SortableCacheWithOptionalTransaction {
+  txn: DreamTransaction<any>
 }
 
-async function setPositionFromValue({
-  position,
-  previousPosition,
-  dream,
-  positionField,
-  query,
-  scope,
-  txn,
-}: {
-  dream: Dream
+interface SortableCacheWithRequiredTransactionAndRequiredPosition
+  extends SortableCacheWithRequiredTransaction {
   position: number
-  previousPosition?: number | undefined
-  positionField: string
-  query: Query<Dream>
-  scope: string | string[] | undefined
-  txn: DreamTransaction<any> | undefined
-}) {
-  const newPosition = position
+}
+
+export default async function setPosition(obj: SortableCacheWithOptionalTransaction) {
+  const { dream, txn } = obj
 
   if (txn) {
-    await applyUpdates({
-      position,
-      previousPosition,
-      dream,
-      positionField,
-      query,
-      scope,
-      txn,
-      newPosition,
-    })
-  } else {
-    await (dream.constructor as typeof Dream).transaction(async txn => {
-      await applyUpdates({
-        position,
-        previousPosition,
-        dream,
-        positionField,
-        query,
-        scope,
-        txn,
-        newPosition,
-      })
-    })
-  }
-
-  if (txn) {
+    await applyUpdates({ ...obj, txn })
     await dream.txn(txn).reload()
   } else {
-    await dream.reload()
-  }
-}
-
-async function applyUpdates({
-  position,
-  previousPosition,
-  dream,
-  positionField,
-  query,
-  scope,
-  txn,
-  newPosition,
-}: {
-  dream: Dream
-  position: number
-  previousPosition?: number | undefined
-  positionField: string
-  query: Query<Dream>
-  scope: string | string[] | undefined
-  txn: DreamTransaction<any>
-  newPosition: number
-}) {
-  await updateConflictingRecords({
-    position,
-    previousPosition,
-    dream,
-    positionField,
-    query,
-    scope,
-    txn,
-  })
-
-  await updatePositionForRecord(txn, dream, positionField, newPosition)
-}
-
-async function setNewPosition({
-  dream,
-  positionField,
-  query,
-  scope,
-  previousPosition,
-  txn,
-}: {
-  dream: Dream
-  positionField: string
-  query: Query<Dream>
-  scope: string | string[] | undefined
-  previousPosition?: number | undefined
-  txn: DreamTransaction<any> | undefined
-}) {
-  const newPosition = (await sortableQueryExcludingDream(dream, query, scope).max(positionField)) + 1
-
-  const queryDriverClass = getPostgresQueryDriver(dream.connectionName || 'default')
-
-  const dbOrTxn = txn
-    ? txn.kyselyTransaction
-    : queryDriverClass.dbFor(dream.connectionName || 'default', 'primary')
-
-  await dbOrTxn
-    .updateTable(dream.table as any)
-    .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
-    .set({
-      [positionField]: newPosition,
-    })
-    .execute()
-
-  if (txn) {
-    await dream.txn(txn).reload()
-  } else {
-    await dream.reload()
-  }
-
-  if (txn) {
-    await updateConflictingRecords({
-      previousPosition,
-      dream,
-      positionField,
-      query,
-      scope,
-      txn,
-    })
-  } else {
     await (dream.constructor as typeof Dream).transaction(async txn => {
-      await updateConflictingRecords({
-        previousPosition,
-        dream,
-        positionField,
-        query,
-        scope,
-        txn,
-      })
+      await applyUpdates({ ...obj, txn })
+      await dream.txn(txn).reload()
     })
   }
 }
 
-async function updateConflictingRecords({
-  position,
-  previousPosition,
-  dream,
-  positionField,
-  query,
-  scope,
-  txn,
-}: {
-  dream: Dream
-  position?: number | undefined
-  previousPosition?: number | undefined
-  positionField: string
-  query: Query<Dream>
-  scope: string | string[] | undefined
-  txn: DreamTransaction<any>
-}) {
-  const newPosition = position
-  if (newPosition === undefined && previousPosition === undefined) return
+async function applyUpdates(obj: SortableCacheWithRequiredTransaction) {
+  const position = await validPosition(obj)
+  await updateConflictingRecords({ ...obj, position })
+  await updatePositionForRecord({ ...obj, position })
+}
+
+async function updateConflictingRecords(obj: SortableCacheWithRequiredTransactionAndRequiredPosition) {
+  const { wasNewRecord, position, previousPosition, dream, positionField, query, scope, txn, changingScope } =
+    obj
   const increasing =
-    newPosition === undefined || (previousPosition !== undefined && previousPosition < newPosition)
+    changingScope ||
+    position === undefined ||
+    (previousPosition !== undefined && previousPosition !== null && previousPosition < position)
 
   let kyselyQuery = query
     .txn(txn)
     .whereNot({ [dream['_primaryKey']]: dream.primaryKeyValue() })
     .where({
-      [positionField]: increasing
-        ? range(previousPosition!, newPosition)
-        : range(newPosition, previousPosition),
+      [positionField]: increasing ? range(previousPosition, position) : range(position, previousPosition),
     })
     .toKysely('update')
     .set((eb: ExpressionBuilder<(typeof dream)['DB'], typeof dream.table>) => ({
@@ -231,7 +69,7 @@ async function updateConflictingRecords({
     dream,
     kyselyQuery,
     column =>
-      dream.savedChangeToAttribute(column)
+      !wasNewRecord && dream.savedChangeToAttribute(column)
         ? (dream.changes()[column]?.was ?? (dream as any)[column])
         : (dream as any)[column],
     scope
@@ -266,12 +104,9 @@ export function applySortableScopesToQuery<
   return kyselyQuery
 }
 
-async function updatePositionForRecord(
-  txn: DreamTransaction<any>,
-  dream: Dream,
-  positionField: string,
-  position: number
-) {
+async function updatePositionForRecord(obj: SortableCacheWithRequiredTransactionAndRequiredPosition) {
+  const { txn, dream, positionField, position } = obj
+
   await txn.kyselyTransaction
     .updateTable(dream.table as any)
     .where(dream['_primaryKey'], '=', dream.primaryKeyValue())

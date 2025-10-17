@@ -42,6 +42,66 @@ describe('@Sortable', () => {
         })
       })
 
+      context('some records with null position', () => {
+        it('does not create problems for new additions', async () => {
+          const model1 = await UnscopedSortableModel.create()
+          const model2 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+          const model3 = await UnscopedSortableModel.create()
+          await model1.reload()
+          await model2.reload()
+
+          expect(model1.position).toEqual(1)
+          expect(model3.position).toEqual(2)
+          expect(model2.position).toBeNull()
+        })
+
+        it('can be changed from null to non-null', async () => {
+          const model1 = await UnscopedSortableModel.create()
+          const model2 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+          const model3 = await UnscopedSortableModel.create()
+          await model2.update({ position: 2 })
+
+          await model1.reload()
+          await model2.reload()
+          await model3.reload()
+
+          expect(model1.position).toEqual(1)
+          expect(model2.position).toEqual(2)
+          expect(model3.position).toEqual(3)
+        })
+
+        context('changing to an out-of-bounds value', () => {
+          it('adjusts to valid values', async () => {
+            const model1 = await UnscopedSortableModel.create()
+            const model2 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+            const model3 = await UnscopedSortableModel.create()
+            const model4 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+            await model2.update({ position: 20 })
+
+            await model1.reload()
+            await model2.reload()
+            await model3.reload()
+            await model4.reload()
+
+            expect(model1.position).toEqual(1)
+            expect(model3.position).toEqual(2)
+            expect(model2.position).toEqual(3)
+            expect(model4.position).toBeNull()
+
+            await model4.update({ position: -1 })
+            await model1.reload()
+            await model2.reload()
+            await model3.reload()
+            await model4.reload()
+
+            expect(model1.position).toEqual(1)
+            expect(model3.position).toEqual(2)
+            expect(model2.position).toEqual(3)
+            expect(model4.position).toEqual(4)
+          })
+        })
+      })
+
       context('when position is set on the record', () => {
         context('the position is set to a value that is equal to the highest existing position + 1', () => {
           it('leaves the position as-is for all records', async () => {
@@ -169,6 +229,43 @@ describe('@Sortable', () => {
           expect(model3.position).toEqual(2)
           expect(model4.position).toEqual(4)
         })
+
+        context('attempting to update outside of the total number of positions', () => {
+          it('adjusts the target to the maximum allowed', async () => {
+            const model1 = await UnscopedSortableModel.create()
+            const model2 = await UnscopedSortableModel.create()
+
+            expect(model1.position).toEqual(1)
+            expect(model2.position).toEqual(2)
+
+            await model1.update({ position: 3 })
+            await model1.reload()
+            await model2.reload()
+
+            expect(model1.position).toEqual(2)
+            expect(model2.position).toEqual(1)
+          })
+        })
+
+        context('some records with null position', () => {
+          it('adjusts the non-null records properly (prevents errors if, somehow [e.g.: skiphooks] introduces a record with null position)', async () => {
+            const model1 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+            const model2 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+            const model3 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+            const model4 = await UnscopedSortableModel.create({ position: null }, { skipHooks: true })
+
+            await model1.update({ position: 2 })
+            await model1.reload()
+            await model2.reload()
+            await model3.reload()
+            await model4.reload()
+
+            expect(model1.position).toEqual(1)
+            expect(model2.position).toBeNull()
+            expect(model3.position).toBeNull()
+            expect(model4.position).toBeNull()
+          })
+        })
       })
 
       context('when decreasing the position', () => {
@@ -202,7 +299,7 @@ describe('@Sortable', () => {
       })
 
       context('when attempting to set position to zero', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await UnscopedSortableModel.create()
           const post2 = await UnscopedSortableModel.create()
           const post3 = await UnscopedSortableModel.create()
@@ -215,14 +312,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(2)
-          expect(post3.position).toEqual(3)
-          expect(post4.position).toEqual(4)
+          expect(post2.position).toEqual(4)
+          expect(post3.position).toEqual(2)
+          expect(post4.position).toEqual(3)
         })
       })
 
       context('when attempting to set position to a negative number', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await UnscopedSortableModel.create()
           const post2 = await UnscopedSortableModel.create()
           const post3 = await UnscopedSortableModel.create()
@@ -235,14 +332,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(2)
-          expect(post3.position).toEqual(3)
-          expect(post4.position).toEqual(4)
+          expect(post2.position).toEqual(4)
+          expect(post3.position).toEqual(2)
+          expect(post4.position).toEqual(3)
         })
       })
 
       context('when attempting to set position to more than the number of items', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await UnscopedSortableModel.create()
           const post2 = await UnscopedSortableModel.create()
           const post3 = await UnscopedSortableModel.create()
@@ -255,14 +352,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(2)
-          expect(post3.position).toEqual(3)
-          expect(post4.position).toEqual(4)
+          expect(post2.position).toEqual(4)
+          expect(post3.position).toEqual(2)
+          expect(post4.position).toEqual(3)
         })
       })
 
       context('when attempting to set position to undefined', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await UnscopedSortableModel.create()
           const post2 = await UnscopedSortableModel.create()
           const post3 = await UnscopedSortableModel.create()
@@ -275,14 +372,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(2)
-          expect(post3.position).toEqual(3)
-          expect(post4.position).toEqual(4)
+          expect(post2.position).toEqual(4)
+          expect(post3.position).toEqual(2)
+          expect(post4.position).toEqual(3)
         })
       })
 
       context('when attempting to set position to null', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await UnscopedSortableModel.create()
           const post2 = await UnscopedSortableModel.create()
           const post3 = await UnscopedSortableModel.create()
@@ -295,9 +392,9 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(2)
-          expect(post3.position).toEqual(3)
-          expect(post4.position).toEqual(4)
+          expect(post2.position).toEqual(4)
+          expect(post3.position).toEqual(2)
+          expect(post4.position).toEqual(3)
         })
       })
     })
@@ -496,7 +593,7 @@ describe('@Sortable', () => {
       })
 
       context('when attempting to set position to zero', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await Post.create({ body: 'post1', user })
           const post2 = await Post.create({ body: 'post2', user: user2 })
           const post3 = await Post.create({ body: 'post3', user: user2 })
@@ -509,14 +606,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(1)
-          expect(post3.position).toEqual(2)
+          expect(post2.position).toEqual(2)
+          expect(post3.position).toEqual(1)
           expect(post4.position).toEqual(2)
         })
       })
 
       context('when attempting to set position to a negative number', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await Post.create({ body: 'post1', user })
           const post2 = await Post.create({ body: 'post2', user: user2 })
           const post3 = await Post.create({ body: 'post3', user: user2 })
@@ -529,14 +626,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(1)
-          expect(post3.position).toEqual(2)
+          expect(post2.position).toEqual(2)
+          expect(post3.position).toEqual(1)
           expect(post4.position).toEqual(2)
         })
       })
 
       context('when attempting to set position to more than the number of items', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await Post.create({ body: 'post1', user })
           const post2 = await Post.create({ body: 'post2', user: user2 })
           const post3 = await Post.create({ body: 'post3', user: user2 })
@@ -549,14 +646,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(1)
-          expect(post3.position).toEqual(2)
+          expect(post2.position).toEqual(2)
+          expect(post3.position).toEqual(1)
           expect(post4.position).toEqual(2)
         })
       })
 
       context('when attempting to set position to undefined', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await Post.create({ body: 'post1', user })
           const post2 = await Post.create({ body: 'post2', user: user2 })
           const post3 = await Post.create({ body: 'post3', user: user2 })
@@ -569,14 +666,14 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(1)
-          expect(post3.position).toEqual(2)
+          expect(post2.position).toEqual(2)
+          expect(post3.position).toEqual(1)
           expect(post4.position).toEqual(2)
         })
       })
 
       context('when attempting to set position to null', () => {
-        it('does not change the position', async () => {
+        it('sets the position to the next max position', async () => {
           const post1 = await Post.create({ body: 'post1', user })
           const post2 = await Post.create({ body: 'post2', user: user2 })
           const post3 = await Post.create({ body: 'post3', user: user2 })
@@ -589,8 +686,8 @@ describe('@Sortable', () => {
           await post4.reload()
 
           expect(post1.position).toEqual(1)
-          expect(post2.position).toEqual(1)
-          expect(post3.position).toEqual(2)
+          expect(post2.position).toEqual(2)
+          expect(post3.position).toEqual(1)
           expect(post4.position).toEqual(2)
         })
       })
@@ -1024,8 +1121,8 @@ describe('@Sortable', () => {
       const balloon2 = await Latex.create({ user: user1 })
       const balloon3 = await Latex.create({ user: user1 })
 
-      await Latex.create({ user: user2 })
-      await Latex.create({ user: user2 })
+      const user2Balloon1 = await Latex.create({ user: user2 })
+      const user2Balloon2 = await Latex.create({ user: user2 })
 
       expect(balloon1.positionAlpha).toEqual(1)
       expect(balloon2.positionAlpha).toEqual(2)
@@ -1038,10 +1135,16 @@ describe('@Sortable', () => {
       await balloon1.reload()
       await balloon2.reload()
       await balloon3.reload()
+      await user2Balloon1.reload()
+      await user2Balloon2.reload()
+      await newBalloon.reload()
 
       expect(balloon1.positionAlpha).toEqual(1)
       expect(balloon2.positionAlpha).toEqual(2)
       expect(balloon3.positionAlpha).toEqual(3)
+
+      expect(user2Balloon1.positionAlpha).toEqual(1)
+      expect(user2Balloon2.positionAlpha).toEqual(2)
       expect(newBalloon.positionAlpha).toEqual(3)
     })
 

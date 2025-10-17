@@ -5,6 +5,8 @@ import { toBeOneOf } from 'jest-extended'
 import { Dream, DreamApp } from '../../src/index.js'
 import initializeDreamApp from '../../test-app/cli/helpers/initializeDreamApp.js'
 
+Error.stackTraceLimit = 50
+
 provideDreamViteMatchers(Dream)
 expect.extend({ toBeOneOf } as any)
 
