@@ -5,6 +5,10 @@
 - don't let a null value in a `Sortable` column break future sorts (null may enter via a migration or `skipHooks`)
 - simplify and DRY up Sortable
 - Sortable keeps values within the range 1 to N
+- fix STI child generation with array attributes (arrays can always be initialized to an empty array, so can leverage a regular non-null constraint). E.g:
+  ```
+  yarn psy g:sti-child Room/Bedroom extends Room bed_types:enum\[\]:bed_types:twin,bunk,queen,king,cot,sofabed
+  ```
 
 ## 1.12.0
 

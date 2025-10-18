@@ -107,6 +107,74 @@ export async function down(db: Kysely<any>): Promise<void> {
 }`)
       })
     })
+
+    context('array attributes', () => {
+      it('includes the not-null statement and omits the check constraint', () => {
+        const res = generateMigrationContent({
+          table: 'chalupas',
+          columnsWithTypes: [
+            'name:text[]',
+            'emails:citext[]',
+            'phone_number:string[]',
+            'deliciousness:decimal[]:4,2',
+            'my_bools:boolean[]',
+            'my_dates:date[]',
+            'my_datetimes:datetime[]',
+            'toppings:enum[]:topping:lettuce,cheese,baja_sauce',
+          ],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          stiChildClassName: 'Chalupa',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createType('topping_enum')
+    .asEnum([
+      'lettuce',
+      'cheese',
+      'baja_sauce'
+    ])
+    .execute()
+
+  await db.schema
+    .alterTable('chalupas')
+    .addColumn('name', sql\`text[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('emails', sql\`citext[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('phone_number', sql\`varchar(255)[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('deliciousness', sql\`decimal(4, 2)[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('my_bools', sql\`boolean[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('my_dates', sql\`date[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('my_datetimes', sql\`datetime[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('toppings', sql\`topping_enum[]\`, col => col.notNull().defaultTo('{}'))
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    .dropColumn('name')
+    .dropColumn('emails')
+    .dropColumn('phone_number')
+    .dropColumn('deliciousness')
+    .dropColumn('my_bools')
+    .dropColumn('my_dates')
+    .dropColumn('my_datetimes')
+    .dropColumn('toppings')
+    .execute()
+
+  await db.schema.dropType('topping_enum').execute()
+}\
+`
+        )
+      })
+    })
   })
 
   context('with no attributes', () => {
@@ -342,11 +410,13 @@ export async function down(db: Kysely<any>): Promise<void> {
           table: 'chalupas',
           columnsWithTypes: [
             'name:text[]',
+            'emails:citext[]',
             'phone_number:string[]',
             'deliciousness:decimal[]:4,2',
             'my_bools:boolean[]',
             'my_dates:date[]',
             'my_datetimes:datetime[]',
+            'toppings:enum[]:topping:lettuce,cheese,baja_sauce',
           ],
           primaryKeyType: 'bigserial',
         })
@@ -358,14 +428,25 @@ import { Kysely, sql } from 'kysely'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
+    .createType('topping_enum')
+    .asEnum([
+      'lettuce',
+      'cheese',
+      'baja_sauce'
+    ])
+    .execute()
+
+  await db.schema
     .createTable('chalupas')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('name', sql\`text[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('emails', sql\`citext[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('phone_number', sql\`varchar(255)[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('deliciousness', sql\`decimal(4, 2)[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('my_bools', sql\`boolean[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('my_dates', sql\`date[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('my_datetimes', sql\`datetime[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('toppings', sql\`topping_enum[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -374,6 +455,8 @@ export async function up(db: Kysely<any>): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('chalupas').execute()
+
+  await db.schema.dropType('topping_enum').execute()
 }\
 `
         )

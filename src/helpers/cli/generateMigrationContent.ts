@@ -42,12 +42,13 @@ export default function generateMigrationContent({
       const userWantsThisOptional = optionalFromDescriptors(descriptors)
       // when creating a migration for an STI child, we don't want to include notNull;
       // instead, we'll add a check constraint that uses the STI child class name
-      const optional = userWantsThisOptional || !!stiChildClassName
       const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
-      if (attributeType !== undefined && ['has_one', 'has_many'].includes(attributeType)) return acc
-
+      if (attributeType === undefined || ['has_one', 'has_many'].includes(attributeType)) return acc
       if (attributeType === 'citext') requireCitextExtension = true
+
+      const arrayAttribute = /\[\]$/.test(attributeType)
+      const omitInlineNonNull = userWantsThisOptional || (!!stiChildClassName && !arrayAttribute)
 
       if (nonStandardAttributeName === undefined) return acc
       let attributeName = snakeify(nonStandardAttributeName)
@@ -57,7 +58,7 @@ export default function generateMigrationContent({
           columnDefs.push(
             generateBelongsToStr(connectionName, attributeName, {
               primaryKeyType,
-              optional,
+              omitInlineNonNull,
             })
           )
           attributeName = snakeify(nonStandardAttributeName.split('/').pop()!)
@@ -65,30 +66,46 @@ export default function generateMigrationContent({
           break
 
         case 'enum':
-          columnDefs.push(generateEnumStr(attributeName, { descriptors, optional }))
+          columnDefs.push(generateEnumStr(attributeName, { descriptors, omitInlineNonNull }))
           break
 
         case 'enum[]':
-          columnDefs.push(generateEnumStr(attributeName, { descriptors, optional, asArray: true }))
+          columnDefs.push(
+            generateEnumStr(attributeName, {
+              descriptors,
+              omitInlineNonNull,
+              asArray: true,
+            })
+          )
           break
 
         case 'decimal':
-          columnDefs.push(generateDecimalStr(attributeName, { descriptors, optional }))
+          columnDefs.push(generateDecimalStr(attributeName, { descriptors, omitInlineNonNull }))
           break
 
         case 'decimal[]':
-          columnDefs.push(generateDecimalStr(attributeName, { descriptors, optional, asArray: true }))
+          columnDefs.push(
+            generateDecimalStr(attributeName, {
+              descriptors,
+              omitInlineNonNull,
+              asArray: true,
+            })
+          )
           break
 
         // array case for booleans can be handled with the default block.
         // the only thing that is customized for a boolean field is the default
         // value, which doesn't need to be special for boolean[]
         case 'boolean':
-          columnDefs.push(generateBooleanStr(attributeName, { optional }))
+          columnDefs.push(generateBooleanStr(attributeName, { omitInlineNonNull }))
           break
 
         case 'encrypted':
-          columnDefs.push(generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors, { optional }))
+          columnDefs.push(
+            generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors, {
+              omitInlineNonNull,
+            })
+          )
           break
 
         // TODO: determine if we need to support encrypted[] in the future
@@ -97,7 +114,11 @@ export default function generateMigrationContent({
 
         default:
           if (sqlAttributeType !== undefined) {
-            columnDefs.push(generateColumnStr(attributeName, sqlAttributeType, descriptors, { optional }))
+            columnDefs.push(
+              generateColumnStr(attributeName, sqlAttributeType, descriptors, {
+                omitInlineNonNull,
+              })
+            )
           }
           break
       }
@@ -116,7 +137,7 @@ export default function generateMigrationContent({
         indexDrops.push(`await db.schema.dropIndex('${indexName}').execute()`)
       }
 
-      if (stiChildClassName && !userWantsThisOptional) {
+      if (stiChildClassName && !userWantsThisOptional && !arrayAttribute) {
         checkConstraints.push(`
 
   await db.schema
@@ -256,13 +277,20 @@ function generateEnumDropStatements(columnsWithTypes: string[]) {
   return finalStatements.length ? '\n\n  ' + finalStatements.join('\n  ') : ''
 }
 
-function generateBooleanStr(attributeName: string, { optional }: { optional: boolean }) {
+function generateBooleanStr(
+  attributeName: string,
+  { omitInlineNonNull: optional }: { omitInlineNonNull: boolean }
+) {
   return `.addColumn('${attributeName}', 'boolean'${optional ? '' : ', col => col.notNull().defaultTo(false)'})`
 }
 
 function generateEnumStr(
   attributeName: string,
-  { descriptors, optional, asArray = false }: { descriptors: string[]; optional: boolean; asArray?: boolean }
+  {
+    descriptors,
+    omitInlineNonNull: optional,
+    asArray = false,
+  }: { descriptors: string[]; omitInlineNonNull: boolean; asArray?: boolean }
 ) {
   const computedAttributeType = enumAttributeType(descriptors, asArray)
   if (attributeName === undefined) return ''
@@ -273,7 +301,11 @@ function generateEnumStr(
 
 function generateDecimalStr(
   attributeName: string,
-  { descriptors, optional, asArray = false }: { descriptors: string[]; optional: boolean; asArray?: boolean }
+  {
+    descriptors,
+    omitInlineNonNull: optional,
+    asArray = false,
+  }: { descriptors: string[]; omitInlineNonNull: boolean; asArray?: boolean }
 ) {
   const [scale, precision] = descriptors[0]?.split(',') || [null, null]
   if (!scale || !precision) throw new InvalidDecimalFieldPassedToGenerator(attributeName)
@@ -289,7 +321,7 @@ function generateColumnStr(
   attributeName: string,
   attributeType: string,
   descriptors: string[],
-  { optional }: { optional: boolean }
+  { omitInlineNonNull: optional }: { omitInlineNonNull: boolean }
 ) {
   let returnStr = `.addColumn('${attributeName}', ${attributeTypeString(attributeType)}`
 
@@ -341,10 +373,10 @@ function generateBelongsToStr(
   associationName: string,
   {
     primaryKeyType,
-    optional = false,
+    omitInlineNonNull: optional = false,
   }: {
     primaryKeyType: PrimaryKeyType
-    optional: boolean
+    omitInlineNonNull: boolean
   }
 ) {
   const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
