@@ -204,7 +204,7 @@ export interface PaginatedDreamQueryResult<T extends Dream> {
   results: T[]
 }
 
-export interface FastPaginatedDreamQueryOptions {
+export interface ScrollPaginatedDreamQueryOptions {
   /**
    * the number of records you would like to be returned in each page
    */
@@ -216,7 +216,7 @@ export interface FastPaginatedDreamQueryOptions {
   cursor: string | null | undefined
 }
 
-export interface FastPaginatedDreamQueryResult<T extends Dream> {
+export interface ScrollPaginatedDreamQueryResult<T extends Dream> {
   /**
    * identifier of where to start the next page; undefined to start from the beginning; null when no more pages
    */

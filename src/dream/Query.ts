@@ -52,8 +52,6 @@ import {
 import {
   DefaultQueryTypeOptions,
   ExtendQueryType,
-  FastPaginatedDreamQueryOptions,
-  FastPaginatedDreamQueryResult,
   FindEachOpts,
   LoadForModifierFn,
   NamespacedOrBaseModelColumnTypes,
@@ -61,6 +59,8 @@ import {
   PaginatedDreamQueryResult,
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
+  ScrollPaginatedDreamQueryOptions,
+  ScrollPaginatedDreamQueryResult,
 } from '../types/query.js'
 import {
   JoinedAssociation,
@@ -1885,9 +1885,9 @@ export default class Query<
     this: Q,
     opts: Incompatible extends true
       ? 'scrollPaginate is incompatible with limit, offset, and leftJoinPreload'[]
-      : FastPaginatedDreamQueryOptions
-  ): Promise<FastPaginatedDreamQueryResult<DreamInstance>> {
-    const options = opts as FastPaginatedDreamQueryOptions
+      : ScrollPaginatedDreamQueryOptions
+  ): Promise<ScrollPaginatedDreamQueryResult<DreamInstance>> {
+    const options = opts as ScrollPaginatedDreamQueryOptions
     const pageSize = Math.max(0, options.pageSize ?? 0) || DreamApp.getOrFail().paginationPageSize
     if (options === null) return { cursor: null, results: [] }
     if (this.limitStatement) throw new CannotPaginateWithLimit()

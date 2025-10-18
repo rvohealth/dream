@@ -118,14 +118,14 @@ import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
   BaseModelColumnTypes,
   DefaultQueryTypeOptions,
-  FastPaginatedDreamQueryOptions,
-  FastPaginatedDreamQueryResult,
   FindEachOpts,
   LoadForModifierFn,
   PaginatedDreamQueryOptions,
   PaginatedDreamQueryResult,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
+  ScrollPaginatedDreamQueryOptions,
+  ScrollPaginatedDreamQueryResult,
 } from './types/query.js'
 import {
   DreamModelSerializerType,
@@ -1205,8 +1205,8 @@ export default class Dream {
    */
   public static async scrollPaginate<T extends typeof Dream>(
     this: T,
-    opts: FastPaginatedDreamQueryOptions
-  ): Promise<FastPaginatedDreamQueryResult<InstanceType<T>>> {
+    opts: ScrollPaginatedDreamQueryOptions
+  ): Promise<ScrollPaginatedDreamQueryResult<InstanceType<T>>> {
     return await this.query().scrollPaginate(opts)
   }
 
