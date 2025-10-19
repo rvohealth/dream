@@ -581,7 +581,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('is non-nullable, and includes index', () => {
         const res = generateMigrationContent({
           table: 'balloons',
-          columnsWithTypes: ['type:enum:balloon_types:Mylar,Latex'],
+          columnsWithTypes: ['type:enum:balloon_types:Mylar,Latex', 'User:belongs_to'],
           primaryKeyType: 'bigserial',
         })
         expect(res).toEqual(
@@ -602,6 +602,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('balloons')
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('type', sql\`balloon_types_enum\`, col => col.notNull())
+    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -611,11 +612,18 @@ export async function up(db: Kysely<any>): Promise<void> {
     .on('balloons')
     .column('type')
     .execute()
+
+  await db.schema
+    .createIndex('balloons_user_id')
+    .on('balloons')
+    .column('user_id')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropIndex('balloons_type').execute()
+  await db.schema.dropIndex('balloons_user_id').execute()
   await db.schema.dropTable('balloons').execute()
 
   await db.schema.dropType('balloon_types_enum').execute()

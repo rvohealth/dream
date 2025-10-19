@@ -177,6 +177,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   const newlineIndent = '\n  '
   const newlineDoubleIndent = '\n    '
+  const doubleNewlineIndent = '\n\n  '
   const columnDefLines = columnDefs.length ? newlineDoubleIndent + columnDefs.join(newlineDoubleIndent) : ''
   const columnDropLines = columnDrops.length
     ? newlineDoubleIndent + columnDrops.join(newlineDoubleIndent) + newlineDoubleIndent
@@ -198,7 +199,7 @@ ${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
           newlineDoubleIndent +
           ".addColumn('updated_at', 'timestamp', col => col.notNull())"
     }
-    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(newlineDoubleIndent)}${checkConstraints.join('')}
+    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(doubleNewlineIndent)}${checkConstraints.join('')}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
