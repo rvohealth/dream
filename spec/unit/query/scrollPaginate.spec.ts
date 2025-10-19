@@ -1,6 +1,7 @@
 import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
+import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -202,6 +203,25 @@ describe('Query#scrollPaginate', () => {
           results: [expect.toMatchDreamModel(snoopy2), expect.toMatchDreamModel(aster)],
         })
       })
+    })
+  })
+
+  context('paginating an association with an order defined on the association', () => {
+    it('actually does order by column defined on the association', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user, content: 'a' })
+      const composition3 = await Composition.create({ user, content: 'a' })
+      const composition4 = await Composition.create({ user, content: 'b' })
+      const composition2 = await Composition.create({ user, content: 'b' })
+
+      const { results } = await user
+        .associationQuery('sortedCompositions')
+        .scrollPaginate({ cursor: undefined })
+
+      expect(results[0]).toMatchDreamModel(composition3)
+      expect(results[1]).toMatchDreamModel(composition1)
+      expect(results[2]).toMatchDreamModel(composition2)
+      expect(results[3]).toMatchDreamModel(composition4)
     })
   })
 
