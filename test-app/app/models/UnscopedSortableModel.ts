@@ -1,4 +1,5 @@
-import { Decorators, DreamColumn } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
+import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 
 const deco = new Decorators<typeof UnscopedSortableModel>()

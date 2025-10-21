@@ -1,5 +1,6 @@
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DateTime } from '../../../src/helpers/DateTime.js'
 import hyphenize from '../../../src/helpers/hyphenize.js'
-import { CalendarDate, DateTime } from '../../../src/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('hyphenize', () => {

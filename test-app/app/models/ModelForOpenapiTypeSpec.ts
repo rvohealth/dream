@@ -1,4 +1,4 @@
-import { DreamColumn } from '../../../src/index.js'
+import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 
 // const deco = new Decorators<typeof ModelForOpenapiTypeSpecs>()

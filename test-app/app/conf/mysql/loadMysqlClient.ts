@@ -1,5 +1,5 @@
 import * as mysql from 'mysql2'
-import { DreamApp } from '../../../../src/index.js'
+import DreamApp from '../../../../src/dream-app/index.js'
 
 export default function loadMysqlClient({
   connectionName,

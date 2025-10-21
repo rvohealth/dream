@@ -1,4 +1,4 @@
-import { DreamClassAssociationAndStatement } from '../../../src/index.js'
+import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'

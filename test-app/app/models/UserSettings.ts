@@ -1,4 +1,4 @@
-import { Decorators } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
 import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import User from './User.js'

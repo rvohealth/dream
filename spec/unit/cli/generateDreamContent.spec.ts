@@ -1,5 +1,5 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import generateDreamContent from '../../../src/helpers/cli/generateDreamContent.js'
-import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {

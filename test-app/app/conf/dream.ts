@@ -1,5 +1,5 @@
 import { debuglog } from 'node:util'
-import { DreamApp } from '../../../src/index.js'
+import DreamApp from '../../../src/dream-app/index.js'
 import srcPath from '../system/srcPath.js'
 import AppEnv from './AppEnv.js'
 import inflections from './inflections.js'

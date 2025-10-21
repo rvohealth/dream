@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../../src/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import WorkoutType from '../../models/Polymorphic/WorkoutType.js'
 
 export const WorkouttypeSerializer = (workoutType: WorkoutType) =>

@@ -1,5 +1,6 @@
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DateTime } from '../../../src/helpers/DateTime.js'
 import pascalize from '../../../src/helpers/pascalize.js'
-import { CalendarDate, DateTime } from '../../../src/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('pascalize', () => {

@@ -2,7 +2,8 @@ import 'jest-extended'
 
 import { provideDreamViteMatchers, truncate } from '@rvoh/dream-spec-helpers'
 import { toBeOneOf } from 'jest-extended'
-import { Dream, DreamApp } from '../../src/index.js'
+import Dream from '../../src/Dream.js'
+import DreamApp from '../../src/dream-app/index.js'
 import initializeDreamApp from '../../test-app/cli/helpers/initializeDreamApp.js'
 
 Error.stackTraceLimit = 50

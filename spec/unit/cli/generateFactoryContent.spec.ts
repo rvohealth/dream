@@ -1,5 +1,5 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import generateFactoryContent from '../../../src/helpers/cli/generateFactoryContent.js'
-import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:model <name> [...attributes] (factory context)', () => {
   context('when provided with a pascalized table name', () => {

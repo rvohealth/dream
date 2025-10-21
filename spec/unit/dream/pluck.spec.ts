@@ -1,4 +1,5 @@
-import { CalendarDate, DateTime } from '../../../src/index.js'
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DateTime } from '../../../src/helpers/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../test-app/app/models/User.js'

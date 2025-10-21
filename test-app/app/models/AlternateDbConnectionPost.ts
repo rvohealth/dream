@@ -1,4 +1,5 @@
-import { Decorators, DreamColumn, DreamSerializers } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
+import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import AlternateConnectionApplicationModel from './AlternateConnectionApplicationModel.js'
 import AlternateDbConnectionUser from './AlternateDbConnectionUser.js'
 

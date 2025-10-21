@@ -1,4 +1,4 @@
-import { Query } from '../../../src/index.js'
+import Query from '../../../src/dream/Query.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 
 describe('Dream.leftJoinPreloadFor(serializerKey)', () => {

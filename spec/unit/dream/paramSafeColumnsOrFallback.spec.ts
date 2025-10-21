@@ -1,4 +1,4 @@
-import { Dream } from '../../../src/index.js'
+import Dream from '../../../src/Dream.js'
 import { DreamParamUnsafeColumnNames } from '../../../src/types/dream.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'

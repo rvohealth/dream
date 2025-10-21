@@ -1,4 +1,4 @@
-import { Env } from '../../../src/index.js'
+import Env from '../../../src/helpers/Env.js'
 
 class AppEnvClass extends Env<{
   boolean: 'CONSOLE_SERVICE' | 'CLIENT' | 'DB_NO_SSL' | 'REQUEST_LOGGING' | 'WEB_SERVICE' | 'WORKER_SERVICE'

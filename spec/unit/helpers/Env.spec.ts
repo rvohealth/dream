@@ -1,5 +1,5 @@
 import MissingRequiredEnvironmentVariable from '../../../src/errors/environment/MissingRequiredEnvironmentVariable.js'
-import { Env } from '../../../src/index.js'
+import Env from '../../../src/helpers/Env.js'
 
 describe('Env', () => {
   const originalNodeEnv = process.env.NODE_ENV

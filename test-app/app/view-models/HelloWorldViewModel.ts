@@ -1,4 +1,4 @@
-import { DreamSerializers } from '../../../src/index.js'
+import { DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from '../models/ApplicationModel.js'
 
 export default class HelloWorldViewModel {

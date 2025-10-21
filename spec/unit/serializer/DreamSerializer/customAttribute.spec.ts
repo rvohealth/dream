@@ -1,4 +1,4 @@
-import { CalendarDate } from '../../../../src/index.js'
+import CalendarDate from '../../../../src/helpers/CalendarDate.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'

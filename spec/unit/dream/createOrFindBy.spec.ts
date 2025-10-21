@@ -1,5 +1,5 @@
+import Dream from '../../../src/Dream.js'
 import CreateOrFindByFailedToCreateAndFind from '../../../src/errors/CreateOrFindByFailedToCreateAndFind.js'
-import { Dream } from '../../../src/index.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import User from '../../../test-app/app/models/User.js'
 

@@ -1,5 +1,5 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
-import { Decorators } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
 import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import HeartRating from './ExtraRating/HeartRating.js'
