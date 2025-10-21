@@ -48,7 +48,6 @@ export { default as GlobalNameNotSet } from './errors/dream-app/GlobalNameNotSet
 export { default as RecordNotFound } from './errors/RecordNotFound.js'
 export { default as MissingSerializersDefinition } from './errors/serializers/MissingSerializersDefinition.js'
 export { default as ValidationError } from './errors/ValidationError.js'
-export { default as Benchmark } from './helpers/benchmark.js'
 export { default as CalendarDate, InvalidCalendarDate } from './helpers/CalendarDate.js'
 export { default as camelize } from './helpers/camelize.js'
 export { default as capitalize } from './helpers/capitalize.js'

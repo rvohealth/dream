@@ -1,3 +1,7 @@
+## 1.14.0
+
+- remove `Benchmark`
+
 ## 1.13.0
 
 - generated code uses absolute imports
