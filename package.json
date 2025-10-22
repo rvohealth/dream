@@ -28,11 +28,6 @@
       "import": "./dist/esm/src/package-exports/errors.js",
       "require": "./dist/cjs/src/package-exports/errors.js"
     },
-    "./index": {
-      "types": "./dist/types/src/package-exports/index.d.ts",
-      "import": "./dist/esm/src/package-exports/index.js",
-      "require": "./dist/cjs/src/package-exports/index.js"
-    },
     "./internal": {
       "types": "./dist/types/src/package-exports/internal.d.ts",
       "import": "./dist/esm/src/package-exports/internal.js",
