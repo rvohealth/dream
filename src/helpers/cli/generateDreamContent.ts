@@ -26,8 +26,9 @@ export default function generateDreamContent({
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   let parentModelClassName: string | undefined
-  const dreamImports: string[] = ['Decorators', 'DreamColumn']
-  if (serializer) dreamImports.push('DreamSerializers')
+  const dreamTypeImports: string[] = ['DreamColumn']
+  const dreamImports: string[] = ['Decorators']
+  if (serializer) dreamTypeImports.push('DreamSerializers')
   const isSTI = !!fullyQualifiedParentName
 
   if (isSTI) {
@@ -70,9 +71,8 @@ public ${associationForeignKey}: DreamColumn<${modelClassName}, '${associationNa
         return ''
 
       case 'encrypted':
-        dreamImports.push('Encrypted')
         return `
-@Encrypted()
+@deco.Encrypted()
 public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}\
 `
 
@@ -102,7 +102,7 @@ public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)
   const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
 
   return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}
+${dreamImports.length ? `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'\n` : ''}import { ${uniq(dreamTypeImports).join(', ')} } from '@rvoh/dream/types'${uniq(modelImportStatements).join('')}
 
 const deco = new Decorators<typeof ${modelClassName}>()
 
