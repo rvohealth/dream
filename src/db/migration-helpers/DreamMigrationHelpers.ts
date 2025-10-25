@@ -176,7 +176,8 @@ export default class DreamMigrationHelpers {
   public static newTransaction() {}
 
   /**
-   * Drop a value from an enum and replace it (or optionally remove it from array columns)
+   * Drop a value from an enum and replace it with a different enum already
+   * present in the enum type (or optionally remove it from array columns).
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param __namedParameters - The options for dropping the enum value
