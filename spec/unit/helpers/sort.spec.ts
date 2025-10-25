@@ -1,5 +1,6 @@
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DateTime } from '../../../src/helpers/DateTime.js'
 import sort from '../../../src/helpers/sort.js'
-import { CalendarDate, DateTime } from '../../../src/index.js'
 
 describe('sort', () => {
   it('sorts numbers in ascending order', () => {

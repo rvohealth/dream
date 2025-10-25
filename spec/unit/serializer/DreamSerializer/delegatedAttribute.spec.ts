@@ -1,4 +1,5 @@
-import { CalendarDate, DreamSerializer } from '../../../../src/index.js'
+import CalendarDate from '../../../../src/helpers/CalendarDate.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 

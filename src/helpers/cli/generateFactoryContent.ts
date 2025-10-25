@@ -13,7 +13,8 @@ export default function generateFactoryContent({
   columnsWithTypes: string[]
 }): string {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-  const dreamImports: string[] = ['UpdateableProperties']
+  const dreamTypeImports: string[] = ['UpdateableProperties']
+  const dreamImports: string[] = []
   const additionalImports: string[] = []
 
   const belongsToNames: string[] = []
@@ -135,7 +136,7 @@ export default function generateFactoryContent({
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'
+${dreamImports.length ? `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'\n` : ''}import { ${uniq(dreamTypeImports).join(', ')} } from '@rvoh/dream/types'
 import ${modelClassName} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }

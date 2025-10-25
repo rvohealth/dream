@@ -19,7 +19,7 @@ describe('dream generate:model <name> [...attributes]', () => {
 
       expect(res).toEqual(
         `\
-import { DreamMigrationHelpers } from '@rvoh/dream'
+import { DreamMigrationHelpers } from '@rvoh/dream/db'
 import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

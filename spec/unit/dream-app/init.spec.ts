@@ -1,8 +1,8 @@
 import * as LoadModelsModule from '../../../src/dream-app/helpers/importers/importModels.js'
+import DreamApp from '../../../src/dream-app/index.js'
 import DreamAppInitMissingCallToLoadModels from '../../../src/errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../../../src/errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
 import InvalidTableName from '../../../src/errors/InvalidTableName.js'
-import { DreamApp } from '../../../src/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
 describe('DreamApp#init', () => {

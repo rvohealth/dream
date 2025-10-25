@@ -1,4 +1,4 @@
-import { UpdateableProperties } from '../../../src/index.js'
+import { UpdateableProperties } from '../../../src/types/dream.js'
 import MysqlUser from '../../app/models/MysqlUser.js'
 
 let counter = 0

@@ -1,4 +1,4 @@
-import { DateTime } from '../../../../src/index.js'
+import { DateTime } from '../../../../src/helpers/DateTime.js'
 import ops from '../../../../src/ops/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'

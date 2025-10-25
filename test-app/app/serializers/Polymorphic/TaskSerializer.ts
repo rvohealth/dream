@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../../src/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import Chore from '../../models/Polymorphic/Chore.js'
 import PolymorphicTask from '../../models/Polymorphic/Task.js'
 import Workout from '../../models/Polymorphic/Workout.js'

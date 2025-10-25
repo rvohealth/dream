@@ -1,5 +1,5 @@
 import * as LoadModelsModule from '../../../src/dream-app/helpers/importers/importModels.js'
-import { DreamApp } from '../../../src/index.js'
+import DreamApp from '../../../src/dream-app/index.js'
 
 describe('DreamApp#plugin', () => {
   const dbCredentials = {

@@ -15,7 +15,8 @@ process.on('unhandledRejection', reason => {
 import '../app/conf/loadEnv.js'
 
 import { Command } from 'commander'
-import { DreamBin, DreamCLI } from '../../src/index.js'
+import DreamBin from '../../src/bin/index.js'
+import DreamCLI from '../../src/cli/index.js'
 import initializeDreamApp from './helpers/initializeDreamApp.js'
 
 const program = new Command()

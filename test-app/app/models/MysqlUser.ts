@@ -1,4 +1,4 @@
-import { DreamColumn, DreamSerializers } from '../../../src/index.js'
+import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import MysqlApplicationModel from './MysqlApplicationModel.js'
 
 // const deco = new Decorators<typeof MysqlUser>()

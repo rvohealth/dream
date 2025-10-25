@@ -555,6 +555,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   /**
+   * @internal
+   *
    * Retrieves an array containing all records matching the Query.
    * Be careful using this, since it will attempt to pull every
    * record into memory at once. When querying might return a large

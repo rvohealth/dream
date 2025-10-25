@@ -1,4 +1,5 @@
-import { DreamClassAssociationAndStatement, NonLoadedAssociation } from '../../../src/index.js'
+import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
+import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import ModelA from '../../../test-app/app/models/CircularReference/ModelA.js'
 import ModelB from '../../../test-app/app/models/CircularReference/ModelB.js'

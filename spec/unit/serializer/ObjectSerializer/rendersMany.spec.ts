@@ -1,4 +1,5 @@
-import { CalendarDate, ObjectSerializer } from '../../../../src/index.js'
+import CalendarDate from '../../../../src/helpers/CalendarDate.js'
+import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import { default as DreamPet } from '../../../../test-app/app/models/Pet.js'
 import { CatTreats, Species } from '../../../../test-app/types/db.js'
 
