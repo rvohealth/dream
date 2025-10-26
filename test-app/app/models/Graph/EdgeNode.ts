@@ -1,5 +1,5 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
-import { SoftDelete } from '../../../../src/package-exports/index.js'
+import SoftDelete from '../../../../src/decorators/class/SoftDelete.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
 import EdgeNodeSerializer from '../../serializers/Graph/EdgeNodeSerializer.js'
 import ApplicationModel from '../ApplicationModel.js'
