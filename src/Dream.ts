@@ -3655,8 +3655,12 @@ export default class Dream {
    * @returns A boolean
    */
   public equals(other: any): boolean {
-    if (!(other instanceof Dream)) return false
-    return this.comparisonKey === other.comparisonKey
+    return (
+      !!(other instanceof Dream) &&
+      this.isPersisted &&
+      other.isPersisted &&
+      this.comparisonKey === other.comparisonKey
+    )
   }
 
   public get comparisonKey(): string {

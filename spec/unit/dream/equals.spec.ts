@@ -60,4 +60,12 @@ describe('Dream#equals', () => {
       expect(node.equals(edge)).toBe(false)
     })
   })
+
+  context('the instances are not persisted', () => {
+    it('returns false', () => {
+      const node1 = GraphNode.new({ name: 'Hello' })
+      const node2 = GraphNode.new({ name: 'Hello' })
+      expect(node1.equals(node2)).toBe(false)
+    })
+  })
 })
