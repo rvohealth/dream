@@ -3275,7 +3275,7 @@ export default class Dream {
    *
    * ```ts
    *  const user = User.new({ email: 'how@yadoin' })
-   *  user.attributes()
+   *  user.getAttributes()
    *  // {
    *  //   email: 'how@yadoin',
    *  //   ...
