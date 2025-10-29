@@ -80,13 +80,36 @@ export default class DreamApp {
   }
 
   /**
+   * Since javascript is inherently vulnerable to circular dependencies,
+   * this function provides a workaround by enabling you to dynamically
+   * bring in classes that, if imported directly, would result in circular
+   * dependency issues.
+   *
+   * NOTE: You should only use this as a last resort, since it can create quite
+   * a headache for you when leaning into your editor to apply renames, etc...
+   *
+   * @param name - the global name you are trying to look up, i.e. 'User', or 'UserSerializer'.
+   *
+   * @example
+   * ```ts
+   * // this pattern is safe from circular imports, since _UserSerializer
+   * // is only being used to type something else, which will not result
+   * // in the circular dependency issue.
+   *
+   * import _UserSerializer from '../serializers/UserSerializer.js'
+   * const UserSerializer = PsychicApp.lookupClassByGlobalName('UserSerializer') as _UserSerializer
+   * ```
+   */
+  public static lookupClassByGlobalName(name: string) {
+    return lookupClassByGlobalName(name)
+  }
+
+  /**
    * @internal
    *
    */
-
   public static get system() {
     return {
-      lookupClassByGlobalName,
       globalClassNameFromFullyQualifiedModelName,
       loadRepl,
       absoluteDreamPath,

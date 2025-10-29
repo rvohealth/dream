@@ -3,6 +3,7 @@ import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import loadRepl from '../helpers/loadRepl.js'
 import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
 
@@ -69,6 +70,13 @@ ${INDENT}        include the fully qualified model name, e.g., if the Coach mode
 ${INDENT}          Health/Coach:belongs_to`
 
 export default class DreamCLI {
+  /**
+   * Starts the Dream console
+   */
+  public static async loadRepl(context: Record<string, unknown>) {
+    return await loadRepl(context)
+  }
+
   /**
    * use this method for initializing a standalone dream application. If using Psychic and Dream together,
    * a different pattern is used, which leverages the `generateDreamCli` method instead.
