@@ -104,6 +104,23 @@ export default class DreamCLI {
   }
 
   /**
+   * @internal
+   */
+  public static async generateDream(opts: {
+    fullyQualifiedModelName: string
+    columnsWithTypes: string[]
+    options: {
+      connectionName: string
+      serializer: boolean
+      stiBaseSerializer: boolean
+      includeAdminSerializers: boolean
+    }
+    fullyQualifiedParentName?: string | undefined
+  }) {
+    await this.generateDream(opts)
+  }
+
+  /**
    * called under the hood when provisioning both psychic and dream applications.
    */
   public static generateDreamCli(

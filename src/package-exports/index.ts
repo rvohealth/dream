@@ -1,4 +1,3 @@
-export { default as DreamCLI } from '../cli/index.js'
 export { default as ReplicaSafe } from '../decorators/class/ReplicaSafe.js'
 export { default as SoftDelete } from '../decorators/class/SoftDelete.js'
 export { default as STI } from '../decorators/class/STI.js'

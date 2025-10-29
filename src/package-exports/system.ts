@@ -1,12 +1,12 @@
 export { default as DreamBin } from '../bin/index.js'
 export { CliFileWriter } from '../cli/CliFileWriter.js'
+export { default as DreamCLI } from '../cli/index.js'
 export { default as DreamImporter } from '../dream-app/helpers/DreamImporter.js'
 export { default as lookupClassByGlobalName } from '../dream-app/helpers/lookupClassByGlobalName.js'
 export {
   DreamAppAllowedPackageManagersEnumValues,
   type DreamAppAllowedPackageManagersEnum,
 } from '../dream-app/index.js'
-export { default as generateDream } from '../helpers/cli/generateDream.js'
 export { default as DreamLogos } from '../helpers/DreamLogos/DreamLogos.js'
 export { default as globalClassNameFromFullyQualifiedModelName } from '../helpers/globalClassNameFromFullyQualifiedModelName.js'
 export { default as loadRepl } from '../helpers/loadRepl.js'
