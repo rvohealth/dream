@@ -13,6 +13,17 @@ import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppI
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import globalClassNameFromFullyQualifiedModelName from '../helpers/globalClassNameFromFullyQualifiedModelName.js'
+import loadRepl from '../helpers/loadRepl.js'
+import absoluteDreamPath from '../helpers/path/absoluteDreamPath.js'
+import dreamPath from '../helpers/path/dreamPath.js'
+import standardizeFullyQualifiedModelName from '../helpers/standardizeFullyQualifiedModelName.js'
+import expandStiClasses from '../helpers/sti/expandStiClasses.js'
+import inferSerializerFromDreamOrViewModel, {
+  inferSerializersFromDreamClassOrViewModelClass,
+} from '../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import isDreamSerializer from '../serializer/helpers/isDreamSerializer.js'
+import serializerNameFromFullyQualifiedModelName from '../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import { DbConnectionType } from '../types/db.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from '../types/serializer.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
@@ -21,6 +32,7 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
+import lookupClassByGlobalName from './helpers/lookupClassByGlobalName.js'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -65,6 +77,27 @@ export default class DreamApp {
     })
 
     return dreamApp
+  }
+
+  /**
+   * @internal
+   *
+   */
+
+  public static get system() {
+    return {
+      lookupClassByGlobalName,
+      globalClassNameFromFullyQualifiedModelName,
+      loadRepl,
+      absoluteDreamPath,
+      dreamPath,
+      standardizeFullyQualifiedModelName,
+      expandStiClasses,
+      inferSerializerFromDreamOrViewModel,
+      inferSerializersFromDreamClassOrViewModelClass,
+      isDreamSerializer,
+      serializerNameFromFullyQualifiedModelName,
+    }
   }
 
   /**
