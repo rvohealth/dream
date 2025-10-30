@@ -14,7 +14,6 @@ import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import globalClassNameFromFullyQualifiedModelName from '../helpers/globalClassNameFromFullyQualifiedModelName.js'
-import loadRepl from '../helpers/loadRepl.js'
 import absoluteDreamPath from '../helpers/path/absoluteDreamPath.js'
 import dreamPath from '../helpers/path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../helpers/standardizeFullyQualifiedModelName.js'
@@ -111,7 +110,6 @@ export default class DreamApp {
   public static get system() {
     return {
       globalClassNameFromFullyQualifiedModelName,
-      loadRepl,
       absoluteDreamPath,
       dreamPath,
       standardizeFullyQualifiedModelName,
