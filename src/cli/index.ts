@@ -2,6 +2,7 @@ import { SpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
+import generateDream from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
 import sspawn from '../helpers/sspawn.js'
@@ -125,7 +126,7 @@ export default class DreamCLI {
     }
     fullyQualifiedParentName?: string | undefined
   }) {
-    await this.generateDream(opts)
+    await generateDream(opts)
   }
 
   /**
