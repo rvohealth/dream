@@ -1,4 +1,7 @@
-import { Decorators, DreamColumn, DreamConst, DreamSerializers, Query } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
+import { DreamConst } from '../../../src/dream/constants.js'
+import Query from '../../../src/dream/Query.js'
+import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import { DBClass as AlternateDBClass } from '../../types/db.alternateConnection.js'
 import AlternateConnectionApplicationModel from './AlternateConnectionApplicationModel.js'
 import AlternateDbConnectionPost from './AlternateDbConnectionPost.js'

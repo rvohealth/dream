@@ -1,6 +1,6 @@
 import MissingRequiredAssociationAndClause from '../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import MissingRequiredPassthroughForAssociationAndClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
-import { RecordNotFound } from '../../../src/index.js'
+import RecordNotFound from '../../../src/errors/RecordNotFound.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'

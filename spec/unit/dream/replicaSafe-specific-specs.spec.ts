@@ -1,11 +1,11 @@
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely'
 import { Pool } from 'pg'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import { DreamApp } from '../../../src/index.js'
+import DreamApp from '../../../src/dream-app/index.js'
+import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import { DbConnectionType } from '../../../src/types/db.js'
 import User from '../../../test-app/app/models/User.js'
 import testDb from '../../helpers/testDb.js'
-import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 
 /**
  * NOTE: for our replica safe specs, we use a database that is not actually set up

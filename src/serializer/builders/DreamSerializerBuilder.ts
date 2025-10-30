@@ -6,7 +6,6 @@ import {
   ViewModel,
   ViewModelClass,
 } from '../../types/dream.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import {
   AutomaticSerializerAttributeOptions,
   AutomaticSerializerAttributeOptionsForType,
@@ -70,21 +69,15 @@ export default class DreamSerializerBuilder<
    */
 
   // `type` attribute
-  public attribute<
-    AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & 'type',
-    Options extends AutomaticSerializerAttributeOptionsForType,
-  >(
-    name: AttributeName,
-    options?: Options
+  public attribute(
+    name: NonJsonDreamColumnNames<DataType> & keyof DataType & 'type',
+    options?: AutomaticSerializerAttributeOptionsForType
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
   // attribute is a virtual column
-  public attribute<
-    AttributeName extends DreamVirtualColumns<DataType>[number],
-    Options extends SerializerAttributeOptionsForVirtualColumn,
-  >(
-    name: AttributeName,
-    options?: Options
+  public attribute(
+    name: DreamVirtualColumns<DataType>[number],
+    options?: SerializerAttributeOptionsForVirtualColumn
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
   // attribute is not a non-json dream column name
@@ -95,19 +88,15 @@ export default class DreamSerializerBuilder<
     AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
       ? never
       : Exclude<keyof DataType, keyof Dream> & string,
-    Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   >(
     name: AttributeName,
-    options: Options
+    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
   // attribute is a non-json dream column name
-  public attribute<
-    AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & string,
-    Options extends AutomaticSerializerAttributeOptions<DataType, AttributeName>,
-  >(
+  public attribute<AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & string>(
     name: AttributeName,
-    options?: Options
+    options?: AutomaticSerializerAttributeOptions<DataType, AttributeName>
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
   public attribute(name: unknown, options: unknown) {
@@ -171,7 +160,10 @@ export default class DreamSerializerBuilder<
       : never = AssociatedModelType extends object
       ? Exclude<keyof AssociatedModelType, keyof Dream> & string
       : never,
-    Options = AssociatedModelType extends Dream
+  >(
+    targetName: TargetName,
+    name: TargetAttributeName,
+    options?: AssociatedModelType extends Dream
       ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
           keyof AssociatedModelType &
           'type'
@@ -183,13 +175,13 @@ export default class DreamSerializerBuilder<
                 | AutomaticSerializerAttributeOptions<AssociatedModelType, TargetAttributeName>
                 | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
             : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
-      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
-  >(targetName: TargetName, name: TargetAttributeName, options?: Options) {
+      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+  ) {
     this.attributes.push({
       type: 'delegatedAttribute',
       targetName: targetName as any,
       name: name as any,
-      options: options ?? {},
+      options: (options as any) ?? {},
     })
 
     return this
@@ -226,18 +218,19 @@ export default class DreamSerializerBuilder<
    *
    * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
-  public customAttribute<
-    Options extends {
-      openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+
+  public customAttribute(
+    name: string,
+    fn: () => unknown,
+    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
       flatten?: boolean
-    },
-    CallbackFn extends () => unknown,
-  >(name: string, fn: CallbackFn, options: Options) {
+    }
+  ) {
     this.attributes.push({
       type: 'customAttribute',
       name,
       fn,
-      options,
+      options: options as any,
     })
 
     return this
@@ -309,16 +302,14 @@ export default class DreamSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : object,
-    Options extends {
+  >(
+    name: AttributeName,
+    options?: {
       as?: string
       flatten?: boolean
       optional?: boolean
-    } & SerializerOptions = {
-      as?: string
-      flatten?: boolean
-      optional?: boolean
-    } & SerializerOptions,
-  >(name: AttributeName, options?: Options) {
+    } & SerializerOptions
+  ) {
     this.attributes.push({
       type: 'rendersOne',
       name: name as any,
@@ -401,14 +392,13 @@ export default class DreamSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : object,
-    Options extends {
+  >(
+    name: AttributeName,
+    options?: {
       as?: string
       z?: AttributeName
-    } & SerializerOptions = {
-      as?: string
-      z?: AttributeName
-    } & SerializerOptions,
-  >(name: AttributeName, options?: Options) {
+    } & SerializerOptions
+  ) {
     this.attributes.push({
       type: 'rendersMany',
       name: name as any,

@@ -1,4 +1,5 @@
-import { Decorators, Query } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
+import Query from '../../../src/dream/Query.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 

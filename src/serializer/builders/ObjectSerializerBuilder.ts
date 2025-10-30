@@ -66,8 +66,7 @@ export default class ObjectSerializerBuilder<
     // don't attempt to exclude 'serializers' because it breaks types when adding
     // type generics to a serializer (e.g.: `<T extends MyClass>(data: MyClass) =>`)
     AttributeName extends keyof DataType & string,
-    Options extends NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
-  >(name: AttributeName, options: Options) {
+  >(name: AttributeName, options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption) {
     this.attributes.push({
       type: 'attribute',
       name,
@@ -126,9 +125,11 @@ export default class ObjectSerializerBuilder<
     AttributeName extends TargetObject extends object
       ? Exclude<keyof TargetObject, keyof Dream> & string
       : never = TargetObject extends object ? Exclude<keyof TargetObject, keyof Dream> & string : never,
-    Options extends
-      NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption = NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
-  >(targetName: TargetName, name: AttributeName, options: Options) {
+  >(
+    targetName: TargetName,
+    name: AttributeName,
+    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+  ) {
     this.attributes.push({
       type: 'delegatedAttribute',
       targetName: targetName as any,
@@ -170,10 +171,11 @@ export default class ObjectSerializerBuilder<
    *
    * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
-  public customAttribute<
-    Options extends Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean },
-    CallbackFn extends () => unknown,
-  >(name: string, fn: CallbackFn, options: Options) {
+  public customAttribute(
+    name: string,
+    fn: () => unknown,
+    options: Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean }
+  ) {
     this.attributes.push({
       type: 'customAttribute',
       name,
@@ -250,12 +252,14 @@ export default class ObjectSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : never,
-    Options = {
+  >(
+    name: AttributeName,
+    options: {
       as?: string
       flatten?: boolean
       optional?: boolean
-    } & SerializerOptions,
-  >(name: AttributeName, options: Options) {
+    } & SerializerOptions
+  ) {
     this.attributes.push({
       type: 'rendersOne',
       name: name as any,
@@ -343,10 +347,12 @@ export default class ObjectSerializerBuilder<
               serializer: SerializerType<AssociatedModelType>
             }
           : never,
-    Options = {
+  >(
+    name: AttributeName,
+    options: {
       as?: string
-    } & SerializerOptions,
-  >(name: AttributeName, options: Options) {
+    } & SerializerOptions
+  ) {
     this.attributes.push({
       type: 'rendersMany',
       name: name as any,

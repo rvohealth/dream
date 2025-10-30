@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../../src/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import Image from '../../models/Polymorphic/Image.js'
 
 export const ImageSummarySerializer = (polymorphicImage: Image) =>

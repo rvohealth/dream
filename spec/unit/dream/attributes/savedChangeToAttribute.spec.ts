@@ -1,4 +1,4 @@
-import { UpdateableProperties } from '../../../../src/index.js'
+import { UpdateableProperties } from '../../../../src/types/dream.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 

@@ -1,6 +1,8 @@
 import * as mysql from 'mysql2'
+import DreamCLI from '../../../../src/cli/index.js'
+import DreamApp from '../../../../src/dream-app/index.js'
 import EnvInternal from '../../../../src/helpers/EnvInternal.js'
-import { DbConnectionType, DreamApp, DreamCLI } from '../../../../src/index.js'
+import { DbConnectionType } from '../../../../src/types/db.js'
 import loadMysqlClient from './loadMysqlClient.js'
 
 export default async function dropMysqlDb(

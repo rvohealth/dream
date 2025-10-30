@@ -79,36 +79,83 @@ yarn dream db:create
 yarn dream db:migrate
 ```
 
-## Global CLI
-
-The global CLI is used to build a new psychic app. You can access the global cli on your machine by doing the following:
-
-```bash
-yarn dlx @rvoh/dream
-```
-
-Once installed globally, you can access the global cli like so:
-
-```bash
-dream new myapp
-```
-
-To test the global cli without publishing, you can run the following from within the psychic directory:
-
-```bash
-yarn gdream new myapp
-```
-
-NOTE: doing so will create the new app in the dream folder, so once done testing remember to remove it.
-
-For more information on how to contribute to dream, see our [official dream contributing docs](https://psychic-docs.netlify.app/docs/contributing/dream)
-
 #### Generating type docs
 
 ```bash
 # first, you will need to update package.json version, in order to keep
 # docs generated on a per-version basis
 yarn build:docs
+```
+
+#### CLI
+
+```bash
+yarn build
+# builds source code using the typescript compiler, sending it into the dist folder
+
+yarn spec
+# runs core development specs (same as yarn dream spec)
+
+SQL_LOGGING=1 yarn spec
+# runs core development specs, printing SQL queries
+
+yarn console
+# opens console, providing access to the internal test-app/app/models folder (same as yarn dream console)
+
+yarn dream
+# opens a small node cli program, which right now only provides commands for generating dreams and migrations,
+# but which will likely eventually encompass all of the above commands
+
+yarn dream db:migrate
+# runs migrations for core development. Use this if you are working on the dream ORM source code.
+
+yarn dream db:migrate
+# runs migrations for an app that is consuming the dream ORM. This is meant to be run from another repo,
+# e.g. within a different app's package.json:
+#
+#  "scripts": {
+#     "db:migrate": "yarn --cwd=node_modules/dream db:migrate"
+# }
+
+yarn dream sync:schema
+# syncs db schema from an app that is consuming the dream ORM. This is necessary, because in order to provide
+# deep integration with kysely, we must actually introspect the schema of your app and provide it
+# as part of the dream orm source code build. It essentially scans your database, examines all tables, outputs interfaces that kysely can consume, puts them into a file, and exports all the interfaces within that file.
+
+# the sync command is already run as part of the migration sequence, so there should be no need to
+# run it manually. Simply run migrations to have the syncing done for you.
+
+# A copy of this is output to your app (though don't bother manually modifying it, since it is blown away each
+# time you run migrations). It is then copied over to the node_modules/dream/src/sync folder, so that importing
+# the dream orm can provide that integration for you.
+
+# This is meant to be run from another repo,
+# e.g. within a different app's package.json:
+#
+#  "scripts": {
+#     "sync:schema": "yarn --cwd=node_modules/dream sync:schema"
+# }
+
+yarn dream sync:schema
+# runs the same sync script mentioned above, but for core development. You would run this if you were trying to
+# sync for the test-app, which is used to seed the local tests and provide models for use within the console.
+# Similar to above, a local copy of schema is kept within test-app/types/dream.ts, which is updated each time you
+# run yarn core:db:migrate.
+
+yarn dream sync:associations
+# runs a script which analyzes your models, building a mapping of the associations into typescript interfaces
+# which will assist in providing enforced type completion mechanisms at the code composition level. This must be
+# this is used by the underlying `load` method, as well as `preload` and `joins` methods within the query
+# building layer. This is all copied to the file specified in the `.dream.yml#associations_path`. This is also automatically done whenever you run migrations, run specs, or open a console
+
+yarn dream sync:associations
+# same as above, but copies the associations.ts file to test-app/db/associations.ts
+
+yarn dream db:drop
+# drops the db for either the core app or a consuming app (which is why there is no "core:db:drop" variant)
+
+yarn dream db:create
+# creates the db for either the core app or a consuming app (which is why there is no "core:db:create" variant)
 ```
 
 #### **Did you find a bug?**

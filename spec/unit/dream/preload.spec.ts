@@ -1,5 +1,5 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import { NonLoadedAssociation } from '../../../src/index.js'
+import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'

@@ -1,5 +1,5 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent.js'
-import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:serializer <name> [...attributes]', () => {
   context('when provided attributes', () => {

@@ -16,4 +16,6 @@ export default (data: PetViewModel, passthroughData: object) =>
 export const PetSummarySerializer = (data: PetViewModel, $passthrough: object) =>
   ObjectSerializer(data, $passthrough)
     .attribute('id', { openapi: { type: 'string', description: 'hello' } })
-    .attribute('favoriteTreats', { openapi: { type: 'string[]', enum: CatTreatsValues } })
+    .attribute('favoriteTreats', {
+      openapi: { type: 'array', items: { type: 'string', enum: CatTreatsValues } },
+    })

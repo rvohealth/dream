@@ -1,4 +1,4 @@
-import { Query } from '../../../src/index.js'
+import Query from '../../../src/dream/Query.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'

@@ -1,3 +1,8 @@
+## 2.0.0-beta.1
+
+- namespace package exports
+- remove `Benchmark`
+
 ## 1.13.0
 
 - generated code uses absolute imports

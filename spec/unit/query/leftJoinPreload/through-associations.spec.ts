@@ -1,6 +1,6 @@
 import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
-import { DateTime } from '../../../../src/index.js'
+import { DateTime } from '../../../../src/helpers/DateTime.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'

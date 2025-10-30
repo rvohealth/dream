@@ -1,5 +1,6 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
-import { Decorators, ops } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
+import ops from '../../../src/ops/index.js'
 import { DreamColumn } from '../../../src/types/dream.js'
 import PetSerializer, { PetDeepSerializer, PetSummarySerializer } from '../serializers/PetSerializer.js'
 import ApplicationModel from './ApplicationModel.js'

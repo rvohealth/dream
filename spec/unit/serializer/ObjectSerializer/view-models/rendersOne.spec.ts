@@ -1,4 +1,5 @@
-import { CalendarDate, ObjectSerializer } from '../../../../../src/index.js'
+import CalendarDate from '../../../../../src/helpers/CalendarDate.js'
+import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
 import PetViewModel from '../../../../../test-app/app/view-models/PetViewModel.js'
 import UserViewModel from '../../../../../test-app/app/view-models/UserViewModel.js'
 import { SpeciesValues } from '../../../../../test-app/types/db.js'

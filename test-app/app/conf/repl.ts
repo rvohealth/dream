@@ -1,7 +1,7 @@
 import './loadEnv.js'
 
 import * as repl from 'node:repl'
-import { loadRepl } from '../../../src/index.js'
+import loadRepl from '../../../src/helpers/loadRepl.js'
 import initializeDreamApp from '../../cli/helpers/initializeDreamApp.js'
 
 const replServer = repl.start('> ')

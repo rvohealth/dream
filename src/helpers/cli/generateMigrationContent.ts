@@ -172,8 +172,8 @@ export async function down(db: Kysely<any>): Promise<void> {
     ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
     : ''
   const kyselyImports = ['Kysely', 'sql']
-  const dreamImports: string[] = []
-  if (requireCitextExtension) dreamImports.push('DreamMigrationHelpers')
+  const dreamDbImports: string[] = []
+  if (requireCitextExtension) dreamDbImports.push('DreamMigrationHelpers')
 
   const newlineIndent = '\n  '
   const newlineDoubleIndent = '\n    '
@@ -184,7 +184,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     : ''
 
   return `\
-${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvoh/dream'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
+${dreamDbImports.length ? `import { ${dreamDbImports.join(', ')} } from '@rvoh/dream/db'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
