@@ -214,62 +214,6 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   }
 
   /**
-   * Recursively loads all Dream associations referenced by `rendersOne` and `rendersMany`
-   * in a DreamSerializer. This traverses the entire content tree of serializers to automatically
-   * load all necessary associations, eliminating N+1 query problems and removing the need to
-   * manually remember which associations to preload for serialization.
-   *
-   * This method decouples data loading code from data rendering code by having the serializer
-   * (rendering code) inform the query (loading code) about which associations are needed.
-   * As serializers evolve over time - adding new `rendersOne` and `rendersMany` calls or
-   * modifying existing ones - the loading code automatically adapts without requiring
-   * corresponding modifications to preload statements.
-   *
-   * This method analyzes the serializer (specified by `serializerKey` or 'default') and
-   * automatically preloads all associations that will be needed during serialization.
-   *
-   * ```ts
-   * await ApplicationModel.transaction(async txn => {
-   *   // Instead of manually specifying all associations:
-   *   await User.txn(txn).preload('posts', 'comments', 'replies').all()
-   *
-   *   // Automatically preload everything needed for serialization:
-   *   await user.txn(txn).leftJoinLoadFor('summary').execute()
-   *
-   *   // Add where conditions to specific associations during preloading:
-   *   await user.txn(txn).leftJoinLoadFor('detailed', (associationName, dreamClass) => {
-   *     if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *       return { and: { published: true } }
-   *     }
-   *   }).execute()
-   *
-   *   // Skip preloading specific associations to handle them manually:
-   *   await user
-   *     .txn(txn)
-   *     .leftJoinLoadFor('summary', (associationName, dreamClass) => {
-   *       if (dreamClass.typeof(User) && associationName === 'posts') {
-   *         return 'omit' // Handle posts preloading separately with custom logic
-   *       }
-   *     })
-   *     .load('posts', { and: { featured: true } }) // Custom preloading
-   *     .execute()
-   * })
-   * ```
-   *
-   * @param serializerKey - The serializer key to use for determining which associations to preload.
-   * @param modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
-   * @returns A Query with all serialization associations preloaded
-   */
-  public leftJoinLoadFor<
-    I extends DreamInstanceTransactionBuilder<DreamInstance>,
-    SerializerKey extends DreamSerializerKey<DreamInstance>,
-  >(this: I, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn) {
-    return new LeftJoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction)[
-      'leftJoinLoadFor'
-    ](serializerKey, modifierFn)
-  }
-
-  /**
    * Returns a new Query instance with the provided
    * inner join statement attached
    *

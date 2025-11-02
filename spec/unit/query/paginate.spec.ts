@@ -124,7 +124,7 @@ describe('Query#paginate', () => {
   context('when a leftJoinPreload is applied to the query', () => {
     it('throws an exception', async () => {
       await expect(async () => {
-        await User.leftJoinPreloadFor('default').paginate({ pageSize: 2, page: 1 } as any)
+        await User.leftJoinPreload('pets').paginate({ pageSize: 2, page: 1 } as any)
       }).rejects.toThrow(CannotPaginateWithLeftJoinPreload)
     })
   })

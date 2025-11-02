@@ -2,6 +2,7 @@
 
 - namespace package exports
 - remove `Benchmark`
+- Remove `leftJoinPreloadFor` and `leftJoinLoadFor`. They were never a good idea since the idea of `preloadFor` is that one doesn't need to pay attention to all the things that need to be preloaded, but in a join situation, this is a recipe for disaster since loading tables in parallel results in a Cartesian product of result rows being
 
 ## 1.13.0
 
