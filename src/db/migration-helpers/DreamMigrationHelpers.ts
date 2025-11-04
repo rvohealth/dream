@@ -18,7 +18,10 @@ export default class DreamMigrationHelpers {
    */
   public static async renameTable(db: Kysely<any>, from: string, to: string) {
     await db.schema.alterTable(from).renameTo(to).execute()
-    await sql`ALTER SEQUENCE ${from}_id_seq RENAME TO ${to}_id_seq`.execute(db)
+    const fromSequenceName = `${from}_id_seq`
+    const toSequenceName = `${to}_id_seq`
+    const sqlStatement = `ALTER SEQUENCE ${fromSequenceName} RENAME TO ${toSequenceName}`
+    await sql.raw(sqlStatement).execute(db)
   }
 
   /**
