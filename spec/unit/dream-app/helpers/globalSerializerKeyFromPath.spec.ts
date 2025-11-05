@@ -32,5 +32,15 @@ describe('globalSerializerKeyFromPath', () => {
         )
       ).toEqual('LocalizedText/BaseSerializer')
     })
+
+    it('does not duplicate the nested path (real world example)', () => {
+      expect(
+        globalSerializerKeyFromPath(
+          'api/src/app/serializers/MedicalTicketing/Comment/CommentSerializer.ts',
+          'api/src/app/serializers/',
+          'MedicalTicketingCommentCommentSerializer'
+        )
+      ).toEqual('MedicalTicketing/Comment/CommentSerializer')
+    })
   })
 })
