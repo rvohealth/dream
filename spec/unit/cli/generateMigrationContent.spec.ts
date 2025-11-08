@@ -206,11 +206,13 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   context('when provided attributes', () => {
     context('string attributes', () => {
-      it('generates a kysely migration with multiple text fields', () => {
+      it('generates a kysely migration with multiple text fields (making email and tokens unique and emails automatically citext)', () => {
         const res = generateMigrationContent({
           table: 'users',
           columnsWithTypes: [
-            'email:string:128',
+            'email:string',
+            'token:string:36',
+            'auth_token:string:36',
             'name:citext',
             'password_digest:string',
             'chalupified_at:datetime',
@@ -232,7 +234,9 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('email', 'varchar(128)', col => col.notNull())
+    .addColumn('email', sql\`citext\`, col => col.notNull().unique())
+    .addColumn('token', 'varchar(36)', col => col.notNull().unique())
+    .addColumn('auth_token', 'varchar(36)', col => col.notNull().unique())
     .addColumn('name', sql\`citext\`, col => col.notNull())
     .addColumn('password_digest', 'varchar(255)', col => col.notNull())
     .addColumn('chalupified_at', 'timestamp', col => col.notNull())

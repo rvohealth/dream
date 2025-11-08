@@ -38,7 +38,14 @@ export default function generateMigrationContent({
   const { columnDefs, columnDrops, indexDefs, indexDrops } = columnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
-      const [nonStandardAttributeName, attributeType, ...descriptors] = attributeDeclaration.split(':')
+      const [nonStandardAttributeName, _attributeType, ...descriptors] = attributeDeclaration.split(':')
+
+      /**
+       * Automatically set email columns to citext since different casings of
+       * email address are the same email address
+       */
+      const attributeType = nonStandardAttributeName === 'email' ? 'citext' : _attributeType
+
       const userWantsThisOptional = optionalFromDescriptors(descriptors)
       // when creating a migration for an STI child, we don't want to include notNull;
       // instead, we'll add a check constraint that uses the STI child class name
@@ -334,6 +341,7 @@ function generateColumnStr(
 
   if (hasExtraValues) returnStr += ', col => col'
   if (notNull) returnStr += '.notNull()'
+  if (attributeName === 'email' || /token$/.test(attributeName)) returnStr += '.unique()'
   if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
   else if (isArray) returnStr += `.defaultTo('{}')`
 
