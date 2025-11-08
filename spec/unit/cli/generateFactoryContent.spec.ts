@@ -25,7 +25,6 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
         columnsWithTypes: [
-          'type:enum:post_type:WeeklyPost,GuestPost',
           'style:enum:building_style:formal,informal',
           'title:citext',
           'subtitle:string',
@@ -47,7 +46,6 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    type: 'WeeklyPost',
     style: 'formal',
     title: \`Post title \${++counter}\`,
     subtitle: \`Post subtitle \${counter}\`,
@@ -144,7 +142,6 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
           columnsWithTypes: [
-            'type:enum:post_type:WeeklyPost,GuestPost',
             'style:enum:building_style:formal,informal',
             'rating:decimal:3,2',
             'ratings:integer',
@@ -158,11 +155,31 @@ import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    type: 'WeeklyPost',
     style: 'formal',
     rating: 1.1,
     ratings: 1,
     bigRating: '11111111111111111',
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
+    context('`type`', () => {
+      it('is omitted (reserved for STI)', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['type:enum:room_type:Kitchen,Den'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream/types'
+import Post from '@models/Post.js'
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
     ...attrs,
   })
 }

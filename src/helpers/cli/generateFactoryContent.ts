@@ -31,6 +31,7 @@ export default function generateFactoryContent({
     if (optional) continue
     const attributeVariable = camelize(attributeName.replace(/\//g, ''))
 
+    if (/^type$/.test(attributeName)) continue
     if (/(_type|_id)$/.test(attributeName)) continue
 
     if (!attributeType)
