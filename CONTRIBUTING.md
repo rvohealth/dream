@@ -22,22 +22,20 @@ make sure to add the following files to the root of the project:
 ```
 # .env
 DB_USER=<your username>
+DB_NAME=dream_development
+ALTERNATE_DB_NAME=dream_development_alternate
 DB_PORT=5432
-DB_NAME=dream_app_development
+ALTERNATE_DB_PORT=5432
 DB_HOST=localhost
-REPLICA_DB_NAME=dream_app_development
 REPLICA_DB_HOST=localhost
+REPLICA_DB_PORT=5432
 
-DB_PORT_2=5432
-DB_NAME_2=dream_core_development_alternate
-
-DB_USER_MYSQL=root
-DB_PORT_MYSQL=3306
-DB_NAME_MYSQL=dream_core_development_mysql
-DB_HOST_MYSQL=localhost
-DB_PASSWORD_MYSQL=
-PRIMARY_DB_HOST_MYSQL=127.0.0.1
-REPLICA_DB_HOST_MYSQL=127.0.0.1
+MYSQL_DB_USER=root
+MYSQL_DB_PORT=3306
+MYSQL_DB_NAME=dream_development_mysql
+MYSQL_DB_HOST=localhost
+MYSQL_DB_PASSWORD=
+PRIMARY_MYSQL_DB_HOST=127.0.0.1
 
 APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
 LEGACY_APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
@@ -47,22 +45,20 @@ TZ=UTC
 ```
 # .env.test
 DB_USER=<your username>
+DB_NAME=dream_test
+ALTERNATE_DB_NAME=dream_test_alternate
 DB_PORT=5432
-DB_NAME=dream_app_test
+ALTERNATE_DB_PORT=5432
 DB_HOST=localhost
-REPLICA_DB_NAME=dream_app_test
 REPLICA_DB_HOST=localhost
+REPLICA_DB_PORT=5432
 
-DB_PORT_2=5432
-DB_NAME_2=dream_core_test_alternate
-
-DB_USER_MYSQL=root
-DB_PORT_MYSQL=3306
-DB_NAME_MYSQL=dream_core_test_mysql
-DB_HOST_MYSQL=localhost
-DB_PASSWORD_MYSQL=
-PRIMARY_DB_HOST_MYSQL=127.0.0.1
-REPLICA_DB_HOST_MYSQL=127.0.0.1
+MYSQL_DB_USER=root
+MYSQL_DB_PORT=3306
+MYSQL_DB_NAME=dream_test_mysql
+MYSQL_DB_HOST=localhost
+MYSQL_DB_PASSWORD=
+PRIMARY_MYSQL_DB_HOST=127.0.0.1
 
 APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
 LEGACY_APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='

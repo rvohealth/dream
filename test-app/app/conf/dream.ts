@@ -73,8 +73,8 @@ export default async function (dreamApp: DreamApp) {
       user: AppEnv.string('DB_USER'),
       password: AppEnv.string('DB_PASSWORD', { optional: !AppEnv.isProduction }),
       host: AppEnv.string('DB_HOST', { optional: true }),
-      name: AppEnv.string('DB_NAME_2', { optional: true }),
-      port: AppEnv.integer('DB_PORT_2', { optional: true }),
+      name: AppEnv.string('ALTERNATE_DB_NAME', { optional: true }),
+      port: AppEnv.integer('ALTERNATE_DB_PORT', { optional: true }),
       useSsl: false,
     },
   })
@@ -82,11 +82,11 @@ export default async function (dreamApp: DreamApp) {
   dreamApp.set('db', 'mysql', {
     queryDriverClass: MysqlQueryDriver,
     primary: {
-      user: AppEnv.string('DB_USER_MYSQL'),
-      password: AppEnv.string('DB_PASSWORD_MYSQL', { optional: !AppEnv.isProduction }),
-      host: AppEnv.string('DB_HOST_MYSQL', { optional: true }),
-      name: AppEnv.string('DB_NAME_MYSQL', { optional: true }),
-      port: AppEnv.integer('DB_PORT_MYSQL', { optional: true }),
+      user: AppEnv.string('MYSQL_DB_USER'),
+      password: AppEnv.string('MYSQL_DB_PASSWORD', { optional: !AppEnv.isProduction }),
+      host: AppEnv.string('MYSQL_DB_HOST', { optional: true }),
+      name: AppEnv.string('MYSQL_DB_NAME', { optional: true }),
+      port: AppEnv.integer('MYSQL_DB_PORT', { optional: true }),
       useSsl: false,
     },
   })
