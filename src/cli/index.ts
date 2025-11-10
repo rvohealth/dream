@@ -149,7 +149,10 @@ export default class DreamCLI {
       .command('generate:migration')
       .alias('g:migration')
       .description('create a new migration')
-      .argument('<migrationName>', 'end with -to-table-name to prepopulate with an alterTable command')
+      .argument(
+        '<migrationName>',
+        'end with -to-table-name or -from-table-name to prepopulate with an alterTable command'
+      )
       .option('--connection-name <connectionName>', 'the connection name you wish to use for your migration')
       .argument('[columnsWithTypes...]', columnsWithTypesDescriptionForMigration)
       .action(
