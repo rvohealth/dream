@@ -22,22 +22,20 @@ make sure to add the following files to the root of the project:
 ```
 # .env
 DB_USER=<your username>
+DB_NAME=dream_development
+ALTERNATE_DB_NAME=dream_development_alternate
 DB_PORT=5432
-DB_NAME=dream_app_development
+ALTERNATE_DB_PORT=5432
 DB_HOST=localhost
-REPLICA_DB_NAME=dream_app_development
 REPLICA_DB_HOST=localhost
+REPLICA_DB_PORT=5432
 
-DB_PORT_2=5432
-DB_NAME_2=dream_core_development_alternate
-
-DB_USER_MYSQL=root
-DB_PORT_MYSQL=3306
-DB_NAME_MYSQL=dream_core_development_mysql
-DB_HOST_MYSQL=localhost
-DB_PASSWORD_MYSQL=
-PRIMARY_DB_HOST_MYSQL=127.0.0.1
-REPLICA_DB_HOST_MYSQL=127.0.0.1
+MYSQL_DB_USER=root
+MYSQL_DB_PORT=3306
+MYSQL_DB_NAME=dream_development_mysql
+MYSQL_DB_HOST=localhost
+MYSQL_DB_PASSWORD=
+PRIMARY_MYSQL_DB_HOST=127.0.0.1
 
 APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
 LEGACY_APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
@@ -47,22 +45,20 @@ TZ=UTC
 ```
 # .env.test
 DB_USER=<your username>
+DB_NAME=dream_test
+ALTERNATE_DB_NAME=dream_test_alternate
 DB_PORT=5432
-DB_NAME=dream_app_test
+ALTERNATE_DB_PORT=5432
 DB_HOST=localhost
-REPLICA_DB_NAME=dream_app_test
 REPLICA_DB_HOST=localhost
+REPLICA_DB_PORT=5432
 
-DB_PORT_2=5432
-DB_NAME_2=dream_core_test_alternate
-
-DB_USER_MYSQL=root
-DB_PORT_MYSQL=3306
-DB_NAME_MYSQL=dream_core_test_mysql
-DB_HOST_MYSQL=localhost
-DB_PASSWORD_MYSQL=
-PRIMARY_DB_HOST_MYSQL=127.0.0.1
-REPLICA_DB_HOST_MYSQL=127.0.0.1
+MYSQL_DB_USER=root
+MYSQL_DB_PORT=3306
+MYSQL_DB_NAME=dream_test_mysql
+MYSQL_DB_HOST=localhost
+MYSQL_DB_PASSWORD=
+PRIMARY_MYSQL_DB_HOST=127.0.0.1
 
 APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
 LEGACY_APP_ENCRYPTION_KEY='UHClfbB+TJDVCMXfQO/uXgZTAg/BlGJfi6YLi8T2720='
@@ -79,36 +75,67 @@ yarn dream db:create
 yarn dream db:migrate
 ```
 
-## Global CLI
-
-The global CLI is used to build a new psychic app. You can access the global cli on your machine by doing the following:
-
-```bash
-yarn dlx @rvoh/dream
-```
-
-Once installed globally, you can access the global cli like so:
-
-```bash
-dream new myapp
-```
-
-To test the global cli without publishing, you can run the following from within the psychic directory:
-
-```bash
-yarn gdream new myapp
-```
-
-NOTE: doing so will create the new app in the dream folder, so once done testing remember to remove it.
-
-For more information on how to contribute to dream, see our [official dream contributing docs](https://psychic-docs.netlify.app/docs/contributing/dream)
-
 #### Generating type docs
 
 ```bash
 # first, you will need to update package.json version, in order to keep
 # docs generated on a per-version basis
 yarn build:docs
+```
+
+#### CLI
+
+```bash
+yarn build
+# builds source code using the typescript compiler, sending it into the dist folder
+
+yarn spec
+# runs core development specs (same as yarn dream spec)
+
+NODE_DEBUG=sql yarn spec
+# runs core development specs, printing SQL queries
+
+yarn console
+# opens console, providing access to the internal test-app/app/models folder (same as yarn dream console)
+
+yarn dream
+# opens a small node cli program, which right now only provides commands for generating dreams and migrations,
+# but which will likely eventually encompass all of the above commands
+
+yarn dream db:migrate
+# runs migrations for core development. Use this if you are working on the dream ORM source code.
+
+yarn dream db:migrate
+# runs migrations for an app that is consuming the dream ORM. This is meant to be run from another repo,
+# e.g. within a different app's package.json:
+#
+#  "scripts": {
+#     "db:migrate": "yarn --cwd=node_modules/dream db:migrate"
+# }
+
+yarn dream sync
+# syncs db schema. This is necessary, because in order to provide deep integration with kysely,
+# Dream must actually introspect the schema of your app and provide it as part of the dream orm
+# source code build. It essentially scans your database, examines all tables, outputs interfaces
+# that kysely can consume, puts them into a file, and exports all the interfaces within that file.
+
+# the sync command is automatically run as part of the migration sequence
+
+# a copy of this is output to your app (though don't bother manually modifying it, since it is blown away each
+# time you run migrations). It is then copied over to the node_modules/dream/src/sync folder, so that importing
+# the dream orm can provide that integration for you.
+
+# runs a script which analyzes your models, building a mapping of the associations into typescript interfaces
+# which will assist in providing enforced type completion mechanisms at the code composition level. This must be
+# this is used by the underlying `load` method, as well as `preload` and `joins` methods within the query
+# building layer. This is all copied to the file specified in the `.dream.yml#associations_path`. This is also
+# automatically done whenever you run migrations, run specs, or open a console
+
+yarn dream db:drop
+# drops the db for either the core app or a consuming app (which is why there is no "core:db:drop" variant)
+
+yarn dream db:create
+# creates the db for either the core app or a consuming app (which is why there is no "core:db:create" variant)
 ```
 
 #### **Did you find a bug?**

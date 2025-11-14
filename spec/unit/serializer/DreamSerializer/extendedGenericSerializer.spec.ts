@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../../src/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'

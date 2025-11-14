@@ -13,6 +13,6 @@ export default function globalSerializerKeyFromPath(
     return defaultExport
   } else {
     const namePrefixFromPath = defaultExport.replace(/[^/]+\/?$/, '')
-    return namePrefixFromPath + exportKey.replace(new RegExp(`^${namePrefixFromPath.replace(/\/$/, '')}`), '')
+    return namePrefixFromPath + exportKey.replace(new RegExp(`^${namePrefixFromPath.replace(/\//g, '')}`), '')
   }
 }

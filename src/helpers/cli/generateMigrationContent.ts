@@ -38,7 +38,14 @@ export default function generateMigrationContent({
   const { columnDefs, columnDrops, indexDefs, indexDrops } = columnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
-      const [nonStandardAttributeName, attributeType, ...descriptors] = attributeDeclaration.split(':')
+      const [nonStandardAttributeName, _attributeType, ...descriptors] = attributeDeclaration.split(':')
+
+      /**
+       * Automatically set email columns to citext since different casings of
+       * email address are the same email address
+       */
+      const attributeType = nonStandardAttributeName === 'email' ? 'citext' : _attributeType
+
       const userWantsThisOptional = optionalFromDescriptors(descriptors)
       // when creating a migration for an STI child, we don't want to include notNull;
       // instead, we'll add a check constraint that uses the STI child class name
@@ -172,8 +179,8 @@ export async function down(db: Kysely<any>): Promise<void> {
     ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
     : ''
   const kyselyImports = ['Kysely', 'sql']
-  const dreamImports: string[] = []
-  if (requireCitextExtension) dreamImports.push('DreamMigrationHelpers')
+  const dreamDbImports: string[] = []
+  if (requireCitextExtension) dreamDbImports.push('DreamMigrationHelpers')
 
   const newlineIndent = '\n  '
   const newlineDoubleIndent = '\n    '
@@ -184,7 +191,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     : ''
 
   return `\
-${dreamImports.length ? `import { ${dreamImports.join(', ')} } from '@rvoh/dream'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
+${dreamDbImports.length ? `import { ${dreamDbImports.join(', ')} } from '@rvoh/dream/db'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
@@ -329,11 +336,13 @@ function generateColumnStr(
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
   const notNull = !optional
-  const hasExtraValues = providedDefault || notNull
+  const isUnique = attributeName === 'email' || /token$/.test(attributeName)
+  const hasExtraValues = providedDefault || notNull || isUnique
   const isArray = /\[\]$/.test(attributeType)
 
   if (hasExtraValues) returnStr += ', col => col'
   if (notNull) returnStr += '.notNull()'
+  if (isUnique) returnStr += '.unique()'
   if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
   else if (isArray) returnStr += `.defaultTo('{}')`
 

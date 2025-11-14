@@ -1,4 +1,5 @@
-import { Decorators, Query } from '../../../src/index.js'
+import Decorators from '../../../src/decorators/Decorators.js'
+import Query from '../../../src/dream/Query.js'
 import Rating from './Rating.js'
 
 const deco = new Decorators<typeof NonNullRating>()

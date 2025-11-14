@@ -1,3 +1,10 @@
+export type StrictInterface<
+  Incoming extends Record<string, any>,
+  Reference extends Record<string, any>,
+> = Reference & {
+  [K in Exclude<keyof Incoming, keyof Reference>]?: never
+}
+
 export type ArrayAttributes<T> = {
   [K in keyof T]: T[K] extends any[] ? K : never
 }[keyof T]

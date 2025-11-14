@@ -1,4 +1,4 @@
-import { DreamApp } from '../../../src/index.js'
+import DreamApp from '../../../src/dream-app/index.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 
 describe('setting a text field', () => {

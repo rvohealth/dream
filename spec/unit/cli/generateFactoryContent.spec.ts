@@ -1,5 +1,5 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import generateFactoryContent from '../../../src/helpers/cli/generateFactoryContent.js'
-import { DreamApp } from '../../../src/index.js'
 
 describe('dream generate:model <name> [...attributes] (factory context)', () => {
   context('when provided with a pascalized table name', () => {
@@ -7,7 +7,7 @@ describe('dream generate:model <name> [...attributes] (factory context)', () => 
       const res = generateFactoryContent({ fullyQualifiedModelName: 'User', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import User from '@models/User.js'
 
 export default async function createUser(attrs: UpdateableProperties<User> = {}) {
@@ -25,7 +25,6 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
         columnsWithTypes: [
-          'type:enum:post_type:WeeklyPost,GuestPost',
           'style:enum:building_style:formal,informal',
           'title:citext',
           'subtitle:string',
@@ -39,14 +38,14 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       })
       expect(res).toEqual(
         `\
-import { UpdateableProperties, CalendarDate, DateTime } from '@rvoh/dream'
+import { CalendarDate, DateTime } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
 
 let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    type: 'WeeklyPost',
     style: 'formal',
     title: \`Post title \${++counter}\`,
     subtitle: \`Post subtitle \${counter}\`,
@@ -82,7 +81,8 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties, CalendarDate, DateTime } from '@rvoh/dream'
+import { CalendarDate, DateTime } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
 
 let counter = 0
@@ -125,7 +125,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
@@ -142,7 +142,6 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
           columnsWithTypes: [
-            'type:enum:post_type:WeeklyPost,GuestPost',
             'style:enum:building_style:formal,informal',
             'rating:decimal:3,2',
             'ratings:integer',
@@ -151,16 +150,36 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    type: 'WeeklyPost',
     style: 'formal',
     rating: 1.1,
     ratings: 1,
     bigRating: '11111111111111111',
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
+    context('`type`', () => {
+      it('is omitted (reserved for STI)', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['type:enum:room_type:Kitchen,Den'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream/types'
+import Post from '@models/Post.js'
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
     ...attrs,
   })
 }
@@ -180,7 +199,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
@@ -199,7 +218,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       const res = generateFactoryContent({ fullyQualifiedModelName: 'My/Nested/User', columnsWithTypes: [] })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import MyNestedUser from '@models/My/Nested/User.js'
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
@@ -220,7 +239,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
       })
       expect(res).toEqual(
         `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
 import createUser from '@spec/factories/UserFactory.js'
 
@@ -245,7 +264,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import MyNestedUser from '@models/My/Nested/User.js'
 import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory.js'
 
@@ -277,7 +296,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import MyNestedUser from '@models/My/Nested/User.js'
 import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory.js'
 
@@ -307,7 +326,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import MyNestedUser from '@models/My/Nested/User.ts'
 import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory.ts'
 
@@ -337,7 +356,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
         })
         expect(res).toEqual(
           `\
-import { UpdateableProperties } from '@rvoh/dream'
+import { UpdateableProperties } from '@rvoh/dream/types'
 import MyNestedUser from '@models/My/Nested/User'
 import createMyNestedDoubleNestedOrganization from '@spec/factories/My/Nested/DoubleNested/OrganizationFactory'
 

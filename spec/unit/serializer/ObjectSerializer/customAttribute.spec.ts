@@ -1,4 +1,4 @@
-import { CalendarDate } from '../../../../src/index.js'
+import CalendarDate from '../../../../src/helpers/CalendarDate.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 

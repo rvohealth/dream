@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../src/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import AlternateDbConnectionPost from '../models/AlternateDbConnectionPost.js'
 
 export const AlternateDbConnectionPostSummarySerializer = (

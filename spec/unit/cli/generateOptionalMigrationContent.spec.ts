@@ -20,7 +20,7 @@ describe('generateMigrationContent with optional', () => {
 
         expect(res).toEqual(
           `\
-import { DreamMigrationHelpers } from '@rvoh/dream'
+import { DreamMigrationHelpers } from '@rvoh/dream/db'
 import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,7 +30,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
     .addColumn('id', 'bigserial', col => col.primaryKey())
-    .addColumn('email', 'varchar(128)')
+    .addColumn('email', sql\`citext\`, col => col.unique())
     .addColumn('name', sql\`citext\`)
     .addColumn('password_digest', 'varchar(255)')
     .addColumn('chalupified_at', 'timestamp')

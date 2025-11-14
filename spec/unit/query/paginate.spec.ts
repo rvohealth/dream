@@ -1,7 +1,7 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
-import { DreamApp } from '../../../src/index.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#paginate', () => {
@@ -124,7 +124,7 @@ describe('Query#paginate', () => {
   context('when a leftJoinPreload is applied to the query', () => {
     it('throws an exception', async () => {
       await expect(async () => {
-        await User.leftJoinPreloadFor('default').paginate({ pageSize: 2, page: 1 } as any)
+        await User.leftJoinPreload('pets').paginate({ pageSize: 2, page: 1 } as any)
       }).rejects.toThrow(CannotPaginateWithLeftJoinPreload)
     })
   })

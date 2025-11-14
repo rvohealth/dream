@@ -1,6 +1,7 @@
+import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import Decorators from '../../../src/decorators/Decorators.js'
-import { Query, ReplicaSafe } from '../../../src/index.js'
+import Query from '../../../src/dream/Query.js'
 import { DreamColumn } from '../../../src/types/dream.js'
 import { BalloonTypesEnum } from '../../types/db.js'
 import ApplicationModel from './ApplicationModel.js'

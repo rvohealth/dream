@@ -8,142 +8,298 @@ import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
 
-export default function generateDreamContent({
-  fullyQualifiedModelName,
-  columnsWithTypes,
-  fullyQualifiedParentName,
-  serializer,
-  includeAdminSerializers,
-  connectionName = 'default',
-}: {
+interface GenerateDreamContentOptions {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   fullyQualifiedParentName?: string | undefined
   connectionName?: string
   serializer: boolean
   includeAdminSerializers: boolean
-}) {
-  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
-  let parentModelClassName: string | undefined
-  const dreamImports: string[] = ['Decorators', 'DreamColumn']
-  if (serializer) dreamImports.push('DreamSerializers')
-  const isSTI = !!fullyQualifiedParentName
+}
 
+export interface ModelConfig {
+  fullyQualifiedModelName: string
+  modelClassName: string
+  parentModelClassName: string | undefined
+  applicationModelName: string
+  isSTI: boolean
+  tableName: string
+}
+
+export interface ImportConfig {
+  dreamTypeImports: string[]
+  dreamImports: string[]
+  modelImportStatements: string[]
+}
+
+export interface AttributeProcessingResult {
+  content: string
+  imports: string[]
+}
+
+export default function generateDreamContent(options: GenerateDreamContentOptions): string {
+  const config = createModelConfig(options)
+  const baseImports = createImportConfig(config, options)
+  const attributesResult = processAttributes(options.columnsWithTypes, config.modelClassName)
+
+  const allImports: ImportConfig = {
+    ...baseImports,
+    modelImportStatements: [...baseImports.modelImportStatements, ...attributesResult.imports],
+  }
+
+  const importSection = buildImportSection(allImports)
+  const classDeclaration = buildClassDeclaration(config)
+  const tableMethod = buildTableMethod(config)
+  const serializersMethod = buildSerializersMethod(config, options)
+  const fieldsSection = buildFieldsSection(config, attributesResult)
+
+  return `${importSection}
+
+const deco = new Decorators<typeof ${config.modelClassName}>()
+
+${classDeclaration}
+${tableMethod}${serializersMethod}${fieldsSection}
+}
+`.replace(/^\s*$/gm, '')
+}
+
+export function createModelConfig(options: GenerateDreamContentOptions): ModelConfig {
+  const fullyQualifiedModelName = standardizeFullyQualifiedModelName(options.fullyQualifiedModelName)
+  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const isSTI = !!options.fullyQualifiedParentName
+
+  let parentModelClassName: string | undefined
   if (isSTI) {
-    fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
-    parentModelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedParentName)
+    const standardizedParentName = standardizeFullyQualifiedModelName(options.fullyQualifiedParentName!)
+    parentModelClassName = globalClassNameFromFullyQualifiedModelName(standardizedParentName)
+  }
+
+  const connectionName = options.connectionName || 'default'
+  const applicationModelName =
+    connectionName === 'default' ? 'ApplicationModel' : `${pascalize(connectionName)}ApplicationModel`
+
+  const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
+
+  return {
+    fullyQualifiedModelName,
+    modelClassName,
+    parentModelClassName,
+    applicationModelName,
+    isSTI,
+    tableName,
+  }
+}
+
+export function createImportConfig(config: ModelConfig, options: GenerateDreamContentOptions): ImportConfig {
+  const dreamTypeImports: string[] = ['DreamColumn']
+  const dreamImports: string[] = ['Decorators']
+
+  if (options.serializer) {
+    dreamTypeImports.push('DreamSerializers')
+  }
+
+  if (config.isSTI) {
     dreamImports.push('STI')
   }
 
-  const idTypescriptType = `DreamColumn<${modelClassName}, 'id'>`
-  const applicationModelName =
-    connectionName === 'default' ? 'ApplicationModel' : `${pascalize(connectionName)}ApplicationModel`
-  const modelImportStatements: string[] = isSTI
-    ? [importStatementForModel(fullyQualifiedParentName!)]
-    : [importStatementForModel(applicationModelName)]
+  const baseModelName = config.isSTI ? options.fullyQualifiedParentName! : config.applicationModelName
 
-  const attributeStatements = columnsWithTypes.map(attribute => {
-    const [attributeName, attributeType, ...descriptors] = attribute.split(':')
-    if (attributeName === undefined) return ''
-    const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
-    const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
-    const associationImportStatement = importStatementForModel(fullyQualifiedAssociatedModelName)
+  const modelImportStatements: string[] = [importStatementForModel(baseModelName)]
 
-    if (!attributeType)
-      throw new Error(`must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
+  return {
+    dreamTypeImports,
+    dreamImports,
+    modelImportStatements,
+  }
+}
 
-    switch (attributeType) {
-      case 'belongs_to': {
-        modelImportStatements.push(associationImportStatement)
-        const associationName = camelize(fullyQualifiedAssociatedModelName.split('/').pop()!)
-        const associationForeignKey = `${associationName}Id`
-        return `
-@deco.BelongsTo('${fullyQualifiedAssociatedModelName}', { on: '${associationForeignKey}'${descriptors.includes('optional') ? ', optional: true' : ''} })
-public ${associationName}: ${associationModelName}${descriptors.includes('optional') ? ' | null' : ''}
-public ${associationForeignKey}: DreamColumn<${modelClassName}, '${associationName}Id'>
-`
-      }
+export function processAttributes(
+  columnsWithTypes: string[],
+  modelClassName: string
+): AttributeProcessingResult & { formattedFields: string; formattedDecorators: string } {
+  const attributeResults = columnsWithTypes.map(attribute => processAttribute(attribute, modelClassName))
 
-      case 'has_one':
-      case 'has_many':
-        return ''
+  const allImports = attributeResults.flatMap(result => result.imports)
 
-      case 'encrypted':
-        dreamImports.push('Encrypted')
-        return `
-@Encrypted()
-public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}\
-`
-
-      default:
-        return `
-public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}\
-`
-    }
-  })
+  const attributeStatements = attributeResults.map(result => result.content)
 
   const formattedFields = attributeStatements
     .filter(attr => !/^\n@/.test(attr))
     .map(s => s.split('\n').join('\n  '))
     .join('')
+
   const formattedDecorators = attributeStatements
     .filter(attr => /^\n@/.test(attr))
     .map(s => s.split('\n').join('\n  '))
     .join('\n  ')
     .replace(/\n {2}$/, '')
 
-  let timestamps = `
-  public createdAt: DreamColumn<${modelClassName}, 'createdAt'>
-  public updatedAt: DreamColumn<${modelClassName}, 'updatedAt'>
+  return {
+    content: '', // Not used in this context
+    imports: allImports,
+    formattedFields,
+    formattedDecorators,
+  }
+}
+
+export function processAttribute(attribute: string, modelClassName: string): AttributeProcessingResult {
+  const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+
+  if (attributeName === undefined) return { content: '', imports: [] }
+
+  if (!attributeType) {
+    throw new Error(`must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
+  }
+
+  switch (attributeType) {
+    case 'belongs_to':
+      return createBelongsToAttribute(attributeName, descriptors, modelClassName)
+    case 'has_one':
+    case 'has_many':
+      return { content: '', imports: [] }
+    case 'encrypted':
+      return createEncryptedAttribute(attributeName, attribute, modelClassName)
+    default:
+      return createRegularAttribute(attributeName, attribute, modelClassName)
+  }
+}
+
+export function createBelongsToAttribute(
+  attributeName: string,
+  descriptors: string[],
+  modelClassName: string
+): AttributeProcessingResult {
+  const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
+  const associationModelName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedAssociatedModelName)
+  const associationImportStatement = importStatementForModel(fullyQualifiedAssociatedModelName)
+
+  const associationName = camelize(fullyQualifiedAssociatedModelName.split('/').pop()!)
+  const associationForeignKey = `${associationName}Id`
+  const isOptional = descriptors.includes('optional')
+
+  const content = `
+@deco.BelongsTo('${fullyQualifiedAssociatedModelName}', { on: '${associationForeignKey}'${isOptional ? ', optional: true' : ''} })
+public ${associationName}: ${associationModelName}${isOptional ? ' | null' : ''}
+public ${associationForeignKey}: DreamColumn<${modelClassName}, '${associationName}Id'>
 `
-  if (!formattedDecorators.length) timestamps = timestamps.replace(/\n$/, '')
 
-  const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
+  return {
+    content,
+    imports: [associationImportStatement],
+  }
+}
 
-  return `\
-import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'${uniq(modelImportStatements).join('')}
+export function createEncryptedAttribute(
+  attributeName: string,
+  attribute: string,
+  modelClassName: string
+): AttributeProcessingResult {
+  const content = `
+@deco.Encrypted()
+public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}`
 
-const deco = new Decorators<typeof ${modelClassName}>()
+  return {
+    content,
+    imports: [],
+  }
+}
 
-${isSTI ? `\n@STI(${parentModelClassName})` : ''}
-export default class ${modelClassName} extends ${isSTI ? parentModelClassName : applicationModelName} {
-${
-  isSTI
-    ? ''
-    : `  public override get table() {
-    return '${tableName}' as const
+export function createRegularAttribute(
+  attributeName: string,
+  attribute: string,
+  modelClassName: string
+): AttributeProcessingResult {
+  const content = `
+public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}`
+
+  return {
+    content,
+    imports: [],
+  }
+}
+
+function buildImportSection(imports: ImportConfig): string {
+  const dreamImportLine = imports.dreamImports.length
+    ? `import { ${uniq(imports.dreamImports).join(', ')} } from '@rvoh/dream'\n`
+    : ''
+
+  const typeImportLine = `import { ${uniq(imports.dreamTypeImports).join(', ')} } from '@rvoh/dream/types'`
+  const modelImports = uniq(imports.modelImportStatements).join('')
+
+  return `${dreamImportLine}${typeImportLine}${modelImports}`
+}
+
+function buildClassDeclaration(config: ModelConfig): string {
+  const stiDecorator = config.isSTI ? `@STI(${config.parentModelClassName})\n` : ''
+  const extendsClause = config.isSTI ? config.parentModelClassName : config.applicationModelName
+
+  return `${stiDecorator}export default class ${config.modelClassName} extends ${extendsClause} {`
+}
+
+function buildTableMethod(config: ModelConfig): string {
+  if (config.isSTI) return ''
+
+  return `  public override get table() {
+    return '${config.tableName}' as const
   }
 
 `
-}${
-    serializer
-      ? `  public ${isSTI ? 'override ' : ''}get serializers(): DreamSerializers<${modelClassName}> {
+}
+
+function buildSerializersMethod(config: ModelConfig, options: GenerateDreamContentOptions): string {
+  if (!options.serializer) return ''
+
+  const overrideKeyword = config.isSTI ? 'override ' : ''
+  const defaultSerializer = serializerGlobalNameFromFullyQualifiedModelName(config.fullyQualifiedModelName)
+  const summarySerializer = serializerGlobalNameFromFullyQualifiedModelName(
+    config.fullyQualifiedModelName,
+    'summary'
+  )
+
+  let adminSerializers = ''
+  if (options.includeAdminSerializers) {
+    const adminSerializer = defaultSerializer.replace(/Serializer$/, 'AdminSerializer')
+    const adminSummarySerializer = summarySerializer.replace(/SummarySerializer$/, 'AdminSummarySerializer')
+    adminSerializers = `
+      admin: '${adminSerializer}',
+      adminSummary: '${adminSummarySerializer}',`
+  }
+
+  return `  public ${overrideKeyword}get serializers(): DreamSerializers<${config.modelClassName}> {
     return {
-      default: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName)}',
-      summary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary')}',${
-        !includeAdminSerializers
-          ? ''
-          : `
-      admin: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName).replace(/Serializer$/, 'AdminSerializer')}',
-      adminSummary: '${serializerGlobalNameFromFullyQualifiedModelName(fullyQualifiedModelName, 'summary').replace(/SummarySerializer$/, 'AdminSummarySerializer')}',`
-      }
+      default: '${defaultSerializer}',
+      summary: '${summarySerializer}',${adminSerializers}
     }
   }
 
 `
-      : ''
-  }${
-    isSTI ? formattedFields : `  public id: ${idTypescriptType}${formattedFields}${timestamps}`
-  }${formattedDecorators}
-}
-`.replace(/^\s*$/gm, '')
 }
 
-function getAttributeType(attribute: string, modelClassName: string) {
+function buildFieldsSection(
+  config: ModelConfig,
+  attributes: { formattedFields: string; formattedDecorators: string }
+): string {
+  if (config.isSTI) {
+    return `${attributes.formattedFields}${attributes.formattedDecorators}`
+  }
+
+  const idField = `  public id: DreamColumn<${config.modelClassName}, 'id'>`
+  let timestamps = `
+  public createdAt: DreamColumn<${config.modelClassName}, 'createdAt'>
+  public updatedAt: DreamColumn<${config.modelClassName}, 'updatedAt'>
+`
+
+  if (!attributes.formattedDecorators.length) {
+    timestamps = timestamps.replace(/\n$/, '')
+  }
+
+  return `${idField}${attributes.formattedFields}${timestamps}${attributes.formattedDecorators}`
+}
+
+function getAttributeType(attribute: string, modelClassName: string): string {
   return `DreamColumn<${modelClassName}, '${camelize(attribute.split(':')[0])}'>`
 }
 
-function importStatementForModel(destinationModelName: string) {
+function importStatementForModel(destinationModelName: string): string {
   return `\nimport ${globalClassNameFromFullyQualifiedModelName(destinationModelName)} from '${absoluteDreamPath('models', destinationModelName)}'`
 }

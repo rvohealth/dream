@@ -2,7 +2,9 @@ import { SpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
+import generateDream from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import loadRepl from '../helpers/loadRepl.js'
 import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
 
@@ -70,6 +72,13 @@ ${INDENT}          Health/Coach:belongs_to`
 
 export default class DreamCLI {
   /**
+   * Starts the Dream console
+   */
+  public static async loadRepl(context: Record<string, unknown>) {
+    return await loadRepl(context)
+  }
+
+  /**
    * use this method for initializing a standalone dream application. If using Psychic and Dream together,
    * a different pattern is used, which leverages the `generateDreamCli` method instead.
    */
@@ -104,6 +113,23 @@ export default class DreamCLI {
   }
 
   /**
+   * @internal
+   */
+  public static async generateDream(opts: {
+    fullyQualifiedModelName: string
+    columnsWithTypes: string[]
+    options: {
+      connectionName: string
+      serializer: boolean
+      stiBaseSerializer: boolean
+      includeAdminSerializers: boolean
+    }
+    fullyQualifiedParentName?: string | undefined
+  }) {
+    await generateDream(opts)
+  }
+
+  /**
    * called under the hood when provisioning both psychic and dream applications.
    */
   public static generateDreamCli(
@@ -123,7 +149,10 @@ export default class DreamCLI {
       .command('generate:migration')
       .alias('g:migration')
       .description('create a new migration')
-      .argument('<migrationName>', 'end with -to-table-name to prepopulate with an alterTable command')
+      .argument(
+        '<migrationName>',
+        'end with -to-table-name or -from-table-name to prepopulate with an alterTable command'
+      )
       .option('--connection-name <connectionName>', 'the connection name you wish to use for your migration')
       .argument('[columnsWithTypes...]', columnsWithTypesDescriptionForMigration)
       .action(

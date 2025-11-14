@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../../src/index.js'
+import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ModelA from '../../models/CircularReference/ModelA.js'
 
 export const CircularReferenceModelASummarySerializer = (circularReferenceModelA: ModelA) =>

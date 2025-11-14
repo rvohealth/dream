@@ -1,5 +1,6 @@
+import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
+import Decorators from '../../../src/decorators/Decorators.js'
 import Query from '../../../src/dream/Query.js'
-import { Decorators, SoftDelete } from '../../../src/index.js'
 import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'

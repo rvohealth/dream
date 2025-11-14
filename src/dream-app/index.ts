@@ -13,6 +13,16 @@ import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppI
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime, Settings } from '../helpers/DateTime.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import globalClassNameFromFullyQualifiedModelName from '../helpers/globalClassNameFromFullyQualifiedModelName.js'
+import absoluteDreamPath from '../helpers/path/absoluteDreamPath.js'
+import dreamPath from '../helpers/path/dreamPath.js'
+import standardizeFullyQualifiedModelName from '../helpers/standardizeFullyQualifiedModelName.js'
+import expandStiClasses from '../helpers/sti/expandStiClasses.js'
+import inferSerializerFromDreamOrViewModel, {
+  inferSerializersFromDreamClassOrViewModelClass,
+} from '../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import isDreamSerializer from '../serializer/helpers/isDreamSerializer.js'
+import serializerNameFromFullyQualifiedModelName from '../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import { DbConnectionType } from '../types/db.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from '../types/serializer.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
@@ -21,6 +31,7 @@ import importSerializers, {
   getSerializersOrFail,
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
+import lookupClassByGlobalName from './helpers/lookupClassByGlobalName.js'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -65,6 +76,49 @@ export default class DreamApp {
     })
 
     return dreamApp
+  }
+
+  /**
+   * Since javascript is inherently vulnerable to circular dependencies,
+   * this function provides a workaround by enabling you to dynamically
+   * bring in classes that, if imported directly, would result in circular
+   * dependency issues.
+   *
+   * NOTE: You should only use this as a last resort, since it can create quite
+   * a headache for you when leaning into your editor to apply renames, etc...
+   *
+   * @param name - the global name you are trying to look up, i.e. 'User', or 'UserSerializer'.
+   *
+   * @example
+   * ```ts
+   * // this pattern is safe from circular imports, since _UserSerializer
+   * // is only being used to type something else, which will not result
+   * // in the circular dependency issue.
+   *
+   * import _UserSerializer from '../serializers/UserSerializer.js'
+   * const UserSerializer = PsychicApp.lookupClassByGlobalName('UserSerializer') as _UserSerializer
+   * ```
+   */
+  public static lookupClassByGlobalName(name: string) {
+    return lookupClassByGlobalName(name)
+  }
+
+  /**
+   * @internal
+   *
+   */
+  public static get system() {
+    return {
+      globalClassNameFromFullyQualifiedModelName,
+      absoluteDreamPath,
+      dreamPath,
+      standardizeFullyQualifiedModelName,
+      expandStiClasses,
+      inferSerializerFromDreamOrViewModel,
+      inferSerializersFromDreamClassOrViewModelClass,
+      isDreamSerializer,
+      serializerNameFromFullyQualifiedModelName,
+    }
   }
 
   /**

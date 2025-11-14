@@ -34,8 +34,8 @@ jobs:
         image: postgres:13-alpine
         env:
           POSTGRES_USER: dream
-          POSTGRES_DB: dream_core_test
-          POSTGRES_PASSWORD: 'postgres'
+          POSTGRES_DB: dream_test
+          POSTGRES_PASSWORD: "postgres"
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -48,8 +48,8 @@ jobs:
         image: postgres:13-alpine
         env:
           POSTGRES_USER: dream
-          POSTGRES_DB: dream_core_alternate_connection_test
-          POSTGRES_PASSWORD: 'postgres'
+          POSTGRES_DB: dream_test_alternate
+          POSTGRES_PASSWORD: "postgres"
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -62,7 +62,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_USER: dream
-          MYSQL_DATABASE: dream_core_test_mysql
+          MYSQL_DATABASE: dream_test_mysql
           MYSQL_PASSWORD: password
           MYSQL_ROOT_PASSWORD: password
         options: >-
@@ -77,21 +77,20 @@ jobs:
       NODE_ENV: test
       PORT: 7778
       DB_USER: dream
-      DB_USER_MYSQL: root
+      MYSQL_DB_USER: root
       DB_USER_ROOT_MYSQL: root
-      DB_NAME: dream_core_test
-      DB_NAME_2: dream_core_alternate_connection_test
-      DB_NAME_MYSQL: dream_core_test_mysql
+      DB_NAME: dream_test
+      ALTERNATE_DB_NAME: dream_test_alternate
+      MYSQL_DB_NAME: dream_test_mysql
       DB_HOST: localhost
-      DB_HOST_MYSQL: localhost
-      REPLICA_DB_NAME: dream_core_test
+      MYSQL_DB_HOST: localhost
       REPLICA_DB_HOST: localhost
       REPLICA_DB_PORT: 5432
       DB_PASSWORD: postgres
-      DB_PASSWORD_MYSQL: password
+      MYSQL_DB_PASSWORD: password
       DB_PORT: 5432
-      DB_PORT_2: 5433
-      DB_PORT_MYSQL: 3306
+      ALTERNATE_DB_PORT: 5433
+      MYSQL_DB_PORT: 3306
       TZ: UTC
       YARN_CACHE_FOLDER: ~/.yarn-cache
       DREAM_PARALLEL_TESTS: 4
@@ -102,7 +101,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
 
       - run: npm install -g corepack
       - run: corepack enable
@@ -133,7 +132,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
 
       - run: npm install -g corepack
       - run: corepack enable
@@ -163,7 +162,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
 
       - run: npm install -g corepack
       - run: corepack enable

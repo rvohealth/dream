@@ -1,5 +1,14 @@
-import generateDreamContent from '../../../src/helpers/cli/generateDreamContent.js'
-import { DreamApp } from '../../../src/index.js'
+import DreamApp from '../../../src/dream-app/index.js'
+import generateDreamContent, {
+  createBelongsToAttribute,
+  createEncryptedAttribute,
+  createImportConfig,
+  createModelConfig,
+  createRegularAttribute,
+  processAttribute,
+  processAttributes,
+  type ModelConfig,
+} from '../../../src/helpers/cli/generateDreamContent.js'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {
@@ -12,7 +21,8 @@ describe('dream generate:model <name> [...attributes]', () => {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof MealType>()
@@ -48,7 +58,8 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof MealType>()
@@ -77,7 +88,8 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof MealType>()
@@ -116,7 +128,8 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, DreamSerializers, STI } from '@rvoh/dream'
+import { Decorators, STI } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import FooBar from '@models/Foo/Bar.js'
 
 const deco = new Decorators<typeof FooBarBaz>()
@@ -148,7 +161,8 @@ export default class FooBarBaz extends FooBar {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof User>()
@@ -186,7 +200,8 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers, Encrypted } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof User>()
@@ -208,7 +223,7 @@ export default class User extends ApplicationModel {
   public createdAt: DreamColumn<User, 'createdAt'>
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
-  @Encrypted()
+  @deco.Encrypted()
   public phoneNumber: DreamColumn<User, 'phoneNumber'>
 }
 `
@@ -230,7 +245,8 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Chalupa>()
@@ -272,7 +288,8 @@ export default class Chalupa extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Chalupa>()
@@ -312,7 +329,8 @@ export default class Chalupa extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Paper>()
@@ -350,7 +368,8 @@ export default class Paper extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import GraphNode from '@models/GraphNode.js'
 
@@ -390,7 +409,8 @@ export default class Composition extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import GraphNode from '@models/GraphNode.js'
 
@@ -431,7 +451,8 @@ export default class Composition extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import PetDomesticCat from '@models/Pet/Domestic/Cat.js'
 
@@ -470,7 +491,8 @@ export default class CatToy extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import GraphNode from '@models/GraphNode.js'
 
@@ -509,7 +531,8 @@ export default class PetDomesticCat extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import PetDomesticDog from '@models/Pet/Domestic/Dog.js'
 
@@ -548,7 +571,8 @@ export default class PetDomesticCat extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import PetDomesticDog from '@models/Pet/Domestic/Dog.js'
 
@@ -588,7 +612,8 @@ export default class PetWildCat extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import User from '@models/User.js'
 import Chalupa from '@models/Chalupa.js'
@@ -634,7 +659,8 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Composition>()
@@ -670,7 +696,8 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
 const deco = new Decorators<typeof Composition>()
@@ -713,7 +740,8 @@ export default class Composition extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 import User from '@models/User.js'
 
@@ -758,7 +786,8 @@ export default class Composition extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.ts'
 import User from '@models/User.ts'
 
@@ -803,7 +832,8 @@ export default class Composition extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel'
 import User from '@models/User'
 
@@ -846,7 +876,8 @@ export default class Composition extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, DreamColumn, DreamSerializers } from '@rvoh/dream'
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import HowyadoinApplicationModel from '@models/HowyadoinApplicationModel.js'
 import User from '@models/User.js'
 
@@ -874,6 +905,303 @@ export default class Composition extends HowyadoinApplicationModel {
 }
 `
       )
+    })
+  })
+})
+
+describe('Individual Function Tests', () => {
+  describe('createModelConfig', () => {
+    it('creates correct model config for simple model', () => {
+      const options = {
+        fullyQualifiedModelName: 'User',
+        columnsWithTypes: [],
+        serializer: true,
+        includeAdminSerializers: false,
+      }
+
+      const config = createModelConfig(options)
+
+      expect(config).toEqual({
+        fullyQualifiedModelName: 'User',
+        modelClassName: 'User',
+        parentModelClassName: undefined,
+        applicationModelName: 'ApplicationModel',
+        isSTI: false,
+        tableName: 'users',
+      })
+    })
+
+    it('creates correct model config for STI model', () => {
+      const options = {
+        fullyQualifiedModelName: 'Foo/Bar/Baz',
+        columnsWithTypes: [],
+        fullyQualifiedParentName: 'Foo/Bar',
+        serializer: true,
+        includeAdminSerializers: false,
+      }
+
+      const config = createModelConfig(options)
+
+      expect(config).toEqual({
+        fullyQualifiedModelName: 'Foo/Bar/Baz',
+        modelClassName: 'FooBarBaz',
+        parentModelClassName: 'FooBar',
+        applicationModelName: 'ApplicationModel',
+        isSTI: true,
+        tableName: 'foo_bar_bazs',
+      })
+    })
+
+    it('creates correct model config with custom connection', () => {
+      const options = {
+        fullyQualifiedModelName: 'User',
+        columnsWithTypes: [],
+        connectionName: 'secondary',
+        serializer: true,
+        includeAdminSerializers: false,
+      }
+
+      const config = createModelConfig(options)
+
+      expect(config.applicationModelName).toEqual('SecondaryApplicationModel')
+    })
+
+    it('handles namespaced model names correctly', () => {
+      const options = {
+        fullyQualifiedModelName: 'admin/user',
+        columnsWithTypes: [],
+        serializer: true,
+        includeAdminSerializers: false,
+      }
+
+      const config = createModelConfig(options)
+
+      expect(config).toEqual({
+        fullyQualifiedModelName: 'Admin/User',
+        modelClassName: 'AdminUser',
+        parentModelClassName: undefined,
+        applicationModelName: 'ApplicationModel',
+        isSTI: false,
+        tableName: 'admin_users',
+      })
+    })
+  })
+
+  describe('createImportConfig', () => {
+    it('creates basic import config for non-STI model with serializer', () => {
+      const config: ModelConfig = {
+        fullyQualifiedModelName: 'User',
+        modelClassName: 'User',
+        parentModelClassName: undefined,
+        applicationModelName: 'ApplicationModel',
+        isSTI: false,
+        tableName: 'users',
+      }
+
+      const options = {
+        fullyQualifiedModelName: 'User',
+        columnsWithTypes: [],
+        serializer: true,
+        includeAdminSerializers: false,
+      }
+
+      const imports = createImportConfig(config, options)
+
+      expect(imports.dreamTypeImports).toEqual(['DreamColumn', 'DreamSerializers'])
+      expect(imports.dreamImports).toEqual(['Decorators'])
+      expect(imports.modelImportStatements).toHaveLength(1)
+    })
+
+    it('creates import config for STI model', () => {
+      const config: ModelConfig = {
+        fullyQualifiedModelName: 'Foo/Bar/Baz',
+        modelClassName: 'FooBarBaz',
+        parentModelClassName: 'FooBar',
+        applicationModelName: 'ApplicationModel',
+        isSTI: true,
+        tableName: 'foo_bar_bazs',
+      }
+
+      const options = {
+        fullyQualifiedModelName: 'Foo/Bar/Baz',
+        columnsWithTypes: [],
+        fullyQualifiedParentName: 'Foo/Bar',
+        serializer: true,
+        includeAdminSerializers: false,
+      }
+
+      const imports = createImportConfig(config, options)
+
+      expect(imports.dreamImports).toContain('STI')
+      expect(imports.dreamImports).toContain('Decorators')
+    })
+
+    it('excludes DreamSerializers when serializer is false', () => {
+      const config: ModelConfig = {
+        fullyQualifiedModelName: 'User',
+        modelClassName: 'User',
+        parentModelClassName: undefined,
+        applicationModelName: 'ApplicationModel',
+        isSTI: false,
+        tableName: 'users',
+      }
+
+      const options = {
+        fullyQualifiedModelName: 'User',
+        columnsWithTypes: [],
+        serializer: false,
+        includeAdminSerializers: false,
+      }
+
+      const imports = createImportConfig(config, options)
+
+      expect(imports.dreamTypeImports).toEqual(['DreamColumn'])
+      expect(imports.dreamTypeImports).not.toContain('DreamSerializers')
+    })
+  })
+
+  describe('processAttribute', () => {
+    it('processes string attribute correctly', () => {
+      const result = processAttribute('name:string', 'User')
+
+      expect(result.content).toEqual(`
+public name: DreamColumn<User, 'name'>`)
+      expect(result.imports).toEqual([])
+    })
+
+    it('processes encrypted attribute correctly', () => {
+      const result = processAttribute('ssn:encrypted', 'User')
+
+      expect(result.content).toEqual(`
+@deco.Encrypted()
+public ssn: DreamColumn<User, 'ssn'>`)
+      expect(result.imports).toEqual([])
+    })
+
+    it('processes belongs_to attribute correctly', () => {
+      const result = processAttribute('company:belongs_to', 'User')
+
+      expect(result.content).toContain("@deco.BelongsTo('Company', { on: 'companyId' })")
+      expect(result.content).toContain('public company: Company')
+      expect(result.content).toContain("public companyId: DreamColumn<User, 'companyId'>")
+      expect(result.imports).toHaveLength(1)
+    })
+
+    it('processes optional belongs_to attribute correctly', () => {
+      const result = processAttribute('company:belongs_to:optional', 'User')
+
+      expect(result.content).toContain("@deco.BelongsTo('Company', { on: 'companyId', optional: true })")
+      expect(result.content).toContain('public company: Company | null')
+    })
+
+    it('ignores has_one and has_many attributes', () => {
+      expect(processAttribute('posts:has_many', 'User')).toEqual({ content: '', imports: [] })
+      expect(processAttribute('profile:has_one', 'User')).toEqual({ content: '', imports: [] })
+    })
+
+    it('throws error when attribute type is missing', () => {
+      expect(() => {
+        processAttribute('name', 'User')
+      }).toThrow('must pass a column type for name (i.e. name:string)')
+    })
+
+    it('returns empty string for undefined attribute name', () => {
+      const result = processAttribute(':string', 'User')
+      expect(result.content).toEqual(`
+public : DreamColumn<User, ''>`)
+      expect(result.imports).toEqual([])
+    })
+
+    it('returns empty string for completely empty attribute', () => {
+      expect(() => {
+        processAttribute('', 'User')
+      }).toThrow('must pass a column type for  (i.e. :string)')
+    })
+  })
+
+  describe('createBelongsToAttribute', () => {
+    it('creates basic belongs_to attribute', () => {
+      const result = createBelongsToAttribute('company', [], 'User')
+
+      expect(result.content).toEqual(`
+@deco.BelongsTo('Company', { on: 'companyId' })
+public company: Company
+public companyId: DreamColumn<User, 'companyId'>
+`)
+      expect(result.imports).toHaveLength(1)
+    })
+
+    it('creates optional belongs_to attribute', () => {
+      const result = createBelongsToAttribute('company', ['optional'], 'User')
+
+      expect(result.content).toContain('optional: true')
+      expect(result.content).toContain('public company: Company | null')
+    })
+
+    it('handles namespaced association names', () => {
+      const result = createBelongsToAttribute('admin/company', [], 'User')
+
+      expect(result.content).toContain("@deco.BelongsTo('Admin/Company', { on: 'companyId' })")
+      expect(result.content).toContain('public company: AdminCompany')
+      expect(result.content).toContain("public companyId: DreamColumn<User, 'companyId'>")
+    })
+  })
+
+  describe('createEncryptedAttribute', () => {
+    it('creates encrypted attribute with decorator', () => {
+      const result = createEncryptedAttribute('ssn', 'ssn:encrypted', 'User')
+
+      expect(result.content).toEqual(`
+@deco.Encrypted()
+public ssn: DreamColumn<User, 'ssn'>`)
+      expect(result.imports).toEqual([])
+    })
+
+    it('handles snake_case attribute names', () => {
+      const result = createEncryptedAttribute(
+        'social_security_number',
+        'social_security_number:encrypted',
+        'User'
+      )
+
+      expect(result.content).toContain(
+        "public socialSecurityNumber: DreamColumn<User, 'socialSecurityNumber'>"
+      )
+    })
+  })
+
+  describe('createRegularAttribute', () => {
+    it('creates regular attribute without decorators', () => {
+      const result = createRegularAttribute('name', 'name:string', 'User')
+
+      expect(result.content).toEqual(`
+public name: DreamColumn<User, 'name'>`)
+      expect(result.imports).toEqual([])
+    })
+
+    it('handles snake_case attribute names', () => {
+      const result = createRegularAttribute('first_name', 'first_name:string', 'User')
+
+      expect(result.content).toContain("public firstName: DreamColumn<User, 'firstName'>")
+    })
+  })
+
+  describe('processAttributes', () => {
+    it('separates fields and decorators correctly', () => {
+      const attributes = ['name:string', 'ssn:encrypted', 'company:belongs_to']
+
+      const result = processAttributes(attributes, 'User')
+
+      expect(result.formattedFields).toContain("public name: DreamColumn<User, 'name'>")
+      expect(result.formattedDecorators).toContain('@deco.Encrypted()')
+      expect(result.formattedDecorators).toContain('@deco.BelongsTo(')
+    })
+
+    it('handles empty attributes array', () => {
+      const result = processAttributes([], 'User')
+
+      expect(result.formattedFields).toEqual('')
+      expect(result.formattedDecorators).toEqual('')
     })
   })
 })

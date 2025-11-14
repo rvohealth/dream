@@ -1,3 +1,9 @@
+## 2.0.0-beta.1
+
+- namespace package exports
+- remove `Benchmark`
+- Remove `leftJoinPreloadFor` and `leftJoinLoadFor`. They were never a good idea since the idea of `preloadFor` is that one doesn't need to pay attention to all the things that need to be preloaded, but in a join situation, this is a recipe for disaster since loading tables in parallel results in a Cartesian product of result rows being
+
 ## 1.13.0
 
 - generated code uses absolute imports
@@ -123,8 +129,8 @@ dreamApp.set('db', 'myAlternateConnection', {
     user: AppEnv.string('DB_USER'),
     password: AppEnv.string('DB_PASSWORD', { optional: !AppEnv.isProduction }),
     host: AppEnv.string('DB_HOST', { optional: true }),
-    name: AppEnv.string('DB_NAME_2', { optional: true }),
-    port: AppEnv.integer('DB_PORT_2', { optional: true }),
+    name: AppEnv.string('ALTERNATE_DB_NAME', { optional: true }),
+    port: AppEnv.integer('ALTERNATE_DB_PORT', { optional: true }),
     useSsl: false,
   },
 })

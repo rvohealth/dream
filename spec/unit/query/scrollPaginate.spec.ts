@@ -244,7 +244,7 @@ describe('Query#scrollPaginate', () => {
   context('when a leftJoinPreload is applied to the query', () => {
     it('throws an exception', async () => {
       await expect(async () => {
-        await User.leftJoinPreloadFor('default').scrollPaginate({ pageSize: 2, cursor: undefined } as any)
+        await User.leftJoinPreload('pets').scrollPaginate({ pageSize: 2, cursor: undefined } as any)
       }).rejects.toThrow(CannotPaginateWithLeftJoinPreload)
     })
   })

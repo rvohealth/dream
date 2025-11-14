@@ -1,4 +1,4 @@
-import { round } from '../../../src/index.js'
+import round from '../../../src/helpers/round.js'
 import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import EdgeCaseAttribute from '../models/EdgeCaseAttribute.js'
 

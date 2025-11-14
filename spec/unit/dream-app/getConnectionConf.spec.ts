@@ -24,7 +24,7 @@ describe('DreamApp#getConnectionConf', () => {
   beforeEach(() => {
     connection = 'primary'
     alternateConnectionPrimaryConfig = {
-      name: 'DB_NAME_2',
+      name: 'ALTERNATE_DB_NAME',
       host: 'DB_HOST',
       port: 3333,
       password: 'DB_PASSWORD',
@@ -125,7 +125,7 @@ describe('DreamApp#getConnectionConf', () => {
       updateDbCredentials()
       const res = DreamApp.getOrFail().dbConnectionConfig('alternateConnection', connection)
       expect(res).toEqual({
-        name: 'DB_NAME_2',
+        name: 'ALTERNATE_DB_NAME',
         host: 'DB_HOST',
         port: 3333,
         password: 'DB_PASSWORD',

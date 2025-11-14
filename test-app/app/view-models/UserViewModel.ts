@@ -1,4 +1,5 @@
-import { CalendarDate, DreamSerializers } from '../../../src/index.js'
+import CalendarDate from '../../../src/helpers/CalendarDate.js'
+import { DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from '../models/ApplicationModel.js'
 import Balloon from '../models/Balloon.js'
 import PetViewModel from './PetViewModel.js'

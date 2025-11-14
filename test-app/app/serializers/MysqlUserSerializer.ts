@@ -1,4 +1,4 @@
-import { DreamSerializer } from '../../../src/index.js'
+import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import MysqlUser from '../models/MysqlUser.js'
 
 export const MysqlUserSummarySerializer = (mysqlUser: MysqlUser) =>

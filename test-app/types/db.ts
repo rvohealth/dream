@@ -65,6 +65,13 @@ import { type DateTime } from '../../src/helpers/DateTime.js'
 
 import type { ColumnType } from "kysely";
 
+export type AAndBStiTypes = "StiA" | "StiB";
+export const AAndBStiTypesValues = [
+  "StiA",
+  "StiB"
+] as const
+
+
 export type ArrayType<T> = ArrayTypeImpl<T> extends (infer U)[]
   ? U[]
   : ArrayTypeImpl<T>;
@@ -757,6 +764,17 @@ export interface Shapes {
   updatedAt: Timestamp;
 }
 
+export interface StiBases {
+  createdAt: Timestamp;
+  id: Generated<Int8>;
+  name: string;
+  petId: Int8 | null;
+  taskableId: Int8 | null;
+  taskableType: PolymorphicTaskableTypesEnum | null;
+  type: AAndBStiTypes;
+  updatedAt: Timestamp;
+}
+
 export interface ThroughAs {
   createdAt: Timestamp;
   id: Generated<Int8>;
@@ -885,6 +903,7 @@ export interface DB {
   ratings: Ratings;
   sandbags: Sandbags;
   shapes: Shapes;
+  sti_bases: StiBases;
   through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels;
   through_as: ThroughAs;
   through_bs: ThroughBs;
@@ -948,6 +967,7 @@ export class DBClass {
   ratings: Ratings
   sandbags: Sandbags
   shapes: Shapes
+  sti_bases: StiBases
   through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels
   through_as: ThroughAs
   through_bs: ThroughBs

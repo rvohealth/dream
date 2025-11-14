@@ -499,6 +499,12 @@ export default class Dream {
     return !!this.extendedBy?.length && !this.isSTIChild
   }
 
+  private static stiSiblings(): (typeof Dream)[] {
+    const stiBase = this.stiBaseClassOrOwnClass
+    if (!stiBase.isSTIBase) return []
+    return stiBase.extendedBy!
+  }
+
   /**
    * @internal
    *
@@ -911,8 +917,8 @@ export default class Dream {
       if (this.prototype._updatedAtField === column) return false
       if (this.prototype._deletedAtField === column) return false
       if (this.explicitUnsafeParamColumns.includes(column)) return false
-      if (this.isBelongsToAssociationForeignKey(column)) return false
-      if (this.isBelongsToAssociationPolymorphicTypeField(column)) return false
+      if (this.isBelongsToAssociationForeignKey(column, { includeStiSiblings: true })) return false
+      if (this.isBelongsToAssociationPolymorphicTypeField(column, { includeStiSiblings: true })) return false
       if ((this.isSTIChild || this.isSTIBase) && column === 'type') return false
       return true
     }) as DreamParamSafeColumnNames<I>[]
@@ -985,14 +991,19 @@ export default class Dream {
    *
    * @returns An array containing all of the associations for this dream class
    */
-  private static associationMetadataMap<T extends typeof Dream>(this: T): AssociationMetadataMap {
+  private static associationMetadataMap<T extends typeof Dream>(
+    this: T,
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ): AssociationMetadataMap {
     const allAssociations = [
       ...this.associationMetadataByType.belongsTo,
       ...this.associationMetadataByType.hasOne,
       ...this.associationMetadataByType.hasMany,
     ]
 
-    const map: AssociationMetadataMap = {}
+    const map: AssociationMetadataMap = opts.includeStiSiblings
+      ? this.stiSiblings().reduce((map, sibling) => ({ ...map, ...sibling['associationMetadataMap']() }), {})
+      : {}
 
     for (const association of allAssociations) {
       map[association.as] = association
@@ -1770,61 +1781,6 @@ export default class Dream {
   }
 
   /**
-   * Recursively preloads all Dream associations referenced by `rendersOne` and `rendersMany`
-   * in a DreamSerializer using left join preloading. This traverses the entire content tree
-   * of serializers to automatically load all necessary associations in a single query,
-   * eliminating N+1 query problems and removing the need to manually remember which
-   * associations to preload for serialization.
-   *
-   * This method decouples data loading code from data rendering code by having the serializer
-   * (rendering code) inform the query (loading code) about which associations are needed.
-   * As serializers evolve over time - adding new `rendersOne` and `rendersMany` calls or
-   * modifying existing ones - the loading code automatically adapts without requiring
-   * corresponding modifications to left join preload statements.
-   *
-   * This method analyzes the serializer (specified by `serializerKey` or 'default') and
-   * automatically left join preloads all associations that will be needed during serialization.
-   *
-   * Note: Left join preloading loads all data in a single SQL query but has trade-offs compared
-   * to regular preloading. See {@link Dream.leftJoinPreload} for details about limitations.
-   *
-   * ```ts
-   * // Instead of manually specifying all associations:
-   * await User.leftJoinPreload('posts', 'comments', 'replies').all()
-   *
-   * // Automatically left join preload everything needed for serialization:
-   * await User.leftJoinPreloadFor('summary').all()
-   *
-   * // Add where conditions to specific associations during left join preloading:
-   * await User.leftJoinPreloadFor('detailed', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *     return { and: { published: true } }
-   *   }
-   * }).all()
-   *
-   * // Skip left join preloading specific associations to handle them manually:
-   * await User.leftJoinPreloadFor('summary', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(User) && associationName === 'posts') {
-   *     return 'omit' // Handle posts preloading separately with custom logic
-   *   }
-   * })
-   * .preload('posts', { and: { featured: true } }) // Custom preloading instead
-   * .all()
-   * ```
-   *
-   * @param serializerKey - The serializer key to use for determining which associations to preload.
-   * @param modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
-   * @returns A Query with all serialization associations left join preloaded
-   */
-  public static leftJoinPreloadFor<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    SerializerKey extends DreamSerializerKey<I>,
-  >(this: T, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn) {
-    return this.query().leftJoinPreloadFor(serializerKey, modifierFn)
-  }
-
-  /**
    * Returns a new Query instance with the provided
    * inner join statement attached
    *
@@ -2406,9 +2362,10 @@ export default class Dream {
    */
   private static isBelongsToAssociationForeignKey<T extends typeof Dream>(
     this: T,
-    column: DreamColumnNames<InstanceType<T>>
+    column: DreamColumnNames<InstanceType<T>>,
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
   ) {
-    return this.belongsToAssociationForeignKeys().includes(column)
+    return this.belongsToAssociationForeignKeys(opts).includes(column)
   }
 
   /**
@@ -2429,9 +2386,10 @@ export default class Dream {
    */
   private static isBelongsToAssociationPolymorphicTypeField<T extends typeof Dream>(
     this: T,
-    column: DreamColumnNames<InstanceType<T>>
+    column: DreamColumnNames<InstanceType<T>>,
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
   ) {
-    return this.polymorphicTypeColumns().includes(column)
+    return this.polymorphicTypeColumns(opts).includes(column)
   }
 
   /**
@@ -2447,9 +2405,13 @@ export default class Dream {
    *
    * @returns An array of column names that are belongs to foreign keys on this dream class
    */
-  private static belongsToAssociationForeignKeys() {
-    const associationMap = this.associationMetadataMap()
-    return this.belongsToAssociationNames().map(belongsToKey => associationMap[belongsToKey]?.foreignKey())
+  private static belongsToAssociationForeignKeys(
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ) {
+    const associationMap = this.associationMetadataMap(opts)
+    return this.belongsToAssociationNames(opts).map(belongsToKey =>
+      associationMap[belongsToKey]?.foreignKey()
+    )
   }
 
   /**
@@ -2464,9 +2426,11 @@ export default class Dream {
    *
    * @returns An array of column names that are polymorphic type fields on the given dream class
    */
-  private static polymorphicTypeColumns() {
-    const associationMap = this.associationMetadataMap()
-    return this.belongsToAssociationNames()
+  private static polymorphicTypeColumns(
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ) {
+    const associationMap = this.associationMetadataMap(opts)
+    return this.belongsToAssociationNames(opts)
       .filter(key => associationMap[key]?.polymorphic)
       .map(belongsToKey => associationMap[belongsToKey]?.foreignKeyTypeField())
   }
@@ -2485,8 +2449,10 @@ export default class Dream {
    *
    * @returns An array of belongs to association names
    */
-  private static belongsToAssociationNames() {
-    const associationMap = this.associationMetadataMap()
+  private static belongsToAssociationNames(
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ) {
+    const associationMap = this.associationMetadataMap(opts)
     return Object.keys(associationMap).filter(key => associationMap[key]?.type === 'BelongsTo')
   }
 
@@ -3275,7 +3241,7 @@ export default class Dream {
    *
    * ```ts
    *  const user = User.new({ email: 'how@yadoin' })
-   *  user.attributes()
+   *  user.getAttributes()
    *  // {
    *  //   email: 'how@yadoin',
    *  //   ...
@@ -3655,8 +3621,12 @@ export default class Dream {
    * @returns A boolean
    */
   public equals(other: any): boolean {
-    if (!(other instanceof Dream)) return false
-    return this.comparisonKey === other.comparisonKey
+    return (
+      !!(other instanceof Dream) &&
+      this.isPersisted &&
+      other.isPersisted &&
+      this.comparisonKey === other.comparisonKey
+    )
   }
 
   public get comparisonKey(): string {
@@ -4579,62 +4549,6 @@ export default class Dream {
     ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]
   ): LeftJoinLoadBuilder<I> {
     return new LeftJoinLoadBuilder<I>(this).leftJoinLoad(...(args as any))
-  }
-
-  /**
-   * Recursively loads all Dream associations referenced by `rendersOne` and `rendersMany`
-   * in a DreamSerializer. This traverses the entire content tree of serializers to automatically
-   * load all necessary associations, eliminating N+1 query problems and removing the need to
-   * manually remember which associations to preload for serialization.
-   *
-   * This method decouples data loading code from data rendering code by having the serializer
-   * (rendering code) inform the query (loading code) about which associations are needed.
-   * As serializers evolve over time - adding new `rendersOne` and `rendersMany` calls or
-   * modifying existing ones - the loading code automatically adapts without requiring
-   * corresponding modifications to preload statements.
-   *
-   * This method analyzes the serializer (specified by `serializerKey` or 'default') and
-   * automatically preloads all associations that will be needed during serialization.
-   *
-   * Note: Left join loading loads all data in a single SQL query but has trade-offs compared
-   * to regular preloading. See {@link Dream.leftJoinPreload} for details about limitations.
-   *
-   * ```ts
-   * // Instead of manually specifying all associations:
-   * await User.preload('posts', 'comments', 'replies').all()
-   *
-   * // Automatically preload everything needed for serialization:
-   * await user.leftJoinLoadFor('summary').execute()
-   *
-   * // Add where conditions to specific associations during preloading:
-   * await user.leftJoinLoadFor('detailed', (associationName, dreamClass) => {
-   *   if (dreamClass.typeof(Post) && associationName === 'comments') {
-   *     return { and: { published: true } }
-   *   }
-   * })
-   *    .execute()
-   *
-   * // Skip preloading specific associations to handle them manually:
-   * await user
-   *   .loadFor('summary', (associationName, dreamClass) => {
-   *     if (dreamClass.typeof(User) && associationName === 'posts') {
-   *       return 'omit' // Handle posts preloading separately with custom logic
-   *     }
-   *   })
-   *     .load('posts', { and: { featured: true } }) // Custom preloading
-   *     .execute()
-   * ```
-   *
-   * @param serializerKey - The serializer key to use for determining which associations to preload.
-   * @param modifierFn - Optional callback function to modify or omit specific associations during preloading. Called for each association with the Dream class and association name. Return an object with `and`, `andAny`, or `andNot` properties to add where conditions, return 'omit' to skip preloading that association (useful when you want to handle it manually), or return undefined to use default preloading
-   * @returns A Query with all serialization associations preloaded
-   */
-  public leftJoinLoadFor<I extends Dream, SerializerKey extends DreamSerializerKey<I>>(
-    this: I,
-    serializerKey: SerializerKey,
-    modifierFn?: LoadForModifierFn
-  ) {
-    return new LeftJoinLoadBuilder<I>(this)['leftJoinLoadFor'](serializerKey, modifierFn)
   }
 
   /**

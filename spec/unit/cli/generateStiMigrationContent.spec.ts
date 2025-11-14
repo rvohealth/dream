@@ -3,7 +3,7 @@ import generateStiMigrationContent from '../../../src/helpers/cli/generateStiMig
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('string attributes', () => {
-    it('generates a kysely migration with multiple text fields', () => {
+    it('generates a kysely migration with multiple text fields (email is always generated as citext and unique)', () => {
       const res = generateStiMigrationContent({
         table: 'users',
         columnsWithTypes: [
@@ -19,7 +19,7 @@ describe('dream generate:model <name> [...attributes]', () => {
 
       expect(res).toEqual(
         `\
-import { DreamMigrationHelpers } from '@rvoh/dream'
+import { DreamMigrationHelpers } from '@rvoh/dream/db'
 import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,7 +28,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .alterTable('users')
-    .addColumn('email', 'varchar(128)', col => col.notNull())
+    .addColumn('email', sql\`citext\`, col => col.notNull().unique())
     .addColumn('name', sql\`citext\`, col => col.notNull())
     .addColumn('password_digest', 'varchar(255)', col => col.notNull())
     .addColumn('chalupified_at', 'timestamp', col => col.notNull())
