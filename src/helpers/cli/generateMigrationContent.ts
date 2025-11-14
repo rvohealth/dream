@@ -336,12 +336,13 @@ function generateColumnStr(
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
   const notNull = !optional
-  const hasExtraValues = providedDefault || notNull
+  const isUnique = attributeName === 'email' || /token$/.test(attributeName)
+  const hasExtraValues = providedDefault || notNull || isUnique
   const isArray = /\[\]$/.test(attributeType)
 
   if (hasExtraValues) returnStr += ', col => col'
   if (notNull) returnStr += '.notNull()'
-  if (attributeName === 'email' || /token$/.test(attributeName)) returnStr += '.unique()'
+  if (isUnique) returnStr += '.unique()'
   if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
   else if (isArray) returnStr += `.defaultTo('{}')`
 
