@@ -8,6 +8,7 @@ export { type BelongsToStatement } from '../types/associations/belongsTo.js'
 export { type HasManyStatement } from '../types/associations/hasMany.js'
 export { type HasOneStatement } from '../types/associations/hasOne.js'
 export { type DbConnectionType, type DbTypes } from '../types/db.js'
+export { type StrictInterface } from '../types/utils.js'
 
 export {
   type DreamAssociationMetadata,
