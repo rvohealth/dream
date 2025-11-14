@@ -499,6 +499,12 @@ export default class Dream {
     return !!this.extendedBy?.length && !this.isSTIChild
   }
 
+  private static stiSiblings(): (typeof Dream)[] {
+    const stiBase = this.stiBaseClassOrOwnClass
+    if (!stiBase.isSTIBase) return []
+    return stiBase.extendedBy!
+  }
+
   /**
    * @internal
    *
@@ -911,8 +917,8 @@ export default class Dream {
       if (this.prototype._updatedAtField === column) return false
       if (this.prototype._deletedAtField === column) return false
       if (this.explicitUnsafeParamColumns.includes(column)) return false
-      if (this.isBelongsToAssociationForeignKey(column)) return false
-      if (this.isBelongsToAssociationPolymorphicTypeField(column)) return false
+      if (this.isBelongsToAssociationForeignKey(column, { includeStiSiblings: true })) return false
+      if (this.isBelongsToAssociationPolymorphicTypeField(column, { includeStiSiblings: true })) return false
       if ((this.isSTIChild || this.isSTIBase) && column === 'type') return false
       return true
     }) as DreamParamSafeColumnNames<I>[]
@@ -985,14 +991,19 @@ export default class Dream {
    *
    * @returns An array containing all of the associations for this dream class
    */
-  private static associationMetadataMap<T extends typeof Dream>(this: T): AssociationMetadataMap {
+  private static associationMetadataMap<T extends typeof Dream>(
+    this: T,
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ): AssociationMetadataMap {
     const allAssociations = [
       ...this.associationMetadataByType.belongsTo,
       ...this.associationMetadataByType.hasOne,
       ...this.associationMetadataByType.hasMany,
     ]
 
-    const map: AssociationMetadataMap = {}
+    const map: AssociationMetadataMap = opts.includeStiSiblings
+      ? this.stiSiblings().reduce((map, sibling) => ({ ...map, ...sibling['associationMetadataMap']() }), {})
+      : {}
 
     for (const association of allAssociations) {
       map[association.as] = association
@@ -2351,9 +2362,10 @@ export default class Dream {
    */
   private static isBelongsToAssociationForeignKey<T extends typeof Dream>(
     this: T,
-    column: DreamColumnNames<InstanceType<T>>
+    column: DreamColumnNames<InstanceType<T>>,
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
   ) {
-    return this.belongsToAssociationForeignKeys().includes(column)
+    return this.belongsToAssociationForeignKeys(opts).includes(column)
   }
 
   /**
@@ -2374,9 +2386,10 @@ export default class Dream {
    */
   private static isBelongsToAssociationPolymorphicTypeField<T extends typeof Dream>(
     this: T,
-    column: DreamColumnNames<InstanceType<T>>
+    column: DreamColumnNames<InstanceType<T>>,
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
   ) {
-    return this.polymorphicTypeColumns().includes(column)
+    return this.polymorphicTypeColumns(opts).includes(column)
   }
 
   /**
@@ -2392,9 +2405,13 @@ export default class Dream {
    *
    * @returns An array of column names that are belongs to foreign keys on this dream class
    */
-  private static belongsToAssociationForeignKeys() {
-    const associationMap = this.associationMetadataMap()
-    return this.belongsToAssociationNames().map(belongsToKey => associationMap[belongsToKey]?.foreignKey())
+  private static belongsToAssociationForeignKeys(
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ) {
+    const associationMap = this.associationMetadataMap(opts)
+    return this.belongsToAssociationNames(opts).map(belongsToKey =>
+      associationMap[belongsToKey]?.foreignKey()
+    )
   }
 
   /**
@@ -2409,9 +2426,11 @@ export default class Dream {
    *
    * @returns An array of column names that are polymorphic type fields on the given dream class
    */
-  private static polymorphicTypeColumns() {
-    const associationMap = this.associationMetadataMap()
-    return this.belongsToAssociationNames()
+  private static polymorphicTypeColumns(
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ) {
+    const associationMap = this.associationMetadataMap(opts)
+    return this.belongsToAssociationNames(opts)
       .filter(key => associationMap[key]?.polymorphic)
       .map(belongsToKey => associationMap[belongsToKey]?.foreignKeyTypeField())
   }
@@ -2430,8 +2449,10 @@ export default class Dream {
    *
    * @returns An array of belongs to association names
    */
-  private static belongsToAssociationNames() {
-    const associationMap = this.associationMetadataMap()
+  private static belongsToAssociationNames(
+    opts: { includeStiSiblings: boolean } = { includeStiSiblings: false }
+  ) {
+    const associationMap = this.associationMetadataMap(opts)
     return Object.keys(associationMap).filter(key => associationMap[key]?.type === 'BelongsTo')
   }
 

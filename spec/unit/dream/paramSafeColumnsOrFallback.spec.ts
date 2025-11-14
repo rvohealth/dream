@@ -1,4 +1,3 @@
-import Dream from '../../../src/Dream.js'
 import { DreamParamUnsafeColumnNames } from '../../../src/types/dream.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
@@ -7,11 +6,11 @@ import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/Mod
 import ModelWithParamUnsafeColumns from '../../../test-app/app/models/ModelWithParamUnsafeColumns.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Rating from '../../../test-app/app/models/Rating.js'
+import StiA from '../../../test-app/app/models/Sti/A.js'
+import StiB from '../../../test-app/app/models/Sti/B.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#paramSafeColumnsOrFallback', () => {
-  const subject = (model: typeof Dream) => model.paramSafeColumnsOrFallback()
-
   context('type tests', () => {
     // intentionally skipped, this should cause build:test-app
     // to fail unless the types are correctly lining up.
@@ -38,7 +37,7 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
   })
 
   it('includes fields that are safe for updating', () => {
-    expect(subject(User)).toEqual(
+    expect(User.paramSafeColumnsOrFallback()).toEqual(
       expect.arrayContaining([
         'uuid',
         'name',
@@ -53,30 +52,52 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
   })
 
   it('omits primary key', () => {
-    expect(subject(User)).not.toEqual(expect.arrayContaining(['id']))
+    expect(User.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['id']))
   })
 
   it('omits internal datetime columns', () => {
-    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['createdAt']))
-    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['updatedAt']))
-    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['deletedAt']))
+    expect(Pet.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['createdAt']))
+    expect(Pet.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['updatedAt']))
+    expect(Pet.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['deletedAt']))
   })
 
   it('omits association foreign keys', () => {
-    expect(subject(Pet)).not.toEqual(expect.arrayContaining(['userId']))
+    expect(Pet.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['userId']))
   })
 
+  it(
+    'omits association foreign keys defined on STI siblings ' +
+      '(so that associations may be defined on STI children without opening up the ' +
+      'column to being set directly from params when a different sibling is specified ' +
+      'in the OpenAPI decorator in Psychic)',
+    () => {
+      expect(StiB.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['petId']))
+    }
+  )
+
   it('omits type field for STI models', () => {
-    expect(subject(Latex)).not.toEqual(expect.arrayContaining(['type']))
+    expect(Latex.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['type']))
   })
 
   it('omits type field for STI base models', () => {
-    expect(subject(Balloon)).not.toEqual(expect.arrayContaining(['type']))
+    expect(Balloon.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['type']))
   })
 
   it('omits type field for polymorphic associations', () => {
-    expect(subject(Rating)).not.toEqual(expect.arrayContaining(['rateableType']))
+    expect(Rating.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['rateableType']))
   })
+
+  it(
+    'omits association foreign keys defined on STI siblings ' +
+      '(so that associations may be defined on STI children without opening up the ' +
+      'column to being set directly from params when a different sibling is specified ' +
+      'in the OpenAPI decorator in Psychic)',
+    () => {
+      const results = StiA.paramSafeColumnsOrFallback()
+      expect(results).not.toEqual(expect.arrayContaining(['taskableId']))
+      expect(results).not.toEqual(expect.arrayContaining(['taskableType']))
+    }
+  )
 
   context('#paramSafeColumns is defined on the model', () => {
     class User2 extends User {
@@ -86,7 +107,7 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
     }
 
     it('returns the overridden list', () => {
-      expect(subject(User2)).toEqual(['email'])
+      expect(User2.paramSafeColumnsOrFallback()).toEqual(['email'])
     })
 
     context('when paramSafeColumns contains unsafe column names', () => {
@@ -97,7 +118,7 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
       }
 
       it('excludes disallowed columns', () => {
-        expect(subject(User3)).toEqual(['email', 'birthdate'])
+        expect(User3.paramSafeColumnsOrFallback()).toEqual(['email', 'birthdate'])
       })
     })
 
@@ -105,7 +126,10 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
       'and #paramUnsafeColumns is defined on the model (including for comprehensiveness; not recommended)',
       () => {
         it('excludes paramUnsafeColumns from the results allowed by paramSafeColumns', () => {
-          expect(subject(ModelWithParamSafeAndUnsafeColumns)).toEqual(['allowedColumn1', 'allowedColumn2'])
+          expect(ModelWithParamSafeAndUnsafeColumns.paramSafeColumnsOrFallback()).toEqual([
+            'allowedColumn1',
+            'allowedColumn2',
+          ])
         })
       }
     )
@@ -113,7 +137,10 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
 
   context('#paramUnsafeColumns is defined on the model', () => {
     it('excludes those columns in addition to the automatically excluded columns', () => {
-      expect(subject(ModelWithParamUnsafeColumns)).toEqual(['allowedColumn1', 'allowedColumn2'])
+      expect(ModelWithParamUnsafeColumns.paramSafeColumnsOrFallback()).toEqual([
+        'allowedColumn1',
+        'allowedColumn2',
+      ])
     })
   })
 })
