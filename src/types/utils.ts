@@ -1,4 +1,7 @@
-export type StrictInterface<Incoming extends Record<string, any>, Reference extends Record<string, any>> = {
+export type StrictInterface<
+  Incoming extends Record<string, any>,
+  Reference extends Record<string, any>,
+> = Reference & {
   [K in Exclude<keyof Incoming, keyof Reference>]?: never
 }
 
