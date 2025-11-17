@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -78,7 +78,6 @@
     "yoctocolors": "^2.1.1"
   },
   "peerDependencies": {
-    "@rvoh/dream-spec-helpers": "*",
     "@types/node": "*",
     "@types/pg": "*",
     "kysely": "^0.28.5",
@@ -87,7 +86,7 @@
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
-    "@rvoh/dream-spec-helpers": "^1.2.0",
+    "@rvoh/dream-spec-helpers": "^2.0.0",
     "@types/node": "^22.5.1",
     "@types/pg": "^8.11.11",
     "@types/winston": "^2.4.4",

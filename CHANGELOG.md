@@ -1,3 +1,7 @@
+## 2.0.1
+
+- remove dream-spec-helpers from peer dependencies
+
 ## 2.0.0
 
 - namespace package exports
