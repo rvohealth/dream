@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -99,7 +99,7 @@
     "pg": "^8.13.3",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
-    "tsx": "^4.19.3",
+    "tsx": "^4.20.6",
     "typedoc": "^0.26.6",
     "typescript": "^5.8.3",
     "typescript-eslint": "=7.18.0",
