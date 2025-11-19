@@ -1,3 +1,7 @@
+## 2.0.2
+
+bump glob to close dependabot alerts
+
 ## 2.0.1
 
 - remove dream-spec-helpers from peer dependencies
@@ -16,6 +20,7 @@
 - simplify and DRY up Sortable
 - Sortable keeps values within the range 1 to N
 - fix STI child generation with array attributes (arrays can always be initialized to an empty array, so can leverage a regular non-null constraint). E.g:
+
   ```
   yarn psy g:sti-child Room/Bedroom extends Room bed_types:enum\[\]:bed_types:twin,bunk,queen,king,cot,sofabed
   ```
@@ -50,10 +55,12 @@
 - `association` and `associationOrFail` methods to encapsulate the loaded check or associationQuery ternary pattern
 - generated association name and id for a `belongs_to` association are based on the final part of the model name, not the entire namespace [requires Psychic update for generated resource controllers/specs to generate valid code]
 - [BREAKING] `on` replaces `foreignKey` in association declarations, e.g.:
+
   ```
     @deco.HasOne('BalloonLine', { on: 'balloonId' })
     public balloonLine: BalloonLine
   ```
+
 - generated migrations include index on foreign key
 - don't require openapi for delegatedType when delegating to an association since we can derive the openapi type automatically [requires Psychic update for proper OpenAPI shape to be generated]
 - fix OpenAPI in generated STI base serializer
