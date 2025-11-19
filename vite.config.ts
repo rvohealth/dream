@@ -10,9 +10,10 @@ export default defineConfig({
     maxConcurrency: parseInt(process.env.DREAM_PARALLEL_TESTS || '1'),
     maxWorkers: parseInt(process.env.DREAM_PARALLEL_TESTS || '1'),
     mockReset: true,
-    // globals: {
-    //   context: 'readonly',
-    // },
-    // ...
+
+    watch: false,
+    clearMocks: true,
+    restoreMocks: true,
+    printConsoleTrace: true,
   },
 })
