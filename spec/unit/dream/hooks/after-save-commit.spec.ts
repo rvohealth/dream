@@ -119,17 +119,19 @@ describe('Dream AfterSaveCommit decorator', () => {
       'an infinite loop caused by saving in an AfterSaveCommit hook conditional on a datetime that is not changed in the hook',
       () => {
         it('is no longer an infinite loop', async () => {
-          await ModelWithDateTimeConditionalHooks.create({ somethingHappenedAt: DateTime.now() })
+          const obj = await ModelWithDateTimeConditionalHooks.create({ somethingHappenedAt: DateTime.now() })
+          expect(obj.counter).toEqual(2)
         })
 
         context('in a transaction', () => {
           it('is no longer an infinite loop', async () => {
-            await ApplicationModel.transaction(
+            const obj = await ApplicationModel.transaction(
               async txn =>
                 await ModelWithDateTimeConditionalHooks.txn(txn).create({
                   somethingHappenedAt: DateTime.now(),
                 })
             )
+            expect(obj.counter).toEqual(2)
           })
         })
       }
