@@ -230,15 +230,16 @@ describe('Dream.create', () => {
   })
 
   context('regarding connections', () => {
+    let spy: MockInstance
+
     beforeEach(() => {
-      vi.spyOn(DreamDbConnection, 'getConnection')
+      spy = vi.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
       await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
+      expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
     })
 
     context('with replica connection specified', () => {
@@ -249,8 +250,7 @@ describe('Dream.create', () => {
         await CustomUser.create({ email: 'how@yadoin', password: 'howyadoin' })
 
         // should always call to primary for update, regardless of replica-safe status
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
+        expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
       })
     })
   })

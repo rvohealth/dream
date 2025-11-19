@@ -21,21 +21,19 @@ describe('Dream BeforeCreate decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalBeforeCreateHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalBeforeCreateHook')
         await mylar.createAssociation('sandbags', { weightKgs: 10 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalBeforeCreateHook).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalBeforeCreateHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalBeforeCreateHook')
         await mylar.createAssociation('sandbags')
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalBeforeCreateHook).not.toHaveBeenCalled()
+        expect(spy).not.toHaveBeenCalled()
       })
     })
   })

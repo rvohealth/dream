@@ -55,22 +55,12 @@ describe('Query#findEach', () => {
   })
 
   context('regarding connections', () => {
-    beforeEach(() => {
-      vi.spyOn(DreamDbConnection, 'getConnection')
-    })
-
     it('uses primary connection', async () => {
+      const spy = vi.spyOn(DreamDbConnection, 'getConnection')
       await User.all()
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
-        'default',
-        'replica',
-        expect.anything()
-      )
+      expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
+      expect(spy).not.toHaveBeenCalledWith('default', 'replica', expect.anything())
     })
   })
 })

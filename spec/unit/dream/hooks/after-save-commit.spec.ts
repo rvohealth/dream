@@ -74,20 +74,18 @@ describe('Dream AfterSaveCommit decorator', () => {
 
     context('one of the attributes specified in the "ifChanged" clause is changing', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weight: 11 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalAfterSaveCommitHook).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalled()
       })
 
       context('in a transaction', () => {
         it('calls hook', async () => {
-          vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
+          const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
           await ApplicationModel.transaction(async txn => await sandbag.txn(txn).update({ weight: 11 }))
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(Sandbag.prototype.conditionalAfterSaveCommitHook).toHaveBeenCalled()
+          expect(spy).toHaveBeenCalled()
         })
       })
     })
@@ -95,22 +93,20 @@ describe('Dream AfterSaveCommit decorator', () => {
     context('none of the attributes specified in the "ifChanged" clause are changing', () => {
       it('does not call the hook', async () => {
         await sandbag.update({ weight: null })
-        vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weightKgs: 120 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalAfterSaveCommitHook).not.toHaveBeenCalled()
+        expect(spy).not.toHaveBeenCalled()
       })
 
       context('in a transaction', () => {
         it('does not call the hook', async () => {
           await sandbag.update({ weight: null })
-          vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
+          const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
 
           await ApplicationModel.transaction(async txn => await sandbag.txn(txn).update({ weightKgs: 120 }))
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(Sandbag.prototype.conditionalAfterSaveCommitHook).not.toHaveBeenCalled()
+          expect(spy).not.toHaveBeenCalled()
         })
       })
     })
