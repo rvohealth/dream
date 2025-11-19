@@ -20,21 +20,19 @@ describe('Dream AfterCreate decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
         await mylar.createAssociation('sandbags', { weightKgs: 10 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalAfterCreateHook).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateHook')
         await mylar.createAssociation('sandbags', { weightTons: 10 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalAfterCreateHook).not.toHaveBeenCalled()
+        expect(spy).not.toHaveBeenCalled()
       })
     })
   })

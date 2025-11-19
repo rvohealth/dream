@@ -1,3 +1,4 @@
+import { MockInstance } from 'vitest'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -123,15 +124,16 @@ describe('Dream.all', () => {
   })
 
   context('regarding connections', () => {
+    let spy: MockInstance
+
     beforeEach(() => {
-      vi.spyOn(DreamDbConnection, 'getConnection')
+      spy = vi.spyOn(DreamDbConnection, 'getConnection')
     })
 
     it('uses primary connection', async () => {
       await User.all()
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'primary', expect.anything())
+      expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
     })
 
     context('with replica connection specified', () => {
@@ -141,27 +143,16 @@ describe('Dream.all', () => {
       it('uses the replica connection', async () => {
         await CustomUser.all()
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(DreamDbConnection.getConnection).toHaveBeenCalledWith('default', 'replica', expect.anything())
+        expect(spy).toHaveBeenCalledWith('default', 'replica', expect.anything())
       })
 
       context('with explicit primary connection override', () => {
         it('uses the replica connection', async () => {
           await CustomUser.connection('primary').all()
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(DreamDbConnection.getConnection).toHaveBeenCalledWith(
-            'default',
-            'primary',
-            expect.anything()
-          )
+          expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(DreamDbConnection.getConnection).not.toHaveBeenCalledWith(
-            'default',
-            'replica',
-            expect.anything()
-          )
+          expect(spy).not.toHaveBeenCalledWith('default', 'replica', expect.anything())
         })
       })
     })

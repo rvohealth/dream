@@ -32,22 +32,20 @@ describe('Dream BeforeSave decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
         await sandbag.update({ weight: 11 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalBeforeSaveHook).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weight: null })
-        vi.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalBeforeSaveHook')
         await sandbag.update({ weightKgs: 120 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalBeforeSaveHook).not.toHaveBeenCalled()
+        expect(spy).not.toHaveBeenCalled()
       })
     })
   })

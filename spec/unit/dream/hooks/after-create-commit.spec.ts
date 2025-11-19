@@ -36,44 +36,40 @@ describe('Dream AfterCreateCommit decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weightKgs: 10 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalAfterCreateCommitHook).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalled()
       })
 
       context('in a transaction', () => {
         it('calls hook', async () => {
-          vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+          const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
           await ApplicationModel.transaction(
             async txn => await mylar.txn(txn).createAssociation('sandbags', { weightKgs: 10 })
           )
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(Sandbag.prototype.conditionalAfterCreateCommitHook).toHaveBeenCalled()
+          expect(spy).toHaveBeenCalled()
         })
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('does not call the hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
         await mylar.createAssociation('sandbags', { weight: 10 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalAfterCreateCommitHook).not.toHaveBeenCalled()
+        expect(spy).not.toHaveBeenCalled()
       })
 
       context('in a transaction', () => {
         it('does not call the hook', async () => {
-          vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
+          const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterCreateCommitHook')
           await ApplicationModel.transaction(
             async txn => await mylar.txn(txn).createAssociation('sandbags', { weight: 10 })
           )
 
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(Sandbag.prototype.conditionalAfterCreateCommitHook).not.toHaveBeenCalled()
+          expect(spy).not.toHaveBeenCalled()
         })
       })
     })

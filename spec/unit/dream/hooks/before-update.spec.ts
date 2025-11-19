@@ -30,22 +30,20 @@ describe('Dream BeforeUpdate decorator', () => {
 
     context('one of the attributes specified in the "ifChanging" clause is changing to non-null', () => {
       it('calls hook', async () => {
-        vi.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
         await sandbag.update({ weightTons: 11 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalBeforeUpdateHook).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalled()
       })
     })
 
     context('none of the attributes specified in the "ifChanging" clause are changing', () => {
       it('calls hook', async () => {
         await sandbag.update({ weightTons: null })
-        vi.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
+        const spy = vi.spyOn(Sandbag.prototype, 'conditionalBeforeUpdateHook')
         await sandbag.update({ weightKgs: 120 })
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(Sandbag.prototype.conditionalBeforeUpdateHook).not.toHaveBeenCalled()
+        expect(spy).not.toHaveBeenCalled()
       })
     })
   })
