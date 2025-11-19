@@ -8,7 +8,7 @@ const config = typescriptEslint.config(
   eslint.configs.recommended,
   ...typescriptEslint.configs.recommendedTypeChecked,
   {
-    ignores: ['docs/**/*', 'test-app/types/*', '.yarn/**/*', '.yarnrc.yml'],
+    ignores: ['docs/**/*', 'test-app/types/*', '.yarn/**/*', '.yarnrc.yml', 'vite.config.ts'],
   },
 
   {
