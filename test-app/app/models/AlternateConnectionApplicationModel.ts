@@ -1,10 +1,10 @@
 import Dream from '../../../src/Dream.js'
-import { DBClass } from '../../types/db.alternateConnection.js'
+import { DB } from '../../types/db.alternateConnection.js'
 import { connectionTypeConfig, schema } from '../../types/dream.alternateConnection.js'
 import { globalTypeConfig } from '../../types/dream.globals.js'
 
 export default class AlternateConnectionApplicationModel extends Dream {
-  declare public DB: DBClass
+  declare public DB: DB
 
   public override get connectionName() {
     return 'alternateConnection' as const

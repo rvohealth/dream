@@ -1,4 +1,3 @@
-
 /*
 
                                     ,▄█▄                 
@@ -60,43 +59,43 @@ us humans, he says:
 import type CalendarDate from '../../src/helpers/CalendarDate.js'
 import { type DateTime } from '../../src/helpers/DateTime.js'
 import {
-  AAndBStiTypes,
+  type AAndBStiTypes,
+  type BalloonColorsEnum,
+  type BalloonLineMaterialsEnum,
+  type BalloonTypesEnum,
+  type CatTreats,
+  type CircularRefLocalizableTypesEnum,
+  type ExtraRateableTypesEnum,
+  type ExtraRatingTypesEnum,
+  type Json,
+  type LocalesEnum,
+  type LocalizableTypesEnum,
+  type PetTreatsEnum,
+  type PolymorphicTaskableTypesEnum,
+  type PolymorphicTestsLocalizableTypesEnum,
+  type ShapableTypesEnum,
+  type ShapeTypesEnum,
+  type Species,
+  type SpeciesTypesEnum,
+  type WorkoutTypesEnum,
   AAndBStiTypesValues,
-  BalloonColorsEnum,
   BalloonColorsEnumValues,
-  BalloonLineMaterialsEnum,
   BalloonLineMaterialsEnumValues,
-  BalloonTypesEnum,
   BalloonTypesEnumValues,
-  CatTreats,
   CatTreatsValues,
-  CircularRefLocalizableTypesEnum,
   CircularRefLocalizableTypesEnumValues,
-  ExtraRateableTypesEnum,
   ExtraRateableTypesEnumValues,
-  ExtraRatingTypesEnum,
   ExtraRatingTypesEnumValues,
-  Json,
-  LocalesEnum,
   LocalesEnumValues,
-  LocalizableTypesEnum,
   LocalizableTypesEnumValues,
-  PetTreatsEnum,
   PetTreatsEnumValues,
-  PolymorphicTaskableTypesEnum,
   PolymorphicTaskableTypesEnumValues,
-  PolymorphicTestsLocalizableTypesEnum,
   PolymorphicTestsLocalizableTypesEnumValues,
-  ShapableTypesEnum,
   ShapableTypesEnumValues,
-  ShapeTypesEnum,
   ShapeTypesEnumValues,
-  Species,
-  SpeciesTypesEnum,
   SpeciesTypesEnumValues,
   SpeciesValues,
-  WorkoutTypesEnum,
-  WorkoutTypesEnumValues
+  WorkoutTypesEnumValues,
 } from './db.js'
 
 export const schema = {
@@ -106,7 +105,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['balloonId', 'createdAt', 'id', 'material', 'updatedAt'],
+    nonJsonColumnNames: [
+      'balloonId',
+      'createdAt',
+      'id',
+      'material',
+      'updatedAt',
+    ],
     columns: {
       balloonId: {
         coercedType: {} as string,
@@ -173,7 +178,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['balloonId', 'balloonSpotterId', 'createdAt', 'id', 'updatedAt', 'userId'],
+    nonJsonColumnNames: [
+      'balloonId',
+      'balloonSpotterId',
+      'createdAt',
+      'id',
+      'updatedAt',
+      'userId',
+    ],
     columns: {
       balloonId: {
         coercedType: {} as string,
@@ -343,7 +355,22 @@ export const schema = {
       default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],
     },
-    nonJsonColumnNames: ['color', 'createdAt', 'deletedAt', 'id', 'multicolor', 'mylarOnlyProperty', 'positionAlpha', 'positionBeta', 'shapableId', 'shapableType', 'type', 'updatedAt', 'userId', 'volume'],
+    nonJsonColumnNames: [
+      'color',
+      'createdAt',
+      'deletedAt',
+      'id',
+      'multicolor',
+      'mylarOnlyProperty',
+      'positionAlpha',
+      'positionBeta',
+      'shapableId',
+      'shapableType',
+      'type',
+      'updatedAt',
+      'userId',
+      'volume',
+    ],
     columns: {
       color: {
         coercedType: {} as BalloonColorsEnum | null,
@@ -527,7 +554,16 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'markdown', 'title', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'locale',
+      'localizableId',
+      'localizableType',
+      'markdown',
+      'title',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -621,7 +657,12 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['circularReferenceModelBId', 'createdAt', 'id', 'updatedAt'],
+    nonJsonColumnNames: [
+      'circularReferenceModelBId',
+      'createdAt',
+      'id',
+      'updatedAt',
+    ],
     columns: {
       circularReferenceModelBId: {
         coercedType: {} as string | null,
@@ -715,7 +756,12 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['circularReferenceModelAId', 'createdAt', 'id', 'updatedAt'],
+    nonJsonColumnNames: [
+      'circularReferenceModelAId',
+      'createdAt',
+      'id',
+      'updatedAt',
+    ],
     columns: {
       circularReferenceModelAId: {
         coercedType: {} as string | null,
@@ -867,7 +913,20 @@ export const schema = {
       default: ['dream:SoftDelete', 'hideHiddenCollars'],
       named: [],
     },
-    nonJsonColumnNames: ['balloonId', 'createdAt', 'deletedAt', 'hidden', 'id', 'lost', 'petId', 'position', 'positionOnBalloon', 'positionOnBalloonAndPet', 'tagName', 'updatedAt'],
+    nonJsonColumnNames: [
+      'balloonId',
+      'createdAt',
+      'deletedAt',
+      'hidden',
+      'id',
+      'lost',
+      'petId',
+      'position',
+      'positionOnBalloon',
+      'positionOnBalloonAndPet',
+      'tagName',
+      'updatedAt',
+    ],
     columns: {
       balloonId: {
         coercedType: {} as string | null,
@@ -1006,7 +1065,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['approval', 'compositionAssetId', 'createdAt', 'id', 'notes', 'updatedAt'],
+    nonJsonColumnNames: [
+      'approval',
+      'compositionAssetId',
+      'createdAt',
+      'id',
+      'notes',
+      'updatedAt',
+    ],
     columns: {
       approval: {
         coercedType: {} as boolean | null,
@@ -1100,7 +1166,16 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['compositionId', 'createdAt', 'id', 'name', 'primary', 'score', 'src', 'updatedAt'],
+    nonJsonColumnNames: [
+      'compositionId',
+      'createdAt',
+      'id',
+      'name',
+      'primary',
+      'score',
+      'src',
+      'updatedAt',
+    ],
     columns: {
       compositionId: {
         coercedType: {} as string,
@@ -1239,7 +1314,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['content', 'createdAt', 'id', 'primary', 'updatedAt', 'userId'],
+    nonJsonColumnNames: [
+      'content',
+      'createdAt',
+      'id',
+      'primary',
+      'updatedAt',
+      'userId',
+    ],
     columns: {
       content: {
         coercedType: {} as string | null,
@@ -1432,7 +1514,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'kPop', 'popK', 'popKPop', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'kPop',
+      'popK',
+      'popKPop',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1490,9 +1579,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   extra_ratings: {
     serializerKeys: ['default'],
@@ -1500,7 +1587,17 @@ export const schema = {
       default: ['dream:STI'],
       named: [],
     },
-    nonJsonColumnNames: ['body', 'createdAt', 'extraRateableId', 'extraRateableType', 'id', 'rating', 'type', 'updatedAt', 'userId'],
+    nonJsonColumnNames: [
+      'body',
+      'createdAt',
+      'extraRateableId',
+      'extraRateableType',
+      'id',
+      'rating',
+      'type',
+      'updatedAt',
+      'userId',
+    ],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -1612,7 +1709,16 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'deletedAt', 'edgeId', 'id', 'multiScopedPosition', 'nodeId', 'position', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'deletedAt',
+      'edgeId',
+      'id',
+      'multiScopedPosition',
+      'nodeId',
+      'position',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -1854,7 +1960,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'name', 'omittedEdgePosition', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'name',
+      'omittedEdgePosition',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2149,9 +2261,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   localized_texts: {
     serializerKeys: ['default'],
@@ -2159,7 +2269,17 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['body', 'createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'name', 'title', 'updatedAt'],
+    nonJsonColumnNames: [
+      'body',
+      'createdAt',
+      'id',
+      'locale',
+      'localizableId',
+      'localizableType',
+      'name',
+      'title',
+      'updatedAt',
+    ],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -2262,7 +2382,60 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['aDatetime', 'aReal', 'aSmallInteger', 'activateConstraint', 'anInteger', 'bio', 'birthdate', 'collarCount', 'collarCountInt', 'collarCountNumeric', 'createdAt', 'createdOn', 'email', 'favoriteBigint', 'favoriteBigints', 'favoriteBooleans', 'favoriteCitext', 'favoriteCitexts', 'favoriteDates', 'favoriteDatetimes', 'favoriteIntegers', 'favoriteNumerics', 'favoriteTexts', 'favoriteTreats', 'favoriteUuids', 'id', 'likesTreats', 'likesWalks', 'myConstrainedField', 'name', 'nicknames', 'notes', 'optionalUuid', 'passwordDigest', 'requiredCollarCount', 'requiredCollarCountInt', 'requiredFavoriteBigint', 'requiredFavoriteBigints', 'requiredFavoriteBooleans', 'requiredFavoriteCitext', 'requiredFavoriteCitexts', 'requiredFavoriteDates', 'requiredFavoriteDatetimes', 'requiredFavoriteIntegers', 'requiredFavoriteNumerics', 'requiredFavoriteTexts', 'requiredFavoriteUuids', 'requiredNicknames', 'species', 'updatedAt', 'uuid', 'volume'],
+    nonJsonColumnNames: [
+      'aDatetime',
+      'aReal',
+      'aSmallInteger',
+      'activateConstraint',
+      'anInteger',
+      'bio',
+      'birthdate',
+      'collarCount',
+      'collarCountInt',
+      'collarCountNumeric',
+      'createdAt',
+      'createdOn',
+      'email',
+      'favoriteBigint',
+      'favoriteBigints',
+      'favoriteBooleans',
+      'favoriteCitext',
+      'favoriteCitexts',
+      'favoriteDates',
+      'favoriteDatetimes',
+      'favoriteIntegers',
+      'favoriteNumerics',
+      'favoriteTexts',
+      'favoriteTreats',
+      'favoriteUuids',
+      'id',
+      'likesTreats',
+      'likesWalks',
+      'myConstrainedField',
+      'name',
+      'nicknames',
+      'notes',
+      'optionalUuid',
+      'passwordDigest',
+      'requiredCollarCount',
+      'requiredCollarCountInt',
+      'requiredFavoriteBigint',
+      'requiredFavoriteBigints',
+      'requiredFavoriteBooleans',
+      'requiredFavoriteCitext',
+      'requiredFavoriteCitexts',
+      'requiredFavoriteDates',
+      'requiredFavoriteDatetimes',
+      'requiredFavoriteIntegers',
+      'requiredFavoriteNumerics',
+      'requiredFavoriteTexts',
+      'requiredFavoriteUuids',
+      'requiredNicknames',
+      'species',
+      'updatedAt',
+      'uuid',
+      'volume',
+    ],
     columns: {
       aDatetime: {
         coercedType: {} as DateTime | null,
@@ -2806,9 +2979,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_with_date_time_conditional_hooks: {
     serializerKeys: [],
@@ -2816,7 +2987,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['counter', 'createdAt', 'id', 'somethingHappenedAt', 'somethingHappenedInATransactionAt', 'updatedAt'],
+    nonJsonColumnNames: [
+      'counter',
+      'createdAt',
+      'id',
+      'somethingHappenedAt',
+      'somethingHappenedInATransactionAt',
+      'updatedAt',
+    ],
     columns: {
       counter: {
         coercedType: {} as number,
@@ -2874,9 +3052,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_with_param_safe_and_unsafe_columns: {
     serializerKeys: [],
@@ -2884,7 +3060,17 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['allowedColumn1', 'allowedColumn2', 'column1', 'column2', 'createdAt', 'disallowedColumn1', 'disallowedColumn2', 'id', 'updatedAt'],
+    nonJsonColumnNames: [
+      'allowedColumn1',
+      'allowedColumn2',
+      'column1',
+      'column2',
+      'createdAt',
+      'disallowedColumn1',
+      'disallowedColumn2',
+      'id',
+      'updatedAt',
+    ],
     columns: {
       allowedColumn1: {
         coercedType: {} as string | null,
@@ -2969,9 +3155,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_with_param_unsafe_columns: {
     serializerKeys: [],
@@ -2979,7 +3163,15 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['allowedColumn1', 'allowedColumn2', 'createdAt', 'disallowedColumn1', 'disallowedColumn2', 'id', 'updatedAt'],
+    nonJsonColumnNames: [
+      'allowedColumn1',
+      'allowedColumn2',
+      'createdAt',
+      'disallowedColumn1',
+      'disallowedColumn2',
+      'id',
+      'updatedAt',
+    ],
     columns: {
       allowedColumn1: {
         coercedType: {} as string | null,
@@ -3046,9 +3238,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_with_serial_primary_keys: {
     serializerKeys: [],
@@ -3087,9 +3277,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_without_custom_deleted_ats: {
     serializerKeys: [],
@@ -3137,9 +3325,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_without_deleted_ats: {
     serializerKeys: [],
@@ -3178,9 +3364,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   model_without_updated_at: {
     serializerKeys: [],
@@ -3228,9 +3412,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   pet_understudy_join_models: {
     serializerKeys: ['default'],
@@ -3238,7 +3420,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'petId', 'understudyId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'petId',
+      'understudyId',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -3314,7 +3502,19 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'deletedAt', 'favoriteDaysOfWeek', 'favoriteTreats', 'id', 'name', 'nickname', 'positionWithinSpecies', 'species', 'userId', 'userUuid'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'deletedAt',
+      'favoriteDaysOfWeek',
+      'favoriteTreats',
+      'id',
+      'name',
+      'nickname',
+      'positionWithinSpecies',
+      'species',
+      'userId',
+      'userUuid',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4047,7 +4247,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'polymorphicChoreId', 'polymorphicCleaningSupplyId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'polymorphicChoreId',
+      'polymorphicCleaningSupplyId',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4123,7 +4329,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'polymorphicChoreId', 'polymorphicImageId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'polymorphicChoreId',
+      'polymorphicImageId',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4351,9 +4563,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   polymorphic_images: {
     serializerKeys: ['default'],
@@ -4401,9 +4611,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   polymorphic_localized_texts: {
     serializerKeys: [],
@@ -4411,7 +4619,15 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'locale', 'localizableId', 'localizableType', 'title', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'locale',
+      'localizableId',
+      'localizableType',
+      'title',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4581,7 +4797,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'polymorphicImageId', 'taskableId', 'taskableType', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'polymorphicImageId',
+      'taskableId',
+      'taskableType',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4666,7 +4889,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'polymorphicUserId', 'taskableId', 'taskableType', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'polymorphicUserId',
+      'taskableId',
+      'taskableType',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4751,7 +4981,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'polymorphicMetaUserId', 'polymorphicUserId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'polymorphicMetaUserId',
+      'polymorphicUserId',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -4903,7 +5139,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'polymorphicImageId', 'polymorphicWorkoutId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'polymorphicImageId',
+      'polymorphicWorkoutId',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -5019,9 +5261,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   polymorphic_workouts: {
     serializerKeys: ['default'],
@@ -5029,7 +5269,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'name', 'polymorphicWorkoutTypeId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'name',
+      'polymorphicWorkoutTypeId',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -5141,7 +5387,14 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
-    nonJsonColumnNames: ['body', 'createdAt', 'deletedAt', 'id', 'postId', 'updatedAt'],
+    nonJsonColumnNames: [
+      'body',
+      'createdAt',
+      'deletedAt',
+      'id',
+      'postId',
+      'updatedAt',
+    ],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -5293,7 +5546,16 @@ export const schema = {
       default: ['dream:SoftDelete'],
       named: [],
     },
-    nonJsonColumnNames: ['body', 'createdAt', 'deletedAt', 'id', 'position', 'postVisibilityId', 'updatedAt', 'userId'],
+    nonJsonColumnNames: [
+      'body',
+      'createdAt',
+      'deletedAt',
+      'id',
+      'position',
+      'postVisibilityId',
+      'updatedAt',
+      'userId',
+    ],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -5459,7 +5721,16 @@ export const schema = {
       default: ['nonNullBodies'],
       named: [],
     },
-    nonJsonColumnNames: ['body', 'createdAt', 'id', 'rateableId', 'rateableType', 'rating', 'updatedAt', 'userId'],
+    nonJsonColumnNames: [
+      'body',
+      'createdAt',
+      'id',
+      'rateableId',
+      'rateableType',
+      'rating',
+      'updatedAt',
+      'userId',
+    ],
     columns: {
       body: {
         coercedType: {} as string | null,
@@ -5571,7 +5842,15 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['balloonId', 'createdAt', 'id', 'updatedAt', 'weight', 'weightKgs', 'weightTons'],
+    nonJsonColumnNames: [
+      'balloonId',
+      'createdAt',
+      'id',
+      'updatedAt',
+      'weight',
+      'weightKgs',
+      'weightTons',
+    ],
     columns: {
       balloonId: {
         coercedType: {} as string,
@@ -5705,9 +5984,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   sti_bases: {
     serializerKeys: ['default', 'summary'],
@@ -5715,7 +5992,16 @@ export const schema = {
       default: ['dream:STI'],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'name', 'petId', 'taskableId', 'taskableType', 'type', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'name',
+      'petId',
+      'taskableId',
+      'taskableType',
+      'type',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -5818,7 +6104,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['aId', 'createdAt', 'id', 'otherModelId', 'position', 'updatedAt'],
+    nonJsonColumnNames: [
+      'aId',
+      'createdAt',
+      'id',
+      'otherModelId',
+      'position',
+      'updatedAt',
+    ],
     columns: {
       aId: {
         coercedType: {} as string,
@@ -6247,9 +6540,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {
-      
-    },
+    associations: {},
   },
   user_settings: {
     serializerKeys: [],
@@ -6257,7 +6548,13 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'likesChalupas', 'updatedAt', 'userId'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'likesChalupas',
+      'updatedAt',
+      'userId',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -6324,7 +6621,27 @@ export const schema = {
       default: ['hideDeleted'],
       named: ['withFunnyName'],
     },
-    nonJsonColumnNames: ['birthdate', 'createdAt', 'deletedAt', 'email', 'encryptedSecret', 'favoriteDates', 'favoriteDatetimes', 'favoriteNumbers', 'favoriteWord', 'featuredPostPosition', 'grams', 'id', 'myOtherEncryptedSecret', 'name', 'passwordDigest', 'socialSecurityNumber', 'targetRating', 'updatedAt', 'uuid'],
+    nonJsonColumnNames: [
+      'birthdate',
+      'createdAt',
+      'deletedAt',
+      'email',
+      'encryptedSecret',
+      'favoriteDates',
+      'favoriteDatetimes',
+      'favoriteNumbers',
+      'favoriteWord',
+      'featuredPostPosition',
+      'grams',
+      'id',
+      'myOtherEncryptedSecret',
+      'name',
+      'passwordDigest',
+      'socialSecurityNumber',
+      'targetRating',
+      'updatedAt',
+      'uuid',
+    ],
     columns: {
       birthdate: {
         coercedType: {} as CalendarDate | null,
@@ -6498,7 +6815,14 @@ export const schema = {
         isArray: false,
       },
     },
-    virtualColumns: ['kilograms', 'lbs', 'otherSecret', 'password', 'randoVirtual', 'secret'],
+    virtualColumns: [
+      'kilograms',
+      'lbs',
+      'otherSecret',
+      'password',
+      'randoVirtual',
+      'secret',
+    ],
     associations: {
       allPets: {
         type: 'HasMany',
@@ -6863,47 +7187,50 @@ export const connectionTypeConfig = {
     'hideDeleted',
     'hideHiddenCollars',
     'howyadoin',
-    'nonNullBodies'
+    'nonNullBodies',
   ],
   globalNames: {
     models: {
       'Balloon/Latex/Animal': 'beautiful_balloons',
       'Balloon/Latex': 'beautiful_balloons',
       'Balloon/Mylar': 'beautiful_balloons',
-      'Balloon': 'beautiful_balloons',
-      'BalloonLine': 'balloon_lines',
-      'BalloonSpotter': 'balloon_spotters',
-      'BalloonSpotterBalloon': 'balloon_spotter_balloons',
+      Balloon: 'beautiful_balloons',
+      BalloonLine: 'balloon_lines',
+      BalloonSpotter: 'balloon_spotters',
+      BalloonSpotterBalloon: 'balloon_spotter_balloons',
       'CircularReference/LocalizedText': 'circular_reference_localized_texts',
       'CircularReference/ModelA': 'circular_reference_model_as',
       'CircularReference/ModelB': 'circular_reference_model_bs',
-      'CircularReferenceModel': 'circular_reference_models',
-      'Collar': 'collars',
-      'Composition': 'compositions',
-      'CompositionAsset': 'composition_assets',
-      'CompositionAssetAudit': 'composition_asset_audits',
-      'EdgeCaseAttribute': 'edge_case_attributes',
+      CircularReferenceModel: 'circular_reference_models',
+      Collar: 'collars',
+      Composition: 'compositions',
+      CompositionAsset: 'composition_assets',
+      CompositionAssetAudit: 'composition_asset_audits',
+      EdgeCaseAttribute: 'edge_case_attributes',
       'ExtraRating/Base': 'extra_ratings',
       'ExtraRating/HeartRating': 'extra_ratings',
       'ExtraRating/StarRating': 'extra_ratings',
       'Graph/Edge': 'graph_edges',
       'Graph/EdgeNode': 'graph_edge_nodes',
       'Graph/Node': 'graph_nodes',
-      'IncompatibleForeignKeyTypeExample': 'incompatible_foreign_key_type_examples',
-      'InvalidAssociationSortableModel': 'invalid_association_sortable_models',
-      'InvalidScopeSortableModel': 'invalid_scope_sortable_models',
-      'LocalizedText': 'localized_texts',
-      'ModelForOpenapiTypeSpec': 'model_for_openapi_type_specs',
-      'ModelWithDateTimeConditionalHooks': 'model_with_date_time_conditional_hooks',
-      'ModelWithParamSafeAndUnsafeColumns': 'model_with_param_safe_and_unsafe_columns',
-      'ModelWithParamUnsafeColumns': 'model_with_param_unsafe_columns',
-      'ModelWithSerialPrimaryKey': 'model_with_serial_primary_keys',
-      'ModelWithoutCustomDeletedAt': 'model_without_custom_deleted_ats',
-      'ModelWithoutDeletedAt': 'model_without_deleted_ats',
-      'ModelWithoutUpdatedAt': 'model_without_updated_at',
-      'NonNullRating': 'ratings',
-      'Pet': 'pets',
-      'PetUnderstudyJoinModel': 'pet_understudy_join_models',
+      IncompatibleForeignKeyTypeExample:
+        'incompatible_foreign_key_type_examples',
+      InvalidAssociationSortableModel: 'invalid_association_sortable_models',
+      InvalidScopeSortableModel: 'invalid_scope_sortable_models',
+      LocalizedText: 'localized_texts',
+      ModelForOpenapiTypeSpec: 'model_for_openapi_type_specs',
+      ModelWithDateTimeConditionalHooks:
+        'model_with_date_time_conditional_hooks',
+      ModelWithParamSafeAndUnsafeColumns:
+        'model_with_param_safe_and_unsafe_columns',
+      ModelWithParamUnsafeColumns: 'model_with_param_unsafe_columns',
+      ModelWithSerialPrimaryKey: 'model_with_serial_primary_keys',
+      ModelWithoutCustomDeletedAt: 'model_without_custom_deleted_ats',
+      ModelWithoutDeletedAt: 'model_without_deleted_ats',
+      ModelWithoutUpdatedAt: 'model_without_updated_at',
+      NonNullRating: 'ratings',
+      Pet: 'pets',
+      PetUnderstudyJoinModel: 'pet_understudy_join_models',
       'Polymorphic/Chore': 'polymorphic_chores',
       'Polymorphic/ChoreCleaningSupply': 'polymorphic_chore_cleaning_supplies',
       'Polymorphic/ChoreImage': 'polymorphic_chore_images',
@@ -6918,14 +7245,14 @@ export const connectionTypeConfig = {
       'Polymorphic/Workout': 'polymorphic_workouts',
       'Polymorphic/WorkoutImage': 'polymorphic_workout_images',
       'Polymorphic/WorkoutType': 'polymorphic_workout_types',
-      'Post': 'posts',
-      'PostComment': 'post_comments',
-      'PostVisibility': 'post_visibilities',
-      'Rating': 'ratings',
-      'Sandbag': 'sandbags',
+      Post: 'posts',
+      PostComment: 'post_comments',
+      PostVisibility: 'post_visibilities',
+      Rating: 'ratings',
+      Sandbag: 'sandbags',
       'Shape/Cat': 'shapes',
       'Shape/Regular': 'shapes',
-      'Shape': 'shapes',
+      Shape: 'shapes',
       'Sti/A': 'sti_bases',
       'Sti/B': 'sti_bases',
       'Sti/Base': 'sti_bases',
@@ -6934,9 +7261,9 @@ export const connectionTypeConfig = {
       'Through/B': 'through_bs',
       'Through/MyModel': 'through_my_models',
       'Through/OtherModel': 'through_other_models',
-      'UnscopedSortableModel': 'unscoped_sortable_models',
-      'User': 'users',
-      'UserSettings': 'user_settings'
+      UnscopedSortableModel: 'unscoped_sortable_models',
+      User: 'users',
+      UserSettings: 'user_settings',
     },
   },
 } as const

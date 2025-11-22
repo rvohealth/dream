@@ -18,7 +18,7 @@ import {
   SchemaBuilderAssociationData,
   SchemaBuilderColumnData,
   SchemaBuilderInformationSchemaRow,
-} from '../../helpers/cli/SchemaBuilder.js'
+} from '../../helpers/cli/ASTBuilder.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -155,7 +155,7 @@ export default class PostgresQueryDriver<
   public static override async getColumnData(
     connectionName: string,
     tableName: string,
-    associationData: { [key: string]: SchemaBuilderAssociationData }
+    allTableAssociationData: { [key: string]: SchemaBuilderAssociationData }
   ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
     const db = this.dbFor(connectionName, 'primary')
     const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
@@ -168,7 +168,7 @@ export default class PostgresQueryDriver<
     rows.forEach(row => {
       const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
       const isArray = ['ARRAY'].includes(row.dataType)
-      const associationMetadata = associationData[row.columnName]
+      const associationMetadata = allTableAssociationData[row.columnName]
 
       columnData[camelize(row.columnName)] = {
         dbType: row.udtName,
