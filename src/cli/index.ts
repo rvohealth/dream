@@ -157,7 +157,7 @@ export default class DreamCLI {
       .argument('[columnsWithTypes...]', columnsWithTypesDescriptionForMigration)
       .action(
         async (migrationName: string, columnsWithTypes: string[], options: { connectionName?: string }) => {
-          await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+          await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateMigration(
             migrationName,
             columnsWithTypes,
@@ -191,7 +191,7 @@ export default class DreamCLI {
           columnsWithTypes: string[],
           options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
         ) => {
-          await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+          await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateDream(modelName, columnsWithTypes, options)
           process.exit()
         }
@@ -229,7 +229,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           columnsWithTypes: string[],
           options: { serializer: boolean; connectionName: string }
         ) => {
-          await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+          await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           if (extendsWord !== 'extends')
             throw new Error('Expecting: `<child-name> extends <parent-name> <columns-and-types>')
           await DreamBin.generateStiChild(childModelName, parentModelName, columnsWithTypes, options)
@@ -243,9 +243,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
         'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
       )
       .action(async () => {
-        EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-
-        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
         await DreamBin.dbCreate()
         process.exit()
       })
@@ -299,8 +297,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
         'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
       )
       .action(async () => {
-        EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
         await DreamBin.dbDrop()
         process.exit()
       })
@@ -309,13 +306,11 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .command('db:reset')
       .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
       .action(async () => {
-        EnvInternal.setBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
-        await initializeDreamApp({ bypassDreamIntegrityChecks: true })
+        await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
 
         await DreamBin.dbDrop()
         await DreamBin.dbCreate()
 
-        EnvInternal.unsetBoolean('BYPASS_DB_CONNECTIONS_DURING_INIT')
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
         await DreamBin.dbMigrate()

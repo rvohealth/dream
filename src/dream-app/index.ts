@@ -63,7 +63,7 @@ export default class DreamApp {
 
     cacheDreamApp(dreamApp)
 
-    if (!EnvInternal.boolean('BYPASS_DB_CONNECTIONS_DURING_INIT')) await this.setDatabaseTypeParsers(dreamApp)
+    if (!opts.bypassDbConnectionsDuringInit) await this.setDatabaseTypeParsers(dreamApp)
 
     await deferCb?.(dreamApp)
 
@@ -595,6 +595,7 @@ export interface DreamAppSpecialHooks {
 
 export interface DreamAppInitOptions {
   bypassDreamIntegrityChecks?: boolean
+  bypassDbConnectionsDuringInit?: boolean
 }
 
 export interface KyselyLogEvent {
