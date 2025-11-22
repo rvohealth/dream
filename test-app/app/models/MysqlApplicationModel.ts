@@ -1,10 +1,10 @@
 import Dream from '../../../src/Dream.js'
-import { DBClass } from '../../types/db.mysql.js'
+import { DB } from '../../types/db.js'
 import { globalTypeConfig } from '../../types/dream.globals.js'
 import { connectionTypeConfig, schema } from '../../types/dream.mysql.js'
 
 export default class MysqlApplicationModel extends Dream {
-  declare public DB: DBClass
+  declare public DB: DB
 
   public override get connectionName() {
     return 'mysql' as const
