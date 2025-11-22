@@ -1,7 +1,6 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
-import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/SchemaBuilder.js'
 import { DateTime } from '../../helpers/DateTime.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
 import { DbConnectionType } from '../../types/db.js'
@@ -18,6 +17,7 @@ import {
 } from '../../types/query.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
+import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
 
 export default class QueryDriverBase<DreamInstance extends Dream> {
   protected readonly dreamClass: DreamConstructorType<DreamInstance>
@@ -121,7 +121,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    *    this file is extremely complex and messy, and will be difficult
    *    to achieve.
    * 2. generate a types/dream.ts file in the same shape as the existing
-   *    one. This is normally done using `await new SchemaBuilder().build()`,
+   *    one. This is normally done using the ASTSchemaBuilder
    *    but this will likely need to be overridden to tailor to your custom
    *    database engine.
    */
@@ -230,7 +230,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     tableName: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    associationData: { [key: string]: SchemaBuilderAssociationData }
+    allTableAssociationData: { [key: string]: SchemaBuilderAssociationData }
   ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
     throw new Error('implement getColumnData in child class')
   }
