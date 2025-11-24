@@ -1,3 +1,7 @@
+## 2.0.4
+
+improve CLI command descriptions
+
 ## 2.0.3
 
 don't require database to exist when creating migrations (fixes create-psychic with uuid primary keys)
@@ -8,7 +12,7 @@ bump glob to close dependabot alerts
 
 ## 2.0.1
 
-- remove dream-spec-helpers from peer dependencies
+remove dream-spec-helpers from peer dependencies
 
 ## 2.0.0
 

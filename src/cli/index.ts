@@ -94,9 +94,7 @@ export default class DreamCLI {
   ) {
     program
       .command('sync')
-      .description(
-        'sync introspects your database, updating your schema to reflect, and then syncs the new schema with the installed dream node module, allowing it provide your schema to the underlying kysely integration'
-      )
+      .description('Generates types from the current state of the database.')
       .option('--schema-only')
       .action(async (options: { schemaOnly?: boolean } = {}) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
@@ -148,7 +146,9 @@ export default class DreamCLI {
     program
       .command('generate:migration')
       .alias('g:migration')
-      .description('create a new migration')
+      .description(
+        'Generates a new migration file (prefer g:resource or g:model if creating a table for a new model).'
+      )
       .argument(
         '<migrationName>',
         'end with -to-table-name or -from-table-name to prepopulate with an alterTable command'
@@ -172,6 +172,7 @@ export default class DreamCLI {
       .alias('g:model')
       .alias('generate:dream')
       .alias('g:dream')
+      .description('Generates a Dream model with corresponding spec factory, serializer, and migration.')
       .option('--no-serializer')
       .option(
         '--connection-name <connectionName>',
@@ -179,7 +180,6 @@ export default class DreamCLI {
         'default'
       )
       .option('--sti-base-serializer')
-      .description('create a new Dream model')
       .argument(
         '<modelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -201,7 +201,7 @@ export default class DreamCLI {
       .command('generate:sti-child')
       .alias('g:sti-child')
       .description(
-        'create a new Dream model that extends another Dream model, leveraging STI (single table inheritance)'
+        'Generates a Dream model that extends another Dream model, leveraging STI (single table inheritance), with corresponding spec factory, serializer, and migration.'
       )
       .option('--no-serializer')
       .option(
@@ -239,9 +239,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:create')
-      .description(
-        'creates a new database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
-      )
+      .description('Creates a new database.')
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
         await DreamBin.dbCreate()
@@ -250,7 +248,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:integrity-check')
-      .description('db:integrity-check fails if migrations need to be run')
+      .description('Fails if migrations need to be run.')
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
@@ -261,7 +259,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:migrate')
-      .description('db:migrate runs any outstanding database migrations')
+      .description('Runs any outstanding database migrations.')
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ skipSync }: { skipSync: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
@@ -277,7 +275,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:rollback')
-      .description('db:rollback rolls back the migration')
+      .description('Rolls back the specified number of migration steps (defaults to 1)')
       .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
       .option('--skip-sync', 'skips syncing local schema after running migrations')
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
@@ -293,9 +291,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:drop')
-      .description(
-        'drops the database, seeding from local .env or .env.test if NODE_ENV=test is set for env vars'
-      )
+      .description('Drops the database')
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
         await DreamBin.dbDrop()
@@ -304,7 +300,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:reset')
-      .description('runs db:drop (safely), then db:create, db:migrate, and db:seed')
+      .description('Runs db:drop (safely), db:create, db:migrate, and db:seed')
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
 
@@ -321,7 +317,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:seed')
-      .description('seeds the database using the file located in db/seed.ts')
+      .description('Seeds the database using the file located in db/seed.ts.')
       .action(async () => {
         if (process.env.NODE_ENV === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
           console.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
@@ -337,7 +333,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .command('inspect:serialization')
       .alias('i:serialization')
       .description(
-        'displays a serialization map to help understand the rendering logic for a particular model'
+        'Displays a serialization map to help understand the rendering logic for a particular model.'
       )
       .argument('<globalName>', 'the global name of the model you want to look up')
       .argument('[serializerKey]', 'the serializer key you wish to use')
