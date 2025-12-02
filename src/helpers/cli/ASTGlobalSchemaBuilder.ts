@@ -36,7 +36,11 @@ export default class ASTGlobalSchemaBuilder extends ASTBuilder {
       [
         f.createPropertyAssignment(
           f.createIdentifier('serializers'),
-          f.createArrayLiteralExpression(this.globalSerializerNames().map(key => f.createStringLiteral(key)))
+          f.createArrayLiteralExpression(
+            this.globalSerializerNames()
+              .sort()
+              .map(key => f.createStringLiteral(key))
+          )
         ),
       ],
       true // multiline

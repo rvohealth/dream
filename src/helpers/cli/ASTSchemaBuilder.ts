@@ -79,7 +79,7 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
               f.createPropertyAssignment(
                 f.createIdentifier('serializerKeys'),
                 f.createArrayLiteralExpression(
-                  tableData?.serializerKeys.map(key => f.createStringLiteral(key))
+                  [...(tableData?.serializerKeys || [])].sort().map(key => f.createStringLiteral(key))
                 )
               ),
 
@@ -115,6 +115,7 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
                           tableData.columns[columnName as keyof typeof tableData.columns]!.dbType
                         )
                     )
+                    .sort()
                     .map(key => f.createStringLiteral(key))
                 )
               ),
@@ -122,77 +123,79 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
               f.createPropertyAssignment(
                 f.createIdentifier('columns'),
                 f.createObjectLiteralExpression(
-                  Object.keys(tableData?.columns || {}).map(columnName => {
-                    const columnData = tableData.columns[columnName]!
+                  Object.keys(tableData?.columns || {})
+                    .sort()
+                    .map(columnName => {
+                      const columnData = tableData.columns[columnName]!
 
-                    // any enums for these columns will need to be imported
-                    // from the db.ts file in the same folder, so as we detect
-                    // them, we push them into the importedModules array.
-                    if (columnData.enumType) {
-                      importedTypes.push(columnData.enumType)
-                      importedVariables.push(columnData.enumType + 'Values')
-                    }
+                      // any enums for these columns will need to be imported
+                      // from the db.ts file in the same folder, so as we detect
+                      // them, we push them into the importedModules array.
+                      if (columnData.enumType) {
+                        importedTypes.push(columnData.enumType)
+                        importedVariables.push(columnData.enumType + 'Values')
+                      }
 
-                    const enumTypeNode = columnData.enumType
-                      ? f.createTypeReferenceNode(
-                          f.createIdentifier(columnData.enumType),
-                          undefined // No type arguments needed here
-                        )
-                      : null
+                      const enumTypeNode = columnData.enumType
+                        ? f.createTypeReferenceNode(
+                            f.createIdentifier(columnData.enumType),
+                            undefined // No type arguments needed here
+                          )
+                        : null
 
-                    const enumValuesNode = columnData.enumType
-                      ? f.createIdentifier(columnData.enumType + 'Values')
-                      : f.createNull()
+                      const enumValuesNode = columnData.enumType
+                        ? f.createIdentifier(columnData.enumType + 'Values')
+                        : f.createNull()
 
-                    const coercedType = this.getCoercedTypeForTableColumn(
-                      dbSourceFile,
-                      tableName,
-                      columnName,
-                      tableData,
-                      importedTypes
-                    )
-
-                    return f.createPropertyAssignment(
-                      f.createIdentifier(columnName),
-                      f.createObjectLiteralExpression(
-                        [
-                          f.createPropertyAssignment(
-                            f.createIdentifier('coercedType'),
-                            f.createAsExpression(f.createObjectLiteralExpression(), coercedType)
-                          ),
-                          f.createPropertyAssignment(
-                            f.createIdentifier('enumType'),
-                            enumTypeNode
-                              ? f.createAsExpression(f.createObjectLiteralExpression(), enumTypeNode)
-                              : f.createNull()
-                          ),
-                          f.createPropertyAssignment(
-                            f.createIdentifier('enumArrayType'),
-                            enumTypeNode
-                              ? f.createAsExpression(
-                                  f.createArrayLiteralExpression(),
-                                  f.createArrayTypeNode(enumTypeNode)
-                                )
-                              : f.createNull()
-                          ),
-                          f.createPropertyAssignment(f.createIdentifier('enumValues'), enumValuesNode),
-                          f.createPropertyAssignment(
-                            f.createIdentifier('dbType'),
-                            f.createStringLiteral(columnData.dbType)
-                          ),
-                          f.createPropertyAssignment(
-                            f.createIdentifier('allowNull'),
-                            columnData.allowNull ? f.createTrue() : f.createFalse()
-                          ),
-                          f.createPropertyAssignment(
-                            f.createIdentifier('isArray'),
-                            columnData.isArray ? f.createTrue() : f.createFalse()
-                          ),
-                        ],
-                        true // multiline
+                      const coercedType = this.getCoercedTypeForTableColumn(
+                        dbSourceFile,
+                        tableName,
+                        columnName,
+                        tableData,
+                        importedTypes
                       )
-                    )
-                  }),
+
+                      return f.createPropertyAssignment(
+                        f.createIdentifier(columnName),
+                        f.createObjectLiteralExpression(
+                          [
+                            f.createPropertyAssignment(
+                              f.createIdentifier('coercedType'),
+                              f.createAsExpression(f.createObjectLiteralExpression(), coercedType)
+                            ),
+                            f.createPropertyAssignment(
+                              f.createIdentifier('enumType'),
+                              enumTypeNode
+                                ? f.createAsExpression(f.createObjectLiteralExpression(), enumTypeNode)
+                                : f.createNull()
+                            ),
+                            f.createPropertyAssignment(
+                              f.createIdentifier('enumArrayType'),
+                              enumTypeNode
+                                ? f.createAsExpression(
+                                    f.createArrayLiteralExpression(),
+                                    f.createArrayTypeNode(enumTypeNode)
+                                  )
+                                : f.createNull()
+                            ),
+                            f.createPropertyAssignment(f.createIdentifier('enumValues'), enumValuesNode),
+                            f.createPropertyAssignment(
+                              f.createIdentifier('dbType'),
+                              f.createStringLiteral(columnData.dbType)
+                            ),
+                            f.createPropertyAssignment(
+                              f.createIdentifier('allowNull'),
+                              columnData.allowNull ? f.createTrue() : f.createFalse()
+                            ),
+                            f.createPropertyAssignment(
+                              f.createIdentifier('isArray'),
+                              columnData.isArray ? f.createTrue() : f.createFalse()
+                            ),
+                          ],
+                          true // multiline
+                        )
+                      )
+                    }),
                   true // multiline
                 )
               ),
@@ -209,85 +212,87 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
               f.createPropertyAssignment(
                 f.createIdentifier('associations'),
                 f.createObjectLiteralExpression(
-                  Object.keys(tableData?.associations || {}).map(associationName => {
-                    const associationMetadata = tableData.associations[associationName]!
+                  Object.keys(tableData?.associations || {})
+                    .sort()
+                    .map(associationName => {
+                      const associationMetadata = tableData.associations[associationName]!
 
-                    const andStatement = associationMetadata.and
-                    const requiredAndClauses =
-                      andStatement === null
-                        ? []
-                        : Object.keys(andStatement).filter(
-                            column => andStatement[column] === DreamConst.required
-                          )
-                    const passthroughAndClauses =
-                      andStatement === null
-                        ? []
-                        : Object.keys(andStatement).filter(
-                            column => andStatement[column] === DreamConst.passthrough
-                          )
-                    passthroughColumns = [...passthroughColumns, ...passthroughAndClauses]
-
-                    return f.createPropertyAssignment(
-                      f.createIdentifier(associationName),
-                      f.createObjectLiteralExpression(
-                        [
-                          f.createPropertyAssignment(
-                            f.createIdentifier('type'),
-                            f.createStringLiteral(associationMetadata.type)
-                          ),
-
-                          f.createPropertyAssignment(
-                            f.createIdentifier('foreignKey'),
-                            associationMetadata.foreignKey
-                              ? f.createStringLiteral(associationMetadata.foreignKey)
-                              : f.createNull()
-                          ),
-
-                          f.createPropertyAssignment(
-                            f.createIdentifier('foreignKeyTypeColumn'),
-                            associationMetadata.foreignKeyTypeColumn
-                              ? f.createStringLiteral(associationMetadata.foreignKeyTypeColumn)
-                              : f.createNull()
-                          ),
-
-                          f.createPropertyAssignment(
-                            f.createIdentifier('tables'),
-                            f.createArrayLiteralExpression(
-                              associationMetadata.tables.sort().map(table => f.createStringLiteral(table))
+                      const andStatement = associationMetadata.and
+                      const requiredAndClauses =
+                        andStatement === null
+                          ? []
+                          : Object.keys(andStatement).filter(
+                              column => andStatement[column] === DreamConst.required
                             )
-                          ),
+                      const passthroughAndClauses =
+                        andStatement === null
+                          ? []
+                          : Object.keys(andStatement).filter(
+                              column => andStatement[column] === DreamConst.passthrough
+                            )
+                      passthroughColumns = [...passthroughColumns, ...passthroughAndClauses]
 
-                          f.createPropertyAssignment(
-                            f.createIdentifier('optional'),
-                            associationMetadata.optional === null
-                              ? f.createNull()
-                              : associationMetadata.optional
-                                ? f.createTrue()
-                                : f.createFalse()
-                          ),
+                      return f.createPropertyAssignment(
+                        f.createIdentifier(associationName),
+                        f.createObjectLiteralExpression(
+                          [
+                            f.createPropertyAssignment(
+                              f.createIdentifier('type'),
+                              f.createStringLiteral(associationMetadata.type)
+                            ),
 
-                          f.createPropertyAssignment(
-                            f.createIdentifier('requiredAndClauses'),
-                            requiredAndClauses.length === 0
-                              ? f.createNull()
-                              : f.createArrayLiteralExpression(
-                                  requiredAndClauses.map(clause => f.createStringLiteral(clause))
-                                )
-                          ),
+                            f.createPropertyAssignment(
+                              f.createIdentifier('foreignKey'),
+                              associationMetadata.foreignKey
+                                ? f.createStringLiteral(associationMetadata.foreignKey)
+                                : f.createNull()
+                            ),
 
-                          f.createPropertyAssignment(
-                            f.createIdentifier('passthroughAndClauses'),
-                            passthroughAndClauses.length === 0
-                              ? f.createNull()
-                              : f.createArrayLiteralExpression(
-                                  passthroughAndClauses.map(clause => f.createStringLiteral(clause))
-                                )
-                          ),
-                        ],
-                        true // multiline
+                            f.createPropertyAssignment(
+                              f.createIdentifier('foreignKeyTypeColumn'),
+                              associationMetadata.foreignKeyTypeColumn
+                                ? f.createStringLiteral(associationMetadata.foreignKeyTypeColumn)
+                                : f.createNull()
+                            ),
+
+                            f.createPropertyAssignment(
+                              f.createIdentifier('tables'),
+                              f.createArrayLiteralExpression(
+                                associationMetadata.tables.sort().map(table => f.createStringLiteral(table))
+                              )
+                            ),
+
+                            f.createPropertyAssignment(
+                              f.createIdentifier('optional'),
+                              associationMetadata.optional === null
+                                ? f.createNull()
+                                : associationMetadata.optional
+                                  ? f.createTrue()
+                                  : f.createFalse()
+                            ),
+
+                            f.createPropertyAssignment(
+                              f.createIdentifier('requiredAndClauses'),
+                              requiredAndClauses.length === 0
+                                ? f.createNull()
+                                : f.createArrayLiteralExpression(
+                                    requiredAndClauses.sort().map(clause => f.createStringLiteral(clause))
+                                  )
+                            ),
+
+                            f.createPropertyAssignment(
+                              f.createIdentifier('passthroughAndClauses'),
+                              passthroughAndClauses.length === 0
+                                ? f.createNull()
+                                : f.createArrayLiteralExpression(
+                                    passthroughAndClauses.sort().map(clause => f.createStringLiteral(clause))
+                                  )
+                            ),
+                          ],
+                          true // multiline
+                        )
                       )
-                    )
-                  }),
+                    }),
                   true // multiline
                 )
               ),
@@ -337,7 +342,7 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
         f.createPropertyAssignment(
           f.createIdentifier('passthroughColumns'),
           f.createArrayLiteralExpression(
-            passthroughColumns.map(column => f.createStringLiteral(column)),
+            passthroughColumns.sort().map(column => f.createStringLiteral(column)),
             true // multiline
           )
         ),
@@ -345,7 +350,7 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
         f.createPropertyAssignment(
           f.createIdentifier('allDefaultScopeNames'),
           f.createArrayLiteralExpression(
-            allDefaultScopeNames.map(column => f.createStringLiteral(column)),
+            allDefaultScopeNames.sort().map(column => f.createStringLiteral(column)),
             true // multiline
           )
         ),
@@ -357,12 +362,14 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
               f.createPropertyAssignment(
                 f.createIdentifier('models'),
                 f.createObjectLiteralExpression(
-                  this.globalModelNames().map(([globalName, tableName]) =>
-                    f.createPropertyAssignment(
-                      f.createStringLiteral(globalName),
-                      f.createStringLiteral(tableName)
-                    )
-                  ),
+                  this.globalModelNames()
+                    .sort()
+                    .map(([globalName, tableName]) =>
+                      f.createPropertyAssignment(
+                        f.createStringLiteral(globalName),
+                        f.createStringLiteral(tableName)
+                      )
+                    ),
                   true // multiline
                 )
               ),
