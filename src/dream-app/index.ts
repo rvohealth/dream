@@ -289,6 +289,17 @@ Try setting it to something valid, like:
     return this._importExtension
   }
 
+  /**
+   * if set to true, it will bypass deprecation checks that run
+   * during the sync hook. Defaults to false, we only recommend
+   * overriding this if you are having issues with the deprecation
+   * check.
+   */
+  private _bypassDeprecationChecks: boolean = false
+  public get bypassDeprecationChecks() {
+    return this._bypassDeprecationChecks
+  }
+
   protected loadedModels: boolean = false
 
   constructor(opts?: Partial<DreamAppOpts>) {
@@ -394,34 +405,40 @@ Try setting it to something valid, like:
 
   public set<ApplyOpt extends DreamAppSetOption>(
     applyOption: ApplyOpt,
-    options: ApplyOpt extends 'db'
-      ? DreamDbCredentialOptions | string
-      : ApplyOpt extends 'encryption'
-        ? DreamAppEncryptionOptions
-        : ApplyOpt extends 'primaryKeyType'
-          ? (typeof primaryKeyTypes)[number]
-          : ApplyOpt extends 'importExtension'
-            ? GeneratorImportStyle
-            : ApplyOpt extends 'logger'
-              ? DreamLogger
-              : ApplyOpt extends 'projectRoot'
-                ? string
-                : ApplyOpt extends 'inflections'
-                  ? () => void | Promise<void>
-                  : ApplyOpt extends 'packageManager'
-                    ? DreamAppAllowedPackageManagersEnum
-                    : ApplyOpt extends 'paths'
-                      ? DreamDirectoryPaths
-                      : ApplyOpt extends 'parallelTests'
-                        ? number
-                        : ApplyOpt extends 'unicodeNormalization'
-                          ? UnicodeNormalizationForm
-                          : ApplyOpt extends 'paginationPageSize'
-                            ? number
-                            : never,
+    options: ApplyOpt extends 'bypassDeprecationChecks'
+      ? boolean
+      : ApplyOpt extends 'db'
+        ? DreamDbCredentialOptions | string
+        : ApplyOpt extends 'encryption'
+          ? DreamAppEncryptionOptions
+          : ApplyOpt extends 'primaryKeyType'
+            ? (typeof primaryKeyTypes)[number]
+            : ApplyOpt extends 'importExtension'
+              ? GeneratorImportStyle
+              : ApplyOpt extends 'logger'
+                ? DreamLogger
+                : ApplyOpt extends 'projectRoot'
+                  ? string
+                  : ApplyOpt extends 'inflections'
+                    ? () => void | Promise<void>
+                    : ApplyOpt extends 'packageManager'
+                      ? DreamAppAllowedPackageManagersEnum
+                      : ApplyOpt extends 'paths'
+                        ? DreamDirectoryPaths
+                        : ApplyOpt extends 'parallelTests'
+                          ? number
+                          : ApplyOpt extends 'unicodeNormalization'
+                            ? UnicodeNormalizationForm
+                            : ApplyOpt extends 'paginationPageSize'
+                              ? number
+                              : never,
     secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
+      case 'bypassDeprecationChecks':
+        this._bypassDeprecationChecks = options as boolean
+        break
+
       case 'db':
         if (typeof options === 'string') {
           this._dbCredentials[options] = secondaryOptions as DreamDbCredentialOptions
@@ -532,6 +549,7 @@ export interface DreamAppOpts {
 }
 
 export type DreamAppSetOption =
+  | 'bypassDeprecationChecks'
   | 'db'
   | 'encryption'
   | 'inflections'

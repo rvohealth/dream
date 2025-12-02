@@ -304,7 +304,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     } catch (error) {
       console.error(error)
 
-      await DreamCLI.logger.logProgress('sync failed, reverting file contents...', async () => {
+      await DreamCLI.logger.logProgress('[dream] sync failed, reverting file contents...', async () => {
         await CliFileWriter.revert()
       })
     }
