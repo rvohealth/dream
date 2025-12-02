@@ -1,3 +1,8 @@
+## 2.1.0
+
+- Change type file generation to AST
+- Soft-deprecate DBClass (automatically updated on sync)
+
 ## 2.0.4
 
 improve CLI command descriptions
