@@ -14,7 +14,7 @@ import {
   SchemaBuilderAssociationData,
   SchemaBuilderColumnData,
   SchemaBuilderInformationSchemaRow,
-} from '../../../../src/helpers/cli/SchemaBuilder.js'
+} from '../../../../src/helpers/cli/ASTBuilder.js'
 import { DateTime } from '../../../../src/helpers/DateTime.js'
 import EnvInternal from '../../../../src/helpers/EnvInternal.js'
 import namespaceColumn from '../../../../src/helpers/namespaceColumn.js'

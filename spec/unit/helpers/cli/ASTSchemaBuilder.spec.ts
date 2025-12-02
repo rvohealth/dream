@@ -6,7 +6,7 @@ import AlternateDbConnectionUser from '../../../../test-app/app/models/Alternate
 import User from '../../../../test-app/app/models/User.js'
 import { BalloonColorsEnumValues } from '../../../../test-app/types/db.js'
 
-describe('SchemaBuilder', () => {
+describe('ASTSchemaBuilder', () => {
   describe('#build', () => {
     context('globalNames', () => {
       it('renders models key value pairs per-connection', () => {

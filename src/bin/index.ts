@@ -1,6 +1,7 @@
 import DreamCLI from '../cli/index.js'
 import DreamApp from '../dream-app/index.js'
 import Query from '../dream/Query.js'
+import DBClassDeprecation from '../helpers/cli/DBClassDeprecation.js'
 import generateDream from '../helpers/cli/generateDream.js'
 import sspawn from '../helpers/sspawn.js'
 
@@ -10,6 +11,8 @@ export default class DreamBin {
     for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
       await Query.dbDriverClass(connectionName).sync(connectionName, onSync, options)
     }
+
+    await new DBClassDeprecation().deprecate()
   }
 
   public static async dbCreate() {

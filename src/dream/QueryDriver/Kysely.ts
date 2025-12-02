@@ -59,8 +59,10 @@ import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
 import camelize from '../../helpers/camelize.js'
+import { SchemaBuilderInformationSchemaRow } from '../../helpers/cli/ASTBuilder.js'
+import ASTGlobalSchemaBuilder from '../../helpers/cli/ASTGlobalSchemaBuilder.js'
+import ASTSchemaBuilder from '../../helpers/cli/ASTSchemaBuilder.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
-import SchemaBuilder, { SchemaBuilderInformationSchemaRow } from '../../helpers/cli/SchemaBuilder.js'
 import compact from '../../helpers/compact.js'
 import { DateTime } from '../../helpers/DateTime.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
@@ -246,19 +248,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * defines the syncing behavior for dream and psychic,
    * which is run whenever the `sync` command is called.
-   * This is an important step, and will be incredibly
-   * comlpex to override. You will need to do the following
-   * when overriding this method:
-   *
-   * 1. introspect the db and use it to generate a db.ts file in the
-   *    same shape as the existing one. Currently, the process for generating
-   *    this file is extremely complex and messy, and will be difficult
-   *    to achieve.
-   * 2. generate a types/dream.ts file in the same shape as the existing
-   *    one. This is normally done using `await new SchemaBuilder().build()`,
-   *    but this will likely need to be overridden to tailor to your custom
-   *    database engine.
-   */
+   * */
   public static override async sync(
     connectionName: string,
     onSync: () => Promise<void> | void,
@@ -269,21 +259,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         await DreamCLI.logger.logProgress(
           `introspecting db for connection: ${connectionName}...`,
           async () => {
+            // this calls kysely-codegen under the hood
             await syncDbTypesFiles(connectionName)
           }
         )
       }
 
-      const schemaBuilder = new SchemaBuilder(connectionName)
+      const newSchemaBuilder = new ASTSchemaBuilder(connectionName)
 
       await DreamCLI.logger.logProgress(
         `building dream schema for connection ${connectionName}...`,
         async () => {
-          await schemaBuilder.build()
+          await newSchemaBuilder.build()
         }
       )
 
-      if (schemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
+      if (newSchemaBuilder.hasForeignKeyError && !options?.schemaOnly) {
         await DreamCLI.logger.logProgress(
           'triggering resync to correct for foreign key errors...',
 
@@ -303,7 +294,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         )
       }
 
-      await SchemaBuilder.buildGlobalTypes()
+      await new ASTGlobalSchemaBuilder().build()
 
       if (!options?.schemaOnly) {
         // intentionally leaving logs off here, since it allows other
@@ -313,7 +304,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     } catch (error) {
       console.error(error)
 
-      await DreamCLI.logger.logProgress('sync failed, reverting file contents...', async () => {
+      await DreamCLI.logger.logProgress('[dream] sync failed, reverting file contents...', async () => {
         await CliFileWriter.revert()
       })
     }
