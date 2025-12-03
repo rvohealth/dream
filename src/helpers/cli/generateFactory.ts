@@ -3,6 +3,7 @@ import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateFactoryContent from './generateFactoryContent.js'
+import DreamCLI from '../../cli/index.js'
 
 export default async function generateFactory({
   fullyQualifiedModelName,
@@ -19,7 +20,8 @@ export default async function generateFactory({
   )
 
   try {
-    console.log(`generating factory: ${relFilePath}`)
+    DreamCLI.logger.log(`[dream] generating factory: ${relFilePath}`)
+
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(absFilePath, generateFactoryContent({ fullyQualifiedModelName, columnsWithTypes }))
   } catch (error) {

@@ -302,6 +302,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         await onSync()
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error)
 
       await DreamCLI.logger.logProgress('[dream] sync failed, reverting file contents...', async () => {
@@ -631,6 +632,56 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.min
+  }
+
+  /**
+   * Retrieves the sum value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.query().sum('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the sum of the values of the specified column for this Query
+   */
+  public override async sum(columnName: string): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { sum } = this.dbFor('select').fn
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    kyselyQuery = kyselyQuery.select(sum(columnName as any) as any)
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    return data.sum === null ? null : parseFloat(data.sum)
+  }
+
+  /**
+   * Retrieves the average value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.query().avg('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the average of the values of the specified column for this Query
+   */
+  public override async avg(columnName: string): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { avg } = this.dbFor('select').fn
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    kyselyQuery = kyselyQuery.select(avg(columnName as any) as any)
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    return data.avg
   }
 
   /**

@@ -188,6 +188,44 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
+   * Retrieves the sum value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.txn(txn).sum('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the sum of the values of the specified column for this Query
+   */
+  public async sum<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    T extends DreamColumnNames<DreamInstance>,
+  >(this: I, columnName: T) {
+    return this.queryInstance().sum(columnName)
+  }
+
+  /**
+   * Retrieves the average value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.txn(txn).avg('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the average of the values of the specified column for this Query
+   */
+  public async avg<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    T extends DreamColumnNames<DreamInstance>,
+  >(this: I, columnName: T) {
+    return this.queryInstance().avg(columnName)
+  }
+
+  /**
    * Persists a new record, setting the provided attributes.
    * Automatically sets createdAt and updatedAt timestamps.
    *

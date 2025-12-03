@@ -3,6 +3,7 @@ import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateSerializerContent from './generateSerializerContent.js'
+import DreamCLI from '../../cli/index.js'
 
 export default async function generateSerializer({
   fullyQualifiedModelName,
@@ -25,7 +26,8 @@ export default async function generateSerializer({
   )
 
   try {
-    console.log(`generating serializer: ${relFilePath}`)
+    DreamCLI.logger.log(`[dream] generating serializer: ${relFilePath}`)
+
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(
       absFilePath,

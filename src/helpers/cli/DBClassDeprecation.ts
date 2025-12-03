@@ -41,7 +41,10 @@ export default class DBClassDeprecation {
         }
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error(err)
+
+      // eslint-disable-next-line no-console
       console.log(`
 ATTENTION: 
 

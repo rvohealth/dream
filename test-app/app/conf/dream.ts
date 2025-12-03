@@ -97,6 +97,7 @@ export default async function (dreamApp: DreamApp) {
     if (!debuglog('sql').enabled) return
 
     if (event.level === 'error') {
+      // eslint-disable-next-line no-console
       console.error('the following db query encountered an unexpected error: ', {
         durationMs: event.queryDurationMillis,
         error: event.error,
@@ -104,6 +105,7 @@ export default async function (dreamApp: DreamApp) {
         params: event.query.parameters.map(maskPII),
       })
     } else {
+      // eslint-disable-next-line no-console
       console.log('db query completed:', {
         durationMs: event.queryDurationMillis,
         sql: event.query.sql,

@@ -3,7 +3,9 @@
 // this will reveal any uncaught promises, since
 // they can be very difficult to track down
 process.on('unhandledRejection', reason => {
+  // eslint-disable-next-line no-console
   console.error('Unhandled Promise Rejection:', reason)
+
   throw new Error(reason as string)
 })
 

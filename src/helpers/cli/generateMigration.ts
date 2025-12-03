@@ -10,6 +10,7 @@ import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import snakeify from '../snakeify.js'
 import generateStiMigrationContent from './generateStiMigrationContent.js'
+import DreamCLI from '../../cli/index.js'
 
 export default async function generateMigration({
   migrationName,
@@ -62,7 +63,7 @@ export default async function generateMigration({
   }
 
   try {
-    console.log(`generating migration: ${relFilePath}`)
+    DreamCLI.logger.log(`[dream] generating migration: ${relFilePath}`)
     await fs.writeFile(absFilePath, finalContent)
   } catch (error) {
     throw new Error(`

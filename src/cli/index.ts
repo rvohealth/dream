@@ -320,7 +320,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .description('Seeds the database using the file located in db/seed.ts.')
       .action(async () => {
         if (process.env.NODE_ENV === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
-          console.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
+          DreamApp.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
           return
         }
 

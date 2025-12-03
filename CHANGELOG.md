@@ -1,3 +1,7 @@
+## 2.1.3
+
+- add avg and sum methods
+
 ## 2.1.2
 
 - add missing peerDependencies
