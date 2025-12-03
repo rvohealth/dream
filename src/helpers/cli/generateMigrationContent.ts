@@ -5,6 +5,7 @@ import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFie
 import { PrimaryKeyType } from '../../types/dream.js'
 import compact from '../compact.js'
 import snakeify from '../snakeify.js'
+import camelize from '../camelize.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
 const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
@@ -45,13 +46,14 @@ export default function generateMigrationContent({
        * email address are the same email address
        */
       const attributeType = nonStandardAttributeName === 'email' ? 'citext' : _attributeType
+      const processedAttrType = camelize(attributeType)?.toLowerCase()
 
       const userWantsThisOptional = optionalFromDescriptors(descriptors)
       // when creating a migration for an STI child, we don't want to include notNull;
       // instead, we'll add a check constraint that uses the STI child class name
       const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
-      if (attributeType === undefined || ['has_one', 'has_many'].includes(attributeType)) return acc
+      if (attributeType === undefined || ['hasone', 'hasmany'].includes(processedAttrType!)) return acc
       if (attributeType === 'citext') requireCitextExtension = true
 
       const arrayAttribute = /\[\]$/.test(attributeType)
@@ -60,8 +62,8 @@ export default function generateMigrationContent({
       if (nonStandardAttributeName === undefined) return acc
       let attributeName = snakeify(nonStandardAttributeName)
 
-      switch (attributeType) {
-        case 'belongs_to':
+      switch (processedAttrType) {
+        case 'belongsto':
           columnDefs.push(
             generateBelongsToStr(connectionName, attributeName, {
               primaryKeyType,
@@ -132,7 +134,7 @@ export default function generateMigrationContent({
 
       columnDrops.push(`.dropColumn('${attributeName}')`)
 
-      if (attributeType === 'belongs_to' || COLUMNS_TO_INDEX.includes(attributeName)) {
+      if (processedAttrType === 'belongsto' || COLUMNS_TO_INDEX.includes(attributeName)) {
         const indexName = `${table}_${attributeName}`
 
         indexDefs.push(`await db.schema

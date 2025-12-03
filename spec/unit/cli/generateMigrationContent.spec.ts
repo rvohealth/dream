@@ -716,6 +716,45 @@ export async function down(db: Kysely<any>): Promise<void> {
         )
       })
 
+      context('when using camelCase belongsTo', () => {
+        it('generates a kysely model with the belongsTo association', () => {
+          const res = generateMigrationContent({
+            table: 'compositions',
+            columnsWithTypes: ['Music/Score:belongsTo'],
+            primaryKeyType: 'bigserial',
+          })
+
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('compositions')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict').notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('compositions_score_id')
+    .on('compositions')
+    .column('score_id')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_score_id').execute()
+  await db.schema.dropTable('compositions').execute()
+}\
+`
+          )
+        })
+      })
+
       context('when optional is included', () => {
         it('omits notNull', () => {
           const res = generateMigrationContent({
@@ -804,7 +843,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('ignores the attribute', () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          columnsWithTypes: ['user:has_one'],
+          columnsWithTypes: ['user:has_one', 'pet:hasOne'],
           primaryKeyType: 'uuid',
         })
 
@@ -839,7 +878,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       it('ignores the attribute', () => {
         const res = generateMigrationContent({
           table: 'compositions',
-          columnsWithTypes: ['user:has_many'],
+          columnsWithTypes: ['user:has_many', 'pet:hasMany'],
           primaryKeyType: 'uuid',
         })
 

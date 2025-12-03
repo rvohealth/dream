@@ -206,6 +206,45 @@ export async function down(db: Kysely<any>): Promise<void> {
 `
       )
     })
+
+    context('with belongsTo camel cased', () => {
+      it('generates a kysely model with the belongsTo association', () => {
+        const res = generateStiMigrationContent({
+          table: 'compositions',
+          columnsWithTypes: ['music/score:belongsTo'],
+          primaryKeyType: 'bigserial',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('compositions')
+    .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict').notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('compositions_score_id')
+    .on('compositions')
+    .column('score_id')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_score_id').execute()
+  await db.schema
+    .alterTable('compositions')
+    .dropColumn('score_id')
+    .execute()
+}\
+`
+        )
+      })
+    })
   })
 
   context('belongs_to attribute is passed AND useUUID=false', () => {
@@ -240,6 +279,47 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('compositions')
     .dropColumn('user_id')
+    .execute()
+}\
+`
+      )
+    })
+  })
+
+  context('has_one and has_many attributes', () => {
+    it('ignores has_one and has_many statements', () => {
+      const res = generateStiMigrationContent({
+        table: 'users',
+        columnsWithTypes: [
+          'name:citext',
+          'pet:has_one',
+          'other_pet:hasOne',
+          'pets:has_many',
+          'other_pets:hasMany',
+        ],
+        primaryKeyType: 'bigserial',
+      })
+
+      expect(res).toEqual(
+        `\
+import { DreamMigrationHelpers } from '@rvoh/dream/db'
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await DreamMigrationHelpers.createExtension(db, 'citext')
+
+  await db.schema
+    .alterTable('users')
+    .addColumn('name', sql\`citext\`, col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('users')
+    .dropColumn('name')
     .execute()
 }\
 `

@@ -37,8 +37,9 @@ export default function generateFactoryContent({
     if (!attributeType)
       throw new Error(`Must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
 
-    switch (attributeType) {
-      case 'belongs_to': {
+    const safeAttributeType = camelize(attributeType)?.toLowerCase()
+    switch (safeAttributeType) {
+      case 'belongsto': {
         const attributeVariable = camelize(attributeName.split('/').pop()!)
         const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
         const associationModelName = globalClassNameFromFullyQualifiedModelName(

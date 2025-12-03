@@ -283,17 +283,23 @@ export const UserSerializer = (user: User) =>
       })
 
       context('when one of those attributes is an association', () => {
-        context('belongs_to', () => {
-          it('omits it from the attributes', () => {
-            const res = generateSerializerContent({
-              fullyQualifiedModelName: 'user',
-              columnsWithTypes: ['organization:belongs_to'],
-              stiBaseSerializer: false,
-              includeAdminSerializers: false,
-            })
+        it('omits it from the attributes', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'user',
+            columnsWithTypes: [
+              'organization:belongs_to',
+              'org:belongsTo',
+              'pet:has_one',
+              'pet2:hasOne',
+              'pets:has_many',
+              'pets2:hasMany',
+            ],
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
+          })
 
-            expect(res).toEqual(
-              `\
+          expect(res).toEqual(
+            `\
 import { DreamSerializer } from '@rvoh/dream'
 import User from '@models/User.js'
 
@@ -304,8 +310,7 @@ export const UserSummarySerializer = (user: User) =>
 export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
 `
-            )
-          })
+          )
         })
       })
     })
