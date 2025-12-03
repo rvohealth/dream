@@ -6,6 +6,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import CatShape from '../../../test-app/app/models/Shape/Cat.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -29,6 +30,23 @@ describe('Dream.preload', () => {
 
     const reloaded = await User.preload('compositions', { and: { content: 'goodbye' } }).first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      const heartRating = await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.preload('heartRatings', {
+        and: { extraRateable: composition },
+      }).first()
+      expect(reloaded!.heartRatings).toMatchDreamModels([heartRating])
+    })
   })
 
   context('within a transaction', () => {
@@ -111,6 +129,36 @@ describe('Dream.preload', () => {
       await Mylar.create()
       const reloadedMylar = await Mylar.firstOrFail()
       expect(() => reloadedMylar.shapable).toThrow(NonLoadedAssociation)
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    User
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .preload('invalid')
+
+    User
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .preload('allPets', { and: { invalidArg: 123 } })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        User.txn(txn)
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .preload('invalid')
+
+        User.txn(txn).preload('allPets', {
+          and: {
+            // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+            invalidArg: 123,
+          },
+        })
+      })
     })
   })
 })

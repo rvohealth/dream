@@ -2,6 +2,7 @@ import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAsso
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -25,6 +26,25 @@ describe('Dream#leftJoinLoad', () => {
     expect(clone.name).toEqual('Snoopy Snoopy Snoopy')
     expect(clone.pets).toMatchDreamModels([freshPet])
     expect(() => freshUser.pets).toThrow(NonLoadedAssociation)
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      const heartRating = await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await user
+        .leftJoinLoad('heartRatings', {
+          and: { extraRateable: composition },
+        })
+        .execute()
+      expect(reloaded.heartRatings).toMatchDreamModels([heartRating])
+    })
   })
 
   it('includes previously loaded associations', async () => {
@@ -122,6 +142,39 @@ describe('Dream#leftJoinLoad', () => {
       const clone = await user.leftJoinLoad('compositionAssets').leftJoinLoad('pets').execute()
       expect(clone.compositionAssets[0]!.name).toEqual('compositionAsset X')
       expect(clone.pets[0]!.name).toEqual('aster')
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    User.new()
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .leftJoinLoad('invalid')
+
+    User.new()
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .leftJoinLoad('allPets', { and: { invalidArg: 123 } })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        User.new()
+          .txn(txn)
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .leftJoinPreload('invalid')
+
+        User.new()
+          .txn(txn)
+          .leftJoinLoad('allPets', {
+            and: {
+              // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+              invalidArg: 123,
+            },
+          })
+      })
     })
   })
 })

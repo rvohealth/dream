@@ -432,3 +432,21 @@ describe('Dream#reallyDestroyAssociation', () => {
     })
   })
 })
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+    await User.new().reallyDestroyAssociation('notARealAssociation')
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        const user = User.new()
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+        await user.txn(txn).reallyDestroyAssociation('notARealAssociation')
+      })
+    })
+  })
+})

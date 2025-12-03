@@ -105,7 +105,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<DreamInstance> {
+  >(
+    this: I,
+    ...args: [...Arr, VariadicLoadArgs<DreamInstance, DB, Schema, TableName, Arr>]
+  ): LoadBuilder<DreamInstance> {
     return new LoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).load(...(args as any))
   }
 
@@ -206,7 +209,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     const Arr extends readonly unknown[],
   >(
     this: I,
-    ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]
+    ...args: [...Arr, VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>]
   ): LeftJoinLoadBuilder<DreamInstance> {
     return new LeftJoinLoadBuilder<DreamInstance>(this.dreamInstance, this.dreamTransaction).leftJoinLoad(
       ...(args as any)
@@ -232,7 +235,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -267,7 +270,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -561,6 +564,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     Schema extends DreamInstance['schema'],
     PassthroughOnStatement extends Required<
       OnStatementForSpecificColumns<
+        DreamInstance,
         DB,
         Schema,
         AssociationTableName,
@@ -569,6 +573,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     >,
     RequiredOnStatement extends Required<
       OnStatementForSpecificColumns<
+        DreamInstance,
         DB,
         Schema,
         AssociationTableName,
@@ -701,6 +706,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     Schema extends DreamInstance['schema'],
     PassthroughOnStatement extends Required<
       OnStatementForSpecificColumns<
+        DreamInstance,
         DB,
         Schema,
         AssociationTableName,
@@ -709,6 +715,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     >,
     RequiredOnStatement extends Required<
       OnStatementForSpecificColumns<
+        DreamInstance,
         DB,
         Schema,
         AssociationTableName,
@@ -792,6 +799,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     joinAndStatements: JoinAndStatements<
+      AssociationDream,
       DB,
       Schema,
       AssociationTableName,
@@ -809,7 +817,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    joinAndStatements?: JoinAndStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements?: JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
   ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   /**
@@ -862,7 +870,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
       skipHooks?: boolean
-    } & JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+    } & JoinAndStatements<
+      AssociationDream,
+      DB,
+      Schema,
+      AssociationTableName,
+      RequiredOnClauseKeysForThisAssociation
+    >
   ): Promise<number>
 
   public async updateAssociation<
@@ -880,7 +894,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
       skipHooks?: boolean
-    } & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    } & JoinAndStatements<DreamInstance, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -985,7 +999,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<DreamInstance> &
-      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<
+        AssociationDream,
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeysForThisAssociation
+      >
   ): Promise<number>
 
   public async destroyAssociation<
@@ -998,7 +1018,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<DreamInstance> &
+      JoinAndStatements<DreamInstance, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -1058,7 +1079,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<DreamInstance> &
-      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<
+        AssociationDream,
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeysForThisAssociation
+      >
   ): Promise<number>
 
   public async reallyDestroyAssociation<
@@ -1071,7 +1098,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<DreamInstance> &
+      JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -1136,7 +1164,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<DreamInstance> &
-      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<
+        AssociationDream,
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeysForThisAssociation
+      >
   ): Promise<number>
 
   public async undestroyAssociation<
@@ -1149,7 +1183,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<DreamInstance> &
+      JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**

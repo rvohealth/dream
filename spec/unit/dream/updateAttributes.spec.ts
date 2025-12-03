@@ -78,3 +78,24 @@ describe('Dream#updateAttributes', () => {
     })
   })
 })
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    await User.new().updateAttributes({
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      invalidArg: 123,
+    })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.new().txn(txn).updateAttributes({
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          invalidArg: 123,
+        })
+      })
+    })
+  })
+})
