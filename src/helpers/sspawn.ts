@@ -33,6 +33,7 @@ export function ssspawn(command: string, opts: SpawnOptions & { onStdout?: (str:
     if (opts?.onStdout) {
       opts?.onStdout?.(txt)
     } else {
+      // eslint-disable-next-line no-console
       console.log(txt)
     }
   })
@@ -46,5 +47,6 @@ export function ssspawn(command: string, opts: SpawnOptions & { onStdout?: (str:
 }
 
 function handleSpawnError(err: any) {
+  // eslint-disable-next-line no-console
   console.error(err?.toString())
 }

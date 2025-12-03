@@ -22,6 +22,7 @@ const config = typescriptEslint.config(
 
   {
     rules: {
+      'no-console': 'error',
       'no-unexpected-multiline': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',

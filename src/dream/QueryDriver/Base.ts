@@ -345,6 +345,40 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * Retrieves the sum value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.query().sum('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the sum of the values of the specified column for this Query
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async sum(columnName: string): Promise<any> {
+    throw new Error('implement sum in child class')
+  }
+
+  /**
+   * Retrieves the average value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.query().avg('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the average of the values of the specified column for this Query
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async avg(columnName: string): Promise<any> {
+    throw new Error('implement avg in child class')
+  }
+
+  /**
    * Retrieves the number of records in the database
    *
    * ```ts

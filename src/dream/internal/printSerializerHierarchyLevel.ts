@@ -30,7 +30,11 @@ export default function printSerializerHierarchyLevel({
   const prefix = `${hierarchyLine} `
   const nestedAssociationDisplay =
     indentation + `${prefix}${serializerAssociationType} ${yoctocolors.cyan(serializerAssociationName)}`
+
+  // eslint-disable-next-line no-console
   console.log(nestedAssociationDisplay)
+
+  // eslint-disable-next-line no-console
   console.log(
     yoctocolors.gray(
       indentation +

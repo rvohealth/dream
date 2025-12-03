@@ -1550,6 +1550,58 @@ export default class Query<
   }
 
   /**
+   * Retrieves the sum value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.query().sum('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the sum of the values of the specified column for this Query
+   */
+  public async sum<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    ColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
+  >(columnName: ColumnName): Promise<ReturnType> {
+    return await this.dbDriverInstance().sum(columnName)
+  }
+
+  /**
+   * Retrieves the average value of the specified column
+   * for this Query
+   *
+   * ```ts
+   * await Game.query().avg('score')
+   * // 1
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the average of the values of the specified column for this Query
+   */
+  public async avg<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    ColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
+  >(columnName: ColumnName): Promise<ReturnType> {
+    return await this.dbDriverInstance().avg(columnName)
+  }
+
+  /**
    * Plucks the provided fields from the given dream class table
    *
    * ```ts

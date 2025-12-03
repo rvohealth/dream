@@ -169,6 +169,7 @@ export default class DreamApp {
 
   private static checkKey(encryptionIdentifier: 'columns', key: string, algorithm: EncryptAlgorithm) {
     if (!Encrypt.validateKey(key, algorithm))
+      // eslint-disable-next-line no-console
       console.warn(
         `
 Your current key value for ${encryptionIdentifier} encryption is invalid.

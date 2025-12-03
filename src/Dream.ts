@@ -703,7 +703,10 @@ export default class Dream {
     const serializer = inferSerializersFromDreamClassOrViewModelClass(this, key)[0] ?? null
     if (!serializer) throw new Error(`unable to find serializer with key: ${key as string}`)
 
+    // eslint-disable-next-line no-console
     console.log(yoctocolors.cyan(this.sanitizedName))
+
+    // eslint-disable-next-line no-console
     console.log(yoctocolors.gray((serializer as unknown as Record<'globalName', string>).globalName))
 
     return this.recursiveSerializationMap(serializer, {
@@ -1291,6 +1294,46 @@ export default class Dream {
     columnName: ColumnName
   ) {
     return await this.query().min(columnName)
+  }
+
+  /**
+   * Retrieves the sum for all values of the specified column
+   * for this model's records.
+   *
+   *
+   * ```ts
+   * await Game.sum('score')
+   * // 100
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the sum for all values of the specified column for this model's records
+   */
+  public static async sum<T extends typeof Dream, ColumnName extends DreamColumnNames<InstanceType<T>>>(
+    this: T,
+    columnName: ColumnName
+  ) {
+    return await this.query().sum(columnName)
+  }
+
+  /**
+   * Retrieves the average for all values of the specified column
+   * for this model's records.
+   *
+   *
+   * ```ts
+   * await Game.avg('score')
+   * // 100
+   * ```
+   *
+   * @param columnName - a column name on the model
+   * @returns the average for all values of the specified column for this model's records
+   */
+  public static async avg<T extends typeof Dream, ColumnName extends DreamColumnNames<InstanceType<T>>>(
+    this: T,
+    columnName: ColumnName
+  ) {
+    return await this.query().avg(columnName)
   }
 
   /**

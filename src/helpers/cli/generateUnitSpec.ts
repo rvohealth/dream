@@ -1,4 +1,5 @@
 import * as fs from 'node:fs/promises'
+import DreamCLI from '../../cli/index.js'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
@@ -17,7 +18,8 @@ export default async function generateUnitSpec({
   )
 
   try {
-    console.log(`generating spec: ${relFilePath}`)
+    DreamCLI.logger.log(`[dream] generating spec: ${relFilePath}`)
+
     await fs.mkdir(absDirPath, { recursive: true })
     await fs.writeFile(absFilePath, generateUnitSpecContent({ fullyQualifiedModelName }))
   } catch (error) {

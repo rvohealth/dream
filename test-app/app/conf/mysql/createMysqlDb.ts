@@ -26,7 +26,9 @@ export default async function createMysqlDb(
   await new Promise(accept => {
     client.query(`CREATE DATABASE ${dbName};`, err => {
       if (err) {
+        // eslint-disable-next-line no-console
         console.log(`FAILED TO CREATE MYSQL DB: ${dbName}. Error:`)
+        // eslint-disable-next-line no-console
         console.error(err)
       }
       client.end(accept)

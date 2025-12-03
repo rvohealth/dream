@@ -30,6 +30,7 @@ export default class DreamCliLoggableText extends DreamCliLoggable {
   }
 
   public override render() {
+    // eslint-disable-next-line no-console
     console.log(
       `${this.colorizedLogPrefix} ${colorize(this.text, { color: this.color, bgColor: this.bgColor })}`
     )
