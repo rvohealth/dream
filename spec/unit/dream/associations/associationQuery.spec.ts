@@ -1,9 +1,11 @@
+import { sql } from 'kysely'
 import CannotAssociationQueryOnUnpersistedDream from '../../../../src/errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/helpers/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
@@ -12,6 +14,7 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import PostComment from '../../../../test-app/app/models/PostComment.js'
 import User from '../../../../test-app/app/models/User.js'
+import testDb from '../../../helpers/testDb.js'
 
 describe('Dream#associationQuery', () => {
   context('with undefined passed in a where clause', () => {
@@ -396,6 +399,62 @@ describe('Dream#associationQuery', () => {
 
         expect(await postComment.associationQuery('post').first()).toBeNull()
         expect(await postComment.associationQuery('postEvenIfDeleted').first()).toMatchDreamModel(post)
+      })
+    })
+
+    context('when providing an association as part of the query', () => {
+      it('supports querying by belongs to association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await Pet.create({ name: 'Aster', user })
+        const balloon = await Mylar.create({ user })
+        const collar = await pet.createAssociation('collars', { balloon })
+        const otherBalloon = await Mylar.create({ user })
+
+        const reloadedCollar = await pet.associationQuery('collars', { and: { balloon } }).first()
+        expect(reloadedCollar).toMatchDreamModel(collar)
+
+        const nullCollar = await pet.associationQuery('collars', { and: { balloon: otherBalloon } }).first()
+        expect(nullCollar).toBeNull()
+      })
+
+      context('polymorphic', () => {
+        it('correctly scopes the query by type and foreign key', async () => {
+          // restarting sequence on both composiitons and composition assets,
+          // since this will force the findBy to ensure that the foreign key type
+          // is also provided to narrow down results, or else this spec will fail
+          await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+          await sql`ALTER SEQUENCE composition_assets_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const composition = await Composition.create({ user })
+          const compositionAsset = await CompositionAsset.create({ composition })
+
+          const localizedText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+          const localizedText2 = await LocalizedText.create({
+            localizable: compositionAsset,
+            locale: 'en-US',
+          })
+
+          expect(
+            await composition.associationQuery('localizedTexts', { and: { localizable: composition } }).all()
+          ).toMatchDreamModels([localizedText1])
+          expect(
+            await composition
+              .associationQuery('localizedTexts', { and: { localizable: compositionAsset } })
+              .all()
+          ).toEqual([])
+
+          expect(
+            await compositionAsset
+              .associationQuery('localizedTexts', { and: { localizable: compositionAsset } })
+              .all()
+          ).toMatchDreamModels([localizedText2])
+          expect(
+            await compositionAsset
+              .associationQuery('localizedTexts', { and: { localizable: composition } })
+              .all()
+          ).toEqual([])
+        })
       })
     })
   })

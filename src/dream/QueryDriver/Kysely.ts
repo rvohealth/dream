@@ -115,6 +115,7 @@ import DreamTransaction from '../DreamTransaction.js'
 import throughAssociationHasOptionsBesidesThroughAndSource from '../internal/associations/throughAssociationHasOptionsBesidesThroughAndSource.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
+import extractAssignableAssociationAttributes from '../internal/extractAssignableAssociationAttributes.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
@@ -1017,11 +1018,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     )
   }
 
-  private aliasWhereStatements(whereStatements: Readonly<WhereStatement<any, any, any>[]>, alias: string) {
+  private aliasWhereStatements(
+    whereStatements: Readonly<WhereStatement<any, any, any, any>[]>,
+    alias: string
+  ) {
     return whereStatements.map(whereStatement => this.aliasWhereStatement(whereStatement, alias))
   }
 
-  private aliasWhereStatement(whereStatement: Readonly<WhereStatement<any, any, any>>, alias: string) {
+  private aliasWhereStatement(whereStatement: Readonly<WhereStatement<any, any, any, any>>, alias: string) {
     return Object.keys(whereStatement).reduce((aliasedWhere, key) => {
       aliasedWhere[this.namespaceColumn(key, alias)] = (whereStatement as any)[key]
       return aliasedWhere
@@ -1247,7 +1251,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private applyJoinAndStatement<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
-    joinAndStatement: JoinAndStatements<any, any, any, any> | null,
+    joinAndStatement: JoinAndStatements<any, any, any, any, any> | null,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>
   ) {
     if (!joinAndStatement) return join
@@ -1263,7 +1267,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private _applyJoinAndStatements<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
-    joinAndStatement: WhereStatement<any, any, any> | undefined,
+    joinAndStatement: WhereStatement<any, any, any, any> | undefined,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
     {
       negate = false,
@@ -1283,7 +1287,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private _applyJoinAndAnyStatements<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
-    joinAndAnyStatement: WhereStatement<any, any, any>[] | undefined,
+    joinAndAnyStatement: WhereStatement<any, any, any, any>[] | undefined,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>
   ) {
     if (!joinAndAnyStatement) return join
@@ -1299,7 +1303,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   private joinAndStatementToExpressionWrapper<Schema extends DreamInstance['schema']>(
-    joinAndStatement: WhereStatement<any, any, any>,
+    joinAndStatement: WhereStatement<any, any, any, any>,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
     eb: ExpressionBuilder<any, any>,
     {
@@ -1403,7 +1407,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private whereStatementToExpressionWrapper(
     eb: ExpressionBuilder<any, any>,
-    whereStatement: WhereStatement<any, any, any>,
+    whereStatement: WhereStatement<any, any, any, any>,
     {
       negate = false,
       disallowSimilarityOperator = true,
@@ -1538,16 +1542,30 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let b2: KyselyComparisonOperatorExpression | null = null
     let c2: any = null
 
+    const isolatedColumn = maybeNamespacedColumnNameToColumnName(attr)
     if (val instanceof Function && val !== DreamConst.passthrough) {
       val = val()
     } else if (val === DreamConst.passthrough) {
-      const column = maybeNamespacedColumnNameToColumnName(attr)
-      if ((this.query['passthroughOnStatement'] as any)[column] === undefined)
-        throw new MissingRequiredPassthroughForAssociationAndClause(column)
-      val = (this.query['passthroughOnStatement'] as any)[column]
+      if ((this.query['passthroughOnStatement'] as any)[isolatedColumn] === undefined)
+        throw new MissingRequiredPassthroughForAssociationAndClause(isolatedColumn)
+      val = (this.query['passthroughOnStatement'] as any)[isolatedColumn]
     }
 
-    if (val === null) {
+    if (this.dreamClass.associationNames.includes(isolatedColumn) && val instanceof Dream) {
+      const association = this.dreamClass['associationMetadataMap']()[isolatedColumn]!
+      const associationAttrs = extractAssignableAssociationAttributes(association, val)
+      const attrKeys = Object.keys(associationAttrs)
+
+      a = attrKeys[0]
+      b = '='
+      c = associationAttrs[attrKeys[0] as keyof typeof associationAttrs]
+
+      if (attrKeys.length > 1) {
+        a2 = attrKeys[1]
+        b2 = '='
+        c2 = associationAttrs[attrKeys[1] as keyof typeof associationAttrs]
+      }
+    } else if (val === null) {
       a = attr
       b = 'is'
       c = val
@@ -1630,13 +1648,17 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }: {
     query: QueryType
     joinStatement: RelaxedJoinStatement
-    joinAndStatements: RelaxedJoinAndStatement<any, any>
+    joinAndStatements: RelaxedJoinAndStatement<any, any, any>
     dreamClass: typeof Dream
     previousTableAlias: string
     joinType: 'inner' | 'left'
   }): QueryType {
     for (const associationString of Object.keys(joinStatement)) {
-      const joinAndStatement = joinAndStatements[associationString] as RelaxedJoinAndStatement<DB, Schema>
+      const joinAndStatement = joinAndStatements[associationString] as RelaxedJoinAndStatement<
+        DreamInstance,
+        DB,
+        Schema
+      >
 
       const { association, alias } = associationStringToAssociationAndMaybeAlias({
         dreamClass,
@@ -1831,7 +1853,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   private async applyPreload(
     this: KyselyQueryDriver<DreamInstance>,
     preloadStatement: RelaxedPreloadStatement,
-    preloadOnStatements: RelaxedPreloadOnStatement<any, any>,
+    preloadOnStatements: RelaxedPreloadOnStatement<any, any, any>,
     dream: Dream | Dream[]
   ) {
     const keys = Object.keys(preloadStatement as any)
@@ -1840,7 +1862,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       const nestedDreams = await this.applyOnePreload(
         key,
         dream,
-        this.applyablePreloadOnStatements(preloadOnStatements[key] as RelaxedPreloadOnStatement<any, any>)
+        this.applyablePreloadOnStatements(
+          preloadOnStatements[key] as RelaxedPreloadOnStatement<any, any, any>
+        )
       )
 
       if (nestedDreams.length) {
@@ -1855,8 +1879,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * retrieves on statements that can be applied to a preload
    */
   private applyablePreloadOnStatements(
-    preloadOnStatements: RelaxedPreloadOnStatement<any, any> | undefined
-  ): RelaxedPreloadOnStatement<any, any> | undefined {
+    preloadOnStatements: RelaxedPreloadOnStatement<any, any, any> | undefined
+  ): RelaxedPreloadOnStatement<any, any, any> | undefined {
     if (preloadOnStatements === undefined) return undefined
 
     return Object.keys(preloadOnStatements).reduce(
@@ -1877,7 +1901,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
         return agg
       },
-      {} as RelaxedPreloadOnStatement<any, any>
+      {} as RelaxedPreloadOnStatement<any, any, any>
     )
   }
 
@@ -1990,7 +2014,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
     explicitAlias: string | undefined
     previousTableAlias: string
-    joinAndStatement: RelaxedJoinAndStatement<any, any>
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
     joinType: JoinTypes
   }): {
     query: QueryType
@@ -2165,7 +2189,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     explicitAlias: string | undefined
     previousTableAlias: string
     selfTableAlias?: string
-    joinAndStatement?: RelaxedJoinAndStatement<any, any>
+    joinAndStatement?: RelaxedJoinAndStatement<any, any, any>
     previousThroughAssociation:
       | HasOneStatement<any, any, any, any>
       | HasManyStatement<any, any, any, any>
@@ -2247,7 +2271,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     explicitAlias: string | undefined
     previousTableAlias: string
     selfTableAlias: string
-    joinAndStatement: RelaxedJoinAndStatement<any, any>
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
     previousThroughAssociation:
       | HasOneStatement<any, any, any, any>
       | HasManyStatement<any, any, any, any>
@@ -2317,7 +2341,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
                     {
                       [association.foreignKeyTypeField()]:
                         dreamClassThroughAssociationWantsToHydrate.sanitizedName,
-                    } as WhereStatement<any, any, any>,
+                    } as WhereStatement<any, any, any, any>,
                     previousThroughAssociation.through!
                   )
                 )
@@ -2488,7 +2512,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     currentTableAlias: string
     selfTableAlias: string
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
-    joinAndStatement: RelaxedJoinAndStatement<any, any>
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
   }) {
     if (association.and) {
       this.throwUnlessAllRequiredWhereClausesProvided(association, currentTableAlias, joinAndStatement)
@@ -2496,7 +2520,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         this.whereStatementToExpressionWrapper(
           eb,
-          this.aliasWhereStatement(association.and as WhereStatement<any, any, any>, currentTableAlias),
+          this.aliasWhereStatement(association.and as WhereStatement<any, any, any, any>, currentTableAlias),
           { disallowSimilarityOperator: false }
         )
       )
@@ -2506,7 +2530,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         this.whereStatementToExpressionWrapper(
           eb,
-          this.aliasWhereStatement(association.andNot as WhereStatement<any, any, any>, currentTableAlias),
+          this.aliasWhereStatement(
+            association.andNot as WhereStatement<any, any, any, any>,
+            currentTableAlias
+          ),
           { negate: true }
         )
       )
@@ -2515,7 +2542,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     if (association.andAny) {
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         eb.or(
-          (association.andAny as WhereStatement<any, any, any>[]).map(whereAnyStatement =>
+          (association.andAny as WhereStatement<any, any, any, any>[]).map(whereAnyStatement =>
             this.whereStatementToExpressionWrapper(
               eb,
               this.aliasWhereStatement(whereAnyStatement, currentTableAlias),
@@ -2559,7 +2586,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   private throwUnlessAllRequiredWhereClausesProvided(
     association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>,
     namespace: string,
-    joinAndStatements: RelaxedJoinAndStatement<any, any>
+    joinAndStatements: RelaxedJoinAndStatement<any, any, any>
   ) {
     const andClause = association.and!
     const columnsRequiringAndStatements = Object.keys(andClause).reduce((agg, column) => {
@@ -2764,7 +2791,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     this: KyselyQueryDriver<DreamInstance>,
     associationNameAndMaybeAlias: string,
     dreams: Dream | Dream[],
-    onStatement: RelaxedPreloadOnStatement<any, any> = {}
+    onStatement: RelaxedPreloadOnStatement<any, any, any> = {}
   ): Promise<Dream[]> {
     if (!Array.isArray(dreams)) dreams = [dreams] as Dream[]
 
@@ -2786,7 +2813,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     this: KyselyQueryDriver<DreamInstance>,
     associationName: string,
     dreams: Dream[],
-    onStatement: RelaxedPreloadOnStatement<any, any> = {}
+    onStatement: RelaxedPreloadOnStatement<any, any, any> = {}
   ): Promise<Dream[]> {
     if (!dreams.length) return []
     const dream = dreams[0]!
@@ -2835,7 +2862,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     const hydrationData: any[][] = await associationDataScope['_connection'](this.connectionOverride)
-      .innerJoin(associationName, (onStatement || {}) as JoinAndStatements<any, any, any, any>)
+      .innerJoin(associationName, (onStatement || {}) as JoinAndStatements<any, any, any, any, any>)
       .pluck(...columnsToPluck)
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
