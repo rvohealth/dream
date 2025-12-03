@@ -256,6 +256,32 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       )
     })
 
+    context('with alternate casing for belongsTo', () => {
+      it('conditionally creates a default associated model iff an associated model is not provided', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['name:string', 'User:belongsTo'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream/types'
+import Post from '@models/Post.js'
+import createUser from '@spec/factories/UserFactory.js'
+
+let counter = 0
+
+export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
+  return await Post.create({
+    user: attrs.user ? null : await createUser(),
+    name: \`Post name \${++counter}\`,
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+
     context('with nesting', () => {
       it('includes includes automatic creation of associations', () => {
         const res = generateFactoryContent({

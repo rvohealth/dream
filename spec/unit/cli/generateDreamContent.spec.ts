@@ -399,6 +399,48 @@ export default class Composition extends ApplicationModel {
           )
         })
 
+        context('with belongsTo camelized instead of snake_cased', () => {
+          it('generates a BelongsTo relationship in model', () => {
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'composition',
+              columnsWithTypes: ['graph_node:belongsTo'],
+              serializer: true,
+              includeAdminSerializers: false,
+            })
+            expect(res).toEqual(
+              `\
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
+import ApplicationModel from '@models/ApplicationModel.js'
+import GraphNode from '@models/GraphNode.js'
+
+const deco = new Decorators<typeof Composition>()
+
+export default class Composition extends ApplicationModel {
+  public override get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @deco.BelongsTo('GraphNode', { on: 'graphNodeId' })
+  public graphNode: GraphNode
+  public graphNodeId: DreamColumn<Composition, 'graphNodeId'>
+}
+`
+            )
+          })
+        })
+
         context('when optional is included', () => {
           it('declares the BelongsTo association optional', () => {
             const res = generateDreamContent({
@@ -1096,7 +1138,9 @@ public ssn: DreamColumn<User, 'ssn'>`)
 
     it('ignores has_one and has_many attributes', () => {
       expect(processAttribute('posts:has_many', 'User')).toEqual({ content: '', imports: [] })
+      expect(processAttribute('posts:hasMany', 'User')).toEqual({ content: '', imports: [] })
       expect(processAttribute('profile:has_one', 'User')).toEqual({ content: '', imports: [] })
+      expect(processAttribute('profile:hasOne', 'User')).toEqual({ content: '', imports: [] })
     })
 
     it('throws error when attribute type is missing', () => {

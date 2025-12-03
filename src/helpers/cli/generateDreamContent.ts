@@ -151,11 +151,12 @@ export function processAttribute(attribute: string, modelClassName: string): Att
     throw new Error(`must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)
   }
 
-  switch (attributeType) {
-    case 'belongs_to':
+  const processedAttrType = camelize(attributeType).toLowerCase()
+  switch (processedAttrType) {
+    case 'belongsto':
       return createBelongsToAttribute(attributeName, descriptors, modelClassName)
-    case 'has_one':
-    case 'has_many':
+    case 'hasone':
+    case 'hasmany':
       return { content: '', imports: [] }
     case 'encrypted':
       return createEncryptedAttribute(attributeName, attribute, modelClassName)

@@ -1,3 +1,7 @@
+## 2.1.1
+
+generators support alternate casings when parsing association statements (i.e. `psy g model Pet user:belongsTo`)
+
 ## 2.1.0
 
 - Change type file generation to AST

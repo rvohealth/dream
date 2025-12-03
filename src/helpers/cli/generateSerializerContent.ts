@@ -86,7 +86,7 @@ export default function generateSerializerContent({
     .map(attr => {
       const [name, type] = attr.split(':')
       if (name === undefined) return ''
-      if (['belongs_to', 'has_one', 'has_many'].includes(type as any)) return ''
+      if (['belongsto', 'hasone', 'hasmany'].includes(camelize(type as any)?.toLowerCase())) return ''
 
       return `\n    ${attribute(modelClassName, name, type, attr, stiBaseSerializer)}`
     })
