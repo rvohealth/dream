@@ -75,6 +75,14 @@ describe('Query#where', () => {
     expect(reloadedUser).toMatchDreamModel(user)
   })
 
+  it('supports querying by belongs to association', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const pet = await Pet.create({ user })
+
+    const reloadedPet = await Pet.where({ user }).first()
+    expect(reloadedPet).toMatchDreamModel(pet)
+  })
+
   it('supports chaining `where` clauses', async () => {
     const user1 = await User.create({
       name: 'Hello',

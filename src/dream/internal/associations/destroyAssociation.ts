@@ -22,7 +22,7 @@ export default async function destroyAssociation<
     reallyDestroy,
     skipHooks,
   }: {
-    joinAndStatements: JoinAndStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements: JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
     cascade: boolean
