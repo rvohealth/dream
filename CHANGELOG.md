@@ -1,3 +1,7 @@
+## 2.1.2
+
+- add missing peerDependencies
+
 ## 2.1.1
 
 generators support alternate casings when parsing association statements (i.e. `psy g model Pet user:belongsTo`)
