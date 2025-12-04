@@ -4580,6 +4580,7 @@ export default class Dream {
     AssociationName extends DreamModelAssociationNames<Schema, TableName>,
   >(this: I, associationName: AssociationName) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       ;(this as any)[associationName]
       return true
     } catch (error) {

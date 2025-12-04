@@ -12,6 +12,7 @@ describe('InternalEncrypt', () => {
     })
 
     afterEach(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       originalEncryptionKey === undefined
         ? delete process.env.APP_ENCRYPTION_KEY
         : (process.env.APP_ENCRYPTION_KEY = originalEncryptionKey)

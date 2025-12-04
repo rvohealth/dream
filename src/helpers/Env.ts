@@ -73,6 +73,7 @@ export default class Env<
   }
 
   public setString(env: StringEnvs, val: string | undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     val === undefined ? delete process.env[env] : (process.env[env] = val)
   }
 
@@ -81,6 +82,7 @@ export default class Env<
   }
 
   public setInteger(env: IntegerEnvs, val: number | undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     val === undefined ? delete process.env[env] : (process.env[env] = Math.floor(val).toString())
   }
 

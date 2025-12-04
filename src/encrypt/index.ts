@@ -100,8 +100,12 @@ export default class Encrypt {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface EncryptOptions extends BaseOptions {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DecryptOptions extends BaseOptions {}
+
 interface BaseOptions {
   algorithm: EncryptAlgorithm
   key: string

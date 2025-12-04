@@ -1228,6 +1228,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
       // initialize by trying to access the association, which throws an exception if not yet initialized
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         ;(dream as any)[association.as]
       } catch {
         if (hasMany) (dream as any)[association.as] = []

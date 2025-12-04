@@ -3,9 +3,9 @@ docs/*
 test-app/types/*
 test-app/client/schema.ts
 boilerplate/
-.yarn/
-.yarnrc.yml
+.pnpm/
 src/global-cli/helpers/logo.ts
 .global-cli-dist
 .github/
 dist
+pnpm-lock.yaml

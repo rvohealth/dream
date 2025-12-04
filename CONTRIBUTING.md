@@ -68,11 +68,11 @@ TZ=UTC
 ### Build db and sync schema
 
 ```bash
-yarn install
-NODE_ENV=development yarn dream db:create
-NODE_ENV=development yarn dream db:migrate
-yarn dream db:create
-yarn dream db:migrate
+pnpm install
+NODE_ENV=development pnpm dream db:create
+NODE_ENV=development pnpm dream db:migrate
+pnpm dream db:create
+pnpm dream db:migrate
 ```
 
 #### Generating type docs
@@ -80,40 +80,40 @@ yarn dream db:migrate
 ```bash
 # first, you will need to update package.json version, in order to keep
 # docs generated on a per-version basis
-yarn build:docs
+pnpm build:docs
 ```
 
 #### CLI
 
 ```bash
-yarn build
+pnpm build
 # builds source code using the typescript compiler, sending it into the dist folder
 
-yarn spec
-# runs core development specs (same as yarn dream spec)
+pnpm spec
+# runs core development specs (same as pnpm dream spec)
 
-NODE_DEBUG=sql yarn spec
+NODE_DEBUG=sql pnpm spec
 # runs core development specs, printing SQL queries
 
-yarn console
-# opens console, providing access to the internal test-app/app/models folder (same as yarn dream console)
+pnpm console
+# opens console, providing access to the internal test-app/app/models folder (same as pnpm dream console)
 
-yarn dream
+pnpm dream
 # opens a small node cli program, which right now only provides commands for generating dreams and migrations,
 # but which will likely eventually encompass all of the above commands
 
-yarn dream db:migrate
+pnpm dream db:migrate
 # runs migrations for core development. Use this if you are working on the dream ORM source code.
 
-yarn dream db:migrate
+pnpm dream db:migrate
 # runs migrations for an app that is consuming the dream ORM. This is meant to be run from another repo,
 # e.g. within a different app's package.json:
 #
 #  "scripts": {
-#     "db:migrate": "yarn --cwd=node_modules/dream db:migrate"
+#     "db:migrate": "pnpm --cwd=node_modules/dream db:migrate"
 # }
 
-yarn dream sync
+pnpm dream sync
 # syncs db schema. This is necessary, because in order to provide deep integration with kysely,
 # Dream must actually introspect the schema of your app and provide it as part of the dream orm
 # source code build. It essentially scans your database, examines all tables, outputs interfaces
@@ -131,10 +131,10 @@ yarn dream sync
 # building layer. This is all copied to the file specified in the `.dream.yml#associations_path`. This is also
 # automatically done whenever you run migrations, run specs, or open a console
 
-yarn dream db:drop
+pnpm dream db:drop
 # drops the db for either the core app or a consuming app (which is why there is no "core:db:drop" variant)
 
-yarn dream db:create
+pnpm dream db:create
 # creates the db for either the core app or a consuming app (which is why there is no "core:db:create" variant)
 ```
 

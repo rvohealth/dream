@@ -145,7 +145,7 @@ export function associationPrimaryKeyAccessors(
     ...partialAssociation,
 
     primaryKey(
-      associationInstance?: Dream | undefined,
+      associationInstance?: Dream,
       { associatedClassOverride }: { associatedClassOverride?: typeof Dream | undefined } = {}
     ) {
       if (this.primaryKeyOverride) return this.primaryKeyOverride

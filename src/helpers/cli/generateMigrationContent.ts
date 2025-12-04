@@ -353,7 +353,7 @@ function generateColumnStr(
   if (attributeName === STI_TYPE_COLUMN_NAME)
     returnStr = `// CONSIDER: when using type for STI, always use an enum
     // Try using the enum syntax in your generator, e.g.:
-    // yarn psy g:model Balloon type:enum:balloon_type:latex,mylar
+    // pnpm psy g:model Balloon type:enum:balloon_type:latex,mylar
     ${returnStr}`
 
   return returnStr

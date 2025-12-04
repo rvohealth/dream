@@ -158,7 +158,7 @@ this test app is used to run all of our assertions, and is meant to be replaced 
 to get into the console, type:
 
 ```bash
-yarn console
+pnpm console
 ```
 
 Once inside the repl, you are able to access all the models within the test app. All the classes are automagically imported.
@@ -174,7 +174,7 @@ await user.save()
 Running specs is very easy, not much to explain here.
 
 ```
-yarn spec
+pnpm spec
 ```
 
 We are using jest under the hood, and have a plugin enabled called `jest-plugin-context`, which allows us to branch specs out using the `context` function in place of `describe`, like so:
@@ -210,7 +210,7 @@ describe('Dream#pluck', () => {
 Dream provides a similarity searching library out of the box which allows you to implement fuzzy-searching in your app. To use it, first write a migration.
 
 ```bash
-yarn psy g:migration add_fuzzy_search_to_users
+pnpm psy g:migration add_fuzzy_search_to_users
 ```
 
 Open the generated migration, create the pg_trgm extension and create a gin index for a field on your model
@@ -236,7 +236,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 Once done, run migrations
 
 ```bash
-NODE_ENV=development yarn psy db:migrate
+NODE_ENV=development pnpm psy db:migrate
 ```
 
 Now you can take full advantage of pg_trgm using the dream adapters!
