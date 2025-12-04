@@ -20,7 +20,7 @@ export interface BelongsToStatement<
   type: 'BelongsTo'
   as: string
   primaryKey: (
-    associationInstance?: Dream | undefined,
+    associationInstance?: Dream,
     opts?: { associatedClassOverride?: typeof Dream | undefined }
   ) => keyof DB[TableName] & string
   primaryKeyValue: (associationInstance: Dream | null) => any

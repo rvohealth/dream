@@ -42,6 +42,7 @@ describe('Accessing an association that hasn’t been loaded', () => {
     let message = ''
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       reloaded!.user
     } catch (err) {
       message = (err as any).message
@@ -61,6 +62,7 @@ describe('Accessing an association that hasn’t been loaded', () => {
       let message = ''
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         reloaded!.user
       } catch (err) {
         message = (err as any).message

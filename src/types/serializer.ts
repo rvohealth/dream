@@ -13,13 +13,13 @@ import {
 export type SerializerCasing = 'camel' | 'snake'
 export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
 
-export interface InternalAnyTypedSerializerAttribute<> {
+export interface InternalAnyTypedSerializerAttribute {
   type: 'attribute'
   name: string
   options: Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
 }
 
-export interface InternalAnyTypedSerializerDelegatedAttribute<> {
+export interface InternalAnyTypedSerializerDelegatedAttribute {
   type: 'delegatedAttribute'
   targetName: string
   name: string

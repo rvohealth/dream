@@ -221,7 +221,7 @@ export default class ASTConnectionBuilder extends ASTBuilder {
             const _foreignKey = associationMetaData.foreignKey()
             foreignKey = _foreignKey
           }
-        } catch (err) {
+        } catch {
           this.hasForeignKeyError = true
         }
 

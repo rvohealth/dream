@@ -43,7 +43,7 @@ remove dream-spec-helpers from peer dependencies
 - fix STI child generation with array attributes (arrays can always be initialized to an empty array, so can leverage a regular non-null constraint). E.g:
 
   ```
-  yarn psy g:sti-child Room/Bedroom extends Room bed_types:enum\[\]:bed_types:twin,bunk,queen,king,cot,sofabed
+  pnpm psy g:sti-child Room/Bedroom extends Room bed_types:enum\[\]:bed_types:twin,bunk,queen,king,cot,sofabed
   ```
 
 ## 1.12.0
@@ -173,7 +173,7 @@ Be sure to add any new environment variables to your .env and .env.test files.
 2. Run sync
 
 ```sh
-yarn psy sync
+pnpm psy sync
 ```
 
 3. add a new application model for your new connection, naming it the name of your connection, pascalized, with the string `ApplicationModel` at the end, like so:
@@ -210,7 +210,7 @@ export default class MyAlternateConnectionApplicationModel extends Dream {
 4. Now you can proceed to generate a model for your new connection, like so:
 
 ```sh
-yarn psy g:model MyNewModel someField:text --connection-name=myAlternateConnection
+pnpm psy g:model MyNewModel someField:text --connection-name=myAlternateConnection
 ```
 
 Dream will automatically read the connectionName and use it to derive the `MyAlternateConnectionApplicationModel` automatically, though if this isn't correct, you will need to manually adjust it.

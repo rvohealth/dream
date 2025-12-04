@@ -8,6 +8,7 @@ export default class DreamImporter {
     try {
       const dirents = await fs.readdir(dir, { withFileTypes: true })
       const files = await Promise.all(
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         dirents
           .map(dirent => {
             const res = path.resolve(dir, dirent.name)

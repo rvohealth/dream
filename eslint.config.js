@@ -6,9 +6,18 @@ import typescriptParser from '@typescript-eslint/parser'
 
 const config = typescriptEslint.config(
   eslint.configs.recommended,
-  ...typescriptEslint.configs.recommendedTypeChecked,
+  typescriptEslint.configs.recommendedTypeChecked,
+
   {
-    ignores: ['docs/**/*', 'test-app/types/*', '.yarn/**/*', '.yarnrc.yml', 'vite.config.ts'],
+    ignores: ['docs/**/*', 'test-app/types/**/*', '.npmrc', 'vite.config.ts', 'dist/**/*'],
+  },
+
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: { project: './tsconfig.json' },
+    },
   },
 
   {
@@ -21,14 +30,6 @@ const config = typescriptEslint.config(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-this-alias': 'off',
-    },
-  },
-
-  {
-    files: ['**/*.ts'],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: { project: './tsconfig.json' },
     },
   }
 )

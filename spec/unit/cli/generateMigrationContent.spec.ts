@@ -655,7 +655,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     // CONSIDER: when using type for STI, always use an enum
     // Try using the enum syntax in your generator, e.g.:
-    // yarn psy g:model Balloon type:enum:balloon_type:latex,mylar
+    // pnpm psy g:model Balloon type:enum:balloon_type:latex,mylar
     .addColumn('type', 'varchar(255)', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

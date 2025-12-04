@@ -92,7 +92,6 @@ jobs:
       ALTERNATE_DB_PORT: 5433
       MYSQL_DB_PORT: 3306
       TZ: UTC
-      YARN_CACHE_FOLDER: ~/.yarn-cache
       DREAM_PARALLEL_TESTS: 4
       APP_ENCRYPTION_KEY: ${{ secrets.APP_ENCRYPTION_KEY }}
       LEGACY_APP_ENCRYPTION_KEY: ${{ secrets.LEGACY_APP_ENCRYPTION_KEY }}
@@ -105,28 +104,20 @@ jobs:
 
       - run: corepack enable
 
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.yarn-cache
-          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
-
       - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
         name: List the state of node modules
         continue-on-error: true
-        run: yarn list
+        run: pnpm list
 
-      - run: yarn install --immutable
-      - run: yarn dream db:migrate --skip-sync
-      - run: yarn spec --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dream db:migrate --skip-sync
+      - run: pnpm spec --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
   linting:
     name: Linting
     runs-on: ubuntu-latest
     env:
       NODE_ENV: test
-      YARN_CACHE_FOLDER: ~/.yarn-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -135,27 +126,19 @@ jobs:
 
       - run: corepack enable
 
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.yarn-cache
-          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
-
       - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
         name: List the state of node modules
         continue-on-error: true
-        run: yarn list
+        run: pnpm list
 
-      - run: yarn install --immutable
-      - run: yarn lint
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
 
   check-build:
     name: Check build
     runs-on: ubuntu-latest
     env:
       NODE_ENV: production
-      YARN_CACHE_FOLDER: ~/.yarn-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -164,18 +147,11 @@ jobs:
 
       - run: corepack enable
 
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.yarn-cache
-          key: ${{ runner.os }}-cache-node-modules-${{ hashFiles('**/yarn.lock') }}
-
       - if: ${{ steps.cache-node-modules.outputs.cache-hit != 'true' }}
         name: List the state of node modules
         continue-on-error: true
-        run: yarn list
+        run: pnpm list
 
-      - run: yarn install --immutable
-      - run: yarn build
-      - run: yarn build:test-app
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm build:test-app

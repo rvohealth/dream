@@ -10,6 +10,7 @@ describe('Env', () => {
   }>()
 
   afterEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     originalNodeEnv === undefined ? delete process.env.NODE_ENV : (process.env.NODE_ENV = originalNodeEnv)
   })
 
