@@ -280,7 +280,12 @@ export default class DreamClassTransactionBuilder<
    */
   public async findBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    attributes: WhereStatement<DreamInstance['DB'], DreamInstance['schema'], DreamInstance['table']>
+    attributes: WhereStatement<
+      DreamInstance,
+      DreamInstance['DB'],
+      DreamInstance['schema'],
+      DreamInstance['table']
+    >
   ): Promise<DreamInstance | null> {
     return await this.queryInstance().findBy(attributes as any)
   }
@@ -302,7 +307,12 @@ export default class DreamClassTransactionBuilder<
    */
   public async findOrFailBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    whereStatement: WhereStatement<DreamInstance['DB'], DreamInstance['schema'], DreamInstance['table']>
+    whereStatement: WhereStatement<
+      DreamInstance,
+      DreamInstance['DB'],
+      DreamInstance['schema'],
+      DreamInstance['table']
+    >
   ): Promise<DreamInstance> {
     return await this.queryInstance().findOrFailBy(whereStatement)
   }
@@ -473,7 +483,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -516,7 +526,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<DreamInstance, DB, Schema, TableName, Arr>]) {
     return this.queryInstance().preload(...(args as any))
   }
 
@@ -591,7 +601,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -626,7 +636,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -886,7 +896,7 @@ export default class DreamClassTransactionBuilder<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
-  >(this: I, whereStatement: WhereStatement<DB, Schema, TableName>): Query<DreamInstance> {
+  >(this: I, whereStatement: WhereStatement<DreamInstance, DB, Schema, TableName>): Query<DreamInstance> {
     return this.queryInstance().where(whereStatement as any)
   }
 
@@ -909,7 +919,7 @@ export default class DreamClassTransactionBuilder<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
-  >(this: I, whereStatements: WhereStatement<DB, Schema, TableName>[]): Query<DreamInstance> {
+  >(this: I, whereStatements: WhereStatement<DreamInstance, DB, Schema, TableName>[]): Query<DreamInstance> {
     return this.queryInstance().whereAny(whereStatements as any)
   }
 
@@ -932,7 +942,7 @@ export default class DreamClassTransactionBuilder<
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
-  >(this: I, whereStatement: WhereStatement<DB, Schema, TableName>): Query<DreamInstance> {
+  >(this: I, whereStatement: WhereStatement<DreamInstance, DB, Schema, TableName>): Query<DreamInstance> {
     return this.queryInstance().whereNot(whereStatement as any)
   }
 }

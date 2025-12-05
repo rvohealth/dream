@@ -3,6 +3,7 @@ import MissingRequiredAssociationAndClause from '../../../../src/errors/associat
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/helpers/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
@@ -24,6 +25,22 @@ describe('Dream#updateAssociation', () => {
 
       expect(aster.species).toEqual('cat')
       expect(violet.species).toEqual('dog')
+    })
+
+    context('with an association provided as an attribute during update', () => {
+      it('persists the associated record', async () => {
+        const pet = await Pet.create({ name: 'Aster' })
+        const user = await pet.createAssociation('user', {
+          email: 'fred@fred',
+          password: 'howyadoin',
+        })
+        const balloon = await Mylar.create({ user })
+        await pet.createAssociation('collars')
+        await pet.updateAssociation('collars', { balloon })
+
+        const reloadedCollar = await Collar.findOrFailBy({ pet })
+        expect(reloadedCollar.balloonId).toEqual(balloon.id)
+      })
     })
 
     it('retains the association based limits', async () => {
