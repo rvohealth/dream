@@ -2,6 +2,7 @@ import * as LoadModelsModule from '../../../src/dream-app/helpers/importers/impo
 import DreamApp from '../../../src/dream-app/index.js'
 import DreamAppInitMissingCallToLoadModels from '../../../src/errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../../../src/errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
+import DreamAppInitMissingPackageManager from '../../../src/errors/dream-app/DreamAppInitMissingPackageManager.js'
 import InvalidTableName from '../../../src/errors/InvalidTableName.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
@@ -24,6 +25,7 @@ describe('DreamApp#init', () => {
   context('with a valid config', () => {
     it('does not raise an exception', async () => {
       const cb = async (app: DreamApp) => {
+        app.set('packageManager', 'pnpm')
         app.set('projectRoot', 'how/yadoin')
         app.set('db', dbCredentials)
 
@@ -34,10 +36,24 @@ describe('DreamApp#init', () => {
     })
   })
 
+  context('packageManager is not set', () => {
+    it('throws targeted exception', async () => {
+      const cb = async (app: DreamApp) => {
+        app.set('projectRoot', 'how/yadoin')
+        app.set('db', dbCredentials)
+
+        await app.load('models', 'how/yadoin', async path => (await import(path)).default)
+      }
+
+      await expect(DreamApp.init(cb)).rejects.toThrow(DreamAppInitMissingPackageManager)
+    })
+  })
+
   context('with an invalid config', () => {
     context('load("models") never called', () => {
       it('throws targeted exception', async () => {
         const cb = (app: DreamApp) => {
+          app.set('packageManager', 'pnpm')
           app.set('projectRoot', 'how/yadoin')
           app.set('db', dbCredentials)
         }
@@ -49,11 +65,24 @@ describe('DreamApp#init', () => {
     context('projectRoot not set', () => {
       it('throws targeted exception', async () => {
         const cb = async (app: DreamApp) => {
-          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
+          app.set('packageManager', 'pnpm')
           app.set('db', dbCredentials)
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
         }
 
         await expect(DreamApp.init(cb)).rejects.toThrow(DreamAppInitMissingMissingProjectRoot)
+      })
+    })
+
+    context('packageManager is set to an unrecognized value', () => {
+      it('throws targeted exception', async () => {
+        const cb = async (app: DreamApp) => {
+          app.set('projectRoot', 'how/yadoin')
+          app.set('db', dbCredentials)
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
+        }
+
+        await expect(DreamApp.init(cb)).rejects.toThrow(DreamAppInitMissingPackageManager)
       })
     })
 
@@ -67,6 +96,7 @@ describe('DreamApp#init', () => {
 
       it('throws targeted exception', async () => {
         const cb = async (app: DreamApp) => {
+          app.set('packageManager', 'pnpm')
           app.set('projectRoot', 'how/yadoin')
           app.set('db', dbCredentials)
 

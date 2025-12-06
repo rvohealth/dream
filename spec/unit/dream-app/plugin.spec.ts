@@ -20,6 +20,7 @@ describe('DreamApp#plugin', () => {
   const defaultBehavior = async (app: DreamApp) => {
     app.set('projectRoot', 'how/yadoin')
     app.set('db', dbCredentials)
+    app.set('packageManager', 'pnpm')
     await app.load('models', 'how/yadoin', async path => (await import(path)).default)
   }
 

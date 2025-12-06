@@ -1,3 +1,7 @@
+## 2.1.4
+
+- move packageManager check to dream application, provide a low-level ENV bypass so that create-psychic can bypass the package manager check when auditioning new package managers without needing to publish new versions of dream.
+
 ## 2.1.3
 
 - add avg and sum methods
