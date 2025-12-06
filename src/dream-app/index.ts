@@ -32,6 +32,7 @@ import importSerializers, {
   setCachedSerializers,
 } from './helpers/importers/importSerializers.js'
 import lookupClassByGlobalName from './helpers/lookupClassByGlobalName.js'
+import DreamAppInitMissingPackageManager from '../errors/dream-app/DreamAppInitMissingPackageManager.js'
 
 // this needs to be done top-level to ensure proper configuration
 Settings.defaultZone = 'UTC'
@@ -138,6 +139,12 @@ export default class DreamApp {
         this.encryption.columns.current.key,
         this.encryption.columns.current.algorithm
       )
+
+    if (
+      !DreamAppAllowedPackageManagersEnumValues.includes(this.packageManager) &&
+      !EnvInternal.boolean('DREAM_BYPASS_PACKAGE_MANAGER_CHECK')
+    )
+      throw new DreamAppInitMissingPackageManager()
 
     if (!bypassDreamIntegrityChecks) this.validateApplicationModels()
   }
