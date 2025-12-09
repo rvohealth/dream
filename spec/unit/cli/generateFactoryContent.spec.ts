@@ -26,6 +26,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
         fullyQualifiedModelName: 'Post',
         columnsWithTypes: [
           'style:enum:building_style:formal,informal',
+          'my_uuid:uud',
           'title:citext',
           'subtitle:string',
           'body_markdown:text',
@@ -38,6 +39,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
       })
       expect(res).toEqual(
         `\
+import { randomUUID } from 'node:crypto'
 import { CalendarDate, DateTime } from '@rvoh/dream'
 import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
@@ -47,6 +49,7 @@ let counter = 0
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
     style: 'formal',
+    myUuid: randomUUID(),
     title: \`Post title \${++counter}\`,
     subtitle: \`Post subtitle \${counter}\`,
     bodyMarkdown: \`Post bodyMarkdown \${counter}\`,

@@ -16,6 +16,7 @@ export default function generateFactoryContent({
   const dreamTypeImports: string[] = ['UpdateableProperties']
   const dreamImports: string[] = []
   const additionalImports: string[] = []
+  const nodeImports: string[] = []
 
   const belongsToNames: string[] = []
   const belongsToTypedNames: string[] = []
@@ -126,6 +127,12 @@ export default function generateFactoryContent({
         attributeDefaults.push(`${attributeVariable}: [DateTime.now()],`)
         break
 
+      case 'uuid':
+      case 'uud':
+        nodeImports.push('randomUUID')
+        attributeDefaults.push(`${attributeVariable}: randomUUID(),`)
+        break
+
       default:
         if (/\[\]$/.test(attributeType)) {
           attributeDefaults.push(`${attributeVariable}: [],`)
@@ -138,7 +145,7 @@ export default function generateFactoryContent({
   const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   return `\
-${dreamImports.length ? `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'\n` : ''}import { ${uniq(dreamTypeImports).join(', ')} } from '@rvoh/dream/types'
+${nodeImports.length ? `import { ${uniq(nodeImports).join(', ')} } from 'node:crypto'\n` : ''}${dreamImports.length ? `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'\n` : ''}import { ${uniq(dreamTypeImports).join(', ')} } from '@rvoh/dream/types'
 import ${modelClassName} from '${relativePath}'${
     additionalImports.length ? '\n' + uniq(additionalImports).join('\n') : ''
   }

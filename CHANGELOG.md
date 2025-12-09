@@ -1,3 +1,7 @@
+## 2.1.4
+
+- model factory for uuid fields should `import { randomUUID } from 'node:crypto'` and set the value to `randomUUID()`
+
 ## 2.1.3
 
 - add avg and sum methods

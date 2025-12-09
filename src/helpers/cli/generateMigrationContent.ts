@@ -3,9 +3,9 @@ import Dream from '../../Dream.js'
 import Query from '../../dream/Query.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
 import { PrimaryKeyType } from '../../types/dream.js'
+import camelize from '../camelize.js'
 import compact from '../compact.js'
 import snakeify from '../snakeify.js'
-import camelize from '../camelize.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
 const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
@@ -338,7 +338,7 @@ function generateColumnStr(
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
   const notNull = !optional
-  const isUnique = attributeName === 'email' || /token$/.test(attributeName)
+  const isUnique = /(email|token|uuid)$/.test(attributeName)
   const hasExtraValues = providedDefault || notNull || isUnique
   const isArray = /\[\]$/.test(attributeType)
 

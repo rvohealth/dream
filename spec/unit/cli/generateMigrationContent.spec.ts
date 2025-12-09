@@ -206,12 +206,13 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   context('when provided attributes', () => {
     context('string attributes', () => {
-      it('generates a kysely migration with multiple text fields (making email and tokens unique and emails automatically citext)', () => {
+      it('generates a kysely migration with multiple text fields (making email, uuid, and tokens unique and emails automatically citext)', () => {
         const res = generateMigrationContent({
           table: 'users',
           columnsWithTypes: [
             'email:string',
             'token:string:36',
+            'my_uuid:uuid',
             'auth_token:string:36',
             'name:citext',
             'password_digest:string',
@@ -236,6 +237,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('email', sql\`citext\`, col => col.notNull().unique())
     .addColumn('token', 'varchar(36)', col => col.notNull().unique())
+    .addColumn('my_uuid', 'uuid', col => col.notNull().unique())
     .addColumn('auth_token', 'varchar(36)', col => col.notNull().unique())
     .addColumn('name', sql\`citext\`, col => col.notNull())
     .addColumn('password_digest', 'varchar(255)', col => col.notNull())
@@ -816,7 +818,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         .defaultTo(sql\`uuid_generate_v4()\`),
     )
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
-    .addColumn('some_uuid', 'uuid', col => col.notNull())
+    .addColumn('some_uuid', 'uuid', col => col.notNull().unique())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
