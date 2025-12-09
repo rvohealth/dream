@@ -27,6 +27,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
         columnsWithTypes: [
           'style:enum:building_style:formal,informal',
           'my_uuid:uuid',
+          'uuid_not_defined_as_uuid:citext',
           'title:citext',
           'subtitle:string',
           'body_markdown:text',
@@ -50,6 +51,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
   return await Post.create({
     style: 'formal',
     myUuid: randomUUID(),
+    uuidNotDefinedAsUuid: randomUUID(),
     title: \`Post title \${++counter}\`,
     subtitle: \`Post subtitle \${counter}\`,
     bodyMarkdown: \`Post bodyMarkdown \${counter}\`,

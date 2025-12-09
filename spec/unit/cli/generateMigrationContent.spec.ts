@@ -213,6 +213,7 @@ export async function down(db: Kysely<any>): Promise<void> {
             'email:string',
             'token:string:36',
             'my_uuid:uuid',
+            'uuid_not_defined_as_uuid:citext',
             'auth_token:string:36',
             'name:citext',
             'password_digest:string',
@@ -238,6 +239,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('email', sql\`citext\`, col => col.notNull().unique())
     .addColumn('token', 'varchar(36)', col => col.notNull().unique())
     .addColumn('my_uuid', 'uuid', col => col.notNull().unique())
+    .addColumn('uuid_not_defined_as_uuid', 'uuid', col => col.notNull().unique())
     .addColumn('auth_token', 'varchar(36)', col => col.notNull().unique())
     .addColumn('name', sql\`citext\`, col => col.notNull())
     .addColumn('password_digest', 'varchar(255)', col => col.notNull())

@@ -25,15 +25,16 @@ export default function generateFactoryContent({
   let counterVariableIncremented = false
 
   for (const attribute of columnsWithTypes) {
-    const [attributeName, attributeType, ...descriptors] = attribute.split(':')
+    const [attributeName, _attributeType, ...descriptors] = attribute.split(':')
     if (attributeName === undefined) continue
-    if (attributeType === undefined) continue
+    if (_attributeType === undefined) continue
     const optional = optionalFromDescriptors(descriptors)
     if (optional) continue
     const attributeVariable = camelize(attributeName.replace(/\//g, ''))
 
     if (/^type$/.test(attributeName)) continue
     if (/(_type|_id)$/.test(attributeName)) continue
+    const attributeType = /uuid$/.test(attributeName) ? 'uuid' : _attributeType
 
     if (!attributeType)
       throw new Error(`Must pass a column type for ${attributeName} (i.e. ${attributeName}:string)`)

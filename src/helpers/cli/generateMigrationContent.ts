@@ -40,12 +40,17 @@ export default function generateMigrationContent({
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
       const [nonStandardAttributeName, _attributeType, ...descriptors] = attributeDeclaration.split(':')
+      if (!nonStandardAttributeName) return acc
 
       /**
        * Automatically set email columns to citext since different casings of
        * email address are the same email address
        */
-      const attributeType = nonStandardAttributeName === 'email' ? 'citext' : _attributeType
+      const attributeType = /email$/.test(nonStandardAttributeName)
+        ? 'citext'
+        : /uuid$/.test(nonStandardAttributeName)
+          ? 'uuid'
+          : _attributeType
       const processedAttrType = camelize(attributeType)?.toLowerCase()
 
       const userWantsThisOptional = optionalFromDescriptors(descriptors)
