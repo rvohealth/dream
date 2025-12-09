@@ -133,6 +133,11 @@ export default function generateFactoryContent({
         attributeDefaults.push(`${attributeVariable}: randomUUID(),`)
         break
 
+      case 'uuid[]':
+        nodeImports.push('randomUUID')
+        attributeDefaults.push(`${attributeVariable}: [randomUUID()],`)
+        break
+
       default:
         if (/\[\]$/.test(attributeType)) {
           attributeDefaults.push(`${attributeVariable}: [],`)

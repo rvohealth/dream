@@ -75,6 +75,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
             'types:enum[]:post_type:WeeklyPost,GuestPost',
             'styles:enum[]:building_style:formal,informal',
             'titles:citext[]',
+            'uuids:uuid[]',
             'subtitles:string[]',
             'body_markdowns:text[]',
             'ratings:decimal[]:3,2',
@@ -86,6 +87,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
         expect(res).toEqual(
           `\
+import { randomUUID } from 'node:crypto'
 import { CalendarDate, DateTime } from '@rvoh/dream'
 import { UpdateableProperties } from '@rvoh/dream/types'
 import Post from '@models/Post.js'
@@ -97,6 +99,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
     types: ['WeeklyPost'],
     styles: ['formal'],
     titles: [\`Post titles \${++counter}\`],
+    uuids: [randomUUID()],
     subtitles: [\`Post subtitles \${counter}\`],
     bodyMarkdowns: [\`Post bodyMarkdowns \${counter}\`],
     ratings: [1.1],

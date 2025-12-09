@@ -115,6 +115,7 @@ export async function down(db: Kysely<any>): Promise<void> {
           columnsWithTypes: [
             'name:text[]',
             'emails:citext[]',
+            'uuids:uuid[]',
             'phone_number:string[]',
             'deliciousness:decimal[]:4,2',
             'my_bools:boolean[]',
@@ -146,6 +147,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .alterTable('chalupas')
     .addColumn('name', sql\`text[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('emails', sql\`citext[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('uuids', sql\`uuid[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('phone_number', sql\`varchar(255)[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('deliciousness', sql\`decimal(4, 2)[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('my_bools', sql\`boolean[]\`, col => col.notNull().defaultTo('{}'))
@@ -161,6 +163,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     .alterTable('chalupas')
     .dropColumn('name')
     .dropColumn('emails')
+    .dropColumn('uuids')
     .dropColumn('phone_number')
     .dropColumn('deliciousness')
     .dropColumn('my_bools')
