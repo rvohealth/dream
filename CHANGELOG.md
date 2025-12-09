@@ -1,4 +1,4 @@
-## 2.2.0
+## 2.1.4
 
 - model factory for uuid fields should `import { randomUUID } from 'node:crypto'` and set the value to `randomUUID()`
 - generators support UUIDv7
