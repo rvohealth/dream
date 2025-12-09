@@ -4234,6 +4234,13 @@ export default class Dream {
    * For HasMany associations, returns an array (empty if no records). For BelongsTo/HasOne
    * associations, returns the associated model or null if not found.
    *
+   * @remarks
+   * **Warning:** Using `association` in loops or when processing multiple records can lead to the
+   * [N+1 query problem](https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations).
+   * Each call to `association` on an unloaded association will trigger a separate database query.
+   * To avoid this, use {@link Dream.load | `load`} or {@link Dream.preload | `preload`} to eager load
+   * associations before accessing them.
+   *
    * ```ts
    * // Basic association loading
    * const user = await post.association('user')
@@ -4354,7 +4361,7 @@ export default class Dream {
   ///////////////////
 
   ///////////////////
-  // end:associationOrFail
+  // associationOrFail
   ///////////////////
   /**
    * If the association is already loaded on the instance, it returns the loaded value
@@ -4370,6 +4377,13 @@ export default class Dream {
    *
    * For HasMany associations, returns an array (empty if no records). For BelongsTo/HasOne
    * associations, returns the associated model or throws RecordNotFound if not found.
+   *
+   * @remarks
+   * **Warning:** Using `associationOrFail` in loops or when processing multiple records can lead to the
+   * [N+1 query problem](https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations).
+   * Each call to `associationOrFail` on an unloaded association will trigger a separate database query.
+   * To avoid this, use {@link Dream.load | `load`} or {@link Dream.preload | `preload`} to eager load
+   * associations before accessing them.
    *
    * ```ts
    * // Basic association loading - throws RecordNotFound if user doesn't exist

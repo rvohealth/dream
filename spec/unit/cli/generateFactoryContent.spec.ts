@@ -26,7 +26,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
         fullyQualifiedModelName: 'Post',
         columnsWithTypes: [
           'style:enum:building_style:formal,informal',
-          'my_uuid:uud',
+          'my_uuid:uuid',
           'title:citext',
           'subtitle:string',
           'body_markdown:text',

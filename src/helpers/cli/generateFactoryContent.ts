@@ -128,7 +128,6 @@ export default function generateFactoryContent({
         break
 
       case 'uuid':
-      case 'uud':
         nodeImports.push('randomUUID')
         attributeDefaults.push(`${attributeVariable}: randomUUID(),`)
         break
