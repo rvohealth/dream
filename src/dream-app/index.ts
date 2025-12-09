@@ -3,7 +3,6 @@ import * as util from 'node:util'
 import { Context } from 'node:vm'
 import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
-import { primaryKeyTypes } from '../dream/constants.js'
 import Query from '../dream/Query.js'
 import QueryDriverBase from '../dream/QueryDriver/Base.js'
 import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
@@ -24,7 +23,7 @@ import inferSerializerFromDreamOrViewModel, {
 } from '../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 import isDreamSerializer from '../serializer/helpers/isDreamSerializer.js'
 import serializerNameFromFullyQualifiedModelName from '../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
-import { DbConnectionType } from '../types/db.js'
+import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../types/db.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from '../types/serializer.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
 import importModels, { getModelsOrFail } from './helpers/importers/importModels.js'
@@ -245,7 +244,7 @@ Try setting it to something valid, like:
     return this._paginationPageSize
   }
 
-  private _primaryKeyType: (typeof primaryKeyTypes)[number] = 'bigserial'
+  private _primaryKeyType: LegacyCompatiblePrimaryKeyType = 'bigserial'
   public get primaryKeyType() {
     return this._primaryKeyType
   }
@@ -413,7 +412,7 @@ Try setting it to something valid, like:
         : ApplyOpt extends 'encryption'
           ? DreamAppEncryptionOptions
           : ApplyOpt extends 'primaryKeyType'
-            ? (typeof primaryKeyTypes)[number]
+            ? LegacyCompatiblePrimaryKeyType
             : ApplyOpt extends 'importExtension'
               ? GeneratorImportStyle
               : ApplyOpt extends 'logger'
@@ -453,7 +452,7 @@ Try setting it to something valid, like:
         break
 
       case 'primaryKeyType':
-        this._primaryKeyType = options as (typeof primaryKeyTypes)[number]
+        this._primaryKeyType = options as LegacyCompatiblePrimaryKeyType
         break
 
       case 'importExtension':
@@ -541,7 +540,7 @@ export type DreamHookEventType = 'db:log' | 'repl:start'
 
 export interface DreamAppOpts {
   projectRoot: string
-  primaryKeyType: (typeof primaryKeyTypes)[number]
+  primaryKeyType: LegacyCompatiblePrimaryKeyType
   db: DreamDbCredentialOptions
   inflections?: () => void | Promise<void>
   paths?: DreamDirectoryPaths

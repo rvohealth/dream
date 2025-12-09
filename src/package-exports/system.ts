@@ -6,6 +6,7 @@ export {
   DreamAppAllowedPackageManagersEnumValues,
   type DreamAppAllowedPackageManagersEnum,
 } from '../dream-app/index.js'
+export { primaryKeyTypes } from '../dream/constants.js'
 export { default as DreamLogos } from '../helpers/DreamLogos/DreamLogos.js'
 export { default as DreamSerializerBuilder } from '../serializer/builders/DreamSerializerBuilder.js'
 export { default as ObjectSerializerBuilder } from '../serializer/builders/ObjectSerializerBuilder.js'

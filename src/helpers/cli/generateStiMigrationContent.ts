@@ -1,4 +1,4 @@
-import { PrimaryKeyType } from '../../types/dream.js'
+import { LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import generateMigrationContent from './generateMigrationContent.js'
 
 export default function generateStiMigrationContent({
@@ -9,7 +9,7 @@ export default function generateStiMigrationContent({
 }: {
   table?: string
   columnsWithTypes?: string[]
-  primaryKeyType?: PrimaryKeyType
+  primaryKeyType?: LegacyCompatiblePrimaryKeyType
   stiChildClassName?: string
 }) {
   return generateMigrationContent({

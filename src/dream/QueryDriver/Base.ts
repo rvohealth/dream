@@ -1,15 +1,11 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
 import CalendarDate from '../../helpers/CalendarDate.js'
+import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
 import { DateTime } from '../../helpers/DateTime.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
-import { DbConnectionType } from '../../types/db.js'
-import {
-  DreamColumnNames,
-  DreamConstructorType,
-  DreamTableSchema,
-  PrimaryKeyType,
-} from '../../types/dream.js'
+import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
+import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
 import {
   PreloadedDreamsAndWhatTheyPointTo,
   QueryToKyselyDBType,
@@ -17,7 +13,6 @@ import {
 } from '../../types/query.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
-import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
 
 export default class QueryDriverBase<DreamInstance extends Dream> {
   protected readonly dreamClass: DreamConstructorType<DreamInstance>
@@ -192,8 +187,10 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * returns the foreign key type based on the primary key received.
    * gives the driver the opportunity to switch i.e. bigserial to bigint.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType): PrimaryKeyType {
+  public static foreignKeyTypeFromPrimaryKey(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    primaryKey: LegacyCompatiblePrimaryKeyType
+  ): LegacyCompatiblePrimaryKeyType {
     throw new Error('implement foreignKeyTypeFromPrimaryKey in child class')
   }
 

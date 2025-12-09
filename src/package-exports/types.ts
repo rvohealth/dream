@@ -1,5 +1,4 @@
 export { type DecoratorContext } from '../decorators/DecoratorContextType.js'
-export { type primaryKeyTypes, type TRIGRAM_OPERATORS } from '../dream/constants.js'
 export { type EncryptAlgorithm, type EncryptOptions } from '../encrypt/index.js'
 export { type RoundingPrecision } from '../helpers/round.js'
 export { type Camelized, type Hyphenized, type Pascalized, type Snakeified } from '../helpers/stringCasing.js'
@@ -7,7 +6,7 @@ export { type SerializerRendererOpts } from '../serializer/SerializerRenderer.js
 export { type BelongsToStatement } from '../types/associations/belongsTo.js'
 export { type HasManyStatement } from '../types/associations/hasMany.js'
 export { type HasOneStatement } from '../types/associations/hasOne.js'
-export { type DbConnectionType, type DbTypes } from '../types/db.js'
+export { type DbConnectionType, type DbTypes, type PrimaryKeyType } from '../types/db.js'
 export { type StrictInterface } from '../types/utils.js'
 
 export {

@@ -2,7 +2,7 @@ import pluralize from 'pluralize-esm'
 import Dream from '../../Dream.js'
 import Query from '../../dream/Query.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
-import { PrimaryKeyType } from '../../types/dream.js'
+import { LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
 import snakeify from '../snakeify.js'
@@ -28,7 +28,7 @@ export default function generateMigrationContent({
   connectionName?: string
   table?: string | undefined
   columnsWithTypes?: string[] | undefined
-  primaryKeyType?: PrimaryKeyType | undefined
+  primaryKeyType?: LegacyCompatiblePrimaryKeyType | undefined
   createOrAlter?: 'create' | 'alter' | undefined
   stiChildClassName?: string | undefined
 } = {}) {
@@ -392,7 +392,7 @@ function generateBelongsToStr(
     primaryKeyType,
     omitInlineNonNull: optional = false,
   }: {
-    primaryKeyType: PrimaryKeyType
+    primaryKeyType: LegacyCompatiblePrimaryKeyType
     omitInlineNonNull: boolean
   }
 ) {
@@ -402,8 +402,24 @@ function generateBelongsToStr(
   return `.addColumn('${associationNameToForeignKey(associationName.split('/').pop()!)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
 
-function generateIdStr({ primaryKeyType }: { primaryKeyType: PrimaryKeyType }) {
+function generateIdStr({ primaryKeyType }: { primaryKeyType: LegacyCompatiblePrimaryKeyType }) {
   switch (primaryKeyType) {
+    case 'uuid7':
+      return `\
+.addColumn('id', 'uuid', col =>
+      col
+        .primaryKey()
+        .defaultTo(sql\`uuidv7()\`),
+    )`
+
+    case 'uuid4':
+      return `\
+.addColumn('id', 'uuid', col =>
+      col
+        .primaryKey()
+        .defaultTo(sql\`gen_random_uuid()\`),
+    )`
+
     case 'uuid':
       return `\
 .addColumn('id', 'uuid', col =>

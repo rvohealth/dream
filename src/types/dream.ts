@@ -1,7 +1,7 @@
 import { ColumnType, Updateable } from 'kysely'
 import { STI_SCOPE_NAME } from '../decorators/class/STI.js'
 import Dream from '../Dream.js'
-import { primaryKeyTypes, TRIGRAM_OPERATORS } from '../dream/constants.js'
+import { TRIGRAM_OPERATORS } from '../dream/constants.js'
 import CalendarDate from '../helpers/CalendarDate.js'
 import { DateTime } from '../helpers/DateTime.js'
 import OpsStatement from '../ops/ops-statement.js'
@@ -16,8 +16,6 @@ import { FindEachOpts } from './query.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from './serializer.js'
 import { FilterInterface, Inc, RejectInterface } from './utils.js'
 import { AliasedSchemaAssociation } from './variadic.js'
-
-export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
 
 export type DreamPrimaryKeyType<
   I extends Dream,

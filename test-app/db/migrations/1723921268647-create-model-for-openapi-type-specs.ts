@@ -2,7 +2,6 @@ import { Kysely, sql } from 'kysely'
 import DreamMigrationHelpers from '../../../src/db/migration-helpers/DreamMigrationHelpers.js'
 
 export async function up(db: Kysely<any>): Promise<void> {
-  await DreamMigrationHelpers.createExtension(db, 'uuid-ossp')
   await DreamMigrationHelpers.createExtension(db, 'citext')
 
   await db.schema.createType('species_types_enum').asEnum(['cat', 'noncat']).execute()
@@ -49,11 +48,11 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('favorite_integers', sql`integer[]`)
     .addColumn('required_favorite_integers', sql`integer[]`, col => col.defaultTo('{}').notNull())
     .addColumn('created_on', 'date', col => col.notNull().defaultTo(sql`now()`))
-    .addColumn('optional_uuid', 'uuid', col => col.defaultTo(sql`uuid_generate_v4()`).unique())
+    .addColumn('optional_uuid', 'uuid', col => col.defaultTo(sql`gen_random_uuid()`).unique())
     .addColumn('uuid', 'uuid', col =>
       col
         .notNull()
-        .defaultTo(sql`uuid_generate_v4()`)
+        .defaultTo(sql`gen_random_uuid()`)
         .unique()
     )
     .addColumn('bio', 'text', col => col.notNull().defaultTo('my bio'))

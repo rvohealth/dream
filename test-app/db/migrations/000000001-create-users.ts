@@ -2,7 +2,6 @@ import { Kysely, sql } from 'kysely'
 import DreamMigrationHelpers from '../../../src/db/migration-helpers/DreamMigrationHelpers.js'
 
 export async function up(db: Kysely<any>): Promise<void> {
-  await DreamMigrationHelpers.createExtension(db, 'uuid-ossp')
   await DreamMigrationHelpers.createExtension(db, 'citext')
 
   await db.schema
@@ -11,7 +10,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('uuid', 'uuid', col =>
       col
         .notNull()
-        .defaultTo(sql`uuid_generate_v4()`)
+        .defaultTo(sql`gen_random_uuid()`)
         .unique()
     )
     .addColumn('name', 'varchar')

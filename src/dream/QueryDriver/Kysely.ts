@@ -84,7 +84,7 @@ import { BelongsToStatement } from '../../types/associations/belongsTo.js'
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import { HasOneStatement } from '../../types/associations/hasOne.js'
 import { AssociationStatement, SelfOnStatement, WhereStatement } from '../../types/associations/shared.js'
-import { DbConnectionType } from '../../types/db.js'
+import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import {
   AliasToDreamIdMap,
   AllDefaultScopeNames,
@@ -95,7 +95,6 @@ import {
   DreamTableSchema,
   JoinAndStatements,
   OrderDir,
-  PrimaryKeyType,
   RelaxedJoinAndStatement,
   RelaxedJoinStatement,
   RelaxedPreloadOnStatement,
@@ -123,6 +122,7 @@ import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
 import checkForNeedToBeRunMigrations from './helpers/kysely/checkForNeedToBeRunMigrations.js'
+import foreignKeyTypeFromPrimaryKey from './helpers/kysely/foreignKeyTypeFromPrimaryKey.js'
 import runMigration from './helpers/kysely/runMigration.js'
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
@@ -321,14 +321,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * returns the foreign key type based on the primary key received.
    * gives the driver the opportunity to switch i.e. bigserial to bigint.
    */
-  public static override foreignKeyTypeFromPrimaryKey(primaryKey: PrimaryKeyType) {
-    switch (primaryKey) {
-      case 'bigserial':
-        return 'bigint'
-
-      default:
-        return primaryKey
-    }
+  public static override foreignKeyTypeFromPrimaryKey(primaryKey: LegacyCompatiblePrimaryKeyType) {
+    return foreignKeyTypeFromPrimaryKey(primaryKey)
   }
 
   /**
@@ -343,6 +337,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     switch (dreamconf.primaryKeyType) {
       case 'bigint':
       case 'bigserial':
+      case 'uuid7':
+      case 'uuid4':
       case 'uuid':
       case 'integer':
         return dreamconf.primaryKeyType

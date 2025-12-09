@@ -801,7 +801,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         })
       })
 
-      context('when useUUID=true', () => {
+      context('when primaryKeyType is "uuid"', () => {
         it('generates a kysely model with the belongsTo association, providing correct usage of uuid in each case', () => {
           const res = generateMigrationContent({
             table: 'compositions',
@@ -821,6 +821,94 @@ export async function up(db: Kysely<any>): Promise<void> {
       col
         .primaryKey()
         .defaultTo(sql\`uuid_generate_v4()\`),
+    )
+    .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
+    .addColumn('some_uuid', 'uuid', col => col.notNull().unique())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('compositions_user_id')
+    .on('compositions')
+    .column('user_id')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_user_id').execute()
+  await db.schema.dropTable('compositions').execute()
+}\
+`
+          )
+        })
+      })
+
+      context('when primaryKeyType is "uuid4"', () => {
+        it('generates a kysely model with the belongsTo association, providing correct usage of uuid in each case', () => {
+          const res = generateMigrationContent({
+            table: 'compositions',
+            columnsWithTypes: ['user:belongs_to', 'some_uuid:uuid'],
+            primaryKeyType: 'uuid4',
+          })
+
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('compositions')
+    .addColumn('id', 'uuid', col =>
+      col
+        .primaryKey()
+        .defaultTo(sql\`gen_random_uuid()\`),
+    )
+    .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
+    .addColumn('some_uuid', 'uuid', col => col.notNull().unique())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('compositions_user_id')
+    .on('compositions')
+    .column('user_id')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropIndex('compositions_user_id').execute()
+  await db.schema.dropTable('compositions').execute()
+}\
+`
+          )
+        })
+      })
+
+      context('when primaryKeyType is "uuid7"', () => {
+        it('generates a kysely model with the belongsTo association, providing correct usage of uuid in each case', () => {
+          const res = generateMigrationContent({
+            table: 'compositions',
+            columnsWithTypes: ['user:belongs_to', 'some_uuid:uuid'],
+            primaryKeyType: 'uuid7',
+          })
+
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('compositions')
+    .addColumn('id', 'uuid', col =>
+      col
+        .primaryKey()
+        .defaultTo(sql\`uuidv7()\`),
     )
     .addColumn('user_id', 'uuid', col => col.references('users.id').onDelete('restrict').notNull())
     .addColumn('some_uuid', 'uuid', col => col.notNull().unique())
