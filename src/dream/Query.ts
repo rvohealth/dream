@@ -50,6 +50,8 @@ import {
   TableOrAssociationName,
 } from '../types/dream.js'
 import {
+  CursorPaginatedDreamQueryOptions,
+  CursorPaginatedDreamQueryResult,
   DefaultQueryTypeOptions,
   ExtendQueryType,
   FindEachOpts,
@@ -59,8 +61,6 @@ import {
   PaginatedDreamQueryResult,
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
-  ScrollPaginatedDreamQueryOptions,
-  ScrollPaginatedDreamQueryResult,
 } from '../types/query.js'
 import {
   JoinedAssociation,
@@ -1805,7 +1805,7 @@ export default class Query<
 
     const query = this.orderStatements.length
       ? this
-      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+      : this.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
 
     const results = await query
       .limit(pageSize as any)
@@ -1821,10 +1821,16 @@ export default class Query<
   }
 
   /**
-   * Fast paginates the results of your query using cursor-based pagination,
+   * @deprecated Use {@link cursorPaginate} instead.
+   *
+   * Paginates the results of your query using cursor-based pagination,
    * accepting a pageSize and cursor argument. This method
    * provides better performance for large datasets by using cursor-based
    * pagination instead of offset-based pagination.
+   *
+   * Default order is ascending primary key. If an order has already been
+   * set on the query, and it includes the primary key (e.g.: `id: 'asc'`),
+   * then the implicit primary key ordering will be omitted.
    *
    * ```ts
    * // First page (using undefined to start from beginning)
@@ -1842,7 +1848,7 @@ export default class Query<
    * })
    * ```
    *
-   * @param opts - Fast pagination options
+   * @param opts - scroll pagination options
    * @param opts.pageSize - the number of results per page (optional)
    * @param opts.cursor - identifier of where to start the next page; undefined to start from the beginning; null when no more pages
    * @returns results.cursor - identifier for the next page, or null if no more pages
@@ -1855,9 +1861,63 @@ export default class Query<
     this: Q,
     opts: Incompatible extends true
       ? 'scrollPaginate is incompatible with limit, offset, and leftJoinPreload'[]
-      : ScrollPaginatedDreamQueryOptions
-  ): Promise<ScrollPaginatedDreamQueryResult<DreamInstance>> {
-    const options = opts as ScrollPaginatedDreamQueryOptions
+      : CursorPaginatedDreamQueryOptions
+  ): Promise<CursorPaginatedDreamQueryResult<DreamInstance>> {
+    const orderIncludesPrimaryKey = this.orderStatements.some(
+      orderStatement =>
+        orderStatement.column === this.dreamClass.primaryKey ||
+        orderStatement.column === this.namespacedPrimaryKey
+    )
+
+    const query = orderIncludesPrimaryKey
+      ? this
+      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+
+    return await query.cursorPaginate(opts)
+  }
+
+  /**
+   * Paginates the results of your query using cursor-based pagination,
+   * accepting a pageSize and cursor argument. This method
+   * provides better performance for large datasets by using cursor-based
+   * pagination instead of offset-based pagination.
+   *
+   * Default order is descending primary key. If an order has already been
+   * set on the query, and it includes the primary key (e.g.: `id: 'asc'`),
+   * then the implicit primary key ordering will be omitted.
+   *
+   * ```ts
+   * // First page (using undefined to start from beginning)
+   * const firstPage = await User.order('email').cursorPaginate({ pageSize: 100, cursor: undefined })
+   * firstPage.results
+   * // [ { User{id: 777}, User{id: 776}, ...}]
+   *
+   * firstPage.cursor
+   * // "100" (or null if no more pages)
+   *
+   * // Next page using cursor from previous result
+   * const nextPage = await User.order('email').cursorPaginate({
+   *   pageSize: 100,
+   *   cursor: firstPage.cursor
+   * })
+   * ```
+   *
+   * @param opts - cursor pagination options
+   * @param opts.pageSize - the number of results per page (optional)
+   * @param opts.cursor - identifier of where to start the next page; undefined to start from the beginning; null when no more pages
+   * @returns results.cursor - identifier for the next page, or null if no more pages
+   * @returns results.results - An array of records for the current page
+   */
+  public async cursorPaginate<
+    Q extends Query<DreamInstance, any>,
+    Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowPaginate: false }> ? true : false,
+  >(
+    this: Q,
+    opts: Incompatible extends true
+      ? 'scrollPaginate is incompatible with limit, offset, and leftJoinPreload'[]
+      : CursorPaginatedDreamQueryOptions
+  ): Promise<CursorPaginatedDreamQueryResult<DreamInstance>> {
+    const options = opts as CursorPaginatedDreamQueryOptions
     const pageSize = Math.max(0, options.pageSize ?? 0) || DreamApp.getOrFail().paginationPageSize
     if (options === null) return { cursor: null, results: [] }
     if (this.limitStatement) throw new CannotPaginateWithLimit()
@@ -1872,64 +1932,106 @@ export default class Query<
 
     let query = orderIncludesPrimaryKey
       ? this
-      : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
+      : this.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
 
     if (options.cursor) {
       const orderStatements = query.orderStatements
 
-      /**
-       * if there is only one ordering, then that is the primary key (either added above or in the original),
-       * so we don't need to pluck values, and all we need is the primary key that we already have in the cursor
-       */
-      const endOfPreviousPageComparisonValues =
-        orderStatements.length === 1
-          ? [options.cursor]
-          : (
-              await query
-                .removeDefaultScopeExceptOnAssociations(
-                  SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>
-                )
-                .where({ [this.namespacedPrimaryKey]: options.cursor } as any)
+      if (orderStatements.length === 1) {
+        /**
+         * Since we add a primary key above if it wasn't already included, we know
+         * that if there is only one order statement, then it must be ordering on
+         * the primary key
+         */
+        const orderStatement = orderStatements[0]!
 
-                .limit(1)
-                .order(null)
-                .pluck(...orderStatements.map(orderStatement => orderStatement.column))
-            )[0] || []
-
-      endOfPreviousPageComparisonValues.forEach((valueToCompare, index) => {
-        const orderStatement = orderStatements[index]!
-
-        if (
-          orderStatement.column === this.dreamClass.primaryKey ||
-          orderStatement.column === this.namespacedPrimaryKey
-        ) {
-          switch (orderStatement.direction) {
-            case 'asc':
-              query = query.where({
-                [orderStatement.column]: ops.greaterThan(valueToCompare),
-              } as any) as typeof query
-              break
-            case 'desc':
-              query = query.where({
-                [orderStatement.column]: ops.lessThan(valueToCompare),
-              } as any) as typeof query
-              break
-          }
-        } else {
-          switch (orderStatement.direction) {
-            case 'asc':
-              query = query.where({
-                [orderStatement.column]: ops.greaterThanOrEqualTo(valueToCompare),
-              } as any) as typeof query
-              break
-            case 'desc':
-              query = query.where({
-                [orderStatement.column]: ops.lessThanOrEqualTo(valueToCompare),
-              } as any) as typeof query
-              break
-          }
+        switch (orderStatement.direction) {
+          case 'asc':
+            query = query.where({
+              [orderStatement.column]: ops.greaterThan(options.cursor),
+            } as any) as typeof query
+            break
+          case 'desc':
+            query = query.where({
+              [orderStatement.column]: ops.lessThan(options.cursor),
+            } as any) as typeof query
+            break
         }
-      })
+      } else {
+        const endOfPreviousPageComparisonValues = (
+          await query
+            .removeDefaultScopeExceptOnAssociations(SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>)
+            .where({ [this.namespacedPrimaryKey]: options.cursor } as any)
+
+            .limit(1)
+            .order(null)
+            .pluck(...orderStatements.map(orderStatement => orderStatement.column))
+        )[0]
+
+        if (endOfPreviousPageComparisonValues) {
+          const whereAnyMaybeEqualArray: any[] = []
+
+          for (let index = 0; index < endOfPreviousPageComparisonValues.length; index++) {
+            /**
+             * This nested loop enables us to give priority to the left-most order clause,
+             * then the left-most and next left-most, etc., replicating what ordering on
+             * multiple clauses does:
+             *
+             *  const results = await Pet.query()
+             *    .leftJoin('user')
+             *    // The primary key is implicitly added if not explicitly present, so these two
+             *    // order clauses appear in the query with an additional primary key clause.
+             *    // This supports pagination when the earlier order clauses match multiple records.
+             *    .order({ 'pets.name': 'asc', 'user.id': 'asc' })
+             *    .cursorPaginate({ pageSize: 2, cursor: undefined })
+             *
+             * Results in:
+             *
+             * SELECT
+             * 	"pets".*
+             * FROM
+             * 	"pets"
+             * 	LEFT JOIN "users" AS "user" ON "pets"."user_id" = "user"."id"
+             * 		AND "user"."deleted_at" IS NULL
+             * WHERE ("pets"."deleted_at" IS NULL
+             * 	AND (
+             *    "pets"."name" > $1
+             * 		OR (
+             *    "pets"."name" = $2 AND "user"."id" > $3
+             * 		) OR (
+             *    "pets"."name" = $4 AND "user"."id" = $5 AND "pets"."id" < $6
+             *   )))
+             * ORDER BY
+             * 	"pets"."name" ASC nulls FIRST,
+             * 	"user"."id" ASC nulls FIRST,
+             * 	"pets"."id" DESC nulls LAST
+             * LIMIT $7
+             */
+            const whereAnyMaybeEqual: any = {}
+            whereAnyMaybeEqualArray.push(whereAnyMaybeEqual)
+
+            for (let nestedIndex = 0; nestedIndex <= index; nestedIndex++) {
+              const valueToCompare = endOfPreviousPageComparisonValues[nestedIndex]
+              const orderStatement = orderStatements[nestedIndex]!
+
+              if (nestedIndex < index) {
+                whereAnyMaybeEqual[orderStatement.column] = valueToCompare
+              } else if (nestedIndex === index) {
+                switch (orderStatement.direction) {
+                  case 'asc':
+                    whereAnyMaybeEqual[orderStatement.column] = ops.greaterThan(valueToCompare)
+                    break
+                  case 'desc':
+                    whereAnyMaybeEqual[orderStatement.column] = ops.lessThan(valueToCompare)
+                    break
+                }
+              }
+            }
+          }
+
+          query = query.whereAny(whereAnyMaybeEqualArray) as typeof query
+        }
+      }
     }
 
     const results = await query.limit(pageSize as any).all()

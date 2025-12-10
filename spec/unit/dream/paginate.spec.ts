@@ -7,25 +7,25 @@ describe('Dream.paginate', () => {
   let user4: User
 
   beforeEach(async () => {
-    user1 = await User.create({
+    user4 = await User.create({
       email: 'a@aaaaa',
       password: 'howyadoin',
     })
-    user2 = await User.create({
+    user3 = await User.create({
       email: 'b@bbbbb',
       password: 'howyadoin',
     })
-    user3 = await User.create({
+    user2 = await User.create({
       email: 'c@ccccc',
       password: 'howyadoin',
     })
-    user4 = await User.create({
+    user1 = await User.create({
       email: 'd@ddddd',
       password: 'howyadoin',
     })
   })
 
-  it('paginates the records', async () => {
+  it('paginates the records, reverse-ordered by primary key', async () => {
     const results = await User.paginate({ pageSize: 2, page: 1 })
 
     expect(results).toEqual({

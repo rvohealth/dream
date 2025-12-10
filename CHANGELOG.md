@@ -1,3 +1,9 @@
+## 2.2.0
+
+- fix `scrollPaginate` when ordering by non-primary key
+- `scrollPaginate` is a deprecated (prefer `cursorPaginate`)
+- default `paginate` and `cursorPaginate` sort is reverse primary key since (for keys that represent creation order) in most domains, more recent is more relevant, so should be shown first
+
 ## 2.1.4
 
 - model factory for uuid fields should `import { randomUUID } from 'node:crypto'` and set the value to `randomUUID()`

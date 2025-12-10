@@ -30,14 +30,14 @@ describe('Query#paginate', () => {
   })
 
   context('without an explicit order', () => {
-    it('orders by primary key', async () => {
+    it('reverse-orders by primary key', async () => {
       const results = await User.query().paginate({ pageSize: 2, page: 1 })
 
       expect(results).toEqual({
         recordCount: 4,
         pageCount: 2,
         currentPage: 1,
-        results: [expect.toMatchDreamModel(user2), expect.toMatchDreamModel(user3)],
+        results: [expect.toMatchDreamModel(user1), expect.toMatchDreamModel(user4)],
       })
     })
   })

@@ -117,6 +117,8 @@ import {
 import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
   BaseModelColumnTypes,
+  CursorPaginatedDreamQueryOptions,
+  CursorPaginatedDreamQueryResult,
   DefaultQueryTypeOptions,
   FindEachOpts,
   LoadForModifierFn,
@@ -124,8 +126,6 @@ import {
   PaginatedDreamQueryResult,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
-  ScrollPaginatedDreamQueryOptions,
-  ScrollPaginatedDreamQueryResult,
 } from './types/query.js'
 import {
   DreamModelSerializerType,
@@ -1189,10 +1189,14 @@ export default class Dream {
   }
 
   /**
-   * Fast paginates the results of your query using cursor-based pagination,
+   * @deprecated Use {@link cursorPaginate} instead.
+   *
+   * Paginates the results of your query using cursor-based pagination,
    * accepting a pageSize and cursor argument. This method
    * provides better performance for large datasets by using cursor-based
    * pagination instead of offset-based pagination.
+   *
+   * Default order is ascending primary key.
    *
    * ```ts
    * // First page (using undefined to start from beginning)
@@ -1210,7 +1214,7 @@ export default class Dream {
    * })
    * ```
    *
-   * @param opts - Fast pagination options
+   * @param opts - scroll pagination options
    * @param opts.pageSize - the number of results per page
    * @param opts.cursor - identifier of where to start the next page; use undefined to start from the beginning
    * @returns A fast pagination result object containing:
@@ -1219,9 +1223,47 @@ export default class Dream {
    */
   public static async scrollPaginate<T extends typeof Dream>(
     this: T,
-    opts: ScrollPaginatedDreamQueryOptions
-  ): Promise<ScrollPaginatedDreamQueryResult<InstanceType<T>>> {
+    opts: CursorPaginatedDreamQueryOptions
+  ): Promise<CursorPaginatedDreamQueryResult<InstanceType<T>>> {
     return await this.query().scrollPaginate(opts)
+  }
+
+  /**
+   * Paginates the results of your query using cursor-based pagination,
+   * accepting a pageSize and cursor argument. This method
+   * provides better performance for large datasets by using cursor-based
+   * pagination instead of offset-based pagination.
+   *
+   * Default order is descending primary key.
+   *
+   * ```ts
+   * // First page (using undefined to start from beginning)
+   * const firstPage = await User.cursorPaginate({ pageSize: 100, cursor: undefined })
+   * firstPage.results
+   * // [ { User{id: 777}, User{id: 776}, ...}]
+   *
+   * firstPage.cursor
+   * // "100" (or null if no more pages)
+   *
+   * // Next page using cursor from previous result
+   * const nextPage = await User.cursorPaginate({
+   *   pageSize: 100,
+   *   cursor: firstPage.cursor
+   * })
+   * ```
+   *
+   * @param opts - cursor pagination options
+   * @param opts.pageSize - the number of results per page
+   * @param opts.cursor - identifier of where to start the next page; use undefined to start from the beginning
+   * @returns A fast pagination result object containing:
+   * - `cursor` - identifier for the next page, or null if no more pages
+   * - `results` - An array of records for the current page
+   */
+  public static async cursorPaginate<T extends typeof Dream>(
+    this: T,
+    opts: CursorPaginatedDreamQueryOptions
+  ): Promise<CursorPaginatedDreamQueryResult<InstanceType<T>>> {
+    return await this.query().cursorPaginate(opts)
   }
 
   /**
