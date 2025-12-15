@@ -155,3 +155,93 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm build:test-app
+
+  check-no-sync-diff:
+    name: Ensure no sync diffs
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13-alpine
+        env:
+          POSTGRES_USER: dream
+          POSTGRES_DB: dream_test
+          POSTGRES_PASSWORD: "postgres"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      postgresAlternateConnection:
+        image: postgres:13-alpine
+        env:
+          POSTGRES_USER: dream
+          POSTGRES_DB: dream_test_alternate
+          POSTGRES_PASSWORD: "postgres"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_USER: dream
+          MYSQL_DATABASE: dream_test_mysql
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: password
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 3306:3306
+
+    env:
+      NODE_ENV: test
+      PORT: 7778
+      DB_USER: dream
+      MYSQL_DB_USER: root
+      DB_USER_ROOT_MYSQL: root
+      DB_NAME: dream_test
+      ALTERNATE_DB_NAME: dream_test_alternate
+      MYSQL_DB_NAME: dream_test_mysql
+      DB_HOST: localhost
+      MYSQL_DB_HOST: localhost
+      REPLICA_DB_HOST: localhost
+      REPLICA_DB_PORT: 5432
+      DB_PASSWORD: postgres
+      MYSQL_DB_PASSWORD: password
+      DB_PORT: 5432
+      ALTERNATE_DB_PORT: 5433
+      MYSQL_DB_PORT: 3306
+      TZ: UTC
+      DREAM_PARALLEL_TESTS: 4
+      APP_ENCRYPTION_KEY: ${{ secrets.APP_ENCRYPTION_KEY }}
+      LEGACY_APP_ENCRYPTION_KEY: ${{ secrets.LEGACY_APP_ENCRYPTION_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dream db:migrate --skip-sync
+      - run: pnpm dream sync
+      - name: Check for sync differences
+        run: |
+          if [ -n "$(git diff)" ]; then
+            echo "Error: 'pnpm dream sync' produced changes. Please run 'pnpm dream sync' locally and commit the changes."
+            echo "Changes detected:"
+            git diff
+            exit 1
+          else
+            echo "No changes detected after sync - all good!"
+          fi
+
+
