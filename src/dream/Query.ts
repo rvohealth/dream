@@ -75,6 +75,7 @@ import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
 import extractNestedPaths from './internal/extractNestedPaths.js'
 import QueryDriverBase from './QueryDriver/Base.js'
+import extractAssignableAssociationAttributes from './internal/extractAssignableAssociationAttributes.js'
 
 export default class Query<
   DreamInstance extends Dream,
@@ -122,6 +123,7 @@ export default class Query<
    * current Query instance
    */
   private readonly whereStatements: readonly WhereStatement<
+    DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema'],
     any
@@ -134,6 +136,7 @@ export default class Query<
    * current Query instance
    */
   private readonly whereNotStatements: readonly WhereStatement<
+    DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema'],
     any
@@ -162,6 +165,7 @@ export default class Query<
    * current Query instance
    */
   private readonly whereAnyStatements: readonly WhereStatement<
+    DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema'],
     any
@@ -198,6 +202,7 @@ export default class Query<
    * current Query instance
    */
   private readonly preloadOnStatements: RelaxedPreloadOnStatement<
+    DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema']
   > = Object.freeze({})
@@ -217,6 +222,7 @@ export default class Query<
    * current Query instance
    */
   private readonly innerJoinAndStatements: RelaxedJoinAndStatement<
+    DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema']
   > = Object.freeze({})
@@ -236,6 +242,7 @@ export default class Query<
    * current Query instance
    */
   private readonly leftJoinAndStatements: RelaxedJoinAndStatement<
+    DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema']
   > = Object.freeze({})
@@ -501,7 +508,7 @@ export default class Query<
    * @returns Either the first record found matching the attributes, or else null
    */
   public async findBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
+    whereStatement: WhereStatement<DreamInstance, DB, Schema, DreamInstance['table']>
   ): Promise<DreamInstance | null> {
     return await this._where(whereStatement, 'where').first()
   }
@@ -520,7 +527,7 @@ export default class Query<
    * @returns The first record found matching the attributes
    */
   public async findOrFailBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    whereStatement: WhereStatement<DB, Schema, DreamInstance['table']>
+    whereStatement: WhereStatement<DreamInstance, DB, Schema, DreamInstance['table']>
   ): Promise<DreamInstance> {
     const record = await this.findBy(whereStatement)
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
@@ -602,7 +609,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>,
     Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowLeftJoinPreload: false }> ? true : false,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
@@ -678,11 +685,13 @@ export default class Query<
     this: Q,
     ...args: Incompatible extends true
       ? 'preload is incompatible with leftJoinPreload'[]
-      : [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]
+      : [...Arr, VariadicLoadArgs<DreamInstance, DB, Schema, TableName, Arr>]
   ): RetQuery {
     const preloadStatements = cloneDeepSafe(this.preloadStatements)
 
-    const preloadOnStatements: RelaxedPreloadOnStatement<DB, Schema> = cloneDeepSafe(this.preloadOnStatements)
+    const preloadOnStatements: RelaxedPreloadOnStatement<DreamInstance, DB, Schema> = cloneDeepSafe(
+      this.preloadOnStatements
+    )
 
     this.fleshOutJoinStatements([], preloadStatements, preloadOnStatements, null, [...(args as any)])
     return this.clone({ preloadStatements, preloadOnStatements: preloadOnStatements }) as unknown as RetQuery
@@ -777,7 +786,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -801,7 +810,7 @@ export default class Query<
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const innerJoinStatements = cloneDeepSafe(this.innerJoinStatements)
 
-    const innerJoinAndStatements: RelaxedJoinAndStatement<DB, Schema> = cloneDeepSafe(
+    const innerJoinAndStatements: RelaxedJoinAndStatement<DreamInstance, DB, Schema> = cloneDeepSafe(
       this.innerJoinAndStatements
     )
 
@@ -831,7 +840,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -855,7 +864,7 @@ export default class Query<
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
     const leftJoinStatements = cloneDeepSafe(this.leftJoinStatements)
 
-    const leftJoinAndStatements: RelaxedJoinAndStatement<DB, Schema> = cloneDeepSafe(
+    const leftJoinAndStatements: RelaxedJoinAndStatement<DreamInstance, DB, Schema> = cloneDeepSafe(
       this.leftJoinAndStatements
     )
 
@@ -877,9 +886,9 @@ export default class Query<
   private fleshOutJoinStatements<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     innerJoinDreamClasses: (typeof Dream)[],
     joinStatements: RelaxedJoinStatement,
-    joinAndStatements: RelaxedJoinAndStatement<DB, Schema>,
+    joinAndStatements: RelaxedJoinAndStatement<DreamInstance, DB, Schema>,
     previousAssociationName: null | string,
-    associationStatements: (string | WhereStatement<DB, Schema, any> | undefined)[],
+    associationStatements: (string | WhereStatement<DreamInstance, DB, Schema, any> | undefined)[],
     previousDreamClass: typeof Dream | null = this.dreamClass
   ) {
     const nextAssociationStatement = associationStatements.shift()
@@ -901,7 +910,11 @@ export default class Query<
       )
 
       const nextJoinsStatements = joinStatements[nextStatement]
-      const nextJoinsOnStatements = joinAndStatements[nextStatement] as RelaxedJoinAndStatement<DB, Schema>
+      const nextJoinsOnStatements = joinAndStatements[nextStatement] as RelaxedJoinAndStatement<
+        DreamInstance,
+        DB,
+        Schema
+      >
 
       this.fleshOutJoinStatements(
         innerJoinDreamClasses,
@@ -933,9 +946,36 @@ export default class Query<
       const keys = Object.keys(clonedNextAssociationStatement)
 
       keys.forEach((key: string) => {
-        joinAndStatements[protectAgainstPollutingAssignment(key)] = (clonedNextAssociationStatement as any)[
-          key
-        ]
+        const statements = (clonedNextAssociationStatement as any)[key]
+
+        if (Array.isArray(statements)) {
+          const newStatements = statements.map(statement => {
+            const innerKeys = Object.keys(statement || {})
+            const joinAndStatement = innerKeys.length
+              ? innerKeys.reduce(
+                  (agg, k) => this.attachJoinAndSingleStatement(agg, k, statement[k], previousDreamClass),
+                  {} as Record<string, unknown>
+                )
+              : null
+            return joinAndStatement
+          })
+          joinAndStatements[protectAgainstPollutingAssignment(key)] = newStatements
+        } else {
+          const innerKeys = Object.keys(statements || {})
+          const joinAndStatement = innerKeys.length
+            ? innerKeys.reduce(
+                (agg, k) =>
+                  this.attachJoinAndSingleStatement(
+                    agg,
+                    k,
+                    (clonedNextAssociationStatement as any)[key][k],
+                    previousDreamClass
+                  ),
+                {} as Record<string, unknown>
+              )
+            : null
+          joinAndStatements[protectAgainstPollutingAssignment(key)] = joinAndStatement
+        }
       })
 
       this.fleshOutJoinStatements(
@@ -947,6 +987,25 @@ export default class Query<
         previousDreamClass
       )
     }
+  }
+
+  private attachJoinAndSingleStatement(
+    agg: Record<string, unknown>,
+    key: string,
+    value: unknown,
+    dreamClass: typeof Dream | null
+  ) {
+    if (dreamClass?.associationNames.includes(key) && value instanceof Dream) {
+      const association = dreamClass['associationMetadataMap']()[key]!
+      agg = {
+        ...agg,
+        ...extractAssignableAssociationAttributes(association, value),
+      }
+    } else {
+      agg[key] = value
+    }
+
+    return agg
   }
 
   /**
@@ -1154,6 +1213,7 @@ export default class Query<
    */
   public where<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatementForJoinedAssociation<
+      DreamInstance,
       QueryTypeOpts['joinedAssociations'],
       DB,
       Schema,
@@ -1178,6 +1238,7 @@ export default class Query<
   public whereAny<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatements:
       | WhereStatementForJoinedAssociation<
+          DreamInstance,
           QueryTypeOpts['joinedAssociations'],
           DB,
           Schema,
@@ -1203,6 +1264,7 @@ export default class Query<
    */
   public whereNot<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
     whereStatement: WhereStatementForJoinedAssociation<
+      DreamInstance,
       QueryTypeOpts['joinedAssociations'],
       DB,
       Schema,
@@ -1218,7 +1280,7 @@ export default class Query<
    * Applies a where clause
    */
   private _where(
-    whereStatement: WhereStatement<any, any, any> | null,
+    whereStatement: WhereStatement<DreamInstance, any, any, any> | null,
     typeOfWhere: 'where' | 'whereNot'
   ): Query<DreamInstance, QueryTypeOpts> {
     return this.clone({
@@ -2395,21 +2457,21 @@ export interface QueryOpts<
   baseSqlAlias?: TableOrAssociationName<Schema> | undefined
   baseSelectQuery?: Query<any, any> | null | undefined
   passthroughOnStatement?: PassthroughOnClause<PassthroughColumns> | null | undefined
-  where?: readonly WhereStatement<DB, Schema, any>[] | null | undefined
-  whereNot?: readonly WhereStatement<DB, Schema, any>[] | null | undefined
+  where?: readonly WhereStatement<DreamInstance, DB, Schema, any>[] | null | undefined
+  whereNot?: readonly WhereStatement<DreamInstance, DB, Schema, any>[] | null | undefined
   limit?: LimitStatement | null | undefined
   offset?: OffsetStatement | null | undefined
-  or?: WhereStatement<DB, Schema, any>[][] | null | undefined
+  or?: WhereStatement<DreamInstance, DB, Schema, any>[][] | null | undefined
   order?: OrderQueryStatement<ColumnType>[] | null | undefined
   loadFromJoins?: boolean | undefined
   preloadStatements?: RelaxedPreloadStatement | undefined
-  preloadOnStatements?: RelaxedPreloadOnStatement<DB, Schema> | undefined
+  preloadOnStatements?: RelaxedPreloadOnStatement<DreamInstance, DB, Schema> | undefined
   distinctColumn?: ColumnType | null | undefined
   innerJoinDreamClasses?: readonly (typeof Dream)[] | undefined
   innerJoinStatements?: RelaxedJoinStatement | undefined
-  innerJoinAndStatements?: RelaxedJoinAndStatement<DB, Schema> | undefined
+  innerJoinAndStatements?: RelaxedJoinAndStatement<DreamInstance, DB, Schema> | undefined
   leftJoinStatements?: RelaxedJoinStatement | undefined
-  leftJoinAndStatements?: RelaxedJoinAndStatement<DB, Schema> | undefined
+  leftJoinAndStatements?: RelaxedJoinAndStatement<DreamInstance, DB, Schema> | undefined
   bypassAllDefaultScopes?: boolean | undefined
   bypassAllDefaultScopesExceptOnAssociations?: boolean | undefined
   defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[] | undefined

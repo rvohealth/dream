@@ -1,3 +1,4 @@
+import Dream from '../Dream.js'
 import { Camelized } from '../helpers/stringCasing.js'
 import { AssociationTableNames } from './db.js'
 import {
@@ -20,6 +21,7 @@ type RecursionTypes = 'load' | 'leftJoinLoad' | 'join'
 ///////////////////////////////
 
 export type VariadicLoadArgs<
+  I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -30,6 +32,7 @@ export type VariadicLoadArgs<
     | (keyof SchemaAssociations & string)
     | AliasedSchemaAssociation<Schema, ConcreteTableName>,
 > = VariadicCheckThenRecurse<
+  I,
   DB,
   Schema,
   ConcreteTableName,
@@ -48,6 +51,7 @@ export type VariadicLoadArgs<
 // VARIADIC LEFT JOIN LOAD
 ///////////////////////////////
 export type VariadicLeftJoinLoadArgs<
+  I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -58,6 +62,7 @@ export type VariadicLeftJoinLoadArgs<
     | (keyof SchemaAssociations & string)
     | AliasedSchemaAssociation<Schema, ConcreteTableName>,
 > = VariadicCheckThenRecurse<
+  I,
   DB,
   Schema,
   ConcreteTableName,
@@ -81,6 +86,7 @@ export type VariadicLeftJoinLoadArgs<
 // VARIADIC JOINS
 ///////////////////////////////
 export type VariadicJoinsArgs<
+  I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -91,6 +97,7 @@ export type VariadicJoinsArgs<
     | (keyof SchemaAssociations & string)
     | AliasedSchemaAssociation<Schema, ConcreteTableName>,
 > = VariadicCheckThenRecurse<
+  I,
   DB,
   Schema,
   ConcreteTableName,
@@ -113,6 +120,7 @@ export type VariadicJoinsArgs<
 ///////////////////////////////
 
 type VariadicCheckThenRecurse<
+  I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -134,6 +142,7 @@ type VariadicCheckThenRecurse<
       : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
         ? VALID
         : ConcreteArgs[0] extends JoinAndStatements<
+              I,
               DB,
               Schema,
               ConcreteTableName,
@@ -146,6 +155,7 @@ type VariadicCheckThenRecurse<
   : ConcreteArgs['length'] extends 0
     ? AssociationNamesOrOnClause
     : VariadicRecurse<
+        I,
         DB,
         Schema,
         ConcreteTableName,
@@ -164,6 +174,7 @@ export type AliasedSchemaAssociation<
 > = `${keyof SchemaAssociations & string} as ${string}`
 
 type VariadicRecurse<
+  I extends Dream,
   DB,
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -239,6 +250,7 @@ type VariadicRecurse<
   //
   AllowedNextArgValues = RecursionType extends 'load'
     ? AllowedNextArgValuesForLoad<
+        I,
         DB,
         Schema,
         NextTableName,
@@ -246,6 +258,7 @@ type VariadicRecurse<
       >
     : RecursionType extends 'leftJoinLoad'
       ? AllowedNextArgValuesForLeftJoinLoad<
+          I,
           DB,
           Schema,
           NextTableName,
@@ -254,6 +267,7 @@ type VariadicRecurse<
         >
       : RecursionType extends 'join'
         ? AllowedNextArgValuesForJoin<
+            I,
             DB,
             Schema,
             NextTableName,
@@ -264,6 +278,7 @@ type VariadicRecurse<
 > = Depth extends MAX_VARIADIC_DEPTH
   ? never
   : VariadicCheckThenRecurse<
+      I,
       DB,
       Schema,
       NextTableName,
@@ -277,6 +292,7 @@ type VariadicRecurse<
     >
 
 type AllowedNextArgValuesForLoad<
+  I extends Dream,
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -284,9 +300,10 @@ type AllowedNextArgValuesForLoad<
 > =
   | AssociationNamesForTable<Schema, TableName>
   | AssociationNamesForTable<Schema, TableName>[]
-  | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+  | JoinAndStatements<I, DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 
 type AllowedNextArgValuesForLeftJoinLoad<
+  I extends Dream,
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -295,9 +312,10 @@ type AllowedNextArgValuesForLeftJoinLoad<
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>[]
-  | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+  | JoinAndStatements<I, DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 
 type AllowedNextArgValuesForJoin<
+  I extends Dream,
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
@@ -305,7 +323,7 @@ type AllowedNextArgValuesForJoin<
   UsedNamespaces,
 > =
   | Exclude<AssociationNamesForTable<Schema, TableName>, UsedNamespaces>
-  | JoinAndStatements<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+  | JoinAndStatements<I, DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
 
 export interface JoinedAssociation {
   table: string
