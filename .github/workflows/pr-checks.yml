@@ -23,15 +23,38 @@ permissions:
 
 jobs:
   tests:
-    name: Tests
+    name: Unit tests (node ${{ matrix.node-version }}, postgres ${{ matrix.postgres-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        shard: [1, 2]
-
+        include:
+          - node-version: "20"
+            postgres-version: "13"
+            shard: 1
+          - node-version: "20"
+            postgres-version: "14"
+            shard: 2
+          - node-version: "22"
+            postgres-version: "15"
+            shard: 1
+          - node-version: "22"
+            postgres-version: "16"
+            shard: 2
+          - node-version: "24"
+            postgres-version: "17"
+            shard: 1
+          - node-version: "24"
+            postgres-version: "17"
+            shard: 2
+          - node-version: "25"
+            postgres-version: "18"
+            shard: 1
+          - node-version: "25"
+            postgres-version: "18"
+            shard: 2
     services:
       postgres:
-        image: postgres:13-alpine
+        image: postgres:${{ matrix.postgres-version }}-alpine
         env:
           POSTGRES_USER: dream
           POSTGRES_DB: dream_test
@@ -98,9 +121,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "24"
+          node-version: ${{ matrix.node-version }}
 
       - run: corepack enable
 
