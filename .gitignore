@@ -45,6 +45,8 @@ jspm_packages/
 # vim files
 .vim/
 
+.node-version
+
 .DS_Store
 
 src/sync/*
