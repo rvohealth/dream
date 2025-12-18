@@ -28,26 +28,20 @@ jobs:
     strategy:
       matrix:
         include:
-          - node-version: "20"
+          - node-version: "22"
             postgres-version: "13"
             shard: 1
-          - node-version: "20"
+          - node-version: "22"
             postgres-version: "14"
             shard: 2
-          - node-version: "22"
+          - node-version: "24"
             postgres-version: "15"
             shard: 1
-          - node-version: "22"
+          - node-version: "24"
             postgres-version: "16"
             shard: 2
-          - node-version: "24"
-            postgres-version: "17"
-            shard: 1
-          - node-version: "24"
-            postgres-version: "17"
-            shard: 2
           - node-version: "25"
-            postgres-version: "18"
+            postgres-version: "17"
             shard: 1
           - node-version: "25"
             postgres-version: "18"
