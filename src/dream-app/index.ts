@@ -296,6 +296,11 @@ Try setting it to something valid, like:
     return this._importExtension
   }
 
+  private _excludedTablesPattern: string | null = null
+  public get excludedTablesPattern() {
+    return this._excludedTablesPattern
+  }
+
   /**
    * if set to true, it will bypass deprecation checks that run
    * during the sync hook. Defaults to false, we only recommend
@@ -436,9 +441,11 @@ Try setting it to something valid, like:
                           ? number
                           : ApplyOpt extends 'unicodeNormalization'
                             ? UnicodeNormalizationForm
-                            : ApplyOpt extends 'paginationPageSize'
-                              ? number
-                              : never,
+                            : ApplyOpt extends 'excludedTablesPattern'
+                              ? string | null
+                              : ApplyOpt extends 'paginationPageSize'
+                                ? number
+                                : never,
     secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
@@ -507,6 +514,10 @@ Try setting it to something valid, like:
         this._paginationPageSize = options as number
         break
 
+      case 'excludedTablesPattern':
+        this._excludedTablesPattern = options as string | null
+        break
+
       default: {
         // protection so that if a new ApplyOpt is ever added, this will throw a type error at build time
         const _never: never = applyOption
@@ -570,6 +581,7 @@ export type DreamAppSetOption =
   | 'unicodeNormalization'
   | 'paginationPageSize'
   | 'packageManager'
+  | 'excludedTablesPattern'
 
 export interface DreamDirectoryPaths {
   models?: string
