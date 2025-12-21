@@ -2,6 +2,7 @@
 // This is needed because kysely's FileMigrationProvider uses dynamic imports,
 import * as path from 'node:path'
 import convertToFileURL from './convertToFileURL.js'
+
 // and on Windows, absolute paths must be file:// URLs for dynamic imports to work
 const windowsSafePath = {
   ...path,
