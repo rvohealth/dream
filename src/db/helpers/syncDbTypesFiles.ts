@@ -20,8 +20,12 @@ export default async function syncDbTypesFiles(connectionName: string) {
 
   await CliFileWriter.cache(absoluteDbSyncPath)
 
+  const excludedTables = dreamApp.excludedTablesPattern
+    ? `--exclude-pattern=${dreamApp.excludedTablesPattern}`
+    : ''
+
   await sspawn(
-    `kysely-codegen --dialect=${driverClass.syncDialect} --url=${driverClass.syncDialect}://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`,
+    `kysely-codegen --dialect=${driverClass.syncDialect} --url=${driverClass.syncDialect}://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} ${excludedTables} --out-file=${absoluteDbSyncPath}`,
     {
       onStdout: message => {
         DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
