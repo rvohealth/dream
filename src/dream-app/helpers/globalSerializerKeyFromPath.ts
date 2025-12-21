@@ -3,12 +3,13 @@ export default function globalSerializerKeyFromPath(
   dirPath: string,
   exportKey: string = 'default'
 ) {
-  const prefixPath = dirPath
-  const defaultExport = filepath
+  const normalizedDirPath = dirPath.replace(/\\/g, '/')
+  const normalizedFilepath = filepath.replace(/\\/g, '/')
+  const prefixPath = normalizedDirPath
+  const defaultExport = normalizedFilepath
     .replace(prefixPath, '')
     .replace(/\.[jt]s$/, '')
     .replace(/^\//, '')
-
   if (exportKey === 'default') {
     return defaultExport
   } else {
