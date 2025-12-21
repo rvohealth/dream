@@ -1,8 +1,8 @@
 import { FileMigrationProvider, Migrator } from 'kysely'
 import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
 import { closeAllConnectionsForConnectionName, DialectProviderCb } from '../../../../db/DreamDbConnection.js'
 import db from '../../../../db/index.js'
+import windowsSafePath from '../../../../helpers/path/windowsSafePath.js'
 import migrationFolderPath from './migrationFolderPath.js'
 
 type MigrationModes = 'migrate' | 'rollback'
@@ -29,7 +29,7 @@ export default async function checkForNeedToBeRunMigrations({
     allowUnorderedMigrations: true,
     provider: new FileMigrationProvider({
       fs,
-      path,
+      path: windowsSafePath,
       migrationFolder,
     }),
   })

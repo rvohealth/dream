@@ -1,3 +1,8 @@
+## 2.2.4
+
+- fix windows path issues causing migration runners to fail on windows machines
+- make dream development environment friendly to windows devs
+
 ## 2.2.3
 
 - apply Dream attribute accessors at load time
