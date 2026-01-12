@@ -20,16 +20,26 @@ export default async function syncDbTypesFiles(connectionName: string) {
 
   await CliFileWriter.cache(absoluteDbSyncPath)
 
-  await sspawn(
-    `kysely-codegen --dialect=${driverClass.syncDialect} --url=${driverClass.syncDialect}://${dbConf.user}:${dbConf.password}@${dbConf.host}:${dbConf.port}/${dbConf.name} --out-file=${absoluteDbSyncPath}`,
-    {
-      onStdout: message => {
-        DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
-          logPrefixColor: 'cyan',
-        })
-      },
-    }
-  )
+  const lowLevelDbOpts = dreamApp.dbCredentialsFor(connectionName)
+
+  const dialect = `--dialect=${driverClass.syncDialect}`
+  const url = `--url=${driverClass.syncDialect}://${dbConf.user}${dbConf.password ? `:${dbConf.password}` : ''}@${dbConf.host}:${dbConf.port}/${dbConf.name}`
+  const outfile = `--out-file=${absoluteDbSyncPath}`
+  const includePattern = lowLevelDbOpts?.tableIncludePattern
+    ? `--include-pattern="${lowLevelDbOpts.tableIncludePattern}"`
+    : ''
+  const excludePattern = lowLevelDbOpts?.tableExcludePattern
+    ? `--exclude-pattern="${lowLevelDbOpts.tableExcludePattern}"`
+    : ''
+  const kyselyCodegenCmd = `kysely-codegen ${dialect} ${url} ${includePattern} ${excludePattern} ${outfile}`
+
+  await sspawn(kyselyCodegenCmd, {
+    onStdout: message => {
+      DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
+        logPrefixColor: 'cyan',
+      })
+    },
+  })
 
   await new ASTKyselyCodegenEnhancer(connectionName).enhance()
 }

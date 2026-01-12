@@ -66,6 +66,8 @@ export default async function (dreamApp: DreamApp) {
           useSsl: false,
         }
       : undefined,
+    tableExcludePattern: 'chalupasdujour*', // used to make sure we feed valid arguments to kysely-codegen
+    tableIncludePattern: 'public.*', // used to make sure we feed valid arguments to kysely-codegen
   })
 
   dreamApp.set('db', 'alternateConnection', {

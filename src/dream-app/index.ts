@@ -585,6 +585,28 @@ export interface DreamDbCredentialOptions {
   primary: SingleDbCredential
   replica?: SingleDbCredential | undefined
   queryDriverClass?: typeof QueryDriverBase
+
+  /**
+   * a string which informs the kysely-codegen tool,
+   * used to introspect tables under the hood, which tables to use.
+   * Can be an actual table name, or a glob pattern, i.e.
+   *   "public.*"
+   *   "public.+(user|post)"
+   *
+   * see https://github.com/RobinBlomberg/kysely-codegen for more info
+   */
+  tableIncludePattern?: string
+
+  /**
+   * a string which informs the kysely-codegen tool,
+   * used to introspect tables under the hood, which tables to use.
+   * Can be an actual table name, or a glob pattern, i.e.
+   *   "public.*"
+   *   "public.+(user|post)"
+   *
+   * see https://github.com/RobinBlomberg/kysely-codegen for more info
+   */
+  tableExcludePattern?: string
 }
 
 type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'
