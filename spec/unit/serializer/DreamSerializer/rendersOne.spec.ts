@@ -305,4 +305,13 @@ describe('DreamSerializer#rendersOne', () => {
       },
     })
   })
+
+  // type tests are all intentionally skipped. Instead, add @ts-expect-error
+  // comments, which will become invalid if the type errors stop raising
+  context('type tests', () => {
+    it.skip('it prevents invalid arguments', () => {
+      // @ts-expect-error this is a type test to ensure that invalid args raise
+      DreamSerializer(Pet, Pet.new()).rendersOne('user', { as: 'abc', abc: 123 })
+    })
+  })
 })

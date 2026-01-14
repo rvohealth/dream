@@ -1,3 +1,8 @@
+## 2.2.2
+
+- patch type system to restrict ambiguous options to rendersOne and rendersMany
+- add ability to filter out extraneous tables when syncing with kysely-codegen
+
 ## 2.2.1
 
 - move packageManager check to dream application, provide a low-level ENV bypass so that create-psychic can bypass the package manager check when auditioning new package managers without needing to publish new versions of dream.

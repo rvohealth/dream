@@ -286,7 +286,7 @@ export default class DreamSerializerBuilder<
               serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
             }
           | {
-              serializer: SerializerType<AssociatedModelType>
+              serializer?: SerializerType<AssociatedModelType>
             }
       : AssociatedModelType extends ViewModel
         ?
@@ -301,15 +301,13 @@ export default class DreamSerializerBuilder<
           ? {
               serializer: SerializerType<AssociatedModelType>
             }
-          : object,
-  >(
-    name: AttributeName,
-    options?: {
+          : never,
+    BaseOptions = {
       as?: string
       flatten?: boolean
       optional?: boolean
-    } & SerializerOptions
-  ) {
+    },
+  >(name: AttributeName, options?: BaseOptions & SerializerOptions) {
     this.attributes.push({
       type: 'rendersOne',
       name: name as any,
@@ -376,7 +374,7 @@ export default class DreamSerializerBuilder<
               serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
             }
           | {
-              serializer: SerializerType<AssociatedModelType>
+              serializer?: SerializerType<AssociatedModelType>
             }
       : AssociatedModelType extends ViewModel
         ?
@@ -391,14 +389,11 @@ export default class DreamSerializerBuilder<
           ? {
               serializer: SerializerType<AssociatedModelType>
             }
-          : object,
-  >(
-    name: AttributeName,
-    options?: {
+          : never,
+    BaseOptions = {
       as?: string
-      z?: AttributeName
-    } & SerializerOptions
-  ) {
+    },
+  >(name: AttributeName, options?: BaseOptions & SerializerOptions) {
     this.attributes.push({
       type: 'rendersMany',
       name: name as any,
