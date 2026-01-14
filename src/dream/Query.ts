@@ -34,6 +34,7 @@ import { DbConnectionType } from '../types/db.js'
 import {
   AllDefaultScopeNames,
   DefaultScopeName,
+  DreamAssociationNames,
   DreamColumnNames,
   DreamConstructorType,
   DreamSerializerKey,
@@ -286,6 +287,13 @@ export default class Query<
   /**
    * @internal
    *
+   * The distinct column to apply to the Query
+   */
+  private readonly placeholderAssociations: DreamAssociationNames<DreamInstance>[] = []
+
+  /**
+   * @internal
+   *
    * The base sql alias to use for the base model
    * of this Query
    */
@@ -358,6 +366,7 @@ export default class Query<
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
+    this.placeholderAssociations = opts.placeholderAssociations || []
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -439,6 +448,10 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
+      placeholderAssociations:
+        opts.placeholderAssociations === null
+          ? []
+          : [...this.placeholderAssociations, ...(opts.placeholderAssociations || [])],
     }) as Q
   }
 
@@ -759,6 +772,37 @@ export default class Query<
     })
 
     return query
+  }
+
+  /**
+   * placeholds for an association, allowing calls to the association
+   * to avoid throwing a not loaded association without actually
+   * loading the association.
+   *
+   * ```ts
+   * const query = includePosts ? User.preload('posts') : User.query().placeholder('posts')
+   * const user = await query.firstOrFail()
+   * console.log(user.posts) // will not raise exception, will instead provide empty array
+   * ```
+   *
+   * When placeholding a HasOne or BelongsTo association, the placeholder
+   * will be null, rather than a blank array.
+   *
+   * @returns A Query with the placeholder applied
+   */
+  public placeholder(
+    associationNameOrNames:
+      | DreamAssociationNames<DreamInstance>
+      | DreamAssociationNames<DreamInstance>[]
+      | null
+  ) {
+    const names: DreamAssociationNames<DreamInstance>[] = (
+      typeof associationNameOrNames === 'string' ? [associationNameOrNames] : associationNameOrNames
+    ) as DreamAssociationNames<DreamInstance>[]
+
+    return this.clone({
+      placeholderAssociations: associationNameOrNames === null ? null : names,
+    })
   }
 
   /**
@@ -2417,4 +2461,5 @@ export interface QueryOpts<
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
+  placeholderAssociations?: DreamAssociationNames<DreamInstance>[] | null
 }

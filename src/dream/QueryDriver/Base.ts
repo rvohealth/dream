@@ -306,6 +306,20 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     throw new Error('implement takeAll in child class')
   }
 
+  protected applyPlaceholderAssociationsToResult(res: Dream | undefined) {
+    if (!res) return
+
+    this.query['placeholderAssociations'].forEach(associationName => {
+      const associationMetadata = this.dreamClass['getAssociationMetadata'](associationName)
+
+      if (associationMetadata?.type === 'HasMany') {
+        ;(res as any)[associationName as keyof typeof res] = []
+      } else {
+        ;(res as any)[associationName as keyof typeof res] = null
+      }
+    })
+  }
+
   /**
    * Retrieves the max value of the specified column
    * for this Query

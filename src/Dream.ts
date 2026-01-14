@@ -1866,6 +1866,32 @@ export default class Dream {
   }
 
   /**
+   * placeholds for an association, allowing calls to the association
+   * to avoid throwing a not loaded association without actually
+   * loading the association.
+   *
+   * ```ts
+   * const query = includePosts ? User.preload('posts') : User.placeholder('posts')
+   * const user = await query.firstOrFail()
+   * console.log(user.posts) // will not raise exception, will instead provide empty array
+   * ```
+   *
+   * When placeholding a HasOne or BelongsTo association, the placeholder
+   * will be null, rather than a blank array.
+   *
+   * @returns A Query with the placeholder applied
+   */
+  public static placeholder<T extends typeof Dream>(
+    this: T,
+    associationNameOrNames:
+      | DreamAssociationNames<InstanceType<T>>
+      | DreamAssociationNames<InstanceType<T>>[]
+      | null
+  ) {
+    return this.query().placeholder(associationNameOrNames)
+  }
+
+  /**
    * Returns a new Query instance with the provided
    * inner join statement attached
    *

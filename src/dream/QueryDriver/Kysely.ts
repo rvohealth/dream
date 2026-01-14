@@ -522,7 +522,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       }
 
       const driverClass = this.constructor as typeof KyselyQueryDriver
-      return (await new driverClass(query)['executeJoinLoad']())[0] || null
+      const res = (await new driverClass(query)['executeJoinLoad']())[0]
+
+      this.applyPlaceholderAssociationsToResult(res)
+
+      return res || null
     }
 
     const kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query.limit(1)).buildSelect()
@@ -537,6 +541,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           this.query['preloadOnStatements'] as any,
           [theFirst]
         )
+
+      this.applyPlaceholderAssociationsToResult(theFirst)
 
       return theFirst
     } else return null
@@ -567,11 +573,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const kyselyQuery = this.buildSelect(options)
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
     const theAll = results.map(r => this.dbResultToDreamInstance(r, this.dreamClass))
+
     await this.applyPreload(
       this.query['preloadStatements'] as any,
       this.query['preloadOnStatements'] as any,
       theAll
     )
+
+    theAll.forEach(theOne => this.applyPlaceholderAssociationsToResult(theOne))
 
     return theAll as DreamInstance[]
   }
