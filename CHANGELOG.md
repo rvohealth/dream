@@ -1,3 +1,8 @@
+## 2.2.3
+
+- apply Dream attribute accessors at load time
+- stop explicitly adding keys for each column for Dream instances that haven't yet been persisted to the database (unnecessary and just wastes effort)
+
 ## 2.2.2
 
 - patch type system to restrict ambiguous options to rendersOne and rendersMany

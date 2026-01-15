@@ -2970,7 +2970,7 @@ export default class Dream {
     if (!additionalOpts._internalUseOnly) throw new ConstructorOnlyForInternalUse()
     this.isPersisted = additionalOpts?.isPersisted || false
 
-    this.defineAttributeAccessors()
+    ensureSTITypeFieldIsSet(this)
 
     if (opts) {
       const marshalledOpts = this._setAttributes(opts, additionalOpts)
@@ -3084,18 +3084,14 @@ export default class Dream {
    * defines attribute setters and getters for every column
    * set within your types/dream.ts file
    */
-  private defineAttributeAccessors() {
-    const dreamClass = this.constructor as typeof Dream
+  private static defineAttributeAccessors() {
+    const dreamClass = this
     const columns = dreamClass.columns()
-    const dreamPrototype = Object.getPrototypeOf(this)
+    const dreamPrototype = dreamClass.prototype
 
     columns.forEach(column => {
-      // this ensures that the currentAttributes object will contain keys
-      // for each of the properties
-      if (this.getAttribute(column as any) === undefined) this.setAttribute(column as any, undefined)
-
       if (!Object.getOwnPropertyDescriptor(dreamPrototype, column)?.set) {
-        if (isJsonColumn(this.constructor as typeof Dream, column)) {
+        if (isJsonColumn(dreamClass, column)) {
           // handle JSON columns
           Object.defineProperty(dreamPrototype, column, {
             get() {
@@ -3165,8 +3161,6 @@ export default class Dream {
         }
       }
     })
-
-    ensureSTITypeFieldIsSet(this)
   }
 
   /**
