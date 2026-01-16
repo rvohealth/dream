@@ -1,3 +1,7 @@
+## 2.2.5
+
+add placeholder method to Dream, allowing manual circumvention of not loaded errors in sophistacated serialization scenarios
+
 ## 2.2.4
 
 - fix windows path issues causing migration runners to fail on windows machines

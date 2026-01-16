@@ -5,6 +5,7 @@ import { AssociationTableNames } from '../types/db.js'
 import {
   CreateOrFindByExtraOpts,
   DefaultScopeName,
+  DreamAssociationNames,
   DreamColumnNames,
   DreamSerializerKey,
   OrderDir,
@@ -608,6 +609,33 @@ export default class DreamClassTransactionBuilder<
     SerializerKey extends DreamSerializerKey<DreamInstance>,
   >(this: T, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn) {
     return this.queryInstance().preloadFor(serializerKey, modifierFn)
+  }
+
+  /**
+   * placeholds for an association, allowing calls to the association
+   * to avoid throwing a not loaded association without actually
+   * loading the association.
+   *
+   * ```ts
+   * const query = includePosts ? User.preload('posts') : User.placeholder('posts')
+   * const user = await query.firstOrFail()
+   * console.log(user.posts) // will not raise exception, will instead provide empty array
+   * ```
+   *
+   * When placeholding a HasOne or BelongsTo association, the placeholder
+   * will be null, rather than a blank array.
+   *
+   * @param associationNameOrNames - the association that you want to placehold
+   * @returns A Query with the placeholder applied
+   */
+  public placeholder<T extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: T,
+    associationNameOrNames:
+      | DreamAssociationNames<DreamInstance>
+      | DreamAssociationNames<DreamInstance>[]
+      | null
+  ) {
+    return this.queryInstance().placeholder(associationNameOrNames)
   }
 
   /**
