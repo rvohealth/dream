@@ -143,12 +143,14 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   : PartialTypes | CurriedOpsStatement<any, any, any, OpsValType> | SelectQueryBuilder<DB, keyof DB, any>
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
+  InstanceType<DreamClass>,
   InstanceType<DreamClass>['DB'],
   InstanceType<DreamClass>['schema'],
   InstanceType<DreamClass>['table']
 >
 
 export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement<
+  DreamInstance,
   DreamInstance['DB'],
   DreamInstance['schema'],
   DreamInstance['table']
@@ -201,30 +203,37 @@ type Whereable<R> = {
 }
 
 export type WhereStatement<
+  I extends Dream,
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = Partial<MergeUnionOfRecordTypes<Whereable<DB[TableName]> | DreamSelectable<DB, Schema, TableName>>>
+> = Partial<
+  MergeUnionOfRecordTypes<
+    Whereable<DB[TableName]> | DreamSelectable<DB, Schema, TableName> | AssociatedModelParam<I>
+  >
+>
 
 export type OnStatementForAssociation<
+  I extends Dream,
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
   RequiredOnClauseKeysForThisAssociation,
-  OnStatement extends WhereStatement<DB, Schema, TableName> = WhereStatement<DB, Schema, TableName>,
+  OnStatement extends WhereStatement<I, DB, Schema, TableName> = WhereStatement<I, DB, Schema, TableName>,
 > = RequiredOnClauseKeysForThisAssociation extends null
-  ? WhereStatement<DB, Schema, TableName>
+  ? WhereStatement<I, DB, Schema, TableName>
   : RequiredOnClauseKeysForThisAssociation extends string[]
     ? Required<Pick<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>> &
         Partial<Omit<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>>
     : never
 
 export type OnStatementForSpecificColumns<
+  I extends Dream,
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
   Columns extends string[],
-  OnStatement extends WhereStatement<DB, Schema, TableName> = WhereStatement<DB, Schema, TableName>,
+  OnStatement extends WhereStatement<I, DB, Schema, TableName> = WhereStatement<I, DB, Schema, TableName>,
 > = Pick<OnStatement, Columns[number] & keyof OnStatement>
 
 // on statement on an association definition
@@ -252,17 +261,20 @@ export type SelfOnStatement<
 > = Partial<Record<keyof DB[TableName], DreamColumnNames<BaseInstance>>>
 
 export type WhereStatementForJoinedAssociation<
+  I extends Dream,
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = RecursiveWhereStatementForJoinedAssociation<
+  I,
   JoinedAssociations,
   DB,
   Schema,
-  WhereStatement<DB, Schema, TableName>
+  WhereStatement<I, DB, Schema, TableName>
 >
 type RecursiveWhereStatementForJoinedAssociation<
+  I extends Dream,
   JoinedAssociations extends Readonly<JoinedAssociation[]>,
   DB,
   Schema,
@@ -277,7 +289,7 @@ type RecursiveWhereStatementForJoinedAssociation<
     ? never
     : AssociationName extends never
       ? never
-      : WhereStatement<DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>,
+      : WhereStatement<I, DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>,
   NextOnStatement = NonNamespacedAssociationOnStatement extends never
     ? OriginalOnStatement
     : OriginalOnStatement & {
@@ -293,6 +305,7 @@ type RecursiveWhereStatementForJoinedAssociation<
     : TableName extends never
       ? OriginalOnStatement
       : RecursiveWhereStatementForJoinedAssociation<
+          I,
           ReadonlyTail<JoinedAssociations>,
           DB,
           Schema,
@@ -326,8 +339,8 @@ export interface HasStatement<
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   globalAssociationNameOrNames: string[]
   and?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
-  andNot?: WhereStatement<DB, Schema, ForeignTableName>
-  andAny?: WhereStatement<DB, Schema, ForeignTableName>[]
+  andNot?: WhereStatement<BaseInstance, DB, Schema, ForeignTableName>
+  andAny?: WhereStatement<BaseInstance, DB, Schema, ForeignTableName>[]
   // ATTENTION
   //
   // Using `order` with HasOne is tempting as an elegant API
@@ -373,6 +386,7 @@ interface HasOptionsBase<
   >
 
   andNot?: WhereStatement<
+    BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &
@@ -381,6 +395,7 @@ interface HasOptionsBase<
   >
 
   andAny?: WhereStatement<
+    BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
     AssociationTableName &

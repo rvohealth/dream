@@ -2,6 +2,7 @@ import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/Canno
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.findBy', () => {
@@ -16,6 +17,15 @@ describe('Dream.findBy', () => {
       await expect(async () => await User.findBy({ email: undefined as any })).rejects.toThrowError(
         CannotPassUndefinedAsAValueToAWhereClause
       )
+    })
+  })
+
+  context('when provided an association', () => {
+    it('is able to locate records in the database by the provided instance', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const pet = await Pet.create({ user })
+
+      expect(await Pet.findBy({ user })).toMatchDreamModel(pet)
     })
   })
 
