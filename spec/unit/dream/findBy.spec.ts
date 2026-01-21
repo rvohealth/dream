@@ -48,3 +48,22 @@ describe('Dream.findBy', () => {
     })
   })
 })
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    await User
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .findBy({ invalidArg: 123 })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn)
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .findBy({ invalidArg: 123 })
+      })
+    })
+  })
+})

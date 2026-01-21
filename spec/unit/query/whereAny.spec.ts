@@ -1,5 +1,6 @@
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import ops from '../../../src/ops/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import User from '../../../test-app/app/models/User.js'
@@ -352,6 +353,25 @@ describe('Query#whereAny', () => {
           const balloons = await Balloon.whereAny([{ color: ops.expression('!=', null) }]).all()
           expect(balloons).toMatchDreamModels([redBalloon, greenBalloon])
         })
+      })
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+    User.query().whereAny([{ invalidArg: 123 }])
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        User.txn(txn)
+          .queryInstance()
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .whereAny([{ invalidArg: 123 }])
       })
     })
   })

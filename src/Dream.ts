@@ -1674,7 +1674,7 @@ export default class Dream {
    */
   public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I, I['DB'], I['schema'], I['table']>
+    whereStatement: WhereStatement<I>
   ): Promise<InstanceType<T> | null> {
     return await this.query().findBy(whereStatement)
   }
@@ -1694,7 +1694,7 @@ export default class Dream {
    */
   public static async findOrFailBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I, I['DB'], I['schema'], I['table']>
+    whereStatement: WhereStatement<I>
   ): Promise<InstanceType<T>> {
     return await this.query().findOrFailBy(whereStatement)
   }
@@ -2375,13 +2375,10 @@ export default class Dream {
    * @param whereStatement - Where statement to apply to the Query
    * @returns A Query for this model with the where clause applied
    */
-  public static where<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, whereStatement: WhereStatement<I, DB, Schema, TableName>): Query<InstanceType<T>> {
+  public static where<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    whereStatement: WhereStatement<I>
+  ): Query<InstanceType<T>> {
     return this.query().where(whereStatement)
   }
 
@@ -2397,13 +2394,10 @@ export default class Dream {
    * @param statements - a list of where statements to `OR` together
    * @returns A Query for this model with the whereAny clause applied
    */
-  public static whereAny<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, statements: WhereStatement<I, DB, Schema, TableName>[]): Query<InstanceType<T>> {
+  public static whereAny<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    statements: WhereStatement<I>[]
+  ): Query<InstanceType<T>> {
     return this.query().whereAny(statements)
   }
 
@@ -2419,13 +2413,10 @@ export default class Dream {
    * @param attributes - A where statement to negate and apply to the Query
    * @returns A Query for this model with the whereNot clause applied
    */
-  public static whereNot<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<I, DB, Schema, TableName>): Query<InstanceType<T>> {
+  public static whereNot<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    attributes: WhereStatement<I>
+  ): Query<InstanceType<T>> {
     return this.query().whereNot(attributes)
   }
 
@@ -3016,12 +3007,7 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
     { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
-  ): WhereStatement<
-    InstanceType<T>,
-    InstanceType<T>['DB'],
-    InstanceType<T>['schema'],
-    InstanceType<T>['table']
-  > {
+  ): WhereStatement<InstanceType<T>> {
     const returnValues: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {

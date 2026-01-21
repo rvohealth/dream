@@ -9,7 +9,7 @@ import {
   AssociatedModelParam,
   AssociationStatement,
   OnStatementForAssociation,
-  WhereStatement,
+  InternalWhereStatement,
 } from './associations/shared.js'
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
@@ -409,18 +409,18 @@ export type JoinAndStatements<
   RequiredOnClauseKeysForThisAssociation,
 > = RequiredOnClauseKeysForThisAssociation extends null
   ? {
-      and?: WhereStatement<I, DB, Schema, TableName>
-      andNot?: WhereStatement<I, DB, Schema, TableName>
+      and?: InternalWhereStatement<I, DB, Schema, TableName>
+      andNot?: InternalWhereStatement<I, DB, Schema, TableName>
       // andNot?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-      andAny?: WhereStatement<I, DB, Schema, TableName>[]
+      andAny?: InternalWhereStatement<I, DB, Schema, TableName>[]
       // andAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
     }
   : RequiredOnClauseKeysForThisAssociation extends string[]
     ? {
         and: OnStatementForAssociation<I, DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
-        andNot?: WhereStatement<I, DB, Schema, TableName>
+        andNot?: InternalWhereStatement<I, DB, Schema, TableName>
         // andNot?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-        andAny?: WhereStatement<I, DB, Schema, TableName>[]
+        andAny?: InternalWhereStatement<I, DB, Schema, TableName>[]
         // andAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
       }
     : never

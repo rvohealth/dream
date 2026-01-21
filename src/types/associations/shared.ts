@@ -143,18 +143,12 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   : PartialTypes | CurriedOpsStatement<any, any, any, OpsValType> | SelectQueryBuilder<DB, keyof DB, any>
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
-  InstanceType<DreamClass>,
-  InstanceType<DreamClass>['DB'],
-  InstanceType<DreamClass>['schema'],
-  InstanceType<DreamClass>['table']
+  InstanceType<DreamClass>
 >
 
-export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement<
-  DreamInstance,
-  DreamInstance['DB'],
-  DreamInstance['schema'],
-  DreamInstance['table']
->
+// TODO: deprecate, since this is now the same as WhereStatement? it is not used internally, only exported.
+export type WhereStatementForDream<DreamInstance extends Dream> = WhereStatement<DreamInstance>
+
 type AssociationNameToDotReferencedColumns<
   DB,
   TableName extends keyof DB,
@@ -202,7 +196,9 @@ type Whereable<R> = {
   [K in keyof Selectable<R>]?: Selectable<R>[K] | Selectable<R>[K][]
 }
 
-export type WhereStatement<
+export type WhereStatement<I extends Dream> = InternalWhereStatement<I, I['DB'], I['schema'], I['table']>
+
+export type InternalWhereStatement<
   I extends Dream,
   DB,
   Schema,
@@ -219,9 +215,14 @@ export type OnStatementForAssociation<
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
   RequiredOnClauseKeysForThisAssociation,
-  OnStatement extends WhereStatement<I, DB, Schema, TableName> = WhereStatement<I, DB, Schema, TableName>,
+  OnStatement extends InternalWhereStatement<I, DB, Schema, TableName> = InternalWhereStatement<
+    I,
+    DB,
+    Schema,
+    TableName
+  >,
 > = RequiredOnClauseKeysForThisAssociation extends null
-  ? WhereStatement<I, DB, Schema, TableName>
+  ? InternalWhereStatement<I, DB, Schema, TableName>
   : RequiredOnClauseKeysForThisAssociation extends string[]
     ? Required<Pick<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>> &
         Partial<Omit<OnStatement, RequiredOnClauseKeysForThisAssociation[number] & keyof OnStatement>>
@@ -233,7 +234,12 @@ export type OnStatementForSpecificColumns<
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
   Columns extends string[],
-  OnStatement extends WhereStatement<I, DB, Schema, TableName> = WhereStatement<I, DB, Schema, TableName>,
+  OnStatement extends InternalWhereStatement<I, DB, Schema, TableName> = InternalWhereStatement<
+    I,
+    DB,
+    Schema,
+    TableName
+  >,
 > = Pick<OnStatement, Columns[number] & keyof OnStatement>
 
 // on statement on an association definition
@@ -271,7 +277,7 @@ export type WhereStatementForJoinedAssociation<
   JoinedAssociations,
   DB,
   Schema,
-  WhereStatement<I, DB, Schema, TableName>
+  InternalWhereStatement<I, DB, Schema, TableName>
 >
 type RecursiveWhereStatementForJoinedAssociation<
   I extends Dream,
@@ -289,7 +295,7 @@ type RecursiveWhereStatementForJoinedAssociation<
     ? never
     : AssociationName extends never
       ? never
-      : WhereStatement<I, DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>,
+      : InternalWhereStatement<I, DB, Schema, TableName & AssociationTableNames<DB, Schema> & keyof DB>,
   NextOnStatement = NonNamespacedAssociationOnStatement extends never
     ? OriginalOnStatement
     : OriginalOnStatement & {
@@ -339,8 +345,8 @@ export interface HasStatement<
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   globalAssociationNameOrNames: string[]
   and?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
-  andNot?: WhereStatement<BaseInstance, DB, Schema, ForeignTableName>
-  andAny?: WhereStatement<BaseInstance, DB, Schema, ForeignTableName>[]
+  andNot?: InternalWhereStatement<BaseInstance, DB, Schema, ForeignTableName>
+  andAny?: InternalWhereStatement<BaseInstance, DB, Schema, ForeignTableName>[]
   // ATTENTION
   //
   // Using `order` with HasOne is tempting as an elegant API
@@ -385,7 +391,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  andNot?: WhereStatement<
+  andNot?: InternalWhereStatement<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -394,7 +400,7 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
-  andAny?: WhereStatement<
+  andAny?: InternalWhereStatement<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],

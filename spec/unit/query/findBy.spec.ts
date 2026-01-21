@@ -7,6 +7,7 @@ import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
 describe('Query#findBy', () => {
   let user: User
@@ -60,6 +61,27 @@ describe('Query#findBy', () => {
 
       expect(await LocalizedText.findBy({ localizable: composition })).toMatchDreamModel(localizedText1)
       expect(await LocalizedText.findBy({ localizable: compositionAsset })).toMatchDreamModel(localizedText2)
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    await User.query().findBy({
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      invalidArg: 123,
+    })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn).queryInstance().findBy({
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          invalidArg: 123,
+        })
+      })
     })
   })
 })

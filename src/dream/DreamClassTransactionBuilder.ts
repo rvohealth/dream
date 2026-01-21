@@ -1,7 +1,6 @@
 import { SelectArg, SelectExpression } from 'kysely'
 import Dream from '../Dream.js'
 import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
-import { AssociationTableNames } from '../types/db.js'
 import {
   CreateOrFindByExtraOpts,
   DefaultScopeName,
@@ -318,12 +317,7 @@ export default class DreamClassTransactionBuilder<
    */
   public async findBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    attributes: WhereStatement<
-      DreamInstance,
-      DreamInstance['DB'],
-      DreamInstance['schema'],
-      DreamInstance['table']
-    >
+    attributes: WhereStatement<DreamInstance>
   ): Promise<DreamInstance | null> {
     return await this.queryInstance().findBy(attributes as any)
   }
@@ -345,12 +339,7 @@ export default class DreamClassTransactionBuilder<
    */
   public async findOrFailBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    whereStatement: WhereStatement<
-      DreamInstance,
-      DreamInstance['DB'],
-      DreamInstance['schema'],
-      DreamInstance['table']
-    >
+    whereStatement: WhereStatement<DreamInstance>
   ): Promise<DreamInstance> {
     return await this.queryInstance().findOrFailBy(whereStatement)
   }
@@ -929,12 +918,10 @@ export default class DreamClassTransactionBuilder<
    * @param whereStatement - Where statement to apply to the Query
    * @returns A Query for this model with the where clause applied
    */
-  public where<
-    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
-  >(this: I, whereStatement: WhereStatement<DreamInstance, DB, Schema, TableName>): Query<DreamInstance> {
+  public where<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I,
+    whereStatement: WhereStatement<DreamInstance>
+  ): Query<DreamInstance> {
     return this.queryInstance().where(whereStatement as any)
   }
 
@@ -952,12 +939,10 @@ export default class DreamClassTransactionBuilder<
    * @param whereStatements - An array of where statements to `OR` together
    * @returns A Query for this model with the whereAny clause applied
    */
-  public whereAny<
-    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
-  >(this: I, whereStatements: WhereStatement<DreamInstance, DB, Schema, TableName>[]): Query<DreamInstance> {
+  public whereAny<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I,
+    whereStatements: WhereStatement<DreamInstance>[]
+  ): Query<DreamInstance> {
     return this.queryInstance().whereAny(whereStatements as any)
   }
 
@@ -975,12 +960,10 @@ export default class DreamClassTransactionBuilder<
    * @param whereStatement - A where statement to negate and apply to the Query
    * @returns A Query for this model with the whereNot clause applied
    */
-  public whereNot<
-    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
-    DB extends DreamInstance['DB'],
-    Schema extends DreamInstance['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['dreamInstance']['table'] & keyof DB,
-  >(this: I, whereStatement: WhereStatement<DreamInstance, DB, Schema, TableName>): Query<DreamInstance> {
+  public whereNot<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
+    this: I,
+    whereStatement: WhereStatement<DreamInstance>
+  ): Query<DreamInstance> {
     return this.queryInstance().whereNot(whereStatement as any)
   }
 }

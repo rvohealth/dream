@@ -83,7 +83,11 @@ import OpsStatement from '../../ops/ops-statement.js'
 import { BelongsToStatement } from '../../types/associations/belongsTo.js'
 import { HasManyStatement } from '../../types/associations/hasMany.js'
 import { HasOneStatement } from '../../types/associations/hasOne.js'
-import { AssociationStatement, SelfOnStatement, WhereStatement } from '../../types/associations/shared.js'
+import {
+  AssociationStatement,
+  SelfOnStatement,
+  InternalWhereStatement,
+} from '../../types/associations/shared.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import {
   AliasToDreamIdMap,
@@ -1066,13 +1070,16 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   private aliasWhereStatements(
-    whereStatements: Readonly<WhereStatement<any, any, any, any>[]>,
+    whereStatements: Readonly<InternalWhereStatement<any, any, any, any>[]>,
     alias: string
   ) {
     return whereStatements.map(whereStatement => this.aliasWhereStatement(whereStatement, alias))
   }
 
-  private aliasWhereStatement(whereStatement: Readonly<WhereStatement<any, any, any, any>>, alias: string) {
+  private aliasWhereStatement(
+    whereStatement: Readonly<InternalWhereStatement<any, any, any, any>>,
+    alias: string
+  ) {
     return Object.keys(whereStatement).reduce((aliasedWhere, key) => {
       aliasedWhere[this.namespaceColumn(key, alias)] = (whereStatement as any)[key]
       return aliasedWhere
@@ -1315,7 +1322,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private _applyJoinAndStatements<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
-    joinAndStatement: WhereStatement<any, any, any, any> | undefined,
+    joinAndStatement: InternalWhereStatement<any, any, any, any> | undefined,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
     {
       negate = false,
@@ -1335,7 +1342,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private _applyJoinAndAnyStatements<Schema extends DreamInstance['schema']>(
     join: JoinBuilder<any, any>,
-    joinAndAnyStatement: WhereStatement<any, any, any, any>[] | undefined,
+    joinAndAnyStatement: InternalWhereStatement<any, any, any, any>[] | undefined,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>
   ) {
     if (!joinAndAnyStatement) return join
@@ -1351,7 +1358,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   private joinAndStatementToExpressionWrapper<Schema extends DreamInstance['schema']>(
-    joinAndStatement: WhereStatement<any, any, any, any>,
+    joinAndStatement: InternalWhereStatement<any, any, any, any>,
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
     eb: ExpressionBuilder<any, any>,
     {
@@ -1455,7 +1462,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private whereStatementToExpressionWrapper(
     eb: ExpressionBuilder<any, any>,
-    whereStatement: WhereStatement<any, any, any, any>,
+    whereStatement: InternalWhereStatement<any, any, any, any>,
     {
       negate = false,
       disallowSimilarityOperator = true,
@@ -2389,7 +2396,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
                     {
                       [association.foreignKeyTypeField()]:
                         dreamClassThroughAssociationWantsToHydrate.sanitizedName,
-                    } as WhereStatement<any, any, any, any>,
+                    } as InternalWhereStatement<any, any, any, any>,
                     previousThroughAssociation.through!
                   )
                 )
@@ -2568,7 +2575,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         this.whereStatementToExpressionWrapper(
           eb,
-          this.aliasWhereStatement(association.and as WhereStatement<any, any, any, any>, currentTableAlias),
+          this.aliasWhereStatement(
+            association.and as InternalWhereStatement<any, any, any, any>,
+            currentTableAlias
+          ),
           { disallowSimilarityOperator: false }
         )
       )
@@ -2579,7 +2589,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         this.whereStatementToExpressionWrapper(
           eb,
           this.aliasWhereStatement(
-            association.andNot as WhereStatement<any, any, any, any>,
+            association.andNot as InternalWhereStatement<any, any, any, any>,
             currentTableAlias
           ),
           { negate: true }
@@ -2590,7 +2600,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     if (association.andAny) {
       join = join.on((eb: ExpressionBuilder<any, any>) =>
         eb.or(
-          (association.andAny as WhereStatement<any, any, any, any>[]).map(whereAnyStatement =>
+          (association.andAny as InternalWhereStatement<any, any, any, any>[]).map(whereAnyStatement =>
             this.whereStatementToExpressionWrapper(
               eb,
               this.aliasWhereStatement(whereAnyStatement, currentTableAlias),

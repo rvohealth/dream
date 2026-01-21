@@ -27,8 +27,9 @@ import {
   OffsetStatement,
   OrderQueryStatement,
   PassthroughOnClause,
-  WhereStatement,
+  InternalWhereStatement,
   WhereStatementForJoinedAssociation,
+  WhereStatement,
 } from '../types/associations/shared.js'
 import { DbConnectionType } from '../types/db.js'
 import {
@@ -122,7 +123,7 @@ export default class Query<
    * stores the where statements applied to the
    * current Query instance
    */
-  private readonly whereStatements: readonly WhereStatement<
+  private readonly whereStatements: readonly InternalWhereStatement<
     DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema'],
@@ -135,7 +136,7 @@ export default class Query<
    * stores the where not statements applied to the
    * current Query instance
    */
-  private readonly whereNotStatements: readonly WhereStatement<
+  private readonly whereNotStatements: readonly InternalWhereStatement<
     DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema'],
@@ -164,7 +165,7 @@ export default class Query<
    * stores the or statements applied to the
    * current Query instance
    */
-  private readonly whereAnyStatements: readonly WhereStatement<
+  private readonly whereAnyStatements: readonly InternalWhereStatement<
     DreamInstance,
     DreamInstance['DB'],
     DreamInstance['schema'],
@@ -507,9 +508,7 @@ export default class Query<
    * @param whereStatement - The where statement used to locate the record
    * @returns Either the first record found matching the attributes, or else null
    */
-  public async findBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    whereStatement: WhereStatement<DreamInstance, DB, Schema, DreamInstance['table']>
-  ): Promise<DreamInstance | null> {
+  public async findBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance | null> {
     return await this._where(whereStatement, 'where').first()
   }
 
@@ -526,9 +525,7 @@ export default class Query<
    * @param whereStatement - The where statement used to locate the record
    * @returns The first record found matching the attributes
    */
-  public async findOrFailBy<DB extends DreamInstance['DB'], Schema extends DreamInstance['schema']>(
-    whereStatement: WhereStatement<DreamInstance, DB, Schema, DreamInstance['table']>
-  ): Promise<DreamInstance> {
+  public async findOrFailBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance> {
     const record = await this.findBy(whereStatement)
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
     return record
@@ -888,7 +885,7 @@ export default class Query<
     joinStatements: RelaxedJoinStatement,
     joinAndStatements: RelaxedJoinAndStatement<DreamInstance, DB, Schema>,
     previousAssociationName: null | string,
-    associationStatements: (string | WhereStatement<DreamInstance, DB, Schema, any> | undefined)[],
+    associationStatements: (string | InternalWhereStatement<DreamInstance, DB, Schema, any> | undefined)[],
     previousDreamClass: typeof Dream | null = this.dreamClass
   ) {
     const nextAssociationStatement = associationStatements.shift()
@@ -1262,7 +1259,7 @@ export default class Query<
    * Applies a where clause
    */
   private _where(
-    whereStatement: WhereStatement<DreamInstance, any, any, any> | null,
+    whereStatement: InternalWhereStatement<DreamInstance, any, any, any> | null,
     typeOfWhere: 'where' | 'whereNot'
   ): Query<DreamInstance, QueryTypeOpts> {
     return this.clone({
@@ -2439,11 +2436,11 @@ export interface QueryOpts<
   baseSqlAlias?: TableOrAssociationName<Schema> | undefined
   baseSelectQuery?: Query<any, any> | null | undefined
   passthroughOnStatement?: PassthroughOnClause<PassthroughColumns> | null | undefined
-  where?: readonly WhereStatement<DreamInstance, DB, Schema, any>[] | null | undefined
-  whereNot?: readonly WhereStatement<DreamInstance, DB, Schema, any>[] | null | undefined
+  where?: readonly InternalWhereStatement<DreamInstance, DB, Schema, any>[] | null | undefined
+  whereNot?: readonly InternalWhereStatement<DreamInstance, DB, Schema, any>[] | null | undefined
   limit?: LimitStatement | null | undefined
   offset?: OffsetStatement | null | undefined
-  or?: WhereStatement<DreamInstance, DB, Schema, any>[][] | null | undefined
+  or?: InternalWhereStatement<DreamInstance, DB, Schema, any>[][] | null | undefined
   order?: OrderQueryStatement<ColumnType>[] | null | undefined
   loadFromJoins?: boolean | undefined
   preloadStatements?: RelaxedPreloadStatement | undefined

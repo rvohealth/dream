@@ -538,3 +538,21 @@ describe('Dream#associationQuery', () => {
     })
   })
 })
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+    User.new().associationQuery('notARealAssociation')
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        const user = User.new()
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+        user.txn(txn).associationQuery('notARealAssociation')
+      })
+    })
+  })
+})

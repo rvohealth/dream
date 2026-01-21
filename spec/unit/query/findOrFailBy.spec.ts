@@ -1,5 +1,6 @@
 import RecordNotFound from '../../../src/errors/RecordNotFound.js'
 import ops from '../../../src/ops/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#findOrFailBy', () => {
@@ -25,6 +26,27 @@ describe('Query#findOrFailBy', () => {
       await expect(
         async () => await User.query().findOrFailBy({ name: ops.similarity('nonmatch') })
       ).rejects.toThrow(RecordNotFound)
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    await User.query().findOrFailBy({
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      invalidArg: 123,
+    })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn).queryInstance().findOrFailBy({
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          invalidArg: 123,
+        })
+      })
     })
   })
 })
