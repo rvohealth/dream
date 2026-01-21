@@ -894,11 +894,10 @@ export default class Query<
       // just satisfying typing
     } else if (typeof nextAssociationStatement === 'string') {
       const nextStatement = nextAssociationStatement
+      const safeKey = protectAgainstPollutingAssignment(nextStatement)
 
-      if (!joinStatements[nextStatement])
-        joinStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
-      if (!joinAndStatements[nextStatement])
-        joinAndStatements[protectAgainstPollutingAssignment(nextStatement)] = {}
+      if (!joinStatements[nextStatement]) joinStatements[safeKey] = {}
+      if (!joinAndStatements[nextStatement]) joinAndStatements[safeKey] = {}
 
       const nextDreamClass = this.addAssociatedDreamClassToInnerJoinDreamClasses(
         previousDreamClass,
@@ -906,8 +905,8 @@ export default class Query<
         innerJoinDreamClasses
       )
 
-      const nextJoinsStatements = joinStatements[nextStatement]
-      const nextJoinsOnStatements = joinAndStatements[nextStatement] as RelaxedJoinAndStatement<
+      const nextJoinsStatements = joinStatements[safeKey]
+      const nextJoinsOnStatements = joinAndStatements[safeKey] as RelaxedJoinAndStatement<
         DreamInstance,
         DB,
         Schema
@@ -963,7 +962,7 @@ export default class Query<
 
   private attachJoinAndStatement(statement: any, dreamClass: typeof Dream | null) {
     const innerKeys = Object.keys(statement || {})
-    const joinAndStatement = innerKeys.length
+    return innerKeys.length
       ? innerKeys.reduce(
           (agg, key) => {
             const value = statement[key]
@@ -983,8 +982,6 @@ export default class Query<
           {} as Record<string, unknown>
         )
       : null
-
-    return joinAndStatement
   }
 
   /**

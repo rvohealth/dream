@@ -6,6 +6,7 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import CatShape from '../../../test-app/app/models/Shape/Cat.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -29,6 +30,23 @@ describe('Dream.preload', () => {
 
     const reloaded = await User.preload('compositions', { and: { content: 'goodbye' } }).first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      const heartRating = await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.preload('heartRatings', {
+        and: { extraRateable: composition },
+      }).first()
+      expect(reloaded!.heartRatings).toMatchDreamModels([heartRating])
+    })
   })
 
   context('within a transaction', () => {

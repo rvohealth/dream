@@ -4,6 +4,7 @@ import { AssociationTableNames } from './db.js'
 import {
   AssociationNamesForTable,
   AssociationTableName,
+  DreamAssociationNameToAssociatedModel,
   JoinAndStatements,
   MAX_VARIADIC_DEPTH,
   RequiredOnClauseKeys,
@@ -133,6 +134,7 @@ type VariadicCheckThenRecurse<
   ConcreteAssociationName,
   //
   AssociationNamesOrOnClause,
+  LastDream extends Dream = I,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   NthArgument extends VALID | INVALID = ConcreteArgs['length'] extends 0
@@ -142,7 +144,7 @@ type VariadicCheckThenRecurse<
       : ConcreteArgs[0] extends AliasedSchemaAssociation<Schema, ConcreteTableName>
         ? VALID
         : ConcreteArgs[0] extends JoinAndStatements<
-              I,
+              LastDream,
               DB,
               Schema,
               ConcreteTableName,
@@ -164,7 +166,8 @@ type VariadicCheckThenRecurse<
         UsedNamespaces,
         Depth,
         PreviousConcreteTableName,
-        ConcreteAssociationName
+        ConcreteAssociationName,
+        LastDream
       >
 
 export type AliasedSchemaAssociation<
@@ -185,6 +188,7 @@ type VariadicRecurse<
   //
   PreviousConcreteTableName,
   ConcreteAssociationName,
+  LastDream extends Dream,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   ConcreteNthArg extends
@@ -250,7 +254,7 @@ type VariadicRecurse<
   //
   AllowedNextArgValues = RecursionType extends 'load'
     ? AllowedNextArgValuesForLoad<
-        I,
+        DreamAssociationNameToAssociatedModel<LastDream, ConcreteArgs[0] & keyof LastDream>,
         DB,
         Schema,
         NextTableName,
@@ -258,7 +262,7 @@ type VariadicRecurse<
       >
     : RecursionType extends 'leftJoinLoad'
       ? AllowedNextArgValuesForLeftJoinLoad<
-          I,
+          DreamAssociationNameToAssociatedModel<LastDream, ConcreteArgs[0] & keyof LastDream>,
           DB,
           Schema,
           NextTableName,
@@ -267,7 +271,7 @@ type VariadicRecurse<
         >
       : RecursionType extends 'join'
         ? AllowedNextArgValuesForJoin<
-            I,
+            DreamAssociationNameToAssociatedModel<LastDream, ConcreteArgs[0] & keyof LastDream>,
             DB,
             Schema,
             NextTableName,
@@ -288,7 +292,10 @@ type VariadicRecurse<
       Inc<Depth>,
       NextPreviousConcreteTableName,
       NextAliasedAssociationName,
-      AllowedNextArgValues
+      AllowedNextArgValues,
+      DreamAssociationNameToAssociatedModel<LastDream, ConcreteArgs[0] & keyof LastDream> extends Dream
+        ? DreamAssociationNameToAssociatedModel<LastDream, ConcreteArgs[0] & keyof LastDream>
+        : LastDream
     >
 
 type AllowedNextArgValuesForLoad<

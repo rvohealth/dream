@@ -7,6 +7,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -28,6 +29,25 @@ describe('Query#joins with simple associations', () => {
 
     const reloadedUsers = await User.query().innerJoin('compositions').all()
     expect(reloadedUsers).toMatchDreamModels([user])
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.query()
+        .leftJoin('heartRatings', {
+          and: { extraRateable: composition },
+        })
+        .firstOrFail()
+      expect(reloaded).toMatchDreamModel(user)
+    })
   })
 
   context('when passed an object', () => {

@@ -5,6 +5,7 @@ import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
+import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Edge from '../../../../test-app/app/models/Graph/Edge.js'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
 import Node from '../../../../test-app/app/models/Graph/Node.js'
@@ -48,6 +49,29 @@ describe('Query#preload with simple associations', () => {
       .firstOrFail()
     expect(reloaded.associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz).toMatchDreamModels([collar])
     expect(reloaded.associationWithVeryLongNameAbcdefghijklmnopqrstuvwxyz[0]!.tagName).toEqual('hello')
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.query()
+        .preload(
+          'heartRatings',
+          {
+            and: { extraRateable: composition },
+          },
+          'extraRateable'
+        )
+        .firstOrFail()
+      expect(reloaded.heartRatings[0]!.extraRateable).toMatchDreamModel(composition)
+    })
   })
 
   context('HasOne', () => {

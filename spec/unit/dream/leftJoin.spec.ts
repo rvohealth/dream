@@ -1,5 +1,6 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Post from '../../../test-app/app/models/Post.js'
 import PostComment from '../../../test-app/app/models/PostComment.js'
 import User from '../../../test-app/app/models/User.js'
@@ -27,6 +28,23 @@ describe('Dream.leftJoin', () => {
       })
     })
   })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.leftJoin('heartRatings', {
+        and: { extraRateable: composition },
+      }).firstOrFail()
+      expect(reloaded).toMatchDreamModel(user)
+    })
+  })
 })
 
 describe('Dream#leftJoin', () => {
@@ -39,6 +57,25 @@ describe('Dream#leftJoin', () => {
     await postComment.undestroy()
 
     expect(await post.leftJoin('comments').pluck('comments.body')).toEqual(['hello world'])
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await user
+        .leftJoin('heartRatings', {
+          and: { extraRateable: composition },
+        })
+        .firstOrFail()
+      expect(reloaded).toMatchDreamModel(user)
+    })
   })
 
   context('when encased in a transaction', () => {

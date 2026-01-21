@@ -517,6 +517,30 @@ export type ViewModel = {
 }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
+/**
+ * given a Dream model and an association name, this
+ * type will return the actual type set for that association,
+ * excluding null or arrays.
+ *
+ * ```ts
+ * DreamAssociationNameToAssociatedModel<User, 'compositions'>
+ * // Composition
+ *
+ * DreamAssociationNameToAssociatedModel<User, 'featuredPost'>
+ * // Post
+ * ```
+ */
+export type DreamAssociationNameToAssociatedModel<
+  I extends Dream,
+  AssociationName extends keyof I,
+> = I[AssociationName] extends (infer U extends Dream)[]
+  ? U
+  : I[AssociationName] extends Dream
+    ? I[AssociationName]
+    : I[AssociationName] extends Dream | null
+      ? Required<I[AssociationName]> & Dream
+      : I
+
 // preload
 export type DreamModelAssociationNames<
   Schema,
