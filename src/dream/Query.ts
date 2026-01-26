@@ -859,10 +859,11 @@ export default class Query<
     >,
   >(...args: [...Arr, LastArg]): RetQuery {
     const innerJoinDreamClasses: (typeof Dream)[] = [...this.innerJoinDreamClasses]
-    const leftJoinStatements = cloneDeepSafe(this.leftJoinStatements)
+    const leftJoinStatements = Object.assign(Object.create(null), cloneDeepSafe(this.leftJoinStatements))
 
-    const leftJoinAndStatements: RelaxedJoinAndStatement<DreamInstance, DB, Schema> = cloneDeepSafe(
-      this.leftJoinAndStatements
+    const leftJoinAndStatements: RelaxedJoinAndStatement<DreamInstance, DB, Schema> = Object.assign(
+      Object.create(null),
+      cloneDeepSafe(this.leftJoinAndStatements)
     )
 
     this.fleshOutJoinStatements(innerJoinDreamClasses, leftJoinStatements, leftJoinAndStatements, null, [
@@ -896,8 +897,8 @@ export default class Query<
       const nextStatement = nextAssociationStatement
       const safeKey = protectAgainstPollutingAssignment(nextStatement)
 
-      if (!joinStatements[nextStatement]) joinStatements[safeKey] = {}
-      if (!joinAndStatements[nextStatement]) joinAndStatements[safeKey] = {}
+      if (!joinStatements[safeKey]) joinStatements[safeKey] = Object.create(null)
+      if (!joinAndStatements[safeKey]) joinAndStatements[safeKey] = Object.create(null)
 
       const nextDreamClass = this.addAssociatedDreamClassToInnerJoinDreamClasses(
         previousDreamClass,
@@ -933,7 +934,7 @@ export default class Query<
       })
 
       nextAssociationStatement.forEach(associationStatement => {
-        joinStatements[protectAgainstPollutingAssignment(associationStatement)] = {}
+        joinStatements[protectAgainstPollutingAssignment(associationStatement)] = Object.create(null)
       })
       //
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
