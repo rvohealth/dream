@@ -7,7 +7,7 @@ import Dream from '../../../Dream.js'
 import isObject from '../../../helpers/isObject.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
 import OpsStatement from '../../../ops/ops-statement.js'
-import { WhereStatement } from '../../../types/associations/shared.js'
+import { InternalWhereStatement } from '../../../types/associations/shared.js'
 import { DbConnectionType } from '../../../types/db.js'
 import { JoinAndStatements, RelaxedJoinAndStatement, SimilarityStatement } from '../../../types/dream.js'
 import { TRIGRAM_OPERATORS } from '../../constants.js'
@@ -21,9 +21,11 @@ export default class SimilarityBuilder<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['schema'] = DreamInstance['schema'],
 > extends ConnectedToDB<DreamInstance> {
-  public readonly whereStatement: readonly WhereStatement<DB, Schema, any>[]
-  public readonly whereNotStatement: readonly WhereStatement<DB, Schema, any>[]
-  public readonly joinAndStatements: JoinAndStatements<DB, Schema, any, any> = Object.freeze({})
+  public readonly whereStatement: readonly InternalWhereStatement<DreamInstance, DB, Schema, any>[]
+  public readonly whereNotStatement: readonly InternalWhereStatement<DreamInstance, DB, Schema, any>[]
+  public readonly joinAndStatements: JoinAndStatements<DreamInstance, DB, Schema, any, any> = Object.freeze(
+    {}
+  )
 
   constructor(dreamInstance: DreamInstance, opts: SimilarityBuilderOpts<DreamInstance> = {}) {
     super(dreamInstance, opts)
@@ -407,7 +409,9 @@ export default class SimilarityBuilder<
     return nestedQuery
   }
 
-  private similarityStatementFilter(statements: readonly WhereStatement<DB, Schema, any>[]) {
+  private similarityStatementFilter(
+    statements: readonly InternalWhereStatement<DreamInstance, DB, Schema, any>[]
+  ) {
     const similar: SimilarityStatement[] = []
     const tableName = this.dreamClass.table
 
@@ -444,9 +448,9 @@ export interface SimilarityBuilderOpts<
   DB extends DreamInstance['DB'] = DreamInstance['DB'],
   Schema extends DreamInstance['schema'] = DreamInstance['schema'],
 > {
-  where?: WhereStatement<DB, Schema, any>[] | undefined
-  whereNot?: WhereStatement<DB, Schema, any>[] | undefined
-  joinAndStatements?: RelaxedJoinAndStatement<DB, Schema> | undefined
+  where?: InternalWhereStatement<DreamInstance, DB, Schema, any>[] | undefined
+  whereNot?: InternalWhereStatement<DreamInstance, DB, Schema, any>[] | undefined
+  joinAndStatements?: RelaxedJoinAndStatement<DreamInstance, DB, Schema> | undefined
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
 }

@@ -42,6 +42,21 @@ describe('Query#leftJoinPreload with simple associations', () => {
     })
   })
 
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const pet = await Pet.create({ user, name: 'aster' })
+      await Pet.create({ user, name: 'violet' })
+
+      const collar = await pet.createAssociation('collars')
+
+      const reloaded = await User.query()
+        .leftJoinPreload('pets', { and: { name: 'aster' } }, 'collars')
+        .firstOrFail()
+      expect(reloaded.pets[0]!.collars).toMatchDreamModels([collar])
+    })
+  })
+
   context('HasOne', () => {
     it('loads the association', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

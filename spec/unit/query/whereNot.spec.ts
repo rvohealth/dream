@@ -1,6 +1,7 @@
 import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import ops from '../../../src/ops/index.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
@@ -541,6 +542,26 @@ describe('Query#whereNot', () => {
           })
           .pluck('id')
         expect(records).toEqual([user3.id])
+      })
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    User.query()
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .whereNot({ invalidArg: 123 })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        User.txn(txn)
+          .queryInstance()
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .whereNot({ invalidArg: 123 })
       })
     })
   })

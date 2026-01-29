@@ -23,7 +23,7 @@ export default function associationUpdateQuery<
     bypassAllDefaultScopes,
     defaultScopesToBypass,
   }: {
-    joinAndStatements: JoinAndStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements: JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
     bypassAllDefaultScopes: boolean
     defaultScopesToBypass: string[]
   }

@@ -9,7 +9,7 @@ import {
   AssociatedModelParam,
   AssociationStatement,
   OnStatementForAssociation,
-  WhereStatement,
+  InternalWhereStatement,
 } from './associations/shared.js'
 import { AssociationTableNames } from './db.js'
 import { FindEachOpts } from './query.js'
@@ -393,32 +393,34 @@ export type DreamClassAssociationAndStatement<
     AssociationName
   > = RequiredOnClauseKeys<Schema, TableName, AssociationName>,
   Statements extends JoinAndStatements<
+    DreamInstance,
     DB,
     Schema,
     AssocTableName,
     RequiredOnClauseKeysForThisAssociation
-  > = JoinAndStatements<DB, Schema, AssocTableName, RequiredOnClauseKeysForThisAssociation>,
+  > = JoinAndStatements<DreamInstance, DB, Schema, AssocTableName, RequiredOnClauseKeysForThisAssociation>,
 > = Statements
 
 export type JoinAndStatements<
+  I extends Dream,
   DB,
   Schema,
   TableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   RequiredOnClauseKeysForThisAssociation,
 > = RequiredOnClauseKeysForThisAssociation extends null
   ? {
-      and?: WhereStatement<DB, Schema, TableName>
-      andNot?: WhereStatement<DB, Schema, TableName>
+      and?: InternalWhereStatement<I, DB, Schema, TableName>
+      andNot?: InternalWhereStatement<I, DB, Schema, TableName>
       // andNot?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-      andAny?: WhereStatement<DB, Schema, TableName>[]
+      andAny?: InternalWhereStatement<I, DB, Schema, TableName>[]
       // andAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
     }
   : RequiredOnClauseKeysForThisAssociation extends string[]
     ? {
-        and: OnStatementForAssociation<DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
-        andNot?: WhereStatement<DB, Schema, TableName>
+        and: OnStatementForAssociation<I, DB, Schema, TableName, RequiredOnClauseKeysForThisAssociation>
+        andNot?: InternalWhereStatement<I, DB, Schema, TableName>
         // andNot?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>
-        andAny?: WhereStatement<DB, Schema, TableName>[]
+        andAny?: InternalWhereStatement<I, DB, Schema, TableName>[]
         // andAny?: WhereStatementWithoutSimilarityClauses<DB, Schema, TableName>[]
       }
     : never
@@ -515,6 +517,30 @@ export type ViewModel = {
 }
 export type ViewModelClass = abstract new (...args: any) => ViewModel
 
+/**
+ * given a Dream model and an association name, this
+ * type will return the actual type set for that association,
+ * excluding null or arrays.
+ *
+ * ```ts
+ * DreamAssociationNameToAssociatedModel<User, 'compositions'>
+ * // Composition
+ *
+ * DreamAssociationNameToAssociatedModel<User, 'featuredPost'>
+ * // Post
+ * ```
+ */
+export type DreamAssociationNameToAssociatedModel<
+  I extends Dream,
+  AssociationName extends keyof I,
+> = I[AssociationName] extends (infer U extends Dream)[]
+  ? U
+  : I[AssociationName] extends Dream
+    ? I[AssociationName]
+    : I[AssociationName] extends Dream | null
+      ? Required<I[AssociationName]> & Dream
+      : I
+
 // preload
 export type DreamModelAssociationNames<
   Schema,
@@ -555,22 +581,22 @@ export type RelaxedJoinStatement<Depth extends number = 0> = Depth extends 7
   ? object
   : Record<string, RelaxedJoinStatement<Inc<Depth>>>
 
-export type RelaxedPreloadOnStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedPreloadOnStatement<I extends Dream, DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
       [key: string]:
-        | RelaxedPreloadOnStatement<DB, Schema, Inc<Depth>>
-        | JoinAndStatements<any, any, any, any>
+        | RelaxedPreloadOnStatement<I, DB, Schema, Inc<Depth>>
+        | JoinAndStatements<I, any, any, any, any>
         | FakeOnClauseValue
         | object
     }
 
-export type RelaxedJoinAndStatement<DB, Schema, Depth extends number = 0> = Depth extends 7
+export type RelaxedJoinAndStatement<I extends Dream, DB, Schema, Depth extends number = 0> = Depth extends 7
   ? object
   : {
       [key: string]:
-        | RelaxedJoinAndStatement<DB, Schema, Inc<Depth>>
-        | JoinAndStatements<any, any, any, any>
+        | RelaxedJoinAndStatement<I, DB, Schema, Inc<Depth>>
+        | JoinAndStatements<I, any, any, any, any>
         | FakeOnClauseValue
         | object
     }
