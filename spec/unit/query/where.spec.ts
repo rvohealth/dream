@@ -1231,7 +1231,7 @@ describe('Query#where', () => {
 
   context('polymorphic', () => {
     it('correctly scopes the query by type and foreign key', async () => {
-      const user = await User.create({ email: 'a@b', password: 'mysecret' })
+      const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
 
       // restarting sequence on both composiitons and composition assets,
       // since this will force the findBy to ensure that the foreign key type

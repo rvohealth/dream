@@ -1942,14 +1942,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       (agg, key) => {
         const value = preloadOnStatements[key]
         if (value === undefined) throw new UnexpectedUndefined()
-        // filter out plain objects, but not ops and not and/andNot/andAny statements
-        // because plain objects are just the next level of nested preload
+        // filter out plain objects and prototype-less containers (used for nested preload),
+        // but not ops and not and/andNot/andAny statements
+        const isNestedPreloadContainer =
+          typeof value === 'object' &&
+          value !== null &&
+          (value.constructor === Object || Object.getPrototypeOf(value) === null)
         if (
           key === 'and' ||
           key === 'andNot' ||
           key === 'andAny' ||
           value === null ||
-          value.constructor !== Object
+          !isNestedPreloadContainer
         ) {
           agg[key] = value
         }

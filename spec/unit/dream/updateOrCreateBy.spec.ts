@@ -177,7 +177,7 @@ context.skip('type tests', () => {
       .updateOrCreateBy({ invalidArg: 123 })
 
     await User.updateOrCreateBy(
-      { email: 'a@b' },
+      { email: 'a@b.com' },
       {
         with: {
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
@@ -195,7 +195,7 @@ context.skip('type tests', () => {
           .updateOrCreateBy({ invalidArg: 123 })
 
         await User.txn(txn).updateOrCreateBy(
-          { email: 'a@b' },
+          { email: 'a@b.com' },
           {
             with: {
               // @ts-expect-error intentionally passing invalid arg to test that type protection is working
