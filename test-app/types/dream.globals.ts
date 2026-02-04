@@ -91,6 +91,7 @@ export const globalTypeConfig = {
     'Graph/EdgeSerializer',
     'Graph/NodeSerializer',
     'LocalizedText/BaseSerializer',
+    'ModelForOpenapiTypeSpecsSerializer',
     'MysqlUserSerializer',
     'MysqlUserSummarySerializer',
     'PetDeepDelegatedAttributeSerializer',

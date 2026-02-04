@@ -76,15 +76,30 @@ describe('ASTSchemaBuilder', () => {
         })
       })
 
+      context('time', () => {
+        it('renders "time without time zone" for dbType', () => {
+          expect(User.prototype.schema.model_for_openapi_type_specs.columns.startTime.dbType).toEqual(
+            'time without time zone'
+          )
+        })
+      })
+
       context('primitive (in this case, integer) array type', () => {
         it('renders "integer[]" for integer[] dbType', () => {
           expect(User.prototype.schema.users.columns.favoriteNumbers.dbType).toEqual('integer[]')
           expect(User.prototype.schema.users.columns.favoriteNumbers.enumValues).toBeNull()
         })
 
-        it('renders "timestamp[]" for timestamp[] dbType', () => {
+        it('renders "timestamp without time zone[]" for timestamp[] dbType', () => {
           expect(User.prototype.schema.users.columns.favoriteDatetimes.dbType).toEqual(
             'timestamp without time zone[]'
+          )
+          expect(User.prototype.schema.users.columns.favoriteDatetimes.enumValues).toBeNull()
+        })
+
+        it('renders "time without time zone[]" for timestamp[] dbType', () => {
+          expect(User.prototype.schema.model_for_openapi_type_specs.columns.times.dbType).toEqual(
+            'time without time zone[]'
           )
           expect(User.prototype.schema.users.columns.favoriteDatetimes.enumValues).toBeNull()
         })

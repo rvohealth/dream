@@ -480,6 +480,7 @@ export interface ModelForOpenapiTypeSpecs {
   createdAt: Generated<Timestamp>
   createdOn: Generated<Timestamp>
   email: string
+  endTime: string | null
   favoriteBigint: Int8 | null
   favoriteBigints: ArrayType<Int8> | null
   favoriteBooleans: boolean[] | null
@@ -524,6 +525,8 @@ export interface ModelForOpenapiTypeSpecs {
   requiredJsonbData: Generated<Json>
   requiredNicknames: Generated<string[]>
   species: SpeciesTypesEnum | null
+  startTime: string | null
+  times: string[] | null
   updatedAt: Generated<Timestamp>
   uuid: Generated<string>
   volume: Numeric | null

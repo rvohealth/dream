@@ -46,6 +46,7 @@ export const postgresDatatypes = [
   'text',
   'time',
   'time with time zone',
+  'time without time zone',
   'timestamp',
   'timestamp with time zone',
   'timestamp without time zone',

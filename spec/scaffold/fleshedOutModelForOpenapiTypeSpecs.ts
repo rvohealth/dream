@@ -70,5 +70,9 @@ export function unpersistedFleshedOutModelForOpenapiTypeSpecs() {
     requiredCollarCountInt: 3,
     likesWalks: true,
     likesTreats: false,
+
+    startTime: '10:30:00',
+    endTime: '11:30:00',
+    times: ['11:30:00', '12:30:00'],
   })
 }

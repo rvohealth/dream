@@ -242,6 +242,9 @@ describe('DreamSerializer#attribute', () => {
         .attribute('likesWalks')
         .attribute('likesTreats')
         .attribute('likesTreats')
+        .attribute('startTime')
+        .attribute('endTime')
+        .attribute('times')
 
     let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
 
@@ -311,6 +314,10 @@ describe('DreamSerializer#attribute', () => {
         requiredCollarCountInt: 3,
         likesWalks: true,
         likesTreats: false,
+
+        startTime: '10:30:00',
+        endTime: '11:30:00',
+        times: ['11:30:00', '12:30:00'],
       })
     })
   })
