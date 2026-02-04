@@ -20,6 +20,9 @@ export default class ModelForOpenapiTypeSpecs extends ApplicationModel {
   public aReal: DreamColumn<ModelForOpenapiTypeSpecs, 'aReal'>
 
   public volume: DreamColumn<ModelForOpenapiTypeSpecs, 'volume'>
+  public startTime: DreamColumn<ModelForOpenapiTypeSpecs, 'startTime'>
+  public endTime: DreamColumn<ModelForOpenapiTypeSpecs, 'endTime'>
+  public times: DreamColumn<ModelForOpenapiTypeSpecs, 'times'>
 
   // begin: favorite records (used for checking type validation in Params.for)
   public favoriteCitext: DreamColumn<ModelForOpenapiTypeSpecs, 'favoriteCitext'>
