@@ -1067,7 +1067,7 @@ describe('Individual Function Tests', () => {
       })
     })
 
-    it('uses modelName override when provided (e.g. --model-name=GroupSession for Session/Group)', () => {
+    it('uses modelName override when provided, e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`', () => {
       const options = {
         fullyQualifiedModelName: 'Session/Group',
         columnsWithTypes: [],
