@@ -187,7 +187,7 @@ export default class DreamCLI {
       .option('--sti-base-serializer')
       .option(
         '--model-name <modelName>',
-        'override the generated class name (e.g. --model-name=GroupSession for path Session/Group)'
+        'override the automatically generated model name, e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`'
       )
       .argument(
         '<modelName>',
@@ -198,7 +198,12 @@ export default class DreamCLI {
         async (
           modelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string; modelName?: string }
+          options: {
+            serializer: boolean
+            stiBaseSerializer: boolean
+            connectionName: string
+            modelName?: string
+          }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateDream(modelName, columnsWithTypes, options)
@@ -220,7 +225,7 @@ export default class DreamCLI {
       )
       .option(
         '--model-name <modelName>',
-        'override the generated class name (e.g. --model-name=GroupSession for path Session/Group)'
+        'override the automatically generated model name, e.g., `pnpm psy g:sti-child --model-name=GroupSession Session/Group extends Session`'
       )
       .argument(
         '<childModelName>',
