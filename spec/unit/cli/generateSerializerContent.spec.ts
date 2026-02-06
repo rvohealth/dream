@@ -3,7 +3,7 @@ import generateSerializerContent from '../../../src/helpers/cli/generateSerializ
 
 describe('dream generate:serializer <name> [...attributes]', () => {
   context('when modelName is provided', () => {
-    it('uses the overridden class name in the model import and serializer signatures (e.g. GroupSession for path Session/Group)', () => {
+    it('uses the overridden class name in the model import and serializer signatures e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`', () => {
       const res = generateSerializerContent({
         fullyQualifiedModelName: 'Session/Group',
         columnsWithTypes: ['title:string'],

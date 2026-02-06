@@ -18,7 +18,7 @@ export default function generateSerializerContent({
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
-  /** When set, overrides the generated class name (e.g. GroupSession for path Session/Group). */
+  /** When set, overrides the generated class name e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`. */
   modelName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)

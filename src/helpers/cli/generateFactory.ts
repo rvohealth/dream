@@ -1,9 +1,9 @@
 import * as fs from 'node:fs/promises'
+import DreamCLI from '../../cli/index.js'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateFactoryContent from './generateFactoryContent.js'
-import DreamCLI from '../../cli/index.js'
 
 export default async function generateFactory({
   fullyQualifiedModelName,
@@ -12,7 +12,7 @@ export default async function generateFactory({
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
-  /** When set, overrides the generated class name (e.g. GroupSession for path Session/Group). */
+  /** When set, overrides the generated class name e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`. */
   modelName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
