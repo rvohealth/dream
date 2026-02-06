@@ -118,7 +118,7 @@ export default class MealType extends ApplicationModel {
   })
 
   context('when modelName is provided', () => {
-    it('overrides the generated class name everywhere (e.g. GroupSession for path Session/Group)', () => {
+    it('override the automatically generated model name, e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'Session/Group',
         columnsWithTypes: ['title:string'],
