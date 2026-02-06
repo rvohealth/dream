@@ -11,12 +11,15 @@ export default function generateSerializerContent({
   fullyQualifiedParentName,
   stiBaseSerializer,
   includeAdminSerializers,
+  modelName,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes?: string[] | undefined
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  /** When set, overrides the generated class name e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`. */
+  modelName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
@@ -30,8 +33,10 @@ export default function generateSerializerContent({
     dreamImports.push('DreamSerializer')
   }
 
-  const relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const relatedModelImport = importStatementForModel(fullyQualifiedModelName, modelName)
+  const modelClassName = modelName
+    ? standardizeFullyQualifiedModelName(modelName).replace(/\//g, '')
+    : globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   const modelInstanceName = camelize(modelClassName)
   const modelSerializerSignature = stiBaseSerializer
     ? `<T extends ${modelClassName}>(StiChildClass: typeof ${modelClassName}, ${modelInstanceName}: T)`
@@ -159,11 +164,13 @@ function importStatementForSerializer(originModelName: string, destinationModelN
   return `import { ${defaultSerializer}, ${summarySerializer} } from '${importFrom}'\n`
 }
 
-function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
-  const modelName = globalClassNameFromFullyQualifiedModelName(destinationModelName)
-  const importFrom = absoluteDreamPath('models', destinationModelName)
+function importStatementForModel(originModelName: string, modelClassNameOverride?: string) {
+  const modelClassName = modelClassNameOverride
+    ? standardizeFullyQualifiedModelName(modelClassNameOverride).replace(/\//g, '')
+    : globalClassNameFromFullyQualifiedModelName(originModelName)
+  const importFrom = absoluteDreamPath('models', originModelName)
 
-  return `import ${modelName} from '${importFrom}'\n`
+  return `import ${modelClassName} from '${importFrom}'\n`
 }
 
 function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {

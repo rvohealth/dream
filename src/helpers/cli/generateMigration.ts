@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import pluralize from 'pluralize-esm'
+import DreamCLI from '../../cli/index.js'
 import generateMigrationContent from '../cli/generateMigrationContent.js'
 import primaryKeyType from '../db/primaryKeyType.js'
 import hyphenize from '../hyphenize.js'
@@ -9,8 +10,8 @@ import pascalizePath from '../pascalizePath.js'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import snakeify from '../snakeify.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateStiMigrationContent from './generateStiMigrationContent.js'
-import DreamCLI from '../../cli/index.js'
 
 export default async function generateMigration({
   migrationName,
@@ -18,12 +19,15 @@ export default async function generateMigration({
   connectionName,
   fullyQualifiedModelName,
   fullyQualifiedParentName,
+  modelName,
 }: {
   migrationName: string
   columnsWithTypes: string[]
   connectionName: string
   fullyQualifiedModelName?: string | undefined
   fullyQualifiedParentName?: string | undefined
+  /** When set, overrides the STI child class name used in check constraints e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`. */
+  modelName?: string | undefined
 }) {
   const { relFilePath, absFilePath } =
     connectionName === 'default'
@@ -40,11 +44,14 @@ export default async function generateMigration({
   let finalContent: string = ''
 
   if (isSTI) {
+    const stiChildClassName = modelName
+      ? standardizeFullyQualifiedModelName(modelName).replace(/\//g, '')
+      : pascalizePath(fullyQualifiedModelName!)
     finalContent = generateStiMigrationContent({
       table: snakeify(pluralize(pascalizePath(fullyQualifiedParentName))),
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
-      stiChildClassName: pascalizePath(fullyQualifiedModelName!),
+      stiChildClassName,
     })
   } else if (fullyQualifiedModelName) {
     finalContent = generateMigrationContent({

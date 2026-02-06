@@ -15,6 +15,8 @@ interface GenerateDreamContentOptions {
   connectionName?: string
   serializer: boolean
   includeAdminSerializers: boolean
+  /** When set, overrides the generated class name e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`. */
+  modelName?: string | undefined
 }
 
 export interface ModelConfig {
@@ -65,7 +67,9 @@ ${tableMethod}${serializersMethod}${fieldsSection}
 
 export function createModelConfig(options: GenerateDreamContentOptions): ModelConfig {
   const fullyQualifiedModelName = standardizeFullyQualifiedModelName(options.fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = options.modelName
+    ? standardizeFullyQualifiedModelName(options.modelName).replace(/\//g, '')
+    : globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   const isSTI = !!options.fullyQualifiedParentName
 
   let parentModelClassName: string | undefined

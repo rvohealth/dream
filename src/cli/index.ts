@@ -2,7 +2,6 @@ import { SpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
-import generateDream from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
 import sspawn from '../helpers/sspawn.js'
@@ -115,23 +114,6 @@ export default class DreamCLI {
   }
 
   /**
-   * @internal
-   */
-  public static async generateDream(opts: {
-    fullyQualifiedModelName: string
-    columnsWithTypes: string[]
-    options: {
-      connectionName: string
-      serializer: boolean
-      stiBaseSerializer: boolean
-      includeAdminSerializers: boolean
-    }
-    fullyQualifiedParentName?: string | undefined
-  }) {
-    await generateDream(opts)
-  }
-
-  /**
    * called under the hood when provisioning both psychic and dream applications.
    */
   public static generateDreamCli(
@@ -184,6 +166,10 @@ export default class DreamCLI {
         'default'
       )
       .option('--sti-base-serializer')
+      .option(
+        '--model-name <modelName>',
+        'override the automatically generated model name, e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`'
+      )
       .argument(
         '<modelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -193,7 +179,12 @@ export default class DreamCLI {
         async (
           modelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
+          options: {
+            serializer: boolean
+            stiBaseSerializer: boolean
+            connectionName: string
+            modelName?: string
+          }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateDream(modelName, columnsWithTypes, options)
@@ -213,6 +204,10 @@ export default class DreamCLI {
         'the db connection you want this model attached to (defaults to the default connection)',
         'default'
       )
+      .option(
+        '--model-name <modelName>',
+        'override the automatically generated model name, e.g., `pnpm psy g:sti-child --model-name=GroupSession Session/Group extends Session`'
+      )
       .argument(
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -231,7 +226,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           extendsWord: string,
           parentModelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; connectionName: string }
+          options: { serializer: boolean; connectionName: string; modelName?: string }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           if (extendsWord !== 'extends')

@@ -14,6 +14,7 @@ export default async function generateDream({
   columnsWithTypes,
   options,
   fullyQualifiedParentName,
+  modelName,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
@@ -24,6 +25,8 @@ export default async function generateDream({
     includeAdminSerializers: boolean
   }
   fullyQualifiedParentName?: string | undefined
+  /** When set, overrides the generated class name e.g., `pnpm psy g:model --model-name=GroupSession Session/Group`. */
+  modelName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
@@ -45,6 +48,7 @@ export default async function generateDream({
         serializer: options.serializer,
         includeAdminSerializers: options.includeAdminSerializers,
         connectionName: options.connectionName,
+        modelName,
       })
     )
   } catch (error) {
@@ -58,7 +62,7 @@ export default async function generateDream({
   }
 
   await generateUnitSpec({ fullyQualifiedModelName })
-  await generateFactory({ fullyQualifiedModelName, columnsWithTypes })
+  await generateFactory({ fullyQualifiedModelName, columnsWithTypes, modelName })
   if (options.serializer)
     await generateSerializer({
       fullyQualifiedModelName,
@@ -66,6 +70,7 @@ export default async function generateDream({
       fullyQualifiedParentName,
       stiBaseSerializer: options.stiBaseSerializer,
       includeAdminSerializers: options.includeAdminSerializers,
+      modelName,
     })
 
   const isSTI = !!fullyQualifiedParentName
@@ -76,6 +81,7 @@ export default async function generateDream({
       columnsWithTypes,
       fullyQualifiedModelName,
       fullyQualifiedParentName,
+      modelName,
     })
   }
 }
