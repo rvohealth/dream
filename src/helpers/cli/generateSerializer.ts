@@ -11,12 +11,15 @@ export default async function generateSerializer({
   fullyQualifiedParentName,
   stiBaseSerializer,
   includeAdminSerializers,
+  modelName,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  /** When set, overrides the generated class name (e.g. GroupSession for path Session/Group). */
+  modelName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
 
@@ -37,6 +40,7 @@ export default async function generateSerializer({
         fullyQualifiedParentName,
         stiBaseSerializer,
         includeAdminSerializers,
+        modelName,
       })
     )
   } catch (error) {

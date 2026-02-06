@@ -286,6 +286,19 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
+  context('when stiChildClassName is provided (e.g. from --model-name=GroupSession)', () => {
+    it('uses the given class name in check constraints for the type column', () => {
+      const res = generateStiMigrationContent({
+        table: 'session_groups',
+        columnsWithTypes: ['title:string', 'started_at:datetime'],
+        primaryKeyType: 'bigserial',
+        stiChildClassName: 'GroupSession',
+      })
+      expect(res).toContain("sql`type != 'GroupSession' OR title IS NOT NULL`")
+      expect(res).toContain("sql`type != 'GroupSession' OR started_at IS NOT NULL`")
+    })
+  })
+
   context('has_one and has_many attributes', () => {
     it('ignores has_one and has_many statements', () => {
       const res = generateStiMigrationContent({

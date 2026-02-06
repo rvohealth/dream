@@ -127,6 +127,7 @@ export default class DreamCLI {
       includeAdminSerializers: boolean
     }
     fullyQualifiedParentName?: string | undefined
+    modelName?: string | undefined
   }) {
     await generateDream(opts)
   }
@@ -184,6 +185,10 @@ export default class DreamCLI {
         'default'
       )
       .option('--sti-base-serializer')
+      .option(
+        '--model-name <modelName>',
+        'override the generated class name (e.g. --model-name=GroupSession for path Session/Group)'
+      )
       .argument(
         '<modelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -193,7 +198,7 @@ export default class DreamCLI {
         async (
           modelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
+          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string; modelName?: string }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateDream(modelName, columnsWithTypes, options)
@@ -213,6 +218,10 @@ export default class DreamCLI {
         'the db connection you want this model attached to (defaults to the default connection)',
         'default'
       )
+      .option(
+        '--model-name <modelName>',
+        'override the generated class name (e.g. --model-name=GroupSession for path Session/Group)'
+      )
       .argument(
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -231,7 +240,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           extendsWord: string,
           parentModelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; connectionName: string }
+          options: { serializer: boolean; connectionName: string; modelName?: string }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           if (extendsWord !== 'extends')

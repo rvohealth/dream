@@ -2,6 +2,33 @@ import DreamApp from '../../../src/dream-app/index.js'
 import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent.js'
 
 describe('dream generate:serializer <name> [...attributes]', () => {
+  context('when modelName is provided', () => {
+    it('uses the overridden class name in the model import and serializer signatures (e.g. GroupSession for path Session/Group)', () => {
+      const res = generateSerializerContent({
+        fullyQualifiedModelName: 'Session/Group',
+        columnsWithTypes: ['title:string'],
+        stiBaseSerializer: false,
+        includeAdminSerializers: false,
+        modelName: 'GroupSession',
+      })
+
+      expect(res).toEqual(
+        `\
+import { DreamSerializer } from '@rvoh/dream'
+import GroupSession from '@models/Session/Group.js'
+
+export const SessionGroupSummarySerializer = (groupSession: GroupSession) =>
+  DreamSerializer(GroupSession, groupSession)
+    .attribute('id')
+
+export const SessionGroupSerializer = (groupSession: GroupSession) =>
+  SessionGroupSummarySerializer(groupSession)
+    .attribute('title')
+`
+      )
+    })
+  })
+
   context('when provided attributes', () => {
     context('when passed a dream class', () => {
       it('generates a serializer adding requested attributes, casting the serializer type to the specified model', () => {

@@ -117,6 +117,45 @@ export default class MealType extends ApplicationModel {
     })
   })
 
+  context('when modelName is provided', () => {
+    it('overrides the generated class name everywhere (e.g. GroupSession for path Session/Group)', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Session/Group',
+        columnsWithTypes: ['title:string'],
+        serializer: true,
+        includeAdminSerializers: false,
+        modelName: 'GroupSession',
+      })
+      expect(res).toEqual(
+        `\
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
+import ApplicationModel from '@models/ApplicationModel.js'
+
+const deco = new Decorators<typeof GroupSession>()
+
+export default class GroupSession extends ApplicationModel {
+  public override get table() {
+    return 'session_groups' as const
+  }
+
+  public get serializers(): DreamSerializers<GroupSession> {
+    return {
+      default: 'Session/GroupSerializer',
+      summary: 'Session/GroupSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<GroupSession, 'id'>
+  public title: DreamColumn<GroupSession, 'title'>
+  public createdAt: DreamColumn<GroupSession, 'createdAt'>
+  public updatedAt: DreamColumn<GroupSession, 'updatedAt'>
+}
+`
+      )
+    })
+  })
+
   context('when parentName is included', () => {
     it('extends the parent, adds STI decorator, omits table and base attributes', () => {
       const res = generateDreamContent({
@@ -1026,6 +1065,43 @@ describe('Individual Function Tests', () => {
         isSTI: false,
         tableName: 'admin_users',
       })
+    })
+
+    it('uses modelName override when provided (e.g. --model-name=GroupSession for Session/Group)', () => {
+      const options = {
+        fullyQualifiedModelName: 'Session/Group',
+        columnsWithTypes: [],
+        serializer: true,
+        includeAdminSerializers: false,
+        modelName: 'GroupSession',
+      }
+
+      const config = createModelConfig(options)
+
+      expect(config).toEqual({
+        fullyQualifiedModelName: 'Session/Group',
+        modelClassName: 'GroupSession',
+        parentModelClassName: undefined,
+        applicationModelName: 'ApplicationModel',
+        isSTI: false,
+        tableName: 'session_groups',
+      })
+    })
+
+    it('uses modelName override for STI child when provided', () => {
+      const options = {
+        fullyQualifiedModelName: 'Session/Group',
+        columnsWithTypes: [],
+        fullyQualifiedParentName: 'Session',
+        serializer: true,
+        includeAdminSerializers: false,
+        modelName: 'GroupSession',
+      }
+
+      const config = createModelConfig(options)
+
+      expect(config.modelClassName).toEqual('GroupSession')
+      expect(config.parentModelClassName).toEqual('Session')
     })
   })
 

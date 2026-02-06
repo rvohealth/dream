@@ -1,3 +1,7 @@
+## 2.3.0
+
+- Add a `--model-name` option to model and sti-child generators to override the automatically generated model name (e.g.: `pnpm psy g:model --model-name GroupSession Session/Group`)
+
 ## 2.2.4
 
 - fix windows path issues causing migration runners to fail on windows machines
