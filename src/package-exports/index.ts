@@ -8,7 +8,14 @@ export { DreamConst } from '../dream/constants.js'
 export { default as DreamTransaction } from '../dream/DreamTransaction.js'
 export { default as Query } from '../dream/Query.js'
 export { default as CalendarDate } from '../helpers/CalendarDate.js'
-export { DateTime } from '../helpers/DateTime.js'
+export {
+  Duration,
+  type DurationLike,
+  type DurationLikeObject,
+  type DurationUnit,
+  InvalidDuration,
+} from '../helpers/Duration.js'
+export { DateTime, InvalidDateTime } from '../helpers/DateTime.js'
 export { default as Env } from '../helpers/Env.js'
 export { default as ops } from '../ops/index.js'
 export { default as DreamSerializer } from '../serializer/DreamSerializer.js'

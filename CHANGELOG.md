@@ -1,6 +1,7 @@
-## 2.2.5
+## 2.3.0
 
 - bump Luxon and Luxon types and remove type hacks
+- DateTime supports microseconds (as does Postgres)
 
 ## 2.2.4
 
