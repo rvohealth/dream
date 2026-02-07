@@ -1,3 +1,7 @@
+## 2.2.5
+
+- bump Luxon and Luxon types and remove type hacks
+
 ## 2.2.4
 
 - fix windows path issues causing migration runners to fail on windows machines

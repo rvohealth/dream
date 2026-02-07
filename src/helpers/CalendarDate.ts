@@ -1,7 +1,13 @@
-import { DateObjectUnits, DateTimeJSOptions, DateTimeUnit, LocaleOptions } from '../types/luxon/datetime.js'
-import { DurationLikeObject, DurationObjectUnits } from '../types/luxon/duration.js'
-import { DateTimeFormatOptions } from '../types/luxon/misc.js'
-import { Zone } from '../types/luxon/zone.js'
+import {
+  DateObjectUnits,
+  DateTimeFormatOptions,
+  DateTimeJSOptions,
+  DateTimeUnit,
+  DurationLikeObject,
+  DurationObjectUnits,
+  LocaleOptions,
+  Zone,
+} from 'luxon'
 import { DateTime } from './DateTime.js'
 
 type CalendarDateDurationLike = Pick<
@@ -21,7 +27,7 @@ export default class CalendarDate {
 
   constructor(source?: DateTime | number | null, month: number = 1, day: number = 1) {
     if (source instanceof DateTime && source.isValid) {
-      const isoDate = source.toISODate()
+      const isoDate = source.toISODate()!
       this.luxonDateTime = DateTime.fromISO(isoDate, { zone: 'UTC' })
     } else if (typeof source === 'number') {
       try {
@@ -95,11 +101,11 @@ export default class CalendarDate {
   }
 
   public toISO(): string {
-    return this.luxonDateTime.toISODate()
+    return this.luxonDateTime.toISODate()!
   }
 
   public toSQL(): string {
-    return this.luxonDateTime.toSQLDate()
+    return this.luxonDateTime.toSQLDate()!
   }
 
   public toJSON() {

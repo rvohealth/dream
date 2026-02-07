@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -70,10 +70,11 @@
     "prepack": "pnpm build && pnpm dream build:docs"
   },
   "dependencies": {
+    "@types/luxon": "^3.7.1",
     "colorette": "^2.0.20",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "luxon": "^3.5.0",
+    "luxon": "^3.7.2",
     "pluralize-esm": "^9.0.5",
     "yoctocolors": "^2.1.1"
   },
