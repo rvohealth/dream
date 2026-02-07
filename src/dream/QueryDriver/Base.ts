@@ -9,8 +9,6 @@ import {
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
 } from '../../types/query.js'
-import CalendarDate from '../../utils/datetime/CalendarDate.js'
-import { DateTime } from '../../utils/datetime/DateTime.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
 
@@ -230,20 +228,6 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     allTableAssociationData: { [key: string]: SchemaBuilderAssociationData }
   ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
     throw new Error('implement getColumnData in child class')
-  }
-
-  public static serializeDbType(type: GenericDbType, val: any) {
-    switch (type) {
-      case 'datetime':
-      case 'date':
-        if (val instanceof DateTime || val instanceof CalendarDate) {
-          return val.toSQL()
-        }
-        throw new Error(`unrecognized value found when trying to serialize for date/datetime: ${val}`)
-
-      default:
-        return val
-    }
   }
 
   /**

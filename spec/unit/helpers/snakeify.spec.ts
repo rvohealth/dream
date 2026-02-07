@@ -1,4 +1,5 @@
 import snakeify from '../../../src/helpers/snakeify.js'
+import { ClockTime, ClockTimeTz } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -92,6 +93,20 @@ describe('snakeify', () => {
       it('does not alter CalendarDates', () => {
         const today = CalendarDate.today()
         expect(snakeify({ helloWorld: today })).toEqual({ hello_world: today })
+      })
+    })
+
+    context('when passed a key with a ClockTime value', () => {
+      it('does not alter ClockTimes', () => {
+        const now = ClockTime.now()
+        expect(snakeify({ helloWorld: now })).toEqual({ hello_world: now })
+      })
+    })
+
+    context('when passed a key with a ClockTimeTz value', () => {
+      it('does not alter ClockTimeTzs', () => {
+        const now = ClockTimeTz.now()
+        expect(snakeify({ helloWorld: now })).toEqual({ hello_world: now })
       })
     })
 

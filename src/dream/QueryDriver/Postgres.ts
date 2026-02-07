@@ -26,7 +26,10 @@ import {
   parsePostgresBigint,
   parsePostgresDate,
   parsePostgresDatetime,
+  parsePostgresDatetimeTz,
   parsePostgresDecimal,
+  parsePostgresTime,
+  parsePostgresTimeTz,
 } from '../../helpers/customPgParsers.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import createDb from './helpers/pg/createDb.js'
@@ -98,7 +101,11 @@ export default class PostgresQueryDriver<
 
     pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMP, parsePostgresDatetime)
 
-    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetime)
+    pgTypes.setTypeParser(pgTypes.builtins.TIMESTAMPTZ, parsePostgresDatetimeTz)
+
+    pgTypes.setTypeParser(pgTypes.builtins.TIME, parsePostgresTime)
+
+    pgTypes.setTypeParser(pgTypes.builtins.TIMETZ, parsePostgresTimeTz)
 
     pgTypes.setTypeParser(pgTypes.builtins.NUMERIC, parsePostgresDecimal)
 
@@ -114,6 +121,8 @@ export default class PostgresQueryDriver<
         transformer:
           | typeof parsePostgresDate
           | typeof parsePostgresDatetime
+          | typeof parsePostgresTime
+          | typeof parsePostgresTimeTz
           | typeof parsePostgresDecimal
           | typeof parsePostgresBigint
       ) {
@@ -137,6 +146,12 @@ export default class PostgresQueryDriver<
 
       oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMESTAMPTZ)
       if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDatetime))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIME)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresTime))
+
+      oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.TIMETZ)
+      if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresTimeTz))
 
       oid = await findCorrespondingArrayOid(kyselyDb, pgTypes.builtins.NUMERIC)
       if (oid) pgTypes.setTypeParser(oid, transformPostgresArray(parsePostgresDecimal))

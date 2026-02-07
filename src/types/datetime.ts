@@ -2,7 +2,6 @@
 
 export interface DateTimeOptions {
   zone?: string | Zone
-  setZone?: boolean
   locale?: string
 }
 
@@ -20,18 +19,14 @@ export interface LocaleOptions {
 }
 
 export interface DateTimeObject {
-  year?: number
-  month?: number
-  day?: number
-  ordinal?: number
-  weekYear?: number
-  weekNumber?: number
-  weekday?: number
-  hour?: number
-  minute?: number
-  second?: number
-  millisecond?: number
-  microsecond?: number
+  year: number
+  month: number
+  day: number
+  hour: number
+  minute: number
+  second: number
+  millisecond: number
+  microsecond: number
 }
 
 export interface ToISOTimeOptions {
@@ -120,11 +115,11 @@ export interface Zone {
 
 /**
  * Duration units that can be used in diff operations.
- * Note: quarters and months are excluded because they don't have fixed relationships
- * with other time units (months vary from 28-31 days).
  */
 export type DurationUnit =
   | 'years'
+  | 'quarters'
+  | 'months'
   | 'weeks'
   | 'days'
   | 'hours'
@@ -135,11 +130,11 @@ export type DurationUnit =
 
 /**
  * Complete duration object with all possible units returned by diff.
- * Note: quarters and months are excluded because they don't have fixed relationships
- * with other time units (months vary from 28-31 days).
  */
 export interface DurationObject {
   years?: number
+  quarters?: number
+  months?: number
   weeks?: number
   days?: number
   hours?: number

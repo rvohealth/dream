@@ -34,8 +34,8 @@ importers:
         specifier: '=9.0.0'
         version: 9.0.0
       '@rvoh/dream-spec-helpers':
-        specifier: ^2.0.0
-        version: 2.0.0(@types/node@22.5.1)(@types/pg@8.11.11)(pg@8.13.3)
+        specifier: ^2.1.1
+        version: 2.1.1(@types/node@22.5.1)(@types/pg@8.11.11)(pg@8.13.3)
       '@types/luxon':
         specifier: ^3.7.1
         version: 3.7.1
@@ -438,8 +438,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rvoh/dream-spec-helpers@2.0.0':
-    resolution: {integrity: sha512-1Zjn2bt67y9ku/gA+BhJEsP48G+mDTy8O+lXHrY2ZuqoPufFJQqTEbgvIXPQswRgrpsosTv5IPeqXVIjCrL8rQ==}
+  '@rvoh/dream-spec-helpers@2.1.1':
+    resolution: {integrity: sha512-LtlgS0zlraYNLd1NSKwwLAxy6H66uAv0nlA+1L//WJ+IuWg1wXr6seMhe2VD7KChaCMNx6ZqaLDBkYcfFr3F2A==}
     peerDependencies:
       '@types/node': '*'
       '@types/pg': '*'
@@ -692,6 +692,10 @@ packages:
     resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
     engines: {node: '>=18'}
 
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -745,6 +749,10 @@ packages:
 
   dotenv@17.2.2:
     resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
+    engines: {node: '>=12'}
+
+  dotenv@17.3.1:
+    resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
     engines: {node: '>=12'}
 
   emoji-regex@8.0.0:
@@ -1953,11 +1961,14 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.52.2':
     optional: true
 
-  '@rvoh/dream-spec-helpers@2.0.0(@types/node@22.5.1)(@types/pg@8.11.11)(pg@8.13.3)':
+  '@rvoh/dream-spec-helpers@2.1.1(@types/node@22.5.1)(@types/pg@8.11.11)(pg@8.13.3)':
     dependencies:
       '@types/node': 22.5.1
       '@types/pg': 8.11.11
+      commander: 14.0.3
+      dotenv: 17.3.1
       pg: 8.13.3
+      pluralize-esm: 9.0.5
 
   '@shikijs/core@1.15.2':
     dependencies:
@@ -2249,6 +2260,8 @@ snapshots:
 
   commander@12.1.0: {}
 
+  commander@14.0.3: {}
+
   concat-map@0.0.1: {}
 
   cosmiconfig@9.0.0(typescript@5.8.3):
@@ -2287,6 +2300,8 @@ snapshots:
   dotenv@16.4.5: {}
 
   dotenv@17.2.2: {}
+
+  dotenv@17.3.1: {}
 
   emoji-regex@8.0.0: {}
 

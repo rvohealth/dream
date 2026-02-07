@@ -1,4 +1,5 @@
 import pascalize from '../../../src/helpers/pascalize.js'
+import { ClockTime, ClockTimeTz } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -82,6 +83,20 @@ describe('pascalize', () => {
       it('does not alter CalendarDates', () => {
         const today = CalendarDate.today()
         expect(pascalize({ hello_world: today })).toEqual({ HelloWorld: today })
+      })
+    })
+
+    context('when passed a key with a ClockTime value', () => {
+      it('does not alter ClockTimes', () => {
+        const now = ClockTime.now()
+        expect(pascalize({ hello_world: now })).toEqual({ HelloWorld: now })
+      })
+    })
+
+    context('when passed a key with a ClockTimeTz value', () => {
+      it('does not alter ClockTimeTzs', () => {
+        const now = ClockTimeTz.now()
+        expect(pascalize({ hello_world: now })).toEqual({ HelloWorld: now })
       })
     })
 

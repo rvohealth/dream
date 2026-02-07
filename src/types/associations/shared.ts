@@ -8,6 +8,7 @@ import { DreamConst } from '../../dream/constants.js'
 import { Range } from '../../helpers/range.js'
 import CurriedOpsStatement from '../../ops/curried-ops-statement.js'
 import OpsStatement, { ExtraSimilarityArgs } from '../../ops/ops-statement.js'
+import { ClockTime, ClockTimeTz } from '../../package-exports/index.js'
 import CalendarDate from '../../utils/datetime/CalendarDate.js'
 import { DateTime } from '../../utils/datetime/DateTime.js'
 import { AssociationTableNames } from '../db.js'
@@ -93,9 +94,13 @@ type NonKyselySupportedSupplementalWhereClauseValues<
       ? TypesAllowedForBigintAgainstTheDb | PermanentOpsValTypes
       : ModelPropertyType extends DateTime | CalendarDate
         ? DateTime | CalendarDate | null
-        : ModelPropertyType extends number | string
-          ? ModelPropertyType | PermanentOpsValTypes
-          : never
+        : ModelPropertyType extends ClockTime
+          ? ClockTime | null
+          : ModelPropertyType extends ClockTimeTz
+            ? ClockTimeTz | null
+            : ModelPropertyType extends number | string
+              ? ModelPropertyType | PermanentOpsValTypes
+              : never
     : EnumTypeArray extends string[]
       ? EnumTypeArray[number] | PermanentOpsValTypes
       : never,
@@ -108,30 +113,44 @@ type NonKyselySupportedSupplementalWhereClauseValues<
           | (() => Range<DateTime | CalendarDate>)
           | (() => Range<null, DateTime | CalendarDate>)
           | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
-      : ModelPropertyType extends CalendarDate
+      : ModelPropertyType extends ClockTime
         ?
-            | Range<DateTime | CalendarDate>
-            | Range<null, DateTime | CalendarDate>
-            | (() => Range<DateTime | CalendarDate>)
-            | (() => Range<null, DateTime | CalendarDate>)
-            | OpsStatement<KyselyComparisonOperatorExpression, OpsValType>
-        : ColumnType extends 'bigint'
+            | Range<ClockTime>
+            | Range<null, ClockTime>
+            | (() => Range<ClockTime>)
+            | (() => Range<null, ClockTime>)
+            | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+        : ModelPropertyType extends ClockTimeTz
           ?
-              | Range<TypesAllowedForBigintAgainstTheDb>
-              | Range<null, TypesAllowedForBigintAgainstTheDb>
+              | Range<ClockTimeTz>
+              | Range<null, ClockTimeTz>
+              | (() => Range<ClockTimeTz>)
+              | (() => Range<null, ClockTimeTz>)
               | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
-          : ModelPropertyType extends number
+          : ModelPropertyType extends CalendarDate
             ?
-                | Range<ModelPropertyType>
-                | Range<null, ModelPropertyType>
-                | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
-            : ModelPropertyType extends string
+                | Range<DateTime | CalendarDate>
+                | Range<null, DateTime | CalendarDate>
+                | (() => Range<DateTime | CalendarDate>)
+                | (() => Range<null, DateTime | CalendarDate>)
+                | OpsStatement<KyselyComparisonOperatorExpression, OpsValType>
+            : ColumnType extends 'bigint'
               ?
-                  | Range<string>
-                  | Range<null, string>
-                  | OpsStatement<KyselyComparisonOperatorExpression, string, any>
-                  | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
-              : never
+                  | Range<TypesAllowedForBigintAgainstTheDb>
+                  | Range<null, TypesAllowedForBigintAgainstTheDb>
+                  | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+              : ModelPropertyType extends number
+                ?
+                    | Range<ModelPropertyType>
+                    | Range<null, ModelPropertyType>
+                    | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+                : ModelPropertyType extends string
+                  ?
+                      | Range<string>
+                      | Range<null, string>
+                      | OpsStatement<KyselyComparisonOperatorExpression, string, any>
+                      | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
+                  : never
     : EnumTypeArray extends string[]
       ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
       : never,

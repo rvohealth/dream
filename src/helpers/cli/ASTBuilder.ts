@@ -290,10 +290,33 @@ export default class ASTBuilder {
         ts.factory.createStringLiteral('../../src/utils/datetime/DateTime.js')
       )
 
-      return [calendarImportDeclaration, dateTimeImportDeclaration]
+      const clockTimeImport = ts.factory.createImportClause(true, f.createIdentifier('ClockTime'), undefined)
+      const clockTimeImportDeclaration = ts.factory.createImportDeclaration(
+        undefined,
+        clockTimeImport,
+        ts.factory.createStringLiteral('../../src/utils/datetime/ClockTime.js')
+      )
+
+      const clockTimeTzImport = ts.factory.createImportClause(
+        true,
+        f.createIdentifier('ClockTimeTz'),
+        undefined
+      )
+      const clockTimeTzImportDeclaration = ts.factory.createImportDeclaration(
+        undefined,
+        clockTimeTzImport,
+        ts.factory.createStringLiteral('../../src/utils/datetime/ClockTimeTz.js')
+      )
+
+      return [
+        calendarImportDeclaration,
+        dateTimeImportDeclaration,
+        clockTimeImportDeclaration,
+        clockTimeTzImportDeclaration,
+      ]
     } else {
       const namedImports = ts.factory.createNamedImports(
-        ['CalendarDate', 'DateTime'].map(importName =>
+        ['CalendarDate', 'DateTime', 'ClockTime', 'ClockTimeTz'].map(importName =>
           f.createImportSpecifier(true, undefined, ts.factory.createIdentifier(importName))
         )
       )
@@ -347,6 +370,56 @@ export default class ASTBuilder {
     const dreamApp = DreamApp.getOrFail()
     const serializers = dreamApp.serializers
     return Object.keys(serializers)
+  }
+
+  /**
+   * @internal
+   *
+   * checks if a database type is a date type (with optional array suffix)
+   */
+  protected isDateDbType(dbType: string): boolean {
+    return /^date[[\]]*$/.test(dbType)
+  }
+
+  /**
+   * @internal
+   *
+   * checks if a database type is a time without time zone type (with optional array suffix)
+   */
+  protected isTimeWithoutTimeZoneDbType(dbType: string): boolean {
+    return /^time without time zone[[\]]*$/.test(dbType)
+  }
+
+  /**
+   * @internal
+   *
+   * checks if a database type is a time with time zone type (with optional array suffix)
+   */
+  protected isTimeWithTimeZoneDbType(dbType: string): boolean {
+    return /^time with time zone[[\]]*$/.test(dbType)
+  }
+
+  /**
+   * @internal
+   *
+   * checks if a database type is any time type (with or without time zone, with optional array suffix)
+   */
+  protected isTimeDbType(dbType: string): boolean {
+    return /^time (without|with) time zone(\[\])?$/.test(dbType)
+  }
+
+  /**
+   * @internal
+   *
+   * checks if a TypeScript type node represents a string-like type
+   * (string keyword, string type reference, or string literal)
+   */
+  protected isStringLikeType(node: ts.TypeNode, sourceFile: ts.SourceFile): boolean {
+    return (
+      node.kind === ts.SyntaxKind.StringKeyword ||
+      (ts.isTypeReferenceNode(node) && node.typeName.getText(sourceFile) === 'string') ||
+      (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal))
+    )
   }
 }
 

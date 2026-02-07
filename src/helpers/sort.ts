@@ -1,3 +1,4 @@
+import { ClockTime, ClockTimeTz } from '../package-exports/index.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 import sortBy from './sortBy.js'
@@ -16,8 +17,14 @@ import sortBy from './sortBy.js'
  * // ['hello', 'Hello', 'world', 'World']
  * ```
  */
-export default function sort<ArrayType extends string[] | number[] | bigint[] | (DateTime | CalendarDate)[]>(
-  array: ArrayType
-): ArrayType {
+export default function sort<
+  ArrayType extends
+    | string[]
+    | number[]
+    | bigint[]
+    | (DateTime | CalendarDate)[]
+    | ClockTime[]
+    | ClockTimeTz[],
+>(array: ArrayType): ArrayType {
   return sortBy(array as number[], a => a) as ArrayType
 }

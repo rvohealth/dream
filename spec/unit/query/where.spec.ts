@@ -5,6 +5,8 @@ import ScoreMustBeANormalNumber from '../../../src/errors/ops/ScoreMustBeANormal
 import range from '../../../src/helpers/range.js'
 import ops from '../../../src/ops/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import ClockTime from '../../../src/utils/datetime/ClockTime.js'
+import ClockTimeTz from '../../../src/utils/datetime/ClockTimeTz.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -935,8 +937,7 @@ describe('Query#where', () => {
         .where({ createdAt: range(begin, end) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+      expect(records).toMatchDreamModels([user1, user2, user3])
     })
 
     it('is able to mix DateTime and CalendarDate between start and end', async () => {
@@ -945,8 +946,7 @@ describe('Query#where', () => {
         .where({ createdAt: range(begin, endDate) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+      expect(records).toMatchDreamModels([user1, user2, user3])
     })
 
     it('is able to apply DateTime ops to the where clause', async () => {
@@ -954,8 +954,7 @@ describe('Query#where', () => {
         .where({ createdAt: ops.greaterThanOrEqualTo(begin.plus({ hour: 1 })) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+      expect(records).toMatchDreamModels([user2, user3, user4])
     })
 
     it('is able to apply CalendarDate ops to the where clause', async () => {
@@ -963,8 +962,7 @@ describe('Query#where', () => {
         .where({ createdAt: ops.greaterThanOrEqualTo(CalendarDate.fromDateTime(begin)) })
         .all()
 
-      expect(records.length).toEqual(4)
-      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id, user4.id])
+      expect(records).toMatchDreamModels([user1, user2, user3, user4])
     })
 
     it('is able to not null ops to the where clause', async () => {
@@ -972,8 +970,7 @@ describe('Query#where', () => {
         .where({ createdAt: ops.not.equal(null) })
         .all()
 
-      expect(records.length).toEqual(5)
-      expect(records.map(r => r.id)).toEqual([user0.id, user1.id, user2.id, user3.id, user4.id])
+      expect(records).toMatchDreamModels([user0, user1, user2, user3, user4])
     })
 
     context('end is not passed', () => {
@@ -982,8 +979,7 @@ describe('Query#where', () => {
           .where({ createdAt: range(begin.plus({ hour: 1 })) })
           .all()
 
-        expect(records.length).toEqual(3)
-        expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+        expect(records).toMatchDreamModels([user2, user3, user4])
       })
     })
 
@@ -993,8 +989,7 @@ describe('Query#where', () => {
           .where({ createdAt: range(null, begin.plus({ hour: 1 })) })
           .all()
 
-        expect(records.length).toEqual(3)
-        expect(records.map(r => r.id)).toEqual([user0.id, user1.id, user2.id])
+        expect(records).toMatchDreamModels([user0, user1, user2])
       })
     })
 
@@ -1004,8 +999,7 @@ describe('Query#where', () => {
           .where({ createdAt: range(begin, end, true) })
           .all()
 
-        expect(records.length).toEqual(2)
-        expect(records.map(r => r.id)).toEqual([user1.id, user2.id])
+        expect(records).toMatchDreamModels([user1, user2])
       })
     })
   })
@@ -1053,8 +1047,7 @@ describe('Query#where', () => {
         .where({ birthdate: range(begin, end) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+      expect(records).toMatchDreamModels([user1, user2, user3])
     })
 
     it('is able to apply DateTime ranges to where clause', async () => {
@@ -1062,8 +1055,7 @@ describe('Query#where', () => {
         .where({ birthdate: range(begin.toDateTime(), end.toDateTime()) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+      expect(records).toMatchDreamModels([user1, user2, user3])
     })
 
     it('is able to mix DateTime and CalendarDate in ranges to where clause', async () => {
@@ -1071,8 +1063,7 @@ describe('Query#where', () => {
         .where({ birthdate: range(begin.toDateTime(), end) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user1.id, user2.id, user3.id])
+      expect(records).toMatchDreamModels([user1, user2, user3])
     })
 
     it('is able to apply DateTime ops to the where clause', async () => {
@@ -1080,8 +1071,7 @@ describe('Query#where', () => {
         .where({ birthdate: ops.greaterThanOrEqualTo(begin.plus({ day: 1 }).toDateTime()) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+      expect(records).toMatchDreamModels([user2, user3, user4])
     })
 
     it('is able to apply CalendarDate ops to the where clause', async () => {
@@ -1089,8 +1079,7 @@ describe('Query#where', () => {
         .where({ birthdate: ops.greaterThanOrEqualTo(begin.plus({ day: 1 })) })
         .all()
 
-      expect(records.length).toEqual(3)
-      expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+      expect(records).toMatchDreamModels([user2, user3, user4])
     })
 
     it('is able to not null ops to the where clause', async () => {
@@ -1098,8 +1087,7 @@ describe('Query#where', () => {
         .where({ birthdate: ops.not.equal(null) })
         .all()
 
-      expect(records.length).toEqual(5)
-      expect(records.map(r => r.id)).toEqual([user0.id, user1.id, user2.id, user3.id, user4.id])
+      expect(records).toMatchDreamModels([user0, user1, user2, user3, user4])
     })
 
     context('end is not passed', () => {
@@ -1108,8 +1096,7 @@ describe('Query#where', () => {
           .where({ birthdate: range(begin.plus({ day: 1 })) })
           .all()
 
-        expect(records.length).toEqual(3)
-        expect(records.map(r => r.id)).toEqual([user2.id, user3.id, user4.id])
+        expect(records).toMatchDreamModels([user2, user3, user4])
       })
     })
 
@@ -1119,8 +1106,7 @@ describe('Query#where', () => {
           .where({ birthdate: range(null, begin.plus({ day: 1 })) })
           .all()
 
-        expect(records.length).toEqual(3)
-        expect(records.map(r => r.id)).toEqual([user0.id, user1.id, user2.id])
+        expect(records).toMatchDreamModels([user0, user1, user2])
       })
     })
 
@@ -1130,8 +1116,7 @@ describe('Query#where', () => {
           .where({ birthdate: range(begin, end, true) })
           .all()
 
-        expect(records.length).toEqual(2)
-        expect(records.map(r => r.id)).toEqual([user1.id, user2.id])
+        expect(records).toMatchDreamModels([user1, user2])
       })
     })
   })
@@ -1256,23 +1241,194 @@ describe('Query#where', () => {
       )
     })
   })
-})
 
-// type tests intentionally skipped, since they will fail on build instead.
-context.skip('type tests', () => {
-  it('ensures invalid arguments error', () => {
-    User.query().where({
-      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
-      invalidArg: 123,
+  context('ClockTime comparisons', () => {
+    const begin = ClockTime.fromISO('08:00:00')
+    const end = ClockTime.fromISO('17:00:00')
+
+    let user0: User
+    let user1: User
+    let user2: User
+    let user3: User
+    let user4: User
+
+    beforeEach(async () => {
+      user0 = await User.create({
+        email: 'early@example.com',
+        password: 'howyadoin',
+        bedtime: ClockTime.fromISO('07:00:00'),
+      })
+      user1 = await User.create({
+        email: 'begins@example.com',
+        password: 'howyadoin',
+        bedtime: begin,
+      })
+      user2 = await User.create({
+        email: 'midday@example.com',
+        password: 'howyadoin',
+        bedtime: ClockTime.fromISO('12:30:00'),
+      })
+      user3 = await User.create({
+        email: 'ends@example.com',
+        password: 'howyadoin',
+        bedtime: end,
+      })
+      user4 = await User.create({
+        email: 'late@example.com',
+        password: 'howyadoin',
+        bedtime: ClockTime.fromISO('22:00:00'),
+      })
+    })
+
+    it('is able to apply ClockTime ranges to where clause', async () => {
+      const records = await User.order('id')
+        .where({ bedtime: range(begin, end) })
+        .all()
+
+      expect(records).toMatchDreamModels([user1, user2, user3])
+    })
+
+    it('is able to apply ClockTime ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ bedtime: ops.greaterThanOrEqualTo(ClockTime.fromISO('12:30:00')) })
+        .all()
+
+      expect(records).toMatchDreamModels([user2, user3, user4])
+    })
+
+    it('is able to apply lessThan ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ bedtime: ops.lessThan(begin) })
+        .all()
+
+      expect(records).toMatchDreamModels([user0])
+    })
+
+    it('is able to apply not null ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ bedtime: ops.not.equal(null) })
+        .all()
+
+      expect(records).toMatchDreamModels([user0, user1, user2, user3, user4])
+    })
+
+    context('end is not passed', () => {
+      it('finds all times after the start', async () => {
+        const records = await User.order('id')
+          .where({ bedtime: range(ClockTime.fromISO('12:30:00')) })
+          .all()
+
+        expect(records).toMatchDreamModels([user2, user3, user4])
+      })
+    })
+
+    context('start is not passed', () => {
+      it('finds all times before the end', async () => {
+        const records = await User.order('id')
+          .where({ bedtime: range(null, ClockTime.fromISO('12:30:00')) })
+          .all()
+
+        expect(records).toMatchDreamModels([user0, user1, user2])
+      })
+    })
+
+    context('excludeEnd is passed', () => {
+      it('omits a record landing exactly on the end time', async () => {
+        const records = await User.order('id')
+          .where({ bedtime: range(begin, end, true) })
+          .all()
+
+        expect(records).toMatchDreamModels([user1, user2])
+      })
     })
   })
 
-  context('in a transaction', () => {
-    it('ensures invalid arguments error', async () => {
-      await ApplicationModel.transaction(txn => {
-        User.txn(txn).queryInstance().where({
-          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
-          invalidArg: 123,
+  context('ClockTimeTz with timezone (timetz) comparisons', () => {
+    let user0: User
+    let user1: User
+    let user2: User
+
+    beforeEach(async () => {
+      user0 = await User.create({
+        email: 'early@tz.com',
+        password: 'howyadoin',
+        wakeUpTime: ClockTimeTz.fromISO('07:00:00Z'),
+      })
+      user1 = await User.create({
+        email: 'midday@tz.com',
+        password: 'howyadoin',
+        wakeUpTime: ClockTimeTz.fromISO('12:30:00Z'),
+      })
+      user2 = await User.create({
+        email: 'late@tz.com',
+        password: 'howyadoin',
+        wakeUpTime: ClockTimeTz.fromISO('22:00:00Z'),
+      })
+    })
+
+    it('is able to apply ClockTimeTz ops to the where clause', async () => {
+      const midday = ClockTimeTz.fromISO('12:30:00Z')
+
+      const records = await User.order('id')
+        .where({ wakeUpTime: ops.greaterThanOrEqualTo(midday) })
+        .all()
+
+      expect(records).toMatchDreamModels([user1, user2])
+    })
+
+    it('is able to apply lessThan ops to the where clause', async () => {
+      const midday = ClockTimeTz.fromISO('12:30:00Z')
+
+      const records = await User.order('id')
+        .where({ wakeUpTime: ops.lessThan(midday) })
+        .all()
+
+      expect(records).toMatchDreamModels([user0])
+    })
+
+    it('supports timetz ranges for where clauses', async () => {
+      const records = await User.order('id')
+        .where({
+          wakeUpTime: range(ClockTimeTz.fromISO('12:30:00Z'), ClockTimeTz.fromISO('22:00:00Z'), true),
+        })
+        .all()
+
+      expect(records).toMatchDreamModels([user1])
+    })
+
+    it('supports timetz arrays for where clauses', async () => {
+      const records = await User.order('id')
+        .where({ wakeUpTime: [ClockTimeTz.fromISO('07:00:00Z'), ClockTimeTz.fromISO('22:00:00Z')] })
+        .all()
+
+      expect(records).toMatchDreamModels([user0, user2])
+    })
+
+    it('is able to apply not null ops to the where clause', async () => {
+      const records = await User.order('id')
+        .where({ wakeUpTime: ops.not.equal(null) })
+        .all()
+
+      expect(records).toMatchDreamModels([user0, user1, user2])
+    })
+  })
+
+  // type tests intentionally skipped, since they will fail on build instead.
+  context.skip('type tests', () => {
+    it('ensures invalid arguments error', () => {
+      User.query().where({
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+        invalidArg: 123,
+      })
+    })
+
+    context('in a transaction', () => {
+      it('ensures invalid arguments error', async () => {
+        await ApplicationModel.transaction(txn => {
+          User.txn(txn).queryInstance().where({
+            // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+            invalidArg: 123,
+          })
         })
       })
     })

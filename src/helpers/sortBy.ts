@@ -1,3 +1,4 @@
+import { ClockTime, ClockTimeTz } from '../package-exports/index.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 
@@ -5,6 +6,8 @@ export default function sortBy<T>(array: T[], valueToCompare: (value: T) => numb
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => bigint): T[]
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => string): T[]
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => DateTime | CalendarDate): T[]
+export default function sortBy<T>(array: T[], valueToCompare: (value: T) => ClockTime): T[]
+export default function sortBy<T>(array: T[], valueToCompare: (value: T) => ClockTimeTz): T[]
 /**
  * Returns a copy of the array, sorted by the value returned by calling the function in the second argument on each element in the array.
  *
@@ -32,10 +35,13 @@ export default function sortBy<T>(array: T[], valueToCompare: (value: T) => unkn
     if (typeof aPrime === 'string' && typeof bPrime === 'string') return aPrime.localeCompare(bPrime)
 
     if (
-      (aPrime instanceof DateTime || aPrime instanceof CalendarDate) &&
-      (bPrime instanceof DateTime || bPrime instanceof CalendarDate)
-    )
+      ((aPrime instanceof DateTime || aPrime instanceof CalendarDate) &&
+        (bPrime instanceof DateTime || bPrime instanceof CalendarDate)) ||
+      (aPrime instanceof ClockTime && bPrime instanceof ClockTime) ||
+      (aPrime instanceof ClockTimeTz && bPrime instanceof ClockTimeTz)
+    ) {
       return aPrime.valueOf().localeCompare(bPrime.valueOf())
+    }
 
     throw new UnsupportedValueFromComparisonFunction(aPrime, bPrime)
   })

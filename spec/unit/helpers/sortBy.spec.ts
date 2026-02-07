@@ -1,4 +1,5 @@
 import sortBy from '../../../src/helpers/sortBy.js'
+import { ClockTime, ClockTimeTz } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
@@ -36,25 +37,47 @@ describe('sortBy', () => {
   })
 
   it('can sort by DateTime', () => {
-    const obj3 = { myDateTime: DateTime.now().plus({ days: 1 }) }
-    const obj1 = { myDateTime: DateTime.now().minus({ days: 1 }) }
-    const obj2 = { myDateTime: DateTime.now() }
+    const now = DateTime.now()
+    const obj3 = { myDateTime: now.plus({ days: 1 }) }
+    const obj1 = { myDateTime: now.minus({ days: 1 }) }
+    const obj2 = { myDateTime: now }
 
     const array = [obj3, obj2, obj1]
     expect(sortBy(array, obj => obj.myDateTime)).toEqual([obj1, obj2, obj3])
   })
 
   it('can sort by CalendarDate', () => {
-    const obj3 = { myCalendarDate: CalendarDate.today().plus({ days: 1 }) }
-    const obj1 = { myCalendarDate: CalendarDate.today().minus({ days: 1 }) }
-    const obj2 = { myCalendarDate: CalendarDate.today() }
+    const today = CalendarDate.today()
+    const obj3 = { myCalendarDate: today.plus({ days: 1 }) }
+    const obj1 = { myCalendarDate: today.minus({ days: 1 }) }
+    const obj2 = { myCalendarDate: today }
 
     const array = [obj3, obj2, obj1]
     expect(sortBy(array, obj => obj.myCalendarDate)).toEqual([obj1, obj2, obj3])
   })
 
+  it('can sort by ClockTime', () => {
+    const now = ClockTime.now()
+    const obj3 = { myClockTime: now.plus({ microsecond: 1 }) }
+    const obj1 = { myClockTime: now.minus({ microsecond: 1 }) }
+    const obj2 = { myClockTime: now }
+
+    const array = [obj3, obj2, obj1]
+    expect(sortBy(array, obj => obj.myClockTime)).toEqual([obj1, obj2, obj3])
+  })
+
+  it('can sort by ClockTimeTz', () => {
+    const now = ClockTimeTz.now()
+    const obj3 = { myClockTimeTz: now.plus({ microsecond: 1 }) }
+    const obj1 = { myClockTimeTz: now.minus({ microsecond: 1 }) }
+    const obj2 = { myClockTimeTz: now }
+
+    const array = [obj3, obj2, obj1]
+    expect(sortBy(array, obj => obj.myClockTimeTz)).toEqual([obj1, obj2, obj3])
+  })
+
   it('can sort by mixed DateTime and CalendarDate', () => {
-    const obj3 = { myDateTimeOrCalendarDate: CalendarDate.today().plus({ days: 1 }) }
+    const obj3 = { myDateTimeOrCalendarDate: CalendarDate.tomorrow() }
     const obj1 = { myDateTimeOrCalendarDate: DateTime.now().minus({ days: 1 }) }
     const obj2 = { myDateTimeOrCalendarDate: CalendarDate.today() }
 

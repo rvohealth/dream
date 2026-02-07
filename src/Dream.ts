@@ -60,6 +60,7 @@ import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import RecordNotFound from './errors/RecordNotFound.js'
 import MissingSerializersDefinition from './errors/serializers/MissingSerializersDefinition.js'
+import areEqual from './helpers/areEqual.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import compact from './helpers/compact.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
@@ -141,8 +142,6 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
-import CalendarDate from './utils/datetime/CalendarDate.js'
-import { DateTime } from './utils/datetime/DateTime.js'
 
 const RECURSIVE_SERIALIZATION_MAX_REPEATS = 4
 
@@ -3559,7 +3558,6 @@ export default class Dream {
     const obj: Partial<Selectable<Table>> = {}
 
     this.columns().forEach(column => {
-      // TODO: clean up types
       if (this.attributeIsDirty(column as any)) (obj as any)[column] = this.getAttribute(column as any)
     })
 
@@ -3572,38 +3570,8 @@ export default class Dream {
    * @returns A boolean
    */
   private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
-    const frozenValue = (this.frozenAttributes as any)[attribute]
-    const currentValue = this.getAttribute(attribute)
-
     if (this.isNewRecord) return true
-
-    if (frozenValue instanceof DateTime) {
-      return frozenValue.toMicroseconds() !== this.unknownValueToMicroseconds(currentValue)
-    } else if (frozenValue instanceof CalendarDate) {
-      return frozenValue.toISO() !== this.unknownValueToDateString(currentValue)
-    } else {
-      return frozenValue !== currentValue
-    }
-  }
-
-  /**
-   * @internal
-   */
-  private unknownValueToMicroseconds(currentValue: any): number | undefined {
-    if (!currentValue) return
-    if (typeof currentValue === 'string') currentValue = DateTime.fromISO(currentValue)
-    if (currentValue instanceof CalendarDate) currentValue = currentValue.toDateTime()
-    if (currentValue instanceof DateTime) return currentValue.toMicroseconds()
-  }
-
-  /**
-   * @internal
-   */
-  private unknownValueToDateString(currentValue: any): string | undefined {
-    if (!currentValue) return
-    if (typeof currentValue === 'string') currentValue = CalendarDate.fromISO(currentValue)
-    if (currentValue instanceof DateTime) currentValue = CalendarDate.fromDateTime(currentValue)
-    if (currentValue instanceof CalendarDate) return currentValue.toISO()
+    return !areEqual((this.frozenAttributes as any)[attribute], this.getAttribute(attribute))
   }
 
   /**

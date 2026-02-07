@@ -40,6 +40,8 @@ export default class User extends ApplicationModel {
   public uuid: DreamColumn<User, 'uuid'>
   public name: DreamColumn<User, 'name'>
   public birthdate: DreamColumn<User, 'birthdate'>
+  public wakeUpTime: DreamColumn<User, 'wakeUpTime'>
+  public bedtime: DreamColumn<User, 'bedtime'>
   public socialSecurityNumber: DreamColumn<User, 'socialSecurityNumber'>
   public favoriteWord: DreamColumn<User, 'favoriteWord'>
   public favoriteNumbers: DreamColumn<User, 'favoriteNumbers'>

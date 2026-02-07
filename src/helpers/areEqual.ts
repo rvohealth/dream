@@ -1,4 +1,5 @@
 import Dream from '../Dream.js'
+import { ClockTime, ClockTimeTz } from '../package-exports/index.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 
@@ -29,6 +30,8 @@ function areEqualOrUndefined(a: any, b: any): boolean | undefined {
   if (typeof a === 'string') return a === b
   if (a instanceof DateTime) return b instanceof DateTime && a.equals(b)
   if (a instanceof CalendarDate) return b instanceof CalendarDate && a.equals(b)
+  if (a instanceof ClockTime) return b instanceof ClockTime && a.equals(b)
+  if (a instanceof ClockTimeTz) return b instanceof ClockTimeTz && a.equals(b)
 
   if (Array.isArray(a))
     return Array.isArray(b) && a.length === b.length && !a.find((value, index) => !areEqual(value, b[index]))

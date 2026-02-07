@@ -1,4 +1,6 @@
+import { ClockTimeTz } from '../../src/package-exports/index.js'
 import CalendarDate from '../../src/utils/datetime/CalendarDate.js'
+import ClockTime from '../../src/utils/datetime/ClockTime.js'
 import { DateTime } from '../../src/utils/datetime/DateTime.js'
 import ModelForOpenapiTypeSpecs from '../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 
@@ -71,8 +73,10 @@ export function unpersistedFleshedOutModelForOpenapiTypeSpecs() {
     likesWalks: true,
     likesTreats: false,
 
-    startTime: '10:30:00',
-    endTime: '11:30:00',
-    times: ['11:30:00', '12:30:00'],
+    startTime: ClockTime.fromISO('10:30:00'),
+    endTime: ClockTime.fromISO('11:30:00'),
+    times: [ClockTime.fromISO('11:30:00'), ClockTime.fromISO('12:30:00')],
+    timeWithZone: ClockTimeTz.fromISO('02:00:00Z'),
+    timesWithZone: [ClockTimeTz.fromISO('02:00:00Z')],
   })
 }

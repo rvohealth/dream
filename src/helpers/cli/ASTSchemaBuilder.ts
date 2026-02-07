@@ -515,7 +515,9 @@ ${output}`
     importedModules: string[]
   ): ts.TypeNode[] {
     const extractedPropertyTypes = this.extractTypeNodesFromTypeOrUnion(propertySignature)
-    const isDate = /^date[[\]]*$/.test(dbType)
+    const isDate = this.isDateDbType(dbType)
+    const isTime = this.isTimeWithoutTimeZoneDbType(dbType)
+    const isTimeTz = this.isTimeWithTimeZoneDbType(dbType)
 
     const types = compact(
       extractedPropertyTypes.map(typeNode => {
@@ -547,6 +549,18 @@ ${output}`
             return isDate
               ? f.createArrayTypeNode(f.createTypeReferenceNode('CalendarDate'))
               : f.createArrayTypeNode(f.createTypeReferenceNode('DateTime'))
+
+          case 'string':
+            // Kysely-codegen types TIME columns as string, we need to check dbType
+            if (isTime) return f.createTypeReferenceNode('ClockTime')
+            if (isTimeTz) return f.createTypeReferenceNode('ClockTimeTz')
+            return defaultReturnNode
+
+          case 'string[]':
+            // Kysely-codegen types TIME[] columns as string[], we need to check dbType
+            if (isTime) return f.createArrayTypeNode(f.createTypeReferenceNode('ClockTime'))
+            if (isTimeTz) return f.createArrayTypeNode(f.createTypeReferenceNode('ClockTimeTz'))
+            return defaultReturnNode
 
           case 'Int8':
             return f.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)

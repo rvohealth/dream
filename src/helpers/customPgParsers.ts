@@ -1,5 +1,7 @@
 import { Kysely } from 'kysely'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
+import ClockTime from '../utils/datetime/ClockTime.js'
+import ClockTimeTz from '../utils/datetime/ClockTimeTz.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 
 export async function findEnumArrayOids(kyselyDb: Kysely<any>): Promise<number[]> {
@@ -33,7 +35,22 @@ export function parsePostgresDate(dateString: string | null) {
 }
 
 export function parsePostgresDatetime(datetimeString: string | null) {
-  return datetimeString ? DateTime.fromSQL(datetimeString, { zone: 'UTC' }) : datetimeString
+  if (!datetimeString) return datetimeString
+  return DateTime.fromSQL(datetimeString, { zone: 'UTC' })
+}
+
+export function parsePostgresDatetimeTz(datetimeString: string | null) {
+  return parsePostgresDatetime(datetimeString)
+}
+
+export function parsePostgresTime(timeString: string | null) {
+  if (!timeString) return timeString
+  return ClockTime.fromSQL(timeString)
+}
+
+export function parsePostgresTimeTz(timeString: string | null) {
+  if (!timeString) return timeString
+  return ClockTimeTz.fromSQL(timeString, { zone: 'UTC' })
 }
 
 export function parsePostgresDecimal(numberString: string | null) {

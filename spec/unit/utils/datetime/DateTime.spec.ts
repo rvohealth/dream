@@ -4,10 +4,24 @@ import { DateTime, InvalidDateTime } from '../../../../src/utils/datetime/DateTi
 
 describe('DateTime', () => {
   describe('now', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-02-07T09:03:44.000Z'))
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
     it('returns the current time', () => {
       const now = DateTime.now()
       expect(now).toBeInstanceOf(DateTime)
-      expect(now.year).toBeGreaterThan(2025)
+      expect(now.year).toEqual(2026)
+      expect(now.month).toEqual(2)
+      expect(now.day).toEqual(7)
+      expect(now.hour).toEqual(9)
+      expect(now.minute).toEqual(3)
+      expect(now.second).toEqual(44)
     })
   })
 
@@ -148,7 +162,7 @@ describe('DateTime', () => {
         },
         { zone: 'America/New_York' }
       )
-      expect(datetime.toISO()).toEqual('2026-03-15T23:30:45.123456-04:00')
+      expect(datetime.toISO()).toEqual('2026-03-16T03:30:45.123456Z')
     })
 
     it('throws InvalidDateTime when calendar/date values are invalid', () => {
@@ -265,7 +279,7 @@ describe('DateTime', () => {
         const date1 = DateTime.fromFormat('12/15/2017 02:00:00 +00:00', 'MM/dd/yyyy HH:mm:ss ZZ', {
           zone: 'America/New_York',
         })
-        expect(date1.toISO()).toEqual('2017-12-14T21:00:00.000000-05:00')
+        expect(date1.toISO()).toEqual('2017-12-15T02:00:00.000000Z')
 
         const date2 = DateTime.fromFormat('12/14/2017 21:00:00 -05:00', 'MM/dd/yyyy HH:mm:ss ZZ', {
           zone: 'UTC',
@@ -354,10 +368,12 @@ describe('DateTime', () => {
       expect(datetimeUTC.toISO()).toEqual('2024-02-07T05:03:44.077001Z')
 
       // Test America/New_York (EST/EDT, UTC-5/-4)
-      const datetimeNY = DateTime.fromMicroseconds(microseconds, { zone: 'America/New_York' })
+      const datetimeNY = DateTime.fromMicroseconds(microseconds, {
+        zone: 'America/New_York',
+      })
       expect(datetimeNY.zoneName).toEqual('America/New_York')
       expect(datetimeNY.microsecond).toEqual(1)
-      expect(datetimeNY.toISO()).toEqual('2024-02-07T00:03:44.077001-05:00') // 5 hours behind UTC
+      expect(datetimeNY.toISO()).toEqual('2024-02-07T05:03:44.077001Z')
       expect(datetimeNY.year).toEqual(2024)
       expect(datetimeNY.month).toEqual(2)
       expect(datetimeNY.day).toEqual(7)
@@ -367,7 +383,7 @@ describe('DateTime', () => {
       const datetimeTokyo = DateTime.fromMicroseconds(microseconds, { zone: 'Asia/Tokyo' })
       expect(datetimeTokyo.zoneName).toEqual('Asia/Tokyo')
       expect(datetimeTokyo.microsecond).toEqual(1)
-      expect(datetimeTokyo.toISO()).toEqual('2024-02-07T14:03:44.077001+09:00') // 9 hours ahead of UTC
+      expect(datetimeTokyo.toISO()).toEqual('2024-02-07T05:03:44.077001Z')
       expect(datetimeTokyo.hour).toEqual(14) // 2 PM in Tokyo
 
       // Verify all three represent the same instant
@@ -582,7 +598,7 @@ describe('DateTime', () => {
         },
         { zone: 'utc' }
       )
-      expect(datetime.toISOTime()).toEqual('09:03:44.077001Z')
+      expect(datetime.toISOTime()).toEqual('09:03:44.077001')
     })
 
     context('with truncateMicroseconds option', () => {
@@ -600,7 +616,7 @@ describe('DateTime', () => {
           },
           { zone: 'utc' }
         )
-        expect(datetime.toISOTime({ truncateMicroseconds: true })).toEqual('09:03:44.077Z')
+        expect(datetime.toISOTime({ truncateMicroseconds: true })).toEqual('09:03:44.077')
       })
     })
   })
@@ -1085,6 +1101,24 @@ describe('DateTime', () => {
         expect(dt1.minus(diff)).toEqualDateTime(dt2)
       })
 
+      it('returns difference in months', () => {
+        const dt1 = DateTime.fromISO('2026-05-07T09:03:44Z')
+        const dt2 = DateTime.fromISO('2026-02-07T09:03:44Z')
+        const diff = dt1.diff(dt2, 'months')
+        expect(diff).toEqual({ months: 3 })
+        expect(dt2.plus(diff)).toEqualDateTime(dt1)
+        expect(dt1.minus(diff)).toEqualDateTime(dt2)
+      })
+
+      it('returns difference in quarters', () => {
+        const dt1 = DateTime.fromISO('2026-11-07T09:03:44Z')
+        const dt2 = DateTime.fromISO('2026-02-07T09:03:44Z')
+        const diff = dt1.diff(dt2, 'quarters')
+        expect(diff).toEqual({ quarters: 3 })
+        expect(dt2.plus(diff)).toEqualDateTime(dt1)
+        expect(dt1.minus(diff)).toEqualDateTime(dt2)
+      })
+
       it('returns difference in days', () => {
         const dt1 = DateTime.fromISO('2026-02-15T09:03:44Z')
         const dt2 = DateTime.fromISO('2026-02-07T09:03:44Z')
@@ -1159,6 +1193,42 @@ describe('DateTime', () => {
         // Note: minus doesn't perfectly round-trip with weeks due to Luxon's calendar arithmetic
       })
 
+      it('returns difference in years and months', () => {
+        const dt1 = DateTime.fromISO('2028-05-07T09:00:00Z')
+        const dt2 = DateTime.fromISO('2026-02-07T09:00:00Z')
+        const diff = dt1.diff(dt2, ['years', 'months'])
+        expect(diff).toEqual({ years: 2, months: 3 })
+        expect(dt2.plus(diff)).toEqualDateTime(dt1)
+        expect(dt1.minus(diff)).toEqualDateTime(dt2)
+      })
+
+      it('returns difference in months and days', () => {
+        const dt1 = DateTime.fromISO('2026-05-20T09:00:00Z')
+        const dt2 = DateTime.fromISO('2026-02-07T09:00:00Z')
+        const diff = dt1.diff(dt2, ['months', 'days'])
+        expect(diff).toEqual({ months: 3, days: 13 })
+        expect(dt2.plus(diff)).toEqualDateTime(dt1)
+        expect(dt1.minus(diff)).toEqualDateTime(dt2)
+      })
+
+      it('returns difference in years and quarters', () => {
+        const dt1 = DateTime.fromISO('2028-11-07T09:00:00Z')
+        const dt2 = DateTime.fromISO('2026-02-07T09:00:00Z')
+        const diff = dt1.diff(dt2, ['years', 'quarters'])
+        expect(diff).toEqual({ years: 2, quarters: 3 })
+        expect(dt2.plus(diff)).toEqualDateTime(dt1)
+        expect(dt1.minus(diff)).toEqualDateTime(dt2)
+      })
+
+      it('returns difference in quarters and days', () => {
+        const dt1 = DateTime.fromISO('2026-11-20T09:00:00Z')
+        const dt2 = DateTime.fromISO('2026-02-07T09:00:00Z')
+        const diff = dt1.diff(dt2, ['quarters', 'days'])
+        expect(diff).toEqual({ quarters: 3, days: 13 })
+        expect(dt2.plus(diff)).toEqualDateTime(dt1)
+        expect(dt1.minus(diff)).toEqualDateTime(dt2)
+      })
+
       it('handles all time units together', () => {
         const dt1 = DateTime.fromISO('2026-02-07T15:45:30.500Z')
         const dt2 = DateTime.fromISO('2026-02-07T09:15:10.250Z')
@@ -1181,7 +1251,7 @@ describe('DateTime', () => {
         const diff = dt1.diff(dt2)
         expect(diff).toEqual({
           years: 0,
-          weeks: 0,
+          months: 0,
           days: 0,
           hours: 0,
           minutes: 0,
@@ -1785,6 +1855,18 @@ describe('DateTime', () => {
       const dt2 = DateTime.fromISO('2026-02-08T10:15:30.789012Z')
       const json = JSON.stringify([dt1, dt2])
       expect(json).toEqual('["2026-02-07T09:03:44.123456Z","2026-02-08T10:15:30.789012Z"]')
+    })
+  })
+
+  describe('#toSQLTime', () => {
+    it('omits offset by default', () => {
+      const datetime = DateTime.fromISO('2026-02-07T09:03:44.123456-05:00')
+      expect(datetime.toSQLTime()).toEqual('09:03:44.123456')
+    })
+
+    it('includes offset when requested', () => {
+      const datetime = DateTime.fromISO('2026-02-07T09:03:44.123456-05:00')
+      expect(datetime.toSQLTime({ includeOffset: true })).toEqual('09:03:44.123456 -05:00')
     })
   })
 

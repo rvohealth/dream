@@ -1,6 +1,9 @@
+import { ClockTimeTz } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import ClockTime from '../../../src/utils/datetime/ClockTime.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import ModelForDatabaseTypeSpec from '../../../test-app/app/models/ModelForDatabaseTypeSpec.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#isDirty', () => {
@@ -44,20 +47,6 @@ describe('Dream#isDirty', () => {
         expect(user.isDirty).toBe(true)
       })
     })
-
-    context('when the DateTime is a string representation of the same time', () => {
-      it('is false', () => {
-        user.updatedAt = user.updatedAt.toISO() as any
-        expect(user.isDirty).toBe(false)
-      })
-    })
-
-    context('when the DateTime is a string representation of a different time', () => {
-      it('is true', () => {
-        user.updatedAt = user.updatedAt.plus({ second: 1 }).toISO() as any
-        expect(user.isDirty).toBe(true)
-      })
-    })
   })
 
   context('CalendarDate', () => {
@@ -85,18 +74,54 @@ describe('Dream#isDirty', () => {
         expect(user.isDirty).toBe(true)
       })
     })
+  })
 
-    context('when the CalendarDate is a string representation of the same date', () => {
-      it('is false', () => {
-        user.birthdate = originalBirthdateString as any
-        expect(user.isDirty).toBe(false)
+  context('ClockTime', () => {
+    let model: ModelForDatabaseTypeSpec
+    const originalTimeString = '14:30:45.123456'
+
+    beforeEach(async () => {
+      model = await ModelForDatabaseTypeSpec.create({
+        myTimeWithoutZone: ClockTime.fromISO(originalTimeString),
       })
     })
 
-    context('when the DateTime is a string representation of a different date', () => {
+    context('when the ClockTime is a different object at the same time', () => {
+      it('is false', () => {
+        model.myTimeWithoutZone = ClockTime.fromISO(model.myTimeWithoutZone!.toISOTime())
+        expect(model.isDirty).toBe(false)
+      })
+    })
+
+    context('when the time is different', () => {
       it('is true', () => {
-        user.birthdate = '1988-10-14' as any
-        expect(user.isDirty).toBe(true)
+        model.myTimeWithoutZone = model.myTimeWithoutZone!.plus({ minute: 1 })
+        expect(model.isDirty).toBe(true)
+      })
+    })
+  })
+
+  context('ClockTimeTz', () => {
+    let model: ModelForDatabaseTypeSpec
+    const originalTimeString = '14:30:45.123456-05:00'
+
+    beforeEach(async () => {
+      model = await ModelForDatabaseTypeSpec.create({
+        myTimeWithZone: ClockTimeTz.fromISO(originalTimeString),
+      })
+    })
+
+    context('when the ClockTime is a different object at the same time', () => {
+      it('is false', () => {
+        model.myTimeWithZone = ClockTimeTz.fromISO(model.myTimeWithZone!.toISOTime())
+        expect(model.isDirty).toBe(false)
+      })
+    })
+
+    context('when the time is different', () => {
+      it('is true', () => {
+        model.myTimeWithZone = model.myTimeWithZone!.plus({ minute: 1 })
+        expect(model.isDirty).toBe(true)
       })
     })
   })

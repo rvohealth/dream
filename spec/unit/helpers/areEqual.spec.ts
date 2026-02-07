@@ -1,4 +1,5 @@
 import areEqual from '../../../src/helpers/areEqual.js'
+import { ClockTime, ClockTimeTz } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import GraphNode from '../../../test-app/app/models/Graph/Node.js'
@@ -74,6 +75,20 @@ describe('areEqual', () => {
     const date2 = CalendarDate.fromISO(date1.toISO())
     expect(areEqual(date1, date2)).toBe(true)
     expect(areEqual(date1, date1.plus({ day: 1 }))).toBe(false)
+  })
+
+  it('can compare ClockTimes', () => {
+    const dateTime1 = ClockTime.now()
+    const dateTime2 = ClockTime.fromISO(dateTime1.toISO())
+    expect(areEqual(dateTime1, dateTime2)).toBe(true)
+    expect(areEqual(dateTime1, dateTime1.plus({ millisecond: 1 }))).toBe(false)
+  })
+
+  it('can compare ClockTimeTzs', () => {
+    const dateTime1 = ClockTimeTz.now()
+    const dateTime2 = ClockTimeTz.fromISO(dateTime1.toISO())
+    expect(areEqual(dateTime1, dateTime2)).toBe(true)
+    expect(areEqual(dateTime1, dateTime1.plus({ millisecond: 1 }))).toBe(false)
   })
 
   it('can compare javascript Dates', () => {

@@ -40,7 +40,7 @@ describe('intersection', () => {
   })
 
   context('when the elements are strings', () => {
-    it('it compares the items directly', () => {
+    it('compares the items directly', () => {
       expect(intersection(['world', 'hello', 'goodbye'], ['world', 'hello'])).toEqual(['world', 'hello'])
     })
   })
