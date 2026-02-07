@@ -1,4 +1,4 @@
-import { DateTime } from '../../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../../src/utils/datetime/DateTime.js'
 import Pet from '../../../../../test-app/app/models/Pet.js'
 
 describe('marshalling postgres datetimes from db', () => {

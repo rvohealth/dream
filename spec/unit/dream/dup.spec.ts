@@ -1,4 +1,4 @@
-import { DateTime } from '../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import User from '../../../test-app/app/models/User.js'
 

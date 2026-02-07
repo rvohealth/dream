@@ -8,19 +8,19 @@ import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import executeDatabaseQuery from '../../../../src/dream/internal/executeDatabaseQuery.js'
 import { GenericDbType } from '../../../../src/dream/QueryDriver/Base.js'
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
-import CalendarDate from '../../../../src/helpers/CalendarDate.js'
 import camelize from '../../../../src/helpers/camelize.js'
 import {
   SchemaBuilderAssociationData,
   SchemaBuilderColumnData,
   SchemaBuilderInformationSchemaRow,
 } from '../../../../src/helpers/cli/ASTBuilder.js'
-import { DateTime } from '../../../../src/helpers/DateTime.js'
 import EnvInternal from '../../../../src/helpers/EnvInternal.js'
 import namespaceColumn from '../../../../src/helpers/namespaceColumn.js'
 import sqlAttributes from '../../../../src/helpers/sqlAttributes.js'
 import { DbConnectionType } from '../../../../src/types/db.js'
 import { OrderDir } from '../../../../src/types/dream.js'
+import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import createMysqlDb from './createMysqlDb.js'
 import dropMysqlDb from './dropMysqlDb.js'
 import loadMysqlClient from './loadMysqlClient.js'
@@ -36,7 +36,19 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
           host: connectionConf.host || 'localhost',
           port: connectionConf.port || 5432,
           // ssl: connectionConf.useSsl ? defaultMysqlSslConfig(connectionConf) : false,
-          // typeCast(field, next) {},
+          typeCast(field, next) {
+            // Parse timestamp/datetime fields to DateTime to preserve microsecond precision
+            if (field.type === 'TIMESTAMP' || field.type === 'DATETIME') {
+              const stringValue = field.string()
+              return stringValue ? DateTime.fromSQL(stringValue, { zone: 'UTC' }) : stringValue
+            }
+            // Parse date fields to CalendarDate
+            if (field.type === 'DATE') {
+              const stringValue = field.string()
+              return stringValue ? CalendarDate.fromSQL(stringValue) : stringValue
+            }
+            return next()
+          },
         }),
       })
   }
@@ -60,6 +72,24 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
     //   console.log(`creating ${process.env[replicaDbConf.name]}`)
     //   await createDb('replica')
     // }
+  }
+
+  /**
+   * @internal
+   *
+   * this method is called when dream is initializing, and is used
+   * to configure the database to utilize custom type parsers for
+   * a variety of data types.
+   *
+   * @param connectionName - the name of the connection you are doing this for
+   * @returns void
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static override async setDatabaseTypeParsers(_connectionName: string) {
+    // MySQL type parsing is handled via the typeCast function in dialectProvider
+    // Timestamp/datetime strings are parsed to DateTime via fromSQL
+    // Date strings are parsed to CalendarDate via fromSQL
+    // This is a no-op as the parsing happens in the typeCast function
   }
 
   /**
@@ -237,7 +267,7 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
   }
 
   public static override serializeDbType(type: GenericDbType, val: any) {
-    const mysqlSafeDatetimeFormat = 'yyyy-MM-dd HH:mm:ss'
+    const mysqlSafeDatetimeFormat = 'yyyy-MM-dd HH:mm:ss.SSSSSS'
     switch (type) {
       case 'datetime':
         if (val instanceof DateTime) {

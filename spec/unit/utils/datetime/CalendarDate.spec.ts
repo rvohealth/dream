@@ -1,5 +1,5 @@
-import CalendarDate, { InvalidCalendarDate } from '../../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../../src/helpers/DateTime.js'
+import CalendarDate, { InvalidCalendarDate } from '../../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 
 describe('CalendarDate', () => {
   describe('constructor', () => {
@@ -88,24 +88,48 @@ describe('CalendarDate', () => {
         expect(calendarDate.toISO()).toEqual('2024-05-05')
       })
 
-      context('when passed an explicit timezone override that changes the date to a different date', () => {
-        it('it is the date in the specified timezone', () => {
-          const calendarDate = CalendarDate.fromISO('2024-05-05T22:43:36.032-05:00', { zone: 'UTC' })
-          expect(calendarDate.toISO()).toEqual('2024-05-06')
+      context('with timezone that changes the date forward (evening time -> next day UTC)', () => {
+        it('results in the next day when zone is UTC', () => {
+          // 8pm in -5:00 timezone = next day 1am UTC
+          const calendarDate = CalendarDate.fromISO('2026-02-10T20:00:00-05:00', { zone: 'UTC' })
+          expect(calendarDate.toISO()).toEqual('2026-02-11')
+        })
+
+        it('results in the same day when zone matches the time component', () => {
+          // 8pm in -5:00 stays 2026-02-10 when interpreted as America/Chicago
+          const calendarDate = CalendarDate.fromISO('2026-02-10T20:00:00-05:00', { zone: 'America/Chicago' })
+          expect(calendarDate.toISO()).toEqual('2026-02-10')
         })
       })
 
-      context(
-        'when passed an explicit timezone override that does not change the date to a different date',
-        () => {
-          it('it is the date in the specified timezone', () => {
-            const calendarDate = CalendarDate.fromISO('2024-05-05T22:43:36.032-05:00', {
-              zone: 'America/Chicago',
-            })
-            expect(calendarDate.toISO()).toEqual('2024-05-05')
-          })
-        }
-      )
+      context('with timezone that changes the date backward (early morning UTC -> previous day)', () => {
+        it('results in the same day when zone is UTC', () => {
+          // 2am UTC stays 2026-02-11 in UTC
+          const calendarDate = CalendarDate.fromISO('2026-02-11T02:00:00Z', { zone: 'UTC' })
+          expect(calendarDate.toISO()).toEqual('2026-02-11')
+        })
+
+        it('results in the previous day when zone is behind UTC', () => {
+          // 2am UTC = 8pm previous day in America/Chicago (CST is UTC-6)
+          const calendarDate = CalendarDate.fromISO('2026-02-11T02:00:00Z', { zone: 'America/Chicago' })
+          expect(calendarDate.toISO()).toEqual('2026-02-10')
+        })
+      })
+    })
+
+    context('with a date-only ISO string (no time component)', () => {
+      it('results in the same date regardless of zone', () => {
+        const dateString = '2026-02-10'
+        const withoutZone = CalendarDate.fromISO(dateString)
+        const withUTC = CalendarDate.fromISO(dateString, { zone: 'UTC' })
+        const withChicago = CalendarDate.fromISO(dateString, { zone: 'America/Chicago' })
+        const withTokyo = CalendarDate.fromISO(dateString, { zone: 'Asia/Tokyo' })
+
+        expect(withoutZone.toISO()).toEqual('2026-02-10')
+        expect(withUTC.toISO()).toEqual('2026-02-10')
+        expect(withChicago.toISO()).toEqual('2026-02-10')
+        expect(withTokyo.toISO()).toEqual('2026-02-10')
+      })
     })
 
     context('with an invalid date string', () => {
@@ -125,6 +149,64 @@ describe('CalendarDate', () => {
       it('throws InvalidCalendarDate', () => {
         expect(() => CalendarDate.fromSQL('2023-02-29')).toThrow(InvalidCalendarDate)
       })
+    })
+  })
+
+  describe('.fromFormat', () => {
+    it('parses a date string with a format string', () => {
+      const calendarDate = CalendarDate.fromFormat('12/15/2017', 'MM/dd/yyyy')
+      expect(calendarDate.year).toEqual(2017)
+      expect(calendarDate.month).toEqual(12)
+      expect(calendarDate.day).toEqual(15)
+    })
+
+    it('parses a date with month name', () => {
+      const calendarDate = CalendarDate.fromFormat('May 25, 1982', 'MMMM dd, yyyy')
+      expect(calendarDate.year).toEqual(1982)
+      expect(calendarDate.month).toEqual(5)
+      expect(calendarDate.day).toEqual(25)
+    })
+
+    it('parses a date with time components (time is ignored for date)', () => {
+      const calendarDate = CalendarDate.fromFormat('12/15/2017 10:30:45', 'MM/dd/yyyy HH:mm:ss')
+      expect(calendarDate.year).toEqual(2017)
+      expect(calendarDate.month).toEqual(12)
+      expect(calendarDate.day).toEqual(15)
+      // Time components are not exposed in CalendarDate
+    })
+
+    context('with zone option and timezone in format', () => {
+      it('can change the date from the one specified in the format to the one specified in the optoin', () => {
+        const date1 = CalendarDate.fromFormat('12/15/2017 02:00:00 +00:00', 'MM/dd/yyyy HH:mm:ss ZZ', {
+          zone: 'America/New_York',
+        })
+        expect(date1.toISO()).toEqual('2017-12-14')
+
+        const date2 = CalendarDate.fromFormat('12/14/2017 21:00:00 -05:00', 'MM/dd/yyyy HH:mm:ss ZZ', {
+          zone: 'UTC',
+        })
+        expect(date2.toISO()).toEqual('2017-12-15')
+      })
+    })
+
+    it('accepts locale option', () => {
+      const calendarDate = CalendarDate.fromFormat('mai 25, 1982', 'MMMM dd, yyyy', { locale: 'fr' })
+      expect(calendarDate.year).toEqual(1982)
+      expect(calendarDate.month).toEqual(5)
+      expect(calendarDate.day).toEqual(25)
+    })
+
+    it('throws InvalidCalendarDate when format does not match', () => {
+      expect(() => CalendarDate.fromFormat('not-matching', 'MM/dd/yyyy')).toThrow(InvalidCalendarDate)
+    })
+
+    it('throws InvalidCalendarDate when string is invalid for format', () => {
+      expect(() => CalendarDate.fromFormat('13/45/2017', 'MM/dd/yyyy')).toThrow(InvalidCalendarDate)
+    })
+
+    it('parses date-only formats', () => {
+      const calendarDate = CalendarDate.fromFormat('2017-12-15', 'yyyy-MM-dd')
+      expect(calendarDate.toISO()).toEqual('2017-12-15')
     })
   })
 
@@ -172,9 +254,9 @@ describe('CalendarDate', () => {
   })
 
   describe('#valueOf', () => {
-    it('gets milliseconds', () => {
+    it('returns ISO date string', () => {
       const calendarDate = CalendarDate.fromISO('2025-10-12')
-      expect(calendarDate.valueOf()).toEqual(1760227200000)
+      expect(calendarDate.valueOf()).toEqual('2025-10-12')
     })
   })
 
@@ -450,5 +532,42 @@ describe('CalendarDate', () => {
         })
       }
     )
+  })
+
+  describe('#weekdayName', () => {
+    it('returns monday for a Monday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-09') // Monday
+      expect(calendarDate.weekdayName).toEqual('monday')
+    })
+
+    it('returns tuesday for a Tuesday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-10') // Tuesday
+      expect(calendarDate.weekdayName).toEqual('tuesday')
+    })
+
+    it('returns wednesday for a Wednesday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-11') // Wednesday
+      expect(calendarDate.weekdayName).toEqual('wednesday')
+    })
+
+    it('returns thursday for a Thursday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-12') // Thursday
+      expect(calendarDate.weekdayName).toEqual('thursday')
+    })
+
+    it('returns friday for a Friday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-13') // Friday
+      expect(calendarDate.weekdayName).toEqual('friday')
+    })
+
+    it('returns saturday for a Saturday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-14') // Saturday
+      expect(calendarDate.weekdayName).toEqual('saturday')
+    })
+
+    it('returns sunday for a Sunday', () => {
+      const calendarDate = CalendarDate.fromISO('2026-02-08') // Sunday
+      expect(calendarDate.weekdayName).toEqual('sunday')
+    })
   })
 })

@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { DateTime } from '../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'

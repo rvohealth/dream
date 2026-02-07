@@ -1,3 +1,11 @@
+## 2.3.0
+
+BREAKING CHANGE: apologies that we're introducing a breaking change, but for the most uses of DateTime, it should just work:
+
+- DateTime is now a custom class, not a simple export of Luxon (it still uses Luxon under the hood for most date operations, e.g., timezones and date math)
+- For any features your application relied on that are not supported by DateTime, a Luxon DateTime can be extracted from a DateTime instance by calling `toLuxon` (add `@types/luxon` to your dev dependencies if you do so)
+- DateTime now supports microseconds, so you won't lose the microsecond precision provided by Postgres (Luxon does not support microseconds, so the Luxon DateTime returned by `toLuxon` not include microseconds)
+
 ## 2.2.4
 
 - fix windows path issues causing migration runners to fail on windows machines

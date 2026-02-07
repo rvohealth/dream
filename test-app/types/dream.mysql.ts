@@ -56,11 +56,59 @@ us humans, he says:
 
 */
 
-import type CalendarDate from '../../src/helpers/CalendarDate.js'
-import { type DateTime } from '../../src/helpers/DateTime.js'
+import type CalendarDate from '../../src/utils/datetime/CalendarDate.js'
+import { type DateTime } from '../../src/utils/datetime/DateTime.js'
 import {} from './db.js'
 
 export const schema = {
+  model_for_database_type_specs: {
+    serializerKeys: [],
+    scopes: {
+      default: [],
+      named: [],
+    },
+    nonJsonColumnNames: ['createdAt', 'id', 'myDatetime', 'updatedAt'],
+    columns: {
+      createdAt: {
+        coercedType: {} as Date,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp(6)',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as number,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      myDatetime: {
+        coercedType: {} as Date,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp(6)',
+        allowNull: false,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as Date,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp(6)',
+        allowNull: false,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {},
+  },
   mysql_users: {
     serializerKeys: ['default', 'summary'],
     scopes: {

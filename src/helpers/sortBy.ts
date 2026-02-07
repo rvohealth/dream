@@ -1,5 +1,5 @@
-import CalendarDate from './CalendarDate.js'
-import { DateTime } from './DateTime.js'
+import CalendarDate from '../utils/datetime/CalendarDate.js'
+import { DateTime } from '../utils/datetime/DateTime.js'
 
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => number): T[]
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => bigint): T[]
@@ -30,13 +30,12 @@ export default function sortBy<T>(array: T[], valueToCompare: (value: T) => unkn
     if (typeof aPrime === 'bigint' && typeof bPrime === 'bigint')
       return aPrime > bPrime ? 1 : aPrime < bPrime ? -1 : 0
     if (typeof aPrime === 'string' && typeof bPrime === 'string') return aPrime.localeCompare(bPrime)
-    if (aPrime instanceof DateTime && bPrime instanceof DateTime) return aPrime.valueOf() - bPrime.valueOf()
 
     if (
       (aPrime instanceof DateTime || aPrime instanceof CalendarDate) &&
       (bPrime instanceof DateTime || bPrime instanceof CalendarDate)
     )
-      return (aPrime.toISO() ?? '').localeCompare(bPrime.toISO() ?? '')
+      return aPrime.valueOf().localeCompare(bPrime.valueOf())
 
     throw new UnsupportedValueFromComparisonFunction(aPrime, bPrime)
   })

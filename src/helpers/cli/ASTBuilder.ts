@@ -273,7 +273,7 @@ export default class ASTBuilder {
       const calendarImportDeclaration = ts.factory.createImportDeclaration(
         undefined,
         calendarImport,
-        ts.factory.createStringLiteral('../../src/helpers/CalendarDate.js')
+        ts.factory.createStringLiteral('../../src/utils/datetime/CalendarDate.js')
       )
 
       const dateTimeNamedImports = ts.factory.createNamedImports([
@@ -287,7 +287,7 @@ export default class ASTBuilder {
       const dateTimeImportDeclaration = ts.factory.createImportDeclaration(
         undefined,
         dateTimeImportClause,
-        ts.factory.createStringLiteral('../../src/helpers/DateTime.js')
+        ts.factory.createStringLiteral('../../src/utils/datetime/DateTime.js')
       )
 
       return [calendarImportDeclaration, dateTimeImportDeclaration]

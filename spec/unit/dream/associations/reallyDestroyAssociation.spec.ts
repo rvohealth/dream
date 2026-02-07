@@ -6,7 +6,7 @@ import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.j
 import Query from '../../../../src/dream/Query.js'
 import CannotDestroyAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
-import { DateTime } from '../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'

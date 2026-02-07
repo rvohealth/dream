@@ -1,8 +1,8 @@
-import CalendarDate from '../../../src/helpers/CalendarDate.js'
 import cloneDeepSafe, { TypeUnsupportedByClone } from '../../../src/helpers/cloneDeepSafe.js'
-import { DateTime } from '../../../src/helpers/DateTime.js'
 import range from '../../../src/helpers/range.js'
 import ops from '../../../src/ops/index.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 
 describe('cloneDeepSafe', () => {

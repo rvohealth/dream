@@ -1,5 +1,5 @@
-import CalendarDate from '../../../../src/helpers/CalendarDate.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
+import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 

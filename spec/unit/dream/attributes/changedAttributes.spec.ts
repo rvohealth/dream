@@ -1,4 +1,4 @@
-import CalendarDate from '../../../../src/helpers/CalendarDate.js'
+import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream#changedAttributes', () => {

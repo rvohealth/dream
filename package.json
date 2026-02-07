@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.2.4",
+  "version": "2.3.0",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -73,7 +73,7 @@
     "colorette": "^2.0.20",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "luxon": "^3.5.0",
+    "luxon": "^3.7.2",
     "pluralize-esm": "^9.0.5",
     "yoctocolors": "^2.1.1"
   },
@@ -91,6 +91,7 @@
   "devDependencies": {
     "@eslint/js": "=9.0.0",
     "@rvoh/dream-spec-helpers": "^2.0.0",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^22.5.1",
     "@types/pg": "^8.11.11",
     "@typescript-eslint/parser": "^8.48.1",
