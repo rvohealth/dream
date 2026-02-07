@@ -1,5 +1,6 @@
 import { Kysely } from 'kysely'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
+import ClockTime from '../utils/datetime/ClockTime.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 
 export async function findEnumArrayOids(kyselyDb: Kysely<any>): Promise<number[]> {
@@ -33,7 +34,29 @@ export function parsePostgresDate(dateString: string | null) {
 }
 
 export function parsePostgresDatetime(datetimeString: string | null) {
-  return datetimeString ? DateTime.fromSQL(datetimeString, { zone: 'UTC' }) : datetimeString
+  if (!datetimeString) return datetimeString
+
+  // TIMESTAMP (without time zone) columns have no timezone info in the string.
+  // Parse in UTC like we always have.
+  return DateTime.fromSQL(datetimeString, { zone: 'UTC' })
+}
+
+export function parsePostgresDatetimeTz(datetimeString: string | null) {
+  if (!datetimeString) return datetimeString
+
+  // TIMESTAMPTZ values are normalized to UTC DateTime objects for consistent behavior.
+  return DateTime.fromSQL(datetimeString, { zone: 'UTC' })
+}
+
+export function parsePostgresTime(timeString: string | null) {
+  if (!timeString) return timeString
+  return ClockTime.fromSQL(timeString)
+}
+
+export function parsePostgresTimeTz(timeString: string | null) {
+  if (!timeString) return timeString
+  // TIMETZ values are normalized to UTC ClockTime objects for consistent behavior.
+  return ClockTime.fromSQL(timeString, { zone: 'UTC' })
 }
 
 export function parsePostgresDecimal(numberString: string | null) {

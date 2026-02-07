@@ -5,37 +5,35 @@ describe('CalendarDate', () => {
   describe('constructor', () => {
     context('without an argument', () => {
       it('sets itself to today', () => {
-        const calendarDate = new CalendarDate()
+        const calendarDate = CalendarDate.today()
         expect(calendarDate).toEqualCalendarDate(CalendarDate.today())
       })
     })
 
     context('with null', () => {
       it('sets itself to today', () => {
-        const calendarDate = new CalendarDate(null)
+        const calendarDate = CalendarDate.today()
         expect(calendarDate).toEqualCalendarDate(CalendarDate.today())
       })
     })
 
-    context('with a valid DateTime', () => {
-      it('sets its DateTime to a valid DateTime', () => {
-        const calendarDate = new CalendarDate(DateTime.fromISO('2024-02-29'))
-        expect(calendarDate.toDateTime()?.isValid).toBe(true)
+    context('with a DateTime', () => {
+      it('creates a CalendarDate', () => {
+        const calendarDate = CalendarDate.fromDateTime(DateTime.fromISO('2024-02-29'))
         expect(calendarDate.toISO()).toEqual('2024-02-29')
       })
     })
 
     context('with a valid series of year, month, day numbers', () => {
-      it('sets its DateTime to a valid DateTime', () => {
-        const calendarDate = new CalendarDate(2024, 2, 29)
-        expect(calendarDate.toDateTime()?.isValid).toBe(true)
+      it('creates a CalendarDate', () => {
+        const calendarDate = CalendarDate.fromObject({ year: 2024, month: 2, day: 29 })
         expect(calendarDate.toISO()).toEqual('2024-02-29')
       })
     })
 
     context('with an invalid series of year, month, day numbers', () => {
       it('throws InvalidCalendarDate', () => {
-        expect(() => new CalendarDate(2023, 2, 29)).toThrow(InvalidCalendarDate)
+        expect(() => CalendarDate.fromObject({ year: 2023, month: 2, day: 29 })).toThrow(InvalidCalendarDate)
       })
     })
   })
@@ -334,36 +332,167 @@ describe('CalendarDate', () => {
   })
 
   describe('#diff', () => {
-    context('when the date is greater than the other date', () => {
-      it('the positive difference in the specified units', () => {
-        const calendarDate = CalendarDate.fromISO('2024-03-02')
-        const otherCalendarDate = CalendarDate.fromISO('2024-02-27')
-        const diff = calendarDate.diff(otherCalendarDate, 'days')
-        expect(diff).toEqual(4)
+    describe('with single unit argument', () => {
+      it('returns difference in years', () => {
+        const d1 = CalendarDate.fromISO('2026-02-07')
+        const d2 = CalendarDate.fromISO('2023-02-07')
+        const diff = d1.diff(d2, 'years')
+        expect(diff).toEqual({ years: 3 })
+      })
+
+      it('returns difference in months', () => {
+        const d1 = CalendarDate.fromISO('2026-05-07')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, 'months')
+        expect(diff).toEqual({ months: 3 })
+      })
+
+      it('returns difference in quarters', () => {
+        const d1 = CalendarDate.fromISO('2026-11-07')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, 'quarters')
+        expect(diff).toEqual({ quarters: 3 })
+      })
+
+      it('returns difference in weeks', () => {
+        const d1 = CalendarDate.fromISO('2026-02-21')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, 'weeks')
+        expect(diff).toEqual({ weeks: 2 })
+      })
+
+      it('returns difference in days', () => {
+        const d1 = CalendarDate.fromISO('2026-02-15')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, 'days')
+        expect(diff).toEqual({ days: 8 })
+      })
+
+      it('handles negative differences', () => {
+        const d1 = CalendarDate.fromISO('2024-02-27')
+        const d2 = CalendarDate.fromISO('2024-03-02')
+        const diff = d1.diff(d2, 'days')
+        expect(diff).toEqual({ days: -4 })
       })
 
       context('across daylight savings time', () => {
-        it('is the correct integer amount', () => {
-          const calendarDate = CalendarDate.fromISO('2024-03-11')
-          const otherCalendarDate = CalendarDate.fromISO('2024-03-10')
-          expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(1)
+        it('returns correct day difference', () => {
+          const d1 = CalendarDate.fromISO('2024-03-11')
+          const d2 = CalendarDate.fromISO('2024-03-10')
+          expect(d1.diff(d2, 'days')).toEqual({ days: 1 })
         })
       })
     })
 
-    context('when the date is less than the other date', () => {
-      it('the negative difference in the specified units', () => {
-        const calendarDate = CalendarDate.fromISO('2024-02-27')
-        const otherCalendarDate = CalendarDate.fromISO('2024-03-02')
-        expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(-4)
+    describe('with multiple units argument (array)', () => {
+      it('returns difference in years and weeks', () => {
+        const d1 = CalendarDate.fromISO('2028-02-21')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['years', 'weeks'])
+        expect(diff).toEqual({ years: 2, weeks: 2 })
       })
 
-      context('across daylight savings time', () => {
-        it('is the correct, negative integer amount', () => {
-          const calendarDate = CalendarDate.fromISO('2024-03-10')
-          const otherCalendarDate = CalendarDate.fromISO('2024-03-11')
-          expect(calendarDate.diff(otherCalendarDate, 'days')).toEqual(-1)
+      it('returns difference in weeks and days', () => {
+        const d1 = CalendarDate.fromISO('2026-02-25')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['weeks', 'days'])
+        expect(diff).toEqual({ weeks: 2, days: 4 })
+      })
+
+      it('returns difference in years, weeks, and days', () => {
+        const d1 = CalendarDate.fromISO('2028-05-20')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['years', 'weeks', 'days'])
+        expect(diff).toEqual({ years: 2, weeks: 14, days: 5 })
+      })
+
+      it('returns difference in years and months', () => {
+        const d1 = CalendarDate.fromISO('2028-05-07')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['years', 'months'])
+        expect(diff).toEqual({ years: 2, months: 3 })
+      })
+
+      it('returns difference in months and days', () => {
+        const d1 = CalendarDate.fromISO('2026-05-20')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['months', 'days'])
+        expect(diff).toEqual({ months: 3, days: 13 })
+      })
+
+      it('handles months correctly across different month lengths', () => {
+        // January to February (31-day month to 28-day month)
+        const jan7 = CalendarDate.fromISO('2026-01-07')
+        const feb10 = CalendarDate.fromISO('2026-02-10')
+        const diff1 = feb10.diff(jan7, ['months', 'days'])
+        expect(diff1).toEqual({ months: 1, days: 3 })
+
+        // February to March (28-day month to 31-day month)
+        const feb7 = CalendarDate.fromISO('2026-02-07')
+        const mar10 = CalendarDate.fromISO('2026-03-10')
+        const diff2 = mar10.diff(feb7, ['months', 'days'])
+        expect(diff2).toEqual({ months: 1, days: 3 })
+      })
+
+      it('returns difference in years and quarters', () => {
+        const d1 = CalendarDate.fromISO('2028-11-07')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['years', 'quarters'])
+        expect(diff).toEqual({ years: 2, quarters: 3 })
+      })
+
+      it('returns difference in quarters and days', () => {
+        const d1 = CalendarDate.fromISO('2026-11-20')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2, ['quarters', 'days'])
+        expect(diff).toEqual({ quarters: 3, days: 13 })
+      })
+    })
+
+    describe('with no unit argument', () => {
+      it('returns all supported date diff units', () => {
+        const d1 = CalendarDate.fromISO('2026-02-15')
+        const d2 = CalendarDate.fromISO('2026-02-07')
+        const diff = d1.diff(d2)
+        expect(diff).toEqual({
+          years: 0,
+          months: 0,
+          days: 8,
         })
+      })
+    })
+  })
+
+  describe('#diffNow', () => {
+    describe('with single unit argument', () => {
+      it('returns positive difference when date is in future', () => {
+        const future = CalendarDate.today().plus({ days: 7 })
+        const diff = future.diffNow('days')
+        expect(diff).toEqual({ days: 7 })
+      })
+
+      it('returns negative difference when date is in past', () => {
+        const past = CalendarDate.today().minus({ days: 7 })
+        const diff = past.diffNow('days')
+        expect(diff).toEqual({ days: -7 })
+      })
+    })
+
+    describe('with multiple units argument', () => {
+      it('returns difference in specified units', () => {
+        const future = CalendarDate.today().plus({ weeks: 2, days: 3 })
+        const diff = future.diffNow(['weeks', 'days'])
+        expect(diff).toEqual({ weeks: 2, days: 3 })
+      })
+    })
+
+    describe('with no unit argument', () => {
+      it('returns all date units', () => {
+        const future = CalendarDate.today().plus({ days: 10 })
+        const diff = future.diffNow()
+        expect(diff).toHaveProperty('years')
+        expect(diff).toHaveProperty('months')
+        expect(diff).toHaveProperty('days')
       })
     })
   })
@@ -421,17 +550,35 @@ describe('CalendarDate', () => {
   })
 
   describe('#diffNow', () => {
-    context('when the date is greater than now', () => {
-      it('the positive difference in the specified units', () => {
-        const calendarDate = CalendarDate.today().plus({ days: 7 })
-        expect(calendarDate.diffNow('days')).toEqual(7)
+    describe('with single unit argument', () => {
+      it('returns positive difference when date is in future', () => {
+        const future = CalendarDate.today().plus({ days: 7 })
+        const diff = future.diffNow('days')
+        expect(diff).toEqual({ days: 7 })
+      })
+
+      it('returns negative difference when date is in past', () => {
+        const past = CalendarDate.today().minus({ days: 7 })
+        const diff = past.diffNow('days')
+        expect(diff).toEqual({ days: -7 })
       })
     })
 
-    context('when the date is less than now', () => {
-      it('the negative difference in the specified units', () => {
-        const calendarDate = CalendarDate.today().minus({ days: 7 })
-        expect(calendarDate.diffNow('days')).toEqual(-7)
+    describe('with multiple units argument', () => {
+      it('returns difference in specified units', () => {
+        const future = CalendarDate.today().plus({ weeks: 2, days: 3 })
+        const diff = future.diffNow(['weeks', 'days'])
+        expect(diff).toEqual({ weeks: 2, days: 3 })
+      })
+    })
+
+    describe('with no unit argument', () => {
+      it('returns all date units', () => {
+        const future = CalendarDate.today().plus({ days: 10 })
+        const diff = future.diffNow()
+        expect(diff).toHaveProperty('years')
+        expect(diff).toHaveProperty('months')
+        expect(diff).toHaveProperty('days')
       })
     })
   })

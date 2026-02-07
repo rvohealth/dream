@@ -1,4 +1,5 @@
 import sort from '../../../src/helpers/sort.js'
+import { ClockTime } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 
@@ -64,18 +65,30 @@ describe('sort', () => {
   })
 
   it('can sort DateTimes', () => {
-    const obj3 = DateTime.now().plus({ days: 1 })
-    const obj1 = DateTime.now().minus({ days: 1 })
-    const obj2 = DateTime.now()
+    const now = DateTime.now()
+    const obj3 = now.plus({ days: 1 })
+    const obj1 = now.minus({ days: 1 })
+    const obj2 = now
 
     const array = [obj3, obj2, obj1]
     expect(sort(array)).toEqual([obj1, obj2, obj3])
   })
 
   it('can sort CalendarDates', () => {
-    const obj3 = CalendarDate.today().plus({ days: 1 })
-    const obj1 = CalendarDate.today().minus({ days: 1 })
-    const obj2 = CalendarDate.today()
+    const today = CalendarDate.today()
+    const obj3 = today.plus({ days: 1 })
+    const obj1 = today.minus({ days: 1 })
+    const obj2 = today
+
+    const array = [obj3, obj2, obj1]
+    expect(sort(array)).toEqual([obj1, obj2, obj3])
+  })
+
+  it('can sort ClockTimes', () => {
+    const now = ClockTime.now()
+    const obj3 = now.plus({ millisecond: 1 })
+    const obj1 = now.minus({ millisecond: 1 })
+    const obj2 = now
 
     const array = [obj3, obj2, obj1]
     expect(sort(array)).toEqual([obj1, obj2, obj3])

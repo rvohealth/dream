@@ -290,10 +290,17 @@ export default class ASTBuilder {
         ts.factory.createStringLiteral('../../src/utils/datetime/DateTime.js')
       )
 
-      return [calendarImportDeclaration, dateTimeImportDeclaration]
+      const clockTimeImport = ts.factory.createImportClause(true, f.createIdentifier('ClockTime'), undefined)
+      const clockTimeImportDeclaration = ts.factory.createImportDeclaration(
+        undefined,
+        clockTimeImport,
+        ts.factory.createStringLiteral('../../src/utils/datetime/ClockTime.js')
+      )
+
+      return [calendarImportDeclaration, dateTimeImportDeclaration, clockTimeImportDeclaration]
     } else {
       const namedImports = ts.factory.createNamedImports(
-        ['CalendarDate', 'DateTime'].map(importName =>
+        ['CalendarDate', 'DateTime', 'ClockTime'].map(importName =>
           f.createImportSpecifier(true, undefined, ts.factory.createIdentifier(importName))
         )
       )

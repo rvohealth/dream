@@ -1,4 +1,5 @@
 import camelize from '../../../src/helpers/camelize.js'
+import { ClockTime } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -124,6 +125,13 @@ describe('camelize', () => {
       it('does not alter CalendarDates', () => {
         const today = CalendarDate.today()
         expect(camelize({ hello_world: today })).toEqual({ helloWorld: today })
+      })
+    })
+
+    context('when passed a key with a ClockTime value', () => {
+      it('does not alter ClockTimes', () => {
+        const now = ClockTime.now()
+        expect(camelize({ hello_world: now })).toEqual({ helloWorld: now })
       })
     })
 

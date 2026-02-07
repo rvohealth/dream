@@ -24,6 +24,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('favorite_citext', sql`citext`)
     .addColumn('start_time', 'time')
     .addColumn('end_time', 'time')
+    .addColumn('time_with_zone', 'timetz')
+    .addColumn('times_with_zone', sql`timetz[]`)
     .addColumn('times', sql`time[]`)
     .addColumn('required_favorite_citext', sql`citext`, col => col.notNull().defaultTo('chalupas'))
     .addColumn('favorite_citexts', sql`citext[]`)

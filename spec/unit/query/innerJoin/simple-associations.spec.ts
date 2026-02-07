@@ -1,6 +1,7 @@
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import range from '../../../../src/helpers/range.js'
 import ops from '../../../../src/ops/index.js'
+import { CalendarDate, ClockTime } from '../../../../src/package-exports/index.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
@@ -9,6 +10,7 @@ import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText.js'
+import ModelForDatabaseTypeSpec from '../../../../test-app/app/models/ModelForDatabaseTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -291,6 +293,44 @@ describe('Query#joins with simple associations', () => {
           .all()
         expect(noResults).toEqual([])
       })
+
+      context(
+        'when the and clause is a DateTime column that does not exist on the Dream model that starts the query',
+        () => {
+          it('loads specified associations', async () => {
+            const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+            const user2 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+
+            const pet1 = await Pet.create({ user: user1, name: 'Aster' })
+            const pet2 = await Pet.create({ user: user2, name: 'Violet' })
+
+            await ModelForDatabaseTypeSpec.create({
+              pet: pet1,
+              myDate: '2026-02-03' as unknown as CalendarDate,
+              myDatetime: '2026-02-03T10:23:45.123456' as unknown as DateTime,
+              myDatetimeTz: '2026-02-03T10:23:45.123456' as unknown as DateTime,
+              myTimeWithZone: '10:23:45.123456' as unknown as ClockTime,
+              myTimeWithoutZone: '10:23:45.123456' as unknown as ClockTime,
+            })
+
+            const typeModel2 = await ModelForDatabaseTypeSpec.create({
+              pet: pet2,
+              myDate: '2026-02-04' as unknown as CalendarDate,
+              myDatetime: '2026-02-04T10:23:45.123456' as unknown as DateTime,
+              myDatetimeTz: '2026-02-04T10:23:45.123456' as unknown as DateTime,
+              myTimeWithZone: '15:23:45.123456' as unknown as ClockTime,
+              myTimeWithoutZone: '15:23:45.123456' as unknown as ClockTime,
+            })
+
+            const reloadedUsers = await User.query()
+              .innerJoin('pets', 'modelsForDatabaseTypeSpec as M1', {
+                and: { myTimeWithZone: typeModel2.myTimeWithZone },
+              })
+              .all()
+            expect(reloadedUsers).toMatchDreamModels([user2])
+          })
+        }
+      )
     })
 
     context('sibling joins', () => {

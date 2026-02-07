@@ -1,17 +1,18 @@
 import {
+  CalendarDateDiffResult,
   CalendarDateDurationLike,
   CalendarDateDurationUnit,
   CalendarDateUnit,
+  type CalendarDateObject,
 } from '../../types/calendardate.js'
 import {
   type DateTimeJSOptions,
-  type DateTimeObject,
   type DateTimeOptions,
   type LocaleOptions,
   type WeekdayName,
   type Zone,
 } from '../../types/datetime.js'
-import { DateTime } from './DateTime.js'
+import { BASE_DATE_OBJECT, DateTime } from './DateTime.js'
 
 /**
  * CalendarDate represents a date without time or timezone information.
@@ -20,28 +21,26 @@ export default class CalendarDate {
   protected readonly dateTime: DateTime
 
   /**
-   * Creates a CalendarDate from a DateTime, year/month/day, or defaults to today in UTC.
-   * @param source - DateTime instance, year number, or null/undefined for today
-   * @param month - Month (1-12) when source is a year number
-   * @param day - Day of month when source is a year number
+   * Creates a CalendarDate from a DateTime or date components object.
+   * @param source - DateTime instance or object with date components
    * @example
    * ```ts
-   * new CalendarDate()                          // today
-   * new CalendarDate(DateTime.now())            // from DateTime
-   * new CalendarDate(2026, 2, 7)               // February 7, 2026
+   * new CalendarDate(DateTime.now())                          // from DateTime
+   * new CalendarDate({ year: 2026, month: 2, day: 7 })      // February 7, 2026
+   * new CalendarDate({ year: 2026, month: 2 })              // February 1, 2026 (day defaults to 1)
    * ```
    */
-  constructor(source?: DateTime | number | null, month: number = 1, day: number = 1) {
-    if (source instanceof DateTime && source.isValid) {
-      const isoDate = source.toISODate()
-      this.dateTime = DateTime.fromISO(isoDate, { zone: 'UTC' })
-    } else if (typeof source === 'number') {
-      try {
-        this.dateTime = DateTime.utc(source, month, day)
-      } catch (error) {
-        if (error instanceof Error) throw new InvalidCalendarDate(error)
-        throw error
-      }
+  protected constructor(source?: DateTime | CalendarDateObject | null) {
+    if (source instanceof DateTime) {
+      this.dateTime = DateTime.fromISO(source.toISODate(), { zone: 'UTC' })
+    } else if (source && typeof source === 'object') {
+      this.dateTime = wrapLuxonError(() =>
+        DateTime.utc(
+          source.year ?? BASE_DATE_OBJECT.year,
+          source.month ?? BASE_DATE_OBJECT.month,
+          source.day ?? BASE_DATE_OBJECT.day
+        )
+      )
     } else {
       this.dateTime = CalendarDate.today().toDateTime()
     }
@@ -71,8 +70,8 @@ export default class CalendarDate {
    * CalendarDate.fromJSDate(new Date(), { zone: 'America/New_York' })
    * ```
    */
-  public static fromJSDate(javascriptDate: Date, { zone }: { zone?: string | Zone } = {}): CalendarDate {
-    return new CalendarDate(DateTime.fromJSDate(javascriptDate, zone ? { zone } : {}))
+  public static fromJSDate(javascriptDate: Date, opts: { zone?: string | Zone } = {}): CalendarDate {
+    return new CalendarDate(DateTime.fromJSDate(javascriptDate, opts))
   }
 
   /**
@@ -84,19 +83,10 @@ export default class CalendarDate {
    * @example
    * ```ts
    * CalendarDate.fromISO('2026-02-07')
-   * CalendarDate.fromISO('2026-02-07T09:00:00Z')  // time portion ignored
    * ```
    */
-  public static fromISO(str: string, { zone }: { zone?: string | Zone } = {}): CalendarDate {
-    let dateTime: DateTime
-
-    try {
-      dateTime = DateTime.fromISO(str, zone ? { zone } : { setZone: true })
-    } catch (error) {
-      if (error instanceof Error) throw new InvalidCalendarDate(error)
-      throw error
-    }
-
+  public static fromISO(str: string, opts: { zone?: string | Zone } = {}): CalendarDate {
+    const dateTime = wrapLuxonError(() => DateTime.fromISO(str, opts))
     return new CalendarDate(dateTime)
   }
 
@@ -111,15 +101,7 @@ export default class CalendarDate {
    * ```
    */
   public static fromSQL(str: string): CalendarDate {
-    let dateTime: DateTime
-
-    try {
-      dateTime = DateTime.fromSQL(str, { zone: 'UTC' })
-    } catch (error) {
-      if (error instanceof Error) throw new InvalidCalendarDate(error)
-      throw error
-    }
-
+    const dateTime = wrapLuxonError(() => DateTime.fromSQL(str, { zone: 'UTC' }))
     return new CalendarDate(dateTime)
   }
 
@@ -139,15 +121,7 @@ export default class CalendarDate {
    * ```
    */
   public static fromFormat(text: string, format: string, opts?: DateTimeOptions): CalendarDate {
-    let dateTime: DateTime
-
-    try {
-      dateTime = DateTime.fromFormat(text, format, opts)
-    } catch (error) {
-      if (error instanceof Error) throw new InvalidCalendarDate(error)
-      throw error
-    }
-
+    const dateTime = wrapLuxonError(() => DateTime.fromFormat(text, format, opts))
     return new CalendarDate(dateTime)
   }
 
@@ -162,16 +136,8 @@ export default class CalendarDate {
    * CalendarDate.fromObject({ year: 2026, month: 2, day: 7 })
    * ```
    */
-  public static fromObject(obj: DateTimeObject, opts?: DateTimeJSOptions): CalendarDate {
-    let dateTime: DateTime
-
-    try {
-      dateTime = DateTime.fromObject(obj, opts)
-    } catch (error) {
-      if (error instanceof Error) throw new InvalidCalendarDate(error)
-      throw error
-    }
-
+  public static fromObject(obj: CalendarDateObject, opts?: DateTimeJSOptions): CalendarDate {
+    const dateTime = wrapLuxonError(() => DateTime.fromObject(obj, opts))
     return new CalendarDate(dateTime)
   }
 
@@ -230,6 +196,20 @@ export default class CalendarDate {
   }
 
   /**
+   * Returns the date as an ISO date string.
+   * Alias for `toISO()`.
+   *
+   * @returns ISO date string (e.g., '2026-02-07')
+   * @example
+   * ```ts
+   * CalendarDate.fromObject({ year: 2026, month: 2, day: 7 }).toISODate()  // '2026-02-07'
+   * ```
+   */
+  public toISODate() {
+    return this.toISO()
+  }
+
+  /**
    * Returns the date as an SQL date string.
    * @returns SQL date string (e.g., '2026-02-07')
    * @example
@@ -237,8 +217,11 @@ export default class CalendarDate {
    * CalendarDate.fromObject({ year: 2026, month: 2, day: 7 }).toSQL()  // '2026-02-07'
    * ```
    */
+  private _toSQL: string
   public toSQL(): string {
-    return this.dateTime.toSQLDate()
+    if (this._toSQL) return this._toSQL
+    this._toSQL = this.dateTime.toSQLDate()
+    return this._toSQL
   }
 
   /**
@@ -261,20 +244,11 @@ export default class CalendarDate {
    * CalendarDate.fromISO('2026-02-07').valueOf()
    * ```
    */
+  private _valueOf: string
   public valueOf(): string {
-    return this.toISO()
-  }
-
-  /**
-   * Returns the date as an ISO date string (same as toISO).
-   * @returns ISO date string (e.g., '2026-02-07')
-   * @example
-   * ```ts
-   * CalendarDate.fromObject({ year: 2026, month: 2, day: 7 }).toISODate()  // '2026-02-07'
-   * ```
-   */
-  public toISODate() {
-    return this.toISO()
+    if (this._valueOf) return this._valueOf
+    this._valueOf = this.toISO()
+    return this._valueOf
   }
 
   /**
@@ -442,9 +416,12 @@ export default class CalendarDate {
    * CalendarDate.min(date1, date2, date3)
    * ```
    */
-  public static min(...calendarDates: Array<CalendarDate>): CalendarDate | null {
+  public static min(...calendarDates: CalendarDate[]): CalendarDate | null {
     if (calendarDates.length === 0) return null
-    return calendarDates.reduce((best, dt) => (dt.valueOf() < best.valueOf() ? dt : best), calendarDates[0]!)
+    return calendarDates.reduce(
+      (min, calendarDate) => (calendarDate.valueOf() < min.valueOf() ? calendarDate : min),
+      calendarDates[0]!
+    )
   }
 
   /**
@@ -456,9 +433,12 @@ export default class CalendarDate {
    * CalendarDate.max(date1, date2, date3)
    * ```
    */
-  public static max(...calendarDates: Array<CalendarDate>): CalendarDate | null {
+  public static max(...calendarDates: CalendarDate[]): CalendarDate | null {
     if (calendarDates.length === 0) return null
-    return calendarDates.reduce((best, dt) => (dt.valueOf() > best.valueOf() ? dt : best), calendarDates[0]!)
+    return calendarDates.reduce(
+      (max, calendarDate) => (calendarDate.valueOf() > max.valueOf() ? calendarDate : max),
+      calendarDates[0]!
+    )
   }
 
   /**
@@ -483,7 +463,7 @@ export default class CalendarDate {
   /**
    * Returns the difference between this CalendarDate and another in the specified unit.
    * @param otherCalendarDate - CalendarDate to compare against
-   * @param duration - Unit for the difference ('years', 'weeks', or 'days')
+   * @param duration - Unit for the difference ('years', 'quarters', 'months', 'weeks', or 'days')
    * @returns Numeric difference in the specified unit
    * @example
    * ```ts
@@ -492,25 +472,56 @@ export default class CalendarDate {
    * d2.diff(d1, 'days')    // 8
    * ```
    */
-  public diff(otherCalendarDate: CalendarDate, duration: CalendarDateDurationUnit): number {
-    const otherDateTime = otherCalendarDate.toDateTime()
-    const result = this.dateTime.diff(otherDateTime, duration) as Record<string, number>
-    return result[duration] ?? 0
+  /**
+   * Returns the difference between this CalendarDate and another in the specified unit(s).
+   *
+   * @param other - CalendarDate to compare against
+   * @param unit - Unit or units to return (years, quarters, months, weeks, days)
+   * @returns Object with only the specified units (or all units if not specified)
+   * @example
+   * ```ts
+   * const d1 = CalendarDate.fromISO('2026-02-15')
+   * const d2 = CalendarDate.fromISO('2026-02-07')
+   * d1.diff(d2, 'days')  // { days: 8 }
+   * d1.diff(d2, ['months', 'days'])  // { months: 0, days: 8 }
+   * d1.diff(d2)  // { years: 0, months: 0, days: 8 }
+   * ```
+   */
+  public diff<U extends CalendarDateDurationUnit | CalendarDateDurationUnit[] | undefined = undefined>(
+    other: CalendarDate,
+    unit?: U
+  ): CalendarDateDiffResult<U> {
+    const otherDateTime = other.toDateTime()
+    const unitArray = unit === undefined ? undefined : Array.isArray(unit) ? unit : [unit]
+    const result = this.dateTime.diff(otherDateTime, unitArray as any) as Record<string, number>
+    const filtered: Record<string, number> = {}
+
+    const requestedUnits: CalendarDateDurationUnit[] =
+      unit === undefined ? ['years', 'months', 'days'] : Array.isArray(unit) ? unit : [unit]
+
+    for (const requestedUnit of requestedUnits) {
+      filtered[requestedUnit] = result[requestedUnit] ?? 0
+    }
+
+    return filtered as CalendarDateDiffResult<U>
   }
 
   /**
-   * Returns the difference between this CalendarDate and today in the specified unit.
-   * @param duration - Unit for the difference ('years', 'weeks', or 'days')
-   * @returns Numeric difference in the specified unit (rounded up)
+   * Returns the difference between this CalendarDate and today in the specified unit(s).
+   *
+   * @param unit - Unit or units to return (years, quarters, months, weeks, days)
+   * @returns Object with only the specified units (or all units if not specified)
    * @example
    * ```ts
    * const future = CalendarDate.today().plus({ days: 5 })
-   * future.diffNow('days')  // approximately 5
+   * future.diffNow('days')  // { days: 5 }
+   * future.diffNow(['months', 'days'])  // { months: 0, days: 5 }
    * ```
    */
-  public diffNow(duration: CalendarDateDurationUnit): number {
-    const result = this.dateTime.diffNow(duration) as Record<string, number>
-    return Math.ceil(result[duration] ?? 0)
+  public diffNow<U extends CalendarDateDurationUnit | CalendarDateDurationUnit[] | undefined = undefined>(
+    unit?: U
+  ): CalendarDateDiffResult<U> {
+    return this.diff(CalendarDate.today(), unit)
   }
 
   /**
@@ -544,5 +555,14 @@ export default class CalendarDate {
 export class InvalidCalendarDate extends Error {
   constructor(error: Error) {
     super((error.message ?? '').replace('DateTime', 'CalendarDate'))
+  }
+}
+
+function wrapLuxonError<T>(fn: () => T): T {
+  try {
+    return fn()
+  } catch (error) {
+    if (error instanceof Error) throw new InvalidCalendarDate(error)
+    throw error
   }
 }

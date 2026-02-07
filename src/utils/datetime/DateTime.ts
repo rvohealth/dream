@@ -10,7 +10,6 @@ import {
   DurationUnit,
   LocaleOptions,
   ToISOTimeOptions,
-  ToSQLOptions,
   WeekdayName,
   Zone,
 } from '../../types/datetime.js'
@@ -20,9 +19,18 @@ import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
 export const Settings = LuxonSettings
 Settings.throwOnInvalid = true
 
+export const BASE_DATE_OBJECT = {
+  year: 2000,
+  month: 1,
+  day: 1,
+}
+
 /**
  * DateTime wraps Luxon DateTime with microsecond precision (0-999).
  * The decimal part in ISO/SQL is 6 digits: first 3 = milliseconds, next 3 = microseconds.
+ *
+ * Full datetime output (toISO, toSQL) is normalized to UTC.
+ * Time-only output (toISOTime, toSQLTime) omits timezone offset by default.
  */
 export class DateTime {
   protected readonly luxonDatetime: LuxonDateTime
@@ -118,10 +126,6 @@ export class DateTime {
 
   public get offset(): number {
     return this.luxonDatetime.offset
-  }
-
-  public get isValid(): boolean {
-    return this.luxonDatetime.isValid
   }
 
   public get invalidReason(): string | null {
@@ -426,14 +430,19 @@ export class DateTime {
    * @param second - Second (0–59)
    * @param millisecond - Millisecond (0–999)
    * @param microsecondOrOpts - Microsecond (0–999) or options object
-   * @param opts - Options (zone, locale, etc.)
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone (IANA timezone name or Zone object, defaults to local)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime in the local zone
    * @example
    * ```ts
    * DateTime.local()                                    // now
    * DateTime.local(2017, 3, 12)                         // 2017-03-12T00:00:00
-   * DateTime.local(2017, 3, 12, 5, 45, 10, 765, 123)    // with microsecond
-   * DateTime.local(2017, 3, 12, { zone: 'utc' })        // with options
+   * DateTime.local(2017, 3, 12, 10, 30, 45)            // 2017-03-12T10:30:45
+   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456)  // with millisecond 123 and microsecond 456
+   * DateTime.local(2017, 3, 12, { zone: 'America/New_York' })  // with zone option
    * ```
    */
   public static local(
@@ -508,8 +517,8 @@ export class DateTime {
       microsecondOrOpts,
       opts,
       isOpts,
-      (y, m, d, h, mi, s, ms, options) =>
-        LuxonDateTime.local(y, m, d, h, mi, s, ms, options as luxon.DateTimeJSOptions)
+      (y, m, d, h, mi, s, ms, opts) =>
+        LuxonDateTime.local(y, m, d, h, mi, s, ms, opts as luxon.DateTimeJSOptions)
     )
     return new DateTime(luxonDatetime, microseconds)
   }
@@ -525,7 +534,7 @@ export class DateTime {
    * @param second - Second (0–59)
    * @param millisecond - Millisecond (0–999)
    * @param microsecondOrOpts - Microsecond (0–999) or options object
-   * @param options - Options (locale, etc.)
+   * @param opts - Options (locale, etc.)
    * @returns A DateTime in UTC
    * @example
    * ```ts
@@ -543,7 +552,7 @@ export class DateTime {
     second: number,
     millisecond: number,
     microsecond: number,
-    options?: LocaleOptions
+    opts?: LocaleOptions
   ): DateTime
   public static utc(
     year: number,
@@ -552,7 +561,7 @@ export class DateTime {
     hour: number,
     minute: number,
     second: number,
-    options?: LocaleOptions
+    opts?: LocaleOptions
   ): DateTime
   public static utc(
     year: number,
@@ -560,13 +569,13 @@ export class DateTime {
     day: number,
     hour: number,
     minute: number,
-    options?: LocaleOptions
+    opts?: LocaleOptions
   ): DateTime
-  public static utc(year: number, month: number, day: number, hour: number, options?: LocaleOptions): DateTime
-  public static utc(year: number, month: number, day: number, options?: LocaleOptions): DateTime
-  public static utc(year: number, month: number, options?: LocaleOptions): DateTime
-  public static utc(year: number, options?: LocaleOptions): DateTime
-  public static utc(options?: LocaleOptions): DateTime
+  public static utc(year: number, month: number, day: number, hour: number, opts?: LocaleOptions): DateTime
+  public static utc(year: number, month: number, day: number, opts?: LocaleOptions): DateTime
+  public static utc(year: number, month: number, opts?: LocaleOptions): DateTime
+  public static utc(year: number, opts?: LocaleOptions): DateTime
+  public static utc(opts?: LocaleOptions): DateTime
   public static utc(
     yearOrOpts?: number | LocaleOptions,
     month?: number | LocaleOptions,
@@ -576,7 +585,7 @@ export class DateTime {
     second?: number | LocaleOptions,
     millisecond?: number | LocaleOptions,
     microsecondOrOpts?: number | LocaleOptions,
-    options?: LocaleOptions
+    opts?: LocaleOptions
   ): DateTime {
     const isOpts = (v: unknown): v is LocaleOptions => typeof v === 'object' && v !== null
     const { luxonDatetime, microseconds } = buildLocalOrUtcDateTime(
@@ -588,7 +597,7 @@ export class DateTime {
       second,
       millisecond,
       microsecondOrOpts,
-      options,
+      opts,
       isOpts,
       (y, m, d, h, mi, s, ms, opts) => LuxonDateTime.utc(y, m, d, h, mi, s, ms, opts as luxon.LocaleOptions)
     )
@@ -598,7 +607,11 @@ export class DateTime {
   /**
    * Create a DateTime from a JavaScript Date.
    * @param date - A JavaScript Date instance
-   * @param options - Optional zone for the result
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone for the result (IANA timezone name or Zone object)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime representing the same instant
    * @example
    * ```ts
@@ -606,10 +619,10 @@ export class DateTime {
    * DateTime.fromJSDate(new Date(), { zone: 'America/New_York' })
    * ```
    */
-  public static fromJSDate(date: Date, options?: DateTimeJSOptions): DateTime {
-    const luxonDatetime = options
+  public static fromJSDate(date: Date, opts?: DateTimeJSOptions): DateTime {
+    const luxonDatetime = opts
       ? // @ts-expect-error - exactOptionalPropertyTypes incompatibility with Luxon types
-        LuxonDateTime.fromJSDate(date, options)
+        LuxonDateTime.fromJSDate(date, opts)
       : LuxonDateTime.fromJSDate(date)
     return new DateTime(luxonDatetime, 0)
   }
@@ -617,38 +630,45 @@ export class DateTime {
   /**
    * Create a DateTime from epoch milliseconds.
    * @param millisecondInput - Unix timestamp in milliseconds (fractional part becomes microseconds)
-   * @param options - Optional zone/locale options
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone for the result (IANA timezone name or Zone object)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime for the given instant
    * @example
    * ```ts
    * DateTime.fromMillis(1707234567890)
    * DateTime.fromMillis(1707234567890.123) // .123 ms = 123 microseconds
+   * DateTime.fromMillis(1707234567890, { zone: 'America/New_York' })
    * ```
    */
-  public static fromMillis(millisecondInput: number, options?: DateTimeJSOptions): DateTime {
+  public static fromMillis(millisecondInput: number, opts?: DateTimeJSOptions): DateTime {
     const { milliseconds, microseconds } = microsecondParts(millisecondInput * 1000, {
       errorIfNegative: false,
     })
 
-    return new DateTime(
-      LuxonDateTime.fromMillis(milliseconds, options as luxon.DateTimeJSOptions),
-      microseconds
-    )
+    return new DateTime(LuxonDateTime.fromMillis(milliseconds, opts as luxon.DateTimeJSOptions), microseconds)
   }
 
   /**
    * Create a DateTime from epoch microseconds.
    * @param microseconds - Unix timestamp in microseconds (milliseconds from quotient, microsecond from remainder)
-   * @param options - Optional zone/locale options
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone for the result (IANA timezone name or Zone object)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime for the given instant
    * @example
    * ```ts
    * DateTime.fromMicroseconds(1707234567890123)
+   * DateTime.fromMicroseconds(1707234567890123, { zone: 'America/New_York' })
    * ```
    */
-  public static fromMicroseconds(microsecondsInput: number, options?: DateTimeJSOptions): DateTime {
+  public static fromMicroseconds(microsecondsInput: number, opts?: DateTimeJSOptions): DateTime {
     const { milliseconds, microseconds } = microsecondParts(microsecondsInput)
-    const luxonDatetime = LuxonDateTime.fromMillis(milliseconds, options as luxon.DateTimeJSOptions)
+    const luxonDatetime = LuxonDateTime.fromMillis(milliseconds, opts as luxon.DateTimeJSOptions)
     return new DateTime(luxonDatetime, microseconds)
   }
 
@@ -656,33 +676,43 @@ export class DateTime {
    * Create a DateTime from epoch seconds.
    * Fractional seconds are converted to milliseconds and microseconds.
    * @param seconds - Unix timestamp in seconds (fractional part becomes ms + µs)
-   * @param options - Optional zone/locale options
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone for the result (IANA timezone name or Zone object)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime for the given instant
    * @example
    * ```ts
    * DateTime.fromSeconds(1707234567)
    * DateTime.fromSeconds(1707234567.123456) // .123456 seconds = 123ms + 456µs
+   * DateTime.fromSeconds(1707234567, { zone: 'America/New_York' })
    * ```
    */
-  public static fromSeconds(seconds: number, options?: DateTimeJSOptions): DateTime {
+  public static fromSeconds(seconds: number, opts?: DateTimeJSOptions): DateTime {
     // Convert seconds to microseconds to preserve full precision
     const totalMicroseconds = seconds * 1_000_000
     const { milliseconds, microseconds } = microsecondParts(totalMicroseconds, { errorIfNegative: false })
 
-    const luxonDatetime = LuxonDateTime.fromMillis(milliseconds, options as luxon.DateTimeJSOptions)
+    const luxonDatetime = LuxonDateTime.fromMillis(milliseconds, opts as luxon.DateTimeJSOptions)
     return new DateTime(luxonDatetime, microseconds)
   }
 
   /**
    * Create a DateTime from an object with date/time units.
    * Fractional milliseconds are converted to microseconds (e.g., 1.5 ms = 1 ms + 500 µs).
-   * @param obj - Object with year, month, day, etc.; supports optional microsecond
-   * @param opts - Optional zone/locale options
+   * @param obj - Object with year, month, day, hour, minute, second, millisecond, microsecond
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone for the datetime (IANA timezone name or Zone object)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime for the given components
    * @example
    * ```ts
    * DateTime.fromObject({ year: 2017, month: 3, day: 12, hour: 5, minute: 45, microsecond: 123 })
    * DateTime.fromObject({ year: 2017, month: 3, day: 12, millisecond: 1.5 }) // 1ms + 500µs
+   * DateTime.fromObject({ year: 2017, month: 3, day: 12 }, { zone: 'America/New_York' })
    * ```
    */
   public static fromObject(obj: DateTimeObject, opts?: DateTimeJSOptions): DateTime {
@@ -712,18 +742,29 @@ export class DateTime {
   /**
    * Create a DateTime from an ISO 8601 string.
    * @param text - ISO string (e.g. "2024-03-15T10:30:45.123456-05:00"); parses up to 6 fractional second digits
-   * @param opts - Optional parsing options
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone to interpret/convert the datetime in (defaults to UTC)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime for the parsed instant
    * @example
    * ```ts
    * DateTime.fromISO('2024-03-15T10:30:45.123456-05:00')
+   * DateTime.fromISO('2024-03-15T10:30:45Z', { zone: 'America/New_York' })
    * ```
    */
   public static fromISO(text: string, opts?: DateTimeOptions): DateTime {
     const { microsecond } = parseFractionalPart(text)
     const textForLuxon = toThreeDecimalFraction(text)
+    const hasTimezoneInString = hasIsoTimezoneInformation(textForLuxon)
+    const luxonOpts = opts?.zone
+      ? opts
+      : hasTimezoneInString
+        ? { setZone: true, ...opts }
+        : { zone: 'UTC', ...opts }
     const luxonDatetime = wrapLuxonError(() =>
-      LuxonDateTime.fromISO(textForLuxon, opts as luxon.DateTimeOptions)
+      LuxonDateTime.fromISO(textForLuxon, luxonOpts as luxon.DateTimeOptions)
     )
     return new DateTime(luxonDatetime, microsecond)
   }
@@ -731,18 +772,24 @@ export class DateTime {
   /**
    * Create a DateTime from an SQL datetime string.
    * @param text - SQL string (e.g. "2024-03-15 10:30:45.123456"); parses up to 6 fractional second digits
-   * @param opts - Optional parsing options
+   * @param opts - Optional configuration
+   * @param opts.zone - Timezone to interpret the datetime in (overrides timezone in string)
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns A DateTime for the parsed instant
    * @example
    * ```ts
    * DateTime.fromSQL('2024-03-15 10:30:45.123456')
+   * DateTime.fromSQL('2024-03-15 10:30:45', { zone: 'America/New_York' })
    * ```
    */
   public static fromSQL(text: string, opts?: DateTimeOptions): DateTime {
     const { microsecond } = parseFractionalPart(text)
     const textForLuxon = toThreeDecimalFraction(text)
+    const luxonOpts = opts?.zone ? opts : { zone: 'UTC', ...opts }
     const luxonDatetime = wrapLuxonError(() =>
-      LuxonDateTime.fromSQL(textForLuxon, opts as luxon.DateTimeOptions)
+      LuxonDateTime.fromSQL(textForLuxon, luxonOpts as luxon.DateTimeOptions)
     )
     return new DateTime(luxonDatetime, microsecond)
   }
@@ -780,15 +827,23 @@ export class DateTime {
 
   /**
    * Returns an ISO 8601 string with 6 fractional second digits (milliseconds + microseconds).
-   * @param opts - Optional format options (includeOffset, suppressMilliseconds, etc.)
-   * @returns ISO string (e.g. "2024-03-15T10:30:45.123456-05:00")
+   *
+   * Always converts to UTC before formatting (e.g., '2024-03-15T15:30:45.123456Z').
+   *
+   * @param opts - Optional format options
+   * @param opts.suppressMilliseconds - If true, omits fractional seconds when they are zero
+   * @param opts.suppressSeconds - If true, omits seconds when they are zero
+   * @param opts.includeOffset - If true, includes timezone offset
+   * @param opts.format - Format variant: 'basic' (compact) or 'extended' (default, with separators)
+   * @returns ISO string (e.g. "2024-03-15T10:30:45.123456-05:00" or "2024-03-15T10:30:45.123456Z")
    * @example
    * ```ts
-   * DateTime.fromISO('2024-03-15T10:30:45.123456').toISO()
+   * DateTime.fromISO('2024-03-15T10:30:45.123456').toISO() // Converts to UTC
    * ```
    */
   public toISO(opts?: ToISOTimeOptions): string {
-    return replaceISOMicroseconds(this, this.luxonDatetime.toISO(opts as luxon.ToISOTimeOptions), opts)
+    const dt = this.toUTC()
+    return replaceISOMicroseconds(dt, dt.luxonDatetime.toISO(opts as luxon.ToISOTimeOptions), opts)
   }
 
   /**
@@ -805,28 +860,48 @@ export class DateTime {
 
   /**
    * Returns the time portion in ISO format with 6 fractional second digits.
+   *
+   * Omits timezone offset by default (e.g., '10:30:45.123456').
+   *
    * @param opts - Optional format options
-   * @returns Time string (e.g. "10:30:45.123456-05:00")
+   * @param opts.suppressMilliseconds - If true, omits fractional seconds when they are zero
+   * @param opts.suppressSeconds - If true, omits seconds when they are zero
+   * @param opts.includeOffset - If true, includes timezone offset
+   * @param opts.format - Format variant: 'basic' (compact) or 'extended' (default, with colons)
+   * @returns Time string (e.g. "10:30:45.123456" or "10:30:45.123456-05:00")
    * @example
    * ```ts
-   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toISOTime()
+   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toISOTime() // '10:30:45.123456'
    * ```
    */
   public toISOTime(opts?: ToISOTimeOptions): string {
-    return replaceISOMicroseconds(this, this.luxonDatetime.toISOTime(opts as luxon.ToISOTimeOptions), opts)
+    return replaceISOMicroseconds(
+      this,
+      this.luxonDatetime.toISOTime({
+        includeOffset: false,
+        ...opts,
+      } as luxon.ToISOTimeOptions),
+      opts
+    )
   }
 
   /**
    * Returns an SQL datetime string with 6 fractional second digits.
-   * @param opts - Optional format options
+   *
+   * Always converts to UTC before formatting (e.g., '2024-03-15 15:30:45.123456').
+   *
    * @returns SQL string (e.g. "2024-03-15 10:30:45.123456")
    * @example
    * ```ts
-   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toSQL()
+   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toSQL() // Converts to UTC
    * ```
    */
-  public toSQL(opts?: ToSQLOptions): string {
-    return replaceISOMicroseconds(this, this.luxonDatetime.toSQL(opts as luxon.ToSQLOptions), opts)
+  private _toSQL: string
+  public toSQL(): string {
+    if (this._toSQL) return this._toSQL
+    const dt = this.toUTC()
+    this._toSQL = replaceISOMicroseconds(dt, dt.luxonDatetime.toSQL(), {})
+    return this._toSQL
   }
 
   /**
@@ -843,15 +918,26 @@ export class DateTime {
 
   /**
    * Returns an SQL time string with 6 fractional second digits.
-   * @param opts - Optional format options
+   *
+   * Omits timezone offset by default.
+   *
+   * @param opts - Optional SQL time format options
+   * @param opts.includeOffset - If true, includes timezone offset
    * @returns SQL time string (e.g. "10:30:45.123456")
    * @example
    * ```ts
-   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toSQLTime()
+   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toSQLTime() // '10:30:45.123456'
+   * DateTime.local(2017, 3, 12, 10, 30, 45, 123, 456).toSQLTime({ includeOffset: true }) // '10:30:45.123456 -04:00'
    * ```
    */
-  public toSQLTime(opts?: ToSQLOptions): string {
-    return replaceISOMicroseconds(this, this.luxonDatetime.toSQLTime(opts as luxon.ToSQLOptions), opts)
+  public toSQLTime(opts: { includeOffset?: boolean } = {}): string {
+    return replaceISOMicroseconds(
+      this,
+      this.luxonDatetime.toSQLTime({
+        includeOffset: opts.includeOffset ?? false,
+      } as luxon.ToSQLOptions),
+      {}
+    )
   }
 
   /**
@@ -868,11 +954,14 @@ export class DateTime {
 
   /**
    * Returns an ISO 8601 string representation (for valueOf() operations).
+   *
+   * Converts to UTC before formatting.
+   *
    * @returns ISO datetime string with microsecond precision
    * @example
    * ```ts
-   * DateTime.local(2017, 3, 12).valueOf()
-   * DateTime.fromISO('2026-02-07T09:03:44.123456Z').valueOf()  // '2026-02-07T09:03:44.123456Z'
+   * DateTime.local(2017, 3, 12).valueOf() // Converts to UTC
+   * DateTime.fromISO('2026-02-07T09:03:44.123456Z').valueOf()              // '2026-02-07T09:03:44.123456Z'
    * ```
    */
   private _valueOf: string
@@ -885,6 +974,9 @@ export class DateTime {
   /**
    * Returns an ISO 8601 formatted string for JSON serialization.
    * This ensures DateTime objects are properly serialized to ISO format.
+   *
+   * Converts to UTC before formatting.
+   *
    * @returns ISO datetime string with microsecond precision
    * @example
    * ```ts
@@ -899,6 +991,9 @@ export class DateTime {
   /**
    * Returns an ISO 8601 formatted string representation.
    * Alias for toISO().
+   *
+   * Converts to UTC before formatting.
+   *
    * @returns ISO datetime string with microsecond precision
    * @example
    * ```ts
@@ -913,12 +1008,17 @@ export class DateTime {
 
   /**
    * Returns a localized string representation.
-   * @param formatOpts - Optional format options
-   * @param opts - Optional locale options
+   * @param formatOpts - Intl.DateTimeFormat options for formatting
+   * @param opts - Optional locale configuration
+   * @param opts.locale - Locale string (e.g., 'en-US', 'fr-FR')
+   * @param opts.numberingSystem - Numbering system (e.g., 'arab', 'beng')
+   * @param opts.outputCalendar - Calendar system (e.g., 'islamic', 'hebrew')
    * @returns Localized string
    * @example
    * ```ts
    * DateTime.local(2017, 3, 12).toLocaleString()
+   * DateTime.local(2017, 3, 12).toLocaleString(DateTime.DATE_FULL)
+   * DateTime.local(2017, 3, 12).toLocaleString({ weekday: 'long' }, { locale: 'fr-FR' })
    * ```
    */
   public toLocaleString(formatOpts?: Intl.DateTimeFormatOptions, opts?: LocaleOptions): string {
@@ -947,7 +1047,6 @@ export class DateTime {
     const fractionalMatch = fmt.match(/S+/)
 
     if (!fractionalMatch) {
-      // No fractional seconds, just use Luxon's toFormat
       return this.luxonDatetime.toFormat(fmt, opts as luxon.LocaleOptions)
     }
 
@@ -1147,7 +1246,10 @@ export class DateTime {
    */
   public static min(...dateTimes: DateTime[]): DateTime | null {
     if (dateTimes.length === 0) return null
-    return dateTimes.reduce((best, dt) => (dt.valueOf() < best.valueOf() ? dt : best), dateTimes[0]!)
+    return dateTimes.reduce(
+      (min, datetime) => (datetime.valueOf() < min.valueOf() ? datetime : min),
+      dateTimes[0]!
+    )
   }
 
   /**
@@ -1161,7 +1263,10 @@ export class DateTime {
    */
   public static max(...dateTimes: DateTime[]): DateTime | null {
     if (dateTimes.length === 0) return null
-    return dateTimes.reduce((best, dt) => (dt.valueOf() > best.valueOf() ? dt : best), dateTimes[0]!)
+    return dateTimes.reduce(
+      (max, datetime) => (datetime.valueOf() > max.valueOf() ? datetime : max),
+      dateTimes[0]!
+    )
   }
 
   /**
@@ -1203,8 +1308,7 @@ export class DateTime {
    * ```
    */
   public toLocal(): DateTime {
-    const luxonDatetime = this.luxonDatetime.toLocal()
-    return new DateTime(luxonDatetime, this.microsecond)
+    return new DateTime(this.luxonDatetime.toLocal(), this.microsecond)
   }
 
   /**
@@ -1298,7 +1402,7 @@ export class DateTime {
    * dt1.diff(dt2, 'days') // { days: 5 }
    * dt1.diff(dt2, ['days', 'hours']) // { days: 5, hours: 3 }
    * dt1.diff(dt2, ['milliseconds', 'microseconds']) // { milliseconds: 123, microseconds: 456 }
-   * dt1.diff(dt2) // { years: 0, weeks: 0, days: 0, hours: 0, minutes: 0, seconds: 1, milliseconds: 500, microseconds: 0 }
+   * dt1.diff(dt2) // { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 1, milliseconds: 500, microseconds: 0 }
    * ```
    */
   public diff<U extends DurationUnit | DurationUnit[] | undefined = undefined>(
@@ -1400,7 +1504,7 @@ function buildLocalOrUtcDateTime<T extends object>(
     mi: number,
     s: number,
     ms: number,
-    options?: T
+    opts?: T
   ) => LuxonDateTime
 ): { luxonDatetime: LuxonDateTime; microseconds: number } {
   const options = firstOptionArg(
@@ -1485,7 +1589,7 @@ function normalizeDiffUnitArray<U extends DurationUnit | DurationUnit[] | undefi
 
 const DEFAULT_DIFF_UNITS_WITH_MICROSECONDS: DurationUnit[] = [
   'years',
-  'weeks',
+  'months',
   'days',
   'hours',
   'minutes',
@@ -1543,6 +1647,12 @@ function toThreeDecimalFraction(str: string): string {
   if (!match) return str
   const frac = (match[1] ?? '').padEnd(3, '0').slice(0, 3)
   return str.replace(/\.\d+/, '.' + frac)
+}
+
+const ISO_TIMEZONE_SUFFIX_REGEX = /(Z|[+-]\d{2}(?::?\d{2})?)$/i
+
+function hasIsoTimezoneInformation(str: string): boolean {
+  return ISO_TIMEZONE_SUFFIX_REGEX.test(str)
 }
 
 /**
