@@ -1,5 +1,6 @@
 import CalendarDate from '../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../src/utils/datetime/DateTime.js'
+import TimeWithoutZone from '../../src/utils/datetime/TimeWithoutZone.js'
 import ModelForOpenapiTypeSpecs from '../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 
 export default async function fleshedOutModelForOpenapiTypeSpecs() {
@@ -71,8 +72,8 @@ export function unpersistedFleshedOutModelForOpenapiTypeSpecs() {
     likesWalks: true,
     likesTreats: false,
 
-    startTime: '10:30:00',
-    endTime: '11:30:00',
+    startTime: TimeWithoutZone.fromISO('10:30:00'),
+    endTime: TimeWithoutZone.fromISO('11:30:00'),
     times: ['11:30:00', '12:30:00'],
   })
 }

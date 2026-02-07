@@ -58,6 +58,8 @@ us humans, he says:
 
 import type CalendarDate from '../../src/utils/datetime/CalendarDate.js'
 import { type DateTime } from '../../src/utils/datetime/DateTime.js'
+import type TimeWithZone from '../../src/utils/datetime/TimeWithZone.js'
+import type TimeWithoutZone from '../../src/utils/datetime/TimeWithoutZone.js'
 import {
   type AAndBStiTypes,
   type BalloonColorsEnum,
@@ -2382,7 +2384,14 @@ export const schema = {
       default: [],
       named: [],
     },
-    nonJsonColumnNames: ['createdAt', 'id', 'myDatetime', 'updatedAt'],
+    nonJsonColumnNames: [
+      'createdAt',
+      'id',
+      'myDate',
+      'myDatetime',
+      'myTimeWithoutZone',
+      'updatedAt',
+    ],
     columns: {
       createdAt: {
         coercedType: {} as DateTime,
@@ -2402,13 +2411,31 @@ export const schema = {
         allowNull: false,
         isArray: false,
       },
-      myDatetime: {
-        coercedType: {} as DateTime,
+      myDate: {
+        coercedType: {} as DateTime | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
         dbType: 'timestamp without time zone',
-        allowNull: false,
+        allowNull: true,
+        isArray: false,
+      },
+      myDatetime: {
+        coercedType: {} as DateTime | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: true,
+        isArray: false,
+      },
+      myTimeWithoutZone: {
+        coercedType: {} as TimeWithoutZone | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'time without time zone',
+        allowNull: true,
         isArray: false,
       },
       updatedAt: {
@@ -2606,7 +2633,7 @@ export const schema = {
         isArray: false,
       },
       endTime: {
-        coercedType: {} as string | null,
+        coercedType: {} as TimeWithoutZone | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3011,7 +3038,7 @@ export const schema = {
         isArray: false,
       },
       startTime: {
-        coercedType: {} as string | null,
+        coercedType: {} as TimeWithoutZone | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -3020,7 +3047,7 @@ export const schema = {
         isArray: false,
       },
       times: {
-        coercedType: {} as string[] | null,
+        coercedType: {} as TimeWithoutZone[] | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,

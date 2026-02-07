@@ -12,3 +12,5 @@ export { default as MissingSerializersDefinition } from '../errors/serializers/M
 export { default as ValidationError } from '../errors/ValidationError.js'
 export { InvalidCalendarDate } from '../utils/datetime/CalendarDate.js'
 export { InvalidDateTime } from '../utils/datetime/DateTime.js'
+export { InvalidTimeWithZone } from '../utils/datetime/TimeWithZone.js'
+export { InvalidTimeWithoutZone } from '../utils/datetime/TimeWithoutZone.js'

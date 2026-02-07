@@ -290,10 +290,37 @@ export default class ASTBuilder {
         ts.factory.createStringLiteral('../../src/utils/datetime/DateTime.js')
       )
 
-      return [calendarImportDeclaration, dateTimeImportDeclaration]
+      const timeWithZoneImport = ts.factory.createImportClause(
+        true,
+        f.createIdentifier('TimeWithZone'),
+        undefined
+      )
+      const timeWithZoneImportDeclaration = ts.factory.createImportDeclaration(
+        undefined,
+        timeWithZoneImport,
+        ts.factory.createStringLiteral('../../src/utils/datetime/TimeWithZone.js')
+      )
+
+      const timeWithoutZoneImport = ts.factory.createImportClause(
+        true,
+        f.createIdentifier('TimeWithoutZone'),
+        undefined
+      )
+      const timeWithoutZoneImportDeclaration = ts.factory.createImportDeclaration(
+        undefined,
+        timeWithoutZoneImport,
+        ts.factory.createStringLiteral('../../src/utils/datetime/TimeWithoutZone.js')
+      )
+
+      return [
+        calendarImportDeclaration,
+        dateTimeImportDeclaration,
+        timeWithZoneImportDeclaration,
+        timeWithoutZoneImportDeclaration,
+      ]
     } else {
       const namedImports = ts.factory.createNamedImports(
-        ['CalendarDate', 'DateTime'].map(importName =>
+        ['CalendarDate', 'DateTime', 'TimeWithZone', 'TimeWithoutZone'].map(importName =>
           f.createImportSpecifier(true, undefined, ts.factory.createIdentifier(importName))
         )
       )

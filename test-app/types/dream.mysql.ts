@@ -58,6 +58,8 @@ us humans, he says:
 
 import type CalendarDate from '../../src/utils/datetime/CalendarDate.js'
 import { type DateTime } from '../../src/utils/datetime/DateTime.js'
+import type TimeWithZone from '../../src/utils/datetime/TimeWithZone.js'
+import type TimeWithoutZone from '../../src/utils/datetime/TimeWithoutZone.js'
 import {} from './db.js'
 
 export const schema = {

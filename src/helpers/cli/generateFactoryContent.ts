@@ -128,6 +128,26 @@ export default function generateFactoryContent({
         attributeDefaults.push(`${attributeVariable}: [DateTime.now()],`)
         break
 
+      case 'time':
+        dreamImports.push('TimeWithoutZone')
+        attributeDefaults.push(`${attributeVariable}: TimeWithoutZone.now(),`)
+        break
+
+      case 'time[]':
+        dreamImports.push('TimeWithoutZone')
+        attributeDefaults.push(`${attributeVariable}: [TimeWithoutZone.now()],`)
+        break
+
+      case 'timetz':
+        dreamImports.push('TimeWithZone')
+        attributeDefaults.push(`${attributeVariable}: TimeWithZone.now(),`)
+        break
+
+      case 'timetz[]':
+        dreamImports.push('TimeWithZone')
+        attributeDefaults.push(`${attributeVariable}: [TimeWithZone.now()],`)
+        break
+
       case 'uuid':
         nodeImports.push('randomUUID')
         attributeDefaults.push(`${attributeVariable}: randomUUID(),`)

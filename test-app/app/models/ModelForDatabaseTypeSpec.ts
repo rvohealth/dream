@@ -10,6 +10,8 @@ export default class ModelForDatabaseTypeSpec extends ApplicationModel {
 
   public id: DreamColumn<ModelForDatabaseTypeSpec, 'id'>
   public myDatetime: DreamColumn<ModelForDatabaseTypeSpec, 'myDatetime'>
+  public myDate: DreamColumn<ModelForDatabaseTypeSpec, 'myDate'>
+  public myTimeWithoutZone: DreamColumn<ModelForDatabaseTypeSpec, 'myTimeWithoutZone'>
   public createdAt: DreamColumn<ModelForDatabaseTypeSpec, 'createdAt'>
   public updatedAt: DreamColumn<ModelForDatabaseTypeSpec, 'updatedAt'>
 }

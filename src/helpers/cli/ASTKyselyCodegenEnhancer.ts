@@ -27,6 +27,7 @@ export default class ASTKyselyCodegenEnhancer extends ASTConnectionBuilder {
     let dbSourceFile = await this.getDbSourceFile()
     dbSourceFile = this.camelizeKeys(dbSourceFile)
     dbSourceFile = this.replaceTimestampExport(dbSourceFile)
+    dbSourceFile = await this.replaceTimeFieldsInInterfaces(dbSourceFile)
     dbSourceFile = this.addMissingImports(dbSourceFile)
     dbSourceFile = this.replaceInt8Export(dbSourceFile)
     dbSourceFile = this.sortExportedInterfacesTransformer(dbSourceFile)
@@ -127,6 +128,131 @@ ${output}`)
 
     const result = ts.transform(dbSourceFile, [transformer])
     return result.transformed[0]! as ts.SourceFile
+  }
+
+  /**
+   * @internal
+   *
+   * Replaces string types with TimeWithZone or TimeWithoutZone for TIME columns
+   * based on the schema metadata from dream.ts
+   */
+  private async replaceTimeFieldsInInterfaces(dbSourceFile: ts.SourceFile): Promise<ts.SourceFile> {
+    const schemaData = await this.getSchemaData()
+
+    const transformer: ts.TransformerFactory<ts.SourceFile> = context => {
+      return sourceFile => {
+        const visitor = (node: ts.Node): ts.Node => {
+          if (ts.isInterfaceDeclaration(node) && node.name.text !== 'DB') {
+            const tableName = this.toSnakeCase(node.name.text)
+            const tableSchema = schemaData[tableName]
+
+            if (!tableSchema) {
+              return ts.visitEachChild(node, visitor, context)
+            }
+
+            const updatedMembers = node.members.map(member => {
+              if (ts.isPropertySignature(member) && ts.isIdentifier(member.name)) {
+                const columnName = member.name.text
+                const columnSchema = tableSchema.columns[columnName]
+
+                if (!columnSchema) return member
+
+                const dbType = columnSchema.dbType
+
+                // Check if this is a TIME field that's currently typed as string
+                if (
+                  (dbType === 'time without time zone' || dbType === 'time with time zone') &&
+                  member.type
+                ) {
+                  const isTimeWithZone = dbType === 'time with time zone'
+                  const timeTypeName = isTimeWithZone ? 'TimeWithZone' : 'TimeWithoutZone'
+
+                  // Replace string with the appropriate Time class
+                  const newType = this.replaceStringWithTimeType(member.type, timeTypeName, sourceFile)
+
+                  if (newType !== member.type) {
+                    return f.updatePropertySignature(
+                      member,
+                      member.modifiers,
+                      member.name,
+                      member.questionToken,
+                      newType
+                    )
+                  }
+                }
+              }
+              return member
+            })
+
+            return f.updateInterfaceDeclaration(
+              node,
+              node.modifiers,
+              node.name,
+              node.typeParameters,
+              node.heritageClauses,
+              updatedMembers
+            )
+          }
+
+          return ts.visitEachChild(node, visitor, context)
+        }
+
+        return ts.visitNode(sourceFile, visitor) as ts.SourceFile
+      }
+    }
+
+    const result = ts.transform(dbSourceFile, [transformer])
+    return result.transformed[0]!
+  }
+
+  /**
+   * @internal
+   *
+   * Helper to replace string type references with Time type references
+   */
+  private replaceStringWithTimeType(
+    typeNode: ts.TypeNode,
+    timeTypeName: string,
+    sourceFile: ts.SourceFile
+  ): ts.TypeNode {
+    // Handle union types (e.g., string | null)
+    if (ts.isUnionTypeNode(typeNode)) {
+      const updatedTypes = typeNode.types.map(t => {
+        if (ts.isTypeReferenceNode(t) && t.typeName.getText(sourceFile) === 'string') {
+          return f.createTypeReferenceNode(f.createIdentifier(timeTypeName))
+        }
+        if (
+          t.kind === ts.SyntaxKind.StringKeyword ||
+          (ts.isLiteralTypeNode(t) && ts.isStringLiteral(t.literal))
+        ) {
+          return f.createTypeReferenceNode(f.createIdentifier(timeTypeName))
+        }
+        return t
+      })
+      return f.createUnionTypeNode(updatedTypes)
+    }
+
+    // Handle direct string type
+    if (
+      typeNode.kind === ts.SyntaxKind.StringKeyword ||
+      (ts.isTypeReferenceNode(typeNode) && typeNode.typeName.getText(sourceFile) === 'string')
+    ) {
+      return f.createTypeReferenceNode(f.createIdentifier(timeTypeName))
+    }
+
+    return typeNode
+  }
+
+  /**
+   * @internal
+   *
+   * Convert PascalCase to snake_case
+   */
+  private toSnakeCase(str: string): string {
+    return str
+      .replace(/([A-Z])/g, '_$1')
+      .toLowerCase()
+      .replace(/^_/, '')
   }
 
   /**

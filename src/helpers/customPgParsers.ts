@@ -1,6 +1,8 @@
 import { Kysely } from 'kysely'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
+import TimeWithZone from '../utils/datetime/TimeWithZone.js'
+import TimeWithoutZone from '../utils/datetime/TimeWithoutZone.js'
 
 export async function findEnumArrayOids(kyselyDb: Kysely<any>): Promise<number[]> {
   const result = await kyselyDb.selectFrom('pg_type').select('typarray').where('typtype', '=', 'e').execute()
@@ -48,4 +50,12 @@ export function parsePostgresBigint(numberString: string | null) {
    * `ops` query ina `where` clause)
    */
   return numberString
+}
+
+export function parsePostgresTime(timeString: string | null) {
+  return timeString ? TimeWithoutZone.fromSQL(timeString) : timeString
+}
+
+export function parsePostgresTimeTz(timeString: string | null) {
+  return timeString ? TimeWithZone.fromSQL(timeString) : timeString
 }
