@@ -1,4 +1,4 @@
-import { DateTime, InvalidDateTime } from '../../../src/utils/datetime/DateTime.js'
+import { DateTime, InvalidDateTime } from '../../../../src/utils/datetime/DateTime.js'
 
 describe('DateTime', () => {
   describe('fromObject', () => {
