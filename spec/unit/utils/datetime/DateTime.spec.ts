@@ -125,12 +125,6 @@ describe('DateTime', () => {
   })
 
   describe('fromSQL', () => {
-    it('supports microsecond in SQL fractional part', () => {
-      const datetime = DateTime.fromSQL('2026-02-07 09:03:44.077001')
-      expect(datetime.millisecond).toEqual(77)
-      expect(datetime.microsecond).toEqual(1)
-    })
-
     it('parses fractional part into millisecond and microsecond', () => {
       const datetime = DateTime.fromSQL('2026-02-07 09:03:44.077001')
       expect(datetime.millisecond).toEqual(77)
