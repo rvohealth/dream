@@ -6,7 +6,7 @@ describe('Duration', () => {
     it('supports microsecond in the object', () => {
       const duration = Duration.fromObject({ seconds: 1, milliseconds: 77, microseconds: 1 })
       expect(duration.microseconds).toEqual(1)
-      expect(duration.toISO()).toMatch(/1\.077001S/)
+      expect(duration.toISO()).toEqual('PT1.077001S')
     })
 
     it('accepts microsecond and produces correct toISO with 6 decimal places', () => {
@@ -17,7 +17,7 @@ describe('Duration', () => {
 
     it('defaults microsecond to 0 when not provided', () => {
       const duration = Duration.fromObject({ seconds: 44, milliseconds: 77 })
-      expect(duration.toISO()).toMatch(/\.077000S/)
+      expect(duration.toISO()).toEqual('PT44.077000S')
       expect(duration.microseconds).toEqual(0)
     })
 
@@ -50,7 +50,7 @@ describe('Duration', () => {
   })
 
   describe('fromMicroseconds', () => {
-    it.only('creates a Duration from total microseconds', () => {
+    it('creates a Duration from total microseconds', () => {
       const duration = Duration.fromMicroseconds(1000500)
       expect(duration.toISO()).toEqual('PT1.000500S')
       expect(duration.microseconds).toEqual(500)
