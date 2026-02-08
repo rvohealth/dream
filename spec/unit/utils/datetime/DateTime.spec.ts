@@ -388,8 +388,8 @@ describe('DateTime', () => {
     })
 
     it('normalizes microseconds > 999 in duration into milliseconds and remainder', () => {
-      const datetime = DateTime.fromISO('2026-02-07T09:03:44.007000Z').plus({ microseconds: 1500 })
-      expect(datetime.millisecond).toEqual(8)
+      const datetime = DateTime.fromISO('2026-02-07T09:03:44.007000Z').minus({ microseconds: 1500 })
+      expect(datetime.millisecond).toEqual(5)
       expect(datetime.microsecond).toEqual(500)
     })
   })
