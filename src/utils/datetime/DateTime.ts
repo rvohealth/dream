@@ -16,8 +16,6 @@ import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
 export const Settings = luxon.Settings
 Settings.throwOnInvalid = true
 
-export const MICROSECONDS_MIN = 0
-
 /**
  * DateTime extends Luxon DateTime with microsecond precision (0-999).
  * The decimal part in ISO/SQL is 6 digits: first 3 = milliseconds, next 3 = microseconds.
@@ -297,10 +295,10 @@ export class DateTime extends LuxonDateTime {
    * DateTime.fromMicroseconds(1707234567890123)
    * ```
    */
-  public static fromMicroseconds(microseconds: number, options?: DateTimeJSOptions): DateTime {
-    const milliseconds = Math.floor(microseconds / 1000)
+  public static fromMicroseconds(microsecondsInput: number, options?: DateTimeJSOptions): DateTime {
+    const { milliseconds, microseconds } = microsecondParts(microsecondsInput)
     const luxonDatetime = LuxonDateTime.fromMillis(milliseconds, options)
-    return DateTime.wrap(luxonDatetime, microseconds - milliseconds * 1000)
+    return DateTime.wrap(luxonDatetime, microseconds)
   }
 
   /**

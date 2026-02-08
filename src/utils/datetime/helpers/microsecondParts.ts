@@ -1,15 +1,18 @@
-import { InvalidDateTime, MICROSECONDS_MIN } from '../DateTime.js'
+import { InvalidDateTime } from '../DateTime.js'
 
 /**
  * Normalizes a microsecond value: values > 999 become whole milliseconds + remainder (0–999).
  * Throws for negative.
  */
 
-export function microsecondParts(microsecondInput: number): {
+export function microsecondParts(
+  microsecondInput: number,
+  { errorIfNegative = true }: { errorIfNegative?: boolean } = {}
+): {
   milliseconds: number
   microseconds: number
 } {
-  if (microsecondInput < MICROSECONDS_MIN) {
+  if (errorIfNegative && microsecondInput < 0) {
     throw new InvalidDateTime(
       new Error(`microsecond must be a non-negative integer, got: ${String(microsecondInput)}`)
     )

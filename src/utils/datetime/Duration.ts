@@ -99,9 +99,8 @@ export class Duration extends LuxonDuration {
    * Duration.fromMicroseconds(1500500)  // 1.5s + 500µs
    * ```
    */
-  public static fromMicroseconds(totalMicros: number, opts?: DurationOptions): Duration {
-    const milliseconds = Math.floor(totalMicros / 1000)
-    const microseconds = totalMicros - milliseconds * 1000
+  public static fromMicroseconds(microsecondsInput: number, opts?: DurationOptions): Duration {
+    const { milliseconds, microseconds } = microsecondParts(microsecondsInput, { errorIfNegative: false })
     const luxonDuration = LuxonDuration.fromMillis(milliseconds, opts)
     return Duration.wrap(luxonDuration, microseconds)
   }
