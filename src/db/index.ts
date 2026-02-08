@@ -4,7 +4,7 @@ import Dream from '../Dream.js'
 import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import { DbConnectionType } from '../types/db.js'
-import { Settings } from '../utils/dateAndTime/DateTime.js'
+import { Settings } from '../utils/datetime/DateTime.js'
 import DreamDbConnection from './DreamDbConnection.js'
 
 if (EnvInternal.string('TZ', { optional: true })) Settings.defaultZone = EnvInternal.string('TZ')

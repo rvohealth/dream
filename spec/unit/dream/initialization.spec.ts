@@ -1,5 +1,5 @@
 import CannotPassNullOrUndefinedToRequiredBelongsTo from '../../../src/errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
-import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'

@@ -1,5 +1,5 @@
-import CalendarDate, { InvalidCalendarDate } from '../../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
+import CalendarDate, { InvalidCalendarDate } from '../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 
 describe('CalendarDate', () => {
   describe('constructor', () => {

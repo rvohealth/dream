@@ -1,6 +1,6 @@
-import CalendarDate from '../../../../../src/helpers/CalendarDate.js'
 import ObjectSerializer from '../../../../../src/serializer/ObjectSerializer.js'
 import { DreamSerializers } from '../../../../../src/types/dream.js'
+import CalendarDate from '../../../../../src/utils/datetime/CalendarDate.js'
 import ApplicationModel from '../../../../../test-app/app/models/ApplicationModel.js'
 
 class User {

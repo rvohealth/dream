@@ -9,7 +9,7 @@ import {
   DateTime as LuxonDateTime,
   Zone,
 } from 'luxon'
-import { DateTime } from '../utils/dateAndTime/DateTime.js'
+import { DateTime } from './DateTime.js'
 
 type CalendarDateDurationLike = Pick<
   DurationLikeObject,

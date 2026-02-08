@@ -1,7 +1,7 @@
 import { MockInstance } from 'vitest'
 import DreamApp from '../../../src/dream-app/index.js'
-import CalendarDate from '../../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 
 describe('log functions', () => {
   let logSpy: MockInstance

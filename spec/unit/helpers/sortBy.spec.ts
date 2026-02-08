@@ -1,6 +1,6 @@
-import CalendarDate from '../../../src/helpers/CalendarDate.js'
 import sortBy from '../../../src/helpers/sortBy.js'
-import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 
 describe('sortBy', () => {

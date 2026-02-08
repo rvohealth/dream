@@ -56,7 +56,7 @@ us humans, he says:
 
 */
 
-import { type DateTime } from '../../src/utils/dateAndTime/DateTime.js'
+import { type DateTime } from '../../src/utils/datetime/DateTime.js'
 import { } from './db.js'
 
 export const schema = {

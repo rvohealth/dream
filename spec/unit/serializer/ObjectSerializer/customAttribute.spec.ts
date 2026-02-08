@@ -1,5 +1,5 @@
-import CalendarDate from '../../../../src/helpers/CalendarDate.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
+import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 interface User {

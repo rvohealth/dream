@@ -1,7 +1,7 @@
 import Dream from '../../Dream.js'
 import ValidationError from '../../errors/ValidationError.js'
 import sqlAttributes from '../../helpers/sqlAttributes.js'
-import { DateTime } from '../../utils/dateAndTime/DateTime.js'
+import { DateTime } from '../../utils/datetime/DateTime.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
 import runHooksFor from './runHooksFor.js'

@@ -1,6 +1,5 @@
 import Dream from '../Dream.js'
 import RendersManyMustReceiveArray from '../errors/serializers/RendersManyMustReceiveArray.js'
-import CalendarDate from '../helpers/CalendarDate.js'
 import compact from '../helpers/compact.js'
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
@@ -12,7 +11,8 @@ import {
   SerializerCasing,
   SimpleObjectSerializerType,
 } from '../types/serializer.js'
-import { DateTime } from '../utils/dateAndTime/DateTime.js'
+import CalendarDate from '../utils/datetime/CalendarDate.js'
+import { DateTime } from '../utils/datetime/DateTime.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'

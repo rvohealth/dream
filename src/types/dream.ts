@@ -2,9 +2,9 @@ import { ColumnType, Updateable } from 'kysely'
 import { STI_SCOPE_NAME } from '../decorators/class/STI.js'
 import Dream from '../Dream.js'
 import { TRIGRAM_OPERATORS } from '../dream/constants.js'
-import CalendarDate from '../helpers/CalendarDate.js'
 import OpsStatement from '../ops/ops-statement.js'
-import { DateTime } from '../utils/dateAndTime/DateTime.js'
+import CalendarDate from '../utils/datetime/CalendarDate.js'
+import { DateTime } from '../utils/datetime/DateTime.js'
 import {
   AssociatedModelParam,
   AssociationStatement,

@@ -1,6 +1,6 @@
-import CalendarDate from '../../../src/helpers/CalendarDate.js'
 import camelize from '../../../src/helpers/camelize.js'
-import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('camelize', () => {

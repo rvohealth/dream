@@ -1,7 +1,7 @@
 import CannotAssociationQueryOnUnpersistedDream from '../../../../src/errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
-import { DateTime } from '../../../../src/utils/dateAndTime/DateTime.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Collar from '../../../../test-app/app/models/Collar.js'

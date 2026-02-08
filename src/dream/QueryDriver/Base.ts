@@ -1,6 +1,5 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
-import CalendarDate from '../../helpers/CalendarDate.js'
 import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
@@ -10,7 +9,8 @@ import {
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
 } from '../../types/query.js'
-import { DateTime } from '../../utils/dateAndTime/DateTime.js'
+import CalendarDate from '../../utils/datetime/CalendarDate.js'
+import { DateTime } from '../../utils/datetime/DateTime.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
 

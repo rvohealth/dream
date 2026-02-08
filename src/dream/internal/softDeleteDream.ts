@@ -1,7 +1,7 @@
 import Dream from '../../Dream.js'
 import MissingDeletedAtFieldForSoftDelete from '../../errors/MissingDeletedAtFieldForSoftDelete.js'
 import isDatetimeOrDatetimeArrayColumn from '../../helpers/db/types/isDatetimeOrDatetimeArrayColumn.js'
-import { DateTime } from '../../utils/dateAndTime/DateTime.js'
+import { DateTime } from '../../utils/datetime/DateTime.js'
 import DreamTransaction from '../DreamTransaction.js'
 
 export default async function softDeleteDream(dream: Dream, txn: DreamTransaction<any>) {

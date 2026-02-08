@@ -1,4 +1,4 @@
-import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Pet from '../../../test-app/app/models/Pet.js'
