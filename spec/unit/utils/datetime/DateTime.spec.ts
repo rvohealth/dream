@@ -341,7 +341,7 @@ describe('DateTime', () => {
     })
 
     it('round-trips with fromMicroseconds', () => {
-      const epochMicros = 1707282224077001
+      const epochMicros = 1707282224077501
       const datetime = DateTime.fromMicroseconds(epochMicros)
       expect(datetime.toMicroseconds()).toEqual(epochMicros)
     })
