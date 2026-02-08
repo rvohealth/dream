@@ -457,9 +457,9 @@ describe('DateTime', () => {
     it('returns the minimum DateTime (comparison includes microseconds)', () => {
       const a = DateTime.fromISO('2026-02-07T09:03:44.077001Z')
       const b = DateTime.fromISO('2026-02-07T09:03:44.077002Z')
-      const min = DateTime.min(a, b)
-      expect(min != null && min.equals(a)).toEqual(true)
-      expect(DateTime.min(b, a) != null && DateTime.min(b, a)!.equals(a)).toEqual(true)
+      const min = DateTime.min(a, b)!
+      expect(min.equals(a)).toEqual(true)
+      expect(DateTime.min(b, a)!.equals(a)).toEqual(true)
     })
   })
 
@@ -467,9 +467,9 @@ describe('DateTime', () => {
     it('returns the maximum DateTime (comparison includes microseconds)', () => {
       const a = DateTime.fromISO('2026-02-07T09:03:44.077001Z')
       const b = DateTime.fromISO('2026-02-07T09:03:44.077002Z')
-      const max = DateTime.max(a, b)
-      expect(max != null && max.equals(b)).toEqual(true)
-      expect(DateTime.max(b, a) != null && DateTime.max(b, a)!.equals(b)).toEqual(true)
+      const max = DateTime.max(a, b)!
+      expect(max.equals(b)).toEqual(true)
+      expect(DateTime.max(b, a)!.equals(b)).toEqual(true)
     })
   })
 
