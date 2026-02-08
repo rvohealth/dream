@@ -10,35 +10,13 @@ import type {
 import * as luxon from 'luxon'
 import { DateTime as LuxonDateTime } from 'luxon'
 import { Duration, type DurationLike, InvalidDuration } from './Duration.js'
+import { microsecondParts } from './helpers/microsecondParts.js'
 import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
 
 export const Settings = luxon.Settings
 Settings.throwOnInvalid = true
 
-const MICROSECONDS_MIN = 0
-
-/**
- * Normalizes a microsecond value: values > 999 become whole milliseconds + remainder (0–999).
- * Throws for negative.
- */
-export function microsecondParts(microsecondInput: number): {
-  milliseconds: number
-  microseconds: number
-} {
-  if (microsecondInput < MICROSECONDS_MIN) {
-    throw new InvalidDateTime(
-      new Error(`microsecond must be a non-negative integer, got: ${String(microsecondInput)}`)
-    )
-  }
-
-  const totalMicroseconds = Math.round(microsecondInput)
-  const milliseconds = Math.floor(totalMicroseconds / 1000)
-
-  return {
-    milliseconds,
-    microseconds: totalMicroseconds - milliseconds * 1000,
-  }
-}
+export const MICROSECONDS_MIN = 0
 
 /**
  * DateTime extends Luxon DateTime with microsecond precision (0-999).

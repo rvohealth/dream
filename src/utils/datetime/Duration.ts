@@ -6,7 +6,8 @@ import type {
   ToISOTimeDurationOptions,
 } from 'luxon'
 import { Duration as LuxonDuration } from 'luxon'
-import { InvalidDateTime, microsecondParts } from './DateTime.js'
+import { InvalidDateTime } from './DateTime.js'
+import { microsecondParts } from './helpers/microsecondParts.js'
 import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
 import totalMicroseconds from './helpers/totalMicroseconds.js'
 
