@@ -7,9 +7,9 @@ import type {
 } from 'luxon'
 import { Duration as LuxonDuration } from 'luxon'
 import { InvalidDateTime } from './DateTime.js'
+import isoTimeDecimalString from './helpers/isoTimeDecimalString.js'
 import { microsecondParts } from './helpers/microsecondParts.js'
 import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
-import totalMicroseconds from './helpers/totalMicroseconds.js'
 
 /**
  * Duration extends Luxon Duration with microsecond precision (0-999).
@@ -180,12 +180,13 @@ export class Duration extends LuxonDuration {
    */
   public override toISO(): string {
     const isoString = super.toISO()
-    const microseconds = totalMicroseconds(this)
-    if (microseconds === 0) return isoString
-    const microsecondString = microseconds.toString().padStart(6, '0')
+
+    const decimalString = isoTimeDecimalString(this, { nullIfZero: true })
+    if (decimalString === null) return isoString
+
     const regexp = /(\d+)(?:\.\d+)?S$/i
-    if (regexp.test(isoString)) return isoString.replace(regexp, `$1.${microsecondString}S`)
-    return `${isoString}0.${microsecondString}S`
+    if (regexp.test(isoString)) return isoString.replace(regexp, `$1.${decimalString}S`)
+    return `${isoString}0.${decimalString}S`
   }
 
   /**
