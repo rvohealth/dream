@@ -141,6 +141,7 @@ describe('DateTime', () => {
   describe('fromMillis', () => {
     it('returns DateTime with microseconds 0', () => {
       const datetime = DateTime.fromMillis(1707282224077)
+      expect(datetime.toISO()).toEqual('2024-02-07T05:03:44.077000Z')
       expect(datetime.microsecond).toEqual(0)
     })
   })
@@ -168,6 +169,7 @@ describe('DateTime', () => {
   describe('fromSeconds', () => {
     it('returns DateTime with microseconds 0', () => {
       const datetime = DateTime.fromSeconds(1707282224.077)
+      expect(datetime.toISO()).toEqual('2024-02-07T05:03:44.077000Z')
       expect(datetime.microsecond).toEqual(0)
     })
   })
@@ -175,6 +177,7 @@ describe('DateTime', () => {
   describe('fromJSDate', () => {
     it('returns DateTime with microseconds 0', () => {
       const datetime = DateTime.fromJSDate(new Date('2026-02-07T09:03:44.077Z'))
+      expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077000Z')
       expect(datetime.microsecond).toEqual(0)
     })
   })
@@ -205,12 +208,6 @@ describe('DateTime', () => {
   })
 
   describe('utc', () => {
-    it('supports microsecond as 8th argument', () => {
-      const datetime = DateTime.utc(2026, 2, 7, 9, 3, 44, 77, 1)
-      expect(datetime.microsecond).toEqual(1)
-      expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077001Z')
-    })
-
     it('accepts microsecond as 8th argument', () => {
       const datetime = DateTime.utc(2026, 2, 7, 9, 3, 44, 77, 1)
       expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077001Z')
