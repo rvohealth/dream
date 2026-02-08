@@ -88,17 +88,20 @@ describe('Duration', () => {
       const duration = Duration.fromISO('PT1.123S')
       expect(duration.milliseconds).toEqual(123)
       expect(duration.microseconds).toEqual(0)
+      expect(duration.toISO()).toEqual('PT1.123000S')
     })
 
     it('parses duration with no fractional part (microseconds 0)', () => {
       const duration = Duration.fromISO('PT1H30M5S')
       expect(duration.microseconds).toEqual(0)
+      expect(duration.toISO()).toEqual('PT1H30M5S')
     })
 
     it('parses multi-component duration with fractional seconds only (microseconds from S component)', () => {
       const duration = Duration.fromISO('PT1H2M3.123456S')
       expect(duration.milliseconds).toEqual(123)
       expect(duration.microseconds).toEqual(456)
+      expect(duration.toISO()).toEqual('PT1H2M3.123456S')
     })
 
     it('parses comma as decimal separator in seconds (ISO 8601 alternative)', () => {
@@ -106,6 +109,7 @@ describe('Duration', () => {
       expect(duration.seconds).toEqual(1)
       expect(duration.milliseconds).toEqual(77)
       expect(duration.microseconds).toEqual(1)
+      expect(duration.toISO()).toEqual('PT1.077001S')
     })
   })
 
