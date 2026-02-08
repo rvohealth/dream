@@ -466,6 +466,13 @@ export interface LocalizedTexts {
   updatedAt: Timestamp
 }
 
+export interface ModelForDatabaseTypeSpecs {
+  createdAt: Timestamp
+  id: Generated<Int8>
+  myDatetime: Timestamp
+  updatedAt: Timestamp
+}
+
 export interface ModelForOpenapiTypeSpecs {
   aDatetime: Timestamp | null
   aReal: number | null
@@ -887,6 +894,7 @@ export interface DB {
   invalid_association_sortable_models: InvalidAssociationSortableModels
   invalid_scope_sortable_models: InvalidScopeSortableModels
   localized_texts: LocalizedTexts
+  model_for_database_type_specs: ModelForDatabaseTypeSpecs
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_with_date_time_conditional_hooks: ModelWithDateTimeConditionalHooks
   model_with_param_safe_and_unsafe_columns: ModelWithParamSafeAndUnsafeColumns
@@ -950,6 +958,7 @@ export class DBClass {
   invalid_association_sortable_models: InvalidAssociationSortableModels
   invalid_scope_sortable_models: InvalidScopeSortableModels
   localized_texts: LocalizedTexts
+  model_for_database_type_specs: ModelForDatabaseTypeSpecs
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_with_date_time_conditional_hooks: ModelWithDateTimeConditionalHooks
   model_with_param_safe_and_unsafe_columns: ModelWithParamSafeAndUnsafeColumns
