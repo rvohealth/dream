@@ -89,12 +89,6 @@ describe('DateTime', () => {
   })
 
   describe('fromISO', () => {
-    it('supports microsecond in ISO fractional part (6 digits)', () => {
-      const datetime = DateTime.fromISO('2026-02-07T09:03:44.077001Z')
-      expect(datetime.millisecond).toEqual(77)
-      expect(datetime.microsecond).toEqual(1)
-    })
-
     it('parses fractional part into millisecond and microsecond (6 digits)', () => {
       const datetime = DateTime.fromISO('2026-02-07T09:03:44.077001Z')
       expect(datetime.millisecond).toEqual(77)
