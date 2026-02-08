@@ -397,17 +397,19 @@ describe('DateTime', () => {
   describe('set', () => {
     it('supports microsecond in values', () => {
       const datetime = DateTime.fromISO('2026-02-07T09:03:44.077001Z').set({ microsecond: 500 })
+      expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077500Z')
       expect(datetime.microsecond).toEqual(500)
     })
 
     it('accepts microsecond and updates microseconds', () => {
       const datetime = DateTime.fromISO('2026-02-07T09:03:44.077001').set({ microsecond: 500 })
-      expect(datetime.microsecond).toEqual(500)
       expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077500Z')
+      expect(datetime.microsecond).toEqual(500)
     })
 
     it('normalizes microsecond > 999 into milliseconds and remainder', () => {
       const datetime = DateTime.fromISO('2026-02-07T09:03:44.077000Z').set({ microsecond: 1500 })
+      expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.078500Z')
       expect(datetime.millisecond).toEqual(78)
       expect(datetime.microsecond).toEqual(500)
     })
@@ -419,9 +421,20 @@ describe('DateTime', () => {
         year: 2026,
         month: 2,
         day: 7,
+        hour: 13,
+        minute: 25,
+        second: 12,
+        millisecond: 400,
         microsecond: 42,
       })
       const obj = datetime.toObject()
+      expect(obj.year).toEqual(2026)
+      expect(obj.month).toEqual(2)
+      expect(obj.day).toEqual(7)
+      expect(obj.hour).toEqual(13)
+      expect(obj.minute).toEqual(25)
+      expect(obj.second).toEqual(12)
+      expect(obj.millisecond).toEqual(400)
       expect(obj.microsecond).toEqual(42)
     })
   })
