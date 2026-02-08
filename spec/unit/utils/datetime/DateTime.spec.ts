@@ -11,24 +11,6 @@ describe('DateTime', () => {
       expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077001Z')
     })
 
-    it('accepts microsecond and produces correct toISO with 6 decimal places', () => {
-      const datetime = DateTime.fromObject(
-        {
-          year: 2026,
-          month: 2,
-          day: 7,
-          hour: 9,
-          minute: 3,
-          second: 44,
-          millisecond: 77,
-          microsecond: 1,
-        },
-        { zone: 'utc' }
-      )
-      expect(datetime.toISO()).toEqual('2026-02-07T09:03:44.077001Z')
-      expect(datetime.microsecond).toEqual(1)
-    })
-
     it('defaults microsecond to 0 when not provided', () => {
       const datetime = DateTime.fromObject(
         {
