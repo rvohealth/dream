@@ -1,5 +1,5 @@
-import { DateTime } from '../../../../src/helpers/DateTime.js'
-import { Duration } from '../../../../src/helpers/Duration.js'
+import { DateTime } from '../DateTime.js'
+import { Duration } from '../Duration.js'
 
 export default function totalMicroseconds(timeObj: DateTime | Duration) {
   const milliseconds = timeObj instanceof DateTime ? timeObj.millisecond : timeObj.milliseconds

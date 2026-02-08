@@ -1,6 +1,6 @@
 import Dream from '../Dream.js'
+import { DateTime } from '../utils/dateAndTime/DateTime.js'
 import CalendarDate from './CalendarDate.js'
-import { DateTime } from './DateTime.js'
 
 /**
  * Performs a deep equality check between two values, supporting primitives, arrays,

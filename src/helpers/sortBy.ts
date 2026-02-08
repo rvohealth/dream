@@ -1,5 +1,5 @@
+import { DateTime } from '../utils/dateAndTime/DateTime.js'
 import CalendarDate from './CalendarDate.js'
-import { DateTime } from './DateTime.js'
 
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => number): T[]
 export default function sortBy<T>(array: T[], valueToCompare: (value: T) => bigint): T[]

@@ -1,5 +1,5 @@
+import { DateTime } from '../utils/dateAndTime/DateTime.js'
 import CalendarDate from './CalendarDate.js'
-import { DateTime } from './DateTime.js'
 import sortBy from './sortBy.js'
 
 /**

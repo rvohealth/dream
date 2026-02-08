@@ -63,7 +63,6 @@ import MissingSerializersDefinition from './errors/serializers/MissingSerializer
 import CalendarDate from './helpers/CalendarDate.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import compact from './helpers/compact.js'
-import { DateTime } from './helpers/DateTime.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
@@ -143,6 +142,7 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
+import { DateTime } from './utils/dateAndTime/DateTime.js'
 
 const RECURSIVE_SERIALIZATION_MAX_REPEATS = 4
 

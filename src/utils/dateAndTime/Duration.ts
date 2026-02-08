@@ -6,9 +6,9 @@ import type {
   ToISOTimeDurationOptions,
 } from 'luxon'
 import { Duration as LuxonDuration } from 'luxon'
-import replaceISOMicroseconds from '../../spec/unit/helpers/dateAndTime/replaceISOMicroseconds.js'
-import totalMicroseconds from '../../spec/unit/helpers/dateAndTime/totalMicroseconds.js'
 import { InvalidDateTime, microsecondParts } from './DateTime.js'
+import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
+import totalMicroseconds from './helpers/totalMicroseconds.js'
 
 /**
  * Duration extends Luxon Duration with microsecond precision (0-999).

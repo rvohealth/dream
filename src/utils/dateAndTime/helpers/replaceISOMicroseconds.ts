@@ -1,6 +1,6 @@
 import { ToISOTimeDurationOptions } from 'luxon'
-import { DateTime } from '../../../../src/helpers/DateTime.js'
-import { Duration } from '../../../../src/helpers/Duration.js'
+import { DateTime } from '../DateTime.js'
+import { Duration } from '../Duration.js'
 import totalMicroseconds from './totalMicroseconds.js'
 
 export default function replaceISOMicroseconds(

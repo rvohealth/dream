@@ -56,9 +56,8 @@ us humans, he says:
 
 */
 
-import type CalendarDate from '../../src/helpers/CalendarDate.js'
-import { type DateTime } from '../../src/helpers/DateTime.js'
-import {} from './db.js'
+import { type DateTime } from '../../src/utils/dateAndTime/DateTime.js'
+import { } from './db.js'
 
 export const schema = {
   alternate_db_connection_posts: {

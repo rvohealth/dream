@@ -1,6 +1,6 @@
 import areEqual from '../../../src/helpers/areEqual.js'
 import CalendarDate from '../../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
 import GraphNode from '../../../test-app/app/models/Graph/Node.js'
 
 describe('areEqual', () => {

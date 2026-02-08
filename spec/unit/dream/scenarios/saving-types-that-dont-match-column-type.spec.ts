@@ -2,7 +2,7 @@ import CheckConstraintViolation from '../../../../src/errors/db/CheckConstraintV
 import DataTypeColumnTypeMismatch from '../../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import NotNullViolation from '../../../../src/errors/db/NotNullViolation.js'
 import CalendarDate from '../../../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../src/utils/dateAndTime/DateTime.js'
 import { SpeciesTypesEnum } from '../../../../test-app/types/db.js'
 import { unpersistedFleshedOutModelForOpenapiTypeSpecs } from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 

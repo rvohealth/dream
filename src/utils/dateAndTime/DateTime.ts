@@ -9,8 +9,8 @@ import type {
 } from 'luxon'
 import * as luxon from 'luxon'
 import { DateTime as LuxonDateTime } from 'luxon'
-import replaceISOMicroseconds from '../../spec/unit/helpers/dateAndTime/replaceISOMicroseconds.js'
 import { Duration, type DurationLike, InvalidDuration } from './Duration.js'
+import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
 
 export const Settings = luxon.Settings
 Settings.throwOnInvalid = true

@@ -1,5 +1,5 @@
 import { Duration as LuxonDuration } from 'luxon'
-import { Duration, InvalidDuration } from '../../../src/helpers/Duration.js'
+import { Duration, InvalidDuration } from '../../../src/utils/dateAndTime/Duration.js'
 
 describe('Duration', () => {
   describe('fromObject', () => {

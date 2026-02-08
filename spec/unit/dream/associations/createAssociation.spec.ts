@@ -1,6 +1,6 @@
 import CannotCreateAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
 import CannotCreateAssociationWithThroughContext from '../../../../src/errors/associations/CannotCreateAssociationWithThroughContext.js'
-import { DateTime } from '../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../src/utils/dateAndTime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'

@@ -1,5 +1,5 @@
 import CalendarDate from '../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../src/helpers/DateTime.js'
+import { DateTime } from '../../src/utils/dateAndTime/DateTime.js'
 import ModelForOpenapiTypeSpecs from '../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 
 export default async function fleshedOutModelForOpenapiTypeSpecs() {

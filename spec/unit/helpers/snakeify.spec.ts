@@ -1,6 +1,6 @@
 import CalendarDate from '../../../src/helpers/CalendarDate.js'
-import { DateTime } from '../../../src/helpers/DateTime.js'
 import snakeify from '../../../src/helpers/snakeify.js'
+import { DateTime } from '../../../src/utils/dateAndTime/DateTime.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 
 describe('snakeify', () => {

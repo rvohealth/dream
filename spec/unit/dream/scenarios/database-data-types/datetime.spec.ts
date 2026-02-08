@@ -1,4 +1,4 @@
-import { DateTime } from '../../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../../src/utils/dateAndTime/DateTime.js'
 import ModelForDatabaseTypeSpec from '../../../../../test-app/app/models/ModelForDatabaseTypeSpec.js'
 
 describe('datetime', () => {

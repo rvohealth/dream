@@ -1,7 +1,7 @@
 import Dream from '../Dream.js'
 import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from '../types/utils.js'
+import { DateTime } from '../utils/dateAndTime/DateTime.js'
 import CalendarDate from './CalendarDate.js'
-import { DateTime } from './DateTime.js'
 import isObject from './isObject.js'
 
 type RecursivelyStringCaseObjectKeysInTuple<

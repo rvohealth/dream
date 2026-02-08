@@ -1,4 +1,4 @@
-import { DateTime } from '../../../../src/helpers/DateTime.js'
+import { DateTime } from '../../../../src/utils/dateAndTime/DateTime.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 
