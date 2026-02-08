@@ -56,7 +56,9 @@ us humans, he says:
 
 */
 
-import { } from './db.js'
+import type CalendarDate from '../../src/utils/datetime/CalendarDate.js'
+import { type DateTime } from '../../src/utils/datetime/DateTime.js'
+import {} from './db.js'
 
 export const schema = {
   mysql_users: {
