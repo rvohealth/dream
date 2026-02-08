@@ -6,8 +6,8 @@ import type {
   ToISOTimeDurationOptions,
 } from 'luxon'
 import { Duration as LuxonDuration } from 'luxon'
-import { InvalidDateTime } from './DateTime.js'
-import isoTimeDecimalString from './helpers/isoTimeDecimalString.js'
+import round from '../../helpers/round.js'
+import isoTimeDecimalStringForDuration from './helpers/isoTimeDecimalStringForDuration.js'
 import { microsecondParts } from './helpers/microsecondParts.js'
 import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
 
@@ -91,7 +91,7 @@ export class Duration extends LuxonDuration {
 
   /**
    * Create a Duration from total microseconds.
-   * @param totalMicros - Total microseconds (milliseconds from quotient, microsecond from remainder)
+   * @param microsecondsInput - Total microseconds (milliseconds from quotient, microsecond from remainder)
    * @param opts - Optional duration options
    * @returns A Duration
    * @example
@@ -100,7 +100,7 @@ export class Duration extends LuxonDuration {
    * ```
    */
   public static fromMicroseconds(microsecondsInput: number, opts?: DurationOptions): Duration {
-    const { milliseconds, microseconds } = microsecondParts(microsecondsInput, { errorIfNegative: false })
+    const { milliseconds, microseconds } = microsecondPartsForDuration(microsecondsInput)
     const luxonDuration = LuxonDuration.fromMillis(milliseconds, opts)
     return Duration.wrap(luxonDuration, microseconds)
   }
@@ -180,7 +180,7 @@ export class Duration extends LuxonDuration {
   public override toISO(): string {
     const isoString = super.toISO()
 
-    const decimalString = isoTimeDecimalString(this, { nullIfZero: true })
+    const decimalString = isoTimeDecimalStringForDuration(this, { nullIfZero: true })
     if (decimalString === null) return isoString
 
     const regexp = /(\d+)(?:\.\d+)?S$/i
@@ -202,6 +202,18 @@ export class Duration extends LuxonDuration {
   }
 
   /**
+   * Returns the duration in milliseconds.
+   * @returns Duration in milliseconds with microseconds as fractional part
+   * @example
+   * ```ts
+   * Duration.fromMicroseconds(1077750).toMillis()  // 1077.75
+   * ```
+   */
+  public override toMillis(): number {
+    return round(super.toMillis() + this.microseconds / 1000, 3)
+  }
+
+  /**
    * Returns total duration in microseconds.
    * @returns Total microseconds (milliseconds * 1000 + microsecond component)
    * @example
@@ -210,7 +222,7 @@ export class Duration extends LuxonDuration {
    * ```
    */
   public toMicroseconds(): number {
-    return this.toMillis() * 1000 + this.microseconds
+    return super.toMillis() * 1000 + this.microseconds
   }
 
   /**
@@ -241,7 +253,9 @@ export class Duration extends LuxonDuration {
   // @ts-expect-error TS2416 - return type Duration not assignable to base this
   public override plus(duration: DurationLike): Duration {
     const otherDuration = Duration.fromDurationLike(duration)
-    const { milliseconds, microseconds } = microsecondParts(this.microseconds + otherDuration.microseconds)
+    const { milliseconds, microseconds } = microsecondPartsForDuration(
+      this.microseconds + otherDuration.microseconds
+    )
     const newLuxonDuration = super.plus(otherDuration)
 
     return Duration.wrap(
@@ -293,12 +307,7 @@ export class Duration extends LuxonDuration {
 }
 
 function microsecondPartsForDuration(value: number): { milliseconds: number; microseconds: number } {
-  try {
-    return microsecondParts(value)
-  } catch (error) {
-    if (error instanceof InvalidDateTime) throw new InvalidDuration(new Error(error.message))
-    throw error
-  }
+  return microsecondParts(value, { errorIfNegative: false })
 }
 
 function wrapLuxonError<T>(fn: () => T): T {

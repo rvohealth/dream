@@ -146,16 +146,16 @@ describe('DateTime', () => {
   })
 
   describe('fromMicroseconds', () => {
-    it('supports microsecond precision from epoch microseconds', () => {
+    it('creates a DateTime from epoch microseconds', () => {
       const datetime = DateTime.fromMicroseconds(1707282224077001)
-      expect(datetime.toMillis()).toEqual(1707282224077)
+      expect(datetime.toISO()).toEqual('2024-02-07T05:03:44.077001Z')
       expect(datetime.microsecond).toEqual(1)
     })
 
-    it('returns DateTime with correct milliseconds and microseconds from epoch microseconds', () => {
-      const datetime = DateTime.fromMicroseconds(1707282224077001)
-      expect(datetime.toMillis()).toEqual(1707282224077)
-      expect(datetime.microsecond).toEqual(1)
+    it('rounds microseconds', () => {
+      const datetime = DateTime.fromMicroseconds(1707282224077001.5)
+      expect(datetime.toISO()).toEqual('2024-02-07T05:03:44.077002Z')
+      expect(datetime.microsecond).toEqual(2)
     })
 
     it('accepts optional zone options', () => {
@@ -329,10 +329,18 @@ describe('DateTime', () => {
     })
   })
 
+  describe('toMillis', () => {
+    it('includes milliseconds as fractional part', () => {
+      const datetime = DateTime.fromISO('2026-02-07T09:03:44.077750Z')
+      expect(datetime.toMillis()).toEqual(1770455024077.75)
+      expect(datetime.toMillis().toString()).toEqual('1770455024077.75')
+    })
+  })
+
   describe('toMicroseconds', () => {
     it('returns epoch microseconds equivalent to toMillis * 1000 + microseconds', () => {
       const datetime = DateTime.fromISO('2026-02-07T09:03:44.077001Z')
-      expect(datetime.toMicroseconds()).toEqual(datetime.toMillis() * 1000 + datetime.microsecond)
+      expect(datetime.toMicroseconds()).toEqual(1770455024077001)
     })
 
     it('round-trips with fromMicroseconds', () => {

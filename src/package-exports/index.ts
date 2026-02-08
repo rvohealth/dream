@@ -13,10 +13,3 @@ export { default as DreamSerializer } from '../serializer/DreamSerializer.js'
 export { default as ObjectSerializer } from '../serializer/ObjectSerializer.js'
 export { default as CalendarDate } from '../utils/datetime/CalendarDate.js'
 export { DateTime, InvalidDateTime } from '../utils/datetime/DateTime.js'
-export {
-  Duration,
-  InvalidDuration,
-  type DurationLike,
-  type DurationLikeObject,
-  type DurationUnit,
-} from '../utils/datetime/Duration.js'

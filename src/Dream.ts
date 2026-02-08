@@ -3587,7 +3587,7 @@ export default class Dream {
     if (this.isNewRecord) return true
 
     if (frozenValue instanceof DateTime) {
-      return frozenValue.toMillis() !== this.unknownValueToMillis(currentValue)
+      return frozenValue.toMicroseconds() !== this.unknownValueToMicroseconds(currentValue)
     } else if (frozenValue instanceof CalendarDate) {
       return frozenValue.toISO() !== this.unknownValueToDateString(currentValue)
     } else {
@@ -3598,11 +3598,11 @@ export default class Dream {
   /**
    * @internal
    */
-  private unknownValueToMillis(currentValue: any): number | undefined {
+  private unknownValueToMicroseconds(currentValue: any): number | undefined {
     if (!currentValue) return
     if (typeof currentValue === 'string') currentValue = DateTime.fromISO(currentValue)
     if (currentValue instanceof CalendarDate) currentValue = currentValue.toDateTime()
-    if (currentValue instanceof DateTime) return currentValue.toMillis()
+    if (currentValue instanceof DateTime) return currentValue.toMicroseconds()
   }
 
   /**

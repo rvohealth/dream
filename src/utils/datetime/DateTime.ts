@@ -9,6 +9,7 @@ import type {
 } from 'luxon'
 import * as luxon from 'luxon'
 import { DateTime as LuxonDateTime } from 'luxon'
+import round from '../../helpers/round.js'
 import { Duration, type DurationLike, InvalidDuration } from './Duration.js'
 import { microsecondParts } from './helpers/microsecondParts.js'
 import replaceISOMicroseconds from './helpers/replaceISOMicroseconds.js'
@@ -147,8 +148,7 @@ export class DateTime extends LuxonDateTime {
     microsecondOrOpts?: number | DateTimeJSOptions,
     opts?: DateTimeJSOptions
   ): DateTime {
-    const isOpts = (v: unknown): v is DateTimeJSOptions =>
-      typeof v === 'object' && v !== null && !('toMillis' in v)
+    const isOpts = (v: unknown): v is DateTimeJSOptions => typeof v === 'object' && v !== null
     const { luxonDatetime, microseconds } = buildLocalOrUtcDateTime(
       yearOrOpts,
       month,
@@ -236,8 +236,7 @@ export class DateTime extends LuxonDateTime {
     microsecondOrOpts?: number | LocaleOptions,
     options?: LocaleOptions
   ): DateTime {
-    const isOpts = (v: unknown): v is LocaleOptions =>
-      typeof v === 'object' && v !== null && !('toMillis' in v)
+    const isOpts = (v: unknown): v is LocaleOptions => typeof v === 'object' && v !== null
     const { luxonDatetime, microseconds } = buildLocalOrUtcDateTime(
       yearOrOpts,
       month,
@@ -535,6 +534,18 @@ export class DateTime extends LuxonDateTime {
   }
 
   /**
+   * Returns the epoch time in milliseconds (toMillis * 1000 + millisecond).
+   * @returns Unix timestamp in milliseconds
+   * @example
+   * ```ts
+   * DateTime.fromMicroseconds(1770455024077750).toMillis()  // 1770455024077.75
+   * ```
+   */
+  public override toMillis(): number {
+    return round(super.toMillis() + this.microsecond / 1000, 3)
+  }
+
+  /**
    * Returns the epoch time in microseconds (toMillis * 1000 + microsecond).
    * @returns Unix timestamp in microseconds
    * @example
@@ -543,7 +554,7 @@ export class DateTime extends LuxonDateTime {
    * ```
    */
   public toMicroseconds(): number {
-    return this.toMillis() * 1000 + this.microsecond
+    return super.toMillis() * 1000 + this.microsecond
   }
 
   /**
