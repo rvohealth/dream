@@ -1,7 +1,7 @@
 import type {
-  DurationObjectUnits,
   DurationOptions,
   DurationLikeObject as LuxonDurationLikeObject,
+  DurationObjectUnits as LuxonDurationObjectUnits,
   DurationUnit as LuxonDurationUnit,
   ToISOTimeDurationOptions,
 } from 'luxon'
@@ -319,10 +319,14 @@ function wrapLuxonError<T>(fn: () => T): T {
   }
 }
 
+export interface DurationObjectUnits extends LuxonDurationObjectUnits {
+  microseconds?: number | undefined
+}
+
 /** Extends Luxon's DurationLikeObject with microsecond support. */
 export interface DurationLikeObject extends LuxonDurationLikeObject {
-  microsecond?: number
-  microseconds?: number
+  microsecond?: number | undefined
+  microseconds?: number | undefined
 }
 
 /** Extends Luxon's duration units with microsecond. Use for get(unit), set(), etc. */
