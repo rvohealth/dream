@@ -1,4 +1,5 @@
 import DreamApp from '../../../src/dream-app/index.js'
+import modelClassNameFrom from '../../../src/helpers/cli/modelClassNameFrom.js'
 import generateDreamContent, {
   createBelongsToAttribute,
   createEncryptedAttribute,
@@ -15,6 +16,7 @@ describe('dream generate:model <name> [...attributes]', () => {
     it('generates a dream model with multiple string fields', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'MealType',
+        modelClassName: modelClassNameFrom('MealType'),
         columnsWithTypes: [],
         serializer: true,
         includeAdminSerializers: false,
@@ -52,6 +54,7 @@ export default class MealType extends ApplicationModel {
     it('omits the serializer method', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'MealType',
+        modelClassName: modelClassNameFrom('MealType'),
         columnsWithTypes: [],
         serializer: false,
         includeAdminSerializers: false,
@@ -82,6 +85,7 @@ export default class MealType extends ApplicationModel {
     it('references the admin and adminSummary serializers', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'MealType',
+        modelClassName: modelClassNameFrom('MealType'),
         columnsWithTypes: [],
         serializer: true,
         includeAdminSerializers: true,
@@ -121,6 +125,7 @@ export default class MealType extends ApplicationModel {
     it('extends the parent, adds STI decorator, omits table and base attributes', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'Foo/Bar/Baz',
+        modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
         columnsWithTypes: ['hello:string'],
         fullyQualifiedParentName: 'Foo/Bar',
         serializer: true,
@@ -155,6 +160,7 @@ export default class FooBarBaz extends FooBar {
       it('generates a dream model with multiple string fields', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'user',
+          modelClassName: modelClassNameFrom('user'),
           columnsWithTypes: ['email:string', 'password_digest:string'],
           serializer: true,
           includeAdminSerializers: false,
@@ -194,6 +200,7 @@ export default class User extends ApplicationModel {
       it('adds the @Encrypted decorator', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'user',
+          modelClassName: modelClassNameFrom('user'),
           columnsWithTypes: ['email:string', 'phone_number:encrypted'],
           serializer: true,
           includeAdminSerializers: false,
@@ -235,6 +242,7 @@ export default class User extends ApplicationModel {
       it('generates a dream model with multiple enum fields', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'chalupa',
+          modelClassName: modelClassNameFrom('chalupa'),
           columnsWithTypes: [
             'topping:enum:topping:cheese,baja_sauce',
             'protein:enum:protein:beef,non_beef',
@@ -278,6 +286,7 @@ export default class Chalupa extends ApplicationModel {
         it('generates a dream model with multiple enum fields', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'chalupa',
+            modelClassName: modelClassNameFrom('chalupa'),
             columnsWithTypes: [
               'topping:enum[]:topping:cheese,baja_sauce',
               'protein:enum[]:protein:beef,non_beef',
@@ -323,6 +332,7 @@ export default class Chalupa extends ApplicationModel {
       it('respects inflections conf while generating model name', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'paper',
+          modelClassName: modelClassNameFrom('paper'),
           columnsWithTypes: ['name:string'],
           serializer: true,
           includeAdminSerializers: false,
@@ -362,6 +372,7 @@ export default class Paper extends ApplicationModel {
         it('generates a BelongsTo relationship in model', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
+            modelClassName: modelClassNameFrom('composition'),
             columnsWithTypes: ['graph_node:belongs_to'],
             serializer: true,
             includeAdminSerializers: false,
@@ -403,6 +414,7 @@ export default class Composition extends ApplicationModel {
           it('generates a BelongsTo relationship in model', () => {
             const res = generateDreamContent({
               fullyQualifiedModelName: 'composition',
+              modelClassName: modelClassNameFrom('composition'),
               columnsWithTypes: ['graph_node:belongsTo'],
               serializer: true,
               includeAdminSerializers: false,
@@ -445,6 +457,7 @@ export default class Composition extends ApplicationModel {
           it('declares the BelongsTo association optional', () => {
             const res = generateDreamContent({
               fullyQualifiedModelName: 'composition',
+              modelClassName: modelClassNameFrom('composition'),
               columnsWithTypes: ['graph_node:belongs_to:optional'],
               serializer: true,
               includeAdminSerializers: false,
@@ -487,6 +500,7 @@ export default class Composition extends ApplicationModel {
           it('can handle belongs to associations with nested paths', () => {
             const res = generateDreamContent({
               fullyQualifiedModelName: 'cat_toy',
+              modelClassName: modelClassNameFrom('cat_toy'),
               columnsWithTypes: ['pet/domestic/cat:belongs_to'],
               serializer: true,
               includeAdminSerializers: false,
@@ -527,6 +541,7 @@ export default class CatToy extends ApplicationModel {
           it('produces valid association paths when the model being generated is namespaced', () => {
             const res = generateDreamContent({
               fullyQualifiedModelName: 'pet/domestic/cat',
+              modelClassName: modelClassNameFrom('pet/domestic/cat'),
               columnsWithTypes: ['graph_node:belongs_to'],
               serializer: true,
               includeAdminSerializers: false,
@@ -567,6 +582,7 @@ export default class PetDomesticCat extends ApplicationModel {
           it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
             const res = generateDreamContent({
               fullyQualifiedModelName: 'pet/domestic/cat',
+              modelClassName: modelClassNameFrom('pet/domestic/cat'),
               columnsWithTypes: ['pet/domestic/dog:belongs_to'],
               serializer: true,
               includeAdminSerializers: false,
@@ -607,6 +623,7 @@ export default class PetDomesticCat extends ApplicationModel {
           it('produces valid association paths when both the model being generated and the associated model are namespaced', () => {
             const res = generateDreamContent({
               fullyQualifiedModelName: 'pet/wild/cat',
+              modelClassName: modelClassNameFrom('pet/wild/cat'),
               columnsWithTypes: ['pet/domestic/dog:belongs_to'],
               serializer: true,
               includeAdminSerializers: false,
@@ -648,6 +665,7 @@ export default class PetWildCat extends ApplicationModel {
         it('can handle multiple associations without duplicate imports', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
+            modelClassName: modelClassNameFrom('composition'),
             columnsWithTypes: ['user:belongs_to', 'chalupa:belongs_to'],
             serializer: true,
             includeAdminSerializers: false,
@@ -695,6 +713,7 @@ export default class Composition extends ApplicationModel {
         it('is ignored', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
+            modelClassName: modelClassNameFrom('composition'),
             columnsWithTypes: ['graph_node:has_one'],
             serializer: true,
             includeAdminSerializers: false,
@@ -732,6 +751,7 @@ export default class Composition extends ApplicationModel {
         it('is ignored', () => {
           const res = generateDreamContent({
             fullyQualifiedModelName: 'composition',
+            modelClassName: modelClassNameFrom('composition'),
             columnsWithTypes: ['graph_node:has_one'],
             serializer: true,
             includeAdminSerializers: false,
@@ -776,6 +796,7 @@ export default class Composition extends ApplicationModel {
       it('styles all imports to have .js suffix', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'composition',
+          modelClassName: modelClassNameFrom('composition'),
           columnsWithTypes: ['user:belongs_to'],
           serializer: true,
           includeAdminSerializers: false,
@@ -822,6 +843,7 @@ export default class Composition extends ApplicationModel {
       it('styles all imports to have .ts suffix', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'composition',
+          modelClassName: modelClassNameFrom('composition'),
           columnsWithTypes: ['user:belongs_to'],
           serializer: true,
           includeAdminSerializers: false,
@@ -868,6 +890,7 @@ export default class Composition extends ApplicationModel {
       it('styles all imports to have no suffix', () => {
         const res = generateDreamContent({
           fullyQualifiedModelName: 'composition',
+          modelClassName: modelClassNameFrom('composition'),
           columnsWithTypes: ['user:belongs_to'],
           serializer: true,
           includeAdminSerializers: false,
@@ -911,6 +934,7 @@ export default class Composition extends ApplicationModel {
     it('uses the alternate connection name to formulate the base model name', () => {
       const res = generateDreamContent({
         fullyQualifiedModelName: 'composition',
+        modelClassName: modelClassNameFrom('composition'),
         columnsWithTypes: ['user:belongs_to'],
         serializer: true,
         includeAdminSerializers: false,
@@ -956,6 +980,7 @@ describe('Individual Function Tests', () => {
     it('creates correct model config for simple model', () => {
       const options = {
         fullyQualifiedModelName: 'User',
+        modelClassName: modelClassNameFrom('User'),
         columnsWithTypes: [],
         serializer: true,
         includeAdminSerializers: false,
@@ -976,6 +1001,7 @@ describe('Individual Function Tests', () => {
     it('creates correct model config for STI model', () => {
       const options = {
         fullyQualifiedModelName: 'Foo/Bar/Baz',
+        modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
         columnsWithTypes: [],
         fullyQualifiedParentName: 'Foo/Bar',
         serializer: true,
@@ -997,6 +1023,7 @@ describe('Individual Function Tests', () => {
     it('creates correct model config with custom connection', () => {
       const options = {
         fullyQualifiedModelName: 'User',
+        modelClassName: modelClassNameFrom('User'),
         columnsWithTypes: [],
         connectionName: 'secondary',
         serializer: true,
@@ -1011,6 +1038,7 @@ describe('Individual Function Tests', () => {
     it('handles namespaced model names correctly', () => {
       const options = {
         fullyQualifiedModelName: 'admin/user',
+        modelClassName: modelClassNameFrom('admin/user'),
         columnsWithTypes: [],
         serializer: true,
         includeAdminSerializers: false,
@@ -1042,6 +1070,7 @@ describe('Individual Function Tests', () => {
 
       const options = {
         fullyQualifiedModelName: 'User',
+        modelClassName: modelClassNameFrom('User'),
         columnsWithTypes: [],
         serializer: true,
         includeAdminSerializers: false,
@@ -1066,6 +1095,7 @@ describe('Individual Function Tests', () => {
 
       const options = {
         fullyQualifiedModelName: 'Foo/Bar/Baz',
+        modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
         columnsWithTypes: [],
         fullyQualifiedParentName: 'Foo/Bar',
         serializer: true,
@@ -1090,6 +1120,7 @@ describe('Individual Function Tests', () => {
 
       const options = {
         fullyQualifiedModelName: 'User',
+        modelClassName: modelClassNameFrom('User'),
         columnsWithTypes: [],
         serializer: false,
         includeAdminSerializers: false,
