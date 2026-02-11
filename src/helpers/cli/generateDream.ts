@@ -22,6 +22,7 @@ export default async function generateDream({
     serializer: boolean
     stiBaseSerializer: boolean
     includeAdminSerializers: boolean
+    tableName?: string
   }
   fullyQualifiedParentName?: string | undefined
 }) {
@@ -45,6 +46,7 @@ export default async function generateDream({
         serializer: options.serializer,
         includeAdminSerializers: options.includeAdminSerializers,
         connectionName: options.connectionName,
+        tableName: options.tableName,
       })
     )
   } catch (error) {
@@ -76,6 +78,7 @@ export default async function generateDream({
       columnsWithTypes,
       fullyQualifiedModelName,
       fullyQualifiedParentName,
+      tableName: options.tableName,
     })
   }
 }
