@@ -5,6 +5,7 @@ export { default as CheckConstraintViolation } from '../errors/db/CheckConstrain
 export { default as ColumnOverflow } from '../errors/db/ColumnOverflow.js'
 export { default as DataIncompatibleWithDatabaseField } from '../errors/db/DataIncompatibleWithDatabaseField.js'
 export { default as DataTypeColumnTypeMismatch } from '../errors/db/DataTypeColumnTypeMismatch.js'
+export { default as IdentifierExceedsMaxLengthForDatabase } from '../errors/IdentifierExceedsMaxLengthForDatabase.js'
 export { default as NotNullViolation } from '../errors/db/NotNullViolation.js'
 export { default as GlobalNameNotSet } from '../errors/dream-app/GlobalNameNotSet.js'
 export { default as RecordNotFound } from '../errors/RecordNotFound.js'

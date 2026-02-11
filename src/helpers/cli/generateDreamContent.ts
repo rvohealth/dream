@@ -1,4 +1,5 @@
 import pluralize from 'pluralize-esm'
+import { POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES } from '../../errors/IdentifierExceedsMaxLengthForDatabase.js'
 import serializerGlobalNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerGlobalNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
@@ -7,6 +8,7 @@ import absoluteDreamPath from '../path/absoluteDreamPath.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
+import validateDatabaseIdentifierLength from '../validateDatabaseIdentifierLength.js'
 
 interface GenerateDreamContentOptions {
   fullyQualifiedModelName: string
@@ -15,6 +17,7 @@ interface GenerateDreamContentOptions {
   connectionName?: string
   serializer: boolean
   includeAdminSerializers: boolean
+  tableName?: string | undefined
 }
 
 export interface ModelConfig {
@@ -78,7 +81,13 @@ export function createModelConfig(options: GenerateDreamContentOptions): ModelCo
   const applicationModelName =
     connectionName === 'default' ? 'ApplicationModel' : `${pascalize(connectionName)}ApplicationModel`
 
-  const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
+  const tableName = options.tableName || snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
+
+  validateDatabaseIdentifierLength(tableName, {
+    isSnakeCase: true,
+    identifierType: 'table name',
+    maxLength: POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES,
+  })
 
   return {
     fullyQualifiedModelName,

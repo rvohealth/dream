@@ -727,11 +727,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     // Use short aliases to avoid PostgreSQL's 63-byte identifier truncation.
     // Previously, the full namespaced field (e.g. "longAlias.columnName") was used as the
     // AS alias, which Kysely's CamelCasePlugin converts to a single snake_case identifier
-    // that can exceed 63 bytes. Short aliases like "pluck0" avoid this entirely.
+    // that can exceed 63 bytes. Short aliases like "plk0" avoid this entirely.
     const shortAliases: string[] = []
 
     fields.forEach((field: string, index: number) => {
-      const shortAlias = `pluck${index}`
+      const shortAlias = `plk${index}`
       shortAliases.push(shortAlias)
       //  namespace the selection so that when plucking the same column name from
       // multiple tables, they don't get saved as the same name (e.g. select results with two `id` columns,

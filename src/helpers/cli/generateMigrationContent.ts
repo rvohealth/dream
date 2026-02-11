@@ -1,11 +1,16 @@
 import pluralize from 'pluralize-esm'
 import Dream from '../../Dream.js'
+import lookupModelByGlobalName from '../../dream-app/helpers/lookupModelByGlobalName.js'
 import Query from '../../dream/Query.js'
+import { POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES } from '../../errors/IdentifierExceedsMaxLengthForDatabase.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
 import { LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import snakeify from '../snakeify.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
+import validateDatabaseIdentifierLength from '../validateDatabaseIdentifierLength.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
 const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
@@ -35,6 +40,14 @@ export default function generateMigrationContent({
   const altering = createOrAlter === 'alter'
   let requireCitextExtension = false
   const checkConstraints: string[] = []
+
+  if (table) {
+    validateDatabaseIdentifierLength(table, {
+      isSnakeCase: true,
+      identifierType: 'table name',
+      maxLength: POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES,
+    })
+  }
 
   const { columnDefs, columnDrops, indexDefs, indexDrops } = columnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
@@ -67,16 +80,29 @@ export default function generateMigrationContent({
       if (nonStandardAttributeName === undefined) return acc
       let attributeName = snakeify(nonStandardAttributeName)
 
+      validateDatabaseIdentifierLength(attributeName, {
+        isSnakeCase: true,
+        identifierType: 'column name',
+        maxLength: POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES,
+      })
+
       switch (processedAttrType) {
         case 'belongsto':
           columnDefs.push(
             generateBelongsToStr(connectionName, attributeName, {
               primaryKeyType,
               omitInlineNonNull,
+              originalAssociationName: nonStandardAttributeName,
             })
           )
           attributeName = snakeify(nonStandardAttributeName.split('/').pop()!)
           attributeName = associationNameToForeignKey(attributeName)
+
+          validateDatabaseIdentifierLength(attributeName, {
+            isSnakeCase: true,
+            identifierType: 'foreign key column name',
+            maxLength: POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES,
+          })
           break
 
         case 'enum':
@@ -115,6 +141,12 @@ export default function generateMigrationContent({
           break
 
         case 'encrypted':
+          validateDatabaseIdentifierLength(`encrypted_${attributeName}`, {
+            isSnakeCase: true,
+            identifierType: 'encrypted column name',
+            maxLength: POSTGRES_MAX_IDENTIFIER_COMPONENT_BYTES,
+          })
+
           columnDefs.push(
             generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors, {
               omitInlineNonNull,
@@ -142,6 +174,11 @@ export default function generateMigrationContent({
       if (processedAttrType === 'belongsto' || COLUMNS_TO_INDEX.includes(attributeName)) {
         const indexName = `${table}_${attributeName}`
 
+        validateDatabaseIdentifierLength(indexName, {
+          isSnakeCase: true,
+          identifierType: 'index name',
+        })
+
         indexDefs.push(`await db.schema
     .createIndex('${indexName}')
     .on('${table}')
@@ -152,12 +189,19 @@ export default function generateMigrationContent({
       }
 
       if (stiChildClassName && !userWantsThisOptional && !arrayAttribute) {
+        const constraintName = `${table}_not_null_${attributeName}`
+
+        validateDatabaseIdentifierLength(constraintName, {
+          isSnakeCase: true,
+          identifierType: 'check constraint name',
+        })
+
         checkConstraints.push(`
 
   await db.schema
     .alterTable('${table}')
     .addCheckConstraint(
-      '${table}_not_null_${attributeName}',
+      '${constraintName}',
       sql\`type != '${stiChildClassName}' OR ${attributeName} IS NOT NULL\`,
     )
     .execute()`)
@@ -265,8 +309,15 @@ function generateEnumStatements(columnsWithTypes: string[]) {
       const columnsWithTypesString = descriptors[0]
       if (columnsWithTypesString === undefined) return
       const columnsWithTypes = columnsWithTypesString.split(/,\s{0,}/)
+
+      const enumTypeName = `${enumName}_enum`
+      validateDatabaseIdentifierLength(enumTypeName, {
+        isSnakeCase: true,
+        identifierType: 'enum type name',
+      })
+
       return `  await db.schema
-    .createType('${enumName}_enum')
+    .createType('${enumTypeName}')
     .asEnum([
       ${columnsWithTypes.map(attr => `'${attr}'`).join(',\n      ')}
     ])
@@ -391,14 +442,16 @@ function generateBelongsToStr(
   {
     primaryKeyType,
     omitInlineNonNull: optional = false,
+    originalAssociationName,
   }: {
     primaryKeyType: LegacyCompatiblePrimaryKeyType
     omitInlineNonNull: boolean
+    originalAssociationName?: string
   }
 ) {
   const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
   const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
-  const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
+  const references = lookupReferencesTable(associationName, originalAssociationName)
   return `.addColumn('${associationNameToForeignKey(associationName.split('/').pop()!)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
 
@@ -431,6 +484,33 @@ function generateIdStr({ primaryKeyType }: { primaryKeyType: LegacyCompatiblePri
     default:
       return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
   }
+}
+
+/**
+ * Determines the referenced table name for a belongs_to association.
+ * First tries to look up the actual model to get its table name (handles
+ * custom table name overrides). Falls back to deriving the table name
+ * from the association string if the model isn't found.
+ */
+function lookupReferencesTable(
+  snakeAssociationName: string,
+  originalAssociationName: string | undefined
+): string {
+  if (originalAssociationName) {
+    try {
+      const globalName = globalClassNameFromFullyQualifiedModelName(
+        standardizeFullyQualifiedModelName(originalAssociationName)
+      )
+      const model = lookupModelByGlobalName(globalName)
+      if (model?.table) {
+        return model.table as string
+      }
+    } catch {
+      // Model not found or DreamApp not initialized — fall through to string derivation
+    }
+  }
+
+  return pluralize(snakeAssociationName.replace(/\//g, '_').replace(/_id$/, ''))
 }
 
 function associationNameToForeignKey(associationName: string) {

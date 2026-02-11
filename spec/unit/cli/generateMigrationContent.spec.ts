@@ -1,3 +1,4 @@
+import IdentifierExceedsMaxLengthForDatabase from '../../../src/errors/IdentifierExceedsMaxLengthForDatabase.js'
 import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator.js'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent.js'
 
@@ -1001,6 +1002,116 @@ export async function down(db: Kysely<any>): Promise<void> {
 }\
 `
         )
+      })
+    })
+  })
+
+  context('identifier length validation', () => {
+    context('when the table name exceeds 31 bytes (component limit)', () => {
+      it('throws IdentifierExceedsMaxLengthForDatabase', () => {
+        expect(() => {
+          generateMigrationContent({
+            table: 'a'.repeat(32),
+            columnsWithTypes: ['name:string'],
+            primaryKeyType: 'bigserial',
+          })
+        }).toThrow(IdentifierExceedsMaxLengthForDatabase)
+      })
+    })
+
+    context('when a table name is exactly 31 bytes', () => {
+      it('does not throw', () => {
+        expect(() => {
+          generateMigrationContent({
+            table: 'a'.repeat(31),
+            columnsWithTypes: ['name:string'],
+            primaryKeyType: 'bigserial',
+          })
+        }).not.toThrow()
+      })
+    })
+
+    context('when a column name exceeds 31 bytes (component limit)', () => {
+      it('throws IdentifierExceedsMaxLengthForDatabase', () => {
+        expect(() => {
+          generateMigrationContent({
+            table: 'users',
+            columnsWithTypes: [`${'a'.repeat(32)}:string`],
+            primaryKeyType: 'bigserial',
+          })
+        }).toThrow(IdentifierExceedsMaxLengthForDatabase)
+      })
+    })
+
+    context('when a column name is exactly 31 bytes', () => {
+      it('does not throw', () => {
+        expect(() => {
+          generateMigrationContent({
+            table: 'users',
+            columnsWithTypes: [`${'a'.repeat(31)}:string`],
+            primaryKeyType: 'bigserial',
+          })
+        }).not.toThrow()
+      })
+    })
+
+    context('when an index name (table + column) exceeds 63 bytes', () => {
+      it('throws IdentifierExceedsMaxLengthForDatabase', () => {
+        // table is 30 chars, column (foreign key) will be "b...b_id" which is long
+        // index name will be "table_column" which exceeds 63
+        const longTable = 'a'.repeat(30)
+        const longAssociation = 'b'.repeat(31)
+        expect(() => {
+          generateMigrationContent({
+            table: longTable,
+            columnsWithTypes: [`${longAssociation}:belongs_to`],
+            primaryKeyType: 'bigserial',
+          })
+        }).toThrow(IdentifierExceedsMaxLengthForDatabase)
+      })
+    })
+
+    context('when a check constraint name exceeds 63 bytes', () => {
+      it('throws IdentifierExceedsMaxLengthForDatabase', () => {
+        // constraint name: "${table}_not_null_${column}" where _not_null_ adds 10 chars
+        const longTable = 'a'.repeat(28)
+        const longColumn = 'b'.repeat(28)
+        // total: 28 + 10 + 28 = 66 chars > 63
+        expect(() => {
+          generateMigrationContent({
+            table: longTable,
+            columnsWithTypes: [`${longColumn}:string`],
+            primaryKeyType: 'bigserial',
+            createOrAlter: 'alter',
+            stiChildClassName: 'SomeChild',
+          })
+        }).toThrow(IdentifierExceedsMaxLengthForDatabase)
+      })
+    })
+
+    context('when an encrypted column name exceeds 31 bytes (component limit)', () => {
+      it('throws IdentifierExceedsMaxLengthForDatabase', () => {
+        // "encrypted_" prefix adds 10 chars, so the encrypted column name is 10 + 22 = 32 > 31
+        const longColumn = 'c'.repeat(22)
+        expect(() => {
+          generateMigrationContent({
+            table: 'users',
+            columnsWithTypes: [`${longColumn}:encrypted`],
+            primaryKeyType: 'bigserial',
+          })
+        }).toThrow(IdentifierExceedsMaxLengthForDatabase)
+      })
+    })
+
+    context('when names are within the limits', () => {
+      it('does not throw', () => {
+        expect(() => {
+          generateMigrationContent({
+            table: 'users',
+            columnsWithTypes: ['name:string', 'email:string'],
+            primaryKeyType: 'bigserial',
+          })
+        }).not.toThrow()
       })
     })
   })

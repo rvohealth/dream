@@ -6,6 +6,7 @@ import validateTableAlias from '../../../db/validators/validateTableAlias.js'
 import Dream from '../../../Dream.js'
 import isObject from '../../../helpers/isObject.js'
 import namespaceColumn from '../../../helpers/namespaceColumn.js'
+import validateDatabaseIdentifierLength from '../../../helpers/validateDatabaseIdentifierLength.js'
 import OpsStatement from '../../../ops/ops-statement.js'
 import { InternalWhereStatement } from '../../../types/associations/shared.js'
 import { DbConnectionType } from '../../../types/db.js'
@@ -435,7 +436,9 @@ export default class SimilarityBuilder<
   }
 
   private similaritySearchId(tableName: string, columnName: string) {
-    return `trigram_search_${tableName}_${columnName}`
+    const alias = `trigram_search_${tableName}_${columnName}`
+    validateDatabaseIdentifierLength(alias, { isSnakeCase: true, identifierType: 'similarity search alias' })
+    return alias
   }
 
   private rankSQLAlias(statementType: SimilarityStatementType, statementIndex: number) {
