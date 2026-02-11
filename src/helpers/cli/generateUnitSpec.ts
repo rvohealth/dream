@@ -1,34 +1,15 @@
-import * as fs from 'node:fs/promises'
-import DreamCLI from '../../cli/index.js'
-import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
-import dreamPath from '../path/dreamPath.js'
-import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateUnitSpecContent from './generateUnitSpecContent.js'
+import writeGeneratedFile from './writeGeneratedFile.js'
 
 export default async function generateUnitSpec({
   fullyQualifiedModelName,
 }: {
   fullyQualifiedModelName: string
 }) {
-  fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
-
-  const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
-    dreamPath('modelSpecs'),
-    `${fullyQualifiedModelName}.spec.ts`
-  )
-
-  try {
-    DreamCLI.logger.log(`[dream] generating spec: ${relFilePath}`)
-
-    await fs.mkdir(absDirPath, { recursive: true })
-    await fs.writeFile(absFilePath, generateUnitSpecContent({ fullyQualifiedModelName }))
-  } catch (error) {
-    throw new Error(`
-      Something happened while trying to create the spec file:
-        ${relFilePath}
-
-      Does this file already exist? Here is the error that was raised:
-        ${(error as Error).message}
-    `)
-  }
+  await writeGeneratedFile({
+    dreamPathKey: 'modelSpecs',
+    fileName: `${fullyQualifiedModelName}.spec.ts`,
+    content: generateUnitSpecContent({ fullyQualifiedModelName }),
+    logLabel: 'spec',
+  })
 }

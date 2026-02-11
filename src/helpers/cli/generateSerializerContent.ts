@@ -11,12 +11,15 @@ export default function generateSerializerContent({
   fullyQualifiedParentName,
   stiBaseSerializer,
   includeAdminSerializers,
+  modelClassName,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes?: string[] | undefined
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
+  modelClassName: string
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
@@ -31,7 +34,6 @@ export default function generateSerializerContent({
   }
 
   const relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
   const modelInstanceName = camelize(modelClassName)
   const modelSerializerSignature = stiBaseSerializer
     ? `<T extends ${modelClassName}>(StiChildClass: typeof ${modelClassName}, ${modelInstanceName}: T)`

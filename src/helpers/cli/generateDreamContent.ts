@@ -18,6 +18,8 @@ interface GenerateDreamContentOptions {
   serializer: boolean
   includeAdminSerializers: boolean
   tableName?: string | undefined
+  /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
+  modelClassName: string
 }
 
 export interface ModelConfig {
@@ -68,7 +70,7 @@ ${tableMethod}${serializersMethod}${fieldsSection}
 
 export function createModelConfig(options: GenerateDreamContentOptions): ModelConfig {
   const fullyQualifiedModelName = standardizeFullyQualifiedModelName(options.fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = options.modelClassName
   const isSTI = !!options.fullyQualifiedParentName
 
   let parentModelClassName: string | undefined
