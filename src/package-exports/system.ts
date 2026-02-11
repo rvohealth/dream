@@ -1,6 +1,6 @@
 export { default as DreamBin } from '../bin/index.js'
 export { CliFileWriter } from '../cli/CliFileWriter.js'
-export { default as DreamCLI } from '../cli/index.js'
+export { default as DreamCLI, baseColumnsWithTypesDescription, CLI_INDENT } from '../cli/index.js'
 export { default as DreamImporter } from '../dream-app/helpers/DreamImporter.js'
 export {
   DreamAppAllowedPackageManagersEnumValues,

@@ -8,9 +8,12 @@ import { optionalFromDescriptors } from './generateMigrationContent.js'
 export default function generateFactoryContent({
   fullyQualifiedModelName,
   columnsWithTypes,
+  modelClassName,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
+  /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
+  modelClassName: string
 }): string {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const dreamTypeImports: string[] = ['UpdateableProperties']
@@ -167,7 +170,6 @@ export default function generateFactoryContent({
   }
 
   const relativePath = absoluteDreamPath('models', fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
 
   return `\
 ${nodeImports.length ? `import { ${uniq(nodeImports).join(', ')} } from 'node:crypto'\n` : ''}${dreamImports.length ? `import { ${uniq(dreamImports).join(', ')} } from '@rvoh/dream'\n` : ''}import { ${uniq(dreamTypeImports).join(', ')} } from '@rvoh/dream/types'

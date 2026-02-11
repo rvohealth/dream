@@ -1,5 +1,6 @@
 import DreamApp from '../../../src/dream-app/index.js'
 import generateSerializerContent from '../../../src/helpers/cli/generateSerializerContent.js'
+import modelClassNameFrom from '../../../src/helpers/cli/modelClassNameFrom.js'
 
 describe('dream generate:serializer <name> [...attributes]', () => {
   context('when provided attributes', () => {
@@ -7,6 +8,7 @@ describe('dream generate:serializer <name> [...attributes]', () => {
       it('generates a serializer adding requested attributes, casting the serializer type to the specified model', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
           columnsWithTypes: ['title:string', 'bodyMarkdown:text'],
           stiBaseSerializer: false,
           includeAdminSerializers: false,
@@ -34,6 +36,7 @@ export const PostSerializer = (post: Post) =>
       it('generates admin serializers', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Article',
+          modelClassName: modelClassNameFrom('Article'),
           columnsWithTypes: ['body:text'],
           stiBaseSerializer: false,
           includeAdminSerializers: true,
@@ -68,6 +71,7 @@ export const ArticleAdminSerializer = (article: Article) =>
       it('alters the serializer to include a generic', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Balloon',
+          modelClassName: modelClassNameFrom('Balloon'),
           columnsWithTypes: ['hello', 'type:enum:balloon_types:Mylar,Latex'],
           stiBaseSerializer: true,
           includeAdminSerializers: false,
@@ -95,6 +99,7 @@ export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Ballo
       it('the serializers extend the parent serializers, summary omits id', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Foo/Bar/Baz',
+          modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
           columnsWithTypes: ['world'],
           fullyQualifiedParentName: 'Foo/Bar',
           stiBaseSerializer: false,
@@ -125,6 +130,7 @@ export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
         () => {
           const res = generateSerializerContent({
             fullyQualifiedModelName: 'User/Admin',
+            modelClassName: modelClassNameFrom('User/Admin'),
             stiBaseSerializer: false,
             includeAdminSerializers: false,
           })
@@ -149,6 +155,7 @@ export const UserAdminSerializer = (userAdmin: UserAdmin) =>
         it('generates admin serializers with the correct names', () => {
           const res = generateSerializerContent({
             fullyQualifiedModelName: 'Article/Comment',
+            modelClassName: modelClassNameFrom('Article/Comment'),
             stiBaseSerializer: false,
             includeAdminSerializers: true,
           })
@@ -206,6 +213,7 @@ export const ArticleCommentAdminSerializer = (articleComment: ArticleComment) =>
         it('adds a number attribute, rounded to the precision of the decimal', () => {
           const res = generateSerializerContent({
             fullyQualifiedModelName: 'User',
+            modelClassName: modelClassNameFrom('User'),
             columnsWithTypes: ['howyadoin:decimal:4,2'],
             stiBaseSerializer: false,
             includeAdminSerializers: false,
@@ -286,6 +294,7 @@ export const UserSerializer = (user: User) =>
         it('omits it from the attributes', () => {
           const res = generateSerializerContent({
             fullyQualifiedModelName: 'user',
+            modelClassName: modelClassNameFrom('user'),
             columnsWithTypes: [
               'organization:belongs_to',
               'org:belongsTo',
@@ -325,6 +334,7 @@ export const UserSerializer = (user: User) =>
       it('styles all imports to have .js suffix', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'user',
+          modelClassName: modelClassNameFrom('user'),
           columnsWithTypes: ['organization:belongs_to'],
           stiBaseSerializer: false,
           includeAdminSerializers: false,
@@ -354,6 +364,7 @@ export const UserSerializer = (user: User) =>
       it('styles all imports to have .ts suffix', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'user',
+          modelClassName: modelClassNameFrom('user'),
           columnsWithTypes: ['organization:belongs_to'],
           stiBaseSerializer: false,
           includeAdminSerializers: false,
@@ -383,6 +394,7 @@ export const UserSerializer = (user: User) =>
       it('styles all imports to have no suffix', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'user',
+          modelClassName: modelClassNameFrom('user'),
           columnsWithTypes: ['organization:belongs_to'],
           stiBaseSerializer: false,
           includeAdminSerializers: false,
@@ -409,6 +421,7 @@ export const UserSerializer = (user: User) =>
 function expectAttributeType(startingAttributeType: string) {
   const res = generateSerializerContent({
     fullyQualifiedModelName: 'User',
+    modelClassName: modelClassNameFrom('User'),
     columnsWithTypes: [`howyadoin:${startingAttributeType}`],
     stiBaseSerializer: false,
     includeAdminSerializers: false,
@@ -432,6 +445,7 @@ export const UserSerializer = (user: User) =>
 function expectJsonAttributeType(startingAttributeType: 'json' | 'jsonb' | 'json[]' | 'jsonb[]') {
   const res = generateSerializerContent({
     fullyQualifiedModelName: 'User',
+    modelClassName: modelClassNameFrom('User'),
     columnsWithTypes: [`howyadoin:${startingAttributeType}`],
     stiBaseSerializer: false,
     includeAdminSerializers: false,

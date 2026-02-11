@@ -53,12 +53,22 @@ export default class DreamBin {
   public static async generateDream(
     fullyQualifiedModelName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string; tableName?: string }
+    options: {
+      serializer: boolean
+      stiBaseSerializer: boolean
+      connectionName: string
+      tableName?: string
+      adminSerializers?: boolean
+      modelName?: string
+    }
   ) {
     await generateDream({
       fullyQualifiedModelName,
       columnsWithTypes,
-      options: { includeAdminSerializers: false, ...options },
+      options: {
+        includeAdminSerializers: options.adminSerializers ?? false,
+        ...options,
+      },
     })
   }
 
@@ -66,12 +76,21 @@ export default class DreamBin {
     fullyQualifiedModelName: string,
     fullyQualifiedParentName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean; connectionName: string }
+    options: {
+      serializer: boolean
+      connectionName: string
+      adminSerializers?: boolean
+      modelName?: string
+    }
   ) {
     await generateDream({
       fullyQualifiedModelName,
       columnsWithTypes,
-      options: { includeAdminSerializers: false, ...options, stiBaseSerializer: false },
+      options: {
+        includeAdminSerializers: options.adminSerializers ?? false,
+        ...options,
+        stiBaseSerializer: false,
+      },
       fullyQualifiedParentName,
     })
   }
