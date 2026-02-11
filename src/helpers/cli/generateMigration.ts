@@ -18,12 +18,14 @@ export default async function generateMigration({
   connectionName,
   fullyQualifiedModelName,
   fullyQualifiedParentName,
+  tableName: explicitTableName,
 }: {
   migrationName: string
   columnsWithTypes: string[]
   connectionName: string
   fullyQualifiedModelName?: string | undefined
   fullyQualifiedParentName?: string | undefined
+  tableName?: string | undefined
 }) {
   const { relFilePath, absFilePath } =
     connectionName === 'default'
@@ -48,7 +50,7 @@ export default async function generateMigration({
     })
   } else if (fullyQualifiedModelName) {
     finalContent = generateMigrationContent({
-      table: snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
+      table: explicitTableName || snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
     })
