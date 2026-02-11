@@ -125,6 +125,7 @@ export default class DreamCLI {
       serializer: boolean
       stiBaseSerializer: boolean
       includeAdminSerializers: boolean
+      tableName?: string
     }
     fullyQualifiedParentName?: string | undefined
   }) {
@@ -184,6 +185,10 @@ export default class DreamCLI {
         'default'
       )
       .option('--sti-base-serializer')
+      .option(
+        '--table-name <tableName>',
+        'explicit table name to use instead of the auto-generated one (useful when model namespaces produce long names)'
+      )
       .argument(
         '<modelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -193,7 +198,12 @@ export default class DreamCLI {
         async (
           modelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
+          options: {
+            serializer: boolean
+            stiBaseSerializer: boolean
+            connectionName: string
+            tableName?: string
+          }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateDream(modelName, columnsWithTypes, options)

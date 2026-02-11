@@ -53,7 +53,7 @@ export default class DreamBin {
   public static async generateDream(
     fullyQualifiedModelName: string,
     columnsWithTypes: string[],
-    options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
+    options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string; tableName?: string }
   ) {
     await generateDream({
       fullyQualifiedModelName,

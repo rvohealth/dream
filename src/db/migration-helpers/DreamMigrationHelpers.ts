@@ -1,4 +1,5 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
+import validateDatabaseIdentifierLength from '../../helpers/validateDatabaseIdentifierLength.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -17,9 +18,14 @@ export default class DreamMigrationHelpers {
    * @param to - The new name for the table
    */
   public static async renameTable(db: Kysely<any>, from: string, to: string) {
+    validateDatabaseIdentifierLength(to, { isSnakeCase: true, identifierType: 'table name' })
+
     await db.schema.alterTable(from).renameTo(to).execute()
     const fromSequenceName = `${from}_id_seq`
     const toSequenceName = `${to}_id_seq`
+
+    validateDatabaseIdentifierLength(toSequenceName, { isSnakeCase: true, identifierType: 'sequence name' })
+
     const sqlStatement = `ALTER SEQUENCE ${fromSequenceName} RENAME TO ${toSequenceName}`
     await sql.raw(sqlStatement).execute(db)
   }
@@ -49,6 +55,8 @@ export default class DreamMigrationHelpers {
       columns: string[]
     }
   ) {
+    validateDatabaseIdentifierLength(constraintName, { isSnakeCase: true, identifierType: 'constraint name' })
+
     await this.dropConstraint(db, constraintName, { table })
     await sql`
     ALTER TABLE ${sql.table(table)}
@@ -117,6 +125,8 @@ export default class DreamMigrationHelpers {
     indexName: string,
     { table, column }: { table: string; column: string }
   ) {
+    validateDatabaseIdentifierLength(indexName, { isSnakeCase: true, identifierType: 'index name' })
+
     await sql`
     CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(table)} USING GIN (${sql.raw(
       `${column} gin_trgm_ops`

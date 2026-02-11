@@ -57,7 +57,6 @@ import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
 import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
-import camelize from '../../helpers/camelize.js'
 import { SchemaBuilderInformationSchemaRow } from '../../helpers/cli/ASTBuilder.js'
 import ASTGlobalSchemaBuilder from '../../helpers/cli/ASTGlobalSchemaBuilder.js'
 import ASTSchemaBuilder from '../../helpers/cli/ASTSchemaBuilder.js'
@@ -722,21 +721,23 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
       bypassSelectAll: true,
     })
-    const aliases: string[] = []
+    // Use short aliases to avoid PostgreSQL's 63-byte identifier truncation.
+    // Previously, the full namespaced field (e.g. "longAlias.columnName") was used as the
+    // AS alias, which Kysely's CamelCasePlugin converts to a single snake_case identifier
+    // that can exceed 63 bytes. Short aliases like "plk0" avoid this entirely.
+    const shortAliases: string[] = []
 
-    fields.forEach((field: string) => {
-      // field will already be namespaced in a join situation, but when the field to pluck is on the
-      // base model, it will be underscored (to match the table name), but when the selected column
-      // comes back from Kysely camelCased
-      aliases.push(field.includes('_') ? camelize(field) : field)
+    fields.forEach((field: string, index: number) => {
+      const shortAlias = `plk${index}`
+      shortAliases.push(shortAlias)
       //  namespace the selection so that when plucking the same column name from
-      // multpile tables, they don't get saved as the same name (e.g. select results with two `id` columns,
+      // multiple tables, they don't get saved as the same name (e.g. select results with two `id` columns,
       // which the pg package then returns in an object with a single `id` key)
-      kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${field}` as any)
+      kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${shortAlias}` as any)
     })
 
     return (await executeDatabaseQuery(kyselyQuery, 'execute')).map(singleResult =>
-      aliases.map(alias => singleResult[alias])
+      shortAliases.map(alias => singleResult[alias])
     )
   }
 
