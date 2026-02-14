@@ -36,11 +36,27 @@ export default function cloneDeepSafe<T>(original: T, unsupportedTypeCloneFuncti
   if (Array.isArray(original))
     return original.map(value => cloneDeepSafe(value, unsupportedTypeCloneFunction)) as T
 
-  if (isObject(original) && original.constructor.name === 'Object') {
-    const clone = { ...original }
-    Object.keys(clone).forEach(
-      key => ((clone as any)[key] = cloneDeepSafe((clone as any)[key], unsupportedTypeCloneFunction))
-    )
+  // complex check here to ensure that if the object to clone was
+  // created using Object.create(null), we cannot access the constructor,
+  // and instead of to check that the original prototype is null
+  const isObjectLike =
+    isObject(original) &&
+    (original.constructor?.name === 'Object' || Object.getPrototypeOf(original) === null)
+
+  if (isObjectLike) {
+    // if we are provided with an object that has a null prototype, create a new
+    // object with a null prototype to append to. Otherwise, create a standard
+    // object clone.
+    const clone =
+      Object.getPrototypeOf(original) === null ? (Object.create(null) as T) : ({ ...original } as T)
+
+    Object.keys(original as object).forEach(key => {
+      ;(clone as Record<string, unknown>)[key] = cloneDeepSafe(
+        (original as Record<string, unknown>)[key],
+        unsupportedTypeCloneFunction
+      )
+    })
+
     return clone
   }
 

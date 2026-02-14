@@ -6,6 +6,7 @@ import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociatio
 import ops from '../../../src/ops/index.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
 describe('Query#update', () => {
   it('takes passed params and sends them through to all models matchin query', async () => {
@@ -137,6 +138,27 @@ describe('Query#update', () => {
 
         // should always call to primary for update, regardless of replica-safe status
         expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
+      })
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    await User.query().update({
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      invalidArg: 123,
+    })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn).queryInstance().update({
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          invalidArg: 123,
+        })
       })
     })
   })

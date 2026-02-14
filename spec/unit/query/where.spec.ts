@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import AnyRequiresArrayColumn from '../../../src/errors/ops/AnyRequiresArrayColumn.js'
 import ScoreMustBeANormalNumber from '../../../src/errors/ops/ScoreMustBeANormalNumber.js'
@@ -5,14 +6,18 @@ import range from '../../../src/helpers/range.js'
 import ops from '../../../src/ops/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
+import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
+import testDb from '../../helpers/testDb.js'
 
 describe('Query#where', () => {
   it('supports multiple clauses', async () => {
@@ -73,6 +78,14 @@ describe('Query#where', () => {
       createdAt: [user.createdAt.plus({ day: 1 }), user.createdAt],
     }).first()
     expect(reloadedUser).toMatchDreamModel(user)
+  })
+
+  it('supports querying by belongs to association', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const pet = await Pet.create({ user })
+
+    const reloadedPet = await Pet.where({ user }).first()
+    expect(reloadedPet).toMatchDreamModel(pet)
   })
 
   it('supports chaining `where` clauses', async () => {
@@ -1212,6 +1225,55 @@ describe('Query#where', () => {
           .where({ rating: range(null, end, true) })
           .all()
         expect(records).toMatchDreamModels([ratingBefore, ratingBeginning, ratingWithin])
+      })
+    })
+  })
+
+  context('polymorphic', () => {
+    it('correctly scopes the query by type and foreign key', async () => {
+      const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
+
+      // restarting sequence on both composiitons and composition assets,
+      // since this will force the findBy to ensure that the foreign key type
+      // is also provided to narrow down results, or else this spec will fail
+      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+      await sql`ALTER SEQUENCE composition_assets_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({ composition })
+
+      const localizedText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+      const localizedText2 = await LocalizedText.create({
+        localizable: compositionAsset,
+        locale: 'en-US',
+      })
+
+      expect(await LocalizedText.where({ localizable: composition }).first()).toMatchDreamModel(
+        localizedText1
+      )
+      expect(await LocalizedText.where({ localizable: compositionAsset }).first()).toMatchDreamModel(
+        localizedText2
+      )
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    User.query().where({
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      invalidArg: 123,
+    })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        User.txn(txn).queryInstance().where({
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          invalidArg: 123,
+        })
       })
     })
   })

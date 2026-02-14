@@ -3,6 +3,7 @@ import CannotCreateAssociationWithThroughContext from '../../../../src/errors/as
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
@@ -91,6 +92,20 @@ describe('Dream#createAssociation', () => {
 
         expect(pet.name).toEqual('Aster')
         expect(await pet.associationQuery('userThroughUuid').all()).toMatchDreamModels([user])
+      })
+    })
+
+    context('with an association provided as an attribute during creation', () => {
+      it('persists the associated record', async () => {
+        const pet = await Pet.create({ name: 'Aster' })
+        const user = await pet.createAssociation('user', {
+          email: 'fred@fred',
+          password: 'howyadoin',
+        })
+        const balloon = await Mylar.create({ user })
+        const collar = await pet.createAssociation('collars', { balloon })
+        const reloadedCollar = await Collar.findOrFail(collar.id)
+        expect(reloadedCollar.balloonId).toEqual(balloon.id)
       })
     })
   })
@@ -208,6 +223,24 @@ describe('Dream#createAssociation', () => {
         await expect(
           ApplicationModel.transaction(async txn => await user.txn(txn).createAssociation('pets', {}))
         ).rejects.toThrow(CannotCreateAssociationOnUnpersistedDream)
+      })
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', async () => {
+    // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+    await User.new().createAssociation('notARealAssociation')
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(async txn => {
+        const user = User.new()
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+        await user.txn(txn).createAssociation('notARealAssociation')
       })
     })
   })

@@ -1674,7 +1674,7 @@ export default class Dream {
    */
   public static async findBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I['DB'], I['schema'], I['table']>
+    whereStatement: WhereStatement<I>
   ): Promise<InstanceType<T> | null> {
     return await this.query().findBy(whereStatement)
   }
@@ -1694,7 +1694,7 @@ export default class Dream {
    */
   public static async findOrFailBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
-    whereStatement: WhereStatement<I['DB'], I['schema'], I['table']>
+    whereStatement: WhereStatement<I>
   ): Promise<InstanceType<T>> {
     return await this.query().findOrFailBy(whereStatement)
   }
@@ -1768,7 +1768,7 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<I, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1810,7 +1810,7 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: T, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]) {
+  >(this: T, ...args: [...Arr, VariadicLoadArgs<I, DB, Schema, TableName, Arr>]) {
     return this.query().preload(...(args as any))
   }
 
@@ -1883,7 +1883,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1916,7 +1916,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1950,7 +1950,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1983,7 +1983,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2375,13 +2375,10 @@ export default class Dream {
    * @param whereStatement - Where statement to apply to the Query
    * @returns A Query for this model with the where clause applied
    */
-  public static where<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, whereStatement: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
+  public static where<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    whereStatement: WhereStatement<I>
+  ): Query<InstanceType<T>> {
     return this.query().where(whereStatement)
   }
 
@@ -2397,13 +2394,10 @@ export default class Dream {
    * @param statements - a list of where statements to `OR` together
    * @returns A Query for this model with the whereAny clause applied
    */
-  public static whereAny<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, statements: WhereStatement<DB, Schema, TableName>[]): Query<InstanceType<T>> {
+  public static whereAny<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    statements: WhereStatement<I>[]
+  ): Query<InstanceType<T>> {
     return this.query().whereAny(statements)
   }
 
@@ -2419,13 +2413,10 @@ export default class Dream {
    * @param attributes - A where statement to negate and apply to the Query
    * @returns A Query for this model with the whereNot clause applied
    */
-  public static whereNot<
-    T extends typeof Dream,
-    I extends InstanceType<T>,
-    DB extends I['DB'],
-    Schema extends I['schema'],
-    TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<T>['table'],
-  >(this: T, attributes: WhereStatement<DB, Schema, TableName>): Query<InstanceType<T>> {
+  public static whereNot<T extends typeof Dream, I extends InstanceType<T>>(
+    this: T,
+    attributes: WhereStatement<I>
+  ): Query<InstanceType<T>> {
     return this.query().whereNot(attributes)
   }
 
@@ -3016,7 +3007,7 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
     { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
-  ): WhereStatement<InstanceType<T>['DB'], InstanceType<T>['schema'], InstanceType<T>['table']> {
+  ): WhereStatement<InstanceType<T>> {
     const returnValues: any = {}
 
     const setAttributeOnDreamInstance = (attr: any, value: any) => {
@@ -3822,7 +3813,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<I> &
-      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async destroyAssociation<
@@ -3835,7 +3826,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3893,7 +3884,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<I> &
-      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async reallyDestroyAssociation<
@@ -3906,7 +3897,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -3969,7 +3960,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     options: DestroyOptions<I> &
-      JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+      JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async undestroyAssociation<
@@ -3982,7 +3973,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    options?: DestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -4041,6 +4032,7 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     joinAndStatements: JoinAndStatements<
+      AssociationDream,
       DB,
       Schema,
       AssociationTableName,
@@ -4058,7 +4050,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    joinAndStatements?: JoinAndStatements<DB, Schema, AssociationTableName, null>
+    joinAndStatements?: JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
   ): Query<AssociationDream, DefaultQueryTypeOptions<AssociationDream, AssociationName & string>>
 
   /**
@@ -4117,7 +4109,7 @@ export default class Dream {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
-    } & JoinAndStatements<DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
+    } & JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
   public async updateAssociation<
@@ -4141,7 +4133,7 @@ export default class Dream {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
       skipHooks?: boolean
-    } & JoinAndStatements<DB, Schema, AssociationTableName, null>
+    } & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -4252,7 +4244,7 @@ export default class Dream {
     TableName extends I['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-  >(this: I, ...args: [...Arr, VariadicLoadArgs<DB, Schema, TableName, Arr>]): LoadBuilder<I> {
+  >(this: I, ...args: [...Arr, VariadicLoadArgs<I, DB, Schema, TableName, Arr>]): LoadBuilder<I> {
     return new LoadBuilder<I>(this).load(...(args as any))
   }
 
@@ -4326,6 +4318,7 @@ export default class Dream {
     Schema extends I['schema'],
     PassthroughOnStatement extends Required<
       OnStatementForSpecificColumns<
+        I,
         DB,
         Schema,
         AssociationTableName,
@@ -4334,6 +4327,7 @@ export default class Dream {
     >,
     RequiredOnStatement extends Required<
       OnStatementForSpecificColumns<
+        I,
         DB,
         Schema,
         AssociationTableName,
@@ -4473,6 +4467,7 @@ export default class Dream {
     Schema extends I['schema'],
     PassthroughOnStatement extends Required<
       OnStatementForSpecificColumns<
+        I,
         DB,
         Schema,
         AssociationTableName,
@@ -4481,6 +4476,7 @@ export default class Dream {
     >,
     RequiredOnStatement extends Required<
       OnStatementForSpecificColumns<
+        I,
         DB,
         Schema,
         AssociationTableName,
@@ -4639,7 +4635,7 @@ export default class Dream {
     const Arr extends readonly unknown[],
   >(
     this: I,
-    ...args: [...Arr, VariadicLeftJoinLoadArgs<DB, Schema, TableName, Arr>]
+    ...args: [...Arr, VariadicLeftJoinLoadArgs<I, DB, Schema, TableName, Arr>]
   ): LeftJoinLoadBuilder<I> {
     return new LeftJoinLoadBuilder<I>(this).leftJoinLoad(...(args as any))
   }

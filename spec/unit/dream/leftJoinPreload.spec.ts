@@ -6,6 +6,7 @@ import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -56,6 +57,23 @@ describe('Dream.leftJoinPreload', () => {
     const users = await User.leftJoinPreload('pets').all()
     expect(await User.count()).toEqual(1)
     expect(users.length).toEqual(1)
+  })
+
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      const heartRating = await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.leftJoinPreload('heartRatings', {
+        and: { extraRateable: composition },
+      }).first()
+      expect(reloaded!.heartRatings).toMatchDreamModels([heartRating])
+    })
   })
 
   context('with multiple levels of joining', () => {
@@ -147,6 +165,36 @@ describe('Dream.leftJoinPreload', () => {
 
       const users = await User.leftJoinPreload('balloons').all()
       expect(users[0]!.balloons).toMatchDreamModels([mylar, latex])
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('ensures invalid arguments error', () => {
+    User
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .leftJoinPreload('invalid')
+
+    User
+      // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+      .leftJoinPreload('allPets', { and: { invalidArg: 123 } })
+  })
+
+  context('in a transaction', () => {
+    it('ensures invalid arguments error', async () => {
+      await ApplicationModel.transaction(txn => {
+        User.txn(txn)
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .leftJoinPreload('invalid')
+
+        User.txn(txn).leftJoinPreload('allPets', {
+          and: {
+            // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+            invalidArg: 123,
+          },
+        })
+      })
     })
   })
 })
