@@ -2207,26 +2207,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
      * particular method call started and now.
      */
 
-    return this.applyOneJoin({
+    return this.applyThroughSourceAssociationJoin({
       query: recursiveResult.query,
-      dreamClass: associatedDreamClass,
-      association: sourceAssociation,
-      // since joinsBridgeThroughAssociations passes undefined to explicitAlias recursively, we know this is only set on the
-      // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
-      // the last source association to be added to the statement (because joinsBridgeThroughAssociations was called
-      // recursively and therefore may have added other through associations and their sources prior to reaching this point)
+      associatedDreamClass,
+      sourceAssociation,
       explicitAlias,
-      previousTableAlias: recursiveResult.association.as,
-      selfTableAlias:
-        (throughAssociation.selfAnd ?? throughAssociation.selfAndNot)
-          ? previousTableAlias
-          : recursiveResult.association.as,
-      // since joinsBridgeThroughAssociations passes {} to joinAndStatement recursively, we know this is only set on the
-      // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
-      // the last source association to be added to the statement (because joinsBridgeThroughAssociations was called
-      // recursively and therefore may have added other through associations and their sources prior to reaching this point)
+      previousTableAlias,
+      recursiveAssociationAlias: recursiveResult.association.as,
+      throughAssociation,
       joinAndStatement,
-      previousThroughAssociation: throughAssociation,
       joinType,
       dreamClassThroughAssociationWantsToHydrate,
     })
@@ -2390,162 +2379,308 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
 
     if (association.type === 'BelongsTo') {
-      if (!dreamClassThroughAssociationWantsToHydrate && Array.isArray(association.modelCB()))
-        throw new CannotJoinPolymorphicBelongsToError({
-          dreamClass,
-          association,
-          innerJoinStatements: this.query['innerJoinStatements'],
-          leftJoinStatements: this.query['leftJoinStatements'],
-        })
-
-      const to = (dreamClassThroughAssociationWantsToHydrate ?? (association.modelCB() as typeof Dream)).table
-      const joinTableExpression =
-        snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
-
-      query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
-        joinTableExpression,
-        (join: JoinBuilder<any, any>) => {
-          join = join.onRef(
-            this.namespaceColumn(association.foreignKey(), previousTableAlias),
-            '=',
-            this.namespaceColumn(
-              association.primaryKey(undefined, {
-                associatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
-              }),
-              currentTableAlias
-            )
-          )
-
-          if (previousThroughAssociation) {
-            if (dreamClassThroughAssociationWantsToHydrate) {
-              join = join.on((eb: ExpressionBuilder<any, any>) =>
-                this.whereStatementToExpressionWrapper(
-                  dreamClass,
-                  eb,
-                  this.aliasWhereStatement(
-                    {
-                      [association.foreignKeyTypeField()]:
-                        dreamClassThroughAssociationWantsToHydrate.sanitizedName,
-                    } as InternalWhereStatement<any, any, any, any>,
-                    previousThroughAssociation.through!
-                  )
-                )
-              )
-            }
-
-            join = this.applyAssociationAndStatementsToJoinStatement({
-              dreamClass,
-              join,
-              association: previousThroughAssociation,
-              currentTableAlias,
-              selfTableAlias,
-              joinAndStatement,
-            })
-          }
-
-          join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
-            dreamClass,
-            join,
-            tableNameOrAlias: currentTableAlias,
-            association,
-            throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
-          })
-
-          join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
-
-          return join
-        }
-      )
+      query = this.addBelongsToJoinToQuery({
+        query,
+        dreamClass,
+        association,
+        previousTableAlias,
+        selfTableAlias,
+        joinAndStatement,
+        previousThroughAssociation,
+        joinType,
+        dreamClassThroughAssociationWantsToHydrate,
+        currentTableAlias,
+        associatedDreamClass,
+      })
     } else {
-      const to = association.modelCB().table
-      const joinTableExpression =
-        snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
-
-      query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
-        joinTableExpression,
-        (join: JoinBuilder<any, any>) => {
-          join = join.onRef(
-            this.namespaceColumn(association.primaryKey(), previousTableAlias),
-            '=',
-            this.namespaceColumn(association.foreignKey(), currentTableAlias)
-          )
-
-          if (association.polymorphic) {
-            join = join.on((eb: ExpressionBuilder<any, any>) =>
-              this.whereStatementToExpressionWrapper(
-                dreamClass,
-                eb,
-                this.aliasWhereStatement(
-                  {
-                    [association.foreignKeyTypeField()]: dreamClassThroughAssociationWantsToHydrate
-                      ? dreamClassThroughAssociationWantsToHydrate.referenceTypeString
-                      : dreamClass.referenceTypeString,
-                  } as any,
-                  currentTableAlias
-                )
-              )
-            )
-          }
-
-          if (previousThroughAssociation) {
-            join = this.applyAssociationAndStatementsToJoinStatement({
-              dreamClass,
-              join,
-              association: previousThroughAssociation,
-              currentTableAlias,
-              selfTableAlias,
-              joinAndStatement,
-            })
-          }
-
-          join = this.applyAssociationAndStatementsToJoinStatement({
-            dreamClass,
-            join,
-            association,
-            currentTableAlias,
-            selfTableAlias,
-            joinAndStatement,
-          })
-
-          join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
-            dreamClass,
-            join,
-            tableNameOrAlias: currentTableAlias,
-            association,
-            throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
-          })
-
-          join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
-
-          return join
-        }
-      )
-
-      if (association.type === 'HasMany') {
-        if (association.order) {
-          query = this.applyOrderStatementForAssociation({
-            query,
-            tableNameOrAlias: currentTableAlias,
-            association,
-          })
-        }
-
-        if ((query as SelectQueryBuilder<any, any, any>).distinctOn && association.distinct) {
-          query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
-            this.distinctColumnNameForAssociation({
-              association,
-              tableNameOrAlias: currentTableAlias,
-              foreignKey: association.foreignKey(),
-            }) as string
-          ) as QueryType
-        }
-      }
+      query = this.addHasOneOrHasManyJoinToQuery({
+        query,
+        dreamClass,
+        association,
+        previousTableAlias,
+        selfTableAlias,
+        joinAndStatement,
+        previousThroughAssociation,
+        joinType,
+        dreamClassThroughAssociationWantsToHydrate,
+        currentTableAlias,
+        associatedDreamClass,
+      })
     }
 
     return {
       query,
       association,
     }
+  }
+
+  private applyThroughSourceAssociationJoin<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+  >({
+    query,
+    associatedDreamClass,
+    sourceAssociation,
+    explicitAlias,
+    previousTableAlias,
+    recursiveAssociationAlias,
+    throughAssociation,
+    joinAndStatement,
+    joinType,
+    dreamClassThroughAssociationWantsToHydrate,
+  }: {
+    query: QueryType
+    associatedDreamClass: typeof Dream
+    sourceAssociation: AssociationStatement
+    explicitAlias: string | undefined
+    previousTableAlias: string
+    recursiveAssociationAlias: string
+    throughAssociation: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
+    joinType: JoinTypes
+    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
+  }) {
+    // explicitAlias and joinAndStatement are intentionally forwarded only to the final source join.
+    return this.applyOneJoin({
+      query,
+      dreamClass: associatedDreamClass,
+      association: sourceAssociation,
+      explicitAlias,
+      previousTableAlias: recursiveAssociationAlias,
+      selfTableAlias:
+        (throughAssociation.selfAnd ?? throughAssociation.selfAndNot)
+          ? previousTableAlias
+          : recursiveAssociationAlias,
+      joinAndStatement,
+      previousThroughAssociation: throughAssociation,
+      joinType,
+      dreamClassThroughAssociationWantsToHydrate,
+    })
+  }
+
+  private addBelongsToJoinToQuery<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+  >({
+    query,
+    dreamClass,
+    association,
+    previousTableAlias,
+    selfTableAlias,
+    joinAndStatement,
+    previousThroughAssociation,
+    joinType,
+    dreamClassThroughAssociationWantsToHydrate,
+    currentTableAlias,
+    associatedDreamClass,
+  }: {
+    query: QueryType
+    dreamClass: typeof Dream
+    association: BelongsToStatement<any, any, any, any>
+    previousTableAlias: string
+    selfTableAlias: string
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
+    previousThroughAssociation:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | undefined
+    joinType: JoinTypes
+    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
+    currentTableAlias: string
+    associatedDreamClass: typeof Dream
+  }): QueryType {
+    if (!dreamClassThroughAssociationWantsToHydrate && Array.isArray(association.modelCB()))
+      throw new CannotJoinPolymorphicBelongsToError({
+        dreamClass,
+        association,
+        innerJoinStatements: this.query['innerJoinStatements'],
+        leftJoinStatements: this.query['leftJoinStatements'],
+      })
+
+    const to = (dreamClassThroughAssociationWantsToHydrate ?? (association.modelCB() as typeof Dream)).table
+    const joinTableExpression =
+      snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
+
+    query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
+      joinTableExpression,
+      (join: JoinBuilder<any, any>) => {
+        join = join.onRef(
+          this.namespaceColumn(association.foreignKey(), previousTableAlias),
+          '=',
+          this.namespaceColumn(
+            association.primaryKey(undefined, {
+              associatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+            }),
+            currentTableAlias
+          )
+        )
+
+        if (previousThroughAssociation) {
+          if (dreamClassThroughAssociationWantsToHydrate) {
+            join = join.on((eb: ExpressionBuilder<any, any>) =>
+              this.whereStatementToExpressionWrapper(
+                dreamClass,
+                eb,
+                this.aliasWhereStatement(
+                  {
+                    [association.foreignKeyTypeField()]:
+                      dreamClassThroughAssociationWantsToHydrate.sanitizedName,
+                  } as InternalWhereStatement<any, any, any, any>,
+                  previousThroughAssociation.through!
+                )
+              )
+            )
+          }
+
+          join = this.applyAssociationAndStatementsToJoinStatement({
+            dreamClass,
+            join,
+            association: previousThroughAssociation,
+            currentTableAlias,
+            selfTableAlias,
+            joinAndStatement,
+          })
+        }
+
+        join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+          dreamClass,
+          join,
+          tableNameOrAlias: currentTableAlias,
+          association,
+          throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+        })
+
+        join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
+
+        return join
+      }
+    )
+
+    return query
+  }
+
+  private addHasOneOrHasManyJoinToQuery<
+    QueryType extends
+      | SelectQueryBuilder<any, any, any>
+      | UpdateQueryBuilder<any, any, any, any>
+      | DeleteQueryBuilder<any, any, any>,
+  >({
+    query,
+    dreamClass,
+    association,
+    previousTableAlias,
+    selfTableAlias,
+    joinAndStatement,
+    previousThroughAssociation,
+    joinType,
+    dreamClassThroughAssociationWantsToHydrate,
+    currentTableAlias,
+    associatedDreamClass,
+  }: {
+    query: QueryType
+    dreamClass: typeof Dream
+    association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+    previousTableAlias: string
+    selfTableAlias: string
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
+    previousThroughAssociation:
+      | HasOneStatement<any, any, any, any>
+      | HasManyStatement<any, any, any, any>
+      | undefined
+    joinType: JoinTypes
+    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
+    currentTableAlias: string
+    associatedDreamClass: typeof Dream
+  }): QueryType {
+    const to = association.modelCB().table
+    const joinTableExpression =
+      snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
+
+    query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
+      joinTableExpression,
+      (join: JoinBuilder<any, any>) => {
+        join = join.onRef(
+          this.namespaceColumn(association.primaryKey(), previousTableAlias),
+          '=',
+          this.namespaceColumn(association.foreignKey(), currentTableAlias)
+        )
+
+        if (association.polymorphic) {
+          join = join.on((eb: ExpressionBuilder<any, any>) =>
+            this.whereStatementToExpressionWrapper(
+              dreamClass,
+              eb,
+              this.aliasWhereStatement(
+                {
+                  [association.foreignKeyTypeField()]: dreamClassThroughAssociationWantsToHydrate
+                    ? dreamClassThroughAssociationWantsToHydrate.referenceTypeString
+                    : dreamClass.referenceTypeString,
+                } as any,
+                currentTableAlias
+              )
+            )
+          )
+        }
+
+        if (previousThroughAssociation) {
+          join = this.applyAssociationAndStatementsToJoinStatement({
+            dreamClass,
+            join,
+            association: previousThroughAssociation,
+            currentTableAlias,
+            selfTableAlias,
+            joinAndStatement,
+          })
+        }
+
+        join = this.applyAssociationAndStatementsToJoinStatement({
+          dreamClass,
+          join,
+          association,
+          currentTableAlias,
+          selfTableAlias,
+          joinAndStatement,
+        })
+
+        join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+          dreamClass,
+          join,
+          tableNameOrAlias: currentTableAlias,
+          association,
+          throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+        })
+
+        join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
+
+        return join
+      }
+    )
+
+    if (association.type === 'HasMany') {
+      if (association.order) {
+        query = this.applyOrderStatementForAssociation({
+          query,
+          tableNameOrAlias: currentTableAlias,
+          association,
+        })
+      }
+
+      if ((query as SelectQueryBuilder<any, any, any>).distinctOn && association.distinct) {
+        query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
+          this.distinctColumnNameForAssociation({
+            association,
+            tableNameOrAlias: currentTableAlias,
+            foreignKey: association.foreignKey(),
+          }) as string
+        ) as QueryType
+      }
+    }
+
+    return query
   }
 
   private applyOrderStatementForAssociation<
