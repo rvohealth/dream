@@ -65,6 +65,7 @@ import compact from './helpers/compact.js'
 import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
+import { ClockTime } from './package-exports/index.js'
 import DreamSerializerBuilder from './serializer/builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
@@ -3577,33 +3578,15 @@ export default class Dream {
 
     if (this.isNewRecord) return true
 
-    if (frozenValue instanceof DateTime) {
-      return frozenValue.toMicroseconds() !== this.unknownValueToMicroseconds(currentValue)
-    } else if (frozenValue instanceof CalendarDate) {
-      return frozenValue.toISO() !== this.unknownValueToDateString(currentValue)
+    if (
+      frozenValue instanceof DateTime ||
+      frozenValue instanceof CalendarDate ||
+      frozenValue instanceof ClockTime
+    ) {
+      return frozenValue.valueOf() !== currentValue?.valueOf()
     } else {
       return frozenValue !== currentValue
     }
-  }
-
-  /**
-   * @internal
-   */
-  private unknownValueToMicroseconds(currentValue: any): number | undefined {
-    if (!currentValue) return
-    if (typeof currentValue === 'string') currentValue = DateTime.fromISO(currentValue)
-    if (currentValue instanceof CalendarDate) currentValue = currentValue.toDateTime()
-    if (currentValue instanceof DateTime) return currentValue.toMicroseconds()
-  }
-
-  /**
-   * @internal
-   */
-  private unknownValueToDateString(currentValue: any): string | undefined {
-    if (!currentValue) return
-    if (typeof currentValue === 'string') currentValue = CalendarDate.fromISO(currentValue)
-    if (currentValue instanceof DateTime) currentValue = CalendarDate.fromDateTime(currentValue)
-    if (currentValue instanceof CalendarDate) return currentValue.toISO()
   }
 
   /**

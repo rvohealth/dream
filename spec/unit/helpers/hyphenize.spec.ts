@@ -1,4 +1,5 @@
 import hyphenize from '../../../src/helpers/hyphenize.js'
+import { ClockTime } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -84,6 +85,13 @@ describe('hyphenize', () => {
       it('does not alter CalendarDates', () => {
         const today = CalendarDate.today()
         expect(hyphenize({ helloWorld: today })).toEqual({ 'hello-world': today })
+      })
+    })
+
+    context('when passed a key with a ClockTime value', () => {
+      it('does not alter ClockTimes', () => {
+        const now = ClockTime.now()
+        expect(hyphenize({ helloWorld: now })).toEqual({ 'hello-world': now })
       })
     })
 

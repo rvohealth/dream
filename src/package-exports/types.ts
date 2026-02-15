@@ -9,9 +9,9 @@ export { type HasOneStatement } from '../types/associations/hasOne.js'
 export { type DbConnectionType, type DbTypes, type PrimaryKeyType } from '../types/db.js'
 export { type StrictInterface } from '../types/utils.js'
 
+export { type CalendarDateDurationUnit, type CalendarDateObject } from '../types/calendardate.js'
+export { type ClockTimeObject } from '../types/clocktime.js'
 export { type DurationObject, type DurationUnit, type WeekdayName } from '../types/datetime.js'
-
-export { type CalendarDateDurationUnit } from '../types/calendardate.js'
 
 export {
   type DreamAssociationMetadata,

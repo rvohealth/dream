@@ -1,7 +1,7 @@
 import { DateTime } from '../../../../../src/utils/datetime/DateTime.js'
 import ModelForDatabaseTypeSpec from '../../../../../test-app/app/models/ModelForDatabaseTypeSpec.js'
 
-describe('datetime (timestamp without time zone)', () => {
+describe('datetime with timezone (timestamptz)', () => {
   it('UTC datetimes are preserved going into and coming out of the database', async () => {
     const isoDatetime = '2024-03-02T10:30:45.123456Z'
     const dateTime = DateTime.fromISO(isoDatetime)

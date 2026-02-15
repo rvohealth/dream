@@ -6,6 +6,7 @@ import PetSerializer, { PetDeepSerializer, PetSummarySerializer } from '../seria
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
 import Collar from './Collar.js'
+import ModelForDatabaseTypeSpec from './ModelForDatabaseTypeSpec.js'
 import PetUnderstudyJoinModel from './PetUnderstudyJoinModel.js'
 import Post from './Post.js'
 import Rating from './Rating.js'
@@ -61,6 +62,9 @@ export default class Pet extends ApplicationModel {
 
   @deco.HasOne('Post', { through: 'user' })
   public featuredPost: Post
+
+  @deco.HasMany('ModelForDatabaseTypeSpec')
+  public modelsForDatabaseTypeSpec: ModelForDatabaseTypeSpec[]
 
   @deco.HasMany('Rating', { through: 'user' })
   public ratings: Rating[]

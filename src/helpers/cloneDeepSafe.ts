@@ -2,6 +2,7 @@ import { SelectQueryBuilder } from 'kysely'
 import Dream from '../Dream.js'
 import Query from '../dream/Query.js'
 import OpsStatement from '../ops/ops-statement.js'
+import { ClockTime } from '../package-exports/index.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 import isObject from './isObject.js'
@@ -25,6 +26,7 @@ export default function cloneDeepSafe<T>(original: T, unsupportedTypeCloneFuncti
   if (['number', 'boolean', 'bigint', 'symbol'].includes(typeof original)) return original
   if (original instanceof DateTime) return original
   if (original instanceof CalendarDate) return original
+  if (original instanceof ClockTime) return original
   if (original instanceof Range) return original
   if (original instanceof OpsStatement) return original
 

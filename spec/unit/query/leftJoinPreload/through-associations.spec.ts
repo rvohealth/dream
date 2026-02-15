@@ -735,12 +735,12 @@ describe('Query#leftJoinPreload through', () => {
     })
   })
 
-  it('it adds explicitly joined Dream classes to innerJoinDreamClasses', () => {
+  it('adds explicitly joined Dream classes to innerJoinDreamClasses', () => {
     const query = BalloonSpotter.query().leftJoinPreload('balloonSpotterBalloons', 'balloon')
     expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
   })
 
-  it('it adds implicitly joined Dream classes to innerJoinDreamClasses', () => {
+  it('adds implicitly joined Dream classes to innerJoinDreamClasses', () => {
     const query = BalloonSpotter.query().leftJoinPreload('balloons')
     expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
   })

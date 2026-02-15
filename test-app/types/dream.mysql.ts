@@ -58,6 +58,7 @@ us humans, he says:
 
 import type CalendarDate from '../../src/utils/datetime/CalendarDate.js'
 import { type DateTime } from '../../src/utils/datetime/DateTime.js'
+import type ClockTime from '../../src/utils/datetime/ClockTime.js'
 import {} from './db.js'
 
 export const schema = {
@@ -107,7 +108,17 @@ export const schema = {
       },
     },
     virtualColumns: [],
-    associations: {},
+    associations: {
+      pet: {
+        type: 'BelongsTo',
+        foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
+        tables: ['pets'],
+        optional: true,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
+    },
   },
   mysql_users: {
     serializerKeys: ['default', 'summary'],

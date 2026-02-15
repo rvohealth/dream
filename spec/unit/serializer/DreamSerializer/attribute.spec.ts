@@ -245,6 +245,8 @@ describe('DreamSerializer#attribute', () => {
         .attribute('startTime')
         .attribute('endTime')
         .attribute('times')
+        .attribute('timeWithZone')
+        .attribute('timesWithZone')
 
     let serializer: DreamSerializerBuilder<typeof ModelForOpenapiTypeSpecs, ModelForOpenapiTypeSpecs, any>
 
@@ -259,7 +261,7 @@ describe('DreamSerializer#attribute', () => {
         requiredNicknames: ['Chuck'],
         email: 'charlie@peanuts.com',
         birthdate: '1950-10-02',
-        aDatetime: '1950-10-02T00:00:00.000Z',
+        aDatetime: '1950-10-02T00:00:00.000000Z',
 
         aSmallInteger: 7,
         anInteger: 77777777,
@@ -276,8 +278,8 @@ describe('DreamSerializer#attribute', () => {
         requiredFavoriteUuids: ['3bce3b47-937e-461e-be84-46673155a8ba'],
         favoriteDates: ['2025-05-12', '2025-05-13'],
         requiredFavoriteDates: ['2025-05-13'],
-        favoriteDatetimes: ['2025-05-12T00:00:00.000Z', '2025-05-13T00:00:00.000Z'],
-        requiredFavoriteDatetimes: ['2025-05-13T00:00:00.000Z'],
+        favoriteDatetimes: ['2025-05-12T00:00:00.000000Z', '2025-05-13T00:00:00.000000Z'],
+        requiredFavoriteDatetimes: ['2025-05-13T00:00:00.000000Z'],
         favoriteJsons: [{ hello: 'world' }],
         requiredFavoriteJsons: [{ hello: 'world' }],
         favoriteJsonbs: [{ hello: 'world' }],
@@ -315,9 +317,11 @@ describe('DreamSerializer#attribute', () => {
         likesWalks: true,
         likesTreats: false,
 
-        startTime: '10:30:00',
-        endTime: '11:30:00',
-        times: ['11:30:00', '12:30:00'],
+        startTime: '10:30:00.000000',
+        endTime: '11:30:00.000000',
+        times: ['11:30:00.000000', '12:30:00.000000'],
+        timeWithZone: '02:00:00.000000Z',
+        timesWithZone: ['02:00:00.000000Z'],
       })
     })
   })

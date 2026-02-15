@@ -1,6 +1,7 @@
 import cloneDeepSafe, { TypeUnsupportedByClone } from '../../../src/helpers/cloneDeepSafe.js'
 import range from '../../../src/helpers/range.js'
 import ops from '../../../src/ops/index.js'
+import { ClockTime } from '../../../src/package-exports/index.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
@@ -73,6 +74,14 @@ describe('cloneDeepSafe', () => {
   context('a CalendarDate', () => {
     it('is the same CalendarDate (since CalendarDates are immutable)', () => {
       const original = CalendarDate.today()
+      const clone = cloneDeepSafe(original)
+      expect(clone).toBe(original)
+    })
+  })
+
+  context('a ClockTime', () => {
+    it('is the same ClockTime (since ClockTime are immutable)', () => {
+      const original = ClockTime.now()
       const clone = cloneDeepSafe(original)
       expect(clone).toBe(original)
     })

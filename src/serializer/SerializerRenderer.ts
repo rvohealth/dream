@@ -1,6 +1,7 @@
 import Dream from '../Dream.js'
 import RendersManyMustReceiveArray from '../errors/serializers/RendersManyMustReceiveArray.js'
 import compact from '../helpers/compact.js'
+import { TIME_WITH_TIMEZONE_COLUMN_CHECK_REGEXP } from '../helpers/db/types/helpers.js'
 import round from '../helpers/round.js'
 import snakeify from '../helpers/snakeify.js'
 import { ViewModel } from '../types/dream.js'
@@ -12,6 +13,7 @@ import {
   SimpleObjectSerializerType,
 } from '../types/serializer.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
+import ClockTime from '../utils/datetime/ClockTime.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
@@ -71,7 +73,9 @@ export default class SerializerRenderer {
           const value = data[attribute.name] ?? attribute.options?.default
           if (value === undefined && attribute.options?.required === false) return accumulator
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
+            data,
             value,
+            attribute.name,
             attribute.options,
             this.passthroughData,
             this.renderOpts
@@ -92,7 +96,9 @@ export default class SerializerRenderer {
           const value = target?.[attribute.name] ?? attribute.options?.default
           if (value === undefined && attribute.options?.required === false) return accumulator
           accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
+            target,
             value,
+            attribute.name,
             attribute.options,
             this.passthroughData,
             this.renderOpts
@@ -118,11 +124,20 @@ export default class SerializerRenderer {
           if (attribute.options.flatten) {
             return {
               ...accumulator,
-              ...applyRenderingOptionsToAttribute(value, {}, this.passthroughData, this.renderOpts),
+              ...applyRenderingOptionsToAttribute(
+                null,
+                value,
+                attribute.name,
+                {},
+                this.passthroughData,
+                this.renderOpts
+              ),
             }
           } else {
             accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
+              null,
               value,
+              attribute.name,
               {},
               this.passthroughData,
               this.renderOpts
@@ -248,7 +263,9 @@ export default class SerializerRenderer {
 }
 
 function applyRenderingOptionsToAttribute(
+  data: Dream | object | null,
   value: any,
+  attributeName: string,
   options:
     | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
     | Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
@@ -257,12 +274,23 @@ function applyRenderingOptionsToAttribute(
   renderOptions: SerializerRendererOpts
 ) {
   if (Array.isArray(value))
-    return value.map(val => _applyRenderingOptionsToAttribute(val, options, passthroughData, renderOptions))
-  return _applyRenderingOptionsToAttribute(value, options, passthroughData, renderOptions)
+    return value.map(val =>
+      _applyRenderingOptionsToAttribute(data, val, attributeName, options, passthroughData, renderOptions)
+    )
+  return _applyRenderingOptionsToAttribute(
+    data,
+    value,
+    attributeName,
+    options,
+    passthroughData,
+    renderOptions
+  )
 }
 
 function _applyRenderingOptionsToAttribute(
+  data: Dream | object | null,
   value: any,
+  attributeName: string,
   options:
     | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
     | Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
@@ -274,6 +302,18 @@ function _applyRenderingOptionsToAttribute(
     return value.render(passthroughData, renderOptions)
   if (value instanceof DateTime) return value.toISO()
   if (value instanceof CalendarDate) return value.toISO()
+  if (value instanceof ClockTime) {
+    if (
+      data instanceof Dream &&
+      TIME_WITH_TIMEZONE_COLUMN_CHECK_REGEXP.test(
+        (data.constructor as typeof Dream)['cachedTypeFor'](attributeName)
+      )
+    ) {
+      return value.toISOTime({ includeOffset: true })
+    } else {
+      return value.toISOTime({ includeOffset: false })
+    }
+  }
   if (typeof value === 'bigint') return value.toString()
   const precision = options?.precision
   if (typeof value === 'number' && typeof precision === 'number') return round(value, precision)

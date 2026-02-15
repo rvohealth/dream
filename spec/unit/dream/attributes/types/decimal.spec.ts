@@ -31,7 +31,7 @@ describe('marshalling postgres decimals from db', () => {
   })
 
   context('when decimal value is set to zero', () => {
-    it('it is zero', async () => {
+    it('is zero', async () => {
       const balloon = await Mylar.create({ volume: 0, user })
       const reloadedBalloon = await Mylar.find(balloon.id)
       expect(reloadedBalloon!.volume).toEqual(0)
@@ -39,7 +39,7 @@ describe('marshalling postgres decimals from db', () => {
   })
 
   context('when initializing without a save', () => {
-    it('it does not truncate the decimal', () => {
+    it('does not truncate the decimal', () => {
       const balloon = Mylar.new({ volume: 4.34343434 })
       expect(balloon.volume).toEqual(4.34343434)
     })
@@ -59,7 +59,7 @@ describe('marshalling postgres decimals from db', () => {
     })
 
     context('when decimal value is set to zero', () => {
-      it('it is zero', () => {
+      it('is zero', () => {
         const balloon = Mylar.new({ volume: 0 })
         expect(balloon.volume).toEqual(0)
       })

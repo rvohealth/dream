@@ -24,13 +24,13 @@ import { HasOneStatement } from '../types/associations/hasOne.js'
 import {
   AssociationStatement,
   ColumnNamesAccountingForJoinedAssociations,
+  InternalWhereStatement,
   LimitStatement,
   OffsetStatement,
   OrderQueryStatement,
   PassthroughOnClause,
-  InternalWhereStatement,
-  WhereStatementForJoinedAssociation,
   WhereStatement,
+  WhereStatementForJoinedAssociation,
 } from '../types/associations/shared.js'
 import { DbConnectionType } from '../types/db.js'
 import {
@@ -77,7 +77,6 @@ import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
 import extractNestedPaths from './internal/extractNestedPaths.js'
 import QueryDriverBase from './QueryDriver/Base.js'
-import extractAssignableAssociationAttributes from './internal/extractAssignableAssociationAttributes.js'
 
 export default class Query<
   DreamInstance extends Dream,
@@ -946,11 +945,9 @@ export default class Query<
       const keys = Object.keys(clonedNextAssociationStatement)
 
       keys.forEach((key: string) => {
-        const statements = (clonedNextAssociationStatement as any)[key]
-
-        joinAndStatements[protectAgainstPollutingAssignment(key)] = Array.isArray(statements)
-          ? statements.map(statement => this.attachJoinAndStatement(statement, previousDreamClass))
-          : this.attachJoinAndStatement(statements, previousDreamClass)
+        joinAndStatements[protectAgainstPollutingAssignment(key)] = (clonedNextAssociationStatement as any)[
+          key
+        ]
       })
 
       this.fleshOutJoinStatements(
@@ -962,30 +959,6 @@ export default class Query<
         previousDreamClass
       )
     }
-  }
-
-  private attachJoinAndStatement(statement: any, dreamClass: typeof Dream | null) {
-    const innerKeys = Object.keys(statement || {})
-    return innerKeys.length
-      ? innerKeys.reduce(
-          (agg, key) => {
-            const value = statement[key]
-
-            if (dreamClass?.associationNames.includes(key) && value instanceof Dream) {
-              const association = dreamClass['associationMetadataMap']()[key]!
-              agg = {
-                ...agg,
-                ...extractAssignableAssociationAttributes(association, value),
-              }
-            } else {
-              agg[key] = value
-            }
-
-            return agg
-          },
-          {} as Record<string, unknown>
-        )
-      : null
   }
 
   /**

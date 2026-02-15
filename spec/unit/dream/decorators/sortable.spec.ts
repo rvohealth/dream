@@ -1076,7 +1076,7 @@ describe('@Sortable', () => {
   })
 
   context('with multiple scopes', () => {
-    it('it correctly applies all foreign keys', async () => {
+    it('correctly applies all foreign keys', async () => {
       const edge1 = await Edge.create({ name: 'edge 1' })
       const edge2 = await Edge.create({ name: 'edge 2' })
       const node1 = await Node.create({ name: 'node 1' })

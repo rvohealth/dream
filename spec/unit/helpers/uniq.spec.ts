@@ -40,7 +40,7 @@ describe('uniq', () => {
   })
 
   context('when the elements are strings', () => {
-    it('it compares the items directly', () => {
+    it('compares the items directly', () => {
       expect(uniq(['world', 'hello', 'hello'])).toEqual(['world', 'hello'])
     })
 

@@ -560,12 +560,12 @@ describe('Query#joins through with simple associations', () => {
     })
   })
 
-  it('it adds explicitly joined Dream classes to innerJoinDreamClasses', () => {
+  it('adds explicitly joined Dream classes to innerJoinDreamClasses', () => {
     const query = BalloonSpotter.query().innerJoin('balloonSpotterBalloons', 'balloon')
     expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
   })
 
-  it('it adds implicitly joined Dream classes to innerJoinDreamClasses', () => {
+  it('adds implicitly joined Dream classes to innerJoinDreamClasses', () => {
     const query = BalloonSpotter.query().innerJoin('balloons')
     expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
   })
