@@ -128,6 +128,11 @@ import checkForNeedToBeRunMigrations from './helpers/kysely/checkForNeedToBeRunM
 import foreignKeyTypeFromPrimaryKey from './helpers/kysely/foreignKeyTypeFromPrimaryKey.js'
 import runMigration from './helpers/kysely/runMigration.js'
 
+type JoinableQueryBuilder =
+  | SelectQueryBuilder<any, any, any>
+  | UpdateQueryBuilder<any, any, any, any>
+  | DeleteQueryBuilder<any, any, any>
+
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   // ATTENTION FRED
   // stop trying to make this async. You never learn...
@@ -1399,12 +1404,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     )
   }
 
-  private buildCommon<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >(this: KyselyQueryDriver<DreamInstance>, kyselyQuery: QueryType): QueryType {
+  private buildCommon<QueryType extends JoinableQueryBuilder>(
+    this: KyselyQueryDriver<DreamInstance>,
+    kyselyQuery: QueryType
+  ): QueryType {
     this.checkForQueryViolations()
 
     const query = this.conditionallyApplyDefaultScopes()
@@ -1709,10 +1712,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   private recursivelyJoin<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
+    QueryType extends JoinableQueryBuilder,
     DB extends DreamInstance['DB'],
     Schema extends DreamInstance['schema'],
   >({
@@ -1763,15 +1763,16 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
        * BelongsTo down to a single Dream model. So if an array, use the associated type of the association
        * included in the join statement.
        */
-      const nextDreamClass = Array.isArray(results.association.modelCB())
-        ? association.modelCB()
-        : results.association.modelCB()
+      const nextDreamClass = this.nextDreamClassForRecursivelyJoinedAssociation({
+        requestedAssociation: association,
+        joinedAssociation: results.association,
+      })
 
       query = this.recursivelyJoin({
         query,
         joinStatement: joinStatement[associationString] as RelaxedJoinStatement,
         joinAndStatements: joinAndStatement,
-        dreamClass: nextDreamClass as typeof Dream,
+        dreamClass: nextDreamClass,
         previousTableAlias: alias || association.as,
         joinType,
       })
@@ -2065,12 +2066,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    *       - `addAssociationJoinStatementToQuery` is called with the `myB` association
    */
 
-  private joinsBridgeThroughAssociations<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private joinsBridgeThroughAssociations<QueryType extends JoinableQueryBuilder>({
     query,
     dreamClassTheAssociationIsDefinedOn,
     throughAssociation,
@@ -2221,12 +2217,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
   }
 
-  private applyOneJoin<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private applyOneJoin<QueryType extends JoinableQueryBuilder>({
     query,
     dreamClass,
     association,
@@ -2303,12 +2294,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
   }
 
-  private addAssociationJoinStatementToQuery<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private addAssociationJoinStatementToQuery<QueryType extends JoinableQueryBuilder>({
     query,
     dreamClass,
     association,
@@ -2414,12 +2400,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
   }
 
-  private applyThroughSourceAssociationJoin<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private applyThroughSourceAssociationJoin<QueryType extends JoinableQueryBuilder>({
     query,
     associatedDreamClass,
     sourceAssociation,
@@ -2460,12 +2441,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
   }
 
-  private addBelongsToJoinToQuery<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private addBelongsToJoinToQuery<QueryType extends JoinableQueryBuilder>({
     query,
     dreamClass,
     association,
@@ -2501,13 +2477,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         leftJoinStatements: this.query['leftJoinStatements'],
       })
 
-    const to = (dreamClassThroughAssociationWantsToHydrate ?? (association.modelCB() as typeof Dream)).table
-    const joinTableExpression =
-      snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
+    const toTable = (dreamClassThroughAssociationWantsToHydrate ?? (association.modelCB() as typeof Dream))
+      .table
 
-    query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
-      joinTableExpression,
-      (join: JoinBuilder<any, any>) => {
+    query = this.applyJoinByType({
+      query,
+      joinType,
+      tableName: toTable,
+      tableAlias: currentTableAlias,
+      buildJoin: (join: JoinBuilder<any, any>) => {
         join = join.onRef(
           this.namespaceColumn(association.foreignKey(), previousTableAlias),
           '=',
@@ -2557,18 +2535,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
 
         return join
-      }
-    )
+      },
+    })
 
     return query
   }
 
-  private addHasOneOrHasManyJoinToQuery<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private addHasOneOrHasManyJoinToQuery<QueryType extends JoinableQueryBuilder>({
     query,
     dreamClass,
     association,
@@ -2596,13 +2569,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     currentTableAlias: string
     associatedDreamClass: typeof Dream
   }): QueryType {
-    const to = association.modelCB().table
-    const joinTableExpression =
-      snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
-
-    query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
-      joinTableExpression,
-      (join: JoinBuilder<any, any>) => {
+    query = this.applyJoinByType({
+      query,
+      joinType,
+      tableName: association.modelCB().table,
+      tableAlias: currentTableAlias,
+      buildJoin: (join: JoinBuilder<any, any>) => {
         join = join.onRef(
           this.namespaceColumn(association.primaryKey(), previousTableAlias),
           '=',
@@ -2657,8 +2629,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
 
         return join
-      }
-    )
+      },
+    })
 
     if (association.type === 'HasMany') {
       if (association.order) {
@@ -2683,12 +2655,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return query
   }
 
-  private applyOrderStatementForAssociation<
-    QueryType extends
-      | SelectQueryBuilder<any, any, any>
-      | UpdateQueryBuilder<any, any, any, any>
-      | DeleteQueryBuilder<any, any, any>,
-  >({
+  private applyOrderStatementForAssociation<QueryType extends JoinableQueryBuilder>({
     query,
     tableNameOrAlias,
     association,
@@ -2711,6 +2678,39 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
 
     return selectQuery as QueryType
+  }
+
+  private nextDreamClassForRecursivelyJoinedAssociation({
+    requestedAssociation,
+    joinedAssociation,
+  }: {
+    requestedAssociation: AssociationStatement
+    joinedAssociation: AssociationStatement
+  }): typeof Dream {
+    const nextDreamClass = joinedAssociation.modelCB()
+    if (Array.isArray(nextDreamClass)) return requestedAssociation.modelCB() as typeof Dream
+    return nextDreamClass
+  }
+
+  private joinTableExpression(tableName: string, tableAlias: string): string {
+    return snakeify(tableAlias) === tableName ? tableAlias : `${tableName} as ${tableAlias}`
+  }
+
+  private applyJoinByType<QueryType extends JoinableQueryBuilder>({
+    query,
+    joinType,
+    tableName,
+    tableAlias,
+    buildJoin,
+  }: {
+    query: QueryType
+    joinType: JoinTypes
+    tableName: string
+    tableAlias: string
+    buildJoin: (join: JoinBuilder<any, any>) => JoinBuilder<any, any>
+  }): QueryType {
+    const joinMethodName = joinType === 'inner' ? 'innerJoin' : 'leftJoin'
+    return (query as any)[joinMethodName](this.joinTableExpression(tableName, tableAlias), buildJoin)
   }
 
   private distinctColumnNameForAssociation({
