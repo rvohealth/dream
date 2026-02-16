@@ -24,6 +24,7 @@ import isDreamSerializer from '../serializer/helpers/isDreamSerializer.js'
 import serializerNameFromFullyQualifiedModelName from '../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../types/db.js'
 import { DreamModelSerializerType, SimpleObjectSerializerType } from '../types/serializer.js'
+import BaseClockTime from '../utils/datetime/BaseClockTime.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
 import { DateTime, Settings } from '../utils/datetime/DateTime.js'
 import { cacheDreamApp, getCachedDreamAppOrFail } from './cache.js'
@@ -202,15 +203,15 @@ Try setting it to something valid, like:
   }
 
   public static log(...args: any[]) {
-    this.getOrFail().logger.info(this.argsToString(args))
+    this.getOrFail().logger.info(this.loggerArgsToString(args))
   }
 
   public static logWithLevel(level: DreamLogLevel, ...args: any[]) {
-    this.getOrFail().logger[level](this.argsToString(args))
+    this.getOrFail().logger[level](this.loggerArgsToString(args))
   }
 
-  private static argsToString(args: any[]) {
-    return args.map(argToString).join(' ')
+  private static loggerArgsToString(args: any[]) {
+    return args.map(loggerArgToString).join(' ')
   }
 
   private _specialHooks: DreamAppSpecialHooks = {
@@ -535,12 +536,14 @@ Try setting it to something valid, like:
   }
 }
 
-function argToString(arg: any) {
+function loggerArgToString(arg: any) {
   if (typeof arg === 'string') return arg
   if (typeof arg === 'number') return arg
   if (typeof arg === 'boolean') return arg
-  if (arg instanceof DateTime || arg instanceof CalendarDate) return arg.toISO()
-  return util.inspect(arg, { depth: 3 })
+  if (arg instanceof DateTime || arg instanceof CalendarDate || arg instanceof BaseClockTime) {
+    return arg.toISO()
+  }
+  return JSON.stringify(util.inspect(arg, { depth: 6 }))
 }
 
 export type DreamHookEventType = 'db:log' | 'repl:start'
