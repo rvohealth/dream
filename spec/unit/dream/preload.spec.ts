@@ -6,7 +6,6 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../test-app/app/models/CompositionAssetAudit.js'
-import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import CatShape from '../../../test-app/app/models/Shape/Cat.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -34,18 +33,22 @@ describe('Dream.preload', () => {
 
   context('with an association provided as an argument to the and clause', () => {
     it('supports associations as clauses', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({ user, content: 'hello' })
-      const composition = await Composition.create({ user, content: 'goodbye' })
-      const heartRating = await HeartRating.create({ extraRateable: composition, user })
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user: user1 })
+      const composition2 = await Composition.create({ user: user2 })
+      const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
+      const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
 
-      const composition2 = await Composition.create({ user, content: 'goodbye' })
-      await HeartRating.create({ extraRateable: composition2, user })
+      const compositionAssets = await CompositionAsset.query()
+        .preload('composition', { and: { user: user2 } })
+        .all()
 
-      const reloaded = await User.preload('heartRatings', {
-        and: { extraRateable: composition },
-      }).first()
-      expect(reloaded!.heartRatings).toMatchDreamModels([heartRating])
+      const reloadedCompositionAsset1 = compositionAssets.find(obj => obj.id === compositionAsset1.id)
+      const reloadedCompositionAsset2 = compositionAssets.find(obj => obj.id === compositionAsset2.id)
+
+      expect(reloadedCompositionAsset1?.composition).toBeNull()
+      expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })
 

@@ -35,11 +35,11 @@ describe('Dream#updateAssociation', () => {
           password: 'howyadoin',
         })
         const balloon = await Mylar.create({ user })
-        await pet.createAssociation('collars')
+        const collar = await pet.createAssociation('collars')
         await pet.updateAssociation('collars', { balloon })
 
-        const reloadedCollar = await Collar.findOrFailBy({ pet })
-        expect(reloadedCollar.balloonId).toEqual(balloon.id)
+        await collar.reload()
+        expect(collar.balloonId).toEqual(balloon.id)
       })
     })
 

@@ -8,7 +8,6 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
-import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../../test-app/app/models/LocalizedText.js'
 import ModelForDatabaseTypeSpec from '../../../../test-app/app/models/ModelForDatabaseTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
@@ -35,20 +34,17 @@ describe('Query#joins with simple associations', () => {
 
   context('with an association provided as an argument to the and clause', () => {
     it('supports associations as clauses', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({ user, content: 'hello' })
-      const composition = await Composition.create({ user, content: 'goodbye' })
-      await HeartRating.create({ extraRateable: composition, user })
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user: user1 })
+      const composition2 = await Composition.create({ user: user2 })
+      await CompositionAsset.create({ composition: composition1 })
+      const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
 
-      const composition2 = await Composition.create({ user, content: 'goodbye' })
-      await HeartRating.create({ extraRateable: composition2, user })
-
-      const reloaded = await User.query()
-        .leftJoin('heartRatings', {
-          and: { extraRateable: composition },
-        })
-        .firstOrFail()
-      expect(reloaded).toMatchDreamModel(user)
+      const compositionAssets = await CompositionAsset.query()
+        .innerJoin('composition', { and: { user: user2 } })
+        .all()
+      expect(compositionAssets).toMatchDreamModels([compositionAsset2])
     })
   })
 

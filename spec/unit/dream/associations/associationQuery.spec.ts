@@ -407,11 +407,14 @@ describe('Dream#associationQuery', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
         const pet = await Pet.create({ name: 'Aster', user })
         const balloon = await Mylar.create({ user })
+
+        await pet.createAssociation('collars')
         const collar = await pet.createAssociation('collars', { balloon })
+
         const otherBalloon = await Mylar.create({ user })
 
-        const reloadedCollar = await pet.associationQuery('collars', { and: { balloon } }).first()
-        expect(reloadedCollar).toMatchDreamModel(collar)
+        const collars = await pet.associationQuery('collars', { and: { balloon } }).all()
+        expect(collars).toMatchDreamModels([collar])
 
         const nullCollar = await pet.associationQuery('collars', { and: { balloon: otherBalloon } }).first()
         expect(nullCollar).toBeNull()

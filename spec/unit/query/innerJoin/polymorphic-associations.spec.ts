@@ -49,6 +49,25 @@ describe('Query#joins with polymorphic associations', () => {
     expect(reloaded).toMatchDreamModels([post])
   })
 
+  context('with an association provided as an argument to the and clause', () => {
+    it('supports associations as clauses', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Composition.create({ user, content: 'hello' })
+      const composition = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition, user })
+
+      const composition2 = await Composition.create({ user, content: 'goodbye' })
+      await HeartRating.create({ extraRateable: composition2, user })
+
+      const reloaded = await User.query()
+        .leftJoin('heartRatings', {
+          and: { extraRateable: composition },
+        })
+        .firstOrFail()
+      expect(reloaded).toMatchDreamModel(user)
+    })
+  })
+
   context('when using a similarity operator to drill down results', () => {
     it('excludes records not matching similarity text', async () => {
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })

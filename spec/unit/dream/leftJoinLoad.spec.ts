@@ -2,7 +2,6 @@ import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAsso
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
-import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -30,20 +29,22 @@ describe('Dream#leftJoinLoad', () => {
 
   context('with an association provided as an argument to the and clause', () => {
     it('supports associations as clauses', async () => {
-      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-      await Composition.create({ user, content: 'hello' })
-      const composition = await Composition.create({ user, content: 'goodbye' })
-      const heartRating = await HeartRating.create({ extraRateable: composition, user })
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user: user1 })
+      const composition2 = await Composition.create({ user: user2 })
+      const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
+      const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
 
-      const composition2 = await Composition.create({ user, content: 'goodbye' })
-      await HeartRating.create({ extraRateable: composition2, user })
-
-      const reloaded = await user
-        .leftJoinLoad('heartRatings', {
-          and: { extraRateable: composition },
-        })
+      const reloadedCompositionAsset1 = await compositionAsset1
+        .leftJoinLoad('composition', { and: { user: user2 } })
         .execute()
-      expect(reloaded.heartRatings).toMatchDreamModels([heartRating])
+      const reloadedCompositionAsset2 = await compositionAsset2
+        .leftJoinLoad('composition', { and: { user: user2 } })
+        .execute()
+
+      expect(reloadedCompositionAsset1?.composition).toBeNull()
+      expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })
 
