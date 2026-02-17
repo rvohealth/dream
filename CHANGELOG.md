@@ -1,3 +1,7 @@
+## 2.3.1
+
+- fix `pluck` when long association names + long column names exceed 63 bytes (in which case, Postgres silently truncates, and trying to access the property on returned object returns undefined); follows the same strategy already employed by `preload`
+
 ## 2.3.0
 
 Apologies that we're introducing breaking changes, but we found it necessary and worth it to support microseconds and took the opportunity to add a ClockTime class and standardize APIs between DateTime, CalendarDate, and ClockTime.
