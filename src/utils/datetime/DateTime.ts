@@ -29,8 +29,9 @@ export const BASE_DATE_OBJECT = {
  * DateTime wraps Luxon DateTime with microsecond precision (0-999).
  * The decimal part in ISO/SQL is 6 digits: first 3 = milliseconds, next 3 = microseconds.
  *
- * Full datetime output (toISO, toSQL) is normalized to UTC.
+ * Full datetime output with toSQL() is normalized to UTC.
  * Time-only output (toISOTime, toSQLTime) omits timezone offset by default.
+ * toISO() preserves the timezone of the DateTime instance.
  */
 export class DateTime {
   protected readonly luxonDatetime: LuxonDateTime
@@ -831,7 +832,7 @@ export class DateTime {
   /**
    * Returns an ISO 8601 string with 6 fractional second digits (milliseconds + microseconds).
    *
-   * Always converts to UTC before formatting (e.g., '2024-03-15T15:30:45.123456Z').
+   * Preserves the timezone of the DateTime instance.
    *
    * @param opts - Optional format options
    * @param opts.suppressMilliseconds - If true, omits fractional seconds when they are zero
@@ -841,12 +842,11 @@ export class DateTime {
    * @returns ISO string (e.g. "2024-03-15T10:30:45.123456-05:00" or "2024-03-15T10:30:45.123456Z")
    * @example
    * ```ts
-   * DateTime.fromISO('2024-03-15T10:30:45.123456').toISO() // Converts to UTC
+   * DateTime.fromISO('2024-03-15T10:30:45.123456-05:00').toISO() // '2024-03-15T10:30:45.123456-05:00'
    * ```
    */
   public toISO(opts?: ToISOTimeOptions): string {
-    const dt = this.toUTC()
-    return replaceISOMicroseconds(dt, dt.luxonDatetime.toISO(opts as luxon.ToISOTimeOptions), opts)
+    return replaceISOMicroseconds(this, this.luxonDatetime.toISO(opts as luxon.ToISOTimeOptions), opts)
   }
 
   /**
@@ -958,12 +958,12 @@ export class DateTime {
   /**
    * Returns an ISO 8601 string representation (for valueOf() operations).
    *
-   * Converts to UTC before formatting.
+   * Preserves the timezone of the DateTime instance.
    *
    * @returns ISO datetime string with microsecond precision
    * @example
    * ```ts
-   * DateTime.local(2017, 3, 12).valueOf() // Converts to UTC
+   * DateTime.local(2017, 3, 12).valueOf() // Preserves local timezone
    * DateTime.fromISO('2026-02-07T09:03:44.123456Z').valueOf()              // '2026-02-07T09:03:44.123456Z'
    * ```
    */
@@ -978,7 +978,7 @@ export class DateTime {
    * Returns an ISO 8601 formatted string for JSON serialization.
    * This ensures DateTime objects are properly serialized to ISO format.
    *
-   * Converts to UTC before formatting.
+   * Preserves the timezone of the DateTime instance.
    *
    * @returns ISO datetime string with microsecond precision
    * @example
@@ -995,7 +995,7 @@ export class DateTime {
    * Returns an ISO 8601 formatted string representation.
    * Alias for toISO().
    *
-   * Converts to UTC before formatting.
+   * Preserves the timezone of the DateTime instance.
    *
    * @returns ISO datetime string with microsecond precision
    * @example
@@ -1335,8 +1335,7 @@ export class DateTime {
    */
   public startOf(unit: DateTimeUnit, opts?: { useLocaleWeeks?: boolean }): DateTime {
     const luxonDatetime = this.luxonDatetime.startOf(unit as luxon.DateTimeUnit, opts)
-    const microseconds = unit === 'millisecond' ? this.microsecond : 0
-    return new DateTime(luxonDatetime, microseconds)
+    return new DateTime(luxonDatetime, 0)
   }
 
   /**
@@ -1353,8 +1352,7 @@ export class DateTime {
    */
   public endOf(unit: DateTimeUnit, opts?: { useLocaleWeeks?: boolean }): DateTime {
     const luxonDatetime = this.luxonDatetime.endOf(unit as luxon.DateTimeUnit, opts)
-    const microseconds = unit === 'millisecond' ? this.microsecond : 999
-    return new DateTime(luxonDatetime, microseconds)
+    return new DateTime(luxonDatetime, 999)
   }
 
   /**

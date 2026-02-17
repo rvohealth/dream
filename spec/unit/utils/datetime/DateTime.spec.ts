@@ -162,7 +162,8 @@ describe('DateTime', () => {
         },
         { zone: 'America/New_York' }
       )
-      expect(datetime.toISO()).toEqual('2026-03-16T03:30:45.123456Z')
+      expect(datetime.toISO()).toEqual('2026-03-15T23:30:45.123456-04:00')
+      expect(datetime.toUTC().toISO()).toEqual('2026-03-16T03:30:45.123456Z')
     })
 
     it('throws InvalidDateTime when calendar/date values are invalid', () => {
@@ -279,7 +280,8 @@ describe('DateTime', () => {
         const date1 = DateTime.fromFormat('12/15/2017 02:00:00 +00:00', 'MM/dd/yyyy HH:mm:ss ZZ', {
           zone: 'America/New_York',
         })
-        expect(date1.toISO()).toEqual('2017-12-15T02:00:00.000000Z')
+        expect(date1.toISO()).toEqual('2017-12-14T21:00:00.000000-05:00')
+        expect(date1.toUTC().toISO()).toEqual('2017-12-15T02:00:00.000000Z')
 
         const date2 = DateTime.fromFormat('12/14/2017 21:00:00 -05:00', 'MM/dd/yyyy HH:mm:ss ZZ', {
           zone: 'UTC',
@@ -373,7 +375,8 @@ describe('DateTime', () => {
       })
       expect(datetimeNY.zoneName).toEqual('America/New_York')
       expect(datetimeNY.microsecond).toEqual(1)
-      expect(datetimeNY.toISO()).toEqual('2024-02-07T05:03:44.077001Z')
+      expect(datetimeNY.toISO()).toEqual('2024-02-07T00:03:44.077001-05:00')
+      expect(datetimeNY.toUTC().toISO()).toEqual('2024-02-07T05:03:44.077001Z')
       expect(datetimeNY.year).toEqual(2024)
       expect(datetimeNY.month).toEqual(2)
       expect(datetimeNY.day).toEqual(7)
@@ -383,7 +386,7 @@ describe('DateTime', () => {
       const datetimeTokyo = DateTime.fromMicroseconds(microseconds, { zone: 'Asia/Tokyo' })
       expect(datetimeTokyo.zoneName).toEqual('Asia/Tokyo')
       expect(datetimeTokyo.microsecond).toEqual(1)
-      expect(datetimeTokyo.toISO()).toEqual('2024-02-07T05:03:44.077001Z')
+      expect(datetimeTokyo.toUTC().toISO()).toEqual('2024-02-07T05:03:44.077001Z')
       expect(datetimeTokyo.hour).toEqual(14) // 2 PM in Tokyo
 
       // Verify all three represent the same instant
@@ -1884,7 +1887,7 @@ describe('DateTime', () => {
 
     it('includes microseconds', () => {
       const datetime = DateTime.fromISO('2026-02-07T09:03:44.000001Z')
-      expect(datetime.toString()).toContain('2026-02-07T09:03:44.000001Z')
+      expect(datetime.toString()).toEqual('2026-02-07T09:03:44.000001Z')
     })
 
     it('works with string concatenation', () => {
@@ -1919,6 +1922,483 @@ describe('DateTime', () => {
       expect(DateTime.DATETIME_FULL_WITH_SECONDS).toEqual(LuxonDateTime.DATETIME_FULL_WITH_SECONDS)
       expect(DateTime.DATETIME_HUGE).toEqual(LuxonDateTime.DATETIME_HUGE)
       expect(DateTime.DATETIME_HUGE_WITH_SECONDS).toEqual(LuxonDateTime.DATETIME_HUGE_WITH_SECONDS)
+    })
+  })
+
+  describe('endOf', () => {
+    it('returns the end of the year', () => {
+      const datetime = DateTime.fromISO('2026-06-15T10:30:45.123456Z').endOf('year')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(12)
+      expect(datetime.day).toEqual(31)
+      expect(datetime.hour).toEqual(23)
+      expect(datetime.minute).toEqual(59)
+      expect(datetime.second).toEqual(59)
+      expect(datetime.millisecond).toEqual(999)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('returns the end of the month', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').endOf('month')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(28)
+      expect(datetime.hour).toEqual(23)
+      expect(datetime.minute).toEqual(59)
+      expect(datetime.second).toEqual(59)
+      expect(datetime.millisecond).toEqual(999)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('returns the end of the day', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').endOf('day')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(23)
+      expect(datetime.minute).toEqual(59)
+      expect(datetime.second).toEqual(59)
+      expect(datetime.millisecond).toEqual(999)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('returns the end of the hour', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').endOf('hour')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(59)
+      expect(datetime.second).toEqual(59)
+      expect(datetime.millisecond).toEqual(999)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('returns the end of the minute', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').endOf('minute')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(30)
+      expect(datetime.second).toEqual(59)
+      expect(datetime.millisecond).toEqual(999)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('returns the end of the second', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').endOf('second')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(30)
+      expect(datetime.second).toEqual(45)
+      expect(datetime.millisecond).toEqual(999)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('returns the end of the millisecond', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').endOf('millisecond')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(30)
+      expect(datetime.second).toEqual(45)
+      expect(datetime.millisecond).toEqual(123)
+      expect(datetime.microsecond).toEqual(999)
+    })
+
+    it('preserves timezone', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00').endOf('day')
+      expect(datetime.zoneName).toEqual('UTC-5')
+    })
+  })
+
+  describe('startOf', () => {
+    it('returns the start of the year', () => {
+      const datetime = DateTime.fromISO('2026-06-15T10:30:45.123456Z').startOf('year')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(1)
+      expect(datetime.day).toEqual(1)
+      expect(datetime.hour).toEqual(0)
+      expect(datetime.minute).toEqual(0)
+      expect(datetime.second).toEqual(0)
+      expect(datetime.millisecond).toEqual(0)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('returns the start of the month', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').startOf('month')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(1)
+      expect(datetime.hour).toEqual(0)
+      expect(datetime.minute).toEqual(0)
+      expect(datetime.second).toEqual(0)
+      expect(datetime.millisecond).toEqual(0)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('returns the start of the day', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').startOf('day')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(0)
+      expect(datetime.minute).toEqual(0)
+      expect(datetime.second).toEqual(0)
+      expect(datetime.millisecond).toEqual(0)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('returns the start of the hour', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').startOf('hour')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(0)
+      expect(datetime.second).toEqual(0)
+      expect(datetime.millisecond).toEqual(0)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('returns the start of the minute', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').startOf('minute')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(30)
+      expect(datetime.second).toEqual(0)
+      expect(datetime.millisecond).toEqual(0)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('returns the start of the second', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').startOf('second')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(30)
+      expect(datetime.second).toEqual(45)
+      expect(datetime.millisecond).toEqual(0)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('returns the start of the millisecond', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z').startOf('millisecond')
+      expect(datetime.year).toEqual(2026)
+      expect(datetime.month).toEqual(2)
+      expect(datetime.day).toEqual(15)
+      expect(datetime.hour).toEqual(10)
+      expect(datetime.minute).toEqual(30)
+      expect(datetime.second).toEqual(45)
+      expect(datetime.millisecond).toEqual(123)
+      expect(datetime.microsecond).toEqual(0)
+    })
+
+    it('preserves timezone', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00').startOf('day')
+      expect(datetime.zoneName).toEqual('UTC-5')
+    })
+  })
+
+  describe('toISODate', () => {
+    it('returns ISO date string without time', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toISODate()).toEqual('2026-02-15')
+    })
+
+    it('works with different timezones', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00')
+      expect(datetime.toISODate()).toEqual('2026-02-15')
+    })
+  })
+
+  describe('toSQL', () => {
+    it('returns SQL datetime string with 6 fractional digits', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toSQL()).toEqual('2026-02-15 10:30:45.123456 Z')
+    })
+
+    it('converts to UTC before formatting', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00')
+      expect(datetime.toSQL()).toEqual('2026-02-15 15:30:45.123456 Z')
+    })
+
+    it('pads microseconds to 3 digits', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.000001Z')
+      expect(datetime.toSQL()).toEqual('2026-02-15 10:30:45.000001 Z')
+    })
+  })
+
+  describe('toSQLDate', () => {
+    it('returns SQL date string without time', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toSQLDate()).toEqual('2026-02-15')
+    })
+
+    it('works with different timezones', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00')
+      expect(datetime.toSQLDate()).toEqual('2026-02-15')
+    })
+  })
+
+  describe('toJSDate', () => {
+    it('returns a JavaScript Date object', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const jsDate = datetime.toJSDate()
+      expect(jsDate).toBeInstanceOf(Date)
+      expect(jsDate.toISOString()).toEqual('2026-02-15T10:30:45.123Z')
+    })
+  })
+
+  describe('toLocaleString', () => {
+    it('formats using default locale', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const result = datetime.toLocaleString()
+      expect(result).toBeDefined()
+      expect(typeof result).toEqual('string')
+    })
+
+    it('formats using DATE_SHORT preset', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const result = datetime.toLocaleString(DateTime.DATE_SHORT)
+      expect(result).toMatch(/2.*15.*26/) // Flexible match for different locales
+    })
+
+    it('formats using DATETIME_FULL preset', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const result = datetime.toLocaleString(DateTime.DATETIME_FULL)
+      expect(result).toBeDefined()
+      expect(result.length).toBeGreaterThan(0)
+    })
+
+    it('accepts locale option', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const result = datetime.toLocaleString({ weekday: 'long' }, { locale: 'en-US' })
+      expect(result).toContain('Sunday')
+    })
+  })
+
+  describe('toFormat', () => {
+    it('formats with custom format string', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toFormat('yyyy-MM-dd')).toEqual('2026-02-15')
+    })
+
+    it('formats with time components', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toFormat('yyyy-MM-dd HH:mm:ss')).toEqual('2026-02-15 10:30:45')
+    })
+
+    it('includes milliseconds with SSS token', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toFormat('yyyy-MM-dd HH:mm:ss.SSS')).toEqual('2026-02-15 10:30:45.123')
+    })
+
+    it('includes microseconds with SSSSSS token', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toFormat('yyyy-MM-dd HH:mm:ss.SSSSSS')).toEqual('2026-02-15 10:30:45.123456')
+    })
+
+    it('pads fractional seconds correctly', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.001002Z')
+      expect(datetime.toFormat('HH:mm:ss.SSSSSS')).toEqual('10:30:45.001002')
+    })
+
+    it('truncates to requested precision', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      expect(datetime.toFormat('HH:mm:ss.S')).toEqual('10:30:45.1')
+      expect(datetime.toFormat('HH:mm:ss.SS')).toEqual('10:30:45.12')
+      expect(datetime.toFormat('HH:mm:ss.SSSS')).toEqual('10:30:45.1234')
+    })
+
+    it('accepts locale option', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const result = datetime.toFormat('MMMM', { locale: 'fr' })
+      expect(result).toEqual('février')
+    })
+  })
+
+  describe('setZone', () => {
+    it('changes timezone to UTC', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00').setZone('UTC')
+      expect(datetime.zoneName).toEqual('UTC')
+      expect(datetime.hour).toEqual(15) // Adjusted for timezone
+      expect(datetime.microsecond).toEqual(456) // Preserved
+    })
+
+    it('changes timezone to America/New_York', () => {
+      const datetime = DateTime.fromISO('2026-02-15T15:30:45.123456Z').setZone('America/New_York')
+      expect(datetime.zoneName).toEqual('America/New_York')
+      expect(datetime.hour).toEqual(10) // EST is UTC-5
+      expect(datetime.microsecond).toEqual(456)
+    })
+
+    it('keeps local time when option is set', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const converted = datetime.setZone('America/New_York', { keepLocalTime: true })
+      expect(converted.hour).toEqual(10) // Same hour, different timezone
+      expect(converted.zoneName).toEqual('America/New_York')
+    })
+  })
+
+  describe('toUTC', () => {
+    it('converts to UTC', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456-05:00').toUTC()
+      expect(datetime.zoneName).toEqual('UTC')
+      expect(datetime.hour).toEqual(15)
+      expect(datetime.microsecond).toEqual(456)
+    })
+
+    it('is a no-op when already in UTC', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const utc = datetime.toUTC()
+      expect(utc.zoneName).toEqual('UTC')
+      expect(utc.hour).toEqual(10)
+    })
+  })
+
+  describe('toLocal', () => {
+    it('converts to local timezone', () => {
+      const datetime = DateTime.fromISO('2026-02-15T05:30:45.123456-05:00')
+      const local = datetime.toLocal()
+      // Since we set the timezone of Node to UTC, toLocal simply changes to UTC
+      expect(local.toISO()).toEqual('2026-02-15T10:30:45.123456Z')
+    })
+  })
+
+  describe('reconfigure', () => {
+    it('changes locale', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const reconfigured = datetime.reconfigure({ locale: 'fr' })
+      expect(reconfigured.locale).toEqual('fr')
+      expect(reconfigured.microsecond).toEqual(456)
+    })
+  })
+
+  describe('setLocale', () => {
+    it('changes locale', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const newLocale = datetime.setLocale('fr')
+      expect(newLocale.locale).toEqual('fr')
+      expect(newLocale.microsecond).toEqual(456)
+    })
+
+    it('affects formatted output', () => {
+      const datetime = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const withFrench = datetime.setLocale('fr')
+      expect(withFrench.toFormat('MMMM')).toEqual('février')
+    })
+  })
+
+  describe('hasSame', () => {
+    it('returns true when same year', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-08-20T14:15:30.789012Z')
+      expect(dt1.hasSame(dt2, 'year')).toEqual(true)
+    })
+
+    it('returns false when different year', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2027-02-15T10:30:45.123456Z')
+      expect(dt1.hasSame(dt2, 'year')).toEqual(false)
+    })
+
+    it('returns true when same month', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-20T14:15:30.789012Z')
+      expect(dt1.hasSame(dt2, 'month')).toEqual(true)
+    })
+
+    it('returns false when different month', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-03-15T10:30:45.123456Z')
+      expect(dt1.hasSame(dt2, 'month')).toEqual(false)
+    })
+
+    it('returns true when same day', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-15T14:15:30.789012Z')
+      expect(dt1.hasSame(dt2, 'day')).toEqual(true)
+    })
+
+    it('returns false when different day', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-16T10:30:45.123456Z')
+      expect(dt1.hasSame(dt2, 'day')).toEqual(false)
+    })
+
+    it('returns true when same hour', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-15T10:45:30.789012Z')
+      expect(dt1.hasSame(dt2, 'hour')).toEqual(true)
+    })
+
+    it('returns false when different hour', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-15T11:30:45.123456Z')
+      expect(dt1.hasSame(dt2, 'hour')).toEqual(false)
+    })
+
+    it('returns true when same minute', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-15T10:30:50.789012Z')
+      expect(dt1.hasSame(dt2, 'minute')).toEqual(true)
+    })
+
+    it('returns true when same second', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-15T10:30:45.789012Z')
+      expect(dt1.hasSame(dt2, 'second')).toEqual(true)
+    })
+
+    it('returns true when same millisecond', () => {
+      const dt1 = DateTime.fromISO('2026-02-15T10:30:45.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-15T10:30:45.123999Z')
+      expect(dt1.hasSame(dt2, 'millisecond')).toEqual(true)
+    })
+  })
+
+  describe('diffNow', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-02-07T09:03:44.000Z'))
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('returns difference from now in specified unit', () => {
+      const future = DateTime.fromISO('2026-02-08T09:03:44.000Z')
+      const diff = future.diffNow('days')
+      expect(diff).toEqual({ days: 1 })
+    })
+
+    it('returns negative difference for past dates', () => {
+      const past = DateTime.fromISO('2026-02-06T09:03:44.000Z')
+      const diff = past.diffNow('days')
+      expect(diff).toEqual({ days: -1 })
+    })
+
+    it('supports multiple units', () => {
+      const future = DateTime.fromISO('2026-02-08T15:30:00.000Z')
+      const diff = future.diffNow(['days', 'hours', 'minutes'])
+      expect(diff.days).toEqual(1)
+      expect(diff.hours).toEqual(6)
+      expect(diff.minutes).toBeCloseTo(26.27, 1)
+    })
+
+    it('supports microseconds', () => {
+      const dt = DateTime.fromISO('2026-02-07T09:03:44.000500Z')
+      const diff = dt.diffNow('microseconds')
+      expect(diff).toEqual({ microseconds: 500 })
     })
   })
 })
