@@ -75,8 +75,11 @@ import {
 import DreamTransaction from './DreamTransaction.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
-import extractNestedPaths from './internal/extractNestedPaths.js'
+import extractNestedPaths, { DreamClassAndAssociationNameTuple } from './internal/extractNestedPaths.js'
 import QueryDriverBase from './QueryDriver/Base.js'
+
+// Cache for extractNestedPaths results, keyed by "${sanitizedName}:${serializerKey}"
+const extractedNestedPathsCache = new Map<string, DreamClassAndAssociationNameTuple[][]>()
 
 export default class Query<
   DreamInstance extends Dream,
@@ -751,7 +754,14 @@ export default class Query<
       >
     >,
   >(this: Q, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn): RetQuery {
-    const preloadArgs = extractNestedPaths(this.dreamClass['serializationMap'](serializerKey))
+    const cacheKey = `${this.dreamClass.sanitizedName}:${serializerKey ?? 'default'}`
+
+    let preloadArgs = extractedNestedPathsCache.get(cacheKey)
+    if (!preloadArgs) {
+      // Cache miss - compute and store
+      preloadArgs = extractNestedPaths(this.dreamClass['serializationMap'](serializerKey))
+      extractedNestedPathsCache.set(cacheKey, preloadArgs)
+    }
 
     let query: RetQuery = this as unknown as RetQuery
 

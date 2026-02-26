@@ -68,6 +68,40 @@ describe('Dream.preloadFor(serializerKey)', () => {
     })
   })
 
+  context('cached generation of preloadFor associations', () => {
+    it('renders the same results multiple times', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const pet = await Pet.create({ user })
+      const post = await Post.create({ body: 'hi', user })
+      const rating = await Rating.create({ user, rateable: post })
+      await Collar.create({ pet })
+
+      const defaultCollar = await Collar.query().preloadFor('default').firstOrFail()
+      expect(defaultCollar.pet).toMatchDreamModel(pet)
+      expect(defaultCollar.pet.ratings).toMatchDreamModels([rating])
+
+      const defaultCollar2 = await Collar.query().preloadFor('default').firstOrFail()
+      expect(defaultCollar2.pet).toMatchDreamModel(pet)
+      expect(defaultCollar2.pet.ratings).toMatchDreamModels([rating])
+    })
+
+    it('renders different results for different serializerKeys', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const pet = await Pet.create({ user })
+      const post = await Post.create({ body: 'hi', user })
+      const rating = await Rating.create({ user, rateable: post })
+      await Collar.create({ pet })
+
+      const defaultCollar = await Collar.query().preloadFor('default').firstOrFail()
+      expect(defaultCollar.pet).toMatchDreamModel(pet)
+      expect(defaultCollar.pet.ratings).toMatchDreamModels([rating])
+
+      const summaryCollar = await Collar.query().preloadFor('summary').firstOrFail()
+      expect(summaryCollar.pet).toMatchDreamModel(pet)
+      expect(summaryCollar.pet.loaded('ratings')).toBe(false)
+    })
+  })
+
   context('deeply-nested associations', () => {
     it('renders the deeply-nested associations', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
