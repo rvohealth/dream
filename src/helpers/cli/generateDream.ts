@@ -1,13 +1,20 @@
-import * as fs from 'node:fs/promises'
-import DreamCLI from '../../cli/index.js'
-import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
-import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateDreamContent from './generateDreamContent.js'
 import generateFactory from './generateFactory.js'
 import generateMigration from './generateMigration.js'
 import generateSerializer from './generateSerializer.js'
 import generateUnitSpec from './generateUnitSpec.js'
+import modelClassNameFrom from './modelClassNameFrom.js'
+import writeGeneratedFile from './writeGeneratedFile.js'
+
+export interface GenerateDreamOptions {
+  connectionName: string
+  serializer: boolean
+  stiBaseSerializer: boolean
+  includeAdminSerializers: boolean
+  tableName?: string | undefined
+  modelName?: string | undefined
+}
 
 export default async function generateDream({
   fullyQualifiedModelName,
@@ -17,48 +24,30 @@ export default async function generateDream({
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes: string[]
-  options: {
-    connectionName: string
-    serializer: boolean
-    stiBaseSerializer: boolean
-    includeAdminSerializers: boolean
-  }
+  options: GenerateDreamOptions
   fullyQualifiedParentName?: string | undefined
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = modelClassNameFrom(fullyQualifiedModelName, options.modelName)
 
-  const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(
-    dreamPath('models'),
-    `${fullyQualifiedModelName}.ts`
-  )
-
-  try {
-    DreamCLI.logger.log(`[dream] generating dream: ${relFilePath}`)
-
-    await fs.mkdir(absDirPath, { recursive: true })
-    await fs.writeFile(
-      absFilePath,
-      generateDreamContent({
-        fullyQualifiedModelName,
-        columnsWithTypes,
-        fullyQualifiedParentName,
-        serializer: options.serializer,
-        includeAdminSerializers: options.includeAdminSerializers,
-        connectionName: options.connectionName,
-      })
-    )
-  } catch (error) {
-    throw new Error(`
-      Something happened while trying to create the Dream file:
-        ${relFilePath}
-
-      Does this file already exist? Here is the error that was raised:
-        ${(error as Error).message}
-    `)
-  }
+  await writeGeneratedFile({
+    dreamPathKey: 'models',
+    fileName: `${fullyQualifiedModelName}.ts`,
+    content: generateDreamContent({
+      fullyQualifiedModelName,
+      columnsWithTypes,
+      fullyQualifiedParentName,
+      serializer: options.serializer,
+      includeAdminSerializers: options.includeAdminSerializers,
+      connectionName: options.connectionName,
+      tableName: options.tableName,
+      modelClassName,
+    }),
+    logLabel: 'dream',
+  })
 
   await generateUnitSpec({ fullyQualifiedModelName })
-  await generateFactory({ fullyQualifiedModelName, columnsWithTypes })
+  await generateFactory({ fullyQualifiedModelName, columnsWithTypes, modelClassName })
   if (options.serializer)
     await generateSerializer({
       fullyQualifiedModelName,
@@ -66,6 +55,7 @@ export default async function generateDream({
       fullyQualifiedParentName,
       stiBaseSerializer: options.stiBaseSerializer,
       includeAdminSerializers: options.includeAdminSerializers,
+      modelClassName,
     })
 
   const isSTI = !!fullyQualifiedParentName
@@ -76,6 +66,8 @@ export default async function generateDream({
       columnsWithTypes,
       fullyQualifiedModelName,
       fullyQualifiedParentName,
+      tableName: options.tableName,
+      modelClassName,
     })
   }
 }

@@ -1,11 +1,14 @@
 import pluralize from 'pluralize-esm'
 import Dream from '../../Dream.js'
+import lookupModelByGlobalName from '../../dream-app/helpers/lookupModelByGlobalName.js'
 import Query from '../../dream/Query.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
 import { LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
+import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import snakeify from '../snakeify.js'
+import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
 const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
@@ -73,6 +76,7 @@ export default function generateMigrationContent({
             generateBelongsToStr(connectionName, attributeName, {
               primaryKeyType,
               omitInlineNonNull,
+              originalAssociationName: nonStandardAttributeName,
             })
           )
           attributeName = snakeify(nonStandardAttributeName.split('/').pop()!)
@@ -391,14 +395,16 @@ function generateBelongsToStr(
   {
     primaryKeyType,
     omitInlineNonNull: optional = false,
+    originalAssociationName,
   }: {
     primaryKeyType: LegacyCompatiblePrimaryKeyType
     omitInlineNonNull: boolean
+    originalAssociationName?: string
   }
 ) {
   const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
   const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
-  const references = pluralize(associationName.replace(/\//g, '_').replace(/_id$/, ''))
+  const references = lookupReferencesTable(associationName, originalAssociationName)
   return `.addColumn('${associationNameToForeignKey(associationName.split('/').pop()!)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
 
@@ -431,6 +437,33 @@ function generateIdStr({ primaryKeyType }: { primaryKeyType: LegacyCompatiblePri
     default:
       return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
   }
+}
+
+/**
+ * Determines the referenced table name for a belongs_to association.
+ * First tries to look up the actual model to get its table name (handles
+ * custom table name overrides). Falls back to deriving the table name
+ * from the association string if the model isn't found.
+ */
+function lookupReferencesTable(
+  snakeAssociationName: string,
+  originalAssociationName: string | undefined
+): string {
+  if (originalAssociationName) {
+    try {
+      const globalName = globalClassNameFromFullyQualifiedModelName(
+        standardizeFullyQualifiedModelName(originalAssociationName)
+      )
+      const model = lookupModelByGlobalName(globalName)
+      if (model?.table) {
+        return model.table as string
+      }
+    } catch {
+      // Model not found or DreamApp not initialized — fall through to string derivation
+    }
+  }
+
+  return pluralize(snakeAssociationName.replace(/\//g, '_').replace(/_id$/, ''))
 }
 
 function associationNameToForeignKey(associationName: string) {

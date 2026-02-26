@@ -11,12 +11,15 @@ export default function generateSerializerContent({
   fullyQualifiedParentName,
   stiBaseSerializer,
   includeAdminSerializers,
+  modelClassName,
 }: {
   fullyQualifiedModelName: string
   columnsWithTypes?: string[] | undefined
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
+  modelClassName: string
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const additionalImports: string[] = []
@@ -30,8 +33,7 @@ export default function generateSerializerContent({
     dreamImports.push('DreamSerializer')
   }
 
-  const relatedModelImport = importStatementForModel(fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const relatedModelImport = importStatementForModel(modelClassName, fullyQualifiedModelName)
   const modelInstanceName = camelize(modelClassName)
   const modelSerializerSignature = stiBaseSerializer
     ? `<T extends ${modelClassName}>(StiChildClass: typeof ${modelClassName}, ${modelInstanceName}: T)`
@@ -159,11 +161,10 @@ function importStatementForSerializer(originModelName: string, destinationModelN
   return `import { ${defaultSerializer}, ${summarySerializer} } from '${importFrom}'\n`
 }
 
-function importStatementForModel(originModelName: string, destinationModelName: string = originModelName) {
-  const modelName = globalClassNameFromFullyQualifiedModelName(destinationModelName)
-  const importFrom = absoluteDreamPath('models', destinationModelName)
+function importStatementForModel(modelClassName: string, fullyQualifiedModelName: string) {
+  const importFrom = absoluteDreamPath('models', fullyQualifiedModelName)
 
-  return `import ${modelName} from '${importFrom}'\n`
+  return `import ${modelClassName} from '${importFrom}'\n`
 }
 
 function fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName: string) {
