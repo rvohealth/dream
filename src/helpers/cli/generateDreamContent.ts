@@ -15,6 +15,9 @@ interface GenerateDreamContentOptions {
   connectionName?: string
   serializer: boolean
   includeAdminSerializers: boolean
+  tableName?: string | undefined
+  /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
+  modelClassName: string
 }
 
 export interface ModelConfig {
@@ -65,7 +68,7 @@ ${tableMethod}${serializersMethod}${fieldsSection}
 
 export function createModelConfig(options: GenerateDreamContentOptions): ModelConfig {
   const fullyQualifiedModelName = standardizeFullyQualifiedModelName(options.fullyQualifiedModelName)
-  const modelClassName = globalClassNameFromFullyQualifiedModelName(fullyQualifiedModelName)
+  const modelClassName = options.modelClassName
   const isSTI = !!options.fullyQualifiedParentName
 
   let parentModelClassName: string | undefined
@@ -78,7 +81,7 @@ export function createModelConfig(options: GenerateDreamContentOptions): ModelCo
   const applicationModelName =
     connectionName === 'default' ? 'ApplicationModel' : `${pascalize(connectionName)}ApplicationModel`
 
-  const tableName = snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
+  const tableName = options.tableName || snakeify(pluralize(fullyQualifiedModelName.replace(/\//g, '_')))
 
   return {
     fullyQualifiedModelName,

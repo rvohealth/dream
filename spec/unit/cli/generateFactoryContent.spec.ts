@@ -1,10 +1,15 @@
 import DreamApp from '../../../src/dream-app/index.js'
 import generateFactoryContent from '../../../src/helpers/cli/generateFactoryContent.js'
+import modelClassNameFrom from '../../../src/helpers/cli/modelClassNameFrom.js'
 
 describe('dream generate:model <name> [...attributes] (factory context)', () => {
   context('when provided with a pascalized table name', () => {
     it('generates a factory with the given name', () => {
-      const res = generateFactoryContent({ fullyQualifiedModelName: 'User', columnsWithTypes: [] })
+      const res = generateFactoryContent({
+        fullyQualifiedModelName: 'User',
+        modelClassName: modelClassNameFrom('User'),
+        columnsWithTypes: [],
+      })
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvoh/dream/types'
@@ -24,6 +29,7 @@ export default async function createUser(attrs: UpdateableProperties<User> = {})
     it('defaults are provided when not supplied', () => {
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
         columnsWithTypes: [
           'style:enum:building_style:formal,informal',
           'my_uuid:uuid',
@@ -71,6 +77,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       it('defaults are provided when not supplied', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
           columnsWithTypes: [
             'types:enum[]:post_type:WeeklyPost,GuestPost',
             'styles:enum[]:building_style:formal,informal',
@@ -118,6 +125,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
     it('defaults are omitted for optional arguments', () => {
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
         columnsWithTypes: [
           'type:enum:post_type:WeeklyPost,GuestPost:optional',
           'style:enum:building_style:formal,informal:optional',
@@ -149,6 +157,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       it('the counter variable is omitted', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
           columnsWithTypes: [
             'style:enum:building_style:formal,informal',
             'rating:decimal:3,2',
@@ -179,6 +188,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       it('is omitted (reserved for STI)', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
           columnsWithTypes: ['type:enum:room_type:Kitchen,Den'],
         })
         expect(res).toEqual(
@@ -200,6 +210,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       it('omit default values', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
           columnsWithTypes: [
             'localizable_id:bigint',
             'localizable_type:enum:localized_types:Host,Place,Room',
@@ -223,7 +234,11 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
 
   context('with a nested name', () => {
     it('applies nesting to name and directory structure', () => {
-      const res = generateFactoryContent({ fullyQualifiedModelName: 'My/Nested/User', columnsWithTypes: [] })
+      const res = generateFactoryContent({
+        fullyQualifiedModelName: 'My/Nested/User',
+        modelClassName: modelClassNameFrom('My/Nested/User'),
+        columnsWithTypes: [],
+      })
       expect(res).toEqual(
         `\
 import { UpdateableProperties } from '@rvoh/dream/types'
@@ -243,6 +258,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
     it('conditionally creates a default associated model iff an associated model is not provided', () => {
       const res = generateFactoryContent({
         fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
         columnsWithTypes: ['name:string', 'User:belongs_to'],
       })
       expect(res).toEqual(
@@ -268,6 +284,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       it('conditionally creates a default associated model iff an associated model is not provided', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
           columnsWithTypes: ['name:string', 'User:belongsTo'],
         })
         expect(res).toEqual(
@@ -294,6 +311,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       it('includes includes automatic creation of associations', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'My/Nested/User',
+          modelClassName: modelClassNameFrom('My/Nested/User'),
           columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
         })
         expect(res).toEqual(
@@ -326,6 +344,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
       it('styles all imports to have .js suffix', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'My/Nested/User',
+          modelClassName: modelClassNameFrom('My/Nested/User'),
           columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
         })
         expect(res).toEqual(
@@ -356,6 +375,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
       it('styles all imports to have .ts suffix', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'My/Nested/User',
+          modelClassName: modelClassNameFrom('My/Nested/User'),
           columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
         })
         expect(res).toEqual(
@@ -386,6 +406,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
       it('styles all imports to have no suffix', () => {
         const res = generateFactoryContent({
           fullyQualifiedModelName: 'My/Nested/User',
+          modelClassName: modelClassNameFrom('My/Nested/User'),
           columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
         })
         expect(res).toEqual(

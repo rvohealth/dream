@@ -1,6 +1,8 @@
 ## 2.3.2
 
 - cache `preloadFor` resolution of association tree to preload
+- `--table-name` option for the `g:model` generator
+- `--model-name` and `--admin-serializers` options for the `g:model` and `g:sti-child` generators
 
 ## 2.3.1
 

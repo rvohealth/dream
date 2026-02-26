@@ -8,9 +8,10 @@ import loadRepl from '../helpers/loadRepl.js'
 import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
 
-const INDENT = '                  '
+export const CLI_INDENT = '                  '
+const INDENT = CLI_INDENT
 
-const baseColumnsWithTypesDescription = `space separated snake-case (except for belongs_to model name) properties like this:
+export const baseColumnsWithTypesDescription = `space separated snake-case (except for belongs_to model name) properties like this:
 ${INDENT}    title:citext subtitle:string body_markdown:text style:enum:post_styles:formal,informal User:belongs_to
 ${INDENT}
 ${INDENT}all properties default to not nullable; null can be allowed by appending ':optional':
@@ -120,6 +121,9 @@ export default class DreamCLI {
 
   /**
    * @internal
+   *
+   * Called by Psychic (and other consumers) to programmatically generate a
+   * Dream model with all associated files.
    */
   public static async generateDream(opts: {
     fullyQualifiedModelName: string
@@ -129,6 +133,12 @@ export default class DreamCLI {
       serializer: boolean
       stiBaseSerializer: boolean
       includeAdminSerializers: boolean
+      tableName?: string | undefined
+      /**
+       * Optional model class name override. If provided, generators use it
+       * instead of deriving the class name from the fully qualified model name.
+       */
+      modelName?: string | undefined
     }
     fullyQualifiedParentName?: string | undefined
   }) {
@@ -188,6 +198,18 @@ export default class DreamCLI {
         'default'
       )
       .option('--sti-base-serializer')
+      .option(
+        '--table-name <tableName>',
+        'explicit table name to use instead of the auto-generated one (useful when model namespaces produce long names)'
+      )
+      .option(
+        '--model-name <modelName>',
+        'explicit model class name to use instead of the auto-generated one (e.g. --model-name=Kitchen for Room/Kitchen)'
+      )
+      .option(
+        '--admin-serializers',
+        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers'
+      )
       .argument(
         '<modelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -197,7 +219,14 @@ export default class DreamCLI {
         async (
           modelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; stiBaseSerializer: boolean; connectionName: string }
+          options: {
+            serializer: boolean
+            stiBaseSerializer: boolean
+            connectionName: string
+            tableName?: string
+            modelName?: string
+            adminSerializers?: boolean
+          }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           await DreamBin.generateDream(modelName, columnsWithTypes, options)
@@ -217,6 +246,14 @@ export default class DreamCLI {
         'the db connection you want this model attached to (defaults to the default connection)',
         'default'
       )
+      .option(
+        '--model-name <modelName>',
+        'explicit model class name to use instead of the auto-generated one (e.g. --model-name=Kitchen for Room/Kitchen)'
+      )
+      .option(
+        '--admin-serializers',
+        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers'
+      )
       .argument(
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -235,7 +272,12 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           extendsWord: string,
           parentModelName: string,
           columnsWithTypes: string[],
-          options: { serializer: boolean; connectionName: string }
+          options: {
+            serializer: boolean
+            connectionName: string
+            modelName?: string
+            adminSerializers?: boolean
+          }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           if (extendsWord !== 'extends')
