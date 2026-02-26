@@ -1,3 +1,7 @@
+## 2.3.2
+
+- cache `preloadFor` resolution of association tree to preload
+
 ## 2.3.1
 
 - fix `pluck` when long association names + long column names exceed 63 bytes (in which case, Postgres silently truncates, and trying to access the property on returned object returns undefined); follows the same strategy already employed by `preload`
