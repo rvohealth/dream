@@ -7,7 +7,7 @@ export function compact<
   NonNullKeys extends {
     [K in keyof T]: T[K] extends undefined | null ? never : K
   }[keyof T],
->(obj: T): { [K in NonNullKeys]: T[K] }
+>(obj: T): { [K in NonNullKeys]: Exclude<T[K], null | undefined> }
 //
 /**
  * Removes all null and undefined values from an array or object.
@@ -33,7 +33,7 @@ export default function compact<
   RetType extends T extends any[]
     ? Exclude<CompactedArrayElementType, null | undefined>[]
     : T extends { [key: string]: any }
-      ? { [K in NonNullKeys]: T[K] }
+      ? { [K in NonNullKeys]: Exclude<T[K], null | undefined> }
       : never,
 >(obj: T): RetType {
   if (Array.isArray(obj)) {

@@ -12,4 +12,14 @@ describe('compact(obj)', () => {
       expect(compacted).toEqual([1, 2])
     })
   })
+
+  it.skip('type test', () => {
+    const input = inputValue()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const result: Record<string, string> = compact({ hello: input })
+  })
 })
+
+function inputValue(): string | null | undefined {
+  return null
+}

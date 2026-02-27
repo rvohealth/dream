@@ -3,6 +3,7 @@
 - cache `preloadFor` resolution of association tree to preload
 - `--table-name` option for the `g:model` generator
 - `--model-name` and `--admin-serializers` options for the `g:model` and `g:sti-child` generators
+- fix return type of `compact` on an object with values that are unions that include null and/or undefined
 
 ## 2.3.1
 
