@@ -20,7 +20,7 @@ pnpm dream db:reset
 
 ### Sync
 
-Syncs OpenAPI changes, types, etc. This is automatically performed by `psy db:migrate` and `psy db:reset`, so it's not necessary to run separately if those are already being run.
+Syncs types, etc. This is automatically performed by `pnpm dream db:migrate` and `pnpm dream db:reset`, so it's not necessary to run separately if those are already being run.
 
 ## Build and Code Quality
 
@@ -49,31 +49,31 @@ pnpm lint
 ### All Unit Specs
 
 ```bash
-pnpm uspec
+pnpm spec
 ```
 
 ### Individual Unit Spec File
 
 ```bash
-pnpm uspec <filepath>
+pnpm spec <filepath>
 ```
 
 Example:
 
 ```bash
-pnpm uspec spec/unit/controller/ok.spec.ts
+pnpm spec spec/unit/helpers/compact.spec.ts
 ```
 
 ### All Unit Specs in a Directory
 
 ```bash
-pnpm uspec <dirpath>
+pnpm spec <dirpath>
 ```
 
 Example:
 
 ```bash
-pnpm uspec spec/unit/controller/
+pnpm spec spec/unit/helpers/
 ```
 
 ### Individual Spec Example in a Unit Spec File
@@ -83,7 +83,7 @@ pnpm uspec spec/unit/controller/
 Add `.only` to a spec example:
 
 ```typescript
-it.only('renders the data as json', () => {
+it.only('removes undefined and null values', () => {
   // test code
 })
 ```
