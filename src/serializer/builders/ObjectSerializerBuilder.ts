@@ -236,7 +236,7 @@ export default class ObjectSerializerBuilder<
               serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
             }
           | {
-              serializer: SerializerType<AssociatedModelType>
+              serializer: SerializerType
             }
       : AssociatedModelType extends ViewModel
         ?
@@ -245,13 +245,11 @@ export default class ObjectSerializerBuilder<
                 serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
               }
             | {
-                serializer: SerializerType<AssociatedModelType>
+                serializer: SerializerType
               }
-        : AssociatedModelType extends object
-          ? {
-              serializer: SerializerType<AssociatedModelType>
-            }
-          : never,
+        : {
+            serializer: SerializerType
+          },
   >(
     name: AttributeName,
     options: {
@@ -331,7 +329,7 @@ export default class ObjectSerializerBuilder<
               serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
             }
           | {
-              serializer: SerializerType<AssociatedModelType>
+              serializer: SerializerType
             }
       : AssociatedModelType extends ViewModel
         ?
@@ -340,13 +338,11 @@ export default class ObjectSerializerBuilder<
                 serializerKey?: DreamOrViewModelSerializerKey<AssociatedModelType>
               }
             | {
-                serializer: SerializerType<AssociatedModelType>
+                serializer: SerializerType
               }
-        : AssociatedModelType extends object
-          ? {
-              serializer: SerializerType<AssociatedModelType>
-            }
-          : never,
+        : {
+            serializer: SerializerType
+          },
   >(
     name: AttributeName,
     options: {

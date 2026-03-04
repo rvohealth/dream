@@ -1,4 +1,5 @@
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
+import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -257,14 +258,30 @@ describe('DreamSerializer#rendersOne', () => {
     })
   })
 
-  it('supports supplying a custom serializer', () => {
+  it('supports supplying a custom DreamSerializer', () => {
     const birthdate = CalendarDate.fromISO('1950-10-02')
     const user = User.new({ id: '7', name: 'Charlie', birthdate })
     const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
 
     const CustomSerializer = (data: User) => DreamSerializer(User, data).attribute('name')
-    ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
-    ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
+    const MySerializer = (data: Pet) =>
+      DreamSerializer(Pet, data).rendersOne('user', { serializer: CustomSerializer })
+
+    const serializer = MySerializer(pet)
+
+    expect(serializer.render()).toEqual({
+      user: {
+        name: 'Charlie',
+      },
+    })
+  })
+
+  it('supports supplying a custom ObjectSerializer', () => {
+    const birthdate = CalendarDate.fromISO('1950-10-02')
+    const user = User.new({ id: '7', name: 'Charlie', birthdate })
+    const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+    const CustomSerializer = (data: User) => ObjectSerializer(data).attribute('name', { openapi: 'string' })
     const MySerializer = (data: Pet) =>
       DreamSerializer(Pet, data).rendersOne('user', { serializer: CustomSerializer })
 

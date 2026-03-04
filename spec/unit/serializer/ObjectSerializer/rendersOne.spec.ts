@@ -2,6 +2,7 @@ import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import { default as DreamUser } from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import { Species, SpeciesValues } from '../../../../test-app/types/db.js'
 
 interface SimpleUser {
@@ -87,14 +88,32 @@ describe('ObjectSerializer#rendersOne', () => {
       })
     })
 
-    it('supports supplying a custom serializer', () => {
+    it('supports supplying a custom DreamSerializer', () => {
+      const birthdate = CalendarDate.fromISO('1950-10-02')
+      const user = DreamUser.new({ id: '7', name: 'Charlie', birthdate, favoriteWord: 'hello' })
+      const pet: PetWithDreamUser = { id: '3', user, name: 'Snoopy', species: 'dog' }
+
+      const MySerializer = (data: PetWithDreamUser) =>
+        ObjectSerializer(data).rendersOne('user', { serializer: UserSerializer })
+
+      const serializer = MySerializer(pet)
+
+      expect(serializer.render()).toEqual({
+        user: {
+          birthdate: '1950-10-02',
+          favoriteWord: 'hello',
+          id: '7',
+          name: 'Charlie',
+        },
+      })
+    })
+
+    it('supports supplying a custom ObjectSerializer', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const user = DreamUser.new({ id: '7', name: 'Charlie', birthdate, favoriteWord: 'hello' })
       const pet: PetWithDreamUser = { id: '3', user, name: 'Snoopy', species: 'dog' }
 
       const CustomSerializer = (data: DreamUser) => DreamSerializer(DreamUser, data).attribute('name')
-      ;(CustomSerializer as any)['globalName'] = 'CustomUserSerializer'
-      ;(CustomSerializer as any)['openapiName'] = 'CustomUser'
       const MySerializer = (data: PetWithDreamUser) =>
         ObjectSerializer(data).rendersOne('user', { serializer: CustomSerializer })
 

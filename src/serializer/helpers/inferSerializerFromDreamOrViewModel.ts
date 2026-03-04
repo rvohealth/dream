@@ -19,11 +19,7 @@ export const DEFAULT_SERIALIZER_KEY = 'default'
 
 export default function inferSerializerFromDreamOrViewModel<
   T extends Dream | ViewModel | null | undefined,
-  ReturnType extends T extends null | undefined
-    ? null
-    : T extends Dream | ViewModel
-      ? SerializerType<T>
-      : never,
+  ReturnType extends T extends null | undefined ? null : T extends Dream | ViewModel ? SerializerType : never,
 >(obj: T, serializerKey: string | undefined = DEFAULT_SERIALIZER_KEY): ReturnType {
   if (!obj) return null as ReturnType
   const serializers = (obj as ViewModel).serializers
