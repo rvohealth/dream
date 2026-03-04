@@ -1,6 +1,7 @@
 ## 2.3.3
 
-Fix `rendersOne/Many` `serializer` option to allow ObjectSerializer in addition to DreamSerializer
+- fix `rendersOne/Many` `serializer` option to allow ObjectSerializer in addition to DreamSerializer
+- logger prints 'null' for null and 'undefined' for undefined
 
 ## 2.3.2
 
