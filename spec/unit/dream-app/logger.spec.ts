@@ -45,15 +45,17 @@ describe('log functions', () => {
 
     it('logs simple objects', () => {
       DreamApp.log({ hello: 'world' })
-      expect(logSpy).toHaveBeenCalledWith(`{ hello: 'world' }`)
+      expect(logSpy).toHaveBeenCalledWith(JSON.stringify(`{ hello: 'world' }`))
     })
 
     it('doesn’t throw an error with an objects deeper than 3 levels', () => {
       DreamApp.log({ one: { two: { three: { four: { five: 'six' } } } } })
       expect(logSpy).toHaveBeenCalledWith(
-        `{
-  one: { two: { three: { four: [Object] } } }
-}`
+        JSON.stringify(`{
+  one: {
+    two: { three: { four: { five: 'six' } } }
+  }
+}`)
       )
     })
 
@@ -114,15 +116,17 @@ describe('log functions', () => {
 
     it('logs simple objects', () => {
       DreamApp.logWithLevel('warn', { hello: 'world' })
-      expect(warnSpy).toHaveBeenCalledWith(`{ hello: 'world' }`)
+      expect(warnSpy).toHaveBeenCalledWith(JSON.stringify(`{ hello: 'world' }`))
     })
 
     it('doesn’t throw an error with an objects deeper than 3 levels', () => {
       DreamApp.logWithLevel('warn', { one: { two: { three: { four: { five: 'six' } } } } })
       expect(warnSpy).toHaveBeenCalledWith(
-        `{
-  one: { two: { three: { four: [Object] } } }
-}`
+        JSON.stringify(`{
+  one: {
+    two: { three: { four: { five: 'six' } } }
+  }
+}`)
       )
     })
 
