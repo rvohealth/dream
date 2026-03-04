@@ -542,6 +542,8 @@ function loggerArgToString(arg: any) {
   if (typeof arg === 'string') return arg
   if (typeof arg === 'number') return arg
   if (typeof arg === 'boolean') return arg
+  if (arg === null) return 'null'
+  if (arg === undefined) return 'undefined'
   if (arg instanceof DateTime || arg instanceof CalendarDate || arg instanceof BaseClockTime) {
     return arg.toISO()
   }
