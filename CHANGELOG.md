@@ -1,3 +1,7 @@
+## 2.3.3
+
+Fix `rendersOne/Many` `serializer` option to allow ObjectSerializer in addition to DreamSerializer
+
 ## 2.3.2
 
 - cache `preloadFor` resolution of association tree to preload
