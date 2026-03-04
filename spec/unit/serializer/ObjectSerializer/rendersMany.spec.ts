@@ -1,6 +1,7 @@
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import { default as DreamPet } from '../../../../test-app/app/models/Pet.js'
+import PetSerializer from '../../../../test-app/app/serializers/PetSerializer.js'
 import { CatTreats, Species } from '../../../../test-app/types/db.js'
 
 interface UserWithSimplePets {
@@ -159,7 +160,33 @@ describe('ObjectSerializer#rendersMany', () => {
       })
     })
 
-    it('supports supplying a custom serializer', () => {
+    it('supports supplying a custom DreamSerializer', () => {
+      const birthdate = CalendarDate.fromISO('1950-10-02')
+      const pet1: SimplePet = { id: '3', name: 'Snoopy', species: 'dog' }
+      const pet2: SimplePet = { id: '7', name: 'Woodstock', species: 'frog' }
+      pet1.ratings = []
+      pet2.ratings = []
+      const user: UserWithSimplePets = { id: '11', name: 'Charlie', birthdate, pets: [pet1, pet2] }
+
+      const MySerializer = (data: UserWithSimplePets) =>
+        // rendersMany generic param just to make sure it works
+        ObjectSerializer(data).rendersMany<UserWithSimplePets>('pets', { serializer: PetSerializer })
+
+      const serializer = MySerializer(user)
+
+      expect(serializer.render()).toEqual({
+        pets: [
+          expect.objectContaining({
+            name: 'Snoopy',
+          }),
+          expect.objectContaining({
+            name: 'Woodstock',
+          }),
+        ],
+      })
+    })
+
+    it('supports supplying a custom ObjectSerializer', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const pet1: SimplePet = { id: '3', name: 'Snoopy', species: 'dog' }
       const pet2: SimplePet = { id: '7', name: 'Woodstock', species: 'frog' }
@@ -169,8 +196,6 @@ describe('ObjectSerializer#rendersMany', () => {
 
       const CustomSerializer = (data: SimplePet) =>
         ObjectSerializer(data).attribute('name', { openapi: ['string', 'null'] })
-      ;(CustomSerializer as any)['globalName'] = 'CustomPetSerializer'
-      ;(CustomSerializer as any)['openapiName'] = 'CustomPet'
       const MySerializer = (data: UserWithSimplePets) =>
         // rendersMany generic param just to make sure it works
         ObjectSerializer(data).rendersMany<UserWithSimplePets>('pets', { serializer: CustomSerializer })

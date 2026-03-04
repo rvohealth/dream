@@ -113,6 +113,4 @@ export type SimpleObjectSerializerType = (
   passthroughData?: any
 ) => ObjectSerializerBuilder<any, any>
 
-export type SerializerType<T extends Dream | object | Dream[] | object[]> = T extends Dream | Dream[]
-  ? DreamModelSerializerType
-  : SimpleObjectSerializerType
+export type SerializerType = DreamModelSerializerType | SimpleObjectSerializerType
