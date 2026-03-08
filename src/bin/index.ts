@@ -59,6 +59,7 @@ export default class DreamBin {
       connectionName: string
       tableName?: string
       adminSerializers?: boolean
+      internalSerializers?: boolean
       modelName?: string
     }
   ) {
@@ -67,6 +68,7 @@ export default class DreamBin {
       columnsWithTypes,
       options: {
         includeAdminSerializers: options.adminSerializers ?? false,
+        includeInternalSerializers: options.internalSerializers ?? false,
         ...options,
       },
     })
@@ -80,6 +82,7 @@ export default class DreamBin {
       serializer: boolean
       connectionName: string
       adminSerializers?: boolean
+      internalSerializers?: boolean
       modelName?: string
     }
   ) {
@@ -88,6 +91,7 @@ export default class DreamBin {
       columnsWithTypes,
       options: {
         includeAdminSerializers: options.adminSerializers ?? false,
+        includeInternalSerializers: options.internalSerializers ?? false,
         ...options,
         stiBaseSerializer: false,
       },

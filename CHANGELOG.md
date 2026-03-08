@@ -1,3 +1,8 @@
+## 2.4.0
+
+- `includeInternalSerializers` model generator option
+- `--internal-serializers` flag for the model and sti-child generators
+
 ## 2.3.3
 
 - fix `rendersOne/Many` `serializer` option to allow ObjectSerializer in addition to DreamSerializer
