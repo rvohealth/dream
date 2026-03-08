@@ -7,6 +7,7 @@ export default async function generateSerializer({
   fullyQualifiedParentName,
   stiBaseSerializer,
   includeAdminSerializers,
+  includeInternalSerializers,
   modelClassName,
 }: {
   fullyQualifiedModelName: string
@@ -14,6 +15,7 @@ export default async function generateSerializer({
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  includeInternalSerializers?: boolean
   modelClassName: string
 }) {
   await writeGeneratedFile({
@@ -25,6 +27,7 @@ export default async function generateSerializer({
       fullyQualifiedParentName,
       stiBaseSerializer,
       includeAdminSerializers,
+      includeInternalSerializers: includeInternalSerializers ?? false,
       modelClassName,
     }),
     logLabel: 'serializer',

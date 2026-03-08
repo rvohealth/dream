@@ -11,6 +11,7 @@ export default function generateSerializerContent({
   fullyQualifiedParentName,
   stiBaseSerializer,
   includeAdminSerializers,
+  includeInternalSerializers,
   modelClassName,
 }: {
   fullyQualifiedModelName: string
@@ -18,6 +19,7 @@ export default function generateSerializerContent({
   fullyQualifiedParentName?: string | undefined
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  includeInternalSerializers?: boolean
   /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
   modelClassName: string
 }) {
@@ -72,6 +74,15 @@ export default function generateSerializerContent({
   )
   // end:Admin variants
 
+  // Internal variants
+  const internalSerializerClassName = serializerClassName.replace(/Serializer$/, 'InternalSerializer')
+
+  const internalSummarySerializerClassName = summarySerializerClassName.replace(
+    /SummarySerializer$/,
+    'InternalSummarySerializer'
+  )
+  // end:Internal variants
+
   const additionalModelImports: string[] = []
 
   const dreamImport = dreamImports.length
@@ -105,6 +116,14 @@ ${defaultSerializer}${
 ${summarySerializer.replace(summarySerializerClassName, adminSummarySerializerClassName)}
 
 ${defaultSerializer.replace(serializerClassName, adminSerializerClassName).replace(summarySerializerClassName, adminSummarySerializerClassName)}`
+  }${
+    !includeInternalSerializers
+      ? ''
+      : `
+
+${summarySerializer.replace(summarySerializerClassName, internalSummarySerializerClassName)}
+
+${defaultSerializer.replace(serializerClassName, internalSerializerClassName).replace(summarySerializerClassName, internalSummarySerializerClassName)}`
   }
 `
 }

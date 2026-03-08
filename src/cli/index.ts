@@ -133,6 +133,7 @@ export default class DreamCLI {
       serializer: boolean
       stiBaseSerializer: boolean
       includeAdminSerializers: boolean
+      includeInternalSerializers?: boolean
       tableName?: string | undefined
       /**
        * Optional model class name override. If provided, generators use it
@@ -210,6 +211,10 @@ export default class DreamCLI {
         '--admin-serializers',
         'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers'
       )
+      .option(
+        '--internal-serializers',
+        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers'
+      )
       .argument(
         '<modelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -226,6 +231,7 @@ export default class DreamCLI {
             tableName?: string
             modelName?: string
             adminSerializers?: boolean
+            internalSerializers?: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
@@ -254,6 +260,10 @@ export default class DreamCLI {
         '--admin-serializers',
         'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers'
       )
+      .option(
+        '--internal-serializers',
+        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers'
+      )
       .argument(
         '<childModelName>',
         'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
@@ -277,6 +287,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
             connectionName: string
             modelName?: string
             adminSerializers?: boolean
+            internalSerializers?: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })

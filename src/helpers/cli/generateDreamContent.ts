@@ -15,6 +15,7 @@ interface GenerateDreamContentOptions {
   connectionName?: string
   serializer: boolean
   includeAdminSerializers: boolean
+  includeInternalSerializers?: boolean
   tableName?: string | undefined
   /** Model class name, computed once via modelClassNameFrom in the orchestrator. */
   modelClassName: string
@@ -269,10 +270,19 @@ function buildSerializersMethod(config: ModelConfig, options: GenerateDreamConte
       adminSummary: '${adminSummarySerializer}',`
   }
 
+  let internalSerializers = ''
+  if (options.includeInternalSerializers) {
+    const internalSerializer = defaultSerializer.replace(/Serializer$/, 'InternalSerializer')
+    const internalSummarySerializer = summarySerializer.replace(/SummarySerializer$/, 'InternalSummarySerializer')
+    internalSerializers = `
+      internal: '${internalSerializer}',
+      internalSummary: '${internalSummarySerializer}',`
+  }
+
   return `  public ${overrideKeyword}get serializers(): DreamSerializers<${config.modelClassName}> {
     return {
       default: '${defaultSerializer}',
-      summary: '${summarySerializer}',${adminSerializers}
+      summary: '${summarySerializer}',${adminSerializers}${internalSerializers}
     }
   }
 
