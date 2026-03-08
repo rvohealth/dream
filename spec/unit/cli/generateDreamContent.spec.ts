@@ -231,7 +231,7 @@ export default class User extends ApplicationModel {
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
   @deco.Encrypted()
-  public phoneNumber: DreamColumn<User, 'phoneNumber'>
+  public phoneNumber: DreamColumn<User, 'encryptedPhoneNumber'>
 }
 `
         )
@@ -1147,7 +1147,7 @@ public name: DreamColumn<User, 'name'>`)
 
       expect(result.content).toEqual(`
 @deco.Encrypted()
-public ssn: DreamColumn<User, 'ssn'>`)
+public ssn: DreamColumn<User, 'encryptedSsn'>`)
       expect(result.imports).toEqual([])
     })
 
@@ -1228,7 +1228,7 @@ public companyId: DreamColumn<User, 'companyId'>
 
       expect(result.content).toEqual(`
 @deco.Encrypted()
-public ssn: DreamColumn<User, 'ssn'>`)
+public ssn: DreamColumn<User, 'encryptedSsn'>`)
       expect(result.imports).toEqual([])
     })
 
@@ -1240,7 +1240,7 @@ public ssn: DreamColumn<User, 'ssn'>`)
       )
 
       expect(result.content).toContain(
-        "public socialSecurityNumber: DreamColumn<User, 'socialSecurityNumber'>"
+        "public socialSecurityNumber: DreamColumn<User, 'encryptedSocialSecurityNumber'>"
       )
     })
   })

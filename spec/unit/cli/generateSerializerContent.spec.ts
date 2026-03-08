@@ -346,6 +346,12 @@ export const UserSerializer = (user: User) =>
         })
       })
 
+      context('one of those attributes is type "encrypted"', () => {
+        it('adds an attribute using the original (non-encrypted) column name', () => {
+          expectAttributeType('encrypted')
+        })
+      })
+
       context('one of those attributes is an enum', () => {
         it('adds an enum type to the Attribute call', () => {
           expectAttributeType('enum:topping:cheese,baja_sauce')
