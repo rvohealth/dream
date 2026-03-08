@@ -2,6 +2,7 @@
 
 - `includeInternalSerializers` model generator option
 - `--internal-serializers` flag for the model and sti-child generators
+- fix handling of `encrypted` type for CLI generator commands
 
 ## 2.3.3
 
