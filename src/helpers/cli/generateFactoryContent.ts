@@ -61,6 +61,7 @@ export default function generateFactoryContent({
         break
       }
 
+      case 'encrypted':
       case 'string':
       case 'text':
       case 'citext':

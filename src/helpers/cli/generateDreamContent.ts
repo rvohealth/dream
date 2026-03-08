@@ -199,9 +199,10 @@ export function createEncryptedAttribute(
   attribute: string,
   modelClassName: string
 ): AttributeProcessingResult {
+  const encryptedColumnName = camelize(`encrypted_${attributeName}`)
   const content = `
 @deco.Encrypted()
-public ${camelize(attributeName)}: ${getAttributeType(attribute, modelClassName)}`
+public ${camelize(attributeName)}: DreamColumn<${modelClassName}, '${encryptedColumnName}'>`
 
   return {
     content,
