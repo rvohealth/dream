@@ -12,6 +12,7 @@ export interface GenerateDreamOptions {
   serializer: boolean
   stiBaseSerializer: boolean
   includeAdminSerializers: boolean
+  includeInternalSerializers?: boolean
   tableName?: string | undefined
   modelName?: string | undefined
 }
@@ -39,6 +40,7 @@ export default async function generateDream({
       fullyQualifiedParentName,
       serializer: options.serializer,
       includeAdminSerializers: options.includeAdminSerializers,
+      includeInternalSerializers: options.includeInternalSerializers ?? false,
       connectionName: options.connectionName,
       tableName: options.tableName,
       modelClassName,
@@ -55,6 +57,7 @@ export default async function generateDream({
       fullyQualifiedParentName,
       stiBaseSerializer: options.stiBaseSerializer,
       includeAdminSerializers: options.includeAdminSerializers,
+      includeInternalSerializers: options.includeInternalSerializers ?? false,
       modelClassName,
     })
 
