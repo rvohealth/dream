@@ -168,7 +168,10 @@ describe('ClockTimeTz', () => {
         const clockTime = ClockTimeTz.fromFormat('10:30:45 +00:00', 'HH:mm:ss ZZ', {
           zone: 'America/New_York',
         })
-        expect(clockTime.toISOTime()).toEqual('05:30:45.000000-05:00')
+
+        // use regex, since daylight savings time can cause this spec to wander between
+        // 5:30 and 6:30, with a timezone offset of -4 or -5
+        expect(clockTime.toISOTime()).toMatch(/0[56]:30:45.000000-0[45]:00/)
       })
     })
 

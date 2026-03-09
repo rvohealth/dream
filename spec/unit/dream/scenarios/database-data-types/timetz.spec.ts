@@ -30,6 +30,11 @@ describe('time with time zone (timetz)', () => {
     const reloaded = await ModelForDatabaseTypeSpec.findOrFail(model.id)
     expect(reloaded.myTimeWithZone?.toDateTime().offset).toEqual(0)
     expect(reloaded.myTimeWithZone?.toISOTime()).toEqual('22:45:07.001234Z')
-    expect(reloaded.myTimeWithZone?.setZone('America/Chicago').toISOTime()).toEqual(isoTime)
+
+    // use regex, since daylight savings time can cause this spec to wander between
+    // 16:45 and 17:45, with a timezone offset of -5 or -6
+    expect(reloaded.myTimeWithZone?.setZone('America/Chicago').toISOTime()).toMatch(
+      /1[67]:45:07.001234-0[56]:00/
+    )
   })
 })
