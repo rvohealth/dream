@@ -1,4 +1,5 @@
 import camelize from '../camelize.js'
+import hyphenize from '../hyphenize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import absoluteDreamPath from '../path/absoluteDreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
@@ -65,9 +66,16 @@ export default function generateFactoryContent({
       case 'string':
       case 'text':
       case 'citext':
-        attributeDefaults.push(
-          `${attributeVariable}: \`${fullyQualifiedModelName} ${attributeVariable} ${counterVariableIncremented ? '${counter}' : '${++counter}'}\`,`
-        )
+        if (/email$/i.test(attributeVariable)) {
+          const hyphenized = hyphenize(attributeVariable) as string
+          attributeDefaults.push(
+            `${attributeVariable}: \`${hyphenized}-${counterVariableIncremented ? '${counter}' : '${++counter}'}@example.com\`,`
+          )
+        } else {
+          attributeDefaults.push(
+            `${attributeVariable}: \`${fullyQualifiedModelName} ${attributeVariable} ${counterVariableIncremented ? '${counter}' : '${++counter}'}\`,`
+          )
+        }
         counterVariableIncremented = true
         break
 
