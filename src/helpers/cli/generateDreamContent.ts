@@ -274,7 +274,10 @@ function buildSerializersMethod(config: ModelConfig, options: GenerateDreamConte
   let internalSerializers = ''
   if (options.includeInternalSerializers) {
     const internalSerializer = defaultSerializer.replace(/Serializer$/, 'InternalSerializer')
-    const internalSummarySerializer = summarySerializer.replace(/SummarySerializer$/, 'InternalSummarySerializer')
+    const internalSummarySerializer = summarySerializer.replace(
+      /SummarySerializer$/,
+      'InternalSummarySerializer'
+    )
     internalSerializers = `
       internal: '${internalSerializer}',
       internalSummary: '${internalSummarySerializer}',`
