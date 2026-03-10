@@ -185,8 +185,13 @@ Your current key value for ${encryptionIdentifier} encryption is invalid.
 Try setting it to something valid, like:
   ${Encrypt.generateKey(algorithm)}
 
-(This was done by calling:
-  Encrypt.generateKey('${algorithm}')
+This was done by calling:
+  Encrypt.generateKey('${algorithm}'
+
+A new key can also be generated from the CLI:
+  % pnpm psy g:encryption-key
+  OR
+  % pnpm psy g:encryption-key --algorithm=aes-256-gcm
 `
       )
   }
