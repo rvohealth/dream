@@ -375,6 +375,52 @@ export type AssociationTableName<
   AssociationData = MetadataForAssociation<Schema, TableName, AssociationName>,
 > = (AssociationData['tables' & keyof AssociationData] & any[])[0] & keyof Schema
 
+/**
+ * @internal
+ *
+ * Union of all table names for an association, accounting
+ * for polymorphic associations, which contain more than one
+ * table.
+ *
+ * ```ts
+ * AssociationTableNamesForAssociation<Schema, 'ratings', 'rateable'>
+ * // 'compositions' | 'posts'
+ * ```
+ */
+export type AssociationTableNamesForAssociation<
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+  AssociationData = MetadataForAssociation<Schema, TableName, AssociationName>,
+> = (AssociationData['tables' & keyof AssociationData] & readonly (keyof Schema)[])[number]
+
+/**
+ * @internal
+ *
+ * Union of all association names for an association, accounting
+ * for polymorphic associations. In a polymorphic scenario, an association
+ * like `Rating#rateable` will point to multiple models, in this case
+ * either Composition or Post. Both of these models have some shared associations
+ * (i.e. `user`), but also some differing associations. This type helper
+ * will union all of these possibilities together, enabling us to preload
+ * inner associations safely at the type layer, since it is already
+ * supported at the implementation layer.
+ *
+ * In the example below, `compositionAssets` will come from the Composition model,
+ * while `comments` will come from the Post model.
+ *
+ * ```ts
+ * AssociationNamesForAssociation<Schema, 'ratings', 'rateable'>
+ * // 'compositionAssets' | 'comments' ...
+ * ```
+ */
+export type AssociationNamesForAssociation<
+  Schema,
+  TableName extends keyof Schema,
+  AssociationName,
+  TableNamesUnion = AssociationTableNamesForAssociation<Schema, TableName, AssociationName>,
+> = TableNamesUnion extends keyof Schema ? AssociationNamesForTable<Schema, TableNamesUnion> : never
+
 export type DreamClassAssociationAndStatement<
   DreamClass extends typeof Dream,
   AssociationName,

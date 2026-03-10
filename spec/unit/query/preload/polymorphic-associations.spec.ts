@@ -183,4 +183,69 @@ describe('Query#preload with polymorphic associations', () => {
       })
     })
   })
+
+  context(
+    'with associations that are only supported on one or another of a polymorphic model association',
+    () => {
+      it('allows all associations to be preloaded', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+        })
+        await Composition.create({ user })
+        const post = await Post.create({ user })
+        const rating = await Rating.create({ user, rateable: post })
+        const comment = await post.createAssociation('comments')
+
+        const reloaded = await Rating.preload('rateable', ['compositionAssets', 'comments']).findOrFail(
+          rating.id
+        )
+        expect((reloaded.rateable as Post).comments).toMatchDreamModels([comment])
+      })
+
+      context('when traveling through a polymorphic association to its descendants', () => {
+        it('allows all associations to be preloaded', async () => {
+          const user = await User.create({
+            email: 'fred@frewd',
+            password: 'howyadoin',
+          })
+          await Post.create({ user })
+          const composition = await Composition.create({ user })
+          const compositionAsset = await composition.createAssociation('compositionAssets')
+          const compositionAssetAudit = await compositionAsset.createAssociation('compositionAssetAudits')
+          const rating = await Rating.create({ user, rateable: composition })
+
+          let reloaded = await Rating.preload('rateable', 'comments', 'post').findOrFail(rating.id)
+
+          reloaded = await Rating.preload(
+            'rateable',
+            'compositionAssets',
+            'compositionAssetAudits'
+          ).findOrFail(rating.id)
+          expect(
+            (reloaded.rateable as Composition).compositionAssets[0]!.compositionAssetAudits
+          ).toMatchDreamModels([compositionAssetAudit])
+        })
+      })
+    }
+  )
+})
+
+it.skip('type test', async () => {
+  // preload allows re-using of association names since preloading does not occur within a single
+  // query, so will not result in namespace collision
+  await Rating.preload('rateable', ['compositionAssets', 'comments']).all()
+  await Rating.preload('rateable', 'comments').all()
+
+  // @ts-expect-error type test
+  await Rating.preload('rateable', ['compositionAssets', 'commentz']).all()
+
+  // @ts-expect-error type test
+  await Rating.preload('rateable', 'commentz').all()
+
+  // @ts-expect-error type test
+  Rating.preload('rateable', 'comments', 'compositionAssetAudits')
+
+  // @ts-expect-error type test
+  Rating.preload('rateable', 'compositionAssets', 'post')
 })
