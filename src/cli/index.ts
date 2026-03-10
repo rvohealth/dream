@@ -1,7 +1,8 @@
 import { SpawnOptions } from 'child_process'
-import { Command, InvalidArgumentError } from 'commander'
+import { Command, InvalidArgumentError, Option } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
+import Encrypt, { EncryptAlgorithm } from '../encrypt/index.js'
 import generateDream from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
@@ -300,6 +301,23 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
           process.exit()
         }
       )
+
+    program
+      .command('generate:encryption-key')
+      .alias('g:encryption-key')
+      .description(
+        'Generates a new encryption key for any of the encryption use cases in Dream or Psychic (encrypted column, encrypting/decrypting cookies, generalized use of the Encrypt library).'
+      )
+      .addOption(
+        new Option('--algorithm <algorithm>', 'the encryption algorithm to generate a key for')
+          .choices(['aes-256-gcm', 'aes-192-gcm', 'aes-128-gcm'])
+          .default('aes-256-gcm')
+      )
+      .action((options: { algorithm: EncryptAlgorithm }) => {
+        // eslint-disable-next-line no-console
+        console.log(Encrypt.generateKey(options.algorithm))
+        process.exit()
+      })
 
     program
       .command('db:create')

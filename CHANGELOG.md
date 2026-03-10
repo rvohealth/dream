@@ -1,3 +1,7 @@
+## 2.5.0
+
+- add `generate:encryption-key`/`g:encryption-key` CLI command
+
 ## 2.4.0
 
 - `includeInternalSerializers` model generator option
