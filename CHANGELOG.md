@@ -1,3 +1,7 @@
+## 2.5.1
+
+add type support for nested associations stemming from a polymorphic preload chain
+
 ## 2.5.0
 
 - add `generate:encryption-key`/`g:encryption-key` CLI command

@@ -496,10 +496,10 @@ describe('Query#preload with simple associations', () => {
       })
     })
   })
+})
 
-  it.skip('type test', async () => {
-    // preload allows re-using of association names since preloading does not occur within a single
-    // query, so will not result in namespace collision
-    await Edge.preload('nodes', 'edges', 'nodes').all()
-  })
+it.skip('type test', async () => {
+  // preload allows re-using of association names since preloading does not occur within a single
+  // query, so will not result in namespace collision
+  await Edge.preload('nodes', 'edges', 'nodes').all()
 })
