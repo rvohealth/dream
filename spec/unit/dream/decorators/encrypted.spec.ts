@@ -20,11 +20,11 @@ describe('@Encrypted', () => {
     expect(attributes['secret' as keyof typeof attributes]).toBeUndefined()
   })
 
-  it('adds the encrypted columns to the Dream class’s virtualAttributes', () => {
+  it("adds the encrypted columns to the Dream class's virtualAttributes with nullability based on the backing column", () => {
     expect(User['virtualAttributes']).toEqual(
       expect.arrayContaining([
-        { property: 'secret', type: 'string' },
-        { property: 'otherSecret', type: 'string' },
+        { property: 'secret', type: ['string', 'null'] },
+        { property: 'otherSecret', type: ['string', 'null'] },
       ])
     )
   })

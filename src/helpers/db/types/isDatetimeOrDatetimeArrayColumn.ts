@@ -1,4 +1,5 @@
 import Dream from '../../../Dream.js'
+import cachedTypeForAttribute from '../cachedTypeForAttribute.js'
 import { DATETIME_OR_DATETIME_ARRAY_COLUMN_CHECK_REGEXP } from './helpers.js'
 
 export default function isDatetimeOrDatetimeArrayColumn<
@@ -7,5 +8,5 @@ export default function isDatetimeOrDatetimeArrayColumn<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 >(dreamClass: T, column: keyof Table): boolean {
-  return DATETIME_OR_DATETIME_ARRAY_COLUMN_CHECK_REGEXP.test(dreamClass['cachedTypeFor'](column))
+  return DATETIME_OR_DATETIME_ARRAY_COLUMN_CHECK_REGEXP.test(cachedTypeForAttribute(dreamClass, column))
 }
