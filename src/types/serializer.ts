@@ -3,11 +3,7 @@ import { RoundingPrecision } from '../helpers/round.js'
 import DreamSerializerBuilder from '../serializer/builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from '../serializer/builders/ObjectSerializerBuilder.js'
 import { DreamSerializable, DreamSerializableArray, ViewModelClass } from './dream.js'
-import {
-  OpenapiDescription,
-  OpenapiSchemaBodyShorthand,
-  OpenapiShorthandPrimitiveTypes,
-} from './openapi.js'
+import { OpenapiDescription, OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from './openapi.js'
 
 export type SerializerCasing = 'camel' | 'snake'
 export type DreamsOrSerializersOrViewModels = DreamSerializable | DreamSerializableArray
@@ -61,10 +57,7 @@ export interface InternalAnyTypedSerializerRendersMany<
   options: InternalAnyRendersOneOrManyOpts
 }
 
-export type AutomaticSerializerAttributeOptions<
-  DreamInstance extends Dream,
-  AttributeName extends keyof DreamInstance & string,
-> = {
+export type AutomaticSerializerAttributeOptions = {
   as?: string
   default?: any
   openapi?: OpenapiDescription

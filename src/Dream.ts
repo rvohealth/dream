@@ -63,7 +63,6 @@ import MissingSerializersDefinition from './errors/serializers/MissingSerializer
 import areEqual from './helpers/areEqual.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import compact from './helpers/compact.js'
-import columnAllowsNull from './helpers/db/columnAllowsNull.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import DreamSerializerBuilder from './serializer/builders/DreamSerializerBuilder.js'
@@ -3320,8 +3319,6 @@ export default class Dream {
   public getAttributes<I extends Dream, DB extends I['DB']>(this: I): Selectable<DB[I['table']]> {
     return { ...this.currentAttributes } as Selectable<DB[I['table']]>
   }
-
-
 
   /**
    * Returns the attributes that have changed since

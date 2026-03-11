@@ -96,7 +96,7 @@ export default class DreamSerializerBuilder<
   // attribute is a non-json dream column name
   public attribute<AttributeName extends NonJsonDreamColumnNames<DataType> & keyof DataType & string>(
     name: AttributeName,
-    options?: AutomaticSerializerAttributeOptions<DataType, AttributeName>
+    options?: AutomaticSerializerAttributeOptions
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
   public attribute(name: unknown, options: unknown) {
@@ -172,7 +172,7 @@ export default class DreamSerializerBuilder<
           ? SerializerAttributeOptionsForVirtualColumn
           : TargetAttributeName extends AssociatedModelType & keyof AssociatedModelType & string
             ?
-                | AutomaticSerializerAttributeOptions<AssociatedModelType, TargetAttributeName>
+                | AutomaticSerializerAttributeOptions
                 | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
             : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
       : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
