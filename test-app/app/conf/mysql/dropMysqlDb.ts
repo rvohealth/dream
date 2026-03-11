@@ -39,7 +39,7 @@ async function maybeDropDuplicateDatabases(connectionName: string, client: mysql
     const replicaTestWorkerDatabaseName = `replica_test_${dbName}`
     DreamCLI.logger.logContinueProgress(
       `dropping fake replica test database ${replicaTestWorkerDatabaseName}`,
-      { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+      { logPrefix: '  ├ [db]', logPrefixColor: 'greenBright' }
     )
     await new Promise(accept => {
       client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`, () => {
@@ -52,7 +52,7 @@ async function maybeDropDuplicateDatabases(connectionName: string, client: mysql
     const workerDatabaseName = `${dbName}_${i}`
     DreamCLI.logger.logContinueProgress(`dropping duplicate test database ${workerDatabaseName}`, {
       logPrefix: '  ├ [db]',
-      logPrefixColor: 'cyan',
+      logPrefixColor: 'greenBright',
     })
     await new Promise(accept => {
       client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`, () => {

@@ -139,9 +139,9 @@ function logResults(results: MigrationResult[] | undefined, mode: MigrationModes
   results?.forEach(it => {
     if (it.status === 'Success') {
       DreamCLI.logger.logContinueProgress(
-        colorize(`[db]`, { color: 'cyan' }) +
+        colorize(`[db]`, { color: 'greenBright' }) +
           ` migration "${it.migrationName}" was ${migratedActionPastTense(mode)} successfully`,
-        { logPrefixColor: 'cyan' }
+        { logPrefixColor: 'greenBright' }
       )
     } else if (it.status === 'Error') {
       DreamCLI.logger.logContinueProgress(JSON.stringify(it, null, 2))

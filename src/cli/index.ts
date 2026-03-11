@@ -8,6 +8,7 @@ import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
 import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
+import colorize from './logger/loggable/colorize.js'
 
 export const CLI_INDENT = '                  '
 const INDENT = CLI_INDENT
@@ -394,14 +395,46 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
 
+        const arrows = colorize('⭣⭣⭣', { color: 'green' }) + '\n'
+
+        DreamCLI.logger.log(colorize('db:drop', { color: 'green' }), {
+          logPrefix: ' ',
+          logPrefixColor: 'green',
+        })
         await DreamBin.dbDrop()
+        DreamCLI.logger.log(arrows, { logPrefix: ' ' })
+
+        DreamCLI.logger.log(colorize('db:create', { color: 'green' }), {
+          logPrefix: ' ',
+          logPrefixColor: 'green',
+        })
         await DreamBin.dbCreate()
+        DreamCLI.logger.log(arrows, { logPrefix: ' ' })
 
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
+        DreamCLI.logger.log(colorize('db:migrate', { color: 'green' }), {
+          logPrefix: ' ',
+          logPrefixColor: 'green',
+        })
         await DreamBin.dbMigrate()
+        DreamCLI.logger.log(arrows, { logPrefix: ' ' })
+
+        DreamCLI.logger.log(colorize('sync', { color: 'green' }), {
+          logPrefix: ' ',
+          logPrefixColor: 'green',
+        })
         await DreamBin.sync(onSync)
-        await seedDb()
+        DreamCLI.logger.log(arrows, { logPrefix: ' ' })
+
+        DreamCLI.logger.log(colorize('db:seed', { color: 'green' }), {
+          logPrefix: ' ',
+          logPrefixColor: 'green',
+        })
+        await DreamCLI.logger.logProgress('seeding db...', async () => {
+          await seedDb()
+        })
+
         process.exit()
       })
 
