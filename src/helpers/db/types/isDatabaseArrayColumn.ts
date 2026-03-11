@@ -1,4 +1,5 @@
 import Dream from '../../../Dream.js'
+import cachedTypeForAttribute from '../cachedTypeForAttribute.js'
 
 export default function isDatabaseArrayColumn<
   T extends typeof Dream,
@@ -6,5 +7,5 @@ export default function isDatabaseArrayColumn<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 >(dreamClass: T, column: keyof Table): boolean {
-  return /\[\]$/.test(dreamClass['cachedTypeFor'](column))
+  return /\[\]$/.test(cachedTypeForAttribute(dreamClass, column))
 }

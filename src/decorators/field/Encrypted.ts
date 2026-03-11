@@ -1,6 +1,7 @@
 import Dream from '../../Dream.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
+import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
 import pascalize from '../../helpers/pascalize.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
@@ -34,7 +35,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
       }
       ;(dreamClass['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
-        type: 'string',
+        type: columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string',
       } satisfies VirtualAttributeStatement)
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'explicitUnsafeParamColumns')) {

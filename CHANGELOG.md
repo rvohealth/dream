@@ -1,6 +1,7 @@
 ## 2.5.2
 
-- fix `precision` option on `DreamSerializer#attribute` failing to type-check when the serializer uses a generic type parameter (e.g. STI serializer pattern `<T extends MyModel>`). The conditional type that restricted `precision` to decimal/numeric columns deferred evaluation on generics, making it unassignable. Changed to unconditional `RoundingPrecision`.
+- fix `precision` option on `DreamSerializer#attribute` failing to type-check when the serializer uses a generic type parameter (e.g. STI serializer pattern `<T extends MyModel>`). The conditional type that restricted `precision` to decimal/numeric columns deferred evaluation on generics, making it unassignable. Changed to unconditional `RoundingPrecision`
+- fix the types available to OpenAPI for fields decorated with `@deco.Encrypted()` so that they properly determine nullability from the underlying database field
 
 ## 2.5.1
 

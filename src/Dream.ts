@@ -63,7 +63,7 @@ import MissingSerializersDefinition from './errors/serializers/MissingSerializer
 import areEqual from './helpers/areEqual.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import compact from './helpers/compact.js'
-import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
+import columnAllowsNull from './helpers/db/columnAllowsNull.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import DreamSerializerBuilder from './serializer/builders/DreamSerializerBuilder.js'
@@ -3321,19 +3321,7 @@ export default class Dream {
     return { ...this.currentAttributes } as Selectable<DB[I['table']]>
   }
 
-  /**
-   * @internal
-   *
-   * Returns the db type stored within the database
-   */
-  private static cachedTypeFor<
-    T extends typeof Dream,
-    DB extends InstanceType<T>['DB'],
-    TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
-    Table extends DB[keyof DB] = DB[TableName],
-  >(this: T, attribute: keyof Table): string {
-    return cachedTypeForAttribute(this, attribute)
-  }
+
 
   /**
    * Returns the attributes that have changed since

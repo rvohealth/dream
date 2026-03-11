@@ -1,4 +1,5 @@
 import Dream from '../../../Dream.js'
+import cachedTypeForAttribute from '../cachedTypeForAttribute.js'
 
 export default function isJsonColumn<
   T extends typeof Dream,
@@ -6,5 +7,5 @@ export default function isJsonColumn<
   TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
   Table extends DB[keyof DB] = DB[TableName],
 >(dreamClass: T, column: keyof Table): boolean {
-  return ['json', 'jsonb'].includes(dreamClass['cachedTypeFor'](column))
+  return ['json', 'jsonb'].includes(cachedTypeForAttribute(dreamClass, column))
 }
