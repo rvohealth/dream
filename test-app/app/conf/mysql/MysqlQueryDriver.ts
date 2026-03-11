@@ -125,7 +125,7 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
       DreamCLI.logger.logContinueProgress(
         `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+        { logPrefix: '  ├ [db]', logPrefixColor: 'greenBright' }
       )
 
       await duplicateMysqlDatabase(dbConf.name, replicaTestWorkerDatabaseName, connectionName)
@@ -136,7 +136,7 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
 
       DreamCLI.logger.logContinueProgress(
         `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+        { logPrefix: '  ├ [db]', logPrefixColor: 'greenBright' }
       )
       await duplicateMysqlDatabase(dbConf.name, workerDatabaseName, connectionName)
     }

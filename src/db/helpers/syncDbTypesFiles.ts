@@ -35,8 +35,8 @@ export default async function syncDbTypesFiles(connectionName: string) {
 
   await sspawn(kyselyCodegenCmd, {
     onStdout: message => {
-      DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'cyan' }) + ' ' + message, {
-        logPrefixColor: 'cyan',
+      DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'greenBright' }) + ' ' + message, {
+        logPrefixColor: 'greenBright',
       })
     },
   })

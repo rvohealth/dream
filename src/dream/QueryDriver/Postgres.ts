@@ -220,7 +220,7 @@ export default class PostgresQueryDriver<
       const replicaTestWorkerDatabaseName = `replica_test_${dbConf.name}`
       DreamCLI.logger.logContinueProgress(
         `creating fake replica test database ${replicaTestWorkerDatabaseName}...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+        { logPrefix: '  ├ [db]', logPrefixColor: 'greenBright' }
       )
       await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
       await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
@@ -231,7 +231,7 @@ export default class PostgresQueryDriver<
 
       DreamCLI.logger.logContinueProgress(
         `creating duplicate test database ${workerDatabaseName} for concurrent tests...`,
-        { logPrefix: '  ├ [db]', logPrefixColor: 'cyan' }
+        { logPrefix: '  ├ [db]', logPrefixColor: 'greenBright' }
       )
       await client.query(`DROP DATABASE IF EXISTS ${workerDatabaseName};`)
       await client.query(`CREATE DATABASE ${workerDatabaseName} TEMPLATE ${dbConf.name};`)
