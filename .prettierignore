@@ -9,3 +9,4 @@ src/global-cli/helpers/logo.ts
 .github/
 dist
 pnpm-lock.yaml
+CLAUDE.md

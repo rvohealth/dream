@@ -338,7 +338,7 @@ describe('DreamSerializer#attribute', () => {
     })
 
     context('when the serializer uses a generic type parameter (e.g. STI pattern)', () => {
-      it('permits precision on a numeric column', async () => {
+      it('permits precision on a numeric column', () => {
         const MySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, data: T) =>
           DreamSerializer(StiChildClass ?? Balloon, data).attribute('volume', { precision: 2 })
 
