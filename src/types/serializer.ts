@@ -2,9 +2,8 @@ import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
 import DreamSerializerBuilder from '../serializer/builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from '../serializer/builders/ObjectSerializerBuilder.js'
-import { DreamAttributeDbTypes, DreamSerializable, DreamSerializableArray, ViewModelClass } from './dream.js'
+import { DreamSerializable, DreamSerializableArray, ViewModelClass } from './dream.js'
 import {
-  DecimalOpenapiTypesIncludingDbTypes,
   OpenapiDescription,
   OpenapiSchemaBodyShorthand,
   OpenapiShorthandPrimitiveTypes,
@@ -69,9 +68,7 @@ export type AutomaticSerializerAttributeOptions<
   as?: string
   default?: any
   openapi?: OpenapiDescription
-  precision?: DreamAttributeDbTypes<DreamInstance>[AttributeName] extends DecimalOpenapiTypesIncludingDbTypes
-    ? RoundingPrecision
-    : never
+  precision?: RoundingPrecision
   required?: false
 }
 
