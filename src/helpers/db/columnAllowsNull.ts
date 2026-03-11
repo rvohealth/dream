@@ -1,0 +1,10 @@
+import Dream from '../../Dream.js'
+
+export default function columnAllowsNull<
+  T extends typeof Dream,
+  DB extends InstanceType<T>['DB'],
+  TableName extends keyof DB = InstanceType<T>['table'] & keyof DB,
+  Table extends DB[keyof DB] = DB[TableName],
+>(dreamClass: T, attribute: keyof Table): boolean {
+  return dreamClass.prototype.schema[dreamClass.table]?.['columns']?.[attribute]?.['allowNull'] ?? false
+}

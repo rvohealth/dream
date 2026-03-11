@@ -1,6 +1,7 @@
 import { ComparisonOperatorExpression as KyselyComparisonOperatorExpression, sql } from 'kysely'
 import Dream from '../Dream.js'
 import AnyRequiresArrayColumn from '../errors/ops/AnyRequiresArrayColumn.js'
+import cachedTypeForAttribute from '../helpers/db/cachedTypeForAttribute.js'
 import isDatabaseArrayColumn from '../helpers/db/types/isDatabaseArrayColumn.js'
 import { TrigramOperator } from '../types/dream.js'
 import CurriedOpsStatement from './curried-ops-statement.js'
@@ -27,7 +28,7 @@ const ops = {
     >(dreamClass: T, fieldName: FN): OpsStatement<any, AnyT, any> {
       const column = fieldName.replace(/^.*\./, '')
       if (!isDatabaseArrayColumn(dreamClass, column)) throw new AnyRequiresArrayColumn(dreamClass, column)
-      const castType = dreamClass['cachedTypeFor'](column)
+      const castType = cachedTypeForAttribute(dreamClass, column)
       return new OpsStatement('@>', sql`ARRAY[${sql.join([value])}]::${sql.raw(castType)}`) as OpsStatement<
         '@>',
         AnyT

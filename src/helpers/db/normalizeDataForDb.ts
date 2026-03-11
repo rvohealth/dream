@@ -1,4 +1,5 @@
 import Dream from '../../Dream.js'
+import cachedTypeForAttribute from './cachedTypeForAttribute.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
 import BaseClockTime from '../../utils/datetime/BaseClockTime.js'
 import CalendarDate from '../../utils/datetime/CalendarDate.js'
@@ -23,7 +24,7 @@ export function normalizeDataForDb({
   dreamClass: typeof Dream
   column: string
 }): unknown {
-  const columnType = dreamClass['cachedTypeFor'](column)
+  const columnType = cachedTypeForAttribute(dreamClass, column)
   if (val instanceof DateTime || DATETIME_OR_DATETIME_ARRAY_COLUMN_CHECK_REGEXP.test(columnType)) {
     return dateTimeOrDateToSql(DateTime, val as any)
     //
