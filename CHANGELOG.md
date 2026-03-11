@@ -1,6 +1,10 @@
+## 2.5.2
+
+- fix `precision` option on `DreamSerializer#attribute` failing to type-check when the serializer uses a generic type parameter (e.g. STI serializer pattern `<T extends MyModel>`). The conditional type that restricted `precision` to decimal/numeric columns deferred evaluation on generics, making it unassignable. Changed to unconditional `RoundingPrecision`.
+
 ## 2.5.1
 
-add type support for nested associations stemming from a polymorphic preload chain
+- add type support for nested associations stemming from a polymorphic preload chain
 
 ## 2.5.0
 

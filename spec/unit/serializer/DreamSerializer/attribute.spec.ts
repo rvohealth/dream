@@ -1,6 +1,7 @@
 import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSerializerBuilder.js'
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
@@ -333,6 +334,19 @@ describe('DreamSerializer#attribute', () => {
       const serializer = MySerializer(await fleshedOutModelForOpenapiTypeSpecs())
       expect(serializer.render()).toEqual({
         volume: 7.8,
+      })
+    })
+
+    context('when the serializer uses a generic type parameter (e.g. STI pattern)', () => {
+      it('permits precision on a numeric column', async () => {
+        const MySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, data: T) =>
+          DreamSerializer(StiChildClass ?? Balloon, data).attribute('volume', { precision: 2 })
+
+        const balloon = Balloon.new({ volume: 7.77777 })
+        const serializer = MySerializer(Balloon, balloon)
+        expect(serializer.render()).toEqual({
+          volume: 7.78,
+        })
       })
     })
   })
