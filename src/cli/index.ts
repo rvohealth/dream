@@ -108,8 +108,8 @@ export default class DreamCLI {
     program
       .command('sync')
       .description('Generates types from the current state of the database.')
-      .option('--schema-only')
-      .action(async (options: { schemaOnly?: boolean } = {}) => {
+      .option('--schema-only', 'sync database schema types only', false)
+      .action(async (options: { schemaOnly: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.sync(() => {}, options)
 
@@ -202,7 +202,11 @@ export default class DreamCLI {
         'the db connection you want this attached to (defaults to the default db connection)',
         'default'
       )
-      .option('--sti-base-serializer')
+      .option(
+        '--sti-base-serializer',
+        'creates a generically typed base serializer that includes the child type in the output so consuming applications can determine shape based on type',
+        false
+      )
       .option(
         '--table-name <tableName>',
         'explicit table name to use instead of the auto-generated one (useful when model namespaces produce long names)'
@@ -213,11 +217,13 @@ export default class DreamCLI {
       )
       .option(
         '--admin-serializers',
-        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers'
+        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers',
+        false
       )
       .option(
         '--internal-serializers',
-        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers'
+        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers',
+        false
       )
       .argument(
         '<modelName>',
@@ -262,11 +268,13 @@ export default class DreamCLI {
       )
       .option(
         '--admin-serializers',
-        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers'
+        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers',
+        false
       )
       .option(
         '--internal-serializers',
-        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers'
+        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers',
+        false
       )
       .argument(
         '<childModelName>',
@@ -342,7 +350,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
     program
       .command('db:migrate')
       .description('Runs any outstanding database migrations.')
-      .option('--skip-sync', 'skips syncing local schema after running migrations')
+      .option('--skip-sync', 'skips syncing local schema after running migrations', false)
       .action(async ({ skipSync }: { skipSync: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
@@ -359,7 +367,7 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .command('db:rollback')
       .description('Rolls back the specified number of migration steps (defaults to 1)')
       .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
-      .option('--skip-sync', 'skips syncing local schema after running migrations')
+      .option('--skip-sync', 'skips syncing local schema after running migrations', false)
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.dbRollback({ steps })
