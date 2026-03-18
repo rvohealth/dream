@@ -1,6 +1,7 @@
 ## 2.5.3
 
 - CLI fixes (incorrect description, missing defaults, broken flag)
+- patch vulnerable packages
 
 ## 2.5.2
 
