@@ -69,20 +69,26 @@ const columnsWithTypesDescription =
   `
 ${INDENT}
 ${INDENT}    - belongs_to:
-${INDENT}        not only adds a foreign key to the migration, but also adds a BelongsTo association to the generated model:
+${INDENT}        ALWAYS use this instead of adding a raw uuid column for foreign keys. It creates the FK column, adds a database index,
+${INDENT}        AND generates the @deco.BelongsTo association and typed property on the model. A raw uuid column does none of this.
 ${INDENT}
-${INDENT}        include the fully qualified model name, e.g., if the Coach model is in src/app/models/Health/Coach:
-${INDENT}          Health/Coach:belongs_to`
+${INDENT}        use the fully qualified model name (matching its path under src/app/models/):
+${INDENT}          User:belongs_to                  # creates user_id column + BelongsTo association
+${INDENT}          Health/Coach:belongs_to           # creates health_coach_id column + BelongsTo association
+${INDENT}          User:belongs_to:optional          # nullable foreign key (for optional associations)`
 
 const columnsWithTypesDescriptionForMigration =
   baseColumnsWithTypesDescription +
   `
 ${INDENT}
 ${INDENT}    - belongs_to:
-${INDENT}        adds a foreign key to migration
+${INDENT}        ALWAYS use this instead of adding a raw uuid column for foreign keys. It creates the FK column with an index.
+${INDENT}        Unlike in g:model/g:resource, this does NOT add a BelongsTo association (no model is generated).
 ${INDENT}
-${INDENT}        include the fully qualified model name, e.g., if the Coach model is in src/app/models/Health/Coach:
-${INDENT}          Health/Coach:belongs_to`
+${INDENT}        use the fully qualified model name (matching its path under src/app/models/):
+${INDENT}          User:belongs_to                  # creates user_id column with index
+${INDENT}          Health/Coach:belongs_to           # creates health_coach_id column with index
+${INDENT}          User:belongs_to:optional          # nullable foreign key`
 
 export default class DreamCLI {
   /**
@@ -108,8 +114,14 @@ export default class DreamCLI {
   ) {
     program
       .command('sync')
-      .description('Generates types from the current state of the database.')
-      .option('--schema-only', 'sync database schema types only', false)
+      .description(
+        'Regenerates TypeScript types (types/db.ts, types/dream.ts) from the current database schema. Run this after changing associations, serializers, or enum types.'
+      )
+      .option(
+        '--schema-only',
+        'only regenerate database schema types, skipping any custom sync actions',
+        false
+      )
       .action(async (options: { schemaOnly: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.sync(() => {}, options)
@@ -171,13 +183,32 @@ export default class DreamCLI {
       .command('generate:migration')
       .alias('g:migration')
       .description(
-        'Generates a new migration file (prefer g:resource or g:model if creating a table for a new model).'
+        `Generates a new Kysely migration file for schema changes. Use this for altering existing tables (adding/removing columns, indexes, constraints). Prefer g:resource or g:model when creating a new model, since they generate the migration along with the model, serializer, and spec files.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  # Add columns to an existing table (suffix with -to-<table_name> for auto alterTable scaffolding)
+${INDENT}  pnpm psy g:migration add-timezone-to-users timezone:string
+${INDENT}  pnpm psy g:migration add-bio-to-users bio:text:optional avatar_url:string:optional
+${INDENT}
+${INDENT}  # Remove columns (suffix with -from-<table_name>)
+${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts
+${INDENT}
+${INDENT}  # General schema change (no table suffix — generates empty up/down methods)
+${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
       )
       .argument(
         '<migrationName>',
-        'end with -to-table-name or -from-table-name to prepopulate with an alterTable command'
+        `Kebab-case name describing the change. End with -to-<table_name> or -from-<table_name> to auto-generate an alterTable scaffold for that table.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  add-phone-to-users          # scaffolds alterTable('users', ...)
+${INDENT}  remove-status-from-posts    # scaffolds alterTable('posts', ...)
+${INDENT}  create-join-table-host-places  # empty migration (no table suffix match)`
       )
-      .option('--connection-name <connectionName>', 'the connection name you wish to use for your migration')
+      .option(
+        '--connection-name <connectionName>',
+        'the database connection to use for this migration. Only needed for multi-database setups; defaults to "default"'
+      )
       .argument('[columnsWithTypes...]', columnsWithTypesDescriptionForMigration)
       .action(
         async (migrationName: string, columnsWithTypes: string[], options: { connectionName?: string }) => {
@@ -196,39 +227,76 @@ export default class DreamCLI {
       .alias('g:model')
       .alias('generate:dream')
       .alias('g:dream')
-      .description('Generates a Dream model with corresponding spec factory, serializer, and migration.')
-      .option('--no-serializer')
+      .description(
+        `Generates a Dream model with corresponding spec factory, serializer, and migration. Use this when the model will NOT be accessible via HTTP requests (e.g., internal join tables, data models with no API). For HTTP-accessible models, prefer g:resource which also generates a controller and specs.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  # Simple model
+${INDENT}  pnpm psy g:model Tag value:citext
+${INDENT}
+${INDENT}  # Join table model
+${INDENT}  pnpm psy g:model HostPlace Host:belongs_to Place:belongs_to
+${INDENT}
+${INDENT}  # STI parent model (use with g:sti-child for children)
+${INDENT}  pnpm psy g:model --sti-base-serializer Room Place:belongs_to type:enum:room_types:Bathroom,Bedroom deleted_at:datetime:optional`
+      )
+      .option(
+        '--no-serializer',
+        'skip serializer generation. Useful for internal models that will never be serialized in an API response (e.g., join tables, audit logs)'
+      )
       .option(
         '--connection-name <connectionName>',
-        'the db connection you want this attached to (defaults to the default db connection)',
+        'the name of the database connection to use for the model. Only needed for multi-database setups; defaults to "default"',
         'default'
       )
       .option(
         '--sti-base-serializer',
-        'creates a generically typed base serializer that includes the child type in the output so consuming applications can determine shape based on type',
+        `Creates generically typed base serializers (default and summary) that accept a \`StiChildClass\` parameter and include the \`type\` attribute with a per-child enum constraint. This allows consuming applications to determine the response shape based on the STI type discriminator.
+${INDENT}
+${INDENT}Use this when generating the parent model of an STI hierarchy. After generating the parent, use g:sti-child for each child type.
+${INDENT}
+${INDENT}Example:
+${INDENT}  # CRITICAL: the type enums must exactly match the class names of the STI children
+${INDENT}  pnpm psy g:model --sti-base-serializer Rental type:enum:place_types:Apartment,House,Condo
+${INDENT}  # STI children subsequently generated using the g:sti-child generator (note the use of \`--model-name\` to generate class names that match the \`type\` column, e.g., "Apartment" instead of the "RentalApartment" default):
+${INDENT}  pnpm psy g:sti-child --model-name=Apartment Rental/Apartment extends Rental
+${INDENT}  pnpm psy g:sti-child --model-name=House Rental/House extends Rental
+${INDENT}  pnpm psy g:sti-child --model-name=Condo Rental/Condo extends Rental`,
         false
       )
       .option(
         '--table-name <tableName>',
-        'explicit table name to use instead of the auto-generated one (useful when model namespaces produce long names)'
+        `Explicit table name to use instead of the auto-generated one. Useful when model namespaces produce long or awkward table names.
+${INDENT}
+${INDENT}Example:
+${INDENT}  pnpm psy g:model --table-name=notif_prefs Settings/NotificationPreferences User:belongs_to`
       )
       .option(
         '--model-name <modelName>',
-        'explicit model class name to use instead of the auto-generated one (e.g. --model-name=Kitchen for Room/Kitchen)'
+        `Explicit model class name to use instead of the one auto-derived from the model path. Useful when the path segments don't match the desired class name.
+${INDENT}
+${INDENT}Example:
+${INDENT}  pnpm psy g:model --model-name=GroupDanceLesson Lesson/Dance/Group
+${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
       )
       .option(
         '--admin-serializers',
-        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers',
+        'also generate AdminSerializer and AdminSummarySerializer variants for admin-facing API endpoints that may expose additional fields',
         false
       )
       .option(
         '--internal-serializers',
-        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers',
+        'also generate InternalSerializer and InternalSummarySerializer variants for internal API endpoints that may expose additional fields',
         false
       )
       .argument(
         '<modelName>',
-        'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
+        `The fully qualified model name, using / for namespacing. This determines the model class name (may be overridden with \`--model-name\`), table name, and file path under src/app/models/.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  Post                                # src/app/models/Post.ts, table: posts
+${INDENT}  HostPlace                           # src/app/models/HostPlace.ts, table: host_places
+${INDENT}  Settings/CommunicationPreferences   # src/app/models/Settings/CommunicationPreferences.ts`
       )
       .argument('[columnsWithTypes...]', columnsWithTypesDescription)
       .action(
@@ -255,38 +323,64 @@ export default class DreamCLI {
       .command('generate:sti-child')
       .alias('g:sti-child')
       .description(
-        'Generates a Dream model that extends another Dream model, leveraging STI (single table inheritance), with corresponding spec factory, serializer, and migration.'
+        `Generates an STI (Single Table Inheritance) child model that extends an existing parent model. The child shares the parent's database table (discriminated by the \`type\` column) and can add child-specific columns. Generates a child model decorated with @STI(Parent), child serializers extending the parent's base serializers, a migration that ALTERs the parent table (not a new table), check constraints, a factory, and spec skeleton.
+${INDENT}
+${INDENT}The parent must already exist (typically generated with g:model --sti-base-serializer or g:resource --sti-base-serializer).
+${INDENT}
+${INDENT}Examples:
+${INDENT}  # Child with an enum column
+${INDENT}  pnpm psy g:sti-child --model-name=Bathroom Room/Bathroom extends Room bath_or_shower_style:enum:bath_or_shower_styles:bath,shower,none
+${INDENT}
+${INDENT}  # Child with an enum array column
+${INDENT}  pnpm psy g:sti-child --model-name=Bedroom Room/Bedroom extends Room bed_types:enum[]:bed_types:twin,queen,king
+${INDENT}
+${INDENT}  # Child with no additional columns
+${INDENT}  pnpm psy g:sti-child --model-name=Kitchen Room/Kitchen extends Room`
       )
-      .option('--no-serializer')
+      .option(
+        '--no-serializer',
+        'skip serializer generation. Useful if the child uses the parent serializer directly or serialization is handled elsewhere'
+      )
       .option(
         '--connection-name',
-        'the db connection you want this model attached to (defaults to the default connection)',
+        'the name of the database connection to use for the model. Only needed for multi-database setups; defaults to "default"',
         'default'
       )
       .option(
         '--model-name <modelName>',
-        'explicit model class name to use instead of the auto-generated one (e.g. --model-name=Kitchen for Room/Kitchen)'
+        `Explicit model class name to use instead of the one auto-derived from the model path. Useful when the path segments don't match the desired class name.
+${INDENT}
+${INDENT}Example:
+${INDENT}  pnpm psy g:sti-child --model-name=GroupDanceLesson Lesson/Dance/Group extends Lesson
+${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
       )
       .option(
         '--admin-serializers',
-        'generate admin serializer variants (AdminSerializer and AdminSummarySerializer) in addition to the default serializers',
+        'also generate AdminSerializer and AdminSummarySerializer variants for admin-facing API endpoints that may expose additional fields',
         false
       )
       .option(
         '--internal-serializers',
-        'generate internal serializer variants (InternalSerializer and InternalSummarySerializer) in addition to the default serializers',
+        'also generate InternalSerializer and InternalSummarySerializer variants for internal API endpoints that may expose additional fields',
         false
       )
       .argument(
         '<childModelName>',
-        'the name of the model to create, e.g. Post or Settings/CommunicationPreferences'
+        `The namespaced child model path. By convention, children are nested under the parent name.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  Room/Bathroom       # src/app/models/Room/Bathroom.ts
+${INDENT}  Room/Bedroom        # src/app/models/Room/Bedroom.ts
+${INDENT}  Vehicle/Truck       # src/app/models/Vehicle/Truck.ts`
       )
-      .argument('<extends>', 'just the word "extends"')
+      .argument('<extends>', 'the literal word "extends" (required syntax)')
       .argument(
         '<parentModelName>',
-        `fully qualified name of the parent model, e.g.:
-${INDENT}    to extend the Room model in src/app/models/Room: Room
-${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Coach`
+        `Fully qualified name of the parent STI model to extend. Must match the parent's path under src/app/models/.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  Room                # extends src/app/models/Room.ts
+${INDENT}  Health/Coach        # extends src/app/models/Health/Coach.ts`
       )
       .argument('[columnsWithTypes...]', columnsWithTypesDescription)
       .action(
@@ -315,10 +409,23 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .command('generate:encryption-key')
       .alias('g:encryption-key')
       .description(
-        'Generates a new encryption key for any of the encryption use cases in Dream or Psychic (encrypted column, encrypting/decrypting cookies, generalized use of the Encrypt library).'
+        `Generates a cryptographically secure encryption key and prints it to stdout. Use this to create keys for any Dream/Psychic encryption use case:
+${INDENT}
+${INDENT}  - @deco.Encrypted() model columns (e.g., phone numbers, SSNs)
+${INDENT}  - Cookie encryption/decryption in Psychic sessions
+${INDENT}  - General-purpose use of the Dream Encrypt library
+${INDENT}
+${INDENT}Store the generated key in your environment variables (e.g., ENCRYPTION_KEY). Never commit keys to source control.
+${INDENT}
+${INDENT}Example:
+${INDENT}  pnpm psy g:encryption-key                    # generates aes-256-gcm key (default)
+${INDENT}  pnpm psy g:encryption-key --algorithm=aes-128-gcm`
       )
       .addOption(
-        new Option('--algorithm <algorithm>', 'the encryption algorithm to generate a key for')
+        new Option(
+          '--algorithm <algorithm>',
+          'the encryption algorithm to generate a key for. aes-256-gcm (default) is recommended for most use cases'
+        )
           .choices(['aes-256-gcm', 'aes-192-gcm', 'aes-128-gcm'])
           .default('aes-256-gcm')
       )
@@ -330,7 +437,9 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:create')
-      .description('Creates a new database.')
+      .description(
+        'Creates the database defined in your Dream configuration. Run this once when setting up a new development environment, or after db:drop. Safe to run if the database already exists.'
+      )
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
         await DreamBin.dbCreate()
@@ -339,7 +448,9 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:integrity-check')
-      .description('Fails if migrations need to be run.')
+      .description(
+        'Checks that all migrations have been run and exits with code 1 if any are pending. Useful as a CI check or deploy gate to ensure the database schema is up to date before starting the application.'
+      )
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
@@ -350,8 +461,19 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:migrate')
-      .description('Runs any outstanding database migrations.')
-      .option('--skip-sync', 'skips syncing local schema after running migrations', false)
+      .description(
+        `Runs all pending database migrations in order, then automatically syncs types (in development/test). This is the primary command for applying schema changes after generating or editing a migration.
+${INDENT}
+${INDENT}Example workflow:
+${INDENT}  pnpm psy g:migration add-phone-to-users phone:string:optional
+${INDENT}  # edit the migration if needed (e.g., add unique constraints)
+${INDENT}  pnpm psy db:migrate`
+      )
+      .option(
+        '--skip-sync',
+        'skip the automatic sync after migrating. Useful when running migrations in production or when you plan to sync manually afterward',
+        false
+      )
       .action(async ({ skipSync }: { skipSync: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
 
@@ -366,9 +488,19 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:rollback')
-      .description('Rolls back the specified number of migration steps (defaults to 1)')
-      .option('--steps <number>', 'number of steps back to travel', myParseInt, 1)
-      .option('--skip-sync', 'skips syncing local schema after running migrations', false)
+      .description(
+        `Rolls back the most recent migration(s), then automatically syncs types (in development/test). Use this to undo a migration so you can edit and re-run it.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  pnpm psy db:rollback              # rolls back the last migration
+${INDENT}  pnpm psy db:rollback --steps=3    # rolls back the last 3 migrations`
+      )
+      .option('--steps <number>', 'number of migration steps to roll back (default: 1)', myParseInt, 1)
+      .option(
+        '--skip-sync',
+        'skip the automatic sync after rolling back. Useful when you plan to immediately re-migrate or sync manually',
+        false
+      )
       .action(async ({ steps, skipSync }: { steps: number; skipSync: boolean }) => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.dbRollback({ steps })
@@ -382,7 +514,9 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:drop')
-      .description('Drops the database')
+      .description(
+        'Drops the database. This is a destructive operation — all data will be lost. Primarily used as part of db:reset or when you need a clean slate during development.'
+      )
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
         await DreamBin.dbDrop()
@@ -391,7 +525,15 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:reset')
-      .description('Runs db:drop (safely), db:create, db:migrate, and db:seed')
+      .description(
+        `Completely resets the database by running db:drop, db:create, db:migrate, sync, and db:seed in sequence. Use this when:
+${INDENT}
+${INDENT}  - Switching between branches with incompatible migrations ("corrupted migrations" error)
+${INDENT}  - Starting fresh after a schema has diverged significantly
+${INDENT}  - Setting up a clean development environment
+${INDENT}
+${INDENT}Warning: all existing data will be lost. The seed file (db/seed.ts) will be run to repopulate initial data.`
+      )
       .action(async () => {
         await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
 
@@ -440,7 +582,9 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
 
     program
       .command('db:seed')
-      .description('Seeds the database using the file located in db/seed.ts.')
+      .description(
+        `Seeds the database by running the seed function defined in db/seed.ts. Skipped automatically in test environments unless DREAM_SEED_DB_IN_TEST=1 is set. Runs automatically as the last step of db:reset.`
+      )
       .action(async () => {
         if (process.env.NODE_ENV === 'test' && process.env.DREAM_SEED_DB_IN_TEST !== '1') {
           DreamApp.log('skipping db seed for test env. To really seed for test, add DREAM_SEED_DB_IN_TEST=1')
@@ -456,10 +600,23 @@ ${INDENT}    to extend the Coach model in src/app/models/Health/Coach: Health/Co
       .command('inspect:serialization')
       .alias('i:serialization')
       .description(
-        'Displays a serialization map to help understand the rendering logic for a particular model.'
+        `Displays a detailed serialization map for a model, showing all attributes, associations, custom attributes, and their types. Useful for debugging serializer output, understanding what a model's API response will look like, and verifying that associations are preloaded correctly.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  pnpm psy i:serialization Place            # shows the default serializer for Place
+${INDENT}  pnpm psy i:serialization Place summary     # shows the summary serializer for Place
+${INDENT}  pnpm psy i:serialization Room/Bedroom      # shows serializer for an STI child`
       )
-      .argument('<globalName>', 'the global name of the model you want to look up')
-      .argument('[serializerKey]', 'the serializer key you wish to use')
+      .argument(
+        '<globalName>',
+        `The global name of the model as registered in Dream (typically matches the model class name or its fully qualified path).
+${INDENT}
+${INDENT}Examples: User, Place, Room/Bedroom, Settings/CommunicationPreferences`
+      )
+      .argument(
+        '[serializerKey]',
+        'the serializer variant to display (e.g., "summary", "admin", "internal"). Defaults to "default" if omitted'
+      )
       .action(async (globalName: string, serializerKey: string) => {
         await initializeDreamApp()
         const dreamApp = DreamApp.getOrFail()
