@@ -1,3 +1,7 @@
+## 2.5.4
+
+- improve CLI descriptions
+
 ## 2.5.3
 
 - CLI fixes (incorrect description, missing defaults, broken flag)
