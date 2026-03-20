@@ -32,6 +32,7 @@ export default class Pet extends ApplicationModel {
   public species: DreamColumn<Pet, 'species'>
   public name: DreamColumn<Pet, 'name'>
   public favoriteTreats: DreamColumn<Pet, 'favoriteTreats'>
+  public uniqueColumn: DreamColumn<Pet, 'uniqueColumn'>
   public deletedAt: DreamColumn<Pet, 'deletedAt'>
   public createdAt: DreamColumn<Pet, 'createdAt'>
 

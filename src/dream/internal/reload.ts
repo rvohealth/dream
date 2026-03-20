@@ -22,6 +22,7 @@ export default async function reload<DreamInstance extends Dream>(
   dream.setAttributes(reloadedRecord.getAttributes() as any)
 
   dream['freezeAttributes']()
+  dream['originalAttributes'] = dream.getAttributes()
 
   return dream
 }

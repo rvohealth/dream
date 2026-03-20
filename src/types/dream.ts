@@ -522,6 +522,7 @@ export type UpdateableProperties<
 
 export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
   createWith?: UpdateablePropertiesForClass<T>
+  skipHooks?: boolean
 }
 
 export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {

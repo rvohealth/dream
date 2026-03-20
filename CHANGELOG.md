@@ -1,3 +1,10 @@
+## 2.5.5
+
+- add missing `skipHooks` support for `createOrFindBy` and `findOrCreateBy`
+- fix Sortable bug when model lacks `updatedAt`
+- fix dirty after reload
+- fix bug in similarity builder causing recursive associations to incur a max callstack exceeded error
+
 ## 2.5.4
 
 - improve CLI descriptions
