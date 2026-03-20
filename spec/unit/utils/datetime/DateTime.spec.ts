@@ -2401,4 +2401,26 @@ describe('DateTime', () => {
       expect(diff).toEqual({ microseconds: 500 })
     })
   })
+
+  describe('toEqual compatibility', () => {
+    it('two identical DateTimes are equal even if valueOf has been called on one', () => {
+      const dt1 = DateTime.fromISO('2026-02-07T09:03:44.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-07T09:03:44.123456Z')
+
+      // trigger lazy cache on dt2 but not dt1
+      dt2.valueOf()
+
+      expect(dt1).toEqual(dt2)
+    })
+
+    it('two identical DateTimes are equal even if toSQL has been called on one', () => {
+      const dt1 = DateTime.fromISO('2026-02-07T09:03:44.123456Z')
+      const dt2 = DateTime.fromISO('2026-02-07T09:03:44.123456Z')
+
+      // trigger lazy cache on dt2 but not dt1
+      dt2.toSQL()
+
+      expect(dt1).toEqual(dt2)
+    })
+  })
 })

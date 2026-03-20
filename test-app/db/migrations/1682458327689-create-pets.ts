@@ -20,8 +20,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('position_within_species', 'integer')
     .addColumn('name', 'text')
     .addColumn('nickname', 'text')
+    .addColumn('unique_column', 'text', col => col.unique())
     .addColumn('deleted_at', 'timestamp')
     .addColumn('created_at', 'timestamp', col => col.notNull())
+    // WARNING: don't add an `updated_at` column. Not having `updated_at` revealed an error
+    // that was represented in the new spec in spec/unit/dream/decorators/sortable.spec.ts:
+    //   context("when saving a persisted record without changing position or scope"
+    //     it("does not clear the position field on the in-memory object"
     .execute()
 
   await DreamMigrationHelpers.addDeferrableUniqueConstraint(db, 'pets_unique_position_within_species', {

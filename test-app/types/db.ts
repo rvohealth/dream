@@ -615,6 +615,7 @@ export interface Pets {
   nickname: string | null
   positionWithinSpecies: number | null
   species: Species | null
+  uniqueColumn: string | null
   userId: Int8 | null
   userUuid: string | null
 }

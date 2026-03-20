@@ -13,6 +13,22 @@ describe('Dream#reload', () => {
     expect(user.email).toEqual('a@b.com')
   })
 
+  it('updates originalAttributes so changes() after a subsequent save reflects the reloaded state', async () => {
+    const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+    const userInAnotherInstance = await User.find(user.id)
+    await userInAnotherInstance!.update({ email: 'a@b.com' })
+    await user.reload()
+
+    await user.update({ email: 'new@new.com' })
+
+    expect(user.changes()).toEqual(
+      expect.objectContaining({
+        email: { was: 'a@b.com', now: 'new@new.com' },
+      })
+    )
+  })
+
   context('in a transaction', () => {
     it('reloads the model', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })

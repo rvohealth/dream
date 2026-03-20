@@ -49,12 +49,21 @@ describe('Dream.createOrUpdateBy', () => {
       expect(composition.userId).toEqual(user.id)
     })
 
-    context('skipHooks is passed', () => {
-      it('skips model hooks', async () => {
-        await Pet.createOrUpdateBy({ species: 'dog' }, { with: { name: 'change me' }, skipHooks: true })
+    context('after create lifecycle hooks', () => {
+      it('are called when creating', async () => {
+        const pet = await Pet.createOrUpdateBy({ species: 'dog' }, { with: { name: 'change me' } })
 
-        const pet = await Pet.first()
-        expect(pet!.name).toEqual('change me')
+        expect(pet.name).toEqual('changed by create hook')
+        expect(await Pet.count()).toEqual(1)
+      })
+
+      it('are NOT called when creating when skipHooks is passed', async () => {
+        const pet = await Pet.createOrUpdateBy(
+          { species: 'dog' },
+          { with: { name: 'change me' }, skipHooks: true }
+        )
+
+        expect(pet.name).toEqual('change me')
         expect(await Pet.count()).toEqual(1)
       })
     })
@@ -75,15 +84,16 @@ describe('Dream.createOrUpdateBy', () => {
     })
 
     it('returns the existing record if there are no updates to with', async () => {
-      await Pet.create({ species: 'dog', name: 'Baron' })
+      const originalPet = await Pet.create({ species: 'dog', name: 'Baron', uniqueColumn: 'barron' })
 
       const p = await Pet.createOrUpdateBy({
         species: 'dog',
         name: 'Baron',
+        uniqueColumn: 'barron',
       })
 
-      expect(p.species).toEqual('dog')
-      expect(p.name).toEqual('Baron')
+      expect(p).toMatchDreamModel(originalPet)
+      expect(p.getAttributes()).toEqual(originalPet.getAttributes())
     })
 
     it('respects associations in primary opts with user', async () => {
@@ -126,13 +136,27 @@ describe('Dream.createOrUpdateBy', () => {
       expect(composition.userId).toEqual(user.id)
     })
 
-    context('skipHooks is passed', () => {
-      it('skips model hooks', async () => {
-        await Pet.createOrUpdateBy({ species: 'dog' }, { with: { name: 'change me' }, skipHooks: true })
+    context('after update lifecycle hooks', () => {
+      it('are called when updating', async () => {
+        const otherPet = await Pet.create({ species: 'dog', name: 'Snoopy', uniqueColumn: 'dog' })
+        const pet = await Pet.createOrUpdateBy(
+          { species: 'dog' },
+          { with: { name: 'change me', uniqueColumn: 'dog' } }
+        )
 
-        const pet = await Pet.first()
-        expect(pet!.name).toEqual('change me')
-        expect(await Pet.count()).toEqual(1)
+        expect(pet.name).toEqual('changed by update hook')
+        expect(pet).toMatchDreamModel(otherPet)
+      })
+
+      it('are NOT called when updating when skipHooks is passed', async () => {
+        const originalPet = await Pet.create({ species: 'dog', name: 'Snoopy', uniqueColumn: 'dog' })
+        const pet = await Pet.createOrUpdateBy(
+          { species: 'dog' },
+          { with: { name: 'change me', uniqueColumn: 'dog' }, skipHooks: true }
+        )
+
+        expect(pet.name).toEqual('change me')
+        expect(pet).toMatchDreamModel(originalPet)
       })
     })
   })

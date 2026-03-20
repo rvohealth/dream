@@ -29,6 +29,34 @@ describe('Dream.findOrCreateBy', () => {
     })
   })
 
+  context('after create lifecycle hooks', () => {
+    it('are called when creating', async () => {
+      const pet = await Pet.findOrCreateBy({ species: 'dog' }, { createWith: { name: 'change me' } })
+
+      expect(pet.name).toEqual('changed by create hook')
+    })
+
+    it('are not called when finding', async () => {
+      const existingPet = await Pet.create({ species: 'dog', name: 'Snoopy', uniqueColumn: 'Snoopy' })
+      const pet = await Pet.findOrCreateBy(
+        { species: 'dog' },
+        { createWith: { name: 'change me', uniqueColumn: 'Snoopy' } }
+      )
+
+      expect(pet).toMatchDreamModel(existingPet)
+      expect(pet.name).toEqual('Snoopy')
+    })
+
+    it('are NOT called when creating when skipHooks is passed', async () => {
+      const pet = await Pet.findOrCreateBy(
+        { species: 'dog' },
+        { createWith: { name: 'change me' }, skipHooks: true }
+      )
+
+      expect(pet.name).toEqual('change me')
+    })
+  })
+
   context('when provided an association', () => {
     it('is able to locate records in the database by the provided instance', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

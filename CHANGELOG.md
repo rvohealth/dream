@@ -1,3 +1,9 @@
+## 2.5.5
+
+- add missing `skipHooks` support for `createOrFindBy` and `findOrCreateBy`
+- fix Sortable bug when model lacks `updatedAt`
+- fix dirty after reload
+
 ## 2.5.4
 
 - improve CLI descriptions

@@ -720,6 +720,27 @@ describe('@Sortable', () => {
     })
   })
 
+  context('when saving a persisted record without changing position or scope', () => {
+    it('does not clear the position field on the in-memory object', async () => {
+      const pet = await Pet.create({ species: 'dog', name: 'Fido' })
+      expect(pet.positionWithinSpecies).toEqual(1)
+
+      pet.name = 'Rex'
+      await pet.save()
+
+      expect(pet.positionWithinSpecies).toEqual(1)
+    })
+
+    it('does not clear the position field when save is a no-op', async () => {
+      const pet = await Pet.create({ species: 'dog', name: 'Fido' })
+      expect(pet.positionWithinSpecies).toEqual(1)
+
+      await pet.save()
+
+      expect(pet.positionWithinSpecies).toEqual(1)
+    })
+  })
+
   context('upon destroying', () => {
     it('adjusts the positions of related records', async () => {
       const unrelatedEdgeNode = await EdgeNode.create({

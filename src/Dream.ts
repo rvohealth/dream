@@ -1421,6 +1421,7 @@ export default class Dream {
    * @param attributes - The base attributes to persist, but also the attributes to use to find when create fails
    * @param extraOpts - Additional options
    * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
+   * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
    */
   public static async createOrFindBy<T extends typeof Dream>(
@@ -1428,12 +1429,14 @@ export default class Dream {
     attributes: UpdateablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
+    const { skipHooks } = extraOpts
+
     try {
       const dreamModel = this.new({
         ...attributes,
         ...extraOpts?.createWith,
       })
-      await dreamModel.save()
+      await dreamModel.save(skipHooks ? { skipHooks } : undefined)
       return dreamModel
     } catch (err) {
       if (pgErrorType(err) === UNIQUE_VIOLATION) {
@@ -1708,6 +1711,7 @@ export default class Dream {
    * @param attributes - The base attributes for finding, but also the attributes to use when creating
    * @param extraOpts - Additional options
    * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
+   * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
    */
   public static async findOrCreateBy<T extends typeof Dream>(
