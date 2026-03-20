@@ -357,6 +357,7 @@ export default class DreamClassTransactionBuilder<
    * @param attributes - The base attributes for finding, but also the attributes to use when creating
    * @param extraOpts - Additional options
    * @param extraOpts.createWith - additional attributes to persist when creating, but not used for finding
+   * @param extraOpts.skipHooks - if true, will skip applying model hooks. Defaults to false
    * @returns A dream instance
    */
   public async findOrCreateBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(

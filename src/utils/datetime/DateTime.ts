@@ -151,6 +151,10 @@ export class DateTime {
   public constructor(luxonDatetime: LuxonDateTime, microseconds: number = 0) {
     this.luxonDatetime = luxonDatetime
     this._microseconds = microseconds
+
+    // Make lazy cache properties non-enumerable so they don't interfere with deep equality checks
+    Object.defineProperty(this, '_toSQL', { enumerable: false, writable: true, configurable: true })
+    Object.defineProperty(this, '_valueOf', { enumerable: false, writable: true, configurable: true })
   }
 
   /**

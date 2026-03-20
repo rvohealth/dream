@@ -1,6 +1,7 @@
 import Dream from '../../../src/Dream.js'
 import CreateOrFindByFailedToCreateAndFind from '../../../src/errors/CreateOrFindByFailedToCreateAndFind.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.createOrFindBy', () => {
@@ -14,11 +15,8 @@ describe('Dream.createOrFindBy', () => {
   })
 
   context('when a conflicting record already exists in the db', () => {
-    beforeEach(async () => {
-      await User.create({ email: 'fred@fred', password: 'howyadoin' })
-    })
-
     it('returns the existing record, leaving existing attributes untouched', async () => {
+      const originalUser = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       const u = await User.createOrFindBy(
         { email: 'fred@fred' },
         { createWith: { password: 'nothowyadoin' } }
@@ -26,6 +24,7 @@ describe('Dream.createOrFindBy', () => {
       const user = await User.find(u.id)
       expect(user!.email).toEqual('fred@fred')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
+      expect(u).toMatchDreamModel(originalUser)
     })
   })
 
@@ -50,6 +49,34 @@ describe('Dream.createOrFindBy', () => {
       })
     }
   )
+
+  context('after create lifecycle hooks', () => {
+    it('are called when creating', async () => {
+      const pet = await Pet.createOrFindBy({ species: 'dog' }, { createWith: { name: 'change me' } })
+
+      expect(pet.name).toEqual('changed by create hook')
+    })
+
+    it('are not called when finding', async () => {
+      const existingPet = await Pet.create({ species: 'dog', name: 'Snoopy', uniqueColumn: 'Snoopy' })
+      const pet = await Pet.createOrFindBy(
+        { species: 'dog' },
+        { createWith: { name: 'change me', uniqueColumn: 'Snoopy' } }
+      )
+
+      expect(pet).toMatchDreamModel(existingPet)
+      expect(pet.name).toEqual('Snoopy')
+    })
+
+    it('are NOT called when creating when skipHooks is passed', async () => {
+      const pet = await Pet.createOrFindBy(
+        { species: 'dog' },
+        { createWith: { name: 'change me' }, skipHooks: true }
+      )
+
+      expect(pet.name).toEqual('change me')
+    })
+  })
 
   context('when a non-foreign-key-constraint related issue crops up', () => {
     beforeEach(() => {

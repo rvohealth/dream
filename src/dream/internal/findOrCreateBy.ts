@@ -14,12 +14,14 @@ export default async function findOrCreateBy<T extends typeof Dream>(
 
   if (existingRecord) return existingRecord
 
+  const { createWith, skipHooks } = extraOpts
+
   const dreamModel = dreamClass.new({
     ...attributes,
-    ...extraOpts?.createWith,
+    ...createWith,
   })
 
-  await dreamModel.txn(txn).save()
+  await dreamModel.txn(txn).save(skipHooks ? { skipHooks } : undefined)
 
   return dreamModel
 }
