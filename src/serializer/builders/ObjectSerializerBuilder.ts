@@ -347,6 +347,7 @@ export default class ObjectSerializerBuilder<
     name: AttributeName,
     options: {
       as?: string
+      preRender?: (records: any[]) => any[]
     } & SerializerOptions
   ) {
     this.attributes.push({

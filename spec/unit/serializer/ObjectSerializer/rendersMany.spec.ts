@@ -213,5 +213,33 @@ describe('ObjectSerializer#rendersMany', () => {
         ],
       })
     })
+
+    it('applies preRender hook to reorder records before rendering', () => {
+      const birthdate = CalendarDate.fromISO('1950-10-02')
+      const pet1: SimplePet = { id: '3', name: 'Snoopy', species: 'dog', ratings: [] }
+      const pet2: SimplePet = { id: '7', name: 'Woodstock', species: 'frog', ratings: [] }
+      const user: UserWithSimplePets = { id: '11', name: 'Charlie', birthdate, pets: [pet1, pet2] }
+
+      const CustomSerializer = (data: SimplePet) =>
+        ObjectSerializer(data).attribute('name', { openapi: ['string', 'null'] })
+      const MySerializer = (data: UserWithSimplePets) =>
+        ObjectSerializer(data).rendersMany('pets', {
+          serializer: CustomSerializer,
+          preRender: records => [...records].reverse(),
+        })
+
+      const serializer = MySerializer(user)
+
+      expect(serializer.render()).toEqual({
+        pets: [
+          {
+            name: 'Woodstock',
+          },
+          {
+            name: 'Snoopy',
+          },
+        ],
+      })
+    })
   })
 })
