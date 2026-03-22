@@ -1,3 +1,7 @@
+## 2.5.6
+
+- bump kysely to close critical vulnerabilities, raise peerDependency to latest
+
 ## 2.5.5
 
 - add missing `skipHooks` support for `createOrFindBy` and `findOrCreateBy`
