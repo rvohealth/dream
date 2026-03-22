@@ -469,7 +469,10 @@ function removeJoinAndFromObjectHierarchy(obj: NestedObject): NestedObject {
 
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      if (isObject(obj[key])) {
+      // Only recurse into plain data objects. Class instances (Dream models, DateTime, etc.)
+      // may contain circular loaded-association references, which would cause infinite recursion.
+      const proto = Object.getPrototypeOf(obj[key])
+      if (isObject(obj[key]) && (proto === Object.prototype || proto === null)) {
         result[key] = removeJoinAndFromObjectHierarchy(obj[key].and || obj[key])
       } else {
         result[key] = obj[key]

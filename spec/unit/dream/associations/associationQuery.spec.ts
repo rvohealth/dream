@@ -6,6 +6,8 @@ import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import ModelA from '../../../../test-app/app/models/CircularReference/ModelA.js'
+import CircularReferenceLocalizedText from '../../../../test-app/app/models/CircularReference/LocalizedText.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
@@ -413,7 +415,7 @@ describe('Dream#associationQuery', () => {
 
         const otherBalloon = await Mylar.create({ user })
 
-        const collars = await pet.associationQuery('collars', { and: { balloon } }).all()
+        const collars = await pet.associationQuery('collars', { and: { balloon, hidden: false } }).all()
         expect(collars).toMatchDreamModels([collar])
 
         const nullCollar = await pet.associationQuery('collars', { and: { balloon: otherBalloon } }).first()
@@ -457,6 +459,36 @@ describe('Dream#associationQuery', () => {
               .associationQuery('localizedTexts', { and: { localizable: composition } })
               .all()
           ).toEqual([])
+        })
+      })
+
+      context('when the model passed has circular loaded associations', () => {
+        it('does not cause infinite recursion (RangeError: Maximum call stack size exceeded)', async () => {
+          // ModelA.AfterCreate sets this.currentLocalizedText = localizedText, but that
+          // createAssociation call uses IDs only — so __localizable__ is NOT set on that localizedText.
+          // To reproduce the circular reference we must explicitly pass the instance as a BelongsTo.
+          const modelA = await ModelA.create()
+
+          // Passing localizable: modelA explicitly sets localizedText.__localizable__ = modelA
+          const localizedText = await CircularReferenceLocalizedText.create({
+            localizable: modelA,
+            locale: 'en-US',
+            title: 'Circular Reference Test',
+          })
+
+          // Setting currentLocalizedText completes the cycle:
+          //   modelA.__currentLocalizedText__ = localizedText
+          //   localizedText.__localizable__   = modelA  ← cycle!
+          modelA.currentLocalizedText = localizedText
+
+          // Before the fix: removeJoinAndFromObjectHierarchy recurses into modelA forever →
+          //   RangeError: Maximum call stack size exceeded
+          // After the fix: modelA is treated as a leaf value → query runs correctly
+          const count = await modelA
+            .associationQuery('localizedTexts', { and: { localizable: modelA } })
+            .count()
+
+          expect(count).toBeGreaterThanOrEqual(1)
         })
       })
     })
