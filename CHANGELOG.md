@@ -1,3 +1,7 @@
+## 2.5.7
+
+- fix regression in similarity builder from 2.5.6 patch, caused when passing null values to and or andNot expressions
+
 ## 2.5.6
 
 - bump kysely to close critical vulnerabilities, raise peerDependency to latest

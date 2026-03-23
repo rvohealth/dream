@@ -471,7 +471,9 @@ function removeJoinAndFromObjectHierarchy(obj: NestedObject): NestedObject {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       // Only recurse into plain data objects. Class instances (Dream models, DateTime, etc.)
       // may contain circular loaded-association references, which would cause infinite recursion.
-      const proto = Object.getPrototypeOf(obj[key])
+      // Guard against null/undefined before calling Object.getPrototypeOf, since
+      // Object.getPrototypeOf(null) throws "TypeError: Cannot convert undefined or null to object".
+      const proto = obj[key] != null ? Object.getPrototypeOf(obj[key]) : null
       if (isObject(obj[key]) && (proto === Object.prototype || proto === null)) {
         result[key] = removeJoinAndFromObjectHierarchy(obj[key].and || obj[key])
       } else {
