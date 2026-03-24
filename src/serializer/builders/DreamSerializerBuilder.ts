@@ -43,11 +43,23 @@ export default class DreamSerializerBuilder<
   /**
    * Includes an attribute from the data object in the serialized output.
    *
-   * For DreamSerializer, OpenAPI types can often be inferred from database columns.
-   * For json and jsonb columns and also virtual attributes (getters), the `openapi` option is required.
+   * For DreamSerializer, OpenAPI types are automatically inferred from database columns.
+   * For json/jsonb columns and virtual attributes (getters), the `openapi` option is required.
    *
    * @param name - The attribute name from the data object
-   * @param options - Configuration options including OpenAPI schema, default value, and output customization
+   * @param options - Configuration options:
+   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
+   *   - `default` - Value to use when the attribute is undefined (not available for `type` columns)
+   *   - `openapi` - OpenAPI schema definition; required for json/jsonb columns and non-virtual
+   *     getters, optional for standard columns (where it can supplement inferred types with a
+   *     `description`), and optional for `@deco.Virtual()` columns (where the type is inferred
+   *     from the decorator)
+   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
+   *     during rendering; does not affect the OpenAPI shape (not available for `type` or
+   *     virtual columns)
+   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
+   *     when omitted, attributes are required by default, meaning `undefined` values will
+   *     serialize as `null` (not available for `type` columns)
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -55,17 +67,21 @@ export default class DreamSerializerBuilder<
    * // With type inference (database column)
    * .attribute('email')
    *
-   * // With explicit OpenAPI type (virtual attribute)
+   * // With explicit OpenAPI type (virtual attribute or json column)
    * .attribute('fullName', { openapi: { type: 'string' } })
    *
    * // With default value
-   * .attribute('status', { default: 'active' })
+   * .attribute('status', { default: 'pending' })
    *
    * // Rename output key
    * .attribute('email', { as: 'userEmail' })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
+   * // Round decimal to 2 places
+   * .attribute('price', { precision: 2 })
+   *
+   * // Mark as optional in OpenAPI (omitted from response when undefined)
+   * .attribute('deletedAt', { required: false })
+   * ```
    */
 
   // `type` attribute
@@ -112,30 +128,46 @@ export default class DreamSerializerBuilder<
   /**
    * Includes an attribute from a nested object in the serialized output.
    *
-   * Serializes an attribute from a target object. If the target object or
-   * the delegated attribute is null/undefined, the `default` option value
+   * Accesses `targetName.name` on the data object. If the target object
+   * or the delegated attribute is null/undefined, the `default` option value
    * will be used if provided.
    *
-   * @param targetName - The property name containing the target object
+   * When the target is a Dream model, OpenAPI types may be automatically inferred
+   * for standard database columns. For json/jsonb columns or non-Dream targets,
+   * the `openapi` option is required.
+   *
+   * @param targetName - The property name containing the target object (e.g., an association name)
    * @param name - The attribute name within the target object
-   * @param options - Configuration options including OpenAPI schema, default value, and output customization
+   * @param options - Configuration options:
+   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
+   *     (e.g., delegating `'user', 'email'` with `as: 'userEmail'` outputs the value
+   *     under `userEmail`)
+   *   - `default` - Value to use when the target object or its attribute is null/undefined
+   *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
+   *     columns, optional for standard Dream columns (where types are inferred)
+   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
+   *     during rendering; does not affect the OpenAPI shape
+   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
+   *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
    *
    * @example
    * ```typescript
-   * // Delegate to user.email
-   * .delegatedAttribute('user', 'email', {
-   *   openapi: { type: 'string', format: 'email' }
-   * })
+   * // Delegate to a Dream association's column (type inferred)
+   * .delegatedAttribute('currentLocalizedText', 'title', { openapi: 'string' })
    *
    * // With default value for null target or attribute
    * .delegatedAttribute('user', 'displayName', {
    *   openapi: { type: 'string' },
    *   default: 'Unknown User'
    * })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
+   * // Rename the output key
+   * .delegatedAttribute('profile', 'avatarUrl', {
+   *   openapi: 'string',
+   *   as: 'avatar'
+   * })
+   * ```
    */
   public delegatedAttribute<
     ProvidedModelType = undefined,
@@ -195,7 +227,17 @@ export default class DreamSerializerBuilder<
    *
    * @param name - The attribute name for the computed value
    * @param fn - Callback function that returns the computed value
-   * @param options - Configuration options including required OpenAPI schema and optional flattening
+   * @param options - Configuration options:
+   *   - `openapi` - (required) OpenAPI schema definition for the computed value
+   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
+   *   - `default` - Value to use when the callback returns undefined
+   *   - `flatten` - When `true`, spreads the returned object's properties directly into the
+   *     parent serialized output instead of nesting them under `name`; the `openapi` option
+   *     should then define each flattened property individually
+   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
+   *     during rendering; does not affect the OpenAPI shape
+   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
+   *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -207,16 +249,20 @@ export default class DreamSerializerBuilder<
    * )
    *
    * // Flattened object properties
-   * .customAttribute('metadata', () => ({ age: 30, city: 'NYC' }), {
+   * .customAttribute('coordinates', () => ({ lat: 40.7, lng: -74.0 }), {
    *   flatten: true,
    *   openapi: {
-   *     age: { type: 'integer' },
-   *     city: { type: 'string' }
+   *     lat: { type: 'number' },
+   *     lng: { type: 'number' }
    *   }
    * })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
+   * // With decimal precision
+   * .customAttribute('averageRating', () => calculateAverage(ratings), {
+   *   openapi: 'decimal',
+   *   precision: 2
+   * })
+   * ```
    */
 
   public customAttribute(
@@ -239,28 +285,50 @@ export default class DreamSerializerBuilder<
   /**
    * Includes a single associated object in the serialized output.
    *
-   * When rendering a Dream association, the OpenAPI shape is automatically
-   * inferred from that associated Dream's serializer.
+   * When rendering a Dream association, the serializer and OpenAPI shape are automatically
+   * inferred from that associated Dream model's registered serializers.
    *
    * @param name - The association property name
-   * @param options - Configuration options for serialization and schema definition
+   * @param options - Configuration options:
+   *   - `as` - Rename the association key in the serialized output
+   *   - `flatten` - When `true`, spreads the rendered association's attributes directly into
+   *     the parent serialized output instead of nesting them under `name`. Be aware of
+   *     attribute shadowing: if the parent and flattened association share attribute names
+   *     (e.g., `id`), the flattened association's values overwrite the parent's
+   *   - `optional` - When `true`, allows the association to be null/missing without causing
+   *     an `OpenapiResponseValidationFailure` during Psychic controller unit specs. By default,
+   *     `rendersOne` expects the association to be present (mirroring the `optional` option on
+   *     `@deco.BelongsTo`). Set this to `true` when the association is genuinely nullable
+   *   - `serializerKey` - Use a specific serializer key from the associated Dream model's
+   *     registered serializers (e.g., `'summary'`)
+   *   - `serializer` - Provide an explicit serializer function instead of using the
+   *     associated model's registered serializers
+   *
+   *   For ViewModel associations, one of these is required:
+   *   - `viewModelClass` + optional `serializerKey`
+   *   - `serializer`
+   *
+   *   For non-Dream/non-ViewModel associations:
+   *   - `serializer` is required
    * @returns The serializer builder for method chaining
    *
    * @example
    * ```typescript
-   * // DreamSerializer with inference
-   * .rendersOne('user') // Infers from Dream association
+   * // Auto-infer serializer from Dream association
+   * .rendersOne('profile')
    *
-   * // With specific serializer
+   * // With specific serializer key
    * .rendersOne('user', { serializerKey: 'summary' })
    *
-   * // ObjectSerializer (explicit configuration required)
-   * .rendersOne('owner', UserSerializer, {
-   *   openapi: { $ref: '#/components/schemas/User' }
-   * })
-   * ```
+   * // Allow null association
+   * .rendersOne('approver', { optional: true })
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/associations | Serializer Associations Documentation}
+   * // Flatten into parent object
+   * .rendersOne('candidate', { serializerKey: 'summary', flatten: true })
+   *
+   * // Explicit serializer function
+   * .rendersOne('owner', { serializer: CustomOwnerSerializer })
+   * ```
    */
   public rendersOne<
     ProvidedModelType = undefined,
@@ -301,8 +369,28 @@ export default class DreamSerializerBuilder<
             serializer: SerializerType
           },
     BaseOptions = {
+      /**
+       * Rename the association key in the serialized output.
+       */
       as?: string
+
+      /**
+       * If `true`, the rendered association's attributes are merged directly into
+       * the parent object instead of being nested under the association key.
+       */
       flatten?: boolean
+
+      /**
+       * If `true`, the association is treated as nullable in the OpenAPI spec,
+       * allowing `null` when the association doesn't resolve. By default,
+       * `rendersOne` expects the association to be present. Set this to `true`
+       * for associations that may not exist, such as passthrough-conditional
+       * HasOne associations.
+       *
+       * ```ts
+       * .rendersOne('currentUserFavorite', { optional: true })
+       * ```
+       */
       optional?: boolean
     },
   >(name: AttributeName, options?: BaseOptions & SerializerOptions) {
@@ -318,31 +406,39 @@ export default class DreamSerializerBuilder<
   /**
    * Includes an array of associated objects in the serialized output.
    *
-   * When rendering a Dream association, the OpenAPI shape is automatically
-   * inferred from that associated Dream's serializer.
+   * When rendering a Dream association, the serializer and OpenAPI shape are automatically
+   * inferred from that associated Dream model's registered serializers.
    *
-   * @param name - The association property name (should be an array)
-   * @param options - Configuration options for serialization and schema definition
+   * @param name - The association property name (should resolve to an array)
+   * @param options - Configuration options:
+   *   - `as` - Rename the association key in the serialized output
+   *   - `serializerKey` - Use a specific serializer key from the associated Dream model's
+   *     registered serializers (e.g., `'summary'`)
+   *   - `serializer` - Provide an explicit serializer function instead of using the
+   *     associated model's registered serializers
+   *
+   *   For ViewModel associations, one of these is required:
+   *   - `viewModelClass` + optional `serializerKey`
+   *   - `serializer`
+   *
+   *   For non-Dream/non-ViewModel associations:
+   *   - `serializer` is required
    * @returns The serializer builder for method chaining
    *
    * @example
    * ```typescript
-   * // DreamSerializer with inference
-   * .rendersMany('posts') // Infers from Dream association
+   * // Auto-infer serializer from Dream association
+   * .rendersMany('rooms')
    *
-   * // With specific serializer
-   * .rendersMany('posts', { serializerKey: 'summary' })
+   * // With specific serializer key
+   * .rendersMany('rooms', { serializerKey: 'summary' })
    *
-   * // ObjectSerializer (explicit configuration required)
-   * .rendersMany('articles', ArticleSerializer, {
-   *   openapi: {
-   *     type: 'array',
-   *     items: { $ref: '#/components/schemas/Article' }
-   *   }
-   * })
+   * // Explicit serializer function (for non-Dream objects)
+   * .rendersMany('bedTypes', { serializer: BedTypeSerializer })
+   *
+   * // Rename output key
+   * .rendersMany('rooms', { serializerKey: 'forGuests', as: 'guestRooms' })
    * ```
-   *
-   * See: {@link https://your-docs-url.com/docs/serializers/associations | Serializer Associations Documentation}
    */
   public rendersMany<
     ProvidedModelType = undefined,
@@ -402,24 +498,22 @@ export default class DreamSerializerBuilder<
   /**
    * Executes the serializer and returns the serialized output.
    *
-   * This method processes all defined attributes, custom attributes, delegated attributes,
-   * and associations to produce the final serialized object. The result is suitable for
-   * JSON.stringify() and API responses.
+   * Processes all defined attributes, custom attributes, delegated attributes,
+   * and associations to produce the final serialized object.
    *
    * @param passthrough - Additional data to pass through to nested serializers
+   *   (e.g., locale, current user context)
    * @param opts - Rendering options for customizing the serialization process
-   * @returns The serialized object
+   * @returns The serialized object, suitable for JSON responses
    *
    * @example
    * ```typescript
    * const result = UserSerializer(user).render()
    * // Returns: { id: 1, email: 'user@example.com', ... }
    *
-   * // With passthrough data
+   * // With passthrough data for nested serializers
    * const result = UserSerializer(user).render({ currentUserId: 123 })
    * ```
-   *
-   * See: {@link https://your-docs-url.com/docs/serializers/render | Serializer Rendering Documentation}
    */
   public render(passthrough: any = {}, opts: SerializerRendererOpts = {}) {
     return new SerializerRenderer(this, passthrough, opts).render()

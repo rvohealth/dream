@@ -3,6 +3,10 @@ import { DecoratorContext } from '../DecoratorContextType.js'
 
 export default function Scope(
   opts: {
+    /**
+     * If `true`, this scope will be applied automatically to all queries involving this model.
+     * Defaults to `false`.
+     */
     default?: boolean
   } = {}
 ): any {
