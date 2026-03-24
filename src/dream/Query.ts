@@ -2361,7 +2361,7 @@ export default class Query<
    * Updates all records matching the Query
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%') }).updateAll({ email: null })
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).update({ email: null })
    * // 12
    * ```
    * @param attributes - The attributes used to update the records

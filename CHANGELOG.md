@@ -1,3 +1,7 @@
+## 2.5.8
+
+- fix tsdocs for `Query#update`
+
 ## 2.5.7
 
 - fix regression in similarity builder from 2.5.6 patch, caused when passing null values to and or andNot expressions
