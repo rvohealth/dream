@@ -36,6 +36,15 @@ interface HasManyOnlyOptions<
     AssociationGlobalName & GlobalModelNames<BaseInstance>
   >,
 > {
+  /**
+   * Applies a DISTINCT clause to this association. If a column name is provided, the distinct
+   * clause is applied to that column. If `true`, the distinct clause is applied to the primary key.
+   *
+   * ```ts
+   * @deco.HasMany('Collar', { distinct: 'tagName' })
+   * public uniqueCollars: Collar[]
+   * ```
+   */
   distinct?:
     | TableColumnNames<
         BaseInstance['DB'],
@@ -45,6 +54,15 @@ interface HasManyOnlyOptions<
       >
     | boolean
 
+  /**
+   * A custom order to apply when loading this association. Can be a single order statement
+   * or an array of order statements.
+   *
+   * ```ts
+   * @deco.HasMany('Post', { order: { createdAt: 'desc' } })
+   * public recentPosts: Post[]
+   * ```
+   */
   order?:
     | OrderStatement<
         BaseInstance['DB'],

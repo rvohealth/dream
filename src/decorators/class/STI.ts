@@ -6,7 +6,13 @@ import { scopeImplementation } from '../static-method/Scope.js'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 
-export default function STI(dreamClass: typeof Dream, { value }: { value?: string } = {}): ClassDecorator {
+export default function STI(dreamClass: typeof Dream, { value }: {
+  /**
+   * A custom value to store in the `type` column for this STI child class.
+   * Defaults to the class name.
+   */
+  value?: string
+} = {}): ClassDecorator {
   return function (target: any) {
     const stiChildClass = target as typeof Dream
     const baseClass = dreamClass['sti'].baseClass || dreamClass

@@ -66,6 +66,9 @@ export interface PreloadedDreamsAndWhatTheyPointTo {
 }
 
 export interface FindEachOpts {
+  /**
+   * The number of records to load per batch. Defaults to 1000.
+   */
   batchSize?: number
 }
 export type JoinTypes = 'inner' | 'left'

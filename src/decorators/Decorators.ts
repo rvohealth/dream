@@ -269,6 +269,10 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   public Scope(
     this: Decorators<TD>,
     opts: {
+      /**
+       * If `true`, this scope will be applied automatically to all queries involving this model.
+       * Defaults to `false`.
+       */
       default?: boolean
     } = {}
   ) {
@@ -341,9 +345,19 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   public Validates<
     VT extends ValidationType,
     VTArgs extends VT extends 'numericality'
-      ? { min?: number; max?: number }
+      ? {
+          /** The minimum allowed value (inclusive). */
+          min?: number
+          /** The maximum allowed value (inclusive). */
+          max?: number
+        }
       : VT extends 'length'
-        ? { min: number; max?: number }
+        ? {
+            /** The minimum allowed length (inclusive). */
+            min: number
+            /** The maximum allowed length (inclusive). */
+            max?: number
+          }
         : VT extends 'contains'
           ? string | RegExp
           : never,
