@@ -4174,13 +4174,28 @@ export default class Dream {
   }
 
   /**
-   * Loads the requested associations upon execution
+   * Loads the requested associations upon execution.
    *
-   * NOTE: {@link Dream.preload} is often a preferrable way of achieving the
-   * same goal.
+   * **IMPORTANT:** `load().execute()` returns a **new clone** of the model with the
+   * associations loaded. It does NOT modify the original instance. You must use the
+   * returned value:
    *
    * ```ts
-   * await user
+   * // CORRECT — use the returned clone:
+   * const loaded = await user.load('posts').execute()
+   * loaded.posts // works
+   *
+   * // WRONG — original is not modified:
+   * await user.load('posts').execute()
+   * user.posts // association not loaded!
+   * ```
+   *
+   * NOTE: {@link Dream.preload} is often a preferrable way of achieving the
+   * same goal. Alternatively, `await model.association('posts')` loads only
+   * if the association is not already loaded.
+   *
+   * ```ts
+   * const user = await user
    *  .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
    *  .load('images')
    *  .execute()
@@ -4193,7 +4208,7 @@ export default class Dream {
    * ```
    *
    * @param args - A list of associations (and optional where clauses) to load
-   * @returns A chainable LoadBuilder instance
+   * @returns A chainable LoadBuilder instance. Call `.execute()` to get the cloned model with associations loaded.
    */
   public load<
     I extends Dream,
@@ -4557,19 +4572,19 @@ export default class Dream {
    * Load each specified association using a single SQL query.
    * See {@link Dream.load} for loading in separate queries.
    *
+   * **IMPORTANT:** Like `load()`, `leftJoinLoad().execute()` returns a **new clone** of the
+   * model with associations loaded. It does NOT modify the original instance.
+   *
    * Note: since leftJoinLoad loads via single query, it has
-   * some downsides and that may be avoided using {@link Dream.load}:
+   * some downsides that may be avoided using {@link Dream.load}:
    * 1. `limit` and `offset` will be automatically removed
    * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
    * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinLoad('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
    *
-   * Note: Left join loading loads all data in a single SQL query but has trade-offs compared
-   * to regular preloading. See {@link Dream.leftJoinPreload} for details about limitations.
-   *
    * ```ts
-   * await user
+   * const user = await user
    *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
    *  .leftJoinLoad('images')
    *  .execute()
@@ -4582,7 +4597,7 @@ export default class Dream {
    * ```
    *
    * @param args - A list of associations (and optional where clauses) to load
-   * @returns A chainable LeftJoinLoadBuilder instance
+   * @returns A chainable LeftJoinLoadBuilder instance. Call `.execute()` to get the cloned model with associations loaded.
    */
   public leftJoinLoad<
     I extends Dream,

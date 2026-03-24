@@ -27,10 +27,28 @@ export interface HookStatement {
 }
 
 export interface BeforeHookOpts<T extends Dream | null = null> {
+  /**
+   * Only run this hook if one of the specified columns is being changed in the
+   * current save operation.
+   *
+   * ```ts
+   * @deco.BeforeCreate({ ifChanging: ['email'] })
+   * public normalizeEmail() { ... }
+   * ```
+   */
   ifChanging?: T extends Dream ? DreamColumnNames<T>[] : string[]
 }
 
 export interface AfterHookOpts<T extends Dream | null = null> {
+  /**
+   * Only run this hook if one of the specified columns was changed in the
+   * most recent save operation.
+   *
+   * ```ts
+   * @deco.AfterUpdate({ ifChanged: ['email'] })
+   * public sendEmailVerification() { ... }
+   * ```
+   */
   ifChanged?: T extends Dream ? DreamColumnNames<T>[] : string[]
 }
 

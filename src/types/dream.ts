@@ -521,12 +521,30 @@ export type UpdateableProperties<
 >
 
 export interface CreateOrFindByExtraOpts<T extends typeof Dream> {
+  /**
+   * Additional attributes to include when creating the record, but NOT used
+   * for finding the record if the create fails due to a uniqueness violation.
+   */
   createWith?: UpdateablePropertiesForClass<T>
+
+  /**
+   * If `true`, skips all model lifecycle hooks (BeforeCreate, AfterCreate, etc.).
+   * Defaults to `false`.
+   */
   skipHooks?: boolean
 }
 
 export interface UpdateOrCreateByExtraOpts<T extends typeof Dream> {
+  /**
+   * Additional attributes to include when creating or updating the record,
+   * but NOT used for finding the existing record.
+   */
   with?: UpdateablePropertiesForClass<T>
+
+  /**
+   * If `true`, skips all model lifecycle hooks (BeforeCreate, AfterCreate,
+   * BeforeUpdate, AfterUpdate, etc.). Defaults to `false`.
+   */
   skipHooks?: boolean
 }
 

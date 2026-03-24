@@ -153,6 +153,15 @@ export default function Sortable(opts: SortableOpts = {}): any {
 }
 
 interface SortableOpts {
+  /**
+   * A column name or array of column names that define the scope within which
+   * position values are unique. Records are sorted independently within each scope.
+   *
+   * ```ts
+   * @deco.Sortable({ scope: 'species' })
+   * public positionWithinSpecies: number
+   * ```
+   */
   scope?: string | string[]
 }
 

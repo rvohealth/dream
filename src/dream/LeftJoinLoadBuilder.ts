@@ -16,13 +16,16 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   private query: QueryWithJoinedAssociationsTypeAndNoPreload<Query<DreamInstance>>
 
   /**
-   * An intermediate class on the way to executing a load
-   * query. this can be accessed on an instance of a dream
-   * model by using the `#load` method:
+   * An intermediate builder for loading associations onto a Dream model
+   * via a single left-join SQL query. Accessed via `#leftJoinLoad`.
+   *
+   * **Note:** The LeftJoinLoadBuilder works on a clone of the original model.
+   * Call `.execute()` to get the clone with associations loaded.
    *
    * ```ts
    * const user = await User.firstOrFail()
-   * await user.load('settings').execute()
+   * const loaded = await user.leftJoinLoad('settings').execute()
+   * loaded.settings // association is loaded on the returned clone
    * ```
    */
   constructor(
@@ -66,17 +69,20 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   }
 
   /**
-   * executes a load builder query, binding
-   * all associations to their respective model
-   * instances.
+   * Executes the left-join load query, returning a **clone** of the original model
+   * with all requested associations loaded. The original instance is not modified.
    *
    * ```ts
    * const user = await User.firstOrFail()
-   * await user
-   *   .load('settings')
-   *   .load('posts', 'comments', 'replies', ['image', 'localizedText'])
+   * const loaded = await user
+   *   .leftJoinLoad('settings')
+   *   .leftJoinLoad('posts', 'comments', 'replies')
    *   .execute()
+   *
+   * loaded.settings // works — associations are on the returned clone
    * ```
+   *
+   * @returns A clone of the Dream instance with all requested associations loaded
    */
   public async execute(): Promise<DreamInstance> {
     if (this.dreamTransaction) {

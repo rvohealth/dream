@@ -37,7 +37,15 @@ export default class ObjectSerializerBuilder<
    * inference is not available for plain objects or ViewModels.
    *
    * @param name - The attribute name from the data object
-   * @param options - Configuration options including required OpenAPI schema, default value, and output customization
+   * @param options - Configuration options:
+   *   - `openapi` - (required) OpenAPI schema definition for the attribute
+   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
+   *   - `default` - Value to use when the attribute is undefined
+   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
+   *     during rendering; does not affect the OpenAPI shape
+   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
+   *     when omitted, attributes are required by default, meaning `undefined` values will
+   *     serialize as `null`
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -58,9 +66,19 @@ export default class ObjectSerializerBuilder<
    *   openapi: { type: 'string' },
    *   as: 'userEmail'
    * })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
+   * // Round decimal to 2 places
+   * .attribute('price', {
+   *   openapi: 'decimal',
+   *   precision: 2
+   * })
+   *
+   * // Mark as optional in OpenAPI (omitted from response when undefined)
+   * .attribute('nickname', {
+   *   openapi: 'string',
+   *   required: false
+   * })
+   * ```
    */
   public attribute<
     // don't attempt to exclude 'serializers' because it breaks types when adding
@@ -79,13 +97,22 @@ export default class ObjectSerializerBuilder<
   /**
    * Includes an attribute from a nested object in the serialized output.
    *
-   * Pulls up an attribute from a target object property. The `openapi` option
-   * is always required. If the target object or the delegated attribute
-   * is null/undefined, the `default` option value will be used if provided.
+   * Accesses `targetName.name` on the data object. The `openapi` option is always
+   * required. If the target object or the delegated attribute is null/undefined,
+   * the `default` option value will be used if provided.
    *
    * @param targetName - The property name containing the target object
    * @param name - The attribute name within the target object
-   * @param options - Configuration options including required OpenAPI schema, default value, and output customization
+   * @param options - Configuration options:
+   *   - `openapi` - (required) OpenAPI schema definition for the attribute
+   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
+   *     (e.g., delegating `'profile', 'avatarUrl'` with `as: 'avatar'` outputs the value
+   *     under `avatar`)
+   *   - `default` - Value to use when the target object or its attribute is null/undefined
+   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
+   *     during rendering; does not affect the OpenAPI shape
+   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
+   *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -100,9 +127,13 @@ export default class ObjectSerializerBuilder<
    *   openapi: { type: 'string' },
    *   default: 'Anonymous User'
    * })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
+   * // Rename the output key
+   * .delegatedAttribute('profile', 'avatarUrl', {
+   *   openapi: 'string',
+   *   as: 'avatar'
+   * })
+   * ```
    */
   public delegatedAttribute<
     ProvidedModelType = undefined,
@@ -146,9 +177,19 @@ export default class ObjectSerializerBuilder<
    * Executes a callback function to generate a custom attribute value.
    * The `openapi` option is always required since the return type cannot be inferred.
    *
+   * Unlike DreamSerializerBuilder's `customAttribute`, this version does not support `as`
+   * or `precision`.
+   *
    * @param name - The attribute name for the computed value
    * @param fn - Callback function that returns the computed value
-   * @param options - Configuration options including required OpenAPI schema and optional flattening
+   * @param options - Configuration options:
+   *   - `openapi` - (required) OpenAPI schema definition for the computed value
+   *   - `default` - Value to use when the callback returns undefined
+   *   - `flatten` - When `true`, spreads the returned object's properties directly into the
+   *     parent serialized output instead of nesting them under `name`; the `openapi` option
+   *     should then define each flattened property individually
+   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
+   *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -168,8 +209,6 @@ export default class ObjectSerializerBuilder<
    *   }
    * })
    * ```
-   *
-   * See: {@link https://your-docs-url.com/docs/serializers/attributes | Serializer Attributes Documentation}
    */
   public customAttribute(
     name: string,
@@ -193,25 +232,47 @@ export default class ObjectSerializerBuilder<
    * since association schemas cannot be inferred from plain objects.
    *
    * @param name - The association property name
-   * @param options - Configuration options including required serializer and OpenAPI schema
+   * @param options - Configuration options:
+   *   - `as` - Rename the association key in the serialized output
+   *   - `flatten` - When `true`, spreads the rendered association's attributes directly into
+   *     the parent serialized output instead of nesting them under `name`. Be aware of
+   *     attribute shadowing: if the parent and flattened association share attribute names
+   *     (e.g., `id`), the flattened association's values overwrite the parent's
+   *   - `optional` - When `true`, allows the association to be null/missing without causing
+   *     an `OpenapiResponseValidationFailure` during Psychic controller unit specs. By default,
+   *     `rendersOne` expects the association to be present (mirroring the `optional` option on
+   *     `@deco.BelongsTo`). Set this to `true` when the association is genuinely nullable
+   *
+   *   For Dream associations:
+   *   - `dreamClass` - The Dream model class, enabling serializer inference; when specified,
+   *     `serializerKey` may also be provided to select a specific registered serializer
+   *   - `serializer` - Provide an explicit serializer function
+   *
+   *   For ViewModel associations:
+   *   - `viewModelClass` + optional `serializerKey`
+   *   - `serializer`
+   *
+   *   For non-Dream/non-ViewModel associations:
+   *   - `serializer` is required
    * @returns The serializer builder for method chaining
    *
    * @example
    * ```typescript
    * // With explicit serializer function
-   * .rendersOne('owner', UserSerializer, {
-   *   openapi: { $ref: '#/components/schemas/User' }
-   * })
+   * .rendersOne('owner', { serializer: CustomOwnerSerializer })
    *
-   * // With Dream class reference
+   * // With Dream class reference and serializer key
    * .rendersOne('creator', {
    *   dreamClass: User,
-   *   serializerKey: 'summary',
-   *   openapi: { $ref: '#/components/schemas/UserSummary' }
+   *   serializerKey: 'summary'
    * })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/associations | Serializer Associations Documentation}
+   * // Allow null association
+   * .rendersOne('approver', { serializer: UserSerializer, optional: true })
+   *
+   * // Flatten into parent object
+   * .rendersOne('profile', { serializer: ProfileSerializer, flatten: true })
+   * ```
    */
   public rendersOne<
     ProvidedModelType = undefined,
@@ -253,8 +314,22 @@ export default class ObjectSerializerBuilder<
   >(
     name: AttributeName,
     options: {
+      /**
+       * Rename the association key in the serialized output.
+       */
       as?: string
+
+      /**
+       * If `true`, the rendered association's attributes are merged directly into
+       * the parent object instead of being nested under the association key.
+       */
       flatten?: boolean
+
+      /**
+       * If `true`, the association is treated as nullable in the OpenAPI spec,
+       * allowing `null` when the association doesn't resolve. Set this for
+       * associations that may not exist.
+       */
       optional?: boolean
     } & SerializerOptions
   ) {
@@ -273,32 +348,43 @@ export default class ObjectSerializerBuilder<
    * For ObjectSerializer, explicit serializer configuration is always required
    * since association schemas cannot be inferred from plain objects.
    *
-   * @param name - The association property name (should be an array)
-   * @param options - Configuration options including required serializer and OpenAPI schema
+   * @param name - The association property name (should resolve to an array)
+   * @param options - Configuration options:
+   *   - `as` - Rename the association key in the serialized output
+   *
+   *   For Dream associations:
+   *   - `dreamClass` - The Dream model class, enabling serializer inference; when specified,
+   *     `serializerKey` may also be provided to select a specific registered serializer
+   *   - `serializer` - Provide an explicit serializer function
+   *
+   *   For ViewModel associations:
+   *   - `viewModelClass` + optional `serializerKey`
+   *   - `serializer`
+   *
+   *   For non-Dream/non-ViewModel associations:
+   *   - `serializer` is required
    * @returns The serializer builder for method chaining
    *
    * @example
    * ```typescript
    * // With explicit serializer function
-   * .rendersMany('articles', ArticleSerializer, {
-   *   openapi: {
-   *     type: 'array',
-   *     items: { $ref: '#/components/schemas/Article' }
-   *   }
+   * .rendersMany('articles', { serializer: ArticleSerializer })
+   *
+   * // With Dream class reference and serializer key
+   * .rendersMany('posts', {
+   *   dreamClass: Post,
+   *   serializerKey: 'summary'
    * })
    *
    * // With ViewModel class reference
    * .rendersMany('comments', {
    *   viewModelClass: CommentViewModel,
-   *   serializer: CommentViewModelSerializer,
-   *   openapi: {
-   *     type: 'array',
-   *     items: { $ref: '#/components/schemas/Comment' }
-   *   }
+   *   serializer: CommentViewModelSerializer
    * })
-   * ```
    *
-   * See: {@link https://your-docs-url.com/docs/serializers/associations | Serializer Associations Documentation}
+   * // Rename output key
+   * .rendersMany('articles', { serializer: ArticleSerializer, as: 'posts' })
+   * ```
    */
   public rendersMany<
     ProvidedModelType = undefined,
@@ -361,13 +447,13 @@ export default class ObjectSerializerBuilder<
   /**
    * Executes the serializer and returns the serialized output.
    *
-   * This method processes all defined attributes, custom attributes, delegated attributes,
-   * and associations to produce the final serialized object. The result is suitable for
-   * JSON.stringify() and API responses.
+   * Processes all defined attributes, custom attributes, delegated attributes,
+   * and associations to produce the final serialized object.
    *
    * @param passthrough - Additional data to pass through to nested serializers
+   *   (e.g., locale, current user context)
    * @param opts - Rendering options for customizing the serialization process
-   * @returns The serialized object
+   * @returns The serialized object, suitable for JSON responses
    *
    * @example
    * ```typescript
@@ -377,8 +463,6 @@ export default class ObjectSerializerBuilder<
    * // With passthrough data for nested serializers
    * const result = UserViewModelSerializer(userVm).render({ currentUserId: '456' })
    * ```
-   *
-   * See: {@link https://your-docs-url.com/docs/serializers/render | Serializer Rendering Documentation}
    */
   public render(passthrough: any = {}, opts: SerializerRendererOpts = {}) {
     return new SerializerRenderer(this, passthrough, opts).render()

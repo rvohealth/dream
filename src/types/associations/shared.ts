@@ -399,9 +399,26 @@ interface HasOptionsBase<
     AssociationGlobalName & keyof GlobalModelNameTableMap<BaseInstance>
   >,
 > {
+  /**
+   * If `'destroy'`, associated records will be cascade-deleted when the base model is destroyed.
+   */
   dependent?: DependentOptions
+
+  /**
+   * A custom column on the associated model to use as the foreign key for this association,
+   * overriding the default convention-based foreign key.
+   */
   on?: TableColumnNames<BaseInstance['DB'], AssociationTableName & keyof BaseInstance['DB']>
 
+  /**
+   * A where clause applied whenever this association is loaded, scoping the association
+   * to only records matching the given conditions.
+   *
+   * ```ts
+   * @deco.HasMany('Collar', { and: { lost: false } })
+   * public currentCollars: Collar[]
+   * ```
+   */
   and?: OnStatementForAssociationDefinition<
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -410,6 +427,15 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
+  /**
+   * A negated where clause applied whenever this association is loaded, excluding
+   * records matching the given conditions.
+   *
+   * ```ts
+   * @deco.HasOne('Collar', { andNot: { lost: true } })
+   * public notLostCollar: Collar
+   * ```
+   */
   andNot?: InternalWhereStatement<
     BaseInstance,
     BaseInstance['DB'],
@@ -419,6 +445,15 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
+  /**
+   * An array of where clauses combined with OR logic, applied whenever this association
+   * is loaded. At least one of the clauses must match.
+   *
+   * ```ts
+   * @deco.HasMany('Balloon', { andAny: [{ color: 'red' }, { color: 'blue' }] })
+   * public redOrBlueBalloons: Balloon[]
+   * ```
+   */
   andAny?: InternalWhereStatement<
     BaseInstance,
     BaseInstance['DB'],
@@ -428,9 +463,27 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >[]
 
+  /**
+   * Marks this as a polymorphic association, where the foreign key and a type column
+   * together identify the associated record across multiple tables.
+   */
   polymorphic?: boolean
+
+  /**
+   * A custom column on this model to use as the primary key for this association,
+   * instead of the default primary key (e.g., `'uuid'` instead of `'id'`).
+   */
   primaryKeyOverride?: DreamColumnNames<BaseInstance> | null
 
+  /**
+   * Adds a join condition between a column on the associated model and a column on this model,
+   * so the association is scoped by matching column values across both models.
+   *
+   * ```ts
+   * @deco.HasMany('Post', { selfAnd: { species: 'targetSpecies' } })
+   * public postsMatchingSpecies: Post[]
+   * ```
+   */
   selfAnd?: SelfOnStatement<
     BaseInstance,
     BaseInstance['DB'],
@@ -440,6 +493,10 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
+  /**
+   * Adds a negated join condition between a column on the associated model and a column
+   * on this model, excluding records where the columns match.
+   */
   selfAndNot?: SelfOnStatement<
     BaseInstance,
     BaseInstance['DB'],
@@ -449,9 +506,26 @@ interface HasOptionsBase<
       keyof BaseInstance['DB']
   >
 
+  /**
+   * Used in conjunction with `through` to specify which association on the intermediate model
+   * should be used to reach the target model.
+   */
   source?: keyof BaseInstance['schema'][ForeignTableName]['associations']
+
+  /**
+   * Loads this association through an intermediate association, similar to a SQL join
+   * through a join table.
+   *
+   * ```ts
+   * @deco.HasMany('Rating', { through: 'posts' })
+   * public ratings: Rating[]
+   * ```
+   */
   through?: ThroughAssociationName
 
+  /**
+   * A list of default scopes to bypass when loading this association.
+   */
   withoutDefaultScopes?: DefaultScopeNameForTable<
     BaseInstance['schema'],
     AssociationTableName & keyof BaseInstance['DB']
