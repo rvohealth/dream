@@ -23,7 +23,7 @@ export default class ModelA extends ApplicationModel {
   public createdAt: DreamColumn<ModelA, 'createdAt'>
   public updatedAt: DreamColumn<ModelA, 'updatedAt'>
 
-  @deco.HasOne('CircularReference/ModelB')
+  @deco.HasOne('CircularReference/ModelB', { dependent: 'destroy' })
   public modelBChild: ModelB
 
   @deco.HasOne('CircularReference/ModelB')
