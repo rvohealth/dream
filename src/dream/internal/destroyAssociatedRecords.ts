@@ -6,7 +6,11 @@ import { ReallyDestroyOptions } from './destroyDream.js'
  * @internal
  *
  * Destroys all HasOne/HasMany associations on this
- * dream that are marked as `dependent: 'destroy'`
+ * dream that are marked as `dependent: 'destroy'`.
+ *
+ * Expects associations to be preloaded onto the dream instance
+ * via `loadDependentDestroyTree`. Iterates loaded associations
+ * directly instead of querying the database.
  */
 export default async function destroyAssociatedRecords<I extends Dream>(
   dream: I,
@@ -14,14 +18,18 @@ export default async function destroyAssociatedRecords<I extends Dream>(
   options: ReallyDestroyOptions<I>
 ) {
   const dreamClass = dream.constructor as typeof Dream
-
   const { reallyDestroy } = options
 
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
-    if (reallyDestroy) {
-      await dream.txn(txn).reallyDestroyAssociation(associationName as any, options)
-    } else {
-      await dream.txn(txn).destroyAssociation(associationName as any, options)
+    const loaded = (dream as any)[associationName]
+    const records: Dream[] = Array.isArray(loaded) ? loaded : loaded ? [loaded] : []
+
+    for (const record of records) {
+      if (reallyDestroy) {
+        await (record as any).txn(txn).reallyDestroy(options)
+      } else {
+        await (record as any).txn(txn).destroy(options)
+      }
     }
   }
 }

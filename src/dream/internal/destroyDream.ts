@@ -3,6 +3,7 @@ import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import destroyAssociatedRecords from './destroyAssociatedRecords.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
+import loadDependentDestroyTree from './loadDependentDestroyTree.js'
 import runHooksFor from './runHooksFor.js'
 
 type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
@@ -50,7 +51,12 @@ async function destroyDreamWithTransaction<I extends Dream>(
   const { cascade, reallyDestroy, skipHooks } = options
 
   if (cascade) {
-    await destroyAssociatedRecords(dream, txn, options)
+    const dreamWithAssociations = await loadDependentDestroyTree(dream, txn, {
+      reallyDestroy,
+      bypassAllDefaultScopes: options.bypassAllDefaultScopes ?? false,
+      defaultScopesToBypass: (options.defaultScopesToBypass ?? []) as string[],
+    })
+    await destroyAssociatedRecords(dreamWithAssociations, txn, options)
   }
 
   if (!skipHooks) {

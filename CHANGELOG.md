@@ -1,3 +1,7 @@
+## 2.6.0
+
+- generate the full load tree and use `.load(...).execute(...)` to avoid exponential N+1 problem during deletion cascades
+
 ## 2.5.8
 
 - fix tsdocs for `Query#update`
