@@ -2,6 +2,7 @@
 
 - fix tsdocs for `Query#update`
 - missing option tsdocs for Serializers
+- remove unsupported optional second argument to `@STI` decorator
 
 ## 2.5.7
 
