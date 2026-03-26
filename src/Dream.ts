@@ -10,6 +10,7 @@ import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecor
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
 import { ScopeStatement } from './decorators/static-method/Scope.js'
 import DreamApp from './dream-app/index.js'
+import { RECURSIVE_SERIALIZATION_MAX_REPEATS } from './dream/constants.js'
 import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
 import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
 import DreamTransaction from './dream/DreamTransaction.js'
@@ -28,10 +29,10 @@ import {
   undestroyOptions,
 } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
-import { RecursiveSerializerInfo } from './dream/internal/extractNestedPaths.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
 import printSerializerHierarchyLevel from './dream/internal/printSerializerHierarchyLevel.js'
 import reload from './dream/internal/reload.js'
+import resolveSerializerAssociationEdges from './dream/internal/resolveSerializerAssociationEdges.js'
 import runValidations from './dream/internal/runValidations.js'
 import saveDream from './dream/internal/saveDream.js'
 import {
@@ -59,13 +60,10 @@ import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import RecordNotFound from './errors/RecordNotFound.js'
-import MissingSerializersDefinition from './errors/serializers/MissingSerializersDefinition.js'
 import areEqual from './helpers/areEqual.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
-import compact from './helpers/compact.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
-import DreamSerializerBuilder from './serializer/builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
@@ -125,14 +123,8 @@ import {
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './types/query.js'
-import {
-  DreamModelSerializerType,
-  InternalAnyRendersOneOrManyOpts,
-  InternalAnyTypedSerializerDelegatedAttribute,
-  InternalAnyTypedSerializerRendersMany,
-  InternalAnyTypedSerializerRendersOne,
-  SimpleObjectSerializerType,
-} from './types/serializer.js'
+import { RecursiveSerializerInfo } from './types/recursiveSerialization.js'
+import { DreamModelSerializerType, SimpleObjectSerializerType } from './types/serializer.js'
 import { ValidationStatement, ValidationType } from './types/validation.js'
 import {
   JoinedAssociation,
@@ -141,8 +133,6 @@ import {
   VariadicLeftJoinLoadArgs,
   VariadicLoadArgs,
 } from './types/variadic.js'
-
-const RECURSIVE_SERIALIZATION_MAX_REPEATS = 4
 
 export default class Dream {
   public DB: any
@@ -729,108 +719,32 @@ export default class Dream {
     if (repeatedAssociationTracker[depthTrackerId] + 1 > RECURSIVE_SERIALIZATION_MAX_REPEATS) return {}
     repeatedAssociationTracker[depthTrackerId]++
 
-    const serializerBuilder = serializer(undefined as any, undefined as any) as DreamSerializerBuilder<
-      any,
-      any
-    >
-    const serializerAssociations = serializerBuilder['attributes'].filter(attribute =>
-      ['rendersOne', 'rendersMany', 'delegatedAttribute'].includes(attribute.type as string)
-    ) as (
-      | InternalAnyTypedSerializerRendersMany<any>
-      | InternalAnyTypedSerializerRendersOne<any>
-      | InternalAnyTypedSerializerDelegatedAttribute
-    )[]
+    const edges = resolveSerializerAssociationEdges(this, serializer)
 
-    const mappedAssociations = serializerAssociations.reduce((accumulator, serializerAssociation) => {
-      const serializerAssociationName =
-        (serializerAssociation as InternalAnyTypedSerializerDelegatedAttribute).targetName ??
-        serializerAssociation.name
-
-      const serializerAssociationType = serializerAssociation.type
-      const association = this['getAssociationMetadata'](serializerAssociationName)
-      if (!association) return accumulator
-
-      const maybeAssociatedClasses = association.modelCB()
-      if (!maybeAssociatedClasses)
-        throw new Error(
-          `No class defined on ${serializerAssociationName} association on ${this.sanitizedName}`
-        )
-      const associatedClasses = Array.isArray(maybeAssociatedClasses)
-        ? maybeAssociatedClasses
-        : [maybeAssociatedClasses]
-
-      /////////////////////////////////////////////////
-      // map associated classes to their serializers //
-      /////////////////////////////////////////////////
-      const associatedClassSerializerTuples: [
-        typeof Dream,
-        DreamModelSerializerType | SimpleObjectSerializerType,
-      ][] = associatedClasses.flatMap(associatedClass => {
-        /**
-         * `serializers` is an array because `associatedClass` may be an STI
-         * base, with each of its STI children having its own serializer
-         */
-        let serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[] = []
-
-        try {
-          serializers = (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer
-            ? compact([(serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer])
-            : compact(
-                inferSerializersFromDreamClassOrViewModelClass(
-                  associatedClass,
-                  (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
-                )
-              )
-        } catch (error) {
-          if (!(error instanceof MissingSerializersDefinition)) throw error
-          serializers = []
+    const mappedAssociations = edges.reduce((accumulator, edge) => {
+      const innerAssociationSerializerInfo = edge.targets.reduce((innerAccumulator, target) => {
+        if (forDisplay && edge.type !== 'delegatedAttribute') {
+          printSerializerHierarchyLevel({
+            serializerAssociationType: edge.type,
+            serializerAssociationName: edge.serializerAssociationName,
+            associationSerializer: target.serializer,
+            forDisplayDepth,
+          })
         }
 
-        return serializers.map(
-          serializer =>
-            [associatedClass, serializer] as [
-              typeof Dream,
-              DreamModelSerializerType | SimpleObjectSerializerType,
-            ]
-        )
-      })
-      /////////////////////////////////////////////////////
-      // end:map associated classes to their serializers //
-      /////////////////////////////////////////////////////
+        return {
+          ...innerAccumulator,
+          ...target.dreamClass['recursiveSerializationMap'](target.serializer, {
+            forDisplay,
+            forDisplayDepth: forDisplayDepth + 1,
+            repeatedAssociationTracker,
+          }),
+        }
+      }, {} as RecursiveSerializerInfo)
 
-      ///////////////////////////////////////////////////////////////////////////////////////////////////
-      // reduce over all associated serializers, recursively building out their associated serializers //
-      ///////////////////////////////////////////////////////////////////////////////////////////////////
-      const innerAssociationSerializerInfo = associatedClassSerializerTuples.reduce(
-        (innerAccumulator, [associatedClass, associatedSerializer]) => {
-          if (forDisplay && serializerAssociationType !== 'delegatedAttribute') {
-            printSerializerHierarchyLevel({
-              serializerAssociationType,
-              serializerAssociationName,
-              associationSerializer: associatedSerializer,
-              forDisplayDepth,
-            })
-          }
-
-          return {
-            ...innerAccumulator,
-            ...associatedClass['recursiveSerializationMap'](associatedSerializer, {
-              forDisplay,
-              forDisplayDepth: forDisplayDepth + 1,
-              repeatedAssociationTracker,
-            }),
-          }
-        },
-        {} as RecursiveSerializerInfo
-      )
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////
-      // end:reduce over all associated serializers, recursively building out their associated serializers //
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      accumulator[association.as] = {
+      accumulator[edge.associationAs] = {
         parentDreamClass: this,
-        nestedSerializerInfo:
-          serializerAssociation.type === 'delegatedAttribute' ? {} : innerAssociationSerializerInfo,
+        nestedSerializerInfo: edge.type === 'delegatedAttribute' ? {} : innerAssociationSerializerInfo,
       }
 
       return accumulator

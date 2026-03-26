@@ -64,6 +64,7 @@ import {
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
 } from '../types/query.js'
+import { DreamClassAndAssociationNameTuple } from '../types/recursiveSerialization.js'
 import {
   JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
@@ -73,12 +74,12 @@ import {
   VariadicLoadArgs,
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
+import buildSerializerPreloadPaths from './internal/buildSerializerPreloadPaths.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
-import extractNestedPaths, { DreamClassAndAssociationNameTuple } from './internal/extractNestedPaths.js'
 import QueryDriverBase from './QueryDriver/Base.js'
 
-// Cache for extractNestedPaths results, keyed by "${sanitizedName}:${serializerKey}"
+// Cache for serializer preload-path results, keyed by "${globalName}:${serializerKey}"
 const extractedNestedPathsCache = new Map<string, DreamClassAndAssociationNameTuple[][]>()
 
 export default class Query<
@@ -754,12 +755,11 @@ export default class Query<
       >
     >,
   >(this: Q, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn): RetQuery {
-    const cacheKey = `${this.dreamClass.sanitizedName}:${serializerKey ?? 'default'}`
+    const cacheKey = `${this.dreamClass.globalName}:${serializerKey ?? 'default'}`
 
     let preloadArgs = extractedNestedPathsCache.get(cacheKey)
     if (!preloadArgs) {
-      // Cache miss - compute and store
-      preloadArgs = extractNestedPaths(this.dreamClass['serializationMap'](serializerKey))
+      preloadArgs = buildSerializerPreloadPaths(this.dreamClass, serializerKey)
       extractedNestedPathsCache.set(cacheKey, preloadArgs)
     }
 

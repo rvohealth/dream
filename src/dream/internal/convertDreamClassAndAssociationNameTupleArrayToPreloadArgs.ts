@@ -1,6 +1,6 @@
 import compact from '../../helpers/compact.js'
 import { LoadForModifierFn } from '../../types/query.js'
-import { DreamClassAndAssociationNameTuple } from './extractNestedPaths.js'
+import { DreamClassAndAssociationNameTuple } from '../../types/recursiveSerialization.js'
 
 export default function convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
   dreamClassAndAssociationNameTupleArray: DreamClassAndAssociationNameTuple[],

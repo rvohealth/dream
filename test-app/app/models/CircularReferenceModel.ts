@@ -20,7 +20,7 @@ export default class CircularReferenceModel extends ApplicationModel {
   public createdAt: DreamColumn<CircularReferenceModel, 'createdAt'>
   public updatedAt: DreamColumn<CircularReferenceModel, 'updatedAt'>
 
-  @deco.HasOne('CircularReferenceModel', { on: 'parentId' })
+  @deco.HasOne('CircularReferenceModel', { on: 'parentId', dependent: 'destroy' })
   public child: CircularReferenceModel
 
   @deco.BelongsTo('CircularReferenceModel', { on: 'parentId', optional: true })

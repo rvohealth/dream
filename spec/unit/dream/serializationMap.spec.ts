@@ -1,4 +1,4 @@
-import { RecursiveSerializerInfo } from '../../../src/dream/internal/extractNestedPaths.js'
+import { RecursiveSerializerInfo } from '../../../src/types/recursiveSerialization.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'

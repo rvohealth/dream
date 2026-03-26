@@ -1,6 +1,7 @@
 import Dream from '../Dream.js'
 import { PassthroughOnClause } from '../types/associations/shared.js'
-import { DreamSerializerKey, PassthroughColumnNames } from '../types/dream.js'
+import { DbConnectionType } from '../types/db.js'
+import { AllDefaultScopeNames, DreamSerializerKey, PassthroughColumnNames } from '../types/dream.js'
 import { LoadForModifierFn, QueryWithJoinedAssociationsTypeAndNoLeftJoinPreload } from '../types/query.js'
 import { VariadicLoadArgs } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
@@ -37,6 +38,67 @@ export default class LoadBuilder<DreamInstance extends Dream> {
     PassthroughColumns extends PassthroughColumnNames<DreamInstance>,
   >(this: I, passthroughWhereStatement: PassthroughOnClause<PassthroughColumns>) {
     this.query = this.query.passthrough(passthroughWhereStatement)
+    return this
+  }
+
+  /**
+   * Prevents a specific default scope from applying when
+   * loading associations
+   *
+   * ```ts
+   * const user = await User.firstOrFail()
+   * const loaded = await user
+   *   .load('posts')
+   *   .removeDefaultScope('dream:SoftDelete')
+   *   .execute()
+   * ```
+   *
+   * @param scopeName - The default scope to bypass
+   * @returns The LoadBuilder instance for chaining
+   */
+  public removeDefaultScope<I extends LoadBuilder<DreamInstance>>(
+    this: I,
+    scopeName: AllDefaultScopeNames<DreamInstance>
+  ) {
+    this.query = this.query.removeDefaultScope(scopeName) as typeof this.query
+    return this
+  }
+
+  /**
+   * Prevents all default scopes from applying when
+   * loading associations
+   *
+   * ```ts
+   * const user = await User.firstOrFail()
+   * const loaded = await user
+   *   .load('posts')
+   *   .removeAllDefaultScopes()
+   *   .execute()
+   * ```
+   *
+   * @returns The LoadBuilder instance for chaining
+   */
+  public removeAllDefaultScopes<I extends LoadBuilder<DreamInstance>>(this: I) {
+    this.query = this.query.removeAllDefaultScopes() as typeof this.query
+    return this
+  }
+
+  /**
+   * Sets the database connection to use when loading associations
+   *
+   * ```ts
+   * const user = await User.firstOrFail()
+   * const loaded = await user
+   *   .load('posts')
+   *   .connection('replica')
+   *   .execute()
+   * ```
+   *
+   * @param connection - The connection type ('primary' or 'replica')
+   * @returns The LoadBuilder instance for chaining
+   */
+  public connection<I extends LoadBuilder<DreamInstance>>(this: I, connection: DbConnectionType) {
+    this.query = this.query.connection(connection)
     return this
   }
 

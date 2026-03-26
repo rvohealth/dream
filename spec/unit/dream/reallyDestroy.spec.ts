@@ -1,5 +1,4 @@
 import * as destroyDreamModule from '../../../src/dream/internal/destroyDream.js'
-import Query from '../../../src/dream/Query.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Pet from '../../../test-app/app/models/Pet.js'
@@ -157,13 +156,17 @@ describe('Dream#reallyDestroy', () => {
           const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
           const post = await Post.create({ user })
 
-          const spy = vi.spyOn(Query.prototype, 'destroy')
+          const spy = vi.spyOn(destroyDreamModule, 'default')
 
           await ApplicationModel.transaction(async txn => {
             await post.txn(txn).reallyDestroy({ skipHooks: true })
           })
 
-          expect(spy).toHaveBeenCalledWith(expect.objectContaining({ skipHooks: true }))
+          expect(spy).toHaveBeenCalledWith(
+            post,
+            expect.anything(),
+            expect.objectContaining({ skipHooks: true })
+          )
         })
       })
     })
