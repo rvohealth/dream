@@ -18,7 +18,14 @@ export interface InternalAnyTypedSerializerDelegatedAttribute {
   type: 'delegatedAttribute'
   targetName: string
   name: string
-  options: Partial<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
+  options: {
+    as?: string
+    default?: any
+    openapi?: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+    required?: false
+    precision?: RoundingPrecision
+    optional?: boolean
+  }
 }
 
 export interface InternalAnyTypedSerializerCustomAttribute {
