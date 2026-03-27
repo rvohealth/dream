@@ -11,7 +11,9 @@ describe('DreamSerializer#delegatedAttribute', () => {
 
     const MySerializer = (data: Pet) =>
       DreamSerializer(Pet, data)
-        .delegatedAttribute('user', 'name')
+        // `optional: true` only affects OpenAPI generation (in Psychic), but including here
+        // to ensure it is supported by types
+        .delegatedAttribute('user', 'name', { optional: true })
         // passing a generic argument here just to ensure the types stay correct
         .delegatedAttribute<Pet>('user', 'birthdate')
 
