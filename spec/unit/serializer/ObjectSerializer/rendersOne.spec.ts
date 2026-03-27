@@ -146,6 +146,30 @@ describe('ObjectSerializer#rendersOne', () => {
       })
     })
 
+    context('with casing specified', () => {
+      context('snake casing', () => {
+        it('applies snake casing to nested serializer keys', () => {
+          const birthdate = CalendarDate.fromISO('1950-10-02')
+          const user = DreamUser.new({ id: '7', name: 'Charlie', birthdate })
+          const pet: PetWithDreamUser = { id: '3', user, name: 'Snoopy', species: 'dog' }
+
+          const MySerializer = (data: PetWithDreamUser) =>
+            ObjectSerializer(data).rendersOne('user', { dreamClass: DreamUser })
+
+          const serializer = MySerializer(pet)
+
+          expect(serializer.render({}, { casing: 'snake' })).toEqual({
+            user: {
+              id: user.id,
+              name: 'Charlie',
+              favorite_word: null,
+              birthdate: birthdate.toISO(),
+            },
+          })
+        })
+      })
+    })
+
     context('flatten', () => {
       it('renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
         const birthdate = CalendarDate.fromISO('1950-10-02')
