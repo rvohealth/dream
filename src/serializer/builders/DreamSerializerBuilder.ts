@@ -181,8 +181,10 @@ export default class DreamSerializerBuilder<
       ? undefined
       : Exclude<keyof ProvidedModelType, keyof Dream>,
     ActualDataType extends ProvidedModelType extends undefined
-      ? DataType
-      : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
+      ? InstanceType<DataTypeForOpenapi>
+      : ProvidedModelType = ProvidedModelType extends undefined
+      ? InstanceType<DataTypeForOpenapi>
+      : ProvidedModelType,
     TargetName extends ProvidedTargetName extends undefined
       ? Exclude<keyof ActualDataType, keyof Dream>
       : ProvidedTargetName & keyof ActualDataType = ProvidedTargetName extends undefined
@@ -344,8 +346,10 @@ export default class DreamSerializerBuilder<
       ? undefined
       : Exclude<keyof ProvidedModelType, keyof Dream>,
     ActualDataType extends ProvidedModelType extends undefined
-      ? DataType
-      : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
+      ? InstanceType<DataTypeForOpenapi>
+      : ProvidedModelType = ProvidedModelType extends undefined
+      ? InstanceType<DataTypeForOpenapi>
+      : ProvidedModelType,
     AttributeName extends ProvidedAttributeName extends undefined
       ? Exclude<keyof ActualDataType, keyof Dream>
       : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
@@ -454,8 +458,10 @@ export default class DreamSerializerBuilder<
       ? undefined
       : Exclude<keyof ProvidedModelType, keyof Dream>,
     ActualDataType extends ProvidedModelType extends undefined
-      ? DataType
-      : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
+      ? InstanceType<DataTypeForOpenapi>
+      : ProvidedModelType = ProvidedModelType extends undefined
+      ? InstanceType<DataTypeForOpenapi>
+      : ProvidedModelType,
     AttributeName extends ProvidedAttributeName extends undefined
       ? Exclude<keyof ActualDataType, keyof Dream>
       : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
