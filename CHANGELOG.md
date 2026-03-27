@@ -2,6 +2,7 @@
 
 - generate the full load tree and use `.load(...).execute(...)` to avoid exponential N+1 problem during deletion cascades
 - types now allow `optional` option for DreamSerializer `delegatedAttribute` (used by Psychic to customize OpenAPI shape of automatically inferred fields to allow `null`)
+- fix `rendersOne`, `rendersMany`, and `delegatedAttribute` within a generic serializer so their types work without providing generic type arguments
 
 ## 2.5.8
 
