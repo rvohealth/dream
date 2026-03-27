@@ -197,6 +197,43 @@ describe('DreamSerializer#rendersMany', () => {
     })
   })
 
+  context('with casing specified', () => {
+    context('snake casing', () => {
+      it('applies snake casing to nested serializer keys', () => {
+        const birthdate = CalendarDate.fromISO('1950-10-02')
+        const user = User.new({ id: '7', name: 'Charlie', birthdate })
+        const pet1 = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+        const pet2 = Pet.new({ id: '4', user, name: 'Woodstock', species: 'frog' })
+        pet1.ratings = []
+        pet2.ratings = []
+        user.pets = [pet1, pet2]
+
+        const MySerializer = (data: User) => DreamSerializer(User, data).rendersMany('pets')
+
+        const serializer = MySerializer(user)
+
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
+          pets: [
+            {
+              id: pet1.id,
+              name: 'Snoopy',
+              favorite_days_of_week: ['Monday', 'Tuesday'],
+              species: 'dog',
+              ratings: [],
+            },
+            {
+              id: pet2.id,
+              name: 'Woodstock',
+              favorite_days_of_week: ['Monday', 'Tuesday'],
+              species: 'frog',
+              ratings: [],
+            },
+          ],
+        })
+      })
+    })
+  })
+
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
   // comments, which will become invalid if the type errors stop raising
   context('type tests', () => {

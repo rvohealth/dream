@@ -225,7 +225,7 @@ export default class SerializerRenderer {
                   // does not pass it into the call to DreamSerializer/ObjectSerializer,
                   // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
                   // handles passing its passthrough data into those
-                  .render(passthroughData)
+                  .render(passthroughData, this.renderOpts)
               )
             }
           )

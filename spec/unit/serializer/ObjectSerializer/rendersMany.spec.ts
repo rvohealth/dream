@@ -160,6 +160,43 @@ describe('ObjectSerializer#rendersMany', () => {
       })
     })
 
+    context('with casing specified', () => {
+      context('snake casing', () => {
+        it('applies snake casing to nested serializer keys', () => {
+          const birthdate = CalendarDate.fromISO('1950-10-02')
+          const pet1: DreamPet = DreamPet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+          const pet2: DreamPet = DreamPet.new({ id: '7', name: 'Woodstock', species: 'frog' })
+          pet1.ratings = []
+          pet2.ratings = []
+          const user: UserWithDreamPets = { id: '11', name: 'Charlie', birthdate, pets: [pet1, pet2] }
+
+          const MySerializer = (data: UserWithDreamPets) =>
+            ObjectSerializer(data).rendersMany('pets', { dreamClass: DreamPet })
+
+          const serializer = MySerializer(user)
+
+          expect(serializer.render({}, { casing: 'snake' })).toEqual({
+            pets: [
+              {
+                id: pet1.id,
+                name: 'Snoopy',
+                favorite_days_of_week: ['Monday', 'Tuesday'],
+                species: 'dog',
+                ratings: [],
+              },
+              {
+                id: pet2.id,
+                name: 'Woodstock',
+                favorite_days_of_week: ['Monday', 'Tuesday'],
+                species: 'frog',
+                ratings: [],
+              },
+            ],
+          })
+        })
+      })
+    })
+
     it('supports supplying a custom DreamSerializer', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const pet1: SimplePet = { id: '3', name: 'Snoopy', species: 'dog' }

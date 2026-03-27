@@ -323,6 +323,29 @@ describe('DreamSerializer#rendersOne', () => {
     })
   })
 
+  context('with casing specified', () => {
+    context('snake casing', () => {
+      it('applies snake casing to nested serializer keys', () => {
+        const birthdate = CalendarDate.fromISO('1950-10-02')
+        const user = User.new({ id: '7', name: 'Charlie', birthdate })
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) => DreamSerializer(Pet, data).rendersOne('user')
+
+        const serializer = MySerializer(pet)
+
+        expect(serializer.render({}, { casing: 'snake' })).toEqual({
+          user: {
+            id: user.id,
+            name: 'Charlie',
+            favorite_word: null,
+            birthdate: birthdate.toISO(),
+          },
+        })
+      })
+    })
+  })
+
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
   // comments, which will become invalid if the type errors stop raising
   context('type tests', () => {
