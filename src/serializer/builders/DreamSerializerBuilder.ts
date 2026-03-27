@@ -145,6 +145,10 @@ export default class DreamSerializerBuilder<
    *   - `default` - Value to use when the target object or its attribute is null/undefined
    *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
    *     columns, optional for standard Dream columns (where types are inferred)
+   *   - `optional` - Set to `true` to indicate the value can be null in the OpenAPI schema
+   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). For Dream models, this is
+   *     auto-inferred from optional BelongsTo associations. Use this when delegating through
+   *     a HasOne or other nullable association.
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
    *     during rendering; does not affect the OpenAPI shape
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
@@ -199,12 +203,14 @@ export default class DreamSerializerBuilder<
       ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
           keyof AssociatedModelType &
           'type'
-        ? AutomaticSerializerAttributeOptionsForType
+        ? AutomaticSerializerAttributeOptionsForType & { optional?: boolean }
         : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
           ? SerializerAttributeOptionsForVirtualColumn
-          : TargetAttributeName extends AssociatedModelType & keyof AssociatedModelType & string
+          : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+                keyof AssociatedModelType &
+                string
             ?
-                | AutomaticSerializerAttributeOptions
+                | (AutomaticSerializerAttributeOptions & { optional?: boolean })
                 | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
             : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
       : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
