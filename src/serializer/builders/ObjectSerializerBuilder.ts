@@ -11,6 +11,7 @@ import {
   SerializerType,
 } from '../../types/serializer.js'
 import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRenderer.js'
+import { DreamPropertiesToExclude } from './DreamSerializerBuilder.js'
 
 export default class ObjectSerializerBuilder<
   MaybeNullDataType extends object | null,
@@ -139,23 +140,25 @@ export default class ObjectSerializerBuilder<
     ProvidedModelType = undefined,
     ProvidedAttributeName extends ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude> = ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream>,
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude>,
     ActualDataType extends ProvidedModelType extends undefined
       ? DataType
       : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
     TargetName extends ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType,
     //
 
     TargetObject extends ActualDataType[TargetName] = ActualDataType[TargetName],
     AttributeName extends TargetObject extends object
-      ? Exclude<keyof TargetObject, keyof Dream> & string
-      : never = TargetObject extends object ? Exclude<keyof TargetObject, keyof Dream> & string : never,
+      ? Exclude<keyof TargetObject, DreamPropertiesToExclude> & string
+      : never = TargetObject extends object
+      ? Exclude<keyof TargetObject, DreamPropertiesToExclude> & string
+      : never,
   >(
     targetName: TargetName,
     name: AttributeName,
@@ -390,16 +393,16 @@ export default class ObjectSerializerBuilder<
     ProvidedModelType = undefined,
     ProvidedAttributeName extends ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude> = ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream>,
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude>,
     ActualDataType extends ProvidedModelType extends undefined
       ? DataType
       : ProvidedModelType = ProvidedModelType extends undefined ? DataType : ProvidedModelType,
     AttributeName extends ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType,
     //
 
