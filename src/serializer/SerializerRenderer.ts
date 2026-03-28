@@ -211,24 +211,27 @@ export default class SerializerRenderer {
 
           if (!associatedObjects) throw new RendersManyMustReceiveArray(attribute, associatedObjects)
 
-          accumulator[outputAttributeName] = compact(associatedObjects as ViewModel[]).map(
-            associatedObject => {
-              const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+          const compactedObjects = compact(associatedObjects as ViewModel[])
+          const objectsToRender = attribute.options.preRender
+            ? attribute.options.preRender(compactedObjects)
+            : compactedObjects
 
-              return (
-                // passthrough data going into the serializer is the argument that gets
-                // used in the custom attribute callback function
-                serializer(associatedObject, passthroughData)
-                  // passthrough data must be passed both into the serializer and render
-                  // because, if the serializer does accept passthrough data, then passing it in is how
-                  // it gets into the serializer, but if it does not accept passthrough data, and therefore
-                  // does not pass it into the call to DreamSerializer/ObjectSerializer,
-                  // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
-                  // handles passing its passthrough data into those
-                  .render(passthroughData)
-              )
-            }
-          )
+          accumulator[outputAttributeName] = objectsToRender.map(associatedObject => {
+            const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+
+            return (
+              // passthrough data going into the serializer is the argument that gets
+              // used in the custom attribute callback function
+              serializer(associatedObject, passthroughData)
+                // passthrough data must be passed both into the serializer and render
+                // because, if the serializer does accept passthrough data, then passing it in is how
+                // it gets into the serializer, but if it does not accept passthrough data, and therefore
+                // does not pass it into the call to DreamSerializer/ObjectSerializer,
+                // then it would be lost to serializers rendered via rendersOne/Many, and SerializerRenderer
+                // handles passing its passthrough data into those
+                .render(passthroughData)
+            )
+          })
 
           return accumulator
         }

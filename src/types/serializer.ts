@@ -54,7 +54,9 @@ export interface InternalAnyTypedSerializerRendersMany<
 > {
   type: 'rendersMany'
   name: AttributeName
-  options: InternalAnyRendersOneOrManyOpts
+  options: InternalAnyRendersOneOrManyOpts & {
+    preRender?: (records: any[]) => any[]
+  }
 }
 
 export type AutomaticSerializerAttributeOptions = {

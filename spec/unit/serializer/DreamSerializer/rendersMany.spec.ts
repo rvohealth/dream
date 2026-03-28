@@ -197,6 +197,42 @@ describe('DreamSerializer#rendersMany', () => {
     })
   })
 
+  it('applies preRender hook to reorder records before rendering', () => {
+    const birthdate = CalendarDate.fromISO('1950-10-02')
+    const user = User.new({ id: '7', name: 'Charlie', birthdate })
+    const pet1 = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+    const pet2 = Pet.new({ id: '4', user, name: 'Woodstock', species: 'frog' })
+    pet1.ratings = []
+    pet2.ratings = []
+    user.pets = [pet1, pet2]
+
+    const MySerializer = (data: User) =>
+      DreamSerializer(User, data).rendersMany('pets', {
+        preRender: records => [...records].reverse(),
+      })
+
+    const serializer = MySerializer(user)
+
+    expect(serializer.render()).toEqual({
+      pets: [
+        {
+          id: pet2.id,
+          name: 'Woodstock',
+          favoriteDaysOfWeek: ['Monday', 'Tuesday'],
+          species: 'frog',
+          ratings: [],
+        },
+        {
+          id: pet1.id,
+          name: 'Snoopy',
+          favoriteDaysOfWeek: ['Monday', 'Tuesday'],
+          species: 'dog',
+          ratings: [],
+        },
+      ],
+    })
+  })
+
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
   // comments, which will become invalid if the type errors stop raising
   context('type tests', () => {

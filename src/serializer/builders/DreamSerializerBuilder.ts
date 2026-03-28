@@ -484,6 +484,7 @@ export default class DreamSerializerBuilder<
           },
     BaseOptions = {
       as?: string
+      preRender?: (records: any[]) => any[]
     },
   >(name: AttributeName, options?: BaseOptions & SerializerOptions) {
     this.attributes.push({
