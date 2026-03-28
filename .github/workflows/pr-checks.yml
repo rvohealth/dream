@@ -110,8 +110,9 @@ jobs:
       MYSQL_DB_PORT: 3306
       TZ: UTC
       DREAM_PARALLEL_TESTS: 4
-      APP_ENCRYPTION_KEY: ${{ secrets.APP_ENCRYPTION_KEY }}
-      LEGACY_APP_ENCRYPTION_KEY: ${{ secrets.LEGACY_APP_ENCRYPTION_KEY }}
+      APP_ENCRYPTION_KEY: ${{ vars.APP_ENCRYPTION_KEY }}
+      LEGACY_APP_ENCRYPTION_KEY: ${{ vars.LEGACY_APP_ENCRYPTION_KEY }}
+      COLUMN_ENCRYPTION_KEY: ${{ vars.APP_ENCRYPTION_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -240,8 +241,9 @@ jobs:
       MYSQL_DB_PORT: 3306
       TZ: UTC
       DREAM_PARALLEL_TESTS: 4
-      APP_ENCRYPTION_KEY: ${{ secrets.APP_ENCRYPTION_KEY }}
-      LEGACY_APP_ENCRYPTION_KEY: ${{ secrets.LEGACY_APP_ENCRYPTION_KEY }}
+      APP_ENCRYPTION_KEY: ${{ vars.APP_ENCRYPTION_KEY }}
+      LEGACY_APP_ENCRYPTION_KEY: ${{ vars.LEGACY_APP_ENCRYPTION_KEY }}
+      COLUMN_ENCRYPTION_KEY: ${{ vars.APP_ENCRYPTION_KEY }}
 
     steps:
       - uses: actions/checkout@v4
