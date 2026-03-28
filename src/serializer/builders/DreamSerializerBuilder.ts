@@ -20,6 +20,8 @@ import {
 } from '../../types/serializer.js'
 import SerializerRenderer, { SerializerRendererOpts } from '../SerializerRenderer.js'
 
+export type DreamPropertiesToExclude = keyof Dream | 'serializers'
+
 export default class DreamSerializerBuilder<
   DataTypeForOpenapi extends typeof Dream,
   MaybeNullDataType extends Dream | null,
@@ -103,7 +105,7 @@ export default class DreamSerializerBuilder<
     MaybeAttributeName extends NonJsonDreamColumnNames<DataType> | (keyof DataType & string),
     AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
       ? never
-      : Exclude<keyof DataType, keyof Dream> & string,
+      : Exclude<keyof DataType, DreamPropertiesToExclude> & string,
   >(
     name: AttributeName,
     options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
@@ -177,26 +179,26 @@ export default class DreamSerializerBuilder<
     ProvidedModelType = undefined,
     ProvidedTargetName extends ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude> = ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream>,
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude>,
     ActualDataType extends ProvidedModelType extends undefined
       ? InstanceType<DataTypeForOpenapi>
       : ProvidedModelType = ProvidedModelType extends undefined
       ? InstanceType<DataTypeForOpenapi>
       : ProvidedModelType,
     TargetName extends ProvidedTargetName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedTargetName & keyof ActualDataType = ProvidedTargetName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedTargetName & keyof ActualDataType,
     //
 
     AssociatedModelType = Exclude<ActualDataType[TargetName], null>,
     TargetAttributeName extends AssociatedModelType extends object
-      ? Exclude<keyof AssociatedModelType, keyof Dream> & string
+      ? Exclude<keyof AssociatedModelType, DreamPropertiesToExclude> & string
       : never = AssociatedModelType extends object
-      ? Exclude<keyof AssociatedModelType, keyof Dream> & string
+      ? Exclude<keyof AssociatedModelType, DreamPropertiesToExclude> & string
       : never,
   >(
     targetName: TargetName,
@@ -342,18 +344,18 @@ export default class DreamSerializerBuilder<
     ProvidedModelType = undefined,
     ProvidedAttributeName extends ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude> = ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream>,
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude>,
     ActualDataType extends ProvidedModelType extends undefined
       ? InstanceType<DataTypeForOpenapi>
       : ProvidedModelType = ProvidedModelType extends undefined
       ? InstanceType<DataTypeForOpenapi>
       : ProvidedModelType,
     AttributeName extends ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType,
     //
 
@@ -454,18 +456,18 @@ export default class DreamSerializerBuilder<
     ProvidedModelType = undefined,
     ProvidedAttributeName extends ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream> = ProvidedModelType extends undefined
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude> = ProvidedModelType extends undefined
       ? undefined
-      : Exclude<keyof ProvidedModelType, keyof Dream>,
+      : Exclude<keyof ProvidedModelType, DreamPropertiesToExclude>,
     ActualDataType extends ProvidedModelType extends undefined
       ? InstanceType<DataTypeForOpenapi>
       : ProvidedModelType = ProvidedModelType extends undefined
       ? InstanceType<DataTypeForOpenapi>
       : ProvidedModelType,
     AttributeName extends ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType = ProvidedAttributeName extends undefined
-      ? Exclude<keyof ActualDataType, keyof Dream>
+      ? Exclude<keyof ActualDataType, DreamPropertiesToExclude>
       : ProvidedAttributeName & keyof ActualDataType,
     //
 
