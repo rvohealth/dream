@@ -2,15 +2,14 @@ import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 
 export default class DreamMigrationHelpers {
   /**
-   * Rename a table and its associated primary key sequence.
+   * Rename a table and its associated primary key index and sequence.
    *
-   * This method renames both the table and its primary key sequence to keep them
-   * in sync. When PostgreSQL creates a table with a serial or bigserial primary key,
-   * it automatically creates a sequence named `{tablename}_id_seq`. If you only rename
-   * the table, the sequence keeps the old name, which can cause confusion and issues.
+   * This method renames the table, its primary key index (`{tablename}_pkey`),
+   * and its primary key sequence (`{tablename}_id_seq`) to keep them in sync.
    *
-   * This method is only suitable for tables that have a serial or bigserial primary
-   * key column named 'id'.
+   * The sequence rename is skipped for tables with UUID primary keys (which have
+   * no associated sequence). The primary key index is always renamed since
+   * PostgreSQL does not automatically rename it when the table is renamed.
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param from - The current name of the table to rename
@@ -18,10 +17,18 @@ export default class DreamMigrationHelpers {
    */
   public static async renameTable(db: Kysely<any>, from: string, to: string) {
     await db.schema.alterTable(from).renameTo(to).execute()
-    const fromSequenceName = `${from}_id_seq`
-    const toSequenceName = `${to}_id_seq`
-    const sqlStatement = `ALTER SEQUENCE ${fromSequenceName} RENAME TO ${toSequenceName}`
-    await sql.raw(sqlStatement).execute(db)
+
+    await sql`ALTER INDEX IF EXISTS ${sql.ref(`${from}_pkey`)} RENAME TO ${sql.ref(`${to}_pkey`)}`.execute(db)
+
+    const sequenceExists = await sql<{ exists: boolean }>`
+      SELECT EXISTS (
+        SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = ${`${from}_id_seq`}
+      )
+    `.execute(db)
+
+    if (sequenceExists.rows[0]?.exists) {
+      await sql`ALTER SEQUENCE ${sql.ref(`${from}_id_seq`)} RENAME TO ${sql.ref(`${to}_id_seq`)}`.execute(db)
+    }
   }
 
   /**

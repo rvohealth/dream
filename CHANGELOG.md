@@ -1,3 +1,8 @@
+## 2.6.1
+
+- fix `DreamMigrationHelpers.renameTable` for UUID primary keys
+- update `DreamMigrationHelpers.renameTable` to rename the primary key index
+
 ## 2.6.0
 
 - generate the full load tree and use `.load(...).execute(...)` to avoid exponential N+1 problem during deletion cascades
