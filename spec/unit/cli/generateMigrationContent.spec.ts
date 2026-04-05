@@ -513,7 +513,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('topping', sql\`topping_enum\`, col => col.notNull())
     .addColumn('protein_type', sql\`protein_enum\`, col => col.notNull())
-    .addColumn('existing_enum', sql\`my_existing_enum_enum\`, col => col.notNull())
+    .addColumn('existing_enum', sql\`my_existing_enum\`, col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -569,7 +569,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('topping', sql\`topping_enum[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('protein_type', sql\`protein_enum[]\`, col => col.notNull().defaultTo('{}'))
-    .addColumn('existing_enum', sql\`my_existing_enum_enum[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('existing_enum', sql\`my_existing_enum[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -581,6 +581,115 @@ export async function down(db: Kysely<any>): Promise<void> {
 
   await db.schema.dropType('topping_enum').execute()
   await db.schema.dropType('protein_enum').execute()
+}\
+`
+          )
+        })
+      })
+
+      context('enum name already ends in _enum', () => {
+        it('does not double the _enum suffix', () => {
+          const res = generateMigrationContent({
+            table: 'places',
+            columnsWithTypes: ['style:enum:place_styles_enum:fancy,casual'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createType('place_styles_enum')
+    .asEnum([
+      'fancy',
+      'casual'
+    ])
+    .execute()
+
+  await db.schema
+    .createTable('places')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('style', sql\`place_styles_enum\`, col => col.notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('places').execute()
+
+  await db.schema.dropType('place_styles_enum').execute()
+}\
+`
+          )
+        })
+
+        it('does not double the _enum suffix for enum[]', () => {
+          const res = generateMigrationContent({
+            table: 'places',
+            columnsWithTypes: ['style:enum[]:place_styles_enum:fancy,casual'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createType('place_styles_enum')
+    .asEnum([
+      'fancy',
+      'casual'
+    ])
+    .execute()
+
+  await db.schema
+    .createTable('places')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('style', sql\`place_styles_enum[]\`, col => col.notNull().defaultTo('{}'))
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('places').execute()
+
+  await db.schema.dropType('place_styles_enum').execute()
+}\
+`
+          )
+        })
+
+        it('does not double the _enum suffix for existing enum reference', () => {
+          const res = generateMigrationContent({
+            table: 'places',
+            columnsWithTypes: ['style:enum:place_styles_enum'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toEqual(
+            `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('places')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('style', sql\`place_styles_enum\`, col => col.notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('places').execute()
 }\
 `
           )

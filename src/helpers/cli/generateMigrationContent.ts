@@ -255,7 +255,11 @@ function getAttributeType(attributeType: string | undefined, descriptors: string
 
 function enumAttributeType(descriptors: string[], asArray: boolean = false) {
   const suffix = asArray ? '[]' : ''
-  return `sql\`${descriptors[0]}_enum${suffix}\``
+  return `sql\`${appendEnumSuffix(descriptors[0])}${suffix}\``
+}
+
+function appendEnumSuffix(name: string | undefined) {
+  return name?.endsWith('_enum') ? name : `${name}_enum`
 }
 
 const ENUM_OR_ENUM_ARRAY_REGEX = /:enum:.*:|:enum\[\]:.*:/
@@ -270,7 +274,7 @@ function generateEnumStatements(columnsWithTypes: string[]) {
       if (columnsWithTypesString === undefined) return
       const columnsWithTypes = columnsWithTypesString.split(/,\s{0,}/)
       return `  await db.schema
-    .createType('${enumName}_enum')
+    .createType('${appendEnumSuffix(enumName)}')
     .asEnum([
       ${columnsWithTypes.map(attr => `'${attr}'`).join(',\n      ')}
     ])
@@ -289,7 +293,7 @@ function generateEnumDropStatements(columnsWithTypes: string[]) {
       optionalFromDescriptors(descriptors)
       const columnsWithTypesString = descriptors[0]
       if (columnsWithTypesString === undefined) return
-      return `await db.schema.dropType('${enumName}_enum').execute()`
+      return `await db.schema.dropType('${appendEnumSuffix(enumName)}').execute()`
     })
   )
 

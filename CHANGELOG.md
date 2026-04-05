@@ -2,6 +2,7 @@
 
 - fix `DreamMigrationHelpers.renameTable` for UUID primary keys
 - update `DreamMigrationHelpers.renameTable` to rename the primary key index
+- don't double-append `_enum` if the enum name already ends with it
 
 ## 2.6.0
 
