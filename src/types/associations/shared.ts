@@ -1,5 +1,6 @@
 import {
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
+  RawBuilder,
   Selectable,
   SelectQueryBuilder,
 } from 'kysely'
@@ -105,6 +106,8 @@ type NonKyselySupportedSupplementalWhereClauseValues<
       ? EnumTypeArray[number] | PermanentOpsValTypes
       : never,
   //
+  ResolvedOpsValType = OpsValType | RawBuilder<unknown>,
+  //
   PartialTypes = EnumTypeArray extends null
     ? ModelPropertyType extends DateTime
       ?
@@ -112,54 +115,57 @@ type NonKyselySupportedSupplementalWhereClauseValues<
           | Range<null, DateTime | CalendarDate>
           | (() => Range<DateTime | CalendarDate>)
           | (() => Range<null, DateTime | CalendarDate>)
-          | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+          | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
       : ModelPropertyType extends ClockTime
         ?
             | Range<ClockTime>
             | Range<null, ClockTime>
             | (() => Range<ClockTime>)
             | (() => Range<null, ClockTime>)
-            | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+            | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
         : ModelPropertyType extends ClockTimeTz
           ?
               | Range<ClockTimeTz>
               | Range<null, ClockTimeTz>
               | (() => Range<ClockTimeTz>)
               | (() => Range<null, ClockTimeTz>)
-              | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+              | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
           : ModelPropertyType extends CalendarDate
             ?
                 | Range<DateTime | CalendarDate>
                 | Range<null, DateTime | CalendarDate>
                 | (() => Range<DateTime | CalendarDate>)
                 | (() => Range<null, DateTime | CalendarDate>)
-                | OpsStatement<KyselyComparisonOperatorExpression, OpsValType>
+                | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType>
             : ColumnType extends 'bigint'
               ?
                   | Range<TypesAllowedForBigintAgainstTheDb>
                   | Range<null, TypesAllowedForBigintAgainstTheDb>
-                  | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+                  | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
               : ModelPropertyType extends number
                 ?
                     | Range<ModelPropertyType>
                     | Range<null, ModelPropertyType>
-                    | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+                    | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
                 : ModelPropertyType extends string
                   ?
                       | Range<string>
                       | Range<null, string>
                       | OpsStatement<KyselyComparisonOperatorExpression, string, any>
-                      | OpsStatement<TrigramOperator, OpsValType, ExtraSimilarityArgs>
+                      | OpsStatement<TrigramOperator, ResolvedOpsValType, ExtraSimilarityArgs>
                   : never
     : EnumTypeArray extends string[]
-      ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
+      ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
       : never,
 > = PartialTypes extends never
   ?
-      | OpsStatement<KyselyComparisonOperatorExpression, OpsValType, any>
-      | CurriedOpsStatement<any, any, any, OpsValType>
+      | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
+      | CurriedOpsStatement<any, any, any, ResolvedOpsValType>
       | SelectQueryBuilder<DB, keyof DB, any>
-  : PartialTypes | CurriedOpsStatement<any, any, any, OpsValType> | SelectQueryBuilder<DB, keyof DB, any>
+  :
+      | PartialTypes
+      | CurriedOpsStatement<any, any, any, ResolvedOpsValType>
+      | SelectQueryBuilder<DB, keyof DB, any>
 
 export type WhereStatementForDreamClass<DreamClass extends typeof Dream> = WhereStatement<
   InstanceType<DreamClass>

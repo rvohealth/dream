@@ -4,6 +4,8 @@
 - update `DreamMigrationHelpers.renameTable` to rename the primary key index
 - don't double-append `_enum` if the enum name already ends with it
 - models automatically generated as `@SoftDelete()` unless `--no-soft-delete` flag included
+- allow ops with raw expression in where clauses. This already worked, but did not cooperate with types.
+- add ops.jsonb method, which is a shorthand for, i.e. `ops.expression('@>', sql\`${{ howyadoin: '123' }}::jsonb\`)`
 
 ## 2.6.0
 
