@@ -57,6 +57,51 @@ describe('Query#where', () => {
     expect(reloadedUser).toMatchDreamModel(user)
   })
 
+  it('supports querying by raw expression builder', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await Composition.create({
+      user,
+      metadata: { howyadoin: '123', anotherField: '456' },
+    })
+    await Composition.create({
+      user,
+      metadata: { howyadoin: '456', anotherField: '456' },
+    })
+    await Composition.create({
+      user,
+      metadata: { anotherHowyadoin: '123', anotherField: '456' },
+    })
+
+    const compositions = await Composition.query()
+      .where({ metadata: ops.expression('@>', sql`${{ howyadoin: '123' }}::jsonb`) })
+      .all()
+
+    expect(compositions).toMatchDreamModels([composition])
+  })
+
+  it('supports querying by the jsonb ops util', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const composition = await Composition.create({
+      user,
+      metadata: { howyadoin: '123', anotherField: '456' },
+    })
+    await Composition.create({
+      user,
+      metadata: { howyadoin: '456', anotherField: '456' },
+    })
+    await Composition.create({
+      user,
+      metadata: { anotherHowyadoin: '123', anotherField: '456' },
+    })
+
+    const compositions = await Composition.query()
+      // jsonb is a shorthand expression for ops.expression('@>', sql`${{ howyadoin: '123' }}::jsonb`)
+      .where({ metadata: ops.jsonb({ howyadoin: '123' }) })
+      .all()
+
+    expect(compositions).toMatchDreamModels([composition])
+  })
+
   it('supports querying by CalendarDate array', async () => {
     const birthdate = CalendarDate.fromISO('1977-05-04')
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', birthdate })
