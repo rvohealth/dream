@@ -157,6 +157,13 @@ export default class DreamCLI {
        * instead of deriving the class name from the fully qualified model name.
        */
       modelName?: string | undefined
+      /**
+       * When true (and the generated model is NOT an STI child), decorates
+       * the model with `@SoftDelete()` and auto-emits a nullable
+       * `deleted_at` column. Defaults to false at this programmatic entry
+       * point — the CLI layer opts users in by default.
+       */
+      softDelete?: boolean
     }
     fullyQualifiedParentName?: string | undefined
   }) {
@@ -289,6 +296,10 @@ ${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
         'also generate InternalSerializer and InternalSummarySerializer variants for internal API endpoints that may expose additional fields',
         false
       )
+      .option(
+        '--no-soft-delete',
+        `skip generating the @SoftDelete() decorator and the corresponding nullable \`deleted_at\` column. By default, generated models use soft-delete semantics (rows are marked deleted via \`deleted_at\` instead of being removed from the database). Pass this flag when you want records to be hard-deleted.`
+      )
       .argument(
         '<modelName>',
         `The fully qualified model name, using / for namespacing. This determines the model class name (may be overridden with \`--model-name\`), table name, and file path under src/app/models/.
@@ -311,6 +322,7 @@ ${INDENT}  Settings/CommunicationPreferences   # src/app/models/Settings/Communi
             modelName?: string
             adminSerializers?: boolean
             internalSerializers?: boolean
+            softDelete: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })

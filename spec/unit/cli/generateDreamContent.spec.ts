@@ -1,5 +1,4 @@
 import DreamApp from '../../../src/dream-app/index.js'
-import modelClassNameFrom from '../../../src/helpers/cli/modelClassNameFrom.js'
 import generateDreamContent, {
   createBelongsToAttribute,
   createEncryptedAttribute,
@@ -10,6 +9,7 @@ import generateDreamContent, {
   processAttributes,
   type ModelConfig,
 } from '../../../src/helpers/cli/generateDreamContent.js'
+import modelClassNameFrom from '../../../src/helpers/cli/modelClassNameFrom.js'
 
 describe('dream generate:model <name> [...attributes]', () => {
   context('when provided with a pascalized model name', () => {
@@ -787,6 +787,106 @@ export default class Composition extends ApplicationModel {
     })
   })
 
+  context('softDelete: true', () => {
+    it('adds the @SoftDelete() decorator, imports SoftDelete, and appends a deletedAt field', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
+        columnsWithTypes: ['body:text'],
+        serializer: true,
+        includeAdminSerializers: false,
+        softDelete: true,
+      })
+      expect(res).toEqual(
+        `\
+import { Decorators, SoftDelete } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
+import ApplicationModel from '@models/ApplicationModel.js'
+
+const deco = new Decorators<typeof Post>()
+
+@SoftDelete()
+export default class Post extends ApplicationModel {
+  public override get table() {
+    return 'posts' as const
+  }
+
+  public get serializers(): DreamSerializers<Post> {
+    return {
+      default: 'PostSerializer',
+      summary: 'PostSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Post, 'id'>
+  public body: DreamColumn<Post, 'body'>
+  public createdAt: DreamColumn<Post, 'createdAt'>
+  public updatedAt: DreamColumn<Post, 'updatedAt'>
+  public deletedAt: DreamColumn<Post, 'deletedAt'>
+}
+`
+      )
+    })
+
+    it('does not duplicate the deletedAt field when deleted_at:datetime:optional is also passed explicitly', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
+        columnsWithTypes: ['body:text', 'deleted_at:datetime:optional'],
+        serializer: true,
+        includeAdminSerializers: false,
+        softDelete: true,
+      })
+      const deletedAtOccurrences = res.match(/public deletedAt:/g) ?? []
+      expect(deletedAtOccurrences).toHaveLength(1)
+      expect(res).toContain('@SoftDelete()')
+      expect(res).toContain("public deletedAt: DreamColumn<Post, 'deletedAt'>")
+    })
+
+    it('does not duplicate createdAt or updatedAt when passed explicitly', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
+        columnsWithTypes: ['created_at:datetime', 'updated_at:datetime', 'body:text'],
+        serializer: true,
+        includeAdminSerializers: false,
+        softDelete: true,
+      })
+      expect(res.match(/public createdAt:/g) ?? []).toHaveLength(1)
+      expect(res.match(/public updatedAt:/g) ?? []).toHaveLength(1)
+    })
+
+    it('does not add SoftDelete to STI children even when softDelete is true', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Foo/Bar/Baz',
+        modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
+        columnsWithTypes: ['hello:string'],
+        fullyQualifiedParentName: 'Foo/Bar',
+        serializer: true,
+        includeAdminSerializers: false,
+        softDelete: true,
+      })
+      expect(res).not.toContain('@SoftDelete()')
+      expect(res).not.toContain('SoftDelete')
+      expect(res).not.toContain('public deletedAt:')
+    })
+  })
+
+  context('softDelete: false, but passed an explicit deleted_at', () => {
+    it('handles deleted_at as a regular attribute without adding the @SoftDelete decorator', () => {
+      const res = generateDreamContent({
+        fullyQualifiedModelName: 'Post',
+        modelClassName: modelClassNameFrom('Post'),
+        columnsWithTypes: ['body:text', 'deleted_at:datetime:optional'],
+        serializer: true,
+        includeAdminSerializers: false,
+      })
+      expect(res).not.toContain('@SoftDelete()')
+      expect(res).not.toContain('SoftDelete')
+      expect(res.match(/public deletedAt:/g) ?? []).toHaveLength(1)
+    })
+  })
+
   context('importExtension is set on DreamApp', () => {
     context('importExtension=.js', () => {
       beforeEach(() => {
@@ -1076,7 +1176,7 @@ describe('Individual Function Tests', () => {
         includeAdminSerializers: false,
       }
 
-      const imports = createImportConfig(config, options)
+      const imports = createImportConfig(config, options, { includeSoftDelete: false })
 
       expect(imports.dreamTypeImports).toEqual(['DreamColumn', 'DreamSerializers'])
       expect(imports.dreamImports).toEqual(['Decorators'])
@@ -1102,7 +1202,7 @@ describe('Individual Function Tests', () => {
         includeAdminSerializers: false,
       }
 
-      const imports = createImportConfig(config, options)
+      const imports = createImportConfig(config, options, { includeSoftDelete: false })
 
       expect(imports.dreamImports).toContain('STI')
       expect(imports.dreamImports).toContain('Decorators')
@@ -1126,7 +1226,7 @@ describe('Individual Function Tests', () => {
         includeAdminSerializers: false,
       }
 
-      const imports = createImportConfig(config, options)
+      const imports = createImportConfig(config, options, { includeSoftDelete: false })
 
       expect(imports.dreamTypeImports).toEqual(['DreamColumn'])
       expect(imports.dreamTypeImports).not.toContain('DreamSerializers')

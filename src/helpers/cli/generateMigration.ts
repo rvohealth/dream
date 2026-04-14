@@ -18,6 +18,7 @@ export default async function generateMigration({
   fullyQualifiedParentName,
   tableName: explicitTableName,
   modelClassName,
+  softDelete = false,
 }: {
   migrationName: string
   columnsWithTypes: string[]
@@ -31,6 +32,12 @@ export default async function generateMigration({
    * Omitted for standalone `g:migration` commands.
    */
   modelClassName?: string | undefined
+  /**
+   * When true (and not an STI child), the generated `createTable` migration
+   * includes a nullable `deleted_at` column alongside the standard
+   * `created_at` / `updated_at` timestamps.
+   */
+  softDelete?: boolean
 }) {
   const migrationsBasePath =
     connectionName === 'default'
@@ -54,6 +61,7 @@ export default async function generateMigration({
       table: explicitTableName || snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
+      softDelete,
     })
   } else {
     const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]

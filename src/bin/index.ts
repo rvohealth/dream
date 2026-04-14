@@ -61,6 +61,7 @@ export default class DreamBin {
       adminSerializers?: boolean
       internalSerializers?: boolean
       modelName?: string
+      softDelete?: boolean
     }
   ) {
     await generateDream({
@@ -94,6 +95,8 @@ export default class DreamBin {
         includeInternalSerializers: options.internalSerializers ?? false,
         ...options,
         stiBaseSerializer: false,
+        // `@SoftDelete()` is incompatible with STI children — never auto-apply.
+        softDelete: false,
       },
       fullyQualifiedParentName,
     })

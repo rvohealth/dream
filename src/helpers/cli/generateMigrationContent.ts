@@ -27,6 +27,7 @@ export default function generateMigrationContent({
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
   stiChildClassName,
+  softDelete = false,
 }: {
   connectionName?: string
   table?: string | undefined
@@ -34,12 +35,32 @@ export default function generateMigrationContent({
   primaryKeyType?: LegacyCompatiblePrimaryKeyType | undefined
   createOrAlter?: 'create' | 'alter' | undefined
   stiChildClassName?: string | undefined
+  /**
+   * When true (and creating a new table), auto-emits a nullable `deleted_at`
+   * column alongside `created_at` / `updated_at`. Ignored in alter mode and
+   * for STI child migrations.
+   */
+  softDelete?: boolean
 } = {}) {
   const altering = createOrAlter === 'alter'
   let requireCitextExtension = false
   const checkConstraints: string[] = []
 
-  const { columnDefs, columnDrops, indexDefs, indexDrops } = columnsWithTypes.reduce(
+  // When creating a new table, we automatically emit `created_at`,
+  // `updated_at`, and (when soft delete is on) `deleted_at` columns. Filter
+  // these out of the user-supplied column list so we don't emit duplicate
+  // `.addColumn(...)` calls if the user also specified them explicitly.
+  const userExplicitlyPassedDeletedAt =
+    !altering && columnsWithTypes.some(col => (col.split(':')[0] ?? '') === 'deleted_at')
+  const processedColumnsWithTypes = altering
+    ? columnsWithTypes
+    : columnsWithTypes.filter(col => {
+        const name = col.split(':')[0] ?? ''
+        return name !== 'created_at' && name !== 'updated_at' && name !== 'deleted_at'
+      })
+  const emitDeletedAtColumn = !altering && (softDelete || userExplicitlyPassedDeletedAt)
+
+  const { columnDefs, columnDrops, indexDefs, indexDrops } = processedColumnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
       const [nonStandardAttributeName, _attributeType, ...descriptors] = attributeDeclaration.split(':')
@@ -201,6 +222,14 @@ export async function down(db: Kysely<any>): Promise<void> {
     ? newlineDoubleIndent + columnDrops.join(newlineDoubleIndent) + newlineDoubleIndent
     : ''
 
+  const timestampColumnLines = altering
+    ? ''
+    : newlineDoubleIndent +
+      ".addColumn('created_at', 'timestamp', col => col.notNull())" +
+      newlineDoubleIndent +
+      ".addColumn('updated_at', 'timestamp', col => col.notNull())" +
+      (emitDeletedAtColumn ? newlineDoubleIndent + ".addColumn('deleted_at', 'timestamp')" : '')
+
   return `\
 ${dreamDbImports.length ? `import { ${dreamDbImports.join(', ')} } from '@rvoh/dream/db'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
@@ -209,14 +238,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 ${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
     .${altering ? 'alterTable' : 'createTable'}('${table}')${
       altering ? '' : newlineDoubleIndent + generateIdStr({ primaryKeyType })
-    }${columnDefLines}${
-      altering
-        ? ''
-        : newlineDoubleIndent +
-          ".addColumn('created_at', 'timestamp', col => col.notNull())" +
-          newlineDoubleIndent +
-          ".addColumn('updated_at', 'timestamp', col => col.notNull())"
-    }
+    }${columnDefLines}${timestampColumnLines}
     .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(doubleNewlineIndent)}${checkConstraints.join('')}
 }
 

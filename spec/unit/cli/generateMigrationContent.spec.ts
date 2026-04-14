@@ -207,6 +207,88 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
+  context('softDelete: true', () => {
+    it('adds a nullable deleted_at column alongside created_at and updated_at', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['body:text'],
+        primaryKeyType: 'bigserial',
+        softDelete: true,
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('posts')
+    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('body', 'text', col => col.notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .addColumn('deleted_at', 'timestamp')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('posts').execute()
+}`)
+    })
+
+    it('does not duplicate the deleted_at column when also passed explicitly', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['body:text', 'deleted_at:datetime:optional'],
+        primaryKeyType: 'bigserial',
+        softDelete: true,
+      })
+      const matches = res.match(/\.addColumn\('deleted_at'/g) ?? []
+      expect(matches).toHaveLength(1)
+    })
+
+    it('does not duplicate created_at or updated_at when also passed explicitly', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['created_at:datetime', 'updated_at:datetime', 'body:text'],
+        primaryKeyType: 'bigserial',
+        softDelete: true,
+      })
+      expect(res.match(/\.addColumn\('created_at'/g) ?? []).toHaveLength(1)
+      expect(res.match(/\.addColumn\('updated_at'/g) ?? []).toHaveLength(1)
+    })
+  })
+
+  context('softDelete: false (default)', () => {
+    it('still emits an explicit deleted_at column without auto-adding one', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['body:text', 'deleted_at:datetime:optional'],
+        primaryKeyType: 'bigserial',
+      })
+      expect(res.match(/\.addColumn\('deleted_at'/g) ?? []).toHaveLength(1)
+    })
+
+    it('does not duplicate created_at or updated_at when also passed explicitly', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['created_at:datetime', 'updated_at:datetime', 'body:text'],
+        primaryKeyType: 'bigserial',
+      })
+      expect(res.match(/\.addColumn\('created_at'/g) ?? []).toHaveLength(1)
+      expect(res.match(/\.addColumn\('updated_at'/g) ?? []).toHaveLength(1)
+    })
+
+    it('does not add a deleted_at column when neither softDelete nor an explicit column is provided', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['body:text'],
+        primaryKeyType: 'bigserial',
+      })
+      expect(res).not.toContain("addColumn('deleted_at'")
+    })
+  })
+
   context('when provided attributes', () => {
     context('string attributes', () => {
       it('generates a kysely migration with multiple text fields (making email, uuid, and tokens unique and emails automatically citext)', () => {

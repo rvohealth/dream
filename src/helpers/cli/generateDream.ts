@@ -15,6 +15,14 @@ export interface GenerateDreamOptions {
   includeInternalSerializers?: boolean
   tableName?: string | undefined
   modelName?: string | undefined
+  /**
+   * When true (and the generated model is NOT an STI child), decorates the
+   * model with `@SoftDelete()` and auto-emits a nullable `deleted_at`
+   * column in the migration and a `deletedAt` field on the model. Defaults
+   * to false at this level — the CLI layer opts users in by default and
+   * allows opt-out via `--no-soft-delete`.
+   */
+  softDelete?: boolean
 }
 
 export default async function generateDream({
@@ -30,6 +38,11 @@ export default async function generateDream({
 }) {
   fullyQualifiedModelName = standardizeFullyQualifiedModelName(fullyQualifiedModelName)
   const modelClassName = modelClassNameFrom(fullyQualifiedModelName, options.modelName)
+  const isSTI = !!fullyQualifiedParentName
+  // `@SoftDelete()` is incompatible with STI children, so we force-disable
+  // the soft-delete scaffold when generating an STI child regardless of the
+  // caller-provided value.
+  const softDelete = !isSTI && !!options.softDelete
 
   await writeGeneratedFile({
     dreamPathKey: 'models',
@@ -44,6 +57,7 @@ export default async function generateDream({
       connectionName: options.connectionName,
       tableName: options.tableName,
       modelClassName,
+      softDelete,
     }),
     logLabel: 'dream',
   })
@@ -61,7 +75,6 @@ export default async function generateDream({
       modelClassName,
     })
 
-  const isSTI = !!fullyQualifiedParentName
   if (columnsWithTypes.length || !isSTI) {
     await generateMigration({
       connectionName: options.connectionName,
@@ -71,6 +84,7 @@ export default async function generateDream({
       fullyQualifiedParentName,
       tableName: options.tableName,
       modelClassName,
+      softDelete,
     })
   }
 }

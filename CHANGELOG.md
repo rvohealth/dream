@@ -1,8 +1,9 @@
-## 2.6.1
+## 2.7.0
 
 - fix `DreamMigrationHelpers.renameTable` for UUID primary keys
 - update `DreamMigrationHelpers.renameTable` to rename the primary key index
 - don't double-append `_enum` if the enum name already ends with it
+- models automatically generated as `@SoftDelete()` unless `--no-soft-delete` flag included
 
 ## 2.6.0
 
