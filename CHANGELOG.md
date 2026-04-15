@@ -1,3 +1,7 @@
+## 2.7.1
+
+- admin and internal STI serializers extend STI base admin and internal serializers, not the non-admin/internal serializers
+
 ## 2.7.0
 
 - fix `DreamMigrationHelpers.renameTable` for UUID primary keys

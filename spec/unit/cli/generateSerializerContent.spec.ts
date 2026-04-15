@@ -120,6 +120,97 @@ export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
 `
         )
       })
+
+      context('includeAdminSerializers: true', () => {
+        it('admin variants extend the parent admin variants (not the non-admin parent), and the parent admin serializers are imported', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'Foo/Bar/Baz',
+            modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
+            columnsWithTypes: ['world'],
+            fullyQualifiedParentName: 'Foo/Bar',
+            stiBaseSerializer: false,
+            includeAdminSerializers: true,
+          })
+
+          expect(res).toEqual(
+            `\
+import { FooBarSerializer, FooBarSummarySerializer, FooBarAdminSerializer, FooBarAdminSummarySerializer } from '@serializers/Foo/BarSerializer.js'
+import FooBarBaz from '@models/Foo/Bar/Baz.js'
+
+export const FooBarBazSummarySerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarSummarySerializer(FooBarBaz, fooBarBaz)
+
+export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarSerializer(FooBarBaz, fooBarBaz)
+    .attribute('world')
+
+export const FooBarBazAdminSummarySerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarAdminSummarySerializer(FooBarBaz, fooBarBaz)
+
+export const FooBarBazAdminSerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarAdminSerializer(FooBarBaz, fooBarBaz)
+    .attribute('world')
+`
+          )
+        })
+      })
+
+      context('includeInternalSerializers: true', () => {
+        it('internal variants extend the parent internal variants (not the non-internal parent), and the parent internal serializers are imported', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'Foo/Bar/Baz',
+            modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
+            columnsWithTypes: ['world'],
+            fullyQualifiedParentName: 'Foo/Bar',
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
+            includeInternalSerializers: true,
+          })
+
+          expect(res).toEqual(
+            `\
+import { FooBarSerializer, FooBarSummarySerializer, FooBarInternalSerializer, FooBarInternalSummarySerializer } from '@serializers/Foo/BarSerializer.js'
+import FooBarBaz from '@models/Foo/Bar/Baz.js'
+
+export const FooBarBazSummarySerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarSummarySerializer(FooBarBaz, fooBarBaz)
+
+export const FooBarBazSerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarSerializer(FooBarBaz, fooBarBaz)
+    .attribute('world')
+
+export const FooBarBazInternalSummarySerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarInternalSummarySerializer(FooBarBaz, fooBarBaz)
+
+export const FooBarBazInternalSerializer = (fooBarBaz: FooBarBaz) =>
+  FooBarInternalSerializer(FooBarBaz, fooBarBaz)
+    .attribute('world')
+`
+          )
+        })
+      })
+
+      context('admin and internal serializers together', () => {
+        it('emits both admin and internal pairs that extend their respective parent variants, importing all parent variants', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'Foo/Bar/Baz',
+            modelClassName: modelClassNameFrom('Foo/Bar/Baz'),
+            columnsWithTypes: ['world'],
+            fullyQualifiedParentName: 'Foo/Bar',
+            stiBaseSerializer: false,
+            includeAdminSerializers: true,
+            includeInternalSerializers: true,
+          })
+
+          expect(res).toContain(
+            'import { FooBarSerializer, FooBarSummarySerializer, FooBarAdminSerializer, FooBarAdminSummarySerializer, FooBarInternalSerializer, FooBarInternalSummarySerializer }'
+          )
+          expect(res).toContain('FooBarAdminSummarySerializer(FooBarBaz, fooBarBaz)')
+          expect(res).toContain('FooBarAdminSerializer(FooBarBaz, fooBarBaz)')
+          expect(res).toContain('FooBarInternalSummarySerializer(FooBarBaz, fooBarBaz)')
+          expect(res).toContain('FooBarInternalSerializer(FooBarBaz, fooBarBaz)')
+        })
+      })
     })
 
     context('when passed a nested model class', () => {

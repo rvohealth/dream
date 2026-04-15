@@ -1,4 +1,3 @@
-import serializerNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerNameFromFullyQualifiedModelName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import absoluteDreamPath from '../path/absoluteDreamPath.js'
@@ -28,9 +27,19 @@ export default function generateSerializerContent({
   const dreamImports: string[] = []
   const isSTI = !!fullyQualifiedParentName
 
+  // Variants that should be emitted in this file. Each variant generates a
+  // matching summary + default serializer pair; STI children import the
+  // corresponding variant from the parent module so the inheritance chain
+  // stays within the same variant (admin → admin, internal → internal).
+  const variantSuffixes: string[] = ['']
+  if (includeAdminSerializers) variantSuffixes.push('Admin')
+  if (includeInternalSerializers) variantSuffixes.push('Internal')
+
   if (isSTI) {
     fullyQualifiedParentName = standardizeFullyQualifiedModelName(fullyQualifiedParentName!)
-    additionalImports.push(importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName))
+    additionalImports.push(
+      importStatementForSerializer(fullyQualifiedModelName, fullyQualifiedParentName, variantSuffixes)
+    )
   } else {
     dreamImports.push('DreamSerializer')
   }
@@ -43,45 +52,10 @@ export default function generateSerializerContent({
   const modelSerializerArgs = `${modelInstanceName}`
   const dreamSerializerArgs = `${stiBaseSerializer ? `StiChildClass ?? ${modelClassName}` : modelClassName}, ${modelInstanceName}`
 
-  const serializerClassName = serializerNameFromFullyQualifiedModelName(
-    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
-  )
-
-  const summarySerializerClassName = serializerNameFromFullyQualifiedModelName(
-    fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName),
-    'summary'
-  )
-
-  const defaultSerializerExtends = isSTI
-    ? `${serializerNameFromFullyQualifiedModelName(
-        fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!)
-      )}(${modelClassName}, ${modelSerializerArgs})`
-    : `${summarySerializerClassName}(${stiBaseSerializer ? 'StiChildClass, ' : ''}${modelSerializerArgs})`
-
-  const summarySerializerExtends = isSTI
-    ? `${serializerNameFromFullyQualifiedModelName(
-        fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!),
-        'summary'
-      )}(${modelClassName}, ${modelSerializerArgs})`
-    : `DreamSerializer(${dreamSerializerArgs})`
-
-  // Admin variants
-  const adminSerializerClassName = serializerClassName.replace(/Serializer$/, 'AdminSerializer')
-
-  const adminSummarySerializerClassName = summarySerializerClassName.replace(
-    /SummarySerializer$/,
-    'AdminSummarySerializer'
-  )
-  // end:Admin variants
-
-  // Internal variants
-  const internalSerializerClassName = serializerClassName.replace(/Serializer$/, 'InternalSerializer')
-
-  const internalSummarySerializerClassName = summarySerializerClassName.replace(
-    /SummarySerializer$/,
-    'InternalSummarySerializer'
-  )
-  // end:Internal variants
+  const localSerializerBase = fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedModelName)
+  const parentSerializerBase = isSTI
+    ? fullyQualifiedModelNameToSerializerBaseName(fullyQualifiedParentName!)
+    : ''
 
   const additionalModelImports: string[] = []
 
@@ -91,41 +65,52 @@ export default function generateSerializerContent({
 
   const additionalImportsStr = uniq(additionalImports).join('')
 
-  const summarySerializer = `export const ${summarySerializerClassName} = ${modelSerializerSignature} =>
-  ${summarySerializerExtends}${isSTI ? '' : `\n    .attribute('id')`}`
+  const buildSerializerPair = (variantSuffix: string): string => {
+    const summaryName = variantSerializerClassName(localSerializerBase, variantSuffix, 'summary')
+    const defaultName = variantSerializerClassName(localSerializerBase, variantSuffix, 'default')
 
-  const defaultSerializer = `export const ${serializerClassName} = ${modelSerializerSignature} =>
-  ${defaultSerializerExtends}${columnsWithTypes
-    .map(attr => {
-      const [name, type] = attr.split(':')
-      if (name === undefined) return ''
-      if (['belongsto', 'hasone', 'hasmany'].includes(camelize(type as any)?.toLowerCase())) return ''
+    const summaryExtends = isSTI
+      ? `${variantSerializerClassName(parentSerializerBase, variantSuffix, 'summary')}(${modelClassName}, ${modelSerializerArgs})`
+      : `DreamSerializer(${dreamSerializerArgs})`
 
-      return `\n    ${attribute(modelClassName, name, type, attr, stiBaseSerializer)}`
-    })
-    .join('')}`
+    const defaultExtends = isSTI
+      ? `${variantSerializerClassName(parentSerializerBase, variantSuffix, 'default')}(${modelClassName}, ${modelSerializerArgs})`
+      : `${summaryName}(${stiBaseSerializer ? 'StiChildClass, ' : ''}${modelSerializerArgs})`
+
+    const summary = `export const ${summaryName} = ${modelSerializerSignature} =>
+  ${summaryExtends}${isSTI ? '' : `\n    .attribute('id')`}`
+
+    const defaultBody = columnsWithTypes
+      .map(attr => {
+        const [name, type] = attr.split(':')
+        if (name === undefined) return ''
+        if (['belongsto', 'hasone', 'hasmany'].includes(camelize(type as any)?.toLowerCase())) return ''
+
+        return `\n    ${attribute(modelClassName, name, type, attr, stiBaseSerializer)}`
+      })
+      .join('')
+
+    const def = `export const ${defaultName} = ${modelSerializerSignature} =>
+  ${defaultExtends}${defaultBody}`
+
+    return `${summary}\n\n${def}`
+  }
+
+  const serializerBlocks = variantSuffixes.map(buildSerializerPair).join('\n\n')
 
   return `${dreamImport}${additionalImportsStr}${relatedModelImport}${additionalModelImports.join('')}
-${summarySerializer}
-
-${defaultSerializer}${
-    !includeAdminSerializers
-      ? ''
-      : `
-
-${summarySerializer.replace(summarySerializerClassName, adminSummarySerializerClassName)}
-
-${defaultSerializer.replace(serializerClassName, adminSerializerClassName).replace(summarySerializerClassName, adminSummarySerializerClassName)}`
-  }${
-    !includeInternalSerializers
-      ? ''
-      : `
-
-${summarySerializer.replace(summarySerializerClassName, internalSummarySerializerClassName)}
-
-${defaultSerializer.replace(serializerClassName, internalSerializerClassName).replace(summarySerializerClassName, internalSummarySerializerClassName)}`
-  }
+${serializerBlocks}
 `
+}
+
+function variantSerializerClassName(
+  serializerBase: string,
+  variantSuffix: string,
+  kind: 'default' | 'summary'
+): string {
+  return kind === 'summary'
+    ? `${serializerBase}${variantSuffix}SummarySerializer`
+    : `${serializerBase}${variantSuffix}Serializer`
 }
 
 function attribute(
@@ -161,23 +146,20 @@ function attributeOptionsSpecifier(type: string | undefined, attr: string) {
   }
 }
 
-function importStatementForSerializer(originModelName: string, destinationModelName: string) {
-  const defaultSerializer = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(
-      fullyQualifiedModelNameToSerializerBaseName(destinationModelName)
-    )
-  )
-
-  const summarySerializer = globalClassNameFromFullyQualifiedModelName(
-    serializerNameFromFullyQualifiedModelName(
-      fullyQualifiedModelNameToSerializerBaseName(destinationModelName),
-      'summary'
-    )
-  )
+function importStatementForSerializer(
+  originModelName: string,
+  destinationModelName: string,
+  variantSuffixes: string[]
+) {
+  const base = fullyQualifiedModelNameToSerializerBaseName(destinationModelName)
+  const names = variantSuffixes.flatMap(suffix => [
+    globalClassNameFromFullyQualifiedModelName(variantSerializerClassName(base, suffix, 'default')),
+    globalClassNameFromFullyQualifiedModelName(variantSerializerClassName(base, suffix, 'summary')),
+  ])
 
   const importFrom = absoluteDreamPath('serializers', destinationModelName)
 
-  return `import { ${defaultSerializer}, ${summarySerializer} } from '${importFrom}'\n`
+  return `import { ${names.join(', ')} } from '${importFrom}'\n`
 }
 
 function importStatementForModel(modelClassName: string, fullyQualifiedModelName: string) {
