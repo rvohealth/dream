@@ -1,6 +1,9 @@
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
 import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
 import ModelA from '../../../test-app/app/models/CircularReference/ModelA.js'
 import ModelB from '../../../test-app/app/models/CircularReference/ModelB.js'
 import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
@@ -258,5 +261,29 @@ describe('Dream.preloadFor(serializerKey)', () => {
         })
       }
     )
+  })
+
+  context('STI: associations referenced only by an STI child serializer', () => {
+    // Regression: when preloadFor is invoked on the STI base, the preload tree
+    // must include associations that appear via rendersOne / rendersMany /
+    // delegatedAttribute on the STI children's serializers — even if the base
+    // model itself never registers that serializer key. The expansion happens
+    // through expandStiClasses inside inferSerializersFromDreamClassOrViewModelClass.
+    it("preloads associations declared via delegatedAttribute on a child's serializer when querying the STI base", async () => {
+      const user = await User.create({ email: 'sti@preload.test', password: 'howyadoin' })
+      const mylar = await Mylar.create({ user, color: 'red' })
+      await BalloonLine.create({ balloon: mylar, material: 'nylon' })
+
+      const reloaded = (await Balloon.query().preloadFor('delegated').firstOrFail()) as Mylar
+      expect(reloaded).toMatchDreamModel(mylar)
+      // `balloonLine` is referenced only by Mylar's `delegated` serializer
+      // (Balloon/DelegatedAttributeSerializer) via `.delegatedAttribute('balloonLine', ...)`.
+      // The Balloon STI base does not register the `delegated` key at all, so this
+      // association can only be discovered by walking the STI children.
+      expect(reloaded.loaded('balloonLine')).toBe(true)
+      expect(reloaded.balloonLine).toMatchDreamModel(
+        await BalloonLine.where({ balloonId: mylar.id }).firstOrFail()
+      )
+    })
   })
 })
