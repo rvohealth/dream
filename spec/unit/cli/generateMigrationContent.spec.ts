@@ -178,6 +178,78 @@ export async function down(db: Kysely<any>): Promise<void> {
         )
       })
     })
+
+    context('boolean attributes', () => {
+      it('keeps the standard notNull().defaultTo(false) column definition and omits the per-type check constraint', () => {
+        const res = generateMigrationContent({
+          table: 'rooms',
+          columnsWithTypes: ['has_window:boolean', 'hello:string'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          stiChildClassName: 'RoomsLivingRoom',
+        })
+
+        expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .addColumn('has_window', 'boolean', col => col.notNull().defaultTo(false))
+    .addColumn('hello', 'varchar(255)')
+    .execute()
+
+  await db.schema
+    .alterTable('rooms')
+    .addCheckConstraint(
+      'rooms_not_null_hello',
+      sql\`type != 'RoomsLivingRoom' OR hello IS NOT NULL\`,
+    )
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .dropColumn('has_window')
+    .dropColumn('hello')
+    .execute()
+}`)
+      })
+
+      context('when the boolean is optional', () => {
+        it('omits notNull/default and still skips the check constraint', () => {
+          const res = generateMigrationContent({
+            table: 'rooms',
+            columnsWithTypes: ['has_window:boolean:optional'],
+            primaryKeyType: 'bigserial',
+            createOrAlter: 'alter',
+            stiChildClassName: 'RoomsLivingRoom',
+          })
+
+          expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .addColumn('has_window', 'boolean')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('rooms')
+    .dropColumn('has_window')
+    .execute()
+}`)
+        })
+      })
+    })
   })
 
   context('with no attributes', () => {

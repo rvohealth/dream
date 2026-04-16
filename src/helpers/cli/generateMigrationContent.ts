@@ -86,7 +86,13 @@ export default function generateMigrationContent({
       if (attributeType === 'citext') requireCitextExtension = true
 
       const arrayAttribute = /\[\]$/.test(attributeType)
-      const omitInlineNonNull = userWantsThisOptional || (!!stiChildClassName && !arrayAttribute)
+      // Booleans always have a sensible non-null default (`false`), so in an
+      // STI child migration we keep the straightforward `.notNull().defaultTo(false)`
+      // column definition and skip the per-type check constraint — same as
+      // arrays, which already default to `'{}'`.
+      const isBooleanColumn = processedAttrType === 'boolean'
+      const omitInlineNonNull =
+        userWantsThisOptional || (!!stiChildClassName && !arrayAttribute && !isBooleanColumn)
 
       if (nonStandardAttributeName === undefined) return acc
       let attributeName = snakeify(nonStandardAttributeName)
@@ -176,7 +182,7 @@ export default function generateMigrationContent({
         indexDrops.push(`await db.schema.dropIndex('${indexName}').execute()`)
       }
 
-      if (stiChildClassName && !userWantsThisOptional && !arrayAttribute) {
+      if (stiChildClassName && !userWantsThisOptional && !arrayAttribute && !isBooleanColumn) {
         checkConstraints.push(`
 
   await db.schema
