@@ -209,7 +209,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'bigserial', col => col.primaryKey())
     .addColumn('topping', sql\`topping_enum\`)
     .addColumn('protein_type', sql\`protein_enum\`)
-    .addColumn('existing_enum', sql\`my_existing_enum_enum\`)
+    .addColumn('existing_enum', sql\`my_existing_enum\`)
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()

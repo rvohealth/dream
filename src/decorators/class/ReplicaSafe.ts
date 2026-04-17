@@ -1,12 +1,10 @@
 import Dream from '../../Dream.js'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
 
-export default function ReplicaSafe(): ClassDecorator {
-  return function (target: any) {
-    const dreamClass = target as typeof Dream
+export default function ReplicaSafe() {
+  return function (target: typeof Dream): void {
+    if (target['isSTIChild']) throw new StiChildIncompatibleWithReplicaSafeDecorator(target)
 
-    if (dreamClass['isSTIChild']) throw new StiChildIncompatibleWithReplicaSafeDecorator(dreamClass)
-
-    dreamClass['replicaSafe'] = true
+    target['replicaSafe'] = true
   }
 }

@@ -6,9 +6,8 @@ import { scopeImplementation } from '../static-method/Scope.js'
 
 export const STI_SCOPE_NAME = 'dream:STI'
 
-export default function STI(dreamClass: typeof Dream): ClassDecorator {
-  return function (target: any) {
-    const stiChildClass = target as typeof Dream
+export default function STI(dreamClass: typeof Dream) {
+  return function (stiChildClass: typeof Dream): void {
     const baseClass = dreamClass['sti'].baseClass || dreamClass
 
     if (Object.getOwnPropertyDescriptor(stiChildClass, 'associationMetadataByType'))

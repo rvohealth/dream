@@ -148,7 +148,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .alterTable('chalupas')
     .addColumn('topping', sql\`topping_enum\`, col => col.notNull())
     .addColumn('protein_type', sql\`protein_enum\`, col => col.notNull())
-    .addColumn('existing_enum', sql\`my_existing_enum_enum\`, col => col.notNull())
+    .addColumn('existing_enum', sql\`my_existing_enum\`, col => col.notNull())
     .execute()
 }
 
