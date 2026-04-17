@@ -129,7 +129,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm dream db:migrate --skip-sync
-      - run: pnpm spec --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+      - run: pnpm spec --shard=${{ matrix.shard }}/2
 
   linting:
     name: Linting
