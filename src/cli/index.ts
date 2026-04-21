@@ -1,14 +1,26 @@
-import { SpawnOptions } from 'child_process'
+import { spawn, SpawnOptions as NodeSpawnOptions } from 'child_process'
 import { Command, InvalidArgumentError, Option } from 'commander'
 import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
 import Encrypt, { EncryptAlgorithm } from '../encrypt/index.js'
+import SspawnRequiresDevelopmentOrTest from '../errors/SspawnRequiresDevelopmentOrTest.js'
 import generateDream from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
-import sspawn from '../helpers/sspawn.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
 import colorize from './logger/loggable/colorize.js'
+
+export type SpawnOptions = Omit<NodeSpawnOptions, 'shell'> & {
+  onStdout?: (str: string) => void
+  /**
+   * Argv elements passed to the child as separate arguments. Defaults to `[]`.
+   * Each entry is passed literally — shell meta-characters (`$`, backticks,
+   * `&&`, spaces, etc.) inside any element are not interpreted by a shell.
+   * This is the right shape for any caller that interpolates a path or
+   * credential.
+   */
+  args?: string[]
+}
 
 export const CLI_INDENT = '                  '
 const INDENT = CLI_INDENT
@@ -640,15 +652,88 @@ ${INDENT}Examples: User, Place, Room/Bedroom, Settings/CommunicationPreferences`
       })
   }
 
-  /*
-   * the default spawn provided by node:child_process is incompatible
-   * with promises. this will automatically wrap the spawn method,
-   * and will by default connect STDOUT to the current STDOUT,
-   * so that whatever the command is outputting is output to the
-   * primary STDOUT context.
+  /**
+   * Run a developer-authored CLI command. Always runs in argv form (the
+   * underlying child_process `spawn` is called with `shell: false`):
+   * `command` is exec'd literally and `opts.args` are passed as separate
+   * argv elements. Shell-form invocation is intentionally not supported —
+   * there is no caller that needs `&&`-chaining, globs, or other shell
+   * features that can't be expressed as argv.
+   *
+   * For backward compatibility, `command` may contain implicit args
+   * separated by whitespace (e.g. `'pnpm psy sync'`); the leading token
+   * becomes the program and the rest are split out and prepended to any
+   * `opts.args` so the original argument order is preserved:
+   *
+   *     DreamCLI.spawn('pnpm psy sync')
+   *       → spawn('pnpm', ['psy', 'sync'])
+   *
+   *     DreamCLI.spawn('pnpm psy', { args: ['sync', '--flag'] })
+   *       → spawn('pnpm', ['psy', 'sync', '--flag'])
+   *
+   * ## Threat model (R-015)
+   *
+   * For dev-time CLI glue only (scaffolding, doc generation, type sync).
+   * **No runtime HTTP request input ever reaches this function.** Inputs
+   * are constant literals or composed from developer-supplied config
+   * (package.json scripts, CLI argv, scaffold templates) — never from
+   * runtime request input or any other untrusted external source.
+   *
+   * Argv-form is the safe choice for any caller that interpolates a
+   * config value, path, or credential: a database password containing
+   * `$` or backticks is passed literally to the child rather than
+   * interpreted by a shell.
+   *
+   * ## Layered defense
+   *
+   * Primary gate: every caller restricts spawn use to dev/test code paths
+   * (CLI commands, the dev watcher, scaffold-time code generators,
+   * generated `cli:sync` initializers wrapped in
+   * `if (AppEnv.isDevelopmentOrTest)`).
+   *
+   * Backstop: throws `SspawnRequiresDevelopmentOrTest` when `NODE_ENV` is
+   * anything other than `development` or `test`. Checking
+   * `!isDevelopmentOrTest` (rather than `isProduction`) means staging-style
+   * envs and any unforeseen NODE_ENV value also fail closed.
    */
-  public static async spawn(command: string, opts?: SpawnOptions & { onStdout?: (str: string) => void }) {
-    return await sspawn(command, opts)
+  public static async spawn(command: string, opts?: SpawnOptions): Promise<void> {
+    const tokens = command.trim().split(/\s+/).filter(Boolean)
+    const [program = '', ...implicitArgs] = tokens
+    const callerArgs = opts?.args ?? []
+    const { args: _ignored, onStdout, ...spawnOpts } = opts ?? {}
+    const args = [...implicitArgs, ...callerArgs]
+
+    if (!EnvInternal.isDevelopmentOrTest) {
+      throw new SspawnRequiresDevelopmentOrTest([program, ...args].join(' '))
+    }
+
+    return new Promise((accept, reject) => {
+      const proc = spawn(program, args, { shell: false, ...spawnOpts })
+
+      // NOTE: stdout spy so this CLI utility can hijack the stdout from the
+      // child command and route it through a caller-provided sink.
+      proc.stdout?.on('data', chunk => {
+        const txt = chunk?.toString()?.trim()
+        if (typeof txt !== 'string' || !txt) return
+
+        if (onStdout) {
+          onStdout(txt)
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(txt)
+        }
+      })
+
+      proc.stdout?.on('error', handleSpawnError)
+      proc.stderr?.on('error', handleSpawnError)
+      proc.stderr?.on('data', handleSpawnError)
+      proc.on('error', handleSpawnError)
+
+      proc.on('close', code => {
+        if (code !== 0) reject(code as unknown as Error)
+        accept()
+      })
+    })
   }
 
   public static get logger() {
@@ -664,4 +749,9 @@ function myParseInt(value: string) {
     throw new InvalidArgumentError(`${value} is not a number`)
   }
   return parsedValue
+}
+
+function handleSpawnError(err: any) {
+  // eslint-disable-next-line no-console
+  console.error(err?.toString())
 }

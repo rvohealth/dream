@@ -3,7 +3,6 @@ import DreamApp from '../dream-app/index.js'
 import Query from '../dream/Query.js'
 import DBClassDeprecation from '../helpers/cli/DBClassDeprecation.js'
 import generateDream from '../helpers/cli/generateDream.js'
-import sspawn from '../helpers/sspawn.js'
 
 export default class DreamBin {
   public static async sync(onSync: () => Promise<void> | void, options?: { schemaOnly?: boolean }) {
@@ -119,7 +118,18 @@ export default class DreamBin {
   // to use it to generate docs for their apps.
   private static async buildDocs() {
     DreamCLI.logger.logStartProgress('generating docs...')
-    await sspawn('pnpm typedoc src/package-exports/*.ts --tsconfig ./tsconfig.esm.build.json --out docs')
+    // safe (R-015): all argv elements are constant literals; typedoc itself
+    // expands the glob so we don't need shell-form invocation.
+    await DreamCLI.spawn('pnpm', {
+      args: [
+        'typedoc',
+        'src/package-exports/*.ts',
+        '--tsconfig',
+        './tsconfig.esm.build.json',
+        '--out',
+        'docs',
+      ],
+    })
     DreamCLI.logger.logEndProgress()
   }
 }
