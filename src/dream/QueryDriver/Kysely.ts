@@ -7,6 +7,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import pg from 'pg'
+import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
 
 import {
   AliasedExpression,
@@ -177,7 +178,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           database: DreamApp.getOrFail().dbName(connectionName, dbConnectionType),
           host: connectionConf.host || 'localhost',
           port: connectionConf.port || 5432,
-          ssl: connectionConf.useSsl ? defaultPostgresSslConfig(connectionConf) : false,
+          ssl: resolvePostgresSsl(connectionConf),
         }),
       })
   }
@@ -3032,15 +3033,24 @@ const associationStringToAssociationAndMaybeAlias = function ({
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function defaultPostgresSslConfig(connectionConf: SingleDbCredential) {
-  // TODO: properly configure (https://rvohealth.atlassian.net/browse/PDTC-2914)
-  return {
-    rejectUnauthorized: false,
-    // ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
-    // key: fs.readFileSync('/path/to/client-key/postgresql.key').toString(),
-    // cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),
-  }
+/**
+ * Resolve the value passed to `pg.Pool`'s `ssl` field for a given credential.
+ *
+ * Precedence:
+ *   1. If `connectionConf.ssl` is set (boolean or `tls.ConnectionOptions`),
+ *      pass it straight through to `pg`. This is the verified-TLS path —
+ *      apps configure `{ rejectUnauthorized: true, ca: <bundle> }` for
+ *      authenticated TLS against a private PKI, or `true` to use Node's
+ *      default verification against the system CA store.
+ *   2. Else if `connectionConf.useSsl` is `true`, fall back to
+ *      `{ rejectUnauthorized: false }` — encrypted but **not** authenticated.
+ *      Preserved for back-compat; new code should set `ssl` explicitly.
+ *   3. Else disable TLS.
+ */
+export function resolvePostgresSsl(connectionConf: SingleDbCredential): boolean | TlsConnectionOptions {
+  if (connectionConf.ssl !== undefined) return connectionConf.ssl
+  if (connectionConf.useSsl) return { rejectUnauthorized: false }
+  return false
 }
 
 function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {

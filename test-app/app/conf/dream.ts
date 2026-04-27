@@ -54,7 +54,7 @@ export default async function (dreamApp: DreamApp) {
       host: AppEnv.string('DB_HOST', { optional: true }),
       name: AppEnv.string('DB_NAME', { optional: true }),
       port: AppEnv.integer('DB_PORT', { optional: true }),
-      useSsl: false,
+      ssl: false,
     },
     replica: AppEnv.string('REPLICA_DB_HOST', { optional: true })
       ? {
@@ -63,7 +63,7 @@ export default async function (dreamApp: DreamApp) {
           host: AppEnv.string('REPLICA_DB_HOST', { optional: true }),
           name: AppEnv.string('DB_NAME', { optional: true }),
           port: AppEnv.integer('REPLICA_DB_PORT', { optional: true }) || AppEnv.integer('DB_PORT'),
-          useSsl: false,
+          ssl: false,
         }
       : undefined,
     tableExcludePattern: 'chalupasdujour*', // used to make sure we feed valid arguments to kysely-codegen
@@ -77,7 +77,7 @@ export default async function (dreamApp: DreamApp) {
       host: AppEnv.string('DB_HOST', { optional: true }),
       name: AppEnv.string('ALTERNATE_DB_NAME', { optional: true }),
       port: AppEnv.integer('ALTERNATE_DB_PORT', { optional: true }),
-      useSsl: false,
+      ssl: false,
     },
   })
 
@@ -89,7 +89,7 @@ export default async function (dreamApp: DreamApp) {
       host: AppEnv.string('MYSQL_DB_HOST', { optional: true }),
       name: AppEnv.string('MYSQL_DB_NAME', { optional: true }),
       port: AppEnv.integer('MYSQL_DB_PORT', { optional: true }),
-      useSsl: false,
+      ssl: false,
     },
   })
 

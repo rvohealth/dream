@@ -1,4 +1,5 @@
 import { CompiledQuery } from 'kysely'
+import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
 import * as util from 'node:util'
 import { Context } from 'node:vm'
 import validateTable from '../db/validators/validateTable.js'
@@ -629,7 +630,30 @@ export interface SingleDbCredential {
   host: string
   name: string
   port: number
-  useSsl: boolean
+  /**
+   * @deprecated Use `ssl` instead.
+   *
+   * The legacy boolean opt-in for Postgres TLS. When `true` (and `ssl` is not
+   * set), Dream connects with `{ rejectUnauthorized: false }` — TLS is on but
+   * the server certificate is not verified. The new `ssl` field accepts a
+   * full `tls.ConnectionOptions` object so callers can opt into verified TLS
+   * (`ssl: { rejectUnauthorized: true, ca: readFileSync('ca.pem') }`) or use
+   * Node's defaults (`ssl: true`). This field is preserved for back-compat
+   * and will be removed in a future major version.
+   */
+  useSsl?: boolean
+  /**
+   * Optional explicit TLS configuration passed straight through to `pg.Pool`'s
+   * `ssl` field. Takes precedence over the deprecated `useSsl` when provided.
+   *
+   * - `true` lets `pg` use Node's defaults (verified TLS against the system CA).
+   * - `false` disables TLS.
+   * - An object is `tls.ConnectionOptions` — set `rejectUnauthorized: true` plus
+   *   a `ca` bundle for verified TLS against a private PKI; set
+   *   `rejectUnauthorized: false` only if you accept opportunistic-TLS-without-
+   *   authentication (the historical default produced by `useSsl: true` alone).
+   */
+  ssl?: boolean | TlsConnectionOptions
 }
 
 export type DreamLogger = {
