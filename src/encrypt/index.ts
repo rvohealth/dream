@@ -93,6 +93,41 @@ export default class Encrypt {
     }
   }
 
+  /**
+   * Generates a base64-encoded random key suitable for the given algorithm.
+   *
+   * ## Rotation workflow
+   *
+   * 1. Generate a new key: `const newKey = Encrypt.generateKey('aes-256-gcm')`.
+   * 2. Configure rotation by setting both `current` and `legacy`. For
+   *    encrypted columns: `dreamApp.set('encryption', { columns: { current:
+   *    { algorithm: 'aes-256-gcm', key: newKey }, legacy: { algorithm:
+   *    'aes-256-gcm', key: oldKey } } })`. For cookies, use the equivalent
+   *    shape under `psychicApp.set('encryption', { cookies: { current,
+   *    legacy } })`.
+   * 3. Deploy. New encryptions use `current`; existing ciphertext continues
+   *    to decrypt via `legacy` fallback.
+   * 4. For cookies, wait at least the cookie `maxAge` so all in-flight
+   *    cookies have either expired or been re-issued under the new key. For
+   *    `@Encrypted` columns, re-encrypt every existing row under the new
+   *    key (read each row and write it back; the setter re-encrypts with
+   *    `current`).
+   * 5. Drop `legacy` from config and deploy again.
+   *
+   * ## When to rotate
+   *
+   * - On a scheduled cadence (90–180 days is a reasonable policy default).
+   * - Incident response: leaked env file, departing employee with key
+   *   access, or any suspected key compromise.
+   *
+   * ## How long to keep `legacy`
+   *
+   * - For cookies: at least the cookie `maxAge`, so in-flight sessions are
+   *   not forced to re-authenticate.
+   * - For `@Encrypted` columns: until every existing row has been
+   *   re-encrypted under the new key. Dropping `legacy` early will cause
+   *   `DecryptionWithRotationError` on any not-yet-rewritten row.
+   */
   public static generateKey(algorithm: EncryptAlgorithm) {
     switch (algorithm) {
       case 'aes-256-gcm':
