@@ -1,4 +1,8 @@
+import * as crypto from 'crypto'
 import Encrypt, { EncryptOptions } from '../../../src/encrypt/index.js'
+import DecryptionError from '../../../src/errors/encrypt/DecryptionError.js'
+import DecryptionParseError from '../../../src/errors/encrypt/DecryptionParseError.js'
+import DecryptionWithRotationError from '../../../src/errors/encrypt/DecryptionWithRotationError.js'
 import MissingEncryptionKey from '../../../src/errors/encrypt/MissingEncryptionKey.js'
 
 const encryptionOptions = [
@@ -58,10 +62,9 @@ describe('Encrypt', () => {
         })
 
         context('with the wrong encryption key', () => {
-          it('raises a targeted exception', () => {
+          it('throws DecryptionError', () => {
             const encrypted = Encrypt.encrypt('how', { ...opts, key: opts.legacyKey })
-            const decrypted = Encrypt.decrypt(encrypted, { ...opts })
-            expect(decrypted).toBeNull()
+            expect(() => Encrypt.decrypt(encrypted, { ...opts })).toThrow(DecryptionError)
           })
         })
 
@@ -88,25 +91,139 @@ describe('Encrypt', () => {
           })
 
           context('the legacy key is invalid', () => {
-            it('fails to decrypt', () => {
+            it('throws DecryptionWithRotationError', () => {
               const encrypted = Encrypt.encrypt('howyadoin', {
                 algorithm: opts.algorithm,
                 key: opts.legacyKey,
               })
-              const decrypted = Encrypt.decrypt(
-                encrypted,
-                {
-                  algorithm: opts.algorithm,
-                  key: opts.key,
-                },
-                {
-                  algorithm: opts.algorithm,
-                  key: opts.key,
-                }
-              )
-              expect(decrypted).toBeNull()
+              expect(() =>
+                Encrypt.decrypt(
+                  encrypted,
+                  {
+                    algorithm: opts.algorithm,
+                    key: opts.key,
+                  },
+                  {
+                    algorithm: opts.algorithm,
+                    key: opts.key,
+                  }
+                )
+              ).toThrow(DecryptionWithRotationError)
             })
           })
+        })
+      })
+    })
+
+    context('targeted error cases (R-019)', () => {
+      const ALG = 'aes-256-gcm' as const
+      const KEY_A = '65ogKxacRKyNxj20PCQKuBnxKgOty5eQnY4Ktbk04U0='
+      const KEY_B = 'we7Ut3wRljXChrAqW673pjjYr0HN0yIJYtGrR2y7rDc='
+      const KEY_C = 'pT2EzN3OQ7m5UKt3xb88h7y0FOq8jwaIJp/yCZGdLM4='
+
+      describe('two-arg form', () => {
+        it('returns null on null input', () => {
+          expect(Encrypt.decrypt(null as unknown as string, { algorithm: ALG, key: KEY_A })).toBeNull()
+        })
+
+        it('returns null on undefined input', () => {
+          expect(Encrypt.decrypt(undefined as unknown as string, { algorithm: ALG, key: KEY_A })).toBeNull()
+        })
+
+        it('throws MissingEncryptionKey when the key is missing', () => {
+          expect(() =>
+            Encrypt.decrypt('anything', { algorithm: ALG, key: null as unknown as string })
+          ).toThrow(MissingEncryptionKey)
+        })
+
+        it('throws DecryptionError on tampered ciphertext', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          // flip a base64 char in the ciphertext payload to corrupt the auth tag
+          const tampered = encrypted.replace(/.$/, c => (c === 'A' ? 'B' : 'A'))
+          expect(() => Encrypt.decrypt(tampered, { algorithm: ALG, key: KEY_A })).toThrow(DecryptionError)
+        })
+
+        it('throws DecryptionError when decrypting with the wrong key', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          expect(() => Encrypt.decrypt(encrypted, { algorithm: ALG, key: KEY_B })).toThrow(DecryptionError)
+        })
+
+        it('throws DecryptionError on a malformed payload', () => {
+          expect(() => Encrypt.decrypt('not-a-valid-payload', { algorithm: ALG, key: KEY_A })).toThrow(
+            DecryptionError
+          )
+        })
+
+        it('throws DecryptionParseError when plaintext decrypts cleanly but is not JSON', () => {
+          // Hand-craft a payload whose plaintext is the raw string `not json` (no JSON.stringify wrapping).
+          const iv = crypto.randomBytes(12)
+          const cipher = crypto.createCipheriv(ALG, Buffer.from(KEY_A, 'base64'), iv)
+          const ciphertext = Buffer.concat([cipher.update('not json', 'utf8'), cipher.final()])
+          const tag = cipher.getAuthTag()
+          const payload = Buffer.from(
+            JSON.stringify({
+              ciphertext: ciphertext.toString('base64'),
+              tag: tag.toString('base64'),
+              iv: iv.toString('base64'),
+            })
+          ).toString('base64')
+
+          expect(() => Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A })).toThrow(DecryptionParseError)
+        })
+      })
+
+      describe('three-arg form (rotation)', () => {
+        it('returns the value when the current key succeeds', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          const decrypted = Encrypt.decrypt(
+            encrypted,
+            { algorithm: ALG, key: KEY_A },
+            { algorithm: ALG, key: KEY_B }
+          )
+          expect(decrypted).toEqual('howyadoin')
+        })
+
+        it('returns the value when the current key fails and the legacy key succeeds', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          const decrypted = Encrypt.decrypt(
+            encrypted,
+            { algorithm: ALG, key: KEY_B },
+            { algorithm: ALG, key: KEY_A }
+          )
+          expect(decrypted).toEqual('howyadoin')
+        })
+
+        it('throws DecryptionWithRotationError when both keys fail', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          let caught: unknown
+          try {
+            Encrypt.decrypt(encrypted, { algorithm: ALG, key: KEY_B }, { algorithm: ALG, key: KEY_C })
+          } catch (err) {
+            caught = err
+          }
+          expect(caught).toBeInstanceOf(DecryptionWithRotationError)
+          const rotErr = caught as DecryptionWithRotationError
+          expect(rotErr.currentKeyError).toBeInstanceOf(DecryptionError)
+          expect(rotErr.legacyKeyError).toBeInstanceOf(DecryptionError)
+        })
+
+        it('does not retry the legacy key when current decrypts but plaintext is not JSON', () => {
+          // Hand-craft a payload whose plaintext (under KEY_A) is the raw string `not json`.
+          const iv = crypto.randomBytes(12)
+          const cipher = crypto.createCipheriv(ALG, Buffer.from(KEY_A, 'base64'), iv)
+          const ciphertext = Buffer.concat([cipher.update('not json', 'utf8'), cipher.final()])
+          const tag = cipher.getAuthTag()
+          const payload = Buffer.from(
+            JSON.stringify({
+              ciphertext: ciphertext.toString('base64'),
+              tag: tag.toString('base64'),
+              iv: iv.toString('base64'),
+            })
+          ).toString('base64')
+
+          expect(() =>
+            Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A }, { algorithm: ALG, key: KEY_B })
+          ).toThrow(DecryptionParseError)
         })
       })
     })
