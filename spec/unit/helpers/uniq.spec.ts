@@ -51,6 +51,24 @@ describe('uniq', () => {
     })
   })
 
+  context('when the elements are functions with identical toString() but different references', () => {
+    it('treats them as distinct', () => {
+      // Simulates what happens under vitest SSR transform: two different
+      // serializer functions from different modules compile to identical
+      // source text because import placeholders are numbered the same way.
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const fn1 = new Function('a', 'return a + 1')
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const fn2 = new Function('a', 'return a + 1')
+
+      // Verify precondition: same toString, different references
+      expect(fn1.toString()).toBe(fn2.toString())
+      expect(fn1).not.toBe(fn2)
+
+      expect(uniq([fn1, fn2])).toEqual([fn1, fn2])
+    })
+  })
+
   it('supports mixed types', async () => {
     const graphNode1 = await GraphNode.create({ name: 'Hello' })
     const graphNode2 = await GraphNode.findOrFail(graphNode1.id)
