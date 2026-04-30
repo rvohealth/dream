@@ -349,6 +349,8 @@ ${INDENT}  Settings/CommunicationPreferences   # src/app/models/Settings/Communi
       .description(
         `Generates an STI (Single Table Inheritance) child model that extends an existing parent model. The child shares the parent's database table (discriminated by the \`type\` column) and can add child-specific columns. Generates a child model decorated with @STI(Parent), child serializers extending the parent's base serializers, a migration that ALTERs the parent table (not a new table), check constraints, a factory, and spec skeleton.
 ${INDENT}
+${INDENT}If the child declares no additional columns, only the model file is generated — no migration is created. STI children share the parent's table, so a no-columns child requires no schema change. Add a migration only by passing positional field:type args, in which case the generator emits one with the appropriate check constraint. STI children never receive @SoftDelete() — soft delete is enforced at the parent level only — and the generator does not accept --no-soft-delete.
+${INDENT}
 ${INDENT}The parent must already exist (typically generated with g:model --sti-base-serializer or g:resource --sti-base-serializer).
 ${INDENT}
 ${INDENT}Examples:
@@ -699,8 +701,7 @@ ${INDENT}Examples: User, Place, Room/Bedroom, Settings/CommunicationPreferences`
   public static async spawn(command: string, opts?: SpawnOptions): Promise<void> {
     const tokens = command.trim().split(/\s+/).filter(Boolean)
     const [program = '', ...implicitArgs] = tokens
-    const callerArgs = opts?.args ?? []
-    const { args: _ignored, onStdout, ...spawnOpts } = opts ?? {}
+    const { args: callerArgs = [], onStdout, ...spawnOpts } = opts ?? {}
     const args = [...implicitArgs, ...callerArgs]
 
     if (!EnvInternal.isDevelopmentOrTest) {
