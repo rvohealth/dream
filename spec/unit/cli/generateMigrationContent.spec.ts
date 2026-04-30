@@ -108,6 +108,74 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
     })
 
+    context('decimal attributes', () => {
+      it('omits notNull and adds a check constraint for non-optional decimals', () => {
+        const res = generateMigrationContent({
+          table: 'chalupas',
+          columnsWithTypes: ['deliciousness:decimal:4,2'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          stiChildClassName: 'CrunchyChalupa',
+        })
+        expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    .addColumn('deliciousness', 'decimal(4, 2)')
+    .execute()
+
+  await db.schema
+    .alterTable('chalupas')
+    .addCheckConstraint(
+      'chalupas_not_null_deliciousness',
+      sql\`type != 'CrunchyChalupa' OR deliciousness IS NOT NULL\`,
+    )
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    .dropColumn('deliciousness')
+    .execute()
+}`)
+      })
+
+      context('when the decimal is optional', () => {
+        it('omits notNull and skips the check constraint', () => {
+          const res = generateMigrationContent({
+            table: 'chalupas',
+            columnsWithTypes: ['deliciousness:decimal:4,2:optional'],
+            primaryKeyType: 'bigserial',
+            createOrAlter: 'alter',
+            stiChildClassName: 'CrunchyChalupa',
+          })
+          expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    .addColumn('deliciousness', 'decimal(4, 2)')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    .dropColumn('deliciousness')
+    .execute()
+}`)
+        })
+      })
+    })
+
     context('array attributes', () => {
       it('includes the not-null statement and omits the check constraint', () => {
         const res = generateMigrationContent({
