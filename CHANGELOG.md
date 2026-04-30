@@ -1,5 +1,6 @@
 ## 2.8.1
 
+- gate auto-generated type/schema sync to `NODE_ENV=test`; `db:migrate`, `db:rollback`, and `sync` no longer regenerate type files in development, preventing a stale dev database from clobbering types generated under tests
 - fix typing of class decorators (`SoftDelete`, `STI`, and `ReplicaSafe`)
 - support `optional` and `required` uniformly on serializer `delegatedAttribute`
 - pass through pg `ssl` config on `SingleDbCredential`

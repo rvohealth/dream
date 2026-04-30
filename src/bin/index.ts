@@ -2,10 +2,19 @@ import DreamCLI from '../cli/index.js'
 import DreamApp from '../dream-app/index.js'
 import Query from '../dream/Query.js'
 import DBClassDeprecation from '../helpers/cli/DBClassDeprecation.js'
+import EnvInternal from '../helpers/EnvInternal.js'
 import generateDream from '../helpers/cli/generateDream.js'
 
 export default class DreamBin {
   public static async sync(onSync: () => Promise<void> | void, options?: { schemaOnly?: boolean }) {
+    if (!EnvInternal.isTest) {
+      DreamCLI.logger.logStartProgress(
+        `skipping sync: auto-generated type/schema files are only built when NODE_ENV=test (current NODE_ENV: ${process.env.NODE_ENV ?? 'unset'}). Run with NODE_ENV=test to regenerate.`,
+      )
+      DreamCLI.logger.logEndProgress()
+      return
+    }
+
     const dreamApp = DreamApp.getOrFail()
     for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
       await Query.dbDriverClass(connectionName).sync(connectionName, onSync, options)
