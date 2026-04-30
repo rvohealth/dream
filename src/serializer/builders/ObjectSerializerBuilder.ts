@@ -99,8 +99,20 @@ export default class ObjectSerializerBuilder<
    * Includes an attribute from a nested object in the serialized output.
    *
    * Accesses `targetName.name` on the data object. The `openapi` option is always
-   * required. If the target object or the delegated attribute is null/undefined,
-   * the `default` option value will be used if provided.
+   * required. When the target object or the delegated attribute is null/undefined,
+   * the resolution order is:
+   *   1. `default` if provided → renders the default value
+   *   2. `required: false` → omits the key entirely from the rendered output
+   *   3. otherwise → renders `null`
+   *
+   * `optional` and `required` are not aliases — they encode different things and can
+   * be used together:
+   *   - `optional: true` is an OpenAPI-only marker (no runtime effect). It declares
+   *     that the rendered value may be `null`. Use this when you want the key to always
+   *     be present but the value to be nullable in the schema.
+   *   - `required: false` affects both runtime and OpenAPI. At runtime, when the
+   *     resolved value is `undefined`, the key is omitted from the rendered output.
+   *     In OpenAPI, the field is marked as not required.
    *
    * @param targetName - The property name containing the target object
    * @param name - The attribute name within the target object
@@ -110,10 +122,14 @@ export default class ObjectSerializerBuilder<
    *     (e.g., delegating `'profile', 'avatarUrl'` with `as: 'avatar'` outputs the value
    *     under `avatar`)
    *   - `default` - Value to use when the target object or its attribute is null/undefined
+   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema
+   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). OpenAPI-only — the
+   *     key is still rendered (as `null`)
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
    *     during rendering; does not affect the OpenAPI shape
-   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
-   *     when omitted, attributes are required by default
+   *   - `required` - Set to `false` to omit the key from the rendered output when the
+   *     resolved value is `undefined`, and to mark the field as not required in the
+   *     OpenAPI schema
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -162,7 +178,7 @@ export default class ObjectSerializerBuilder<
   >(
     targetName: TargetName,
     name: AttributeName,
-    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
   ) {
     this.attributes.push({
       type: 'delegatedAttribute',

@@ -130,13 +130,26 @@ export default class DreamSerializerBuilder<
   /**
    * Includes an attribute from a nested object in the serialized output.
    *
-   * Accesses `targetName.name` on the data object. If the target object
-   * or the delegated attribute is null/undefined, the `default` option value
-   * will be used if provided.
+   * Accesses `targetName.name` on the data object. When the target object or the
+   * delegated attribute is null/undefined, the resolution order is:
+   *   1. `default` if provided → renders the default value
+   *   2. `required: false` → omits the key entirely from the rendered output
+   *   3. otherwise → renders `null`
    *
    * When the target is a Dream model, OpenAPI types may be automatically inferred
    * for standard database columns. For json/jsonb columns or non-Dream targets,
    * the `openapi` option is required.
+   *
+   * `optional` and `required` are not aliases — they encode different things and can
+   * be used together:
+   *   - `optional: true` is an OpenAPI-only marker (no runtime effect). It declares
+   *     that the rendered value may be `null` (e.g. when delegating through a HasOne
+   *     that may be missing). Use this when you want the key to always be present
+   *     but the value to be nullable in the schema.
+   *   - `required: false` affects both runtime and OpenAPI. At runtime, when the
+   *     resolved value is `undefined` (which includes the case of a missing delegated
+   *     association with no `default`), the key is omitted from the rendered output.
+   *     In OpenAPI, the field is marked as not required.
    *
    * @param targetName - The property name containing the target object (e.g., an association name)
    * @param name - The attribute name within the target object
@@ -145,16 +158,22 @@ export default class DreamSerializerBuilder<
    *     (e.g., delegating `'user', 'email'` with `as: 'userEmail'` outputs the value
    *     under `userEmail`)
    *   - `default` - Value to use when the target object or its attribute is null/undefined
+   *     (not available when delegating to a `'type'` STI discriminator column: substituting
+   *     a discriminator string when the association is actually missing produces a response
+   *     indistinguishable from "association present with that type," which is misleading)
    *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
    *     columns, optional for standard Dream columns (where types are inferred)
-   *   - `optional` - Set to `true` to indicate the value can be null in the OpenAPI schema
-   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). For Dream models, this is
-   *     auto-inferred from optional BelongsTo associations. Use this when delegating through
-   *     a HasOne or other nullable association.
+   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema
+   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). OpenAPI-only — the
+   *     key is still rendered (as `null`). For Dream models, this is auto-inferred
+   *     from optional BelongsTo associations. Use this when delegating through a
+   *     HasOne or other nullable association.
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
-   *     during rendering; does not affect the OpenAPI shape
-   *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
-   *     when omitted, attributes are required by default
+   *     during rendering; does not affect the OpenAPI shape (not available when delegating
+   *     to a `'type'` STI discriminator column, which is always a string enum)
+   *   - `required` - Set to `false` to omit the key from the rendered output when the
+   *     resolved value is `undefined` (including a missing delegated association with
+   *     no `default`), and to mark the field as not required in the OpenAPI schema
    * @returns The serializer builder for method chaining
    *
    * @example
@@ -207,17 +226,24 @@ export default class DreamSerializerBuilder<
       ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
           keyof AssociatedModelType &
           'type'
-        ? AutomaticSerializerAttributeOptionsForType & { optional?: boolean }
+        ? AutomaticSerializerAttributeOptionsForType & {
+            optional?: boolean
+            required?: false
+          }
         : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
-          ? SerializerAttributeOptionsForVirtualColumn
+          ? SerializerAttributeOptionsForVirtualColumn & { optional?: boolean }
           : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
                 keyof AssociatedModelType &
                 string
             ?
                 | (AutomaticSerializerAttributeOptions & { optional?: boolean })
-                | NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
-            : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
-      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
+                | (NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
+                    optional?: boolean
+                  })
+            : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
+                optional?: boolean
+              }
+      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
   ) {
     this.attributes.push({
       type: 'delegatedAttribute',
