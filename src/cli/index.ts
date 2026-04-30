@@ -486,7 +486,7 @@ ${INDENT}  pnpm psy g:encryption-key --algorithm=aes-128-gcm`
     program
       .command('db:migrate')
       .description(
-        `Runs all pending database migrations in order, then automatically syncs types (in development/test). This is the primary command for applying schema changes after generating or editing a migration.
+        `Runs all pending database migrations in order, then automatically syncs types (only when NODE_ENV=test, to avoid clobbering generated types from a stale dev database). This is the primary command for applying schema changes after generating or editing a migration.
 ${INDENT}
 ${INDENT}Example workflow:
 ${INDENT}  pnpm psy g:migration add-phone-to-users phone:string:optional
@@ -503,7 +503,7 @@ ${INDENT}  pnpm psy db:migrate`
 
         await DreamBin.dbMigrate()
 
-        if (EnvInternal.isDevelopmentOrTest && !skipSync) {
+        if (EnvInternal.isTest && !skipSync) {
           await DreamBin.sync(onSync)
         }
 
@@ -513,7 +513,7 @@ ${INDENT}  pnpm psy db:migrate`
     program
       .command('db:rollback')
       .description(
-        `Rolls back the most recent migration(s), then automatically syncs types (in development/test). Use this to undo a migration so you can edit and re-run it.
+        `Rolls back the most recent migration(s), then automatically syncs types (only when NODE_ENV=test, to avoid clobbering generated types from a stale dev database). Use this to undo a migration so you can edit and re-run it.
 ${INDENT}
 ${INDENT}Examples:
 ${INDENT}  pnpm psy db:rollback              # rolls back the last migration
@@ -529,7 +529,7 @@ ${INDENT}  pnpm psy db:rollback --steps=3    # rolls back the last 3 migrations`
         await initializeDreamApp({ bypassDreamIntegrityChecks: true })
         await DreamBin.dbRollback({ steps })
 
-        if (EnvInternal.isDevelopmentOrTest && !skipSync) {
+        if (EnvInternal.isTest && !skipSync) {
           await DreamBin.sync(onSync)
         }
 
