@@ -87,17 +87,38 @@ const ops = {
    * Creates an `OpsStatement` using the SQL `LIKE` operator for case-sensitive pattern matching.
    * Use `%` as a wildcard in the pattern string.
    *
+   * **User-supplied patterns:** the value is bound as a parameter (no SQL
+   * injection), but `%`, `_`, and `\` in the bound value are still interpreted
+   * as wildcards by the SQL engine. Wrap user input with `ops.like.escape`
+   * if you need literal matching:
+   *
+   *     User.where({ name: ops.like(`%${ops.like.escape(query)}%`) })
+   *
+   * `ops.like.escape` escapes the three metacharacters that PostgreSQL's
+   * `LIKE` / `ILIKE` operators treat as wildcards (`\`, `%`, `_`) so the
+   * returned string matches literally. The same helper applies to all four
+   * LIKE-family ops (`like`, `ilike`, `not.like`, `not.ilike`); it is exposed
+   * here as the canonical entry point. If a caller uses `ESCAPE '...'` with
+   * a non-default character this helper will not be appropriate.
+   *
    * @param like - The pattern string (e.g. `'%hello%'`).
    * @returns An `OpsStatement` using the `like` operator.
    *
    * @example
    * User.where({ name: ops.like('%alice%') })
    */
-  like: (like: string) => new OpsStatement('like', like),
+  like: Object.assign((like: string) => new OpsStatement('like', like), {
+    escape: (input: string): string => input.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_'),
+  }),
 
   /**
    * Creates an `OpsStatement` using the SQL `ILIKE` operator for case-insensitive pattern matching.
    * Use `%` as a wildcard in the pattern string.
+   *
+   * **User-supplied patterns:** the value is bound as a parameter (no SQL
+   * injection), but `%`, `_`, and `\` in the bound value are still interpreted
+   * as wildcards by the SQL engine. Wrap user input with `ops.like.escape`
+   * if you need literal matching.
    *
    * @param ilike - The pattern string (e.g. `'%hello%'`).
    * @returns An `OpsStatement` using the `ilike` operator.
@@ -241,6 +262,9 @@ const ops = {
     /**
      * Creates an `OpsStatement` using the `NOT LIKE` operator for case-sensitive pattern exclusion.
      *
+     * **User-supplied patterns:** see the note on `ops.like`. Wrap user input
+     * with `ops.like.escape` for literal matching.
+     *
      * @param like - The pattern string (e.g. `'%spam%'`).
      * @returns An `OpsStatement` using the `not like` operator.
      *
@@ -251,6 +275,9 @@ const ops = {
 
     /**
      * Creates an `OpsStatement` using the `NOT ILIKE` operator for case-insensitive pattern exclusion.
+     *
+     * **User-supplied patterns:** see the note on `ops.ilike`. Wrap user input
+     * with `ops.like.escape` for literal matching.
      *
      * @param ilike - The pattern string (e.g. `'%spam%'`).
      * @returns An `OpsStatement` using the `not ilike` operator.

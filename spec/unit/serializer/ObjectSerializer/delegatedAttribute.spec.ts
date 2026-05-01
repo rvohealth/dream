@@ -75,6 +75,32 @@ describe('ObjectSerializer#delegatedAttribute', () => {
         name: 'Woodstock',
       })
     })
+
+    context('with optional: true', () => {
+      it('renders the value as null (optional is an OpenAPI-only marker)', () => {
+        const pet: Pet = { name: 'Snoopy' }
+
+        const MySerializer = (data: Pet) =>
+          ObjectSerializer(data).delegatedAttribute('user', 'name', { openapi: 'string', optional: true })
+
+        const serializer = MySerializer(pet)
+
+        expect(serializer.render()).toEqual({ name: null })
+      })
+    })
+
+    context('with required: false', () => {
+      it('omits the key from the rendered output', () => {
+        const pet: Pet = { name: 'Snoopy' }
+
+        const MySerializer = (data: Pet) =>
+          ObjectSerializer(data).delegatedAttribute('user', 'name', { openapi: 'string', required: false })
+
+        const serializer = MySerializer(pet)
+
+        expect(serializer.render()).toEqual({})
+      })
+    })
   })
 
   context('undefined attributes', () => {

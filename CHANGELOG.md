@@ -1,6 +1,15 @@
 ## 2.8.1
 
+- gate auto-generated type/schema sync to `NODE_ENV=test`; `db:migrate`, `db:rollback`, and `sync` no longer regenerate type files in development, preventing a stale dev database from clobbering types generated under tests
 - fix typing of class decorators (`SoftDelete`, `STI`, and `ReplicaSafe`)
+- support `optional` and `required` uniformly on serializer `delegatedAttribute`
+- pass through pg `ssl` config on `SingleDbCredential`
+- `Encrypt.decrypt` throws typed errors (`DecryptionError`, `DecryptionParseError`, `DecryptionWithRotationError`) instead of returning `null`; key rotation failures throw rather than swallow
+- add `Encrypt.generateKey` and document the encryption key rotation workflow
+- add `ops.like.escape` for safely escaping user input in `LIKE` / `ILIKE` clauses
+- harden `DreamCLI.spawn`: always argv-form (no shell-form invocation), accepts argv via `opts.args`; route DB-types sync, doc generation, and post-sync through it to avoid shell injection; throws `SspawnRequiresDevelopmentOrTest` outside `NODE_ENV=development`/`test`, failing closed for staging-style and unforeseen environments. Backward compatible — a multi-token `command` string like `'pnpm psy sync'` is split on whitespace and prepended to any caller-supplied `opts.args` so existing call sites keep working without changes. The internal `sspawn` helper has been folded into `DreamCLI.spawn`
+- rewrite `SECURITY.md` with reporting flow, SLA, scope, and disclosure policy
+- add security spec suite under `spec/unit/security/`
 
 ## 2.8.0
 

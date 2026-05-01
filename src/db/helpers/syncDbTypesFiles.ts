@@ -5,7 +5,6 @@ import colorize from '../../cli/logger/loggable/colorize.js'
 import DreamApp from '../../dream-app/index.js'
 import ASTKyselyCodegenEnhancer from '../../helpers/cli/ASTKyselyCodegenEnhancer.js'
 import dreamPath from '../../helpers/path/dreamPath.js'
-import sspawn from '../../helpers/sspawn.js'
 import dbTypesFilenameForConnection from './dbTypesFilenameForConnection.js'
 
 export default async function syncDbTypesFiles(connectionName: string) {
@@ -22,18 +21,24 @@ export default async function syncDbTypesFiles(connectionName: string) {
 
   const lowLevelDbOpts = dreamApp.dbCredentialsFor(connectionName)
 
-  const dialect = `--dialect=${driverClass.syncDialect}`
-  const url = `--url=${driverClass.syncDialect}://${dbConf.user}${dbConf.password ? `:${dbConf.password}` : ''}@${dbConf.host}:${dbConf.port}/${dbConf.name}`
-  const outfile = `--out-file=${absoluteDbSyncPath}`
-  const includePattern = lowLevelDbOpts?.tableIncludePattern
-    ? `--include-pattern="${lowLevelDbOpts.tableIncludePattern}"`
-    : ''
-  const excludePattern = lowLevelDbOpts?.tableExcludePattern
-    ? `--exclude-pattern="${lowLevelDbOpts.tableExcludePattern}"`
-    : ''
-  const kyselyCodegenCmd = `kysely-codegen ${dialect} ${url} ${includePattern} ${excludePattern} ${outfile}`
+  // Argv form (R-015): the connection URL embeds the DB password, and passwords
+  // may legitimately contain shell meta-characters (`$`, backticks, spaces, etc.).
+  // DreamCLI.spawn always uses shell:false, so each arg is passed literally to
+  // the child rather than parsed by a shell — credentials are preserved and any
+  // future mutable source can't open a command-injection surface.
+  const userinfo = `${dbConf.user}${dbConf.password ? `:${dbConf.password}` : ''}`
+  const url = `${driverClass.syncDialect}://${userinfo}@${dbConf.host}:${dbConf.port}/${dbConf.name}`
+  const args = [`--dialect=${driverClass.syncDialect}`, `--url=${url}`]
+  if (lowLevelDbOpts?.tableIncludePattern) {
+    args.push(`--include-pattern=${lowLevelDbOpts.tableIncludePattern}`)
+  }
+  if (lowLevelDbOpts?.tableExcludePattern) {
+    args.push(`--exclude-pattern=${lowLevelDbOpts.tableExcludePattern}`)
+  }
+  args.push(`--out-file=${absoluteDbSyncPath}`)
 
-  await sspawn(kyselyCodegenCmd, {
+  await DreamCLI.spawn('kysely-codegen', {
+    args,
     onStdout: message => {
       DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'greenBright' }) + ' ' + message, {
         logPrefixColor: 'greenBright',

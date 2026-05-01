@@ -156,6 +156,98 @@ export default class FooBarBaz extends FooBar {
   })
 
   context('when provided attributes', () => {
+    context('with a decimal attribute', () => {
+      it('generates a dream model with a decimal field', () => {
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'chalupa',
+          modelClassName: modelClassNameFrom('chalupa'),
+          columnsWithTypes: ['deliciousness:decimal:4,2'],
+          serializer: false,
+          includeAdminSerializers: false,
+        })
+        expect(res).toEqual(
+          `\
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn } from '@rvoh/dream/types'
+import ApplicationModel from '@models/ApplicationModel.js'
+
+const deco = new Decorators<typeof Chalupa>()
+
+export default class Chalupa extends ApplicationModel {
+  public override get table() {
+    return 'chalupas' as const
+  }
+
+  public id: DreamColumn<Chalupa, 'id'>
+  public deliciousness: DreamColumn<Chalupa, 'deliciousness'>
+  public createdAt: DreamColumn<Chalupa, 'createdAt'>
+  public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
+}
+`
+        )
+      })
+
+      context('when optional', () => {
+        it('generates a dream model with the decimal field (optional descriptor stripped)', () => {
+          const res = generateDreamContent({
+            fullyQualifiedModelName: 'chalupa',
+            modelClassName: modelClassNameFrom('chalupa'),
+            columnsWithTypes: ['deliciousness:decimal:4,2:optional'],
+            serializer: false,
+            includeAdminSerializers: false,
+          })
+          expect(res).toEqual(
+            `\
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn } from '@rvoh/dream/types'
+import ApplicationModel from '@models/ApplicationModel.js'
+
+const deco = new Decorators<typeof Chalupa>()
+
+export default class Chalupa extends ApplicationModel {
+  public override get table() {
+    return 'chalupas' as const
+  }
+
+  public id: DreamColumn<Chalupa, 'id'>
+  public deliciousness: DreamColumn<Chalupa, 'deliciousness'>
+  public createdAt: DreamColumn<Chalupa, 'createdAt'>
+  public updatedAt: DreamColumn<Chalupa, 'updatedAt'>
+}
+`
+          )
+        })
+
+        context('STI child', () => {
+          it('generates an STI child dream model with the decimal field', () => {
+            const res = generateDreamContent({
+              fullyQualifiedModelName: 'CrunchyChalupa',
+              modelClassName: modelClassNameFrom('CrunchyChalupa'),
+              fullyQualifiedParentName: 'Chalupa',
+              columnsWithTypes: ['deliciousness:decimal:4,2:optional'],
+              serializer: false,
+              includeAdminSerializers: false,
+            })
+            expect(res).toEqual(
+              `\
+import { Decorators, STI } from '@rvoh/dream'
+import { DreamColumn } from '@rvoh/dream/types'
+import Chalupa from '@models/Chalupa.js'
+
+const deco = new Decorators<typeof CrunchyChalupa>()
+
+@STI(Chalupa)
+export default class CrunchyChalupa extends Chalupa {
+
+  public deliciousness: DreamColumn<CrunchyChalupa, 'deliciousness'>
+}
+`
+            )
+          })
+        })
+      })
+    })
+
     context('with a string attribute', () => {
       it('generates a dream model with multiple string fields', () => {
         const res = generateDreamContent({

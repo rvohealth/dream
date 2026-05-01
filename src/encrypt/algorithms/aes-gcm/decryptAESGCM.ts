@@ -1,24 +1,35 @@
 import * as crypto from 'crypto'
+import DecryptionError from '../../../errors/encrypt/DecryptionError.js'
+import DecryptionParseError from '../../../errors/encrypt/DecryptionParseError.js'
 import { EncryptAESAlgorithm, PsychicEncryptionPayload } from '../../index.js'
 
 export default function decryptAESGCM<RetType>(
   algorithm: EncryptAESAlgorithm,
   encrypted: string,
   key: string
-): RetType | null {
-  const { ciphertext, tag, iv } = unpackPayloadOrFail(encrypted)
+): RetType {
+  let plaintext: string
+  try {
+    const { ciphertext, tag, iv } = unpackPayloadOrFail(encrypted)
 
-  const decipher = crypto.createDecipheriv(
-    algorithm,
-    Buffer.from(key, 'base64') as any,
-    Buffer.from(iv, 'base64') as any
-  )
-  decipher.setAuthTag(Buffer.from(tag, 'base64') as any)
+    const decipher = crypto.createDecipheriv(
+      algorithm,
+      Buffer.from(key, 'base64') as any,
+      Buffer.from(iv, 'base64') as any
+    )
+    decipher.setAuthTag(Buffer.from(tag, 'base64') as any)
 
-  let plaintext = decipher.update(ciphertext, 'base64', 'utf8')
-  plaintext += decipher.final('utf8')
+    plaintext = decipher.update(ciphertext, 'base64', 'utf8')
+    plaintext += decipher.final('utf8')
+  } catch (cause) {
+    throw Object.assign(new DecryptionError(), { cause })
+  }
 
-  return JSON.parse(plaintext) as RetType
+  try {
+    return JSON.parse(plaintext) as RetType
+  } catch (cause) {
+    throw Object.assign(new DecryptionParseError(), { cause })
+  }
 }
 
 function unpackPayloadOrFail(payload: string | object) {

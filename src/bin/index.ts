@@ -2,11 +2,19 @@ import DreamCLI from '../cli/index.js'
 import DreamApp from '../dream-app/index.js'
 import Query from '../dream/Query.js'
 import DBClassDeprecation from '../helpers/cli/DBClassDeprecation.js'
+import EnvInternal from '../helpers/EnvInternal.js'
 import generateDream from '../helpers/cli/generateDream.js'
-import sspawn from '../helpers/sspawn.js'
 
 export default class DreamBin {
   public static async sync(onSync: () => Promise<void> | void, options?: { schemaOnly?: boolean }) {
+    if (!EnvInternal.isTest) {
+      DreamCLI.logger.logStartProgress(
+        `skipping sync: auto-generated type/schema files are only built when NODE_ENV=test (current NODE_ENV: ${process.env.NODE_ENV ?? 'unset'}). Run with NODE_ENV=test to regenerate.`
+      )
+      DreamCLI.logger.logEndProgress()
+      return
+    }
+
     const dreamApp = DreamApp.getOrFail()
     for (const connectionName of Object.keys(dreamApp.dbCredentials)) {
       await Query.dbDriverClass(connectionName).sync(connectionName, onSync, options)
@@ -119,7 +127,18 @@ export default class DreamBin {
   // to use it to generate docs for their apps.
   private static async buildDocs() {
     DreamCLI.logger.logStartProgress('generating docs...')
-    await sspawn('pnpm typedoc src/package-exports/*.ts --tsconfig ./tsconfig.esm.build.json --out docs')
+    // safe (R-015): all argv elements are constant literals; typedoc itself
+    // expands the glob so we don't need shell-form invocation.
+    await DreamCLI.spawn('pnpm', {
+      args: [
+        'typedoc',
+        'src/package-exports/*.ts',
+        '--tsconfig',
+        './tsconfig.esm.build.json',
+        '--out',
+        'docs',
+      ],
+    })
     DreamCLI.logger.logEndProgress()
   }
 }
