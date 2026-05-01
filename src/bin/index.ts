@@ -9,7 +9,7 @@ export default class DreamBin {
   public static async sync(onSync: () => Promise<void> | void, options?: { schemaOnly?: boolean }) {
     if (!EnvInternal.isTest) {
       DreamCLI.logger.logStartProgress(
-        `skipping sync: auto-generated type/schema files are only built when NODE_ENV=test (current NODE_ENV: ${process.env.NODE_ENV ?? 'unset'}). Run with NODE_ENV=test to regenerate.`,
+        `skipping sync: auto-generated type/schema files are only built when NODE_ENV=test (current NODE_ENV: ${process.env.NODE_ENV ?? 'unset'}). Run with NODE_ENV=test to regenerate.`
       )
       DreamCLI.logger.logEndProgress()
       return
