@@ -518,6 +518,36 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
 
     context('encrypted attribute', () => {
+      it('drops the prefixed encrypted column on alterTable down migrations', () => {
+        const res = generateMigrationContent({
+          table: 'users',
+          columnsWithTypes: ['phone_number:encrypted'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('users')
+    .addColumn('encrypted_phone_number', 'text', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('users')
+    .dropColumn('encrypted_phone_number')
+    .execute()
+}`
+        )
+      })
+
       it('generates a kysely migration with multiple text fields', () => {
         const res = generateMigrationContent({
           table: 'users',

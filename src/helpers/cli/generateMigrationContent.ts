@@ -95,7 +95,7 @@ export default function generateMigrationContent({
         userWantsThisOptional || (!!stiChildClassName && !arrayAttribute && !isBooleanColumn)
 
       if (nonStandardAttributeName === undefined) return acc
-      let attributeName = snakeify(nonStandardAttributeName)
+      let attributeName: string = snakeify(nonStandardAttributeName)
 
       switch (processedAttrType) {
         case 'belongsto':
@@ -146,8 +146,9 @@ export default function generateMigrationContent({
           break
 
         case 'encrypted':
+          attributeName = `encrypted_${attributeName}`
           columnDefs.push(
-            generateColumnStr(`encrypted_${attributeName}`, 'text', descriptors, {
+            generateColumnStr(attributeName, 'text', descriptors, {
               omitInlineNonNull,
             })
           )

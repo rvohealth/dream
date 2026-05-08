@@ -1,3 +1,7 @@
+## 2.9.1
+
+- fix migration generator emitting an unprefixed `.dropColumn(...)` in the down migration for `:encrypted` attributes; the up creates `encrypted_<name>` so the down failed on rollback. Only affected `alterTable` migrations (the `createTable` path's `dropTable` masked the bug)
+
 ## 2.9.0
 
 Security and hardening release. One behavior change worth flagging on upgrade: `Encrypt.decrypt` now throws on failure instead of returning `null` (callers branching on `=== null` should switch to catching the new typed errors).
