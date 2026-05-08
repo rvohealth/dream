@@ -1,3 +1,7 @@
+## 2.9.2
+
+- update uniq helper to not compare functions using toString
+
 ## 2.9.1
 
 - fix migration generator emitting an unprefixed `.dropColumn(...)` in the down migration for `:encrypted` attributes; the up creates `encrypted_<name>` so the down failed on rollback. Only affected `alterTable` migrations (the `createTable` path's `dropTable` masked the bug)
