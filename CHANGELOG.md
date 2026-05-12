@@ -1,3 +1,14 @@
+## 2.10.0
+
+Tightens the `ssl` pass-through field introduced in 2.9.0 (R-027) so its safety doesn't depend on the developer remembering to set it. Lesson-2 fix from the `SECURITY_LEARNINGS_2026-05-12` retrospective.
+
+- `SingleDbCredential.ssl` narrowed from `boolean | tls.ConnectionOptions` to `tls.ConnectionOptions | false`. `true` is no longer accepted — callers choose between `{ rejectUnauthorized: true }` (verified TLS) and `{ rejectUnauthorized: false }` (unverified) rather than picking an ambiguous shorthand. `false` is preserved as the explicit TLS-off sentinel.
+- `app.set('db', ...)` now throws `MissingDbSslDirective` at setter time when both `ssl` and `useSsl` are unset on a credential. Throws in every environment, not just production, so the safety question is a deliberate decision at the call site rather than a silent default. Mirrors the Phase 3 weak-key boot throw.
+- `useSsl` remains `@deprecated`; `ssl` wins when both are set. `useSsl: true` continues to resolve to `{ rejectUnauthorized: false }` for back-compat.
+- `resolvePostgresSsl` return type narrowed to `TlsConnectionOptions | false` to match.
+
+Migration: any app currently calling `app.set('db', { primary: { ..., ssl: true } })` should switch to `ssl: { rejectUnauthorized: true }`. Any app currently relying on the silent TLS-off default (no `ssl` and no `useSsl`) must now set `ssl: false` explicitly.
+
 ## 2.9.2
 
 - update uniq helper to not compare functions using toString
