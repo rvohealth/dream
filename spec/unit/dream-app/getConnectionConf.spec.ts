@@ -29,7 +29,7 @@ describe('DreamApp#getConnectionConf', () => {
       port: 3333,
       password: 'DB_PASSWORD',
       user: 'DB_USER_2',
-      useSsl: false,
+      ssl: false,
     }
     primaryConfig = {
       name: 'DB_NAME',
@@ -37,7 +37,7 @@ describe('DreamApp#getConnectionConf', () => {
       port: 3333,
       password: 'DB_PASSWORD',
       user: 'DB_USER',
-      useSsl: false,
+      ssl: false,
     }
     replicaConfig = {
       name: 'DB_REPLICA_NAME',
@@ -63,7 +63,7 @@ describe('DreamApp#getConnectionConf', () => {
           port: 3333,
           password: 'DB_PASSWORD',
           user: 'DB_USER',
-          useSsl: false,
+          ssl: false,
         })
       })
     })
@@ -80,7 +80,7 @@ describe('DreamApp#getConnectionConf', () => {
           port: 3333,
           password: 'DB_PASSWORD',
           user: 'DB_USER',
-          useSsl: false,
+          ssl: false,
         })
       })
     })
@@ -113,7 +113,7 @@ describe('DreamApp#getConnectionConf', () => {
             port: 3333,
             password: 'DB_PASSWORD',
             user: 'DB_USER',
-            useSsl: false,
+            ssl: false,
           })
         })
       })
@@ -130,7 +130,7 @@ describe('DreamApp#getConnectionConf', () => {
         port: 3333,
         password: 'DB_PASSWORD',
         user: 'DB_USER_2',
-        useSsl: false,
+        ssl: false,
       })
     })
   })

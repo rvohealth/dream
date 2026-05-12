@@ -3037,17 +3037,16 @@ const associationStringToAssociationAndMaybeAlias = function ({
  * Resolve the value passed to `pg.Pool`'s `ssl` field for a given credential.
  *
  * Precedence:
- *   1. If `connectionConf.ssl` is set (boolean or `tls.ConnectionOptions`),
- *      pass it straight through to `pg`. This is the verified-TLS path —
- *      apps configure `{ rejectUnauthorized: true, ca: <bundle> }` for
- *      authenticated TLS against a private PKI, or `true` to use Node's
- *      default verification against the system CA store.
- *   2. Else if `connectionConf.useSsl` is `true`, fall back to
+ *   1. If `connectionConf.ssl` is set (object or explicit `false`), pass it
+ *      straight through to `pg`.
+ *   2. Else if `connectionConf.useSsl` is `true` (deprecated), fall back to
  *      `{ rejectUnauthorized: false }` — encrypted but **not** authenticated.
- *      Preserved for back-compat; new code should set `ssl` explicitly.
- *   3. Else disable TLS.
+ *
+ * `assertDbCredentialTlsDirective` (in `dream-app`) throws at
+ * `app.set('db', ...)` time when both `ssl` and `useSsl` are unset, so this
+ * resolver never sees the "neither directive" state.
  */
-export function resolvePostgresSsl(connectionConf: SingleDbCredential): boolean | TlsConnectionOptions {
+export function resolvePostgresSsl(connectionConf: SingleDbCredential): TlsConnectionOptions | false {
   if (connectionConf.ssl !== undefined) return connectionConf.ssl
   if (connectionConf.useSsl) return { rejectUnauthorized: false }
   return false

@@ -14,7 +14,7 @@ describe('DreamApp#init', () => {
       host: process.env.DB_HOST!,
       name: process.env.DB_NAME!,
       port: parseInt(process.env.DB_PORT!),
-      useSsl: process.env.DB_USE_SSL === '1',
+      ssl: process.env.DB_USE_SSL === '1' ? { rejectUnauthorized: false } : false,
     },
   }
 

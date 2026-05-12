@@ -7,6 +7,10 @@ import { SingleDbCredential } from '../../../../src/dream-app/index.js'
 // but unauthenticated) for back-compat; new code should set `ssl` directly
 // to opt into verified TLS. (R-027)
 
+// Helper builds a credential with both TLS directives unset so each test
+// can set just the field under test. `resolvePostgresSsl` is exercised
+// directly here (not through `app.set('db', ...)`), so the setter's
+// "must specify ssl or useSsl" throw doesn't apply.
 function cred(overrides: Partial<SingleDbCredential>): SingleDbCredential {
   return {
     user: 'u',
@@ -14,42 +18,34 @@ function cred(overrides: Partial<SingleDbCredential>): SingleDbCredential {
     host: 'h',
     name: 'n',
     port: 5432,
-    useSsl: false,
     ...overrides,
   }
 }
 
 describe('resolvePostgresSsl', () => {
   describe('without an explicit ssl field', () => {
-    it('returns false when useSsl is false', () => {
-      // cred's default is useSsl: false
-      expect(resolvePostgresSsl(cred({}))).toBe(false)
-    })
-
     it('falls back to { rejectUnauthorized: false } when useSsl is true', () => {
       expect(resolvePostgresSsl(cred({ useSsl: true }))).toEqual({ rejectUnauthorized: false })
     })
   })
 
   describe('with an explicit ssl field', () => {
-    it('passes ssl: true straight through (Node default verification)', () => {
-      expect(resolvePostgresSsl(cred({ ssl: true }))).toBe(true)
-    })
-
-    it('passes ssl: false straight through', () => {
-      expect(resolvePostgresSsl(cred({ ssl: false }))).toBe(false)
-    })
-
     it('passes a full tls.ConnectionOptions object straight through', () => {
       const ssl = { rejectUnauthorized: true, ca: 'CA-PEM-BUNDLE-CONTENTS' }
       expect(resolvePostgresSsl(cred({ ssl }))).toBe(ssl)
     })
 
-    it('takes precedence over useSsl: true', () => {
-      // useSsl: true would have returned { rejectUnauthorized: false }; the
-      // explicit ssl field overrides that.
-      expect(resolvePostgresSsl(cred({ useSsl: true, ssl: false }))).toBe(false)
+    it('passes { rejectUnauthorized: true } for verified TLS via system CA', () => {
+      expect(resolvePostgresSsl(cred({ ssl: { rejectUnauthorized: true } }))).toEqual({
+        rejectUnauthorized: true,
+      })
+    })
 
+    it('returns false when ssl is explicitly false', () => {
+      expect(resolvePostgresSsl(cred({ ssl: false }))).toBe(false)
+    })
+
+    it('takes precedence over useSsl: true', () => {
       const ssl = { rejectUnauthorized: true }
       expect(resolvePostgresSsl(cred({ useSsl: true, ssl }))).toBe(ssl)
     })

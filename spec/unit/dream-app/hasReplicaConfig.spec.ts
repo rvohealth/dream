@@ -22,7 +22,7 @@ describe('DreamApp#hasReplicaConfig', () => {
       port: 3333,
       password: 'DB_PASSWORD',
       user: 'DB_USER',
-      useSsl: false,
+      ssl: false,
     }
     replicaConfig = {
       name: 'DB_REPLICA_NAME',
