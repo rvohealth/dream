@@ -1,4 +1,4 @@
-import { FileMigrationProvider, Migrator } from 'kysely'
+import { FileMigrationProvider, Migrator } from 'kysely/migration'
 import * as fs from 'node:fs/promises'
 import { closeAllConnectionsForConnectionName, DialectProviderCb } from '../../../../db/DreamDbConnection.js'
 import db from '../../../../db/index.js'

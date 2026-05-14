@@ -1,4 +1,4 @@
-import { FileMigrationProvider, MigrationResult, Migrator } from 'kysely'
+import { FileMigrationProvider, MigrationResult, Migrator } from 'kysely/migration'
 import * as fs from 'node:fs/promises'
 import DreamCLI from '../../../../cli/index.js'
 import colorize from '../../../../cli/logger/loggable/colorize.js'
