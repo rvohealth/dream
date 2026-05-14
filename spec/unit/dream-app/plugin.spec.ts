@@ -9,7 +9,9 @@ describe('DreamApp#plugin', () => {
       host: process.env.DB_HOST!,
       name: process.env.DB_NAME!,
       port: parseInt(process.env.DB_PORT!),
-      ssl: process.env.DB_USE_SSL === '1' ? { rejectUnauthorized: false } : false,
+      ssl: (process.env.DB_USE_SSL === '1' ? { rejectUnauthorized: false } : false) as
+        | { rejectUnauthorized: false }
+        | false,
     },
   }
 

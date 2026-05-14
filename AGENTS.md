@@ -2,6 +2,35 @@
 
 This file provides instructions for AI agents working on this project.
 
+## MANDATORY: Completion Gauntlet Before Push / PR
+
+Before pushing a branch, opening a pull request, or otherwise declaring work
+complete, you MUST run the full completion gauntlet and confirm every command
+exits successfully. No exceptions — a previous agent opened a PR with a
+TypeScript build error because they skipped this. Do not let that happen
+again.
+
+Run all three, in this order, and verify each one passes:
+
+```bash
+pnpm lint
+pnpm build:test-app
+pnpm spec
+```
+
+Rules:
+
+- **Never** push or open a PR if any of the three fail. Fix the failure first.
+- **Never** trust a previous run — re-run the gauntlet after every change you
+  make in response to a failure, including formatter/lint auto-fixes.
+- `pnpm spec` (full suite) is required. Targeted `pnpm spec <path>` runs skip
+  the TypeScript compilation step and will miss type errors that
+  `pnpm build:test-app` catches — they are not a substitute.
+- This applies even to "trivial" changes (doc tweaks, comment changes,
+  version bumps). Trivial changes have broken the build before.
+- If a command takes a long time, wait for it. Do not assume it would have
+  passed.
+
 ## Database Commands
 
 ### Migrate the Database
