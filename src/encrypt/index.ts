@@ -1,5 +1,5 @@
 import DecryptionError from '../errors/encrypt/DecryptionError.js'
-import DecryptionWithRotationError from '../errors/encrypt/DecryptionWithRotationError.js'
+import DecryptionRotationError from '../errors/encrypt/DecryptionRotationError.js'
 import MissingEncryptionKey from '../errors/encrypt/MissingEncryptionKey.js'
 import decryptAESGCM from './algorithms/aes-gcm/decryptAESGCM.js'
 import encryptAESGCM from './algorithms/aes-gcm/encryptAESGCM.js'
@@ -36,7 +36,7 @@ export default class Encrypt {
    *
    * **Three-arg form** (rotation): tries the current key first; on
    * `DecryptionError` falls back to the legacy key. If both fail, throws
-   * `DecryptionWithRotationError` carrying both per-key errors. A
+   * `DecryptionRotationError` carrying both per-key errors. A
    * `DecryptionParseError` from the current key is **not** retried — the
    * cipher already matched, so a parse failure means the encrypted format
    * is wrong (an app bug), not a wrong key.
@@ -46,7 +46,7 @@ export default class Encrypt {
    * @throws MissingEncryptionKey
    * @throws DecryptionError
    * @throws DecryptionParseError
-   * @throws DecryptionWithRotationError
+   * @throws DecryptionRotationError
    */
   public static decrypt<RetType>(
     encrypted: string,
@@ -89,7 +89,7 @@ export default class Encrypt {
       return this.decrypt<RetType>(encrypted, legacyOpts)
     } catch (err) {
       if (!(err instanceof DecryptionError)) throw err
-      throw new DecryptionWithRotationError(currentKeyError, err)
+      throw new DecryptionRotationError(currentKeyError, err)
     }
   }
 
@@ -126,7 +126,7 @@ export default class Encrypt {
    *   not forced to re-authenticate.
    * - For `@Encrypted` columns: until every existing row has been
    *   re-encrypted under the new key. Dropping `legacy` early will cause
-   *   `DecryptionWithRotationError` on any not-yet-rewritten row.
+   *   `DecryptionRotationError` on any not-yet-rewritten row.
    */
   public static generateKey(algorithm: EncryptAlgorithm) {
     switch (algorithm) {
