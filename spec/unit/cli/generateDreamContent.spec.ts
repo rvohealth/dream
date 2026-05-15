@@ -23,11 +23,12 @@ describe('dream generate:model <name> [...attributes]', () => {
       })
       expect(res).toEqual(
         `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof MealType>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof MealType>()
 
 export default class MealType extends ApplicationModel {
   public override get table() {
@@ -61,11 +62,12 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof MealType>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof MealType>()
 
 export default class MealType extends ApplicationModel {
   public override get table() {
@@ -92,11 +94,12 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof MealType>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof MealType>()
 
 export default class MealType extends ApplicationModel {
   public override get table() {
@@ -133,11 +136,13 @@ export default class MealType extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, STI } from '@rvoh/dream'
+import { STI } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import FooBar from '@models/Foo/Bar.js'
 
-const deco = new Decorators<typeof FooBarBaz>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof FooBarBaz>()
 
 @STI(FooBar)
 export default class FooBarBaz extends FooBar {
@@ -167,11 +172,12 @@ export default class FooBarBaz extends FooBar {
         })
         expect(res).toEqual(
           `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Chalupa>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Chalupa>()
 
 export default class Chalupa extends ApplicationModel {
   public override get table() {
@@ -198,11 +204,12 @@ export default class Chalupa extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Chalupa>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Chalupa>()
 
 export default class Chalupa extends ApplicationModel {
   public override get table() {
@@ -230,11 +237,13 @@ export default class Chalupa extends ApplicationModel {
             })
             expect(res).toEqual(
               `\
-import { Decorators, STI } from '@rvoh/dream'
+import { STI } from '@rvoh/dream'
 import { DreamColumn } from '@rvoh/dream/types'
 import Chalupa from '@models/Chalupa.js'
 
-const deco = new Decorators<typeof CrunchyChalupa>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof CrunchyChalupa>()
 
 @STI(Chalupa)
 export default class CrunchyChalupa extends Chalupa {
@@ -259,11 +268,12 @@ export default class CrunchyChalupa extends Chalupa {
         })
         expect(res).toEqual(
           `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof User>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof User>()
 
 export default class User extends ApplicationModel {
   public override get table() {
@@ -345,11 +355,12 @@ export default class User extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Chalupa>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Chalupa>()
 
 export default class Chalupa extends ApplicationModel {
   public override get table() {
@@ -389,11 +400,12 @@ export default class Chalupa extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Chalupa>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Chalupa>()
 
 export default class Chalupa extends ApplicationModel {
   public override get table() {
@@ -431,11 +443,12 @@ export default class Chalupa extends ApplicationModel {
         })
         expect(res).toEqual(
           `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Paper>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Paper>()
 
 export default class Paper extends ApplicationModel {
   public override get table() {
@@ -812,11 +825,12 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Composition>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {
@@ -850,11 +864,12 @@ export default class Composition extends ApplicationModel {
           })
           expect(res).toEqual(
             `\
-import { Decorators } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Composition>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Composition>()
 
 export default class Composition extends ApplicationModel {
   public override get table() {
@@ -891,11 +906,13 @@ export default class Composition extends ApplicationModel {
       })
       expect(res).toEqual(
         `\
-import { Decorators, SoftDelete } from '@rvoh/dream'
+import { SoftDelete } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import ApplicationModel from '@models/ApplicationModel.js'
 
-const deco = new Decorators<typeof Post>()
+// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+// import { Decorators } from '@rvoh/dream'
+// const deco = new Decorators<typeof Post>()
 
 @SoftDelete()
 export default class Post extends ApplicationModel {
@@ -1359,6 +1376,16 @@ public ssn: DreamColumn<User, 'encryptedSsn'>`)
       expect(result.content).toContain('public company: Company | null')
     })
 
+    it('processes belongs_to with @alias rename', () => {
+      const result = processAttribute('internal/user@canceled_by:belongs_to:optional', 'Message')
+
+      expect(result.content).toContain(
+        "@deco.BelongsTo('Internal/User', { on: 'canceledById', optional: true })"
+      )
+      expect(result.content).toContain('public canceledBy: InternalUser | null')
+      expect(result.content).toContain("public canceledById: DreamColumn<Message, 'canceledById'>")
+    })
+
     it('ignores has_one and has_many attributes', () => {
       expect(processAttribute('posts:has_many', 'User')).toEqual({ content: '', imports: [] })
       expect(processAttribute('posts:hasMany', 'User')).toEqual({ content: '', imports: [] })
@@ -1372,14 +1399,12 @@ public ssn: DreamColumn<User, 'encryptedSsn'>`)
       }).toThrow('must pass a column type for name (i.e. name:string)')
     })
 
-    it('returns empty string for undefined attribute name', () => {
+    it('returns empty result when the attribute name is missing', () => {
       const result = processAttribute(':string', 'User')
-      expect(result.content).toEqual(`
-public : DreamColumn<User, ''>`)
-      expect(result.imports).toEqual([])
+      expect(result).toEqual({ content: '', imports: [] })
     })
 
-    it('returns empty string for completely empty attribute', () => {
+    it('throws for completely empty attribute', () => {
       expect(() => {
         processAttribute('', 'User')
       }).toThrow('must pass a column type for  (i.e. :string)')
@@ -1388,7 +1413,7 @@ public : DreamColumn<User, ''>`)
 
   describe('createBelongsToAttribute', () => {
     it('creates basic belongs_to attribute', () => {
-      const result = createBelongsToAttribute('company', [], 'User')
+      const result = createBelongsToAttribute('company', 'User')
 
       expect(result.content).toEqual(`
 @deco.BelongsTo('Company', { on: 'companyId' })
@@ -1399,18 +1424,36 @@ public companyId: DreamColumn<User, 'companyId'>
     })
 
     it('creates optional belongs_to attribute', () => {
-      const result = createBelongsToAttribute('company', ['optional'], 'User')
+      const result = createBelongsToAttribute('company', 'User', { isOptional: true })
 
       expect(result.content).toContain('optional: true')
       expect(result.content).toContain('public company: Company | null')
     })
 
     it('handles namespaced association names', () => {
-      const result = createBelongsToAttribute('admin/company', [], 'User')
+      const result = createBelongsToAttribute('admin/company', 'User')
 
       expect(result.content).toContain("@deco.BelongsTo('Admin/Company', { on: 'companyId' })")
       expect(result.content).toContain('public company: AdminCompany')
       expect(result.content).toContain("public companyId: DreamColumn<User, 'companyId'>")
+    })
+
+    it('uses the alias when provided (Model@alias form)', () => {
+      const result = createBelongsToAttribute('internal/user', 'Message', { aliasName: 'canceled_by' })
+
+      expect(result.content).toContain("@deco.BelongsTo('Internal/User', { on: 'canceledById' })")
+      expect(result.content).toContain('public canceledBy: InternalUser')
+      expect(result.content).toContain("public canceledById: DreamColumn<Message, 'canceledById'>")
+    })
+
+    it('uses the alias with optional', () => {
+      const result = createBelongsToAttribute('messaging/message', 'Thread', {
+        aliasName: 'last_inbound_message',
+        isOptional: true,
+      })
+
+      expect(result.content).toContain("on: 'lastInboundMessageId', optional: true")
+      expect(result.content).toContain('public lastInboundMessage: MessagingMessage | null')
     })
   })
 

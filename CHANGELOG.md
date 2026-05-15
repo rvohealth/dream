@@ -1,3 +1,7 @@
+## 2.11.0
+
+- improvements to `g:model`, `g:sti-child`, `g:migration`, and the factory generator
+
 ## 2.10.0
 
 Tightens the `ssl` pass-through field introduced in 2.9.0 (R-027) so its safety doesn't depend on the developer remembering to set it. Lesson-2 fix from the `SECURITY_LEARNINGS_2026-05-12` retrospective.

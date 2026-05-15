@@ -191,6 +191,31 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
       })
     })
 
+    context('with a reused enum (no inline values)', () => {
+      it('emits a TS-rejecting TODO placeholder with a comment hint', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Message',
+          modelClassName: modelClassNameFrom('Message'),
+          columnsWithTypes: ['resolved_channel:enum:messaging_channels'],
+        })
+
+        expect(res).toContain('// TODO: replace with a value from the `messaging_channels` enum')
+        expect(res).toContain("resolvedChannel: 'TODO',")
+        expect(res).not.toContain("resolvedChannel: 'messaging_channels'")
+      })
+
+      it('emits an array TODO placeholder for enum[] reuse form', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
+          columnsWithTypes: ['tags:enum[]:post_tags'],
+        })
+
+        expect(res).toContain('// TODO: replace with a value from the `post_tags` enum')
+        expect(res).toContain("tags: ['TODO'],")
+      })
+    })
+
     context('`type`', () => {
       it('is omitted (reserved for STI)', () => {
         const res = generateFactoryContent({
@@ -285,6 +310,37 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
 }
 `
       )
+    })
+
+    context('with @alias renaming the FK', () => {
+      it('uses the alias as the factory property name', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Message',
+          modelClassName: modelClassNameFrom('Message'),
+          columnsWithTypes: ['InternalUser@canceled_by:belongs_to'],
+        })
+
+        expect(res).toContain('canceledBy: attrs.canceledBy ? null : await createInternalUser(),')
+        expect(res).toContain("import createInternalUser from '@spec/factories/InternalUserFactory.js'")
+      })
+
+      it('allows multiple FKs to the same model via distinct aliases', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'Thread',
+          modelClassName: modelClassNameFrom('Thread'),
+          columnsWithTypes: [
+            'Messaging/Message@last_inbound_message:belongs_to',
+            'Messaging/Message@last_outbound_message:belongs_to',
+          ],
+        })
+
+        expect(res).toContain(
+          'lastInboundMessage: attrs.lastInboundMessage ? null : await createMessagingMessage(),'
+        )
+        expect(res).toContain(
+          'lastOutboundMessage: attrs.lastOutboundMessage ? null : await createMessagingMessage(),'
+        )
+      })
     })
 
     context('with alternate casing for belongsTo', () => {

@@ -63,8 +63,17 @@ export default function generateMigrationContent({
   const { columnDefs, columnDrops, indexDefs, indexDrops } = processedColumnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
       const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
-      const [nonStandardAttributeName, _attributeType, ...descriptors] = attributeDeclaration.split(':')
+      const [rawSegmentOne, _attributeType, ...descriptors] = attributeDeclaration.split(':')
+      if (!rawSegmentOne) return acc
+
+      // Extract optional `@alias` from segment-1 (Model@alias:belongs_to form).
+      // The model name (without alias) is what gets standardized / referenced
+      // by table lookup; the alias drives the column / index naming when present.
+      const atIdx = rawSegmentOne.indexOf('@')
+      const aliasName = atIdx !== -1 ? rawSegmentOne.slice(atIdx + 1) : undefined
+      const nonStandardAttributeName = atIdx !== -1 ? rawSegmentOne.slice(0, atIdx) : rawSegmentOne
       if (!nonStandardAttributeName) return acc
+      if (atIdx !== -1 && !aliasName) return acc
 
       /**
        * Automatically set email columns to citext since different casings of
@@ -104,9 +113,15 @@ export default function generateMigrationContent({
               primaryKeyType,
               omitInlineNonNull,
               originalAssociationName: nonStandardAttributeName,
+              aliasName,
             })
           )
-          attributeName = snakeify(nonStandardAttributeName.split('/').pop()!)
+          // Resolve the actual column name used for index + drop emission.
+          // When an alias is present (Model@alias:belongs_to), the column is
+          // `${alias}_id`; otherwise it's derived from the model's last segment.
+          attributeName = aliasName
+            ? snakeify(aliasName)
+            : snakeify(nonStandardAttributeName.split('/').pop()!)
           attributeName = associationNameToForeignKey(attributeName)
           break
 
@@ -384,11 +399,18 @@ function generateColumnStr(
   const hasExtraValues = providedDefault || notNull || isUnique
   const isArray = /\[\]$/.test(attributeType)
 
+  const needsJsonDefault = notNull && !isArray && (attributeType === 'jsonb' || attributeType === 'json')
+
   if (hasExtraValues) returnStr += ', col => col'
   if (notNull) returnStr += '.notNull()'
   if (isUnique) returnStr += '.unique()'
   if (providedDefault) returnStr += `.defaultTo('${providedDefault}')`
   else if (isArray) returnStr += `.defaultTo('{}')`
+  // jsonb / json columns get an empty-object default so calling create() on a
+  // model without explicitly setting the column doesn't trip NOT NULL. Mirrors
+  // the existing boolean → false and array → '{}' auto-defaults. Optional
+  // jsonb columns skip the default since null is the intended initial state.
+  else if (needsJsonDefault) returnStr += `.defaultTo(sql\`'{}'::${attributeType}\`)`
 
   returnStr = `${returnStr})`
 
@@ -429,16 +451,21 @@ function generateBelongsToStr(
     primaryKeyType,
     omitInlineNonNull: optional = false,
     originalAssociationName,
+    aliasName,
   }: {
     primaryKeyType: LegacyCompatiblePrimaryKeyType
     omitInlineNonNull: boolean
     originalAssociationName?: string
+    aliasName?: string | undefined
   }
 ) {
   const dbDriverClass = Query.dbDriverClass<Dream>(connectionName)
   const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = lookupReferencesTable(associationName, originalAssociationName)
-  return `.addColumn('${associationNameToForeignKey(associationName.split('/').pop()!)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
+  // When the user passed `Model@alias:belongs_to`, the column name comes from
+  // the alias; otherwise it's the model's last segment (existing behavior).
+  const columnNameSource = aliasName ? snakeify(aliasName) : associationName.split('/').pop()!
+  return `.addColumn('${associationNameToForeignKey(columnNameSource)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
 
 function generateIdStr({ primaryKeyType }: { primaryKeyType: LegacyCompatiblePrimaryKeyType }) {

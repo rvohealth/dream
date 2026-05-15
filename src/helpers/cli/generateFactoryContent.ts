@@ -29,11 +29,20 @@ export default function generateFactoryContent({
   let counterVariableIncremented = false
 
   for (const attribute of columnsWithTypes) {
-    const [attributeName, _attributeType, ...descriptors] = attribute.split(':')
-    if (attributeName === undefined) continue
+    const [rawSegmentOne, _attributeType, ...descriptors] = attribute.split(':')
+    if (rawSegmentOne === undefined) continue
     if (_attributeType === undefined) continue
     const optional = optionalFromDescriptors(descriptors)
     if (optional) continue
+
+    // Extract optional `@alias` from segment-1 (Model@alias:belongs_to form).
+    // Non-association tokens never contain `@`, so this is a no-op for scalars.
+    const atIdx = rawSegmentOne.indexOf('@')
+    const aliasName = atIdx !== -1 ? rawSegmentOne.slice(atIdx + 1) : undefined
+    const attributeName = atIdx !== -1 ? rawSegmentOne.slice(0, atIdx) : rawSegmentOne
+    if (!attributeName) continue
+    if (atIdx !== -1 && !aliasName) continue
+
     const attributeVariable = camelize(attributeName.replace(/\//g, ''))
 
     if (/^type$/.test(attributeName)) continue
@@ -46,7 +55,9 @@ export default function generateFactoryContent({
     const safeAttributeType = camelize(attributeType)?.toLowerCase()
     switch (safeAttributeType) {
       case 'belongsto': {
-        const attributeVariable = camelize(attributeName.split('/').pop()!)
+        // When `Model@alias:belongs_to`, the factory property uses the alias;
+        // otherwise it uses the model's last namespace segment (legacy form).
+        const attributeVariable = aliasName ? camelize(aliasName) : camelize(attributeName.split('/').pop()!)
         const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
         const associationModelName = globalClassNameFromFullyQualifiedModelName(
           fullyQualifiedAssociatedModelName
@@ -89,12 +100,28 @@ export default function generateFactoryContent({
         break
 
       case 'enum':
-        attributeDefaults.push(`${attributeVariable}: '${(descriptors.at(-1) || '<tbd>').split(',')[0]}',`)
+      case 'enum[]': {
+        // When the user passed `name:enum:enum_type_name` (reuse form, no
+        // inline values), descriptors has exactly one element — the enum
+        // type name. The factory cannot see the enum's values, so emit a
+        // TS-rejecting placeholder rather than the type name itself (the
+        // previous behavior emitted `'enum_type_name'` as the literal value,
+        // which compiles in the factory but fails at runtime).
+        const isReuseWithoutValues = descriptors.length === 1
+        const isArrayEnum = safeAttributeType === 'enum[]'
+        if (isReuseWithoutValues) {
+          const enumTypeName = descriptors[0]
+          const placeholder = isArrayEnum ? `['TODO']` : `'TODO'`
+          attributeDefaults.push(
+            `// TODO: replace with a value from the \`${enumTypeName}\` enum\n    ${attributeVariable}: ${placeholder},`
+          )
+        } else {
+          const firstValue = (descriptors.at(-1) || '<tbd>').split(',')[0]
+          const literal = isArrayEnum ? `['${firstValue}']` : `'${firstValue}'`
+          attributeDefaults.push(`${attributeVariable}: ${literal},`)
+        }
         break
-
-      case 'enum[]':
-        attributeDefaults.push(`${attributeVariable}: ['${(descriptors.at(-1) || '<tbd>').split(',')[0]}'],`)
-        break
+      }
 
       case 'integer':
         attributeDefaults.push(`${attributeVariable}: 1,`)

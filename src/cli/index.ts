@@ -25,7 +25,7 @@ export type SpawnOptions = Omit<NodeSpawnOptions, 'shell'> & {
 export const CLI_INDENT = '                  '
 const INDENT = CLI_INDENT
 
-export const baseColumnsWithTypesDescription = `space separated snake-case (except for belongs_to model name) properties like this:
+export const baseColumnsWithTypesDescription = `space separated snake-case (except for belongs_to model name, which may take an @alias suffix to rename the FK) properties like this:
 ${INDENT}    title:citext subtitle:string body_markdown:text style:enum:post_styles:formal,informal User:belongs_to
 ${INDENT}
 ${INDENT}all properties default to not nullable; null can be allowed by appending ':optional':
@@ -87,7 +87,16 @@ ${INDENT}
 ${INDENT}        use the fully qualified model name (matching its path under src/app/models/):
 ${INDENT}          User:belongs_to                  # creates user_id column + BelongsTo association
 ${INDENT}          Health/Coach:belongs_to           # creates health_coach_id column + BelongsTo association
-${INDENT}          User:belongs_to:optional          # nullable foreign key (for optional associations)`
+${INDENT}          User:belongs_to:optional          # nullable foreign key (for optional associations)
+${INDENT}
+${INDENT}        rename the association with Model@alias — the snake_case alias drives the FK column name AND the
+${INDENT}        @deco.BelongsTo association + typed FK property on the generated model:
+${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column, canceledById property, canceledBy association,
+${INDENT}                                                             #   @deco.BelongsTo('InternalUser', { on: 'canceledById', optional: true })
+${INDENT}          Messaging/Template@template:belongs_to             # template_id column, templateId property, template association
+${INDENT}                                                             #   (strips the namespace from the property/association names while keeping
+${INDENT}                                                             #   the namespaced model reference intact)
+${INDENT}        Aliasing also lets you declare multiple FKs to the same model in one generator call without column collisions.`
 
 const columnsWithTypesDescriptionForMigration =
   baseColumnsWithTypesDescription +
@@ -100,7 +109,11 @@ ${INDENT}
 ${INDENT}        use the fully qualified model name (matching its path under src/app/models/):
 ${INDENT}          User:belongs_to                  # creates user_id column with index
 ${INDENT}          Health/Coach:belongs_to           # creates health_coach_id column with index
-${INDENT}          User:belongs_to:optional          # nullable foreign key`
+${INDENT}          User:belongs_to:optional          # nullable foreign key
+${INDENT}
+${INDENT}        rename the FK column with Model@alias (snake_case alias becomes the column name):
+${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column with index
+${INDENT}          Messaging/Template@template:belongs_to             # template_id column (strips the namespace from the column name)`
 
 export default class DreamCLI {
   /**

@@ -1123,6 +1123,89 @@ export async function down(db: Kysely<any>): Promise<void> {
         })
       })
 
+      context('jsonb / json columns auto-default to empty object', () => {
+        it('emits .defaultTo for non-optional jsonb', () => {
+          const res = generateMigrationContent({
+            table: 'events',
+            columnsWithTypes: ['payload:jsonb'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toContain(
+            ".addColumn('payload', 'jsonb', col => col.notNull().defaultTo(sql`'{}'::jsonb`))"
+          )
+        })
+
+        it('emits .defaultTo for non-optional json', () => {
+          const res = generateMigrationContent({
+            table: 'events',
+            columnsWithTypes: ['payload:json'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toContain(
+            ".addColumn('payload', 'json', col => col.notNull().defaultTo(sql`'{}'::json`))"
+          )
+        })
+
+        it('omits the default for optional jsonb (null is intended)', () => {
+          const res = generateMigrationContent({
+            table: 'events',
+            columnsWithTypes: ['payload:jsonb:optional'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toContain(".addColumn('payload', 'jsonb')")
+          expect(res).not.toContain(".defaultTo(sql`'{}'::jsonb`)")
+        })
+
+        it('omits the default for jsonb[] (array fallback already provides one)', () => {
+          const res = generateMigrationContent({
+            table: 'events',
+            columnsWithTypes: ['payloads:jsonb[]'],
+            primaryKeyType: 'bigserial',
+          })
+          expect(res).toContain(".defaultTo('{}')")
+          expect(res).not.toContain('::jsonb`')
+        })
+      })
+
+      context('when an @alias renames the FK column', () => {
+        it('uses the alias for column and index names', () => {
+          const res = generateMigrationContent({
+            table: 'message_requests',
+            columnsWithTypes: ['InternalUser@canceled_by:belongs_to:optional'],
+            primaryKeyType: 'bigserial',
+          })
+
+          expect(res).toContain(
+            ".addColumn('canceled_by_id', 'bigint', col => col.references('internal_users.id').onDelete('restrict'))"
+          )
+          expect(res).toContain("createIndex('message_requests_canceled_by_id')")
+          expect(res).toContain(".column('canceled_by_id')")
+          expect(res).toContain("dropIndex('message_requests_canceled_by_id')")
+        })
+
+        it('allows multiple FKs to the same model via distinct aliases', () => {
+          const res = generateMigrationContent({
+            table: 'threads',
+            columnsWithTypes: [
+              'Messaging/Message@last_inbound_message:belongs_to:optional',
+              'Messaging/Message@last_outbound_message:belongs_to:optional',
+              'Messaging/Message@last_activity_message:belongs_to:optional',
+            ],
+            primaryKeyType: 'bigserial',
+          })
+
+          expect(res).toContain("addColumn('last_inbound_message_id', 'bigint'")
+          expect(res).toContain("addColumn('last_outbound_message_id', 'bigint'")
+          expect(res).toContain("addColumn('last_activity_message_id', 'bigint'")
+          expect(res).toContain("createIndex('threads_last_inbound_message_id')")
+          expect(res).toContain("createIndex('threads_last_outbound_message_id')")
+          expect(res).toContain("createIndex('threads_last_activity_message_id')")
+          // All three reference the same underlying table
+          const referencesCount = (res.match(/references\('messaging_messages\.id'\)/g) || []).length
+          expect(referencesCount).toEqual(3)
+        })
+      })
+
       context('when optional is included', () => {
         it('omits notNull', () => {
           const res = generateMigrationContent({
