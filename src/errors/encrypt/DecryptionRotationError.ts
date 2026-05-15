@@ -1,6 +1,6 @@
 import DecryptionError from './DecryptionError.js'
 
-export default class DecryptionWithRotationError extends Error {
+export default class DecryptionRotationError extends Error {
   public readonly currentKeyError: DecryptionError
   public readonly legacyKeyError: DecryptionError
 

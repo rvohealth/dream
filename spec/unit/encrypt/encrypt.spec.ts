@@ -2,7 +2,7 @@ import * as crypto from 'crypto'
 import Encrypt, { EncryptOptions } from '../../../src/encrypt/index.js'
 import DecryptionError from '../../../src/errors/encrypt/DecryptionError.js'
 import DecryptionParseError from '../../../src/errors/encrypt/DecryptionParseError.js'
-import DecryptionWithRotationError from '../../../src/errors/encrypt/DecryptionWithRotationError.js'
+import DecryptionRotationError from '../../../src/errors/encrypt/DecryptionRotationError.js'
 import MissingEncryptionKey from '../../../src/errors/encrypt/MissingEncryptionKey.js'
 
 const encryptionOptions = [
@@ -91,7 +91,7 @@ describe('Encrypt', () => {
           })
 
           context('the legacy key is invalid', () => {
-            it('throws DecryptionWithRotationError', () => {
+            it('throws DecryptionRotationError', () => {
               const encrypted = Encrypt.encrypt('howyadoin', {
                 algorithm: opts.algorithm,
                 key: opts.legacyKey,
@@ -108,7 +108,7 @@ describe('Encrypt', () => {
                     key: opts.key,
                   }
                 )
-              ).toThrow(DecryptionWithRotationError)
+              ).toThrow(DecryptionRotationError)
             })
           })
         })
@@ -193,7 +193,7 @@ describe('Encrypt', () => {
           expect(decrypted).toEqual('howyadoin')
         })
 
-        it('throws DecryptionWithRotationError when both keys fail', () => {
+        it('throws DecryptionRotationError when both keys fail', () => {
           const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
           let caught: unknown
           try {
@@ -201,8 +201,8 @@ describe('Encrypt', () => {
           } catch (err) {
             caught = err
           }
-          expect(caught).toBeInstanceOf(DecryptionWithRotationError)
-          const rotErr = caught as DecryptionWithRotationError
+          expect(caught).toBeInstanceOf(DecryptionRotationError)
+          const rotErr = caught as DecryptionRotationError
           expect(rotErr.currentKeyError).toBeInstanceOf(DecryptionError)
           expect(rotErr.legacyKeyError).toBeInstanceOf(DecryptionError)
         })
