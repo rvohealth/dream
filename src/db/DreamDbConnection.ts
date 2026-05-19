@@ -67,14 +67,55 @@ export async function closeAllDbConnections() {
   connections = {}
 }
 
+/**
+ * Upper bound (ms) on how long {@link closeAllConnectionsForConnectionName}
+ * waits for a single Kysely connection's underlying pool to drain.
+ *
+ * `conn.destroy()` resolves to `pg`'s `pool.end()`, which only settles once
+ * every checked-out client has been released back to the pool. A client that
+ * was leased by a query still in flight when shutdown began — an aborted HTTP
+ * request during a SIGTERM drain, a feature-spec whose page is torn down
+ * mid-request — is never released, so `pool.end()` blocks forever and takes
+ * the whole shutdown with it. Bounding the wait keeps shutdown deterministic;
+ * the leaked socket is reaped by the OS when the process exits.
+ */
+export const DB_CONNECTION_CLOSE_TIMEOUT_MS = 10_000
+
 export async function closeAllConnectionsForConnectionName(connectionName: string) {
   const protectedName = protectAgainstPollutingAssignment(connectionName)
   return await Promise.allSettled(
     Object.keys(connections[protectedName]!).map(async key => {
       const conn = connections[protectedName]![key]!
-      await conn.destroy()
+      // Remove from the registry first so a subsequent getConnection() builds a
+      // fresh pool even if this drain times out and the old pool is abandoned.
       delete connections[protectedName]![key]
+      await destroyConnectionWithinTimeout(conn, `${connectionName}:${key}`)
     })
   )
+}
+
+async function destroyConnectionWithinTimeout(conn: Kysely<any>, label: string): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timedOut = Symbol('timedOut')
+
+  const timeout = new Promise<typeof timedOut>(resolve => {
+    timer = setTimeout(() => resolve(timedOut), DB_CONNECTION_CLOSE_TIMEOUT_MS)
+    // Don't let the timer itself keep the event loop (or `process.exit`) alive.
+    timer.unref?.()
+  })
+
+  try {
+    const result = await Promise.race([conn.destroy(), timeout])
+    if (result === timedOut) {
+      DreamApp.logWithLevel(
+        'warn',
+        `[dream] timed out after ${DB_CONNECTION_CLOSE_TIMEOUT_MS}ms waiting for db connection "${label}" ` +
+          `to close; abandoning the drain so shutdown can proceed. A pooled client was most likely held ` +
+          `past shutdown by an in-flight or aborted query.`
+      )
+    }
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
 }
 export type DialectProviderCb = (connectionConf: SingleDbCredential) => any

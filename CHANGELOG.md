@@ -1,3 +1,7 @@
+## 2.11.2
+
+- `closeAllDbConnections()` / `closeAllConnectionsForConnectionName()` no longer hang shutdown indefinitely. Each Kysely `conn.destroy()` resolves to `pg`'s `pool.end()`, which only settles once every checked-out client is released. A client leased by a query still in flight when shutdown began (an aborted HTTP request during a SIGTERM drain, a feature-spec whose browser page is torn down mid-request) is never released, so `pool.end()` blocked forever and took the whole shutdown with it — a never-completing SIGTERM drain in production, or a feature-spec `afterAll` that hangs for the full hook timeout. The per-connection drain is now bounded by `DB_CONNECTION_CLOSE_TIMEOUT_MS` (10s); on timeout the drain is abandoned (the OS reaps the socket on process exit), the connection is removed from the registry so a later `getConnection()` builds a fresh pool, and a `warn` is logged so the leak stays observable. The happy path (drain completes before the timeout) is unchanged.
+
 ## 2.11.1
 
 - export DecryptionError, DecryptionParseError, and DecryptionRotationError classes so they can be rescued downstream
