@@ -79,7 +79,7 @@ export async function closeAllDbConnections() {
  * the whole shutdown with it. Bounding the wait keeps shutdown deterministic;
  * the leaked socket is reaped by the OS when the process exits.
  */
-export const DB_CONNECTION_CLOSE_TIMEOUT_MS = 10_000
+const DB_CONNECTION_CLOSE_TIMEOUT_MS = 10_000
 
 export async function closeAllConnectionsForConnectionName(connectionName: string) {
   const protectedName = protectAgainstPollutingAssignment(connectionName)
