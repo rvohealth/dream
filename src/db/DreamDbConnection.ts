@@ -11,6 +11,10 @@ import { CamelCasePlugin, Kysely } from 'kysely'
 import DreamApp, { KyselyLogEvent, SingleDbCredential } from '../dream-app/index.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { DbConnectionType } from '../types/db.js'
+import {
+  installDbConnectionLeakDiagnosticsIfEnabled,
+  reportLeakedDbConnections,
+} from './dbConnectionLeakDiagnostics.js'
 
 let connections = {} as { [key: string]: { [key: string]: Kysely<any> } }
 
@@ -28,6 +32,10 @@ export default class DreamDbConnection {
     }
 
     const connectionConf = dreamApp.dbConnectionConfig(connectionName, connectionType)
+
+    // Must run before dialectProvider() constructs the pg.Pool. Idempotent and
+    // a no-op unless DREAM_DB_LEAK_DIAGNOSTICS is set.
+    installDbConnectionLeakDiagnosticsIfEnabled()
 
     const dbConn = new Kysely<DB>({
       log(event) {
@@ -111,8 +119,12 @@ async function destroyConnectionWithinTimeout(conn: Kysely<any>, label: string):
         'warn',
         `[dream] timed out after ${DB_CONNECTION_CLOSE_TIMEOUT_MS}ms waiting for db connection "${label}" ` +
           `to close; abandoning the drain so shutdown can proceed. A pooled client was most likely held ` +
-          `past shutdown by an in-flight or aborted query.`
+          `past shutdown by an in-flight or aborted query. ` +
+          `Re-run with NODE_DEBUG=dream to log the acquire stack of the offending query.`
       )
+      // No-op unless NODE_DEBUG=dream; when set, this prints the acquire
+      // stack(s) of the client(s) that never got released.
+      reportLeakedDbConnections(label)
     }
   } finally {
     if (timer) clearTimeout(timer)
