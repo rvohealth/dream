@@ -95,8 +95,14 @@ export function installDbConnectionLeakDiagnosticsIfEnabled(): void {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
       return originalConnect.call(this, (err: unknown, client: object | undefined, release: unknown) => {
         track(client, acquireStack)
+        // `track()` replaces `client.release` with an untracking wrapper.
+        // Callback-style users call the 3rd `release` arg, which pg captured
+        // *before* that swap — so hand them the wrapped one instead, or a
+        // correctly-released client would be reported as a false leak.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        const wrappedRelease = client ? (client as any).release : release
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        ;(cb as (e: unknown, c: unknown, r: unknown) => void)(err, client, release)
+        ;(cb as (e: unknown, c: unknown, r: unknown) => void)(err, client, wrappedRelease)
       })
     }
 
