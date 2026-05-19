@@ -179,6 +179,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           host: connectionConf.host || 'localhost',
           port: connectionConf.port || 5432,
           ssl: resolvePostgresSsl(connectionConf),
+          // Optional pg pool/client timeout passthrough. Only forwarded when
+          // explicitly set, so an unset config is byte-for-byte identical to
+          // pre-2.11.2 behavior (pg applies its own defaults). See the
+          // SingleDbCredential docs for recommended production values.
+          ...resolvePostgresPoolTimeouts(connectionConf),
         }),
       })
   }
@@ -3050,6 +3055,43 @@ export function resolvePostgresSsl(connectionConf: SingleDbCredential): TlsConne
   if (connectionConf.ssl !== undefined) return connectionConf.ssl
   if (connectionConf.useSsl) return { rejectUnauthorized: false }
   return false
+}
+
+/**
+ * Builds the optional pg pool/client timeout options from a credential,
+ * including ONLY keys the app explicitly set. Spreading the result into
+ * `new pg.Pool({...})` is therefore behavior-neutral when nothing is
+ * configured (pg keeps applying its own defaults — backward compatible),
+ * and forwards exactly what was set otherwise. See `SingleDbCredential`.
+ */
+export function resolvePostgresPoolTimeouts(
+  connectionConf: SingleDbCredential
+): Partial<
+  Pick<
+    SingleDbCredential,
+    | 'connectionTimeoutMillis'
+    | 'idleTimeoutMillis'
+    | 'maxLifetimeSeconds'
+    | 'max'
+    | 'statement_timeout'
+    | 'query_timeout'
+  >
+> {
+  const keys = [
+    'connectionTimeoutMillis',
+    'idleTimeoutMillis',
+    'maxLifetimeSeconds',
+    'max',
+    'statement_timeout',
+    'query_timeout',
+  ] as const
+
+  const out: Record<string, number> = {}
+  for (const key of keys) {
+    const value = connectionConf[key]
+    if (value !== undefined) out[key] = value
+  }
+  return out
 }
 
 function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {

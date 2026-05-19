@@ -678,6 +678,57 @@ export interface SingleDbCredential {
    * decision at the call site rather than a silent default.
    */
   ssl?: TlsConnectionOptions | false
+
+  /**
+   * Max ms to wait for a connection from the pool before erroring. Passed
+   * straight through to `pg.Pool`. **node-postgres defaults this to `0`
+   * (wait forever)** — when the pool is exhausted, `pool.connect()` never
+   * rejects, which turns a connection leak or DB stall into an unbounded
+   * hang. Recommended `2000`–`5000` in production (fail fast). Left unset
+   * here for backward compatibility: when unset Dream passes nothing
+   * through, so pg's own default applies and existing apps are byte-for-byte
+   * unaffected. Generated apps get a recommended value in the scaffolded
+   * `conf/dream.ts`.
+   */
+  connectionTimeoutMillis?: number
+
+  /**
+   * Ms an idle client stays in the pool before being closed. Straight
+   * through to `pg.Pool` (pg default: `10000`). Unset ⇒ pg default.
+   */
+  idleTimeoutMillis?: number
+
+  /**
+   * Max lifetime (seconds) of a pooled connection before it is recycled,
+   * regardless of activity. Straight through to `pg.Pool` (pg default: `0`,
+   * disabled). Useful behind load balancers that silently drop long-lived
+   * TCP connections. Unset ⇒ pg default.
+   */
+  maxLifetimeSeconds?: number
+
+  /**
+   * Max number of clients in the pool. Straight through to `pg.Pool`
+   * (pg default: `10`). Unset ⇒ pg default.
+   */
+  max?: number
+
+  /**
+   * Server-side `statement_timeout` (ms) applied to every connection. A
+   * stuck query self-aborts and releases its pooled client — the standard
+   * way to stop one pathological query camping a connection. **Intentionally
+   * has no default**: a blanket value would kill legitimate long migrations,
+   * reports, and backfills. Best practice is to set `statement_timeout` on
+   * the application's Postgres *role*; this field is for apps that prefer it
+   * in one place. Unset ⇒ no limit.
+   */
+  statement_timeout?: number
+
+  /**
+   * Client-side query timeout (ms) — node-postgres aborts the query locally.
+   * Same "no default, for the same reason" stance as `statement_timeout`.
+   * Unset ⇒ no limit.
+   */
+  query_timeout?: number
 }
 
 export type DreamLogger = {
