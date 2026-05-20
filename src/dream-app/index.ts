@@ -1,5 +1,6 @@
 import { CompiledQuery } from 'kysely'
 import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
+import type { PoolConfig as PgPoolConfig } from 'pg'
 import * as util from 'node:util'
 import { Context } from 'node:vm'
 import validateTable from '../db/validators/validateTable.js'
@@ -678,6 +679,42 @@ export interface SingleDbCredential {
    * decision at the call site rather than a silent default.
    */
   ssl?: TlsConnectionOptions | false
+
+  /**
+   * pg pool/client options passed straight through to `new pg.Pool(...)`.
+   * Dream knows nothing about these fields — pg's own types carry the
+   * documentation. Unset ⇒ pg applies its own defaults (backward compatible).
+   *
+   * Omitted from the passthrough:
+   *  - `user / password / database / host / port / ssl`: Dream manages these
+   *    (per-connection name, TLS directive) — hard invariants.
+   *  - `connectionString`: `pg`'s `ConnectionParameters` re-parses the URL
+   *    and lets its fields take precedence, bypassing Dream's per-connection
+   *    database name and TLS directive. Parse `DATABASE_URL` into the discrete
+   *    `host/port/user/password/name/ssl` fields in `conf/dream.ts` instead.
+   *  - `min`: node-pg's `pg-pool` does not honor it (silent no-op).
+   *  - `types / Client / Promise / log / stream`: programmatic, not
+   *    credential config (`types` is already wired via Dream's parsers).
+   *
+   * When another database adapter is added, a parallel `mysql?: ...` key
+   * (or similar) will appear here — this key is intentionally pg-specific.
+   */
+  pg?: Omit<
+    PgPoolConfig,
+    | 'user'
+    | 'password'
+    | 'database'
+    | 'host'
+    | 'port'
+    | 'ssl'
+    | 'connectionString'
+    | 'min'
+    | 'types'
+    | 'Client'
+    | 'Promise'
+    | 'log'
+    | 'stream'
+  >
 }
 
 export type DreamLogger = {

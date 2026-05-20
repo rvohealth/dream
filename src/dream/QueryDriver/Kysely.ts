@@ -170,17 +170,33 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     connectionName: string,
     dbConnectionType: DbConnectionType
   ): DialectProviderCb {
-    return (connectionConf: SingleDbCredential) =>
-      new PostgresDialect({
-        pool: new pg.Pool({
-          user: connectionConf.user || '',
-          password: connectionConf.password || '',
-          database: DreamApp.getOrFail().dbName(connectionName, dbConnectionType),
-          host: connectionConf.host || 'localhost',
-          port: connectionConf.port || 5432,
-          ssl: resolvePostgresSsl(connectionConf),
-        }),
+    return (connectionConf: SingleDbCredential) => {
+      const pool = new pg.Pool({
+        // Spread pg passthrough first; Dream's resolved fields follow and
+        // always win (per-connection database name, TLS directive).
+        ...(connectionConf.pg ?? {}),
+        user: connectionConf.user || '',
+        password: connectionConf.password || '',
+        database: DreamApp.getOrFail().dbName(connectionName, dbConnectionType),
+        host: connectionConf.host || 'localhost',
+        port: connectionConf.port || 5432,
+        ssl: resolvePostgresSsl(connectionConf),
       })
+
+      // node-postgres explicitly warns: a Pool that emits 'error' with no
+      // listener crashes the Node process. Idle pooled clients emit 'error'
+      // on backend restart / failover / a load balancer reaping idle TCP.
+      // Log via Dream's logger instead of taking the process down; the pool
+      // discards the dead client and recovers on the next acquire.
+      pool.on('error', err => {
+        DreamApp.getOrFail().logger.error(
+          `[dream] idle pg client error on connection "${connectionName}:${dbConnectionType}" ` +
+            `(handled — process kept alive): ${err.stack ?? String(err)}`
+        )
+      })
+
+      return new PostgresDialect({ pool })
+    }
   }
 
   public static override async ensureAllMigrationsHaveBeenRun(connectionName: string) {
