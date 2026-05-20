@@ -1,3 +1,7 @@
+## 2.11.3
+
+- Export `SingleDbCredential` from the public package entry point so downstream packages can use it in type annotations (e.g. `conf/dream.ts` in `@rvoh/create-psychic`-scaffolded apps).
+
 ## 2.11.2
 
 - `closeAllDbConnections()` / `closeAllConnectionsForConnectionName()` no longer hang shutdown indefinitely. Each Kysely `conn.destroy()` resolves to `pg`'s `pool.end()`, which only settles once every checked-out client is released. A client leased by a query still in flight when shutdown began (an aborted HTTP request during a SIGTERM drain, a feature-spec whose browser page is torn down mid-request) is never released, so `pool.end()` blocked forever and took the whole shutdown with it — a never-completing SIGTERM drain in production, or a feature-spec `afterAll` that hangs for the full hook timeout. The per-connection drain is now bounded by a 10s timeout; on timeout the drain is abandoned (the OS reaps the socket on process exit), the connection is removed from the registry so a later `getConnection()` builds a fresh pool, and a `warn` is logged so the leak stays observable. The happy path (drain completes before the timeout) is unchanged.
