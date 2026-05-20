@@ -1,5 +1,5 @@
 import { cacheDreamApp } from '../../../src/dream-app/cache.js'
-import DreamApp, { SingleDbCredential } from '../../../src/dream-app/index.js'
+import DreamApp, { DreamDbConfig } from '../../../src/dream-app/index.js'
 
 describe('DreamApp#hasReplicaConfig', () => {
   const updateDbCredentials = () => {
@@ -12,8 +12,8 @@ describe('DreamApp#hasReplicaConfig', () => {
     return dreamApp
   }
 
-  let primaryConfig: SingleDbCredential
-  let replicaConfig: SingleDbCredential | undefined
+  let primaryConfig: DreamDbConfig
+  let replicaConfig: DreamDbConfig | undefined
 
   beforeEach(() => {
     primaryConfig = {
