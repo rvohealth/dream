@@ -49,6 +49,7 @@ export {
   type DreamAppOpts,
   type DreamLogger,
   type DreamLogLevel,
+  type SingleDbCredential,
 } from '../dream-app/index.js'
 
 export {
