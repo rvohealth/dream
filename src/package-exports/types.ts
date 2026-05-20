@@ -49,7 +49,7 @@ export {
   type DreamAppOpts,
   type DreamLogger,
   type DreamLogLevel,
-  type SingleDbCredential,
+  type DreamDbConfig,
 } from '../dream-app/index.js'
 
 export {

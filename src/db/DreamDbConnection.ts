@@ -8,7 +8,7 @@
 // @ts-ignore
 
 import { CamelCasePlugin, Kysely } from 'kysely'
-import DreamApp, { KyselyLogEvent, SingleDbCredential } from '../dream-app/index.js'
+import DreamApp, { KyselyLogEvent, DreamDbConfig } from '../dream-app/index.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { DbConnectionType } from '../types/db.js'
 import {
@@ -130,4 +130,4 @@ async function destroyConnectionWithinTimeout(conn: Kysely<any>, label: string):
     if (timer) clearTimeout(timer)
   }
 }
-export type DialectProviderCb = (connectionConf: SingleDbCredential) => any
+export type DialectProviderCb = (connectionConf: DreamDbConfig) => any
