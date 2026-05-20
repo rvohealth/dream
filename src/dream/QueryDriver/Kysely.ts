@@ -172,14 +172,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   ): DialectProviderCb {
     return (connectionConf: SingleDbCredential) => {
       const pool = new pg.Pool({
-        // Optional pg pool/client passthrough, only present when explicitly
-        // set — so an unset config is byte-for-byte identical to pre-2.11.2
-        // behavior (pg applies its own defaults). Spread first; Dream's
-        // resolved discrete fields follow. `connectionString` is intentionally
-        // not in the passthrough (it would let a URL override Dream's
-        // per-connection database name and TLS directive). See
-        // SingleDbCredential docs.
-        ...resolvePostgresPoolOptions(connectionConf),
+        // Spread pg passthrough first; Dream's resolved fields follow and
+        // always win (per-connection database name, TLS directive).
+        ...(connectionConf.pg ?? {}),
         user: connectionConf.user || '',
         password: connectionConf.password || '',
         database: DreamApp.getOrFail().dbName(connectionName, dbConnectionType),
@@ -3071,65 +3066,6 @@ export function resolvePostgresSsl(connectionConf: SingleDbCredential): TlsConne
   if (connectionConf.ssl !== undefined) return connectionConf.ssl
   if (connectionConf.useSsl) return { rejectUnauthorized: false }
   return false
-}
-
-/**
- * The optional pg pool/client passthrough keys on {@link SingleDbCredential}.
- * Every credential-appropriate, pg-honored option that Dream's stock driver
- * would otherwise make unreachable (it hardcodes the `pg.Pool` object).
- *
- * Deliberately excludes:
- *  - `connectionString`: `pg`'s `ConnectionParameters` re-parses the URL and
- *    lets its `database` / `host` / `user` / `ssl` take precedence over the
- *    explicit fields Dream assigns, which would bypass the per-connection /
- *    parallel-test database name from `DreamApp.dbName(...)` and the
- *    deliberate TLS directive (`resolvePostgresSsl`). Those are hard Dream
- *    invariants; a URL must not be able to silently override them. Apps with
- *    a `DATABASE_URL` should parse it into the discrete `host`/`port`/`user`/
- *    `password`/`name`/`ssl` fields in `conf/dream.ts` instead.
- *  - `min`: node-pg's bundled `pg-pool` does not honor it (silent no-op).
- *  - programmatic fields `types` / `Client` / `Promise` / `log` / `stream`
- *    (not credential config; `types` is already wired via Dream's parsers).
- */
-const POSTGRES_POOL_PASSTHROUGH_KEYS = [
-  'application_name',
-  'keepAlive',
-  'keepAliveInitialDelayMillis',
-  'connectionTimeoutMillis',
-  'idleTimeoutMillis',
-  'maxLifetimeSeconds',
-  'max',
-  'maxUses',
-  'allowExitOnIdle',
-  'statement_timeout',
-  'query_timeout',
-  'lock_timeout',
-  'idle_in_transaction_session_timeout',
-  'options',
-] as const
-
-type PostgresPoolPassthrough = Partial<
-  Pick<SingleDbCredential, (typeof POSTGRES_POOL_PASSTHROUGH_KEYS)[number]>
->
-
-/**
- * Builds the optional pg pool/client options from a credential, including
- * ONLY keys the app explicitly set. Spreading the result into
- * `new pg.Pool({...})` is therefore behavior-neutral when nothing is
- * configured (pg keeps applying its own defaults — backward compatible),
- * and forwards exactly what was set otherwise. The caller spreads this
- * FIRST and applies Dream's resolved discrete fields (user/password/host/
- * port/database/ssl) AFTER, so a `connectionString` can supply extras while
- * Dream's per-connection database name and TLS directive always win. See
- * `SingleDbCredential`.
- */
-export function resolvePostgresPoolOptions(connectionConf: SingleDbCredential): PostgresPoolPassthrough {
-  const out: Record<string, unknown> = {}
-  for (const key of POSTGRES_POOL_PASSTHROUGH_KEYS) {
-    const value = connectionConf[key]
-    if (value !== undefined) out[key] = value
-  }
-  return out as PostgresPoolPassthrough
 }
 
 function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {

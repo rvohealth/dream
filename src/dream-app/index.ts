@@ -1,5 +1,6 @@
 import { CompiledQuery } from 'kysely'
 import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
+import type { PoolConfig as PgPoolConfig } from 'pg'
 import * as util from 'node:util'
 import { Context } from 'node:vm'
 import validateTable from '../db/validators/validateTable.js'
@@ -680,126 +681,40 @@ export interface SingleDbCredential {
   ssl?: TlsConnectionOptions | false
 
   /**
-   * Max ms to wait for a connection from the pool before erroring. Passed
-   * straight through to `pg.Pool`. **node-postgres defaults this to `0`
-   * (wait forever)** — when the pool is exhausted, `pool.connect()` never
-   * rejects, which turns a connection leak or DB stall into an unbounded
-   * hang. Recommended `2000`–`5000` in production (fail fast). Left unset
-   * here for backward compatibility: when unset Dream passes nothing
-   * through, so pg's own default applies and existing apps are byte-for-byte
-   * unaffected. Generated apps get a recommended value in the scaffolded
-   * `conf/dream.ts`.
+   * pg pool/client options passed straight through to `new pg.Pool(...)`.
+   * Dream knows nothing about these fields — pg's own types carry the
+   * documentation. Unset ⇒ pg applies its own defaults (backward compatible).
+   *
+   * Omitted from the passthrough:
+   *  - `user / password / database / host / port / ssl`: Dream manages these
+   *    (per-connection name, TLS directive) — hard invariants.
+   *  - `connectionString`: `pg`'s `ConnectionParameters` re-parses the URL
+   *    and lets its fields take precedence, bypassing Dream's per-connection
+   *    database name and TLS directive. Parse `DATABASE_URL` into the discrete
+   *    `host/port/user/password/name/ssl` fields in `conf/dream.ts` instead.
+   *  - `min`: node-pg's `pg-pool` does not honor it (silent no-op).
+   *  - `types / Client / Promise / log / stream`: programmatic, not
+   *    credential config (`types` is already wired via Dream's parsers).
+   *
+   * When another database adapter is added, a parallel `mysql?: ...` key
+   * (or similar) will appear here — this key is intentionally pg-specific.
    */
-  connectionTimeoutMillis?: number
-
-  /**
-   * Ms an idle client stays in the pool before being closed. Straight
-   * through to `pg.Pool` (pg default: `10000`). Unset ⇒ pg default.
-   */
-  idleTimeoutMillis?: number
-
-  /**
-   * Max lifetime (seconds) of a pooled connection before it is recycled,
-   * regardless of activity. Straight through to `pg.Pool` (pg default: `0`,
-   * disabled). Useful behind load balancers that silently drop long-lived
-   * TCP connections. Unset ⇒ pg default.
-   */
-  maxLifetimeSeconds?: number
-
-  /**
-   * Max number of clients in the pool. Straight through to `pg.Pool`
-   * (pg default: `10`). Unset ⇒ pg default.
-   */
-  max?: number
-
-  /**
-   * Server-side `statement_timeout` (ms) applied to every connection. A
-   * stuck query self-aborts and releases its pooled client — the standard
-   * way to stop one pathological query camping a connection. **Intentionally
-   * has no default**: a blanket value would kill legitimate long migrations,
-   * reports, and backfills. Best practice is to set `statement_timeout` on
-   * the application's Postgres *role*; this field is for apps that prefer it
-   * in one place. Unset ⇒ no limit.
-   */
-  statement_timeout?: number
-
-  /**
-   * Client-side query timeout (ms) — node-postgres aborts the query locally.
-   * Same "no default, for the same reason" stance as `statement_timeout`.
-   * Unset ⇒ no limit.
-   */
-  query_timeout?: number
-
-  // NOTE: `connectionString` is intentionally NOT supported. `pg`'s
-  // `ConnectionParameters` re-parses the URL and lets its database/host/ssl
-  // take precedence over the explicit fields Dream assigns, which would
-  // bypass the per-connection / parallel-test database name and the TLS
-  // directive — hard Dream invariants. Parse a `DATABASE_URL` into the
-  // discrete `host`/`port`/`user`/`password`/`name`/`ssl` fields instead.
-
-  /**
-   * `application_name` reported to Postgres — shows up in `pg_stat_activity`,
-   * `pg_stat_statements`, and server logs, so connections from this app are
-   * identifiable during incident response. **Strongly recommended** (pg
-   * default is empty, which makes connections anonymous). No library default
-   * to stay backward compatible; generated apps set it in `conf/dream.ts`.
-   */
-  application_name?: string
-
-  /**
-   * Enable TCP keepalive on the underlying socket. Recommended behind load
-   * balancers / NAT that silently drop idle TCP, so dead connections are
-   * detected instead of hanging. Straight through to `pg` (default: `false`).
-   * Unset ⇒ pg default.
-   */
-  keepAlive?: boolean
-
-  /**
-   * Initial delay (ms) before the first TCP keepalive probe. Only meaningful
-   * with `keepAlive: true`. Straight through to `pg`. Unset ⇒ pg default.
-   */
-  keepAliveInitialDelayMillis?: number
-
-  /**
-   * Server-side `lock_timeout` (ms): abort a statement that waits longer than
-   * this for a lock. Same "no default, set on the Postgres role" stance as
-   * `statement_timeout`. Unset ⇒ no limit.
-   */
-  lock_timeout?: number
-
-  /**
-   * Server-side `idle_in_transaction_session_timeout` (ms): terminate a
-   * session that sits idle inside an open transaction. A left-open
-   * transaction camps a connection *and* its locks — the exact connection-
-   * leak class behind the bounded-shutdown work. **Strongly recommended in
-   * production** (pg default: `0`, disabled). No library default for the same
-   * reason as `statement_timeout` (long interactive/migration transactions);
-   * best set on the Postgres role. Unset ⇒ disabled.
-   */
-  idle_in_transaction_session_timeout?: number
-
-  /**
-   * Recycle (close + replace) a pooled connection after it has been checked
-   * out this many times. Bounds per-connection memory growth and plays well
-   * with transaction-pooling proxies (PgBouncer). Straight through to
-   * `pg.Pool` (default: `Infinity`). Unset ⇒ pg default.
-   */
-  maxUses?: number
-
-  /**
-   * Let the Node process exit when every pooled client is idle (instead of
-   * the pool keeping the event loop alive). Useful for one-shot scripts /
-   * the `psy` CLI / tests. Straight through to `pg.Pool` (default: `false`).
-   * Unset ⇒ pg default.
-   */
-  allowExitOnIdle?: boolean
-
-  /**
-   * libpq-style command-line `options` string applied to every connection
-   * (e.g. `'-c search_path=tenant_42'`). Niche but legitimate; straight
-   * through to `pg`. Unset ⇒ not used.
-   */
-  options?: string
+  pg?: Omit<
+    PgPoolConfig,
+    | 'user'
+    | 'password'
+    | 'database'
+    | 'host'
+    | 'port'
+    | 'ssl'
+    | 'connectionString'
+    | 'min'
+    | 'types'
+    | 'Client'
+    | 'Promise'
+    | 'log'
+    | 'stream'
+  >
 }
 
 export type DreamLogger = {
