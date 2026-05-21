@@ -1,12 +1,12 @@
-import DreamApp, { SingleDbCredential } from '../../../src/dream-app/index.js'
+import DreamApp, { DreamDbConfig } from '../../../src/dream-app/index.js'
 import MissingDbSslDirective from '../../../src/errors/dream-app/MissingDbSslDirective.js'
 
-// `app.set('db', ...)` validates that each SingleDbCredential expresses an
+// `app.set('db', ...)` validates that each DreamDbConfig expresses an
 // explicit TLS directive — either `ssl` (object or false) or the deprecated
 // `useSsl: true`. Omitting both used to silently disable TLS; the setter now
 // throws so the safety question is a deliberate decision at the call site.
 
-function credential(overrides: Partial<SingleDbCredential>): SingleDbCredential {
+function credential(overrides: Partial<DreamDbConfig>): DreamDbConfig {
   return {
     user: 'u',
     password: 'p',

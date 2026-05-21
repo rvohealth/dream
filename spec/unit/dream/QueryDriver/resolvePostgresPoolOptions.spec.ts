@@ -1,10 +1,10 @@
-import { SingleDbCredential } from '../../../../src/dream-app/index.js'
+import { DreamDbConfig } from '../../../../src/dream-app/index.js'
 
-// Verify that SingleDbCredential.pg accepts the pg passthrough fields we care
+// Verify that DreamDbConfig.pg accepts the pg passthrough fields we care
 // about, and that the type-level exclusions (connectionString, min, the
 // Dream-managed fields) are not present.
 
-function cred(overrides: Partial<SingleDbCredential>): SingleDbCredential {
+function cred(overrides: Partial<DreamDbConfig>): DreamDbConfig {
   return {
     user: 'u',
     password: 'p',
@@ -15,7 +15,7 @@ function cred(overrides: Partial<SingleDbCredential>): SingleDbCredential {
   }
 }
 
-describe('SingleDbCredential.pg passthrough', () => {
+describe('DreamDbConfig.pg passthrough', () => {
   it('accepts supported pg options', () => {
     const c = cred({
       pg: {

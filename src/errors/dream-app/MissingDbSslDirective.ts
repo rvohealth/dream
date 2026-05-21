@@ -10,7 +10,7 @@ export default class MissingDbSslDirective extends Error {
   public override get message() {
     return `
 DreamApp refused to register a db credential without an explicit TLS
-directive. Every \`SingleDbCredential\` passed to \`app.set('db', ...)\`
+directive. Every \`DreamDbConfig\` passed to \`app.set('db', ...)\`
 must set one of:
 
   ssl: { rejectUnauthorized: true }              // verified TLS (system CA)

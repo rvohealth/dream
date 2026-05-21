@@ -1,5 +1,5 @@
 import { cacheDreamApp } from '../../../src/dream-app/cache.js'
-import DreamApp, { SingleDbCredential } from '../../../src/dream-app/index.js'
+import DreamApp, { DreamDbConfig } from '../../../src/dream-app/index.js'
 import { DbConnectionType } from '../../../src/types/db.js'
 
 describe('DreamApp#getConnectionConf', () => {
@@ -17,9 +17,9 @@ describe('DreamApp#getConnectionConf', () => {
   }
 
   let connection: DbConnectionType
-  let primaryConfig: SingleDbCredential
-  let replicaConfig: SingleDbCredential | undefined
-  let alternateConnectionPrimaryConfig: SingleDbCredential
+  let primaryConfig: DreamDbConfig
+  let replicaConfig: DreamDbConfig | undefined
+  let alternateConnectionPrimaryConfig: DreamDbConfig
 
   beforeEach(() => {
     connection = 'primary'

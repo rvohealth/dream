@@ -41,7 +41,7 @@ import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import { default as _db } from '../../db/index.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
-import DreamApp, { SingleDbCredential } from '../../dream-app/index.js'
+import DreamApp, { DreamDbConfig } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import ArrayTargetIncompatibleWithThroughAssociation from '../../errors/associations/ArrayTargetIncompatibleWithThroughAssociation.js'
 import CannotJoinPolymorphicBelongsToError from '../../errors/associations/CannotJoinPolymorphicBelongsToError.js'
@@ -170,7 +170,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     connectionName: string,
     dbConnectionType: DbConnectionType
   ): DialectProviderCb {
-    return (connectionConf: SingleDbCredential) => {
+    return (connectionConf: DreamDbConfig) => {
       const pool = new pg.Pool({
         // Spread pg passthrough first; Dream's resolved fields follow and
         // always win (per-connection database name, TLS directive).
@@ -3062,7 +3062,7 @@ const associationStringToAssociationAndMaybeAlias = function ({
  * `app.set('db', ...)` time when both `ssl` and `useSsl` are unset, so this
  * resolver never sees the "neither directive" state.
  */
-export function resolvePostgresSsl(connectionConf: SingleDbCredential): TlsConnectionOptions | false {
+export function resolvePostgresSsl(connectionConf: DreamDbConfig): TlsConnectionOptions | false {
   if (connectionConf.ssl !== undefined) return connectionConf.ssl
   if (connectionConf.useSsl) return { rejectUnauthorized: false }
   return false

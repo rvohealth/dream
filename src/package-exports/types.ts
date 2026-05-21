@@ -49,6 +49,7 @@ export {
   type DreamAppOpts,
   type DreamLogger,
   type DreamLogLevel,
+  type DreamDbConfig,
 } from '../dream-app/index.js'
 
 export {

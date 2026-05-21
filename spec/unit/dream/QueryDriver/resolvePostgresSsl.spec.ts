@@ -1,5 +1,5 @@
 import { resolvePostgresSsl } from '../../../../src/dream/QueryDriver/Kysely.js'
-import { SingleDbCredential } from '../../../../src/dream-app/index.js'
+import { DreamDbConfig } from '../../../../src/dream-app/index.js'
 
 // `pg.Pool` accepts a full `tls.ConnectionOptions` on its `ssl` field.
 // Dream's resolver picks what value to pass through. The legacy
@@ -11,7 +11,7 @@ import { SingleDbCredential } from '../../../../src/dream-app/index.js'
 // can set just the field under test. `resolvePostgresSsl` is exercised
 // directly here (not through `app.set('db', ...)`), so the setter's
 // "must specify ssl or useSsl" throw doesn't apply.
-function cred(overrides: Partial<SingleDbCredential>): SingleDbCredential {
+function cred(overrides: Partial<DreamDbConfig>): DreamDbConfig {
   return {
     user: 'u',
     password: 'p',

@@ -352,7 +352,7 @@ A new key can also be generated from the CLI:
     return this.parallelDatabasesEnabled ? `${conf.name}_${process.env.VITEST_POOL_ID}` : conf.name
   }
 
-  public dbConnectionConfig(connectionName: string, connection: DbConnectionType): SingleDbCredential {
+  public dbConnectionConfig(connectionName: string, connection: DbConnectionType): DreamDbConfig {
     const conf =
       this.dbCredentialsFor(connectionName)?.[connection] || this.dbCredentialsFor(connectionName)?.primary
 
@@ -552,7 +552,7 @@ A new key can also be generated from the CLI:
 }
 
 function assertDbCredentialTlsDirective(
-  credential: SingleDbCredential,
+  credential: DreamDbConfig,
   connectionName: string,
   credentialKey: 'primary' | 'replica'
 ) {
@@ -612,8 +612,8 @@ export interface DreamDirectoryPaths {
 }
 
 export interface DreamDbCredentialOptions {
-  primary: SingleDbCredential
-  replica?: SingleDbCredential | undefined
+  primary: DreamDbConfig
+  replica?: DreamDbConfig | undefined
   queryDriverClass?: typeof QueryDriverBase
 
   /**
@@ -641,7 +641,7 @@ export interface DreamDbCredentialOptions {
 
 type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'
 
-export interface SingleDbCredential {
+export interface DreamDbConfig {
   user: string
   password: string
   host: string

@@ -2,7 +2,7 @@ import { MysqlDialect, OrderByItemBuilder, sql } from 'kysely'
 import { createPool } from 'mysql2'
 import DreamCLI from '../../../../src/cli/index.js'
 import { isPrimitiveDataType } from '../../../../src/db/dataTypes.js'
-import DreamApp, { SingleDbCredential } from '../../../../src/dream-app/index.js'
+import DreamApp, { DreamDbConfig } from '../../../../src/dream-app/index.js'
 import Dream from '../../../../src/Dream.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import executeDatabaseQuery from '../../../../src/dream/internal/executeDatabaseQuery.js'
@@ -26,7 +26,7 @@ import loadMysqlClient from './loadMysqlClient.js'
 
 export default class MysqlQueryDriver<DreamInstance extends Dream> extends KyselyQueryDriver<DreamInstance> {
   public static override dialectProvider(connectionName: string, dbConnectionType: DbConnectionType) {
-    return (connectionConf: SingleDbCredential) =>
+    return (connectionConf: DreamDbConfig) =>
       new MysqlDialect({
         pool: createPool({
           user: connectionConf.user || '',
