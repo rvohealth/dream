@@ -50,6 +50,7 @@ import {
   RelaxedPreloadStatement,
   TableColumnNames,
   TableOrAssociationName,
+  UpdateableProperties,
 } from '../types/dream.js'
 import {
   CursorPaginatedDreamQueryOptions,
@@ -2371,13 +2372,19 @@ export default class Query<
    */
   public async update(
     attributes: DreamTableSchema<DreamInstance>,
+    options?: { skipHooks?: boolean }
+  ): Promise<number>
+  public async update(attributes: UpdateableProperties<DreamInstance>): Promise<number>
+  public async update(
+    attributes: UpdateableProperties<DreamInstance>,
     { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<number> {
     if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
     if (Object.keys(this.innerJoinStatements).length) throw new NoUpdateAllOnJoins()
     if (Object.keys(this.leftJoinStatements).length) throw new NoUpdateAllOnJoins()
 
-    if (skipHooks) return await this.updateWithoutCallingModelHooks(attributes)
+    if (skipHooks)
+      return await this.updateWithoutCallingModelHooks(attributes as DreamTableSchema<DreamInstance>)
 
     let counter = 0
 

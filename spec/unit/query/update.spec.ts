@@ -53,6 +53,31 @@ describe('Query#update', () => {
     })
   })
 
+  context('with a virtual column', () => {
+    it('routes the value through model hooks', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const originalDigest = user.passwordDigest
+
+      await User.query().update({ password: 'differentpassword' })
+
+      await user.reload()
+      expect(user.passwordDigest).toBeTruthy()
+      expect(user.passwordDigest).not.toEqual(originalDigest)
+    })
+  })
+
+  context('with an encrypted column', () => {
+    it('encrypts the value before persisting it', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+
+      await User.query().update({ secret: 'updated secret' })
+
+      await user.reload()
+      expect(user.secret).toEqual('updated secret')
+      expect(user.getAttribute('encryptedSecret')).not.toEqual('updated secret')
+    })
+  })
+
   context('within an associationQuery', () => {
     it('raises an exception', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
@@ -150,6 +175,16 @@ context.skip('type tests', () => {
       // @ts-expect-error intentionally passing invalid arg to test that type protection is working
       invalidArg: 123,
     })
+  })
+
+  it('rejects virtual columns when skipHooks is passed', async () => {
+    // @ts-expect-error virtual and encrypted columns cannot be combined with skipHooks
+    await User.query().update({ password: 'howyadoin' }, { skipHooks: true })
+  })
+
+  it('rejects encrypted columns when skipHooks is passed', async () => {
+    // @ts-expect-error virtual and encrypted columns cannot be combined with skipHooks
+    await User.query().update({ secret: 'howyadoin' }, { skipHooks: true })
   })
 
   context('in a transaction', () => {

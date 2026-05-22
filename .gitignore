@@ -60,3 +60,6 @@ docs
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# pln planning working directory (local-only)
+plans/

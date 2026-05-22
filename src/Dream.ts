@@ -95,6 +95,7 @@ import {
   DreamParamSafeColumnNames,
   DreamPrimaryKeyType,
   DreamSerializerKey,
+  FindablePropertiesForClass,
   GlobalModelNames,
   GlobalSerializerName,
   JoinAndStatements,
@@ -1340,21 +1341,23 @@ export default class Dream {
    */
   public static async createOrFindBy<T extends typeof Dream>(
     this: T,
-    attributes: UpdateablePropertiesForClass<T>,
+    attributes: FindablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
     const { skipHooks } = extraOpts
 
     try {
       const dreamModel = this.new({
-        ...attributes,
+        ...(attributes as UpdateablePropertiesForClass<T>),
         ...extraOpts?.createWith,
       })
       await dreamModel.save(skipHooks ? { skipHooks } : undefined)
       return dreamModel
     } catch (err) {
       if (pgErrorType(err) === UNIQUE_VIOLATION) {
-        const dreamModel = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
+        const dreamModel = await this.findBy(
+          this.extractAttributesFromUpdateableProperties(attributes as UpdateablePropertiesForClass<T>)
+        )
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
       }
@@ -1379,10 +1382,10 @@ export default class Dream {
    */
   public static async updateOrCreateBy<T extends typeof Dream>(
     this: T,
-    attributes: UpdateablePropertiesForClass<T>,
+    attributes: FindablePropertiesForClass<T>,
     extraOpts: UpdateOrCreateByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
-    return await updateOrCreateBy(this, null, attributes, extraOpts)
+    return await updateOrCreateBy(this, null, attributes as UpdateablePropertiesForClass<T>, extraOpts)
   }
 
   /**
@@ -1405,7 +1408,7 @@ export default class Dream {
    */
   public static async createOrUpdateBy<T extends typeof Dream>(
     this: T,
-    attributes: UpdateablePropertiesForClass<T>,
+    attributes: FindablePropertiesForClass<T>,
     extraOpts: UpdateOrCreateByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
     const { skipHooks } = extraOpts
@@ -1413,14 +1416,16 @@ export default class Dream {
     try {
       return await this.create(
         {
-          ...attributes,
+          ...(attributes as UpdateablePropertiesForClass<T>),
           ...extraOpts?.with,
         },
         skipHooks ? { skipHooks } : undefined
       )
     } catch (err) {
       if (pgErrorType(err) === UNIQUE_VIOLATION) {
-        const existingRecord = await this.findBy(this.extractAttributesFromUpdateableProperties(attributes))
+        const existingRecord = await this.findBy(
+          this.extractAttributesFromUpdateableProperties(attributes as UpdateablePropertiesForClass<T>)
+        )
         if (!existingRecord) throw new CreateOrUpdateByFailedToCreateAndUpdate(this)
         const { with: attrs } = extraOpts
 
@@ -1630,10 +1635,10 @@ export default class Dream {
    */
   public static async findOrCreateBy<T extends typeof Dream>(
     this: T,
-    attributes: UpdateablePropertiesForClass<T>,
+    attributes: FindablePropertiesForClass<T>,
     extraOpts: CreateOrFindByExtraOpts<T> = {}
   ): Promise<InstanceType<T>> {
-    return await findOrCreateBy(this, null, attributes, extraOpts)
+    return await findOrCreateBy(this, null, attributes as UpdateablePropertiesForClass<T>, extraOpts)
   }
 
   /**

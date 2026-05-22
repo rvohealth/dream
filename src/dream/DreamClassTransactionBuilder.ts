@@ -6,6 +6,7 @@ import {
   DefaultScopeName,
   DreamColumnNames,
   DreamSerializerKey,
+  FindablePropertiesForClass,
   OrderDir,
   PassthroughColumnNames,
   PluckEachArgs,
@@ -362,10 +363,15 @@ export default class DreamClassTransactionBuilder<
    */
   public async findOrCreateBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    attributes: UpdateablePropertiesForClass<DreamClass>,
+    attributes: FindablePropertiesForClass<DreamClass>,
     extraOpts: CreateOrFindByExtraOpts<DreamClass> = {}
   ): Promise<InstanceType<DreamClass>> {
-    return await findOrCreateBy(this.dreamClass, this.dreamTransaction, attributes, extraOpts)
+    return await findOrCreateBy(
+      this.dreamClass,
+      this.dreamTransaction,
+      attributes as UpdateablePropertiesForClass<DreamClass>,
+      extraOpts
+    )
   }
 
   /**
@@ -386,10 +392,15 @@ export default class DreamClassTransactionBuilder<
    */
   public async updateOrCreateBy<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    attributes: UpdateablePropertiesForClass<DreamClass>,
+    attributes: FindablePropertiesForClass<DreamClass>,
     extraOpts: UpdateOrCreateByExtraOpts<DreamClass> = {}
   ): Promise<InstanceType<DreamClass>> {
-    return await updateOrCreateBy(this.dreamClass, this.dreamTransaction, attributes, extraOpts)
+    return await updateOrCreateBy(
+      this.dreamClass,
+      this.dreamTransaction,
+      attributes as UpdateablePropertiesForClass<DreamClass>,
+      extraOpts
+    )
   }
 
   /**

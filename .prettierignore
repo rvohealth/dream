@@ -11,3 +11,4 @@ dist
 pnpm-lock.yaml
 CLAUDE.md
 .claude/
+plans/

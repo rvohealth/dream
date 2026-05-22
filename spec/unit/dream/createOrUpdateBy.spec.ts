@@ -182,4 +182,31 @@ describe('Dream.createOrUpdateBy', () => {
       })
     }
   )
+
+  context('with an encrypted column passed to with', () => {
+    it('encrypts the value before persisting it', async () => {
+      const u = await User.createOrUpdateBy(
+        { email: 'fred@frewd' },
+        { with: { password: 'howyadoin', secret: 'my secret' } }
+      )
+      const user = await User.find(u.id)
+      expect(user!.secret).toEqual('my secret')
+      expect(typeof user!.getAttribute('encryptedSecret')).toEqual('string')
+      expect(user!.getAttribute('encryptedSecret')).not.toEqual('my secret')
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('rejects virtual and encrypted columns in the find key', async () => {
+    await User.createOrUpdateBy({
+      // @ts-expect-error virtual columns cannot be used as a find key
+      password: 'howyadoin',
+    })
+    await User.createOrUpdateBy({
+      // @ts-expect-error encrypted columns cannot be used as a find key
+      secret: 'howyadoin',
+    })
+  })
 })
