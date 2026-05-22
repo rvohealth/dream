@@ -490,6 +490,28 @@ export type UpdateablePropertiesForClass<
       : AssociatedModelParam<InstanceType<DreamClass>>)
 >
 
+/**
+ * Like {@link UpdateablePropertiesForClass} but without virtual columns
+ * (including `@Encrypted` properties). Used for the find-key argument of
+ * findOrCreateBy / createOrFindBy / updateOrCreateBy / createOrUpdateBy:
+ * that argument builds the lookup query, and virtual columns are not real
+ * columns while encrypted columns store non-deterministic ciphertext, so
+ * neither can be queried by.
+ */
+export type FindablePropertiesForClass<
+  DreamClass extends typeof Dream,
+  TableName extends AssociationTableNames<
+    InstanceType<DreamClass>['DB'],
+    InstanceType<DreamClass>['schema']
+  > &
+    InstanceType<DreamClass>['table'] = InstanceType<DreamClass>['table'],
+> = Partial<
+  Updateable<InstanceType<DreamClass>['DB'][TableName]> &
+    (AssociatedModelParam<InstanceType<DreamClass>> extends never
+      ? object
+      : AssociatedModelParam<InstanceType<DreamClass>>)
+>
+
 export type UpdateableAssociationProperties<
   DreamInstance extends Dream,
   AssociationClass extends Dream,

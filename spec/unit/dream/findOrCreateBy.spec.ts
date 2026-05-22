@@ -103,6 +103,19 @@ describe('Dream.findOrCreateBy', () => {
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
     })
   })
+
+  context('with an encrypted column passed to createWith', () => {
+    it('encrypts the value before persisting it', async () => {
+      const u = await User.findOrCreateBy(
+        { email: 'fred@frewd' },
+        { createWith: { password: 'howyadoin', secret: 'my secret' } }
+      )
+      const user = await User.find(u.id)
+      expect(user!.secret).toEqual('my secret')
+      expect(typeof user!.getAttribute('encryptedSecret')).toEqual('string')
+      expect(user!.getAttribute('encryptedSecret')).not.toEqual('my secret')
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.
@@ -113,11 +126,15 @@ context.skip('type tests', () => {
       .findOrCreateBy({ invalidArg: 123 })
   })
 
-  it('accepts virtual and encrypted columns in createWith', async () => {
-    await User.findOrCreateBy(
-      { email: 'a@b.com' },
-      { createWith: { password: 'howyadoin', secret: 'howyadoin' } }
-    )
+  it('rejects virtual and encrypted columns in the find key', async () => {
+    await User.findOrCreateBy({
+      // @ts-expect-error virtual columns cannot be used as a find key
+      password: 'howyadoin',
+    })
+    await User.findOrCreateBy({
+      // @ts-expect-error encrypted columns cannot be used as a find key
+      secret: 'howyadoin',
+    })
   })
 
   context('in a transaction', () => {
@@ -126,15 +143,6 @@ context.skip('type tests', () => {
         await User.txn(txn)
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
           .findOrCreateBy({ invalidArg: 123 })
-      })
-    })
-
-    it('accepts virtual and encrypted columns in createWith', async () => {
-      await ApplicationModel.transaction(async txn => {
-        await User.txn(txn).findOrCreateBy(
-          { email: 'a@b.com' },
-          { createWith: { password: 'howyadoin', secret: 'howyadoin' } }
-        )
       })
     })
   })

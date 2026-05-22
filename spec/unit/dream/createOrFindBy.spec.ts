@@ -103,14 +103,31 @@ describe('Dream.createOrFindBy', () => {
     const composition = await Composition.createOrFindBy({ content: 'howyadoin' }, { createWith: { user } })
     expect(composition.userId).toEqual(user.id)
   })
+
+  context('with an encrypted column passed to createWith', () => {
+    it('encrypts the value before persisting it', async () => {
+      const u = await User.createOrFindBy(
+        { email: 'fred@frewd' },
+        { createWith: { password: 'howyadoin', secret: 'my secret' } }
+      )
+      const user = await User.find(u.id)
+      expect(user!.secret).toEqual('my secret')
+      expect(typeof user!.getAttribute('encryptedSecret')).toEqual('string')
+      expect(user!.getAttribute('encryptedSecret')).not.toEqual('my secret')
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.
 context.skip('type tests', () => {
-  it('accepts virtual and encrypted columns in createWith', async () => {
-    await User.createOrFindBy(
-      { email: 'a@b.com' },
-      { createWith: { password: 'howyadoin', secret: 'howyadoin' } }
-    )
+  it('rejects virtual and encrypted columns in the find key', async () => {
+    await User.createOrFindBy({
+      // @ts-expect-error virtual columns cannot be used as a find key
+      password: 'howyadoin',
+    })
+    await User.createOrFindBy({
+      // @ts-expect-error encrypted columns cannot be used as a find key
+      secret: 'howyadoin',
+    })
   })
 })

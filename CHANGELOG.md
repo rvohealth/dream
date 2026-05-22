@@ -2,6 +2,7 @@
 
 - `Query#update` now accepts virtual and `@Encrypted` columns. It was typed `DreamTableSchema` (real columns only), which rejected them even though the default (non-`skipHooks`) path delegates to instance `update`, which handles them. It is now a pair of overloads: real columns may be combined with `skipHooks`; the virtual-aware overload omits `skipHooks`. Passing a virtual or encrypted-property column together with `skipHooks` — which would reach raw SQL and fail — is now a compile-time error, while a raw `encrypted<Name>` column may still be updated with `skipHooks` for manual-encryption / bulk-correction cases.
 - `DreamInstanceTransactionBuilder#updateAssociation` (`user.txn(txn).updateAssociation(...)`) now accepts virtual and `@Encrypted` columns on the associated model, matching the non-transaction `Dream#updateAssociation`. It was typed `Partial<DreamAttributes>` (real columns only).
+- The find-key argument (first argument) of `findOrCreateBy`, `createOrFindBy`, `updateOrCreateBy`, and `createOrUpdateBy` no longer accepts virtual or `@Encrypted` columns. That argument builds the lookup query, and virtual columns are not real columns while encrypted columns store non-deterministic ciphertext — neither can be queried by. Create-only virtual/encrypted attributes belong in the `createWith` / `with` option, which remains virtual-aware.
 
 ## 2.11.3
 
