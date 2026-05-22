@@ -5,6 +5,7 @@ import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.j
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import PostVisibility from '../../../../test-app/app/models/PostVisibility.js'
@@ -235,12 +236,24 @@ context.skip('type tests', () => {
     await User.new().createAssociation('notARealAssociation')
   })
 
+  it('accepts virtual and encrypted columns on the associated model', async () => {
+    await CompositionAsset.new().createAssociation('user', { password: 'howyadoin', secret: 'howyadoin' })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
         const user = User.new()
         // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         await user.txn(txn).createAssociation('notARealAssociation')
+      })
+    })
+
+    it('accepts virtual and encrypted columns on the associated model', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await CompositionAsset.new()
+          .txn(txn)
+          .createAssociation('user', { password: 'howyadoin', secret: 'howyadoin' })
       })
     })
   })

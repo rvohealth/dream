@@ -206,6 +206,10 @@ context.skip('type tests', () => {
     )
   })
 
+  it('accepts virtual and encrypted columns', async () => {
+    await User.updateOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
@@ -222,6 +226,12 @@ context.skip('type tests', () => {
             },
           }
         )
+      })
+    })
+
+    it('accepts virtual and encrypted columns', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn).updateOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
       })
     })
   })

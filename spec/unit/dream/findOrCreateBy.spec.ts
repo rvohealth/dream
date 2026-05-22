@@ -113,12 +113,22 @@ context.skip('type tests', () => {
       .findOrCreateBy({ invalidArg: 123 })
   })
 
+  it('accepts virtual and encrypted columns', async () => {
+    await User.findOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
         await User.txn(txn)
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
           .findOrCreateBy({ invalidArg: 123 })
+      })
+    })
+
+    it('accepts virtual and encrypted columns', async () => {
+      await ApplicationModel.transaction(async txn => {
+        await User.txn(txn).findOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
       })
     })
   })

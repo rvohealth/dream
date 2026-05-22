@@ -183,3 +183,10 @@ describe('Dream.createOrUpdateBy', () => {
     }
   )
 })
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('accepts virtual and encrypted columns', async () => {
+    await User.createOrUpdateBy({ password: 'howyadoin', secret: 'howyadoin' })
+  })
+})
