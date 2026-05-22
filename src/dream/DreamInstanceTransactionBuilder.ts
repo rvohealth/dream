@@ -12,7 +12,6 @@ import {
   DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAssociationNamesWithPassthroughOnClauses,
   DreamAssociationNamesWithRequiredOnClauses,
-  DreamAttributes,
   DreamBelongsToAssociationNames,
   DreamConstructorType,
   DreamHasManyAssociationNames,
@@ -862,10 +861,17 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     RequiredOnClauseKeysForThisAssociation extends RequiredOnClauseKeys<Schema, TableName, AssociationName>,
     AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
+    PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType,
+    RestrictedAssociationType extends AssociationType extends Dream
+      ? AssociationType
+      : never = AssociationType extends Dream ? AssociationType : never,
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
+    attributes: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType>,
     updateAssociationOptions: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
@@ -886,10 +892,17 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     AssociationName extends DreamAssociationNamesWithoutRequiredOnClauses<DreamInstance>,
     AssociationDream extends AssociationNameToDream<DreamInstance, AssociationName>,
     AssociationTableName extends AssociationDream['table'],
+    PossibleArrayAssociationType = DreamInstance[AssociationName & keyof DreamInstance],
+    AssociationType = PossibleArrayAssociationType extends (infer ElementType)[]
+      ? ElementType
+      : PossibleArrayAssociationType,
+    RestrictedAssociationType extends AssociationType extends Dream
+      ? AssociationType
+      : never = AssociationType extends Dream ? AssociationType : never,
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
+    attributes: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType>,
     updateAssociationOptions?: {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
@@ -927,7 +940,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    attributes: Partial<DreamAttributes<AssociationNameToDream<DreamInstance, AssociationName>>>,
+    attributes: unknown,
     updateAssociationOptions: unknown
   ): Promise<number> {
     if (this.dreamInstance.isNewRecord)
@@ -944,7 +957,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
         (updateAssociationOptions as any)?.bypassAllDefaultScopes ?? DEFAULT_BYPASS_ALL_DEFAULT_SCOPES,
       defaultScopesToBypass:
         (updateAssociationOptions as any)?.defaultScopesToBypass ?? DEFAULT_DEFAULT_SCOPES_TO_BYPASS,
-    }).update(attributes, { skipHooks: (updateAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS })
+    }).update(attributes as any, {
+      skipHooks: (updateAssociationOptions as any)?.skipHooks ?? DEFAULT_SKIP_HOOKS,
+    })
   }
 
   /**
