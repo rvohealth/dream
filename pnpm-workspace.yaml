@@ -1,0 +1,5 @@
+overrides:
+  diff: '>=8.0.3'
+
+allowBuilds:
+  esbuild: true
