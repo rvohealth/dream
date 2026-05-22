@@ -1,3 +1,8 @@
+## 2.11.4
+
+- `Query#update` now accepts virtual and `@Encrypted` columns. It was typed `DreamTableSchema` (real columns only), which rejected them even though the default (non-`skipHooks`) path delegates to instance `update`, which handles them. It is now a pair of overloads: real columns may be combined with `skipHooks`; the virtual-aware overload omits `skipHooks`. Passing a virtual or encrypted-property column together with `skipHooks` — which would reach raw SQL and fail — is now a compile-time error, while a raw `encrypted<Name>` column may still be updated with `skipHooks` for manual-encryption / bulk-correction cases.
+- `DreamInstanceTransactionBuilder#updateAssociation` (`user.txn(txn).updateAssociation(...)`) now accepts virtual and `@Encrypted` columns on the associated model, matching the non-transaction `Dream#updateAssociation`. It was typed `Partial<DreamAttributes>` (real columns only).
+
 ## 2.11.3
 
 - Export `DreamDbConfig` from the public package entry point so downstream packages can use it in type annotations (e.g. `conf/dream.ts` in `@rvoh/create-psychic`-scaffolded apps).
