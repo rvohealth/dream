@@ -206,8 +206,11 @@ context.skip('type tests', () => {
     )
   })
 
-  it('accepts virtual and encrypted columns', async () => {
-    await User.updateOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
+  it('accepts virtual and encrypted columns in with', async () => {
+    await User.updateOrCreateBy(
+      { email: 'a@b.com' },
+      { with: { password: 'howyadoin', secret: 'howyadoin' } }
+    )
   })
 
   context('in a transaction', () => {
@@ -229,9 +232,12 @@ context.skip('type tests', () => {
       })
     })
 
-    it('accepts virtual and encrypted columns', async () => {
+    it('accepts virtual and encrypted columns in with', async () => {
       await ApplicationModel.transaction(async txn => {
-        await User.txn(txn).updateOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
+        await User.txn(txn).updateOrCreateBy(
+          { email: 'a@b.com' },
+          { with: { password: 'howyadoin', secret: 'howyadoin' } }
+        )
       })
     })
   })

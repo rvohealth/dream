@@ -107,7 +107,10 @@ describe('Dream.createOrFindBy', () => {
 
 // type tests intentionally skipped, since they will fail on build instead.
 context.skip('type tests', () => {
-  it('accepts virtual and encrypted columns', async () => {
-    await User.createOrFindBy({ password: 'howyadoin', secret: 'howyadoin' })
+  it('accepts virtual and encrypted columns in createWith', async () => {
+    await User.createOrFindBy(
+      { email: 'a@b.com' },
+      { createWith: { password: 'howyadoin', secret: 'howyadoin' } }
+    )
   })
 })

@@ -113,8 +113,11 @@ context.skip('type tests', () => {
       .findOrCreateBy({ invalidArg: 123 })
   })
 
-  it('accepts virtual and encrypted columns', async () => {
-    await User.findOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
+  it('accepts virtual and encrypted columns in createWith', async () => {
+    await User.findOrCreateBy(
+      { email: 'a@b.com' },
+      { createWith: { password: 'howyadoin', secret: 'howyadoin' } }
+    )
   })
 
   context('in a transaction', () => {
@@ -126,9 +129,12 @@ context.skip('type tests', () => {
       })
     })
 
-    it('accepts virtual and encrypted columns', async () => {
+    it('accepts virtual and encrypted columns in createWith', async () => {
       await ApplicationModel.transaction(async txn => {
-        await User.txn(txn).findOrCreateBy({ password: 'howyadoin', secret: 'howyadoin' })
+        await User.txn(txn).findOrCreateBy(
+          { email: 'a@b.com' },
+          { createWith: { password: 'howyadoin', secret: 'howyadoin' } }
+        )
       })
     })
   })
