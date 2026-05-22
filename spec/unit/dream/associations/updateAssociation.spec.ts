@@ -345,6 +345,53 @@ describe('Dream#updateAssociation', () => {
       })
     })
   })
+
+  context('with virtual and encrypted columns on the associated model', () => {
+    it('routes them through the association update', async () => {
+      const user = await User.create({
+        email: 'fred@frewd',
+        password: 'howyadoin',
+        secret: 'original secret',
+      })
+      const composition = await Composition.create({ user, content: 'hello world' })
+      const compositionAsset = await CompositionAsset.create({ composition })
+      const originalDigest = user.passwordDigest
+
+      await compositionAsset.updateAssociation('user', {
+        password: 'differentpassword',
+        secret: 'updated secret',
+      })
+
+      await user.reload()
+      expect(user.secret).toEqual('updated secret')
+      expect(user.getAttribute('encryptedSecret')).not.toEqual('updated secret')
+      expect(user.passwordDigest).not.toEqual(originalDigest)
+    })
+
+    context('in a transaction', () => {
+      it('routes them through the association update', async () => {
+        await ApplicationModel.transaction(async txn => {
+          const user = await User.txn(txn).create({
+            email: 'fred@frewd',
+            password: 'howyadoin',
+            secret: 'original secret',
+          })
+          const composition = await Composition.txn(txn).create({ user, content: 'hello world' })
+          const compositionAsset = await CompositionAsset.txn(txn).create({ composition })
+          const originalDigest = user.passwordDigest
+
+          await compositionAsset.txn(txn).updateAssociation('user', {
+            password: 'differentpassword',
+            secret: 'updated secret',
+          })
+
+          await user.txn(txn).reload()
+          expect(user.secret).toEqual('updated secret')
+          expect(user.passwordDigest).not.toEqual(originalDigest)
+        })
+      })
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.
