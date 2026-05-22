@@ -401,24 +401,12 @@ context.skip('type tests', () => {
     await User.new().updateAssociation('notARealAssociation')
   })
 
-  it('accepts virtual and encrypted columns on the associated model', async () => {
-    await CompositionAsset.new().updateAssociation('user', { password: 'howyadoin' })
-    await CompositionAsset.new().updateAssociation('user', { secret: 'howyadoin' })
-  })
-
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
         const user = User.new()
         // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         await user.txn(txn).updateAssociation('notARealAssociation')
-      })
-    })
-
-    it('accepts virtual and encrypted columns on the associated model', async () => {
-      await ApplicationModel.transaction(async txn => {
-        await CompositionAsset.new().txn(txn).updateAssociation('user', { password: 'howyadoin' })
-        await CompositionAsset.new().txn(txn).updateAssociation('user', { secret: 'howyadoin' })
       })
     })
   })

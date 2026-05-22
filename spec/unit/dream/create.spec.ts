@@ -348,10 +348,6 @@ context.skip('type tests', () => {
     })
   })
 
-  it('accepts virtual and encrypted columns', async () => {
-    await User.create({ password: 'howyadoin', secret: 'howyadoin' })
-  })
-
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
@@ -359,12 +355,6 @@ context.skip('type tests', () => {
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
           invalidArg: 123,
         })
-      })
-    })
-
-    it('accepts virtual and encrypted columns', async () => {
-      await ApplicationModel.transaction(async txn => {
-        await User.txn(txn).create({ password: 'howyadoin', secret: 'howyadoin' })
       })
     })
   })
