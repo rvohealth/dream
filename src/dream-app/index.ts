@@ -751,7 +751,7 @@ export interface KyselyLogEvent {
   error: unknown // only present if `level` is `'error'`.
 }
 
-export const DreamAppAllowedPackageManagersEnumValues = ['pnpm', 'yarn', 'npm'] as const
+export const DreamAppAllowedPackageManagersEnumValues = ['pnpm', 'yarn', 'npm', 'bun', 'deno'] as const
 export type DreamAppAllowedPackageManagersEnum = (typeof DreamAppAllowedPackageManagersEnumValues)[number]
 
 // GeneratorImportStyles are used by CLI generators to determine how
