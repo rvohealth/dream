@@ -19,8 +19,15 @@ export default function decryptAESGCM<RetType>(
     )
     decipher.setAuthTag(Buffer.from(tag, 'base64') as any)
 
-    plaintext = decipher.update(ciphertext, 'base64', 'utf8')
-    plaintext += decipher.final('utf8')
+    // Decrypt to a complete plaintext Buffer and decode utf8 once, mirroring the
+    // Buffer-based encrypt path. The incremental string form (update(..., 'base64',
+    // 'utf8') + final('utf8')) can split a multibyte UTF-8 character across the
+    // update/final boundary and is subject to the same Deno node:crypto string-encoding
+    // bug.
+    plaintext = Buffer.concat([
+      decipher.update(Buffer.from(ciphertext, 'base64')),
+      decipher.final(),
+    ]).toString('utf8')
   } catch (cause) {
     throw Object.assign(new DecryptionError(), { cause })
   }

@@ -55,6 +55,23 @@ describe('Encrypt', () => {
           expectCanEncryptAndDecryptValue([1, 'hi', true], opts)
         })
 
+        it('round-trips plaintext of every length across the base64 group boundary', () => {
+          // AES-GCM ciphertext length equals plaintext length, so walking the length moves
+          // the cipher output across every 3-byte base64 group boundary — the exact offset
+          // where Deno's node:crypto string-output-encoding path truncated the ciphertext
+          // (update('base64') + final('base64')). Buffer-based crypto is immune.
+          for (let n = 1; n <= 24; n++) {
+            expectCanEncryptAndDecryptValue('a'.repeat(n), opts)
+          }
+        })
+
+        it('round-trips multibyte UTF-8 values', () => {
+          // A multibyte character split across the update/final boundary is corrupted by
+          // string-output-encoding concatenation; decoding the complete plaintext buffer
+          // once handles it correctly.
+          expectCanEncryptAndDecryptValue('café ☕ 日本語 😀 — naïve', opts)
+        })
+
         context('with no encryption key set', () => {
           it('raises a targeted exception', () => {
             expect(() => Encrypt.encrypt('how', { ...opts, key: null as any })).toThrow(MissingEncryptionKey)
