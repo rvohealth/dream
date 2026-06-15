@@ -960,21 +960,30 @@ export class DateTime {
   }
 
   /**
-   * Returns an ISO 8601 string representation (for valueOf() operations).
+   * Returns a UTC-normalized ISO 8601 string representation (for valueOf() operations).
    *
-   * Preserves the timezone of the DateTime instance.
+   * Unlike {@link DateTime.toISO} / {@link DateTime.toString} / {@link DateTime.toJSON}, which
+   * preserve the instance's zone, `valueOf` always normalizes to UTC (`…Z`) before stringifying.
+   * Because every value is rendered in the same zone with fixed-width 6-digit fractional seconds,
+   * JavaScript's relational operators (`<`, `>`, `<=`, `>=`), loose `==`, and `+` — which route
+   * through `valueOf` — order and compare by the underlying instant rather than by wall-clock text.
+   * This makes cross-zone comparisons correct. As a consequence `dt + ''` and `Number(dt)` reflect
+   * UTC, while `` `${dt}` ``, `toString`, and `toJSON` stay local because they don't use `valueOf`.
    *
-   * @returns ISO datetime string with microsecond precision
+   * Limit: lexical ordering equals chronological ordering only for years 0001–9999. BC/negative
+   * years and years ≥ 10000 sort incorrectly (ISO's `-`/`+` year prefixes break lexical order).
+   *
+   * @returns UTC ISO datetime string with microsecond precision
    * @example
    * ```ts
-   * DateTime.local(2017, 3, 12).valueOf() // Preserves local timezone
+   * DateTime.local(2017, 3, 12).valueOf()                                  // UTC-normalized ISO string
    * DateTime.fromISO('2026-02-07T09:03:44.123456Z').valueOf()              // '2026-02-07T09:03:44.123456Z'
    * ```
    */
   private _valueOf: string
   public valueOf(): string {
     if (this._valueOf) return this._valueOf
-    this._valueOf = this.toISO()
+    this._valueOf = this.toUTC().toISO()
     return this._valueOf
   }
 

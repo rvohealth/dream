@@ -840,6 +840,67 @@ describe('DateTime', () => {
       const roundTripped = DateTime.fromISO(iso)
       expect(roundTripped).toEqualDateTime(datetime)
     })
+
+    it('normalizes to UTC so cross-zone values order by instant, not wall-clock', () => {
+      // Same wall-clock text, different zones: the New York value is the later instant.
+      const utcNoon = DateTime.fromISO('2026-02-07T12:00:00Z')
+      const nyNoon = DateTime.fromISO('2026-02-07T12:00:00-05:00')
+      expect(utcNoon < nyNoon).toBe(true)
+      expect(nyNoon > utcNoon).toBe(true)
+    })
+
+    it('orders same-instant-different-zone values as a tie and sorts by instant', () => {
+      // 14:00Z, 09:00-05:00, and 15:00+01:00 are all the same instant.
+      const utc = DateTime.fromISO('2026-02-07T14:00:00Z')
+      const ny = DateTime.fromISO('2026-02-07T09:00:00-05:00')
+      const berlin = DateTime.fromISO('2026-02-07T15:00:00+01:00')
+      // earlier instant in a later-looking local zone
+      const earlier = DateTime.fromISO('2026-02-07T13:30:00+02:00') // 11:30Z
+
+      expect(utc.valueOf()).toEqual(ny.valueOf())
+      expect(utc.valueOf()).toEqual(berlin.valueOf())
+      expect(sort([utc, earlier, ny])).toEqual([earlier, utc, ny])
+    })
+
+    it('treats same-instant-different-zone values as equal via the relational operators', () => {
+      const utc = DateTime.fromISO('2026-02-07T14:00:00.123456Z')
+      const ny = DateTime.fromISO('2026-02-07T09:00:00.123456-05:00')
+      // Object-to-object `==` is reference equality in JS (valueOf is not consulted),
+      // but the relational operators coerce through valueOf, so `<= && >=` expresses
+      // instant-equality across zones.
+      expect(utc <= ny && utc >= ny).toBe(true)
+      expect(utc < ny).toBe(false)
+      expect(utc > ny).toBe(false)
+    })
+
+    it('reflects UTC (not local) when coerced against a primitive', () => {
+      const ny = DateTime.fromISO('2026-02-07T09:00:00.123456-05:00')
+      // `==` against a primitive coerces the DateTime via valueOf (UTC), unlike object-to-object `==`
+      // eslint-disable-next-line eqeqeq
+      expect((ny as unknown) == '2026-02-07T14:00:00.123456Z').toBe(true)
+    })
+
+    it('distinguishes values one microsecond apart', () => {
+      const a = DateTime.fromISO('2026-02-07T09:03:44.000001Z')
+      const b = DateTime.fromISO('2026-02-07T09:03:44.000002Z')
+      expect(a < b).toBe(true)
+      expect(a.valueOf()).not.toEqual(b.valueOf())
+    })
+
+    it('emits fixed-width 6-digit fractional seconds (…500000Z), never trimmed', () => {
+      const datetime = DateTime.fromISO('2026-02-07T09:03:44.5Z')
+      expect(datetime.valueOf()).toEqual('2026-02-07T09:03:44.500000Z')
+    })
+
+    it('regression: `${dt}` / toString / toJSON stay local; only dt + "" shifts to UTC', () => {
+      const ny = DateTime.fromISO('2026-02-07T09:00:00-05:00')
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      expect(`${ny}`).toEqual('2026-02-07T09:00:00.000000-05:00')
+      expect(ny.toString()).toEqual('2026-02-07T09:00:00.000000-05:00')
+      expect(ny.toJSON()).toEqual('2026-02-07T09:00:00.000000-05:00')
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+      expect(ny + '').toEqual('2026-02-07T14:00:00.000000Z')
+    })
   })
 
   describe('toLuxon', () => {

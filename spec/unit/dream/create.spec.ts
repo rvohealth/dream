@@ -293,6 +293,23 @@ describe('Dream.create', () => {
         expect(reloaded!.deletedAt).toEqualDateTime(aTime)
       })
     })
+
+    context('when the saved DateTime is in a non-UTC zone', () => {
+      it('round-trips the instant unchanged on reload', async () => {
+        const aTime = DateTime.now().minus({ days: 7 }).setZone('America/Chicago')
+
+        const user = await User.create({
+          email: 'ham@',
+          password: 'chalupas',
+          deletedAt: aTime,
+        })
+
+        const reloaded = await User.removeAllDefaultScopes().find(user.id)
+        // instant preserved regardless of the zone it was written in
+        expect(reloaded!.deletedAt!.toMillis()).toEqual(aTime.toMillis())
+        expect(reloaded!.deletedAt).toEqualDateTime(aTime)
+      })
+    })
   })
 
   context('date field', () => {
