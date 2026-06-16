@@ -52,7 +52,7 @@ const ops = {
    * @example
    * User.where({ status: ops.in(['active', 'pending']) })
    */
-  in: <const T extends unknown[]>(arr: T) => new OpsStatement<'in', T[number]>('in', arr as T[number]),
+  in: <const T extends unknown[]>(arr: T) => new OpsStatement<'in', T[number]>('in', arr),
 
   /**
    * Creates a `CurriedOpsStatement` that checks whether a PostgreSQL array column contains
