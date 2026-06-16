@@ -1,5 +1,17 @@
 overrides:
   diff: '>=8.0.3'
+  # Security patches for transitive dev dependencies (Dependabot / pnpm audit).
+  # All dev-only; pinned to the first patched version per advisory.
+  esbuild: '>=0.28.1'
+  postcss: '>=8.5.10'
+  js-yaml: '>=4.2.0'
+  markdown-it: '>=14.2.0'
+  yaml: '>=2.8.3'
+  'picomatch@<2.3.2': '>=2.3.2 <3'
+  'picomatch@>=4.0.0 <4.0.4': '>=4.0.4'
+  'brace-expansion@<1.1.13': '>=1.1.13 <2'
+  'brace-expansion@>=2.0.0 <2.0.3': '>=2.0.3 <3'
+  'brace-expansion@>=4.0.0 <5.0.6': '>=5.0.6'
 
 # SECURITY — allowBuilds is a supply-chain allowlist. pnpm 10+ blocks ALL
 # dependency lifecycle scripts (postinstall, etc.) by default; that default is
