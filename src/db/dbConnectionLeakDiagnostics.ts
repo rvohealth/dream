@@ -52,19 +52,13 @@ function track(client: object | undefined, stack: string | undefined): void {
   if (!client) return
   checkedOutClients.set(client, { stack: stack ?? '(no stack captured)', since: Date.now() })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = client as any
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (c.__dreamReleasePatched) return
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const originalRelease = c.release
   if (typeof originalRelease !== 'function') return
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   c.__dreamReleasePatched = true
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   c.release = function patchedRelease(...args: unknown[]) {
     checkedOutClients.delete(client)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return originalRelease.apply(this, args)
   }
 }
@@ -77,36 +71,27 @@ export function installDbConnectionLeakDiagnosticsIfEnabled(): void {
   if (!dreamDebugEnabled) return
   enabled = true
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
   const Pool = (pg as any).Pool
   if (!Pool?.prototype) return
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (Pool.prototype[INSTALLED]) return
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   Pool.prototype[INSTALLED] = true
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
   const originalConnect = Pool.prototype.connect
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   Pool.prototype.connect = function patchedConnect(cb?: unknown) {
     const acquireStack = new Error('db connection acquired here').stack
 
     if (typeof cb === 'function') {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
       return originalConnect.call(this, (err: unknown, client: object | undefined, release: unknown) => {
         track(client, acquireStack)
         // `track()` replaces `client.release` with an untracking wrapper.
         // Callback-style users call the 3rd `release` arg, which pg captured
         // *before* that swap — so hand them the wrapped one instead, or a
         // correctly-released client would be reported as a false leak.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         const wrappedRelease = client ? (client as any).release : release
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         ;(cb as (e: unknown, c: unknown, r: unknown) => void)(err, client, wrappedRelease)
       })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     return originalConnect.call(this).then((client: object) => {
       track(client, acquireStack)
       return client

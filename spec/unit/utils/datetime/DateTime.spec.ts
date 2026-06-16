@@ -876,7 +876,6 @@ describe('DateTime', () => {
     it('reflects UTC (not local) when coerced against a primitive', () => {
       const ny = DateTime.fromISO('2026-02-07T09:00:00.123456-05:00')
       // `==` against a primitive coerces the DateTime via valueOf (UTC), unlike object-to-object `==`
-      // eslint-disable-next-line eqeqeq
       expect((ny as unknown) == '2026-02-07T14:00:00.123456Z').toBe(true)
     })
 
