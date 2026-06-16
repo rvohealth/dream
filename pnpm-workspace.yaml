@@ -1,5 +1,13 @@
 overrides:
-  diff: '>=8.0.3'
+  # esbuild <0.28.1 is hit by GHSA-gv7w-rqvm-qjhr (high; binary-integrity RCE)
+  # and GHSA-g7r4-m6w7-qqqr (dev-server file read), both patched only at 0.28.1.
+  # vite 7 pins esbuild ^0.27 and tsx pins ~0.25, so neither parent resolves to a
+  # patched version on its own. This is the one override a parent bump can't avoid
+  # short of migrating to vite 8 (which drops esbuild for rolldown); revisit then.
+  # All other transitive advisories (postcss, js-yaml, markdown-it, yaml, picomatch,
+  # brace-expansion, diff) resolve to patched versions via their parents' caret
+  # ranges with no override needed.
+  esbuild: '>=0.28.1'
 
 # SECURITY — allowBuilds is a supply-chain allowlist. pnpm 10+ blocks ALL
 # dependency lifecycle scripts (postinstall, etc.) by default; that default is

@@ -1434,7 +1434,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         joinAndStatements: query['innerJoinAndStatements'],
         dreamClass: query['dreamClass'],
         // As recursivelyJoin progresses through the chain of associations that
-        // the developer has inclued in a join statement (e.g. `leftJoinPreload('hello as ho', 'world as wd')`),
+        // the developer has included in a join statement (e.g. `leftJoinPreload('hello as ho', 'world as wd')`),
         // previousTableAlias will be modified so that the join statement can properly reference
         // what we are joining on. When an `associationQuery` is the start of a join, then `baseSqlAlias` is set,
         // this is passed into the very beginning of recursivelyJoin.
@@ -1450,7 +1450,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         joinAndStatements: query['leftJoinAndStatements'],
         dreamClass: query['dreamClass'],
         // As recursivelyJoin progresses through the chain of associations that
-        // the developer has inclued in a join statement (e.g. `leftJoinPreload('hello as ho', 'world as wd')`),
+        // the developer has included in a join statement (e.g. `leftJoinPreload('hello as ho', 'world as wd')`),
         // previousTableAlias will be modified so that the join statement can properly reference
         // what we are joining on. When an `associationQuery` is the start of a join, then `baseSqlAlias` is set,
         // this is passed into the very beginning of recursivelyJoin.
@@ -1917,6 +1917,20 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return namespaceColumn(column, alias)
   }
 
+  /**
+   * @internal
+   *
+   * Builds the table expression passed to Kysely's `innerJoin`/`leftJoin` for an
+   * association. When the alias already snakeifies to the table name, Kysely's
+   * CamelCasePlugin emits the correct identifier from the alias alone, so no
+   * explicit `as` clause is needed; otherwise we join the table aliased as `alias`.
+   *
+   * @returns A table expression string, e.g. `"beautiful_balloons as balloon"`
+   */
+  private aliasedJoinTableExpression(tableName: string, alias: string): string {
+    return snakeify(alias) === tableName ? alias : `${tableName} as ${alias}`
+  }
+
   private checkForQueryViolations(this: KyselyQueryDriver<DreamInstance>) {
     const invalidWhereNotClauses = this.similarityStatementBuilder().whereNotStatementsWithSimilarityClauses()
     if (invalidWhereNotClauses.length) {
@@ -2092,12 +2106,19 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     dreamClassTheAssociationIsDefinedOn,
     throughAssociation,
     /**
-     * If the join statement includes an explicit alias, e.g.,
-     * `leftJoinPreload('hello as ho', 'world as wd')`
-     * then explicitAlias is set (e.g., to 'ho' the first time that `recursivelyJoin`
-     * calls this method and to 'ho' the second time `recursivelyJoin` is called)
-     * If only implicit aliasing happens (based on association name)
-     * (e.g. `leftJoinPreload('hello', 'world')`), then explicitAlias is null
+     * The table alias to use for the association being joined.
+     *
+     * When the join statement includes an explicit alias, e.g.
+     * `leftJoinPreload('hello as ho', 'world as wd')`, explicitAlias is that
+     * alias ('ho' for `hello`, 'wd' for `world`).
+     *
+     * When no explicit alias is given (e.g. `leftJoinPreload('hello', 'world')`),
+     * `recursivelyJoin` passes the association name itself ('hello', 'world') as
+     * the alias, so explicitAlias is still defined.
+     *
+     * explicitAlias is only `undefined` for the intermediate join tables that
+     * `joinsBridgeThroughAssociations` synthesizes while bridging a `through`
+     * association — those tables are never aliased by the developer.
      */
     explicitAlias,
     /**
@@ -2259,12 +2280,19 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     dreamClass,
     association,
     /**
-     * If the join statement includes an explicit alias, e.g.,
-     * `leftJoinPreload('hello as ho', 'world as wd')`
-     * then explicitAlias is set (e.g., to 'ho' the first time that `recursivelyJoin`
-     * calls this method and to 'ho' the second time `recursivelyJoin` is called)
-     * If only implicit aliasing happens (based on association name)
-     * (e.g. `leftJoinPreload('hello', 'world')`), then explicitAlias is null
+     * The table alias to use for the association being joined.
+     *
+     * When the join statement includes an explicit alias, e.g.
+     * `leftJoinPreload('hello as ho', 'world as wd')`, explicitAlias is that
+     * alias ('ho' for `hello`, 'wd' for `world`).
+     *
+     * When no explicit alias is given (e.g. `leftJoinPreload('hello', 'world')`),
+     * `recursivelyJoin` passes the association name itself ('hello', 'world') as
+     * the alias, so explicitAlias is still defined.
+     *
+     * explicitAlias is only `undefined` for the intermediate join tables that
+     * `joinsBridgeThroughAssociations` synthesizes while bridging a `through`
+     * association — those tables are never aliased by the developer.
      */
     explicitAlias,
     /**
@@ -2341,12 +2369,19 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     dreamClass,
     association,
     /**
-     * If the join statement includes an explicit alias, e.g.,
-     * `leftJoinPreload('hello as ho', 'world as wd')`
-     * then explicitAlias is set (e.g., to 'ho' the first time that `recursivelyJoin`
-     * calls this method and to 'ho' the second time `recursivelyJoin` is called)
-     * If only implicit aliasing happens (based on association name)
-     * (e.g. `leftJoinPreload('hello', 'world')`), then explicitAlias is null
+     * The table alias to use for the association being joined.
+     *
+     * When the join statement includes an explicit alias, e.g.
+     * `leftJoinPreload('hello as ho', 'world as wd')`, explicitAlias is that
+     * alias ('ho' for `hello`, 'wd' for `world`).
+     *
+     * When no explicit alias is given (e.g. `leftJoinPreload('hello', 'world')`),
+     * `recursivelyJoin` passes the association name itself ('hello', 'world') as
+     * the alias, so explicitAlias is still defined.
+     *
+     * explicitAlias is only `undefined` for the intermediate join tables that
+     * `joinsBridgeThroughAssociations` synthesizes while bridging a `through`
+     * association — those tables are never aliased by the developer.
      */
     explicitAlias,
     /**
@@ -2416,8 +2451,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         })
 
       const to = (dreamClassThroughAssociationWantsToHydrate ?? (association.modelCB() as typeof Dream)).table
-      const joinTableExpression =
-        snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
+      const joinTableExpression = this.aliasedJoinTableExpression(to, currentTableAlias)
 
       query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
@@ -2475,8 +2509,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       )
     } else {
       const to = association.modelCB().table
-      const joinTableExpression =
-        snakeify(currentTableAlias) === to ? currentTableAlias : `${to} as ${currentTableAlias}`
+      const joinTableExpression = this.aliasedJoinTableExpression(to, currentTableAlias)
 
       query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
         joinTableExpression,
