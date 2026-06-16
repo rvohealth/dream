@@ -31,6 +31,23 @@ Rules:
 - If a command takes a long time, wait for it. Do not assume it would have
   passed.
 
+## Changelog and Versioning
+
+Every **user-facing** change needs a version bump and a corresponding
+`CHANGELOG.md` entry. A change is user-facing if a consumer of the published
+package can observe it: runtime behavior, public/exported API or types,
+generated output, error messages, deprecations, or peer-dependency
+requirements.
+
+The changelog is written for consumers of the package, so it must **not**
+document fully internal changes — refactors, renames of unexported symbols,
+internal type-annotation cleanups, comment/doc edits, test-only changes, and
+anything else with no observable effect on a consumer. These still ship, but
+they get neither a changelog entry nor (on their own) a version bump.
+
+When in doubt, ask: "could someone who only installs the npm package tell this
+happened?" If no, keep it out of the changelog.
+
 ## Database Commands
 
 ### Migrate the Database
