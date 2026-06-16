@@ -21,6 +21,6 @@ export class Range<
     public readonly end: U | null = null,
     public readonly excludeEnd: boolean = false
   ) {
-    if (!begin && !end) throw new Error('Must pass either begin or end to a range')
+    if (begin == null && end == null) throw new Error('Must pass either begin or end to a range')
   }
 }
