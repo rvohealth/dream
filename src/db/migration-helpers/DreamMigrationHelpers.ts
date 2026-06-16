@@ -348,13 +348,13 @@ interface DropValueFromEnumTablesAndColumnsForArrayBase {
 
 interface DropValueWithRemovalFromEnumTablesAndColumnsForArray
   extends DropValueFromEnumTablesAndColumnsForArrayBase {
-  behavior: 'replace'
-  replaceWith: string
+  behavior: 'remove'
 }
 
 interface DropValueWithReplacementFromEnumTablesAndColumnsForArray
   extends DropValueFromEnumTablesAndColumnsForArrayBase {
-  behavior: 'remove'
+  behavior: 'replace'
+  replaceWith: string
 }
 
 type DropValueFromEnumTablesAndColumnsForArray =
