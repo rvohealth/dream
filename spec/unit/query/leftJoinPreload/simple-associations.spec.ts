@@ -253,7 +253,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with selfWhere clause', () => {
+    context('with selfAnd clause', () => {
       it('loads the associated object', async () => {
         const user = await User.create({
           email: 'fred@frewd',
@@ -270,7 +270,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       })
     })
 
-    context('with selfWhereNot clause', () => {
+    context('with selfAndNot clause', () => {
       let node: Node
       let edge1: Edge
       let edge2: Edge

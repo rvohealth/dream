@@ -475,7 +475,7 @@ describe('Query#joins through with simple associations', () => {
     })
   })
 
-  context('with a selfWhere clause', () => {
+  context('with a selfAnd clause', () => {
     it('applies conditional to selectively bring in records', async () => {
       const user = await User.create({
         email: 'fred@frewd',
@@ -493,7 +493,7 @@ describe('Query#joins through with simple associations', () => {
       expect(plucked).toEqual([[post2.id, 'world']])
     })
 
-    context('when the selfWhere is declared on the join association', () => {
+    context('when the selfAnd is declared on the join association', () => {
       it('applies conditional to selectively bring in records', async () => {
         const user = await User.create({
           email: 'fred@frewd',

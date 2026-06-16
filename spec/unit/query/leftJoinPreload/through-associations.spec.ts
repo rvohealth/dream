@@ -405,7 +405,7 @@ describe('Query#leftJoinPreload through', () => {
         })
       })
 
-      context('with selfWhere clause', () => {
+      context('with selfAnd clause', () => {
         it('loads the associated models', async () => {
           const user = await User.create({
             email: 'fred@frewd',
@@ -426,7 +426,7 @@ describe('Query#leftJoinPreload through', () => {
           expect(reloadedUser.featuredRatings).toMatchDreamModels([rating2])
         })
 
-        context('when the selfWhere is declared on the join association', () => {
+        context('when the selfAnd is declared on the join association', () => {
           it('applies conditional to selectively bring in records', async () => {
             const user = await User.create({
               email: 'fred@frewd',
@@ -451,7 +451,7 @@ describe('Query#leftJoinPreload through', () => {
         })
 
         context(
-          'when the association with the selfWhere clause is not the starting model in the association chain',
+          'when the association with the selfAnd clause is not the starting model in the association chain',
           () => {
             it('loads the associated object', async () => {
               const user = await User.create({
@@ -506,7 +506,7 @@ describe('Query#leftJoinPreload through', () => {
         })
       })
 
-      context('with selfWhereNot clause', () => {
+      context('with selfAndNot clause', () => {
         let node: Node
         let edge1: Edge
         let edge2: Edge
@@ -535,7 +535,7 @@ describe('Query#leftJoinPreload through', () => {
           expect(reloadedNode.nonOmittedPositionEdges).toMatchDreamModels([edge2, edge3])
         })
 
-        context('when the selfWhere is declared on the join association', () => {
+        context('when the selfAnd is declared on the join association', () => {
           it('applies conditional to selectively bring in records', async () => {
             const sanityCheckNode = await Node.query().leftJoinPreload('edges').firstOrFail()
             expect(sanityCheckNode.edges).toMatchDreamModels([edge1, edge2, edge3])
