@@ -18,15 +18,12 @@ import {
 // real shutdown-hang reproduction; mocking pg.Pool's async connect here would
 // only test the mock.
 describe('db connection leak diagnostics (disabled by default)', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
   const Pool = (pg as any).Pool
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const pristineConnect = Pool.prototype.connect
 
   it('does not patch pg.Pool.prototype.connect (no NODE_DEBUG=dream in the test process)', () => {
     installDbConnectionLeakDiagnosticsIfEnabled()
     installDbConnectionLeakDiagnosticsIfEnabled() // idempotent / safe to repeat
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(Pool.prototype.connect).toBe(pristineConnect)
   })
 

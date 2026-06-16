@@ -21,6 +21,12 @@ pnpm spec
 Rules:
 
 - **Never** push or open a PR if any of the three fail. Fix the failure first.
+- **Zero lint warnings.** `pnpm lint` must exit clean — no errors _and_ no
+  warnings. ESLint warnings (e.g. unused `eslint-disable` directives) do not
+  fail the command's exit code on their own, so read the output: if the summary
+  reports any warnings, the gauntlet has NOT passed. Most are auto-fixable by
+  re-running the lint command with `--fix` added to the `eslint` invocation,
+  followed by `pnpm format`. A PR must never introduce a new lint warning.
 - **Never** trust a previous run — re-run the gauntlet after every change you
   make in response to a failure, including formatter/lint auto-fixes.
 - `pnpm spec` (full suite) is required. Targeted `pnpm spec <path>` runs skip
