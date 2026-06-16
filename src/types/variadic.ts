@@ -341,7 +341,7 @@ type VariadicRecurse<
     : ConcreteTableName,
   //
   CurrentRequiredOnClauseKeys = IsAssociationNameOrAlias extends true
-    ? RequiredOnClauseKeys<Schema, EffectiveConcreteTableName, NextAliasedAssociationName>
+    ? RequiredOnClauseKeys<Schema, EffectiveConcreteTableName, NextUnaliasedAssociationName>
     : RequiredOnClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
   //
   AllowedNextArgValues = RecursionType extends 'load'
