@@ -3,6 +3,9 @@
   "name": "@rvoh/dream",
   "version": "2.15.0",
   "description": "dream orm",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rvohealth/dream.git"
