@@ -3,6 +3,11 @@ import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
 import type { PoolConfig as PgPoolConfig } from 'pg'
 import * as util from 'node:util'
 import { Context } from 'node:vm'
+import {
+  claimedTestDatabaseIndexOrNull,
+  claimTestDatabase,
+  testDatabaseNameForIndex,
+} from '../db/testDatabasePool.js'
 import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
 import Query from '../dream/Query.js'
@@ -69,7 +74,12 @@ export default class DreamApp {
 
     cacheDreamApp(dreamApp)
 
-    if (!opts.bypassDbConnectionsDuringInit) await this.setDatabaseTypeParsers(dreamApp)
+    if (!opts.bypassDbConnectionsDuringInit) {
+      // Claim this worker's pool database before any connection is built, so
+      // the synchronous dbName() always resolves to the claimed database.
+      await dreamApp.ensureTestDatabaseClaimed()
+      await this.setDatabaseTypeParsers(dreamApp)
+    }
 
     await deferCb?.(dreamApp)
 
@@ -347,9 +357,57 @@ A new key can also be generated from the CLI:
     return getSerializersOrFail()
   }
 
+  /**
+   * The database name to connect to for a given connection. In dev/prod this is
+   * simply the configured name. Under vitest (test env) it is the per-worker
+   * database claimed from the pool — see {@link testDatabaseClaimEnabled} and
+   * `src/db/testDatabasePool.ts`.
+   *
+   * This is synchronous because Kysely builds its `pg.Pool` synchronously. It
+   * reads the already-claimed pool index; the claim is awaited earlier in the
+   * worker — `DreamApp.init()` calls {@link claimTestDatabase} before the first
+   * connection is built, and `dream-spec-helpers`' `truncate` awaits
+   * {@link testDatabaseName} — so the index is always populated by the time any
+   * connection resolves its name.
+   */
   public dbName(connectionName: string, connection: DbConnectionType): string {
     const conf = this.dbConnectionConfig(connectionName, connection)
-    return this.parallelDatabasesEnabled ? `${conf.name}_${process.env.VITEST_POOL_ID}` : conf.name
+    if (!this.testDatabaseClaimEnabled) return conf.name
+
+    const index = claimedTestDatabaseIndexOrNull()
+    if (index === null)
+      throw new Error(
+        `[dream] dbName("${connectionName}", "${connection}") was resolved before this worker claimed ` +
+          `a test database. The pool claim must be awaited first (DreamApp.init / truncate do this). ` +
+          `This indicates a database connection was opened before app initialization completed.`
+      )
+
+    return testDatabaseNameForIndex(conf.name, index)
+  }
+
+  /**
+   * Single source of truth for the claimed test-database name, used both by
+   * dream's connection resolution and by `dream-spec-helpers`' `truncate`
+   * (which opens its own `pg.Client` and so must read — not recompute — the
+   * claim). Awaits the pool claim if it has not happened yet in this worker.
+   */
+  public async testDatabaseName(connectionName: string, connection: DbConnectionType): Promise<string> {
+    const conf = this.dbConnectionConfig(connectionName, connection)
+    if (!this.testDatabaseClaimEnabled) return conf.name
+
+    const index = await claimTestDatabase(this)
+    return testDatabaseNameForIndex(conf.name, index)
+  }
+
+  /**
+   * Claim this worker's pool database if it hasn't been claimed yet. Idempotent
+   * and a no-op outside the test-under-vitest path. Called by `DreamApp.init()`
+   * before any connection is built so the synchronous {@link dbName} always
+   * sees a populated index.
+   */
+  public async ensureTestDatabaseClaimed(): Promise<void> {
+    if (!this.testDatabaseClaimEnabled) return
+    await claimTestDatabase(this)
   }
 
   public dbConnectionConfig(connectionName: string, connection: DbConnectionType): DreamDbConfig {
@@ -392,12 +450,16 @@ A new key can also be generated from the CLI:
     return !!this.dbCredentials[connectionName]?.replica
   }
 
-  public get parallelDatabasesEnabled(): boolean {
-    return (
-      !!this.parallelTests &&
-      !Number.isNaN(Number(process.env.VITEST_POOL_ID)) &&
-      Number(process.env.VITEST_POOL_ID) > 1
-    )
+  /**
+   * Whether the per-worker test-database pool claim is active. Gated on test
+   * env *under vitest* (not on `parallelTests > 1`): the slot-reuse collision
+   * reproduces even serially, because vitest respawns a process per file and
+   * the lingering process overlaps the new one on the same database. CLI db
+   * tasks (`db:migrate`, `db:reset`, …) do not run under vitest, so they keep
+   * the unsuffixed name and operate on the whole pool explicitly.
+   */
+  public get testDatabaseClaimEnabled(): boolean {
+    return EnvInternal.isTest && runningUnderVitest()
   }
 
   public async load<RT extends 'models' | 'serializers'>(
@@ -749,6 +811,15 @@ export interface KyselyLogEvent {
   query: CompiledQuery // this object contains the raw SQL string, parameters, and Kysely's SQL syntax tree that helped output the raw SQL string.
   queryDurationMillis: number // the time in milliseconds it took for the query to execute and get a response from the database.
   error: unknown // only present if `level` is `'error'`.
+}
+
+/**
+ * Whether the current process is a vitest worker. vitest sets `VITEST=true` in
+ * every worker, and also exposes the per-worker `VITEST_POOL_ID` /
+ * `VITEST_WORKER_ID`. CLI db tasks run outside vitest, so this is false there.
+ */
+function runningUnderVitest(): boolean {
+  return process.env.VITEST === 'true' || process.env.VITEST_POOL_ID != null
 }
 
 export const DreamAppAllowedPackageManagersEnumValues = ['pnpm', 'yarn', 'npm', 'bun', 'deno'] as const

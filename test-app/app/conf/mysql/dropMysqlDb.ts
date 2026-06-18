@@ -1,5 +1,6 @@
 import * as mysql from 'mysql2'
 import DreamCLI from '../../../../src/cli/index.js'
+import { testDatabasePoolSize } from '../../../../src/db/testDatabasePool.js'
 import DreamApp from '../../../../src/dream-app/index.js'
 import EnvInternal from '../../../../src/helpers/EnvInternal.js'
 import { DbConnectionType } from '../../../../src/types/db.js'
@@ -48,7 +49,8 @@ async function maybeDropDuplicateDatabases(connectionName: string, client: mysql
     })
   }
 
-  for (let i = 2; i <= parallelTests; i++) {
+  const poolSize = testDatabasePoolSize(parallelTests)
+  for (let i = 2; i <= poolSize; i++) {
     const workerDatabaseName = `${dbName}_${i}`
     DreamCLI.logger.logContinueProgress(`dropping duplicate test database ${workerDatabaseName}`, {
       logPrefix: '  ├ [db]',

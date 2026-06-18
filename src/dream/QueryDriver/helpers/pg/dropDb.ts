@@ -1,5 +1,6 @@
 import { Client } from 'pg'
 import DreamCLI from '../../../../cli/index.js'
+import { testDatabasePoolSize } from '../../../../db/testDatabasePool.js'
 import DreamApp from '../../../../dream-app/index.js'
 import { DbConnectionType } from '../../../../types/db.js'
 import EnvInternal from '../../../../helpers/EnvInternal.js'
@@ -42,7 +43,8 @@ async function maybeDropDuplicateDatabases(client: Client, dbName: string) {
     await client.query(`DROP DATABASE IF EXISTS ${replicaTestWorkerDatabaseName};`)
   }
 
-  for (let i = 2; i <= parallelTests; i++) {
+  const poolSize = testDatabasePoolSize(parallelTests)
+  for (let i = 2; i <= poolSize; i++) {
     const workerDatabaseName = `${dbName}_${i}`
     DreamCLI.logger.logContinueProgress(`dropping duplicate test database ${workerDatabaseName}`, {
       logPrefix: '  ├ [db]',

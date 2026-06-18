@@ -31,6 +31,7 @@ import {
   parsePostgresTime,
   parsePostgresTimeTz,
 } from '../../helpers/customPgParsers.js'
+import { testDatabasePoolSize } from '../../db/testDatabasePool.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import createDb from './helpers/pg/createDb.js'
 import _dropDb from './helpers/pg/dropDb.js'
@@ -226,7 +227,12 @@ export default class PostgresQueryDriver<
       await client.query(`CREATE DATABASE ${replicaTestWorkerDatabaseName} TEMPLATE ${dbConf.name};`)
     }
 
-    for (let i = 2; i <= parallelTests; i++) {
+    // The pool spans `<base>` (the migration template, also claimable) plus
+    // `<base>_2 .. <base>_K`. Each live test worker claims one member for its
+    // lifetime via an advisory lock, so the pool must be wide enough to cover
+    // active + still-terminating workers — see src/db/testDatabasePool.ts.
+    const poolSize = testDatabasePoolSize(parallelTests)
+    for (let i = 2; i <= poolSize; i++) {
       const workerDatabaseName = `${dbConf.name}_${i}`
 
       DreamCLI.logger.logContinueProgress(

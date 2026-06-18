@@ -9,6 +9,7 @@
 
 import { CamelCasePlugin, Kysely } from 'kysely'
 import DreamApp, { KyselyLogEvent, DreamDbConfig } from '../dream-app/index.js'
+import { claimedTestDatabaseIndexOrNull } from './testDatabasePool.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { DbConnectionType } from '../types/db.js'
 import {
@@ -57,9 +58,13 @@ export default class DreamDbConnection {
   }
 
   private static getConnectionTypeName(connectionType: DbConnectionType): string {
-    return DreamApp.getOrFail().parallelDatabasesEnabled
-      ? `${connectionType}_${process.env.VITEST_POOL_ID}`
-      : connectionType
+    // The connection cache is per Node process (per vitest worker), and a worker
+    // only ever uses its single claimed pool index, so suffixing the cache key by
+    // that index keeps connections cached per claimed database without colliding
+    // across the (now process-scoped) registry.
+    if (!DreamApp.getOrFail().testDatabaseClaimEnabled) return connectionType
+    const index = claimedTestDatabaseIndexOrNull()
+    return index === null ? connectionType : `${connectionType}_${index}`
   }
 }
 
