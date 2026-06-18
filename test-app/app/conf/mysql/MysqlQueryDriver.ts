@@ -2,6 +2,7 @@ import { MysqlDialect, OrderByItemBuilder, sql } from 'kysely'
 import { createPool } from 'mysql2'
 import DreamCLI from '../../../../src/cli/index.js'
 import { isPrimitiveDataType } from '../../../../src/db/dataTypes.js'
+import { testDatabasePoolSize } from '../../../../src/db/testDatabasePool.js'
 import DreamApp, { DreamDbConfig } from '../../../../src/dream-app/index.js'
 import Dream from '../../../../src/Dream.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
@@ -131,7 +132,11 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
       await duplicateMysqlDatabase(dbConf.name, replicaTestWorkerDatabaseName, connectionName)
     }
 
-    for (let i = 2; i <= parallelTests; i++) {
+    // Match the Postgres pool width (src/db/testDatabasePool.ts): a worker
+    // claims a single pool index used as the suffix for every connection,
+    // including this mysql one, so every index up to K must exist here too.
+    const poolSize = testDatabasePoolSize(parallelTests)
+    for (let i = 2; i <= poolSize; i++) {
       const workerDatabaseName = `${dbConf.name}_${i}`
 
       DreamCLI.logger.logContinueProgress(

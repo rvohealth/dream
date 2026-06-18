@@ -28,8 +28,8 @@ importers:
         specifier: '=9.0.0'
         version: 9.0.0
       '@rvoh/dream-spec-helpers':
-        specifier: ^2.1.1
-        version: 2.1.1(@types/node@25.3.3)(@types/pg@8.11.11)(pg@8.13.3)
+        specifier: ^2.2.0
+        version: 2.2.0(@types/node@25.3.3)(@types/pg@8.11.11)(pg@8.13.3)
       '@types/luxon':
         specifier: ^3.7.1
         version: 3.7.1
@@ -482,8 +482,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rvoh/dream-spec-helpers@2.1.1':
-    resolution: {integrity: sha512-LtlgS0zlraYNLd1NSKwwLAxy6H66uAv0nlA+1L//WJ+IuWg1wXr6seMhe2VD7KChaCMNx6ZqaLDBkYcfFr3F2A==}
+  '@rvoh/dream-spec-helpers@2.2.0':
+    resolution: {integrity: sha512-Y6z5GNmkZW/UAOHF0nPfE+hLywbvaSJTJV88grofFrnqaxCYoOI9HOGM+6UyALhf2IoqmpqAEK/eNjHNgnbuvA==}
     peerDependencies:
       '@types/node': '*'
       '@types/pg': '*'
@@ -809,8 +809,8 @@ packages:
     resolution: {integrity: sha512-uc47g4b+4k/M/SeaW1y4OApx+mtLWl92l5LMPP0GNXctZqELk+YGgOPIIC5elYmUH4OuoK3JLhuRUYegeySiFA==}
     engines: {node: '>=12'}
 
-  dotenv@16.4.5:
-    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+  dotenv@16.6.1:
+    resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
 
   dotenv@17.3.1:
@@ -1981,7 +1981,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.0':
     optional: true
 
-  '@rvoh/dream-spec-helpers@2.1.1(@types/node@25.3.3)(@types/pg@8.11.11)(pg@8.13.3)':
+  '@rvoh/dream-spec-helpers@2.2.0(@types/node@25.3.3)(@types/pg@8.11.11)(pg@8.13.3)':
     dependencies:
       '@types/node': 25.3.3
       '@types/pg': 8.11.11
@@ -2335,9 +2335,9 @@ snapshots:
 
   dotenv-expand@12.0.3:
     dependencies:
-      dotenv: 16.4.5
+      dotenv: 16.6.1
 
-  dotenv@16.4.5: {}
+  dotenv@16.6.1: {}
 
   dotenv@17.3.1: {}
 

@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.13.1",
+  "version": "2.14.0",
   "description": "dream orm",
   "repository": {
     "type": "git",
@@ -88,7 +88,7 @@
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
-    "@rvoh/dream-spec-helpers": "^2.1.1",
+    "@rvoh/dream-spec-helpers": "^2.2.0",
     "@types/luxon": "^3.7.1",
     "@types/node": "^25.3.3",
     "@types/pg": "^8.11.11",
