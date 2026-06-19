@@ -5,7 +5,7 @@ import { DateTime } from '../utils/datetime/DateTime.js'
 
 /**
  * Performs a deep equality check between two values, supporting primitives, arrays,
- * Dream instances, CalendarDate, DateTime, and objects.
+ * Dream instances, CalendarDate, DateTime, ClockTime, ClockTimeTz, and objects.
  *
  * Examples:
  *   areEqual(undefined, undefined) // true
