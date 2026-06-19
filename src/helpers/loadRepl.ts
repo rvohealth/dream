@@ -2,6 +2,8 @@ import DreamApp from '../dream-app/index.js'
 import Encrypt from '../encrypt/index.js'
 import ops from '../ops/index.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
+import ClockTime from '../utils/datetime/ClockTime.js'
+import ClockTimeTz from '../utils/datetime/ClockTimeTz.js'
 import { DateTime } from '../utils/datetime/DateTime.js'
 import camelize from './camelize.js'
 import capitalize from './capitalize.js'
@@ -21,6 +23,8 @@ export default async function loadRepl(context: Record<string, unknown>) {
   const dreamApp = DreamApp.getOrFail()
 
   context.CalendarDate = CalendarDate
+  context.ClockTime = ClockTime
+  context.ClockTimeTz = ClockTimeTz
   context.DateTime = DateTime
   context.Encrypt = Encrypt
   context.camelize = camelize
