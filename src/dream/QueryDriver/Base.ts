@@ -218,6 +218,38 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public static async duplicateDatabase(connectionName: string) {}
 
+  /**
+   * @internal
+   *
+   * Whether this driver implements the per-worker test-database claim seam
+   * ({@link openTestDatabaseLockSession}). Adapters that can hold a
+   * process-lifetime, auto-releasing lock to reserve one database from the
+   * test pool override this to `true`. It defaults to `false` so that a new
+   * adapter fails loud under vitest rather than silently sharing a single
+   * database across overlapping workers — see `src/db/testDatabasePool.ts`.
+   */
+  public static supportsParallelTestDatabases = false
+
+  /**
+   * @internal
+   *
+   * Open a dedicated, process-lifetime lock session used to claim one database
+   * from the per-worker test pool. Only ever called when
+   * {@link supportsParallelTestDatabases} is `true`; the base default throws.
+   *
+   * The returned session wraps a single dedicated connection: the orchestrator
+   * (`src/db/testDatabasePool.ts`) probes many pool indexes on the one session
+   * via `tryAcquire` and keeps whichever it acquires, holding it for the
+   * worker's lifetime.
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async openTestDatabaseLockSession(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string
+  ): Promise<TestDatabaseLockSession> {
+    throw new Error('override openTestDatabaseLockSession in child class')
+  }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async getColumnData(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -516,3 +548,28 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
 }
 
 export type GenericDbType = 'datetime' | 'date'
+
+/**
+ * One dedicated lock session backing the per-worker test-database claim. The
+ * orchestrator (`src/db/testDatabasePool.ts`) opens one session per worker,
+ * probes pool indexes with {@link tryAcquire}, and keeps the first index it
+ * wins for the worker's lifetime.
+ *
+ * The session intentionally carries no adapter-specific lock-key type:
+ * `tryAcquire` takes a semantic `(namespace, index)` pair and each driver maps
+ * it to its own primitive (Postgres `pg_try_advisory_lock(int4, int4)`, MySQL
+ * `GET_LOCK`), so no Postgres int-pair leaks into the shared contract.
+ */
+export interface TestDatabaseLockSession {
+  /**
+   * Try to acquire the lock for `(namespace, index)` without blocking. Returns
+   * `true` if this session now holds it, `false` if another live session does.
+   * Must not wait — the orchestrator drives its own probe / wait-for-free loop.
+   */
+  tryAcquire(namespace: string, index: number): Promise<boolean>
+
+  /**
+   * Close the underlying connection, releasing any lock it holds.
+   */
+  release(): Promise<void>
+}

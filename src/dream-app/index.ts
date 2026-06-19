@@ -372,7 +372,8 @@ A new key can also be generated from the CLI:
    */
   public dbName(connectionName: string, connection: DbConnectionType): string {
     const conf = this.dbConnectionConfig(connectionName, connection)
-    if (!this.testDatabaseClaimEnabled) return conf.name
+    if (!this.runtimeNeedsTestDatabaseClaim) return conf.name
+    this.requireTestDatabaseClaimSupport()
 
     const index = claimedTestDatabaseIndexOrNull()
     if (index === null)
@@ -393,7 +394,8 @@ A new key can also be generated from the CLI:
    */
   public async testDatabaseName(connectionName: string, connection: DbConnectionType): Promise<string> {
     const conf = this.dbConnectionConfig(connectionName, connection)
-    if (!this.testDatabaseClaimEnabled) return conf.name
+    if (!this.runtimeNeedsTestDatabaseClaim) return conf.name
+    this.requireTestDatabaseClaimSupport()
 
     const index = await claimTestDatabase(this)
     return testDatabaseNameForIndex(conf.name, index)
@@ -406,7 +408,8 @@ A new key can also be generated from the CLI:
    * sees a populated index.
    */
   public async ensureTestDatabaseClaimed(): Promise<void> {
-    if (!this.testDatabaseClaimEnabled) return
+    if (!this.runtimeNeedsTestDatabaseClaim) return
+    this.requireTestDatabaseClaimSupport()
     await claimTestDatabase(this)
   }
 
@@ -451,15 +454,60 @@ A new key can also be generated from the CLI:
   }
 
   /**
-   * Whether the per-worker test-database pool claim is active. Gated on test
-   * env *under vitest* (not on `parallelTests > 1`): the slot-reuse collision
-   * reproduces even serially, because vitest respawns a process per file and
-   * the lingering process overlaps the new one on the same database. CLI db
-   * tasks (`db:migrate`, `db:reset`, …) do not run under vitest, so they keep
-   * the unsuffixed name and operate on the whole pool explicitly.
+   * Whether the runtime *requires* a per-worker test-database claim. Gated on
+   * test env *under vitest* (not on `parallelTests > 1`): the slot-reuse
+   * collision reproduces even serially, because vitest respawns a process per
+   * file and the lingering process overlaps the new one on the same database.
+   * CLI db tasks (`db:migrate`, `db:reset`, …) do not run under vitest, so they
+   * keep the unsuffixed name and operate on the whole pool explicitly.
+   *
+   * This is independent of whether the default driver can actually claim — when
+   * the need is present but the capability is absent, the claim path fails loud
+   * (see {@link requireTestDatabaseClaimSupport}) rather than silently sharing
+   * one database.
+   */
+  public get runtimeNeedsTestDatabaseClaim(): boolean {
+    return EnvInternal.isTest && runningUnderVitest()
+  }
+
+  /**
+   * Whether the default connection's query driver implements the per-worker
+   * test-database claim seam (`openTestDatabaseLockSession`). The claim is keyed
+   * off the **default** connection's capability so a Postgres-default app with a
+   * MySQL secondary keeps working (the secondary borrows the Postgres-claimed
+   * index for its database name).
+   */
+  private get defaultConnectionSupportsParallelTestDatabases(): boolean {
+    return this.dbConnectionQueryDriverClass('default').supportsParallelTestDatabases
+  }
+
+  /**
+   * Whether the per-worker test-database pool claim is active: needed by the
+   * runtime *and* supported by the default connection's driver. Consumers that
+   * key behavior off the claimed index (connection-cache suffixing) use this;
+   * the claim entry points additionally fail loud when the need is present but
+   * support is absent.
    */
   public get testDatabaseClaimEnabled(): boolean {
-    return EnvInternal.isTest && runningUnderVitest()
+    return this.runtimeNeedsTestDatabaseClaim && this.defaultConnectionSupportsParallelTestDatabases
+  }
+
+  /**
+   * Throw an actionable error when the runtime needs a per-worker test-database
+   * claim but the default connection's driver cannot provide one — rather than
+   * silently sharing a single database across overlapping vitest workers (which
+   * reintroduces the flake this whole mechanism exists to fix).
+   */
+  private requireTestDatabaseClaimSupport(): void {
+    if (this.defaultConnectionSupportsParallelTestDatabases) return
+    const driverName = this.dbConnectionQueryDriverClass('default').name
+    throw new Error(
+      `[dream] running under vitest requires a per-worker test database, but the "default" connection's ` +
+        `query driver (${driverName}) does not support parallel test databases. Implement the claim seam ` +
+        `on that driver — set \`supportsParallelTestDatabases = true\` and override ` +
+        `\`openTestDatabaseLockSession\` (see PostgresQueryDriver / the test-app MysqlQueryDriver for ` +
+        `reference) — or do not run this adapter under vitest.`
+    )
   }
 
   public async load<RT extends 'models' | 'serializers'>(

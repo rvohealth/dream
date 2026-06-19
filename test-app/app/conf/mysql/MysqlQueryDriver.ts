@@ -8,6 +8,7 @@ import Dream from '../../../../src/Dream.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import executeDatabaseQuery from '../../../../src/dream/internal/executeDatabaseQuery.js'
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
+import type { TestDatabaseLockSession } from '../../../../src/dream/QueryDriver/Base.js'
 import camelize from '../../../../src/helpers/camelize.js'
 import {
   SchemaBuilderAssociationData,
@@ -201,6 +202,54 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
     return 'mysql'
   }
 
+  public static override supportsParallelTestDatabases = true
+
+  /**
+   * @internal
+   *
+   * MySQL implementation of the per-worker test-database claim seam (see
+   * {@link TestDatabaseLockSession} and `src/db/testDatabasePool.ts`). MySQL
+   * named locks (`GET_LOCK`) are server-wide and owned by the connection that
+   * holds them; the lock auto-releases when the connection closes, so a
+   * dedicated process-lifetime connection reserves a pool index exactly the way
+   * the Postgres advisory lock does. The `(namespace, index)` pair maps to a
+   * `GET_LOCK` name kept under MySQL's 64-character limit by hashing the
+   * namespace.
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static override async openTestDatabaseLockSession(
+    connectionName: string
+  ): Promise<TestDatabaseLockSession> {
+    const connection = loadMysqlClient({ useSystemDb: true, connectionName })
+
+    function runQuery<T>(sqlText: string, params: unknown[]): Promise<T> {
+      return new Promise((resolve, reject) => {
+        connection.query(sqlText, params, (err, rows) => {
+          if (err) reject(err)
+          else resolve(rows as T)
+        })
+      })
+    }
+
+    return {
+      async tryAcquire(namespace: string, index: number): Promise<boolean> {
+        // GET_LOCK(name, 0): a 0-second timeout makes this a non-blocking try.
+        // Returns 1 when acquired, 0 when another session holds it, NULL on
+        // error.
+        const rows = await runQuery<Array<{ locked: number | null }>>('SELECT GET_LOCK(?, 0) AS locked', [
+          mysqlAdvisoryLockName(namespace, index),
+        ])
+        return rows[0]?.locked === 1
+      },
+      release(): Promise<void> {
+        // RELEASE_LOCK is implicit when the connection closes.
+        return new Promise<void>(resolve => {
+          connection.end(() => resolve())
+        })
+      },
+    }
+  }
+
   /**
    * persists any unsaved changes to the database. If a transaction
    * is provided as a second argument, it will use that transaction
@@ -290,6 +339,24 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
       }
     }
   }
+}
+
+// Derive a stable MySQL `GET_LOCK` name from the semantic `(namespace, index)`
+// pair. MySQL caps lock names at 64 characters, so the (potentially long) base
+// database name is hashed rather than embedded. Distinct namespaces yield
+// distinct lock spaces, mirroring the Postgres `key1` derivation, so two apps
+// sharing one MySQL server reserve disjoint index ranges.
+function mysqlAdvisoryLockName(namespace: string, index: number): string {
+  const hash = (mysqlInt32Hash(namespace) >>> 0).toString(16)
+  return `dream_test_pool_${hash}_${index}`
+}
+
+function mysqlInt32Hash(value: string): number {
+  let hash = 0
+  for (let i = 0; i < value.length; i++) {
+    hash = (Math.imul(hash, 31) + value.charCodeAt(i)) | 0
+  }
+  return hash
 }
 
 function normalizeMysqlTemporalStrings<T extends Record<string, any>>(attrs: T): T {
