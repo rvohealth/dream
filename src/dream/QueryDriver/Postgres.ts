@@ -37,8 +37,35 @@ import createDb from './helpers/pg/createDb.js'
 import _dropDb from './helpers/pg/dropDb.js'
 import loadPgClient from './helpers/pg/loadPgClient.js'
 import KyselyQueryDriver from './Kysely.js'
+import type { TestDatabaseLockSession } from './Base.js'
 
 const pgTypes = pg.types
+
+// Fixed dream-pool namespace constant for the advisory-lock `key1`. Chosen to
+// sit high in the int4 range and be recognizable in `pg_locks` (classid/objid)
+// when debugging. XORed with a per-namespace hash below so two apps sharing one
+// Postgres cluster reserve disjoint index spaces.
+const DREAM_TEST_POOL_LOCK_NAMESPACE = 0x44_52_4d_00 | 0 // "DRM\0"
+
+// Aggressive TCP keepalive on the dedicated lock-holding connection. Insurance
+// for remote / CI Postgres and abrupt kills where a FIN might be lost: it lets
+// Postgres reap the dead backend (and release the lock) even when the OS never
+// delivered a clean socket close. For a local kill the lock releases on EOF
+// regardless of this.
+const LOCK_CONNECTION_KEEPALIVE_INITIAL_DELAY_MS = 1_000
+
+function int32Hash(value: string): number {
+  let hash = 0
+  for (let i = 0; i < value.length; i++) {
+    hash = (Math.imul(hash, 31) + value.charCodeAt(i)) | 0
+  }
+  return hash
+}
+
+function advisoryLockKey1(namespace: string): number {
+  // Stays within int4 via the `| 0` coercions.
+  return (DREAM_TEST_POOL_LOCK_NAMESPACE ^ int32Hash(namespace)) | 0
+}
 
 export default class PostgresQueryDriver<
   DreamInstance extends Dream,
@@ -245,5 +272,61 @@ export default class PostgresQueryDriver<
     await client.end()
 
     DreamCLI.logger.logEndProgress()
+  }
+
+  public static override supportsParallelTestDatabases = true
+
+  /**
+   * @internal
+   *
+   * Postgres implementation of the per-worker test-database claim seam (see
+   * {@link TestDatabaseLockSession} and `src/db/testDatabasePool.ts`).
+   *
+   * Postgres advisory locks are global to the cluster (not scoped to a single
+   * database), so one dedicated connection — to the `postgres` maintenance
+   * database — can reserve a pool index for the whole cluster. We use the
+   * two-`int4` form `pg_try_advisory_lock(key1, key2)`, whose lock space is
+   * distinct from the single-`bigint` form `pg_advisory_lock(bigint)` that
+   * application code typically uses, so a claim can never clash with an
+   * app-level advisory lock. `key1` folds a hash of the lock namespace (the
+   * base database name) into a fixed dream-pool constant; `key2` is the pool
+   * index. The lock auto-releases when the connection drops on process exit.
+   */
+  public static override async openTestDatabaseLockSession(
+    connectionName: string
+  ): Promise<TestDatabaseLockSession> {
+    const dreamApp = DreamApp.getOrFail()
+    const creds =
+      dreamApp.dbCredentialsFor(connectionName)?.primary ?? dreamApp.dbCredentialsFor(connectionName)?.replica
+    if (!creds?.name)
+      throw new Error(
+        `[dream] cannot open a test-database lock session: the "${connectionName}" connection has no resolvable primary db name`
+      )
+
+    const client = new pg.Client({
+      host: creds.host || 'localhost',
+      port: creds.port,
+      // The maintenance database always exists and we never lock it —
+      // advisory locks are cluster-wide.
+      database: 'postgres',
+      user: creds.user,
+      password: creds.password,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: LOCK_CONNECTION_KEEPALIVE_INITIAL_DELAY_MS,
+    })
+    await client.connect()
+
+    return {
+      async tryAcquire(namespace: string, index: number): Promise<boolean> {
+        const result = await client.query('SELECT pg_try_advisory_lock($1::int4, $2::int4) AS locked', [
+          advisoryLockKey1(namespace),
+          index,
+        ])
+        return result.rows[0]?.locked === true
+      },
+      async release(): Promise<void> {
+        await client.end().catch(() => undefined)
+      },
+    }
   }
 }
