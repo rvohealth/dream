@@ -1,4 +1,5 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
+import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -242,6 +243,143 @@ export default class DreamMigrationHelpers {
       }
     }
   }
+
+  /**
+   * Convert an existing plaintext column into the encrypted-backed form expected by
+   * the `@Encrypted` decorator.
+   *
+   * This renames `column` to `encrypted_<column>`, widens it to `text`, and rewrites
+   * every non-null value with the AES-GCM ciphertext produced by the exact same code
+   * path the decorator's setter uses (`InternalEncrypt.encryptColumn`). After it runs,
+   * the column holds real ciphertext that the decorator's getter can decrypt — which is
+   * what a bare column rename does **not** do (renaming a plaintext column to
+   * `encrypted_<column>` and decorating the property leaves plaintext in the column, so
+   * the getter throws `DecryptionError`).
+   *
+   * The encryption key and algorithm come from the application's encryption config
+   * (`DreamApp` `encryption.columns.current`); if encryption is not configured this
+   * throws `MissingColumnEncryptionOpts`. Null values are left null.
+   *
+   * ```ts
+   * // plaintext `phone` column -> encrypted `encrypted_phone` text column
+   * await DreamMigrationHelpers.encryptColumn(db, { table: 'users', column: 'phone' })
+   * ```
+   *
+   * **Locks the table and rewrites rows one at a time.** Each value needs a fresh random
+   * IV computed in Node, so the rewrite cannot be a single SQL `UPDATE` — it is one
+   * round trip per non-null row, holding the table for the duration. On large tables do
+   * not use this helper; write your own batched / online migration instead.
+   *
+   * **Drop any index on the column first.** Per-row updates pay index-maintenance cost on
+   * every write, and an index over ciphertext is useless anyway (encrypted values are not
+   * queryable). Remove the index before this migration and do not re-add it.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.column - The current (plaintext) column name
+   * @param options.encryptedColumnName - The target encrypted column name. Defaults to `encrypted_<column>`, matching the `@Encrypted` decorator's default; pass this when the decorator was given a custom encrypted column name.
+   * @param options.primaryKey - The primary key column used to target each row's update. Defaults to `id`.
+   */
+  public static async encryptColumn(
+    db: Kysely<any>,
+    {
+      table,
+      column,
+      encryptedColumnName = `encrypted_${column}`,
+      primaryKey = 'id',
+    }: EncryptColumnOpts
+  ) {
+    await db.schema.alterTable(table).renameColumn(column, encryptedColumnName).execute()
+
+    // Read the existing values BEFORE widening to text so the original JS types
+    // (number, boolean, etc.) survive the JSON round trip performed by encryption.
+    const rows = await db
+      .selectFrom(table)
+      .select([primaryKey, encryptedColumnName])
+      .where(encryptedColumnName, 'is not', null)
+      .execute()
+
+    await db.schema
+      .alterTable(table)
+      .alterColumn(encryptedColumnName, col => col.setDataType('text'))
+      .execute()
+
+    for (const row of rows) {
+      await db
+        .updateTable(table)
+        .set({ [encryptedColumnName]: InternalEncrypt.encryptColumn(row[encryptedColumnName]) })
+        .where(primaryKey, '=', row[primaryKey])
+        .execute()
+    }
+  }
+
+  /**
+   * Inverse of {@link DreamMigrationHelpers.encryptColumn}: decrypt an
+   * `encrypted_<column>` column back to plaintext and rename it to `column`.
+   *
+   * Every non-null value is decrypted with the same path the decorator's getter uses
+   * (`InternalEncrypt.decryptColumn`, which honors both the `current` and `legacy`
+   * encryption keys), then the column is renamed back. Called with the same `table` and
+   * `column`, this exactly reverses `encryptColumn`.
+   *
+   * By default the column is left as `text`, because the original column type cannot be
+   * recovered from the encrypted state. Pass `columnType` to restore a specific type
+   * (e.g. `'integer'`); the conversion runs `ALTER COLUMN ... TYPE <columnType> USING
+   * <column>::<columnType>`.
+   *
+   * ```ts
+   * await DreamMigrationHelpers.decryptColumn(db, { table: 'users', column: 'phone' })
+   *
+   * // restore the original column type as part of the inverse
+   * await DreamMigrationHelpers.decryptColumn(db, { table: 'users', column: 'age', columnType: 'integer' })
+   * ```
+   *
+   * The same per-row, table-locking caveat as `encryptColumn` applies.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.column - The target (plaintext) column name to rename back to
+   * @param options.encryptedColumnName - The current encrypted column name. Defaults to `encrypted_<column>`.
+   * @param options.primaryKey - The primary key column used to target each row's update. Defaults to `id`.
+   * @param options.columnType - When provided, the restored column is converted to this type. When omitted, the column is left as `text`.
+   */
+  public static async decryptColumn(
+    db: Kysely<any>,
+    {
+      table,
+      column,
+      encryptedColumnName = `encrypted_${column}`,
+      primaryKey = 'id',
+      columnType,
+    }: DecryptColumnOpts
+  ) {
+    const rows = await db
+      .selectFrom(table)
+      .select([primaryKey, encryptedColumnName])
+      .where(encryptedColumnName, 'is not', null)
+      .execute()
+
+    for (const row of rows) {
+      await db
+        .updateTable(table)
+        .set({ [encryptedColumnName]: InternalEncrypt.decryptColumn(row[encryptedColumnName]) })
+        .where(primaryKey, '=', row[primaryKey])
+        .execute()
+    }
+
+    await db.schema.alterTable(table).renameColumn(encryptedColumnName, column).execute()
+
+    if (columnType !== undefined) {
+      await sql`
+        ALTER TABLE ${sql.table(table)}
+        ALTER COLUMN ${sql.ref(column)}
+        TYPE ${sql.raw(columnType)}
+        USING ${sql.ref(column)}::${sql.raw(columnType)};
+      `.execute(db)
+    }
+  }
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {
@@ -370,4 +508,19 @@ type DropValueFromEnumTablesAndColumnsForNonArray = {
 interface AddValueToEnumOpts {
   enumName: string
   value: string
+}
+
+interface EncryptColumnOpts {
+  table: string
+  column: string
+  encryptedColumnName?: string
+  primaryKey?: string
+}
+
+interface DecryptColumnOpts {
+  table: string
+  column: string
+  encryptedColumnName?: string
+  primaryKey?: string
+  columnType?: ColumnDataType
 }
