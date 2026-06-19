@@ -44,10 +44,7 @@ describe('DreamMigrationHelpers.decryptColumn', () => {
   })
 
   it('leaves null values null', async () => {
-    await _db
-      .insertInto('pets')
-      .values({ encrypted_secret_phone: null, created_at: '2024-02-02' })
-      .execute()
+    await _db.insertInto('pets').values({ encrypted_secret_phone: null, created_at: '2024-02-02' }).execute()
 
     await DreamMigrationHelpers.decryptColumn(_db, { table: 'pets', column: 'secret_phone' })
 

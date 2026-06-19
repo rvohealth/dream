@@ -283,12 +283,7 @@ export default class DreamMigrationHelpers {
    */
   public static async encryptColumn(
     db: Kysely<any>,
-    {
-      table,
-      column,
-      encryptedColumnName = `encrypted_${column}`,
-      primaryKey = 'id',
-    }: EncryptColumnOpts
+    { table, column, encryptedColumnName = `encrypted_${column}`, primaryKey = 'id' }: EncryptColumnOpts
   ) {
     await db.schema.alterTable(table).renameColumn(column, encryptedColumnName).execute()
 
