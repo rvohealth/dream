@@ -52,6 +52,26 @@ describe('DreamMigrationHelpers.encryptColumn', () => {
     expect(pet.encryptedSecretPhone).toBeNull()
   })
 
+  it('processes every row across multiple keyset batches without double-encrypting', async () => {
+    await _db
+      .insertInto('pets')
+      .values(
+        ['aaa', 'bbb', 'ccc', 'ddd', 'eee'].map(secret_phone => ({ secret_phone, created_at: '2024-02-02' }))
+      )
+      .execute()
+
+    await DreamMigrationHelpers.encryptColumn(_db, { table: 'pets', column: 'secret_phone', batchSize: 2 })
+
+    const pets = await _db.selectFrom('pets').selectAll().orderBy('id').execute()
+    expect(pets.map(pet => InternalEncrypt.decryptColumn(pet.encryptedSecretPhone))).toEqual([
+      'aaa',
+      'bbb',
+      'ccc',
+      'ddd',
+      'eee',
+    ])
+  })
+
   context('with a custom encryptedColumnName', () => {
     it('renames to the provided name', async () => {
       await _db.insertInto('pets').values({ secret_phone: '555-1234', created_at: '2024-02-02' }).execute()
