@@ -294,9 +294,10 @@ export default class DreamMigrationHelpers {
 
     // Read the existing values BEFORE widening to text so the original JS types
     // (number, boolean, etc.) survive the JSON round trip performed by encryption.
+    // Alias to fixed keys so a CamelCasePlugin on the connection cannot rename them.
     const rows = await db
       .selectFrom(table)
-      .select([primaryKey, encryptedColumnName])
+      .select([sql.ref(primaryKey).as('pk'), sql.ref(encryptedColumnName).as('val')])
       .where(encryptedColumnName, 'is not', null)
       .execute()
 
@@ -308,8 +309,8 @@ export default class DreamMigrationHelpers {
     for (const row of rows) {
       await db
         .updateTable(table)
-        .set({ [encryptedColumnName]: InternalEncrypt.encryptColumn(row[encryptedColumnName]) })
-        .where(primaryKey, '=', row[primaryKey])
+        .set({ [encryptedColumnName]: InternalEncrypt.encryptColumn(row.val) })
+        .where(primaryKey, '=', row.pk)
         .execute()
     }
   }
@@ -355,17 +356,18 @@ export default class DreamMigrationHelpers {
       columnType,
     }: DecryptColumnOpts
   ) {
+    // Alias to fixed keys so a CamelCasePlugin on the connection cannot rename them.
     const rows = await db
       .selectFrom(table)
-      .select([primaryKey, encryptedColumnName])
+      .select([sql.ref(primaryKey).as('pk'), sql.ref(encryptedColumnName).as('val')])
       .where(encryptedColumnName, 'is not', null)
       .execute()
 
     for (const row of rows) {
       await db
         .updateTable(table)
-        .set({ [encryptedColumnName]: InternalEncrypt.decryptColumn(row[encryptedColumnName]) })
-        .where(primaryKey, '=', row[primaryKey])
+        .set({ [encryptedColumnName]: InternalEncrypt.decryptColumn(row.val) })
+        .where(primaryKey, '=', row.pk)
         .execute()
     }
 
