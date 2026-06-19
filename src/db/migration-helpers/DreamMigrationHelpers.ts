@@ -1,4 +1,5 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
+import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -242,6 +243,180 @@ export default class DreamMigrationHelpers {
       }
     }
   }
+
+  /**
+   * Convert an existing plaintext column into the encrypted-backed form expected by
+   * the `@Encrypted` decorator.
+   *
+   * This renames `column` to `encrypted_<column>`, widens it to `text`, and rewrites
+   * every non-null value with the AES-GCM ciphertext produced by the exact same code
+   * path the decorator's setter uses (`InternalEncrypt.encryptColumn`). After it runs,
+   * the column holds real ciphertext that the decorator's getter can decrypt — which is
+   * what a bare column rename does **not** do (renaming a plaintext column to
+   * `encrypted_<column>` and decorating the property leaves plaintext in the column, so
+   * the getter throws `DecryptionError`).
+   *
+   * The encryption key and algorithm come from the application's encryption config
+   * (`DreamApp` `encryption.columns.current`); if encryption is not configured this
+   * throws `MissingColumnEncryptionOpts`. Null values are left null.
+   *
+   * Intended for text/string columns (the common case is text -> encrypted text). The
+   * column is widened to `text` before reading, so values are encrypted as their text
+   * form; the inverse `decryptColumn` can restore a non-text type via its `columnType`
+   * option.
+   *
+   * ```ts
+   * // plaintext `phone` column -> encrypted `encrypted_phone` text column
+   * await DreamMigrationHelpers.encryptColumn(db, { table: 'users', column: 'phone' })
+   * ```
+   *
+   * **Rewrites rows one at a time** (each value needs a fresh random IV computed in Node,
+   * so the rewrite cannot be a single SQL `UPDATE`), reading them in keyset batches of
+   * `batchSize` to bound memory. It still holds the table for the migration's duration; on
+   * very large tables do not use this helper — write your own batched / online migration.
+   *
+   * **Drop any index on the column first.** Per-row updates pay index-maintenance cost on
+   * every write, and an index over ciphertext is useless anyway (encrypted values are not
+   * queryable). Remove the index before this migration and do not re-add it.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.column - The current (plaintext) column name
+   * @param options.encryptedColumnName - The target encrypted column name. Defaults to `encrypted_<column>`, matching the `@Encrypted` decorator's default; pass this when the decorator was given a custom encrypted column name.
+   * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
+   * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
+   */
+  public static async encryptColumn(
+    db: Kysely<any>,
+    {
+      table,
+      column,
+      encryptedColumnName = `encrypted_${column}`,
+      primaryKey = 'id',
+      batchSize = 1000,
+    }: EncryptColumnOpts
+  ) {
+    await db.schema.alterTable(table).renameColumn(column, encryptedColumnName).execute()
+
+    await db.schema
+      .alterTable(table)
+      .alterColumn(encryptedColumnName, col => col.setDataType('text'))
+      .execute()
+
+    await this.transformColumnInBatches(
+      db,
+      { table, column: encryptedColumnName, primaryKey, batchSize },
+      value => InternalEncrypt.encryptColumn(value)
+    )
+  }
+
+  /**
+   * Inverse of {@link DreamMigrationHelpers.encryptColumn}: decrypt an
+   * `encrypted_<column>` column back to plaintext and rename it to `column`.
+   *
+   * Every non-null value is decrypted with the same path the decorator's getter uses
+   * (`InternalEncrypt.decryptColumn`, which honors both the `current` and `legacy`
+   * encryption keys), then the column is renamed back. Called with the same `table` and
+   * `column`, this exactly reverses `encryptColumn`.
+   *
+   * By default the column is left as `text`, because the original column type cannot be
+   * recovered from the encrypted state. Pass `columnType` to restore a specific type
+   * (e.g. `'integer'`); the conversion runs `ALTER COLUMN ... TYPE <columnType> USING
+   * <column>::<columnType>`.
+   *
+   * ```ts
+   * await DreamMigrationHelpers.decryptColumn(db, { table: 'users', column: 'phone' })
+   *
+   * // restore the original column type as part of the inverse
+   * await DreamMigrationHelpers.decryptColumn(db, { table: 'users', column: 'age', columnType: 'integer' })
+   * ```
+   *
+   * The same per-row, batched, table-locking caveat as `encryptColumn` applies.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.column - The target (plaintext) column name to rename back to
+   * @param options.encryptedColumnName - The current encrypted column name. Defaults to `encrypted_<column>`.
+   * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
+   * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
+   * @param options.columnType - When provided, the restored column is converted to this type. When omitted, the column is left as `text`.
+   */
+  public static async decryptColumn(
+    db: Kysely<any>,
+    {
+      table,
+      column,
+      encryptedColumnName = `encrypted_${column}`,
+      primaryKey = 'id',
+      batchSize = 1000,
+      columnType,
+    }: DecryptColumnOpts
+  ) {
+    await this.transformColumnInBatches(
+      db,
+      { table, column: encryptedColumnName, primaryKey, batchSize },
+      value => InternalEncrypt.decryptColumn(value)
+    )
+
+    await db.schema.alterTable(table).renameColumn(encryptedColumnName, column).execute()
+
+    if (columnType !== undefined) {
+      await sql`
+        ALTER TABLE ${sql.table(table)}
+        ALTER COLUMN ${sql.ref(column)}
+        TYPE ${sql.raw(columnType)}
+        USING ${sql.ref(column)}::${sql.raw(columnType)};
+      `.execute(db)
+    }
+  }
+
+  /**
+   * Walk every non-null value of `column` in keyset batches of `batchSize`, applying
+   * `transform` in Node and writing the result back one row at a time. Keyset pagination
+   * on `primaryKey` (`WHERE pk > last ORDER BY pk`) bounds memory to a single batch and
+   * guarantees forward progress, so a row is never read — or transformed — twice (which
+   * matters because the transform is not idempotent: re-encrypting ciphertext would
+   * double-encrypt, and re-decrypting plaintext would throw).
+   *
+   * Reads alias the selected columns to fixed keys via `sql.ref(...).as(...)` so a
+   * `CamelCasePlugin` on the connection cannot rename the result keys.
+   */
+  private static async transformColumnInBatches(
+    db: Kysely<any>,
+    {
+      table,
+      column,
+      primaryKey,
+      batchSize,
+    }: { table: string; column: string; primaryKey: string; batchSize: number },
+    transform: (value: any) => any
+  ) {
+    let lastPrimaryKey: any
+
+    for (;;) {
+      let query = db
+        .selectFrom(table)
+        .select([sql.ref(primaryKey).as('pk'), sql.ref(column).as('val')])
+        .where(column, 'is not', null)
+        .orderBy(primaryKey)
+        .limit(batchSize)
+      if (lastPrimaryKey !== undefined) query = query.where(primaryKey, '>', lastPrimaryKey)
+
+      const rows = await query.execute()
+      if (rows.length === 0) break
+
+      for (const row of rows) {
+        await db
+          .updateTable(table)
+          .set({ [column]: transform(row.val) })
+          .where(primaryKey, '=', row.pk)
+          .execute()
+        lastPrimaryKey = row.pk
+      }
+    }
+  }
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {
@@ -370,4 +545,21 @@ type DropValueFromEnumTablesAndColumnsForNonArray = {
 interface AddValueToEnumOpts {
   enumName: string
   value: string
+}
+
+interface EncryptColumnOpts {
+  table: string
+  column: string
+  encryptedColumnName?: string
+  primaryKey?: string
+  batchSize?: number
+}
+
+interface DecryptColumnOpts {
+  table: string
+  column: string
+  encryptedColumnName?: string
+  primaryKey?: string
+  batchSize?: number
+  columnType?: ColumnDataType
 }
