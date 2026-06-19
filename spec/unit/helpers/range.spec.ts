@@ -1,4 +1,7 @@
-import range from '../../../src/helpers/range.js'
+import range, { type Range } from '../../../src/helpers/range.js'
+import { ClockTime, ClockTimeTz } from '../../../src/package-exports/index.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 
 describe('range', () => {
   it('captures begin, end, and excludeEnd', () => {
@@ -34,5 +37,38 @@ describe('range', () => {
       const result = range(null, 0)
       expect(result.end).toEqual(0)
     })
+  })
+
+  it('supports DateTime and CalendarDate bounds', () => {
+    const begin = DateTime.fromISO('2026-01-01T00:00:00Z')
+    const end = CalendarDate.fromISO('2026-01-02')
+    const result: Range<DateTime | CalendarDate> = range(begin, end)
+
+    expect(result.begin).toEqual(begin)
+    expect(result.end).toEqual(end)
+  })
+
+  it('supports ClockTime bounds', () => {
+    const begin = ClockTime.fromISO('10:00:00')
+    const end = ClockTime.fromISO('12:00:00')
+    const result: Range<ClockTime> = range(begin, end)
+    const openEndedResult: Range<null, ClockTime> = range(null, end)
+
+    expect(result.begin).toEqual(begin)
+    expect(result.end).toEqual(end)
+    expect(openEndedResult.begin).toBeNull()
+    expect(openEndedResult.end).toEqual(end)
+  })
+
+  it('supports ClockTimeTz bounds', () => {
+    const begin = ClockTimeTz.fromISO('10:00:00Z')
+    const end = ClockTimeTz.fromISO('12:00:00Z')
+    const result: Range<ClockTimeTz> = range(begin, end)
+    const openEndedResult: Range<null, ClockTimeTz> = range(null, end)
+
+    expect(result.begin).toEqual(begin)
+    expect(result.end).toEqual(end)
+    expect(openEndedResult.begin).toBeNull()
+    expect(openEndedResult.end).toEqual(end)
   })
 })
