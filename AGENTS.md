@@ -54,6 +54,32 @@ they get neither a changelog entry nor (on their own) a version bump.
 When in doubt, ask: "could someone who only installs the npm package tell this
 happened?" If no, keep it out of the changelog.
 
+## Database Adapters: No Postgres-Only Code in Shared Paths
+
+Dream is moving toward real multi-database support, so framework code in shared
+paths MUST NOT hardcode Postgres-only behavior (`pg.Client`, `pg`-specific SQL
+like `pg_try_advisory_lock`, Postgres type OIDs, etc.). Adapter-specific
+database work goes through the **query-driver seam**: an overridable method on
+`QueryDriverBase` with a no-op or fail-loud default, implemented per driver
+(`PostgresQueryDriver`, the test-app `MysqlQueryDriver`), while the shared
+orchestration stays driver-neutral and speaks only adapter-agnostic terms.
+
+This is exactly how `setDatabaseTypeParsers`, `duplicateDatabase`, and the
+per-worker test-database claim (`supportsParallelTestDatabases` +
+`openTestDatabaseLockSession`, orchestrated by `src/db/testDatabasePool.ts`)
+work. When a shared path needs the database to do something adapter-specific:
+
+- Add an overridable static to `QueryDriverBase` with a safe default — either a
+  no-op or a `throw` that names what to implement (so a non-supporting adapter
+  fails loud, never silently falling through to a Postgres connection).
+- Implement it in `PostgresQueryDriver` and, where it proves the abstraction,
+  in the test-app `MysqlQueryDriver`.
+- Keep the shared caller free of any driver import or driver-specific type;
+  dispatch via `DreamApp.dbConnectionQueryDriverClass(connectionName)`.
+
+If you find yourself importing `pg` (or any one engine's client) into a shared
+module, that is the signal to move the primitive onto the seam instead.
+
 ## Database Commands
 
 ### Migrate the Database
