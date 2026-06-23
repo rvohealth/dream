@@ -1,3 +1,7 @@
+## 2.14.1
+
+- `DreamParamSafeAttributes` now preserves concrete model-declared types for virtual columns, including `@Encrypted` properties, instead of exposing those param-safe attributes as `any`. Database-backed and association param types continue to use Dream's existing updateable-property typing; only the virtual-column `any` fallback is replaced by the model property type.
+
 ## 2.14.0
 
 - Eliminate the intermittent parallel-test database collision by claiming each live test worker its own database from a pre-created pool via a process-lifetime lock the database driver supplies through the query-driver seam, replacing the `<base>_<VITEST_POOL_ID>` naming. Under vitest (`pool: 'forks'`, `isolate: true`) `VITEST_POOL_ID` is a _reusable_ slot id (1..maxWorkers) that vitest frees and reassigns across worker processes without awaiting `runner.stop()`, so a retired-but-still-terminating worker overlaps the new worker that reused its slot. Keying the test database off that slot meant the two overlapping processes shared one database and the newcomer's `beforeEach(truncate)` wiped the other's in-flight rows — a record created in a test's setup would vanish before the request under test ran, producing intermittent 404s / empty lists / wrong results (~1 run in 3, and it reproduced serially too because vitest respawns a process per file even with one worker). The fix ties database ownership to _process liveness_ instead of vitest's slot accounting:

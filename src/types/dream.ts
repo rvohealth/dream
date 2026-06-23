@@ -298,9 +298,16 @@ export type DreamAttributeDbTypes<
 }
 
 export type DreamParamSafeAttributes<DreamInstance extends Dream> = {
-  [K in keyof UpdateableProperties<DreamInstance> &
-    DreamParamSafeColumnNames<DreamInstance>]: UpdateableProperties<DreamInstance>[K]
+  [K in keyof UpdateableProperties<DreamInstance> & DreamParamSafeColumnNames<DreamInstance>]: IsAny<
+    UpdateableProperties<DreamInstance>[K]
+  > extends true
+    ? K extends keyof DreamInstance
+      ? DreamInstance[K]
+      : UpdateableProperties<DreamInstance>[K]
+    : UpdateableProperties<DreamInstance>[K]
 }
+
+type IsAny<T> = 0 extends 1 & T ? true : false
 
 export type DreamTableSchema<DreamInstance extends Dream> = Updateable<
   DreamInstance['DB'][DreamInstance['table']]

@@ -1,4 +1,4 @@
-import { DreamParamUnsafeColumnNames } from '../../../src/types/dream.js'
+import { DreamParamSafeAttributes, DreamParamUnsafeColumnNames } from '../../../src/types/dream.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
@@ -12,6 +12,9 @@ import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#paramSafeColumnsOrFallback', () => {
   context('type tests', () => {
+    type IsAny<T> = 0 extends 1 & T ? true : false
+    type ExpectFalse<T extends false> = T
+
     // intentionally skipped, this should cause build:test-app
     // to fail unless the types are correctly lining up.
     it.skip('includes fields that are safe for updating', () => {
@@ -33,6 +36,34 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
         case 'type':
         case 'localizableType':
       }
+    })
+
+    it.skip('preserves concrete types for virtual and encrypted param-safe attributes', () => {
+      type UserParamSafeAttributes = DreamParamSafeAttributes<User>
+      type PasswordIsNotAny = ExpectFalse<IsAny<UserParamSafeAttributes['password']>>
+      type SecretIsNotAny = ExpectFalse<IsAny<UserParamSafeAttributes['secret']>>
+      type OtherSecretIsNotAny = ExpectFalse<IsAny<UserParamSafeAttributes['otherSecret']>>
+
+      const password: string | undefined = null as unknown as UserParamSafeAttributes['password']
+      const secret: string | null = null as unknown as UserParamSafeAttributes['secret']
+      const otherSecret: { token: string } | null = null as unknown as UserParamSafeAttributes['otherSecret']
+
+      // @ts-expect-error virtual params are not `any`
+      const invalidPassword: number = null as unknown as UserParamSafeAttributes['password']
+      // @ts-expect-error encrypted params are not `any`
+      const invalidSecret: number = null as unknown as UserParamSafeAttributes['secret']
+      // @ts-expect-error encrypted params with explicit value types are not `any`
+      const invalidOtherSecret: number = null as unknown as UserParamSafeAttributes['otherSecret']
+
+      void (null as unknown as PasswordIsNotAny)
+      void (null as unknown as SecretIsNotAny)
+      void (null as unknown as OtherSecretIsNotAny)
+      void password
+      void secret
+      void otherSecret
+      void invalidPassword
+      void invalidSecret
+      void invalidOtherSecret
     })
   })
 
