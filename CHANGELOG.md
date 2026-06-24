@@ -1,3 +1,7 @@
+## 2.15.0
+
+- Required `BelongsTo` association getters now throw `MissingRequiredBelongsToAssociation` when the association has been loaded as `null`. This replaces a confusing null dereference path with a diagnostic error that names the model, association, foreign key, and, for polymorphic associations, the polymorphic type field. Optional `BelongsTo` associations still return `null`, and associations that have not been loaded still throw `NonLoadedAssociation`. When the foreign key is present but the association loads as `null`, the message calls out that the associated record may have been deleted and suggests checking whether the inverse `HasOne`/`HasMany` association should specify `dependent: 'destroy'`.
+
 ## 2.14.1
 
 - `DreamParamSafeAttributes` now preserves concrete model-declared types for virtual columns, including `@Encrypted` properties, instead of exposing those param-safe attributes as `any`. Database-backed and association param types continue to use Dream's existing updateable-property typing; only the virtual-column `any` fallback is replaced by the model property type.
