@@ -106,12 +106,7 @@ export function applyGetterAndSetter(
       const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
       if (value === undefined)
         throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-      if (
-        isBelongsTo &&
-        partialAssociation.type === 'BelongsTo' &&
-        !partialAssociation.optional &&
-        value === null
-      ) {
+      if (partialAssociation.type === 'BelongsTo' && !partialAssociation.optional && value === null) {
         const foreignKey = finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)
         const foreignKeyType = partialAssociation.polymorphic
           ? foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)
