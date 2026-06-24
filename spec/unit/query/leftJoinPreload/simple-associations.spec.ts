@@ -43,24 +43,17 @@ describe('Query#leftJoinPreload with simple associations', () => {
     })
   })
 
-  context('with an association provided as an argument to the and clause', () => {
-    it('supports associations as clauses', async () => {
-      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+  context('with an explicit constraint on a non-optional BelongsTo association', () => {
+    // type tests intentionally skipped, since they will fail on build instead.
+    it.skip('rejects the constraint at the type level', async () => {
       const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
-      const composition1 = await Composition.create({ user: user1 })
-      const composition2 = await Composition.create({ user: user2 })
-      const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
-      const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
+      const composition = await Composition.create({ user: user2 })
+      await CompositionAsset.create({ composition })
 
-      const compositionAssets = await CompositionAsset.query()
+      await CompositionAsset.query()
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         .leftJoinPreload('composition', { and: { user: user2 } })
         .all()
-
-      const reloadedCompositionAsset1 = compositionAssets.find(obj => obj.id === compositionAsset1.id)
-      const reloadedCompositionAsset2 = compositionAssets.find(obj => obj.id === compositionAsset2.id)
-
-      expect(() => reloadedCompositionAsset1?.composition).toThrow(MissingRequiredBelongsToAssociation)
-      expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })
 
