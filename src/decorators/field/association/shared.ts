@@ -2,6 +2,7 @@ import pluralize from 'pluralize-esm'
 import Dream from '../../../Dream.js'
 import { DreamConst } from '../../../dream/constants.js'
 import { checkForeignKey } from '../../../errors/associations/InvalidComputedForeignKey.js'
+import MissingRequiredBelongsToAssociation from '../../../errors/associations/MissingRequiredBelongsToAssociation.js'
 import NonLoadedAssociation from '../../../errors/associations/NonLoadedAssociation.js'
 import CannotDefineAssociationWithBothDependentAndPassthrough from '../../../errors/CannotDefineAssociationWithBothDependentAndPassthrough.js'
 import CannotDefineAssociationWithBothDependentAndRequiredAndClause from '../../../errors/CannotDefineAssociationWithBothDependentAndRequiredAndClause.js'
@@ -105,7 +106,27 @@ export function applyGetterAndSetter(
       const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
       if (value === undefined)
         throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
-      else return value
+      if (
+        isBelongsTo &&
+        partialAssociation.type === 'BelongsTo' &&
+        !partialAssociation.optional &&
+        value === null
+      ) {
+        const foreignKey = finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)
+        const foreignKeyType = partialAssociation.polymorphic
+          ? foreignKeyTypeField(foreignKeyBase, dreamClass, partialAssociation)
+          : null
+
+        throw new MissingRequiredBelongsToAssociation({
+          dreamClass,
+          associationName: partialAssociation.as,
+          foreignKey,
+          foreignKeyValue: (this as any)[foreignKey],
+          foreignKeyTypeField: foreignKeyType,
+          foreignKeyTypeValue: foreignKeyType ? (this as any)[foreignKeyType] : null,
+          polymorphic: partialAssociation.polymorphic,
+        })
+      } else return value
     },
 
     set: function (this: Dream, associatedModel: any) {
