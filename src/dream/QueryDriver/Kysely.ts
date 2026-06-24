@@ -1052,7 +1052,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             // in a HasOne context, order clauses will be applied in advance,
             // prior to hydration. Considering, we only want to set the first
             // result and ignore other results, so we will use ||= to set.
-            dream[association.as] ||= preloadedDreamAndWhatItPointsTo.dream
+            const associationProp = associationToGetterSetterProp(association)
+            dream[associationProp] ||= preloadedDreamAndWhatItPointsTo.dream
           }
         })
     })
