@@ -1,4 +1,5 @@
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
+import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'
@@ -58,7 +59,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
       const reloadedCompositionAsset1 = compositionAssets.find(obj => obj.id === compositionAsset1.id)
       const reloadedCompositionAsset2 = compositionAssets.find(obj => obj.id === compositionAsset2.id)
 
-      expect(reloadedCompositionAsset1?.composition).toBeNull()
+      expect(() => reloadedCompositionAsset1?.composition).toThrow(MissingRequiredBelongsToAssociation)
       expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })
@@ -184,7 +185,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
         await post.destroy()
 
         const reloadedPostComment = await postComment.leftJoinLoad('post').execute()
-        expect(reloadedPostComment.post).toBeNull()
+        expect(() => reloadedPostComment.post).toThrow(MissingRequiredBelongsToAssociation)
 
         const reloadedPostComment2 = await postComment.leftJoinLoad('postEvenIfDeleted').execute()
         expect(reloadedPostComment2.postEvenIfDeleted).toMatchDreamModel(post)
@@ -428,7 +429,7 @@ describe('Query#leftJoinPreload with simple associations', () => {
         await pet.createAssociation('collars', { tagName: 'Aster', pet })
 
         const result = await Collar.leftJoinPreload('pet').firstOrFail()
-        expect(result.pet).toBeNull()
+        expect(() => result.pet).toThrow(MissingRequiredBelongsToAssociation)
       })
     })
   })

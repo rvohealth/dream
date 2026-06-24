@@ -1,4 +1,5 @@
 import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
+import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -60,7 +61,7 @@ describe('Query#preload through', () => {
       const reloaded2 = await BalloonSpotter.query()
         .preload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
         .first()
-      expect(reloaded2!.balloonSpotterBalloons[0]!.balloon).toBeNull()
+      expect(() => reloaded2!.balloonSpotterBalloons[0]!.balloon).toThrow(MissingRequiredBelongsToAssociation)
     })
   })
 

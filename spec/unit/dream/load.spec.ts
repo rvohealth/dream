@@ -1,3 +1,4 @@
+import MissingRequiredBelongsToAssociation from '../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
 
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -44,7 +45,7 @@ describe('Dream#load', () => {
         .load('composition', { and: { user: user2 } })
         .execute()
 
-      expect(reloadedCompositionAsset1?.composition).toBeNull()
+      expect(() => reloadedCompositionAsset1?.composition).toThrow(MissingRequiredBelongsToAssociation)
       expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })

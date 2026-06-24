@@ -1,4 +1,5 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
+import MissingRequiredBelongsToAssociation from '../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
@@ -47,7 +48,7 @@ describe('Dream.preload', () => {
       const reloadedCompositionAsset1 = compositionAssets.find(obj => obj.id === compositionAsset1.id)
       const reloadedCompositionAsset2 = compositionAssets.find(obj => obj.id === compositionAsset2.id)
 
-      expect(reloadedCompositionAsset1?.composition).toBeNull()
+      expect(() => reloadedCompositionAsset1?.composition).toThrow(MissingRequiredBelongsToAssociation)
       expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })
