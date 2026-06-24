@@ -106,6 +106,9 @@ export function applyGetterAndSetter(
       const value = (this as any)[associationToGetterSetterProp(partialAssociation)]
       if (value === undefined)
         throw new NonLoadedAssociation({ dreamClass, associationName: partialAssociation.as })
+
+      // Getter semantics should follow the association metadata. The `isBelongsTo`
+      // option below is only for setter FK side effects when assigning models.
       if (partialAssociation.type === 'BelongsTo' && !partialAssociation.optional && value === null) {
         const foreignKey = finalForeignKey(foreignKeyBase, dreamClass, partialAssociation)
         const foreignKeyType = partialAssociation.polymorphic
@@ -121,7 +124,9 @@ export function applyGetterAndSetter(
           foreignKeyTypeValue: foreignKeyType ? (this as any)[foreignKeyType] : null,
           polymorphic: partialAssociation.polymorphic,
         })
-      } else return value
+      } else {
+        return value
+      }
     },
 
     set: function (this: Dream, associatedModel: any) {
