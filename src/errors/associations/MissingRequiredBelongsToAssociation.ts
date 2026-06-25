@@ -1,5 +1,32 @@
 import Dream from '../../Dream.js'
 
+/**
+ * Thrown when a non-optional (`optional: false`) BelongsTo association is null
+ * at the moment its getter is accessed.
+ *
+ * A non-optional BelongsTo is typed non-null and serializes to a non-nullable
+ * field in the generated OpenAPI spec — "required" means "always present". When
+ * the loaded value is nevertheless null, this error fails loud in place of a
+ * cryptic null-deref deep in serialization. It arises when the associated row is
+ * absent for one of these reasons:
+ *
+ * - The associated row was hard-deleted, leaving a dangling foreign key. This
+ *   usually signals a missing `dependent: 'destroy'` on the inverse
+ *   `HasOne`/`HasMany`.
+ * - An internal or default scope (such as soft-delete) filtered the associated
+ *   row out at load time.
+ *
+ * The fix is one of:
+ *
+ * - Add `dependent: 'destroy'` to the inverse `HasOne`/`HasMany` so the parent
+ *   cannot outlive its children, or
+ * - Mark the BelongsTo `optional: true` if the parent can legitimately be absent
+ *   (which makes the field nullable in the OpenAPI spec).
+ *
+ * Note that an *explicit* load-time constraint on a required BelongsTo (e.g.
+ * `preload('parent', { and: {...} })`) is forbidden at compile time rather than
+ * surfacing here at runtime; see {@link BelongsTo}.
+ */
 export default class MissingRequiredBelongsToAssociation extends Error {
   public dreamClass: typeof Dream
   public associationName: string

@@ -224,6 +224,36 @@ export type PassthroughOnClauseKeys<
     : Association['passthroughAndClauses' & keyof Association] & (string[] | null),
 > = PassthroughOnClauses
 
+/**
+ * Resolves to `true` when the named association on the given table is a
+ * non-optional (required) BelongsTo, and `false` otherwise. A required
+ * BelongsTo getter is typed non-null and that non-null type flows through
+ * serializers into the generated OpenAPI spec as a non-nullable field, so a
+ * load-time constraint that could filter the parent out (nulling the value)
+ * must be forbidden at compile time for the hydrating load variants.
+ */
+export type IsNonOptionalBelongsToAssociation<
+  Schema,
+  TableName,
+  AssociationName,
+  Associations = TableName extends null
+    ? null
+    : TableName extends keyof Schema & string
+      ? Schema[TableName]['associations' & keyof Schema[TableName]]
+      : null,
+  Association = Associations extends null
+    ? null
+    : AssociationName extends keyof Associations
+      ? Associations[AssociationName]
+      : null,
+> = Association extends null
+  ? false
+  : Association['type' & keyof Association] extends 'BelongsTo'
+    ? Association['optional' & keyof Association] extends false
+      ? true
+      : false
+    : false
+
 export type DreamAssociationNames<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,

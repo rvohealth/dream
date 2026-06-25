@@ -55,8 +55,35 @@ export default function BelongsTo<
  * }
  * ```
  *
+ * ## Required (non-optional) BelongsTo and nullability
+ *
+ * `optional` is the single source of truth for whether a BelongsTo can be
+ * absent. A non-optional BelongsTo (the default, `optional: false`) is typed
+ * non-null, and that non-null type flows through serializers into the generated
+ * OpenAPI spec as a non-nullable field. "Required" therefore means "always
+ * present"; if a parent can legitimately be absent, mark the association
+ * `optional: true` (which flows to OpenAPI as nullable).
+ *
+ * Two consequences follow from that guarantee:
+ *
+ * - **Compile-time:** a non-optional BelongsTo cannot take an explicit
+ *   load-time constraint. Passing `{ and: {...} }` (or any on-clause) as a
+ *   trailing argument to `preload`, `load`, `leftJoinPreload`, or `leftJoinLoad`
+ *   targeting a required BelongsTo is a type error, because such a constraint
+ *   could filter out a real, existing record and yield null for a value the
+ *   OpenAPI spec declares non-nullable. Constraints remain allowed on optional
+ *   BelongsTo, `HasOne`, and `HasMany`; `join` is unaffected.
+ *
+ * - **Runtime:** if a required BelongsTo is null when accessed — its row was
+ *   hard-deleted, or filtered out by an internal/default scope such as
+ *   soft-delete — accessing the getter throws
+ *   {@link MissingRequiredBelongsToAssociation}, a clear error in place of a
+ *   cryptic null-deref deep in serialization. An unexpected throw is surfacing a
+ *   modeling bug, typically a missing `dependent: 'destroy'` on the inverse
+ *   `HasOne`/`HasMany` (or the association should have been `optional: true`).
+ *
  * @param opts.on - A custom column name to use for joining associations on.
- * @param opts.optional - Whether or not this association is optional. Defaults to false.
+ * @param opts.optional - Whether or not this association is optional. Defaults to false. When false (the default) the association is required: it is typed non-null, serializes as a non-nullable OpenAPI field, rejects explicit load-time constraints at compile time, and throws {@link MissingRequiredBelongsToAssociation} if null when accessed.
  * @param opts.polymorphic - If true, this association will be treated as a polymorphic association.
  * @param opts.primaryKeyOverride - A custom column name to use for the primary key.
  * @param opts.withoutDefaultScopes - A list of default scopes to bypass when loading this association

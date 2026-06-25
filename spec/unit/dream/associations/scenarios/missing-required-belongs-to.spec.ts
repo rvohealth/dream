@@ -13,6 +13,7 @@ describe('missing required BelongsTo associations', () => {
       const reloadedPost = await Post.findOrFail(post.id)
       ;(reloadedPost as any).__user__ = null
 
+      expect(reloadedPost.loaded('user')).toBe(true)
       expect(() => reloadedPost.user).toThrow(MissingRequiredBelongsToAssociation)
       expect(() => reloadedPost.user).toThrow('foreign key `userId` is set to')
     })
@@ -26,6 +27,7 @@ describe('missing required BelongsTo associations', () => {
 
       const reloadedRating = await Rating.preload('rateable').findOrFail(rating.id)
 
+      expect(reloadedRating.loaded('rateable')).toBe(true)
       expect(() => reloadedRating.rateable).toThrow(MissingRequiredBelongsToAssociation)
       expect(() => reloadedRating.rateable).toThrow('foreign key `rateableId` is set to')
       expect(() => reloadedRating.rateable).toThrow('polymorphic type field `rateableType` is set to')

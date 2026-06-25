@@ -7,6 +7,7 @@ import {
   AssociationTableName,
   AssociationTableNamesForAssociation,
   DreamAssociationNameToAssociatedModel,
+  IsNonOptionalBelongsToAssociation,
   JoinAndStatements,
   MAX_VARIADIC_DEPTH,
   RequiredOnClauseKeys,
@@ -344,6 +345,14 @@ type VariadicRecurse<
     ? RequiredOnClauseKeys<Schema, EffectiveConcreteTableName, NextUnaliasedAssociationName>
     : RequiredOnClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
   //
+  // True when the just-consumed association is a non-optional (required)
+  // BelongsTo. The hydrating load variants forbid a trailing constraint on such
+  // an association, because the constraint could filter out the parent and null
+  // a value the generated OpenAPI spec declares non-nullable.
+  CurrentAssociationIsNonOptionalBelongsTo = IsAssociationNameOrAlias extends true
+    ? IsNonOptionalBelongsToAssociation<Schema, EffectiveConcreteTableName, NextUnaliasedAssociationName>
+    : IsNonOptionalBelongsToAssociation<Schema, PreviousConcreteTableName, ConcreteAssociationName>,
+  //
   AllowedNextArgValues = RecursionType extends 'load'
     ? AllowedNextArgValuesForLoad<
         DreamAssociationNameToAssociatedModel<LastDream, ConcreteArgs[0] & keyof LastDream>,
@@ -351,7 +360,8 @@ type VariadicRecurse<
         Schema,
         AllowedAssociationNames,
         AssociationTableOrConcreteTable,
-        CurrentRequiredOnClauseKeys
+        CurrentRequiredOnClauseKeys,
+        CurrentAssociationIsNonOptionalBelongsTo
       >
     : RecursionType extends 'leftJoinLoad'
       ? AllowedNextArgValuesForLeftJoinLoad<
@@ -361,7 +371,8 @@ type VariadicRecurse<
           AllowedAssociationNames,
           AssociationTableOrConcreteTable,
           CurrentRequiredOnClauseKeys,
-          NextUsedNamespaces
+          NextUsedNamespaces,
+          CurrentAssociationIsNonOptionalBelongsTo
         >
       : RecursionType extends 'join'
         ? AllowedNextArgValuesForJoin<
@@ -393,6 +404,13 @@ type VariadicRecurse<
         : LastDream
     >
 
+/**
+ * Error string surfaced when a trailing load-time constraint is applied to a
+ * non-optional BelongsTo association in a hydrating load variant.
+ */
+type CannotConstrainRequiredBelongsTo =
+  'cannot apply a constraint to a required (non-optional) BelongsTo association'
+
 type AllowedNextArgValuesForLoad<
   I extends Dream,
   DB,
@@ -400,10 +418,13 @@ type AllowedNextArgValuesForLoad<
   AllowedNames,
   TableForJoin extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   RequiredOnClauseKeysForThisAssociation,
+  IsNonOptionalBelongsTo,
 > =
   | AllowedNames
   | AllowedNames[]
-  | JoinAndStatements<I, DB, Schema, TableForJoin, RequiredOnClauseKeysForThisAssociation>
+  | (IsNonOptionalBelongsTo extends true
+      ? CannotConstrainRequiredBelongsTo
+      : JoinAndStatements<I, DB, Schema, TableForJoin, RequiredOnClauseKeysForThisAssociation>)
 
 type AllowedNextArgValuesForLeftJoinLoad<
   I extends Dream,
@@ -413,10 +434,13 @@ type AllowedNextArgValuesForLeftJoinLoad<
   TableForJoin extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   RequiredOnClauseKeysForThisAssociation,
   UsedNamespaces,
+  IsNonOptionalBelongsTo,
 > =
   | Exclude<AllowedNames, UsedNamespaces>
   | Exclude<AllowedNames, UsedNamespaces>[]
-  | JoinAndStatements<I, DB, Schema, TableForJoin, RequiredOnClauseKeysForThisAssociation>
+  | (IsNonOptionalBelongsTo extends true
+      ? CannotConstrainRequiredBelongsTo
+      : JoinAndStatements<I, DB, Schema, TableForJoin, RequiredOnClauseKeysForThisAssociation>)
 
 type AllowedNextArgValuesForJoin<
   I extends Dream,
