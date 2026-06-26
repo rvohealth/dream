@@ -1,3 +1,7 @@
+## 2.15.1
+
+- switch to Github action publishing to npmjs.com
+
 ## 2.15.0
 
 - Required `BelongsTo` association getters now throw `MissingRequiredBelongsToAssociation` when the association has been loaded as `null`. This replaces a confusing null dereference path with a diagnostic error that names the model, association, foreign key, and, for polymorphic associations, the polymorphic type field. Optional `BelongsTo` associations still return `null`, and associations that have not been loaded still throw `NonLoadedAssociation`. When the foreign key is present but the association loads as `null`, the message calls out that the associated record may have been deleted and suggests checking whether the inverse `HasOne`/`HasMany` association should specify `dependent: 'destroy'`.
