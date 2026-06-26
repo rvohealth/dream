@@ -1,3 +1,7 @@
+## 2.15.2
+
+- upgrade to pnpm@11.9.0; add strictDepBuilds: false and deny esbuild build scripts in pnpm-workspace.yaml
+
 ## 2.15.1
 
 - switch to Github action publishing to npmjs.com
