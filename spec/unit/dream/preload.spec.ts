@@ -154,6 +154,10 @@ context.skip('type tests', () => {
             invalidArg: 123,
           },
         })
+
+        User.txn(txn)
+          // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
+          .preload('mainCompositionAsset', 'composition', { and: { user: User.new() } })
       })
     })
   })

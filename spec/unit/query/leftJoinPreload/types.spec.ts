@@ -40,16 +40,21 @@ context.skip('type tests', () => {
         User.query()
           .txn(txn)
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
-          .preload('invalid')
+          .leftJoinPreload('invalid')
 
         User.query()
           .txn(txn)
-          .preload('allPets', {
+          .leftJoinPreload('allPets', {
             and: {
               // @ts-expect-error intentionally passing invalid arg to test that type protection is working
               invalidArg: 123,
             },
           })
+
+        BalloonSpotter.query()
+          .txn(txn)
+          // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
+          .leftJoinPreload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
       })
     })
   })

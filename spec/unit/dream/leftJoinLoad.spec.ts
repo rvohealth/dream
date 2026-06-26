@@ -158,7 +158,7 @@ context.skip('type tests', () => {
         User.new()
           .txn(txn)
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
-          .leftJoinPreload('invalid')
+          .leftJoinLoad('invalid')
 
         User.new()
           .txn(txn)
@@ -168,6 +168,11 @@ context.skip('type tests', () => {
               invalidArg: 123,
             },
           })
+
+        CompositionAsset.new()
+          .txn(txn)
+          // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
+          .leftJoinLoad('composition', { and: { user: User.new() } })
       })
     })
   })

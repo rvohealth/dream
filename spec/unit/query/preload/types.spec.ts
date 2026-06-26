@@ -50,6 +50,11 @@ context.skip('type tests', () => {
               invalidArg: 123,
             },
           })
+
+        BalloonSpotter.query()
+          .txn(txn)
+          // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
+          .preload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
       })
     })
   })

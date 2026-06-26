@@ -40,6 +40,16 @@ describe('Dream#load', () => {
         .load('composition', { and: { user: user2 } })
         .execute()
     })
+
+    // type tests intentionally skipped, since they will fail on build instead.
+    it.skip('rejects the constraint at the type level in a transaction', async () => {
+      await ApplicationModel.transaction(txn => {
+        CompositionAsset.new()
+          .txn(txn)
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          .load('composition', { and: { user: User.new() } })
+      })
+    })
   })
 
   it('includes previously loaded associations', async () => {
