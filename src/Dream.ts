@@ -51,7 +51,6 @@ import CannotDestroyAssociationOnUnpersistedDream from './errors/associations/Ca
 import CannotPassNullOrUndefinedToRequiredBelongsTo from './errors/associations/CannotPassNullOrUndefinedToRequiredBelongsTo.js'
 import CannotUpdateAssociationOnUnpersistedDream from './errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
-import NonLoadedAssociation from './errors/associations/NonLoadedAssociation.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
@@ -4559,14 +4558,10 @@ export default class Dream {
     //
     AssociationName extends DreamModelAssociationNames<Schema, TableName>,
   >(this: I, associationName: AssociationName) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      ;(this as any)[associationName]
-      return true
-    } catch (error) {
-      if ((error as any).constructor !== NonLoadedAssociation) throw error
-      return false
-    }
+    const association = this['getAssociationMetadata'](associationName as any)
+    if (association === undefined) return false
+
+    return (this as any)[associationToGetterSetterProp(association)] !== undefined
   }
 
   /**

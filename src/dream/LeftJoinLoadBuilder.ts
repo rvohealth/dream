@@ -1,6 +1,7 @@
 import Dream from '../Dream.js'
+import associationToGetterSetterProp from '../decorators/field/association/associationToGetterSetterProp.js'
 import UnexpectedUndefined from '../errors/UnexpectedUndefined.js'
-import { PassthroughOnClause } from '../types/associations/shared.js'
+import { AssociationStatement, PassthroughOnClause } from '../types/associations/shared.js'
 import { PassthroughColumnNames } from '../types/dream.js'
 import {
   PreloadedDreamsAndWhatTheyPointTo,
@@ -101,7 +102,10 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
         associationMetadata,
         this.associationToPreloadedDreamsAndWhatTheyPointTo({
           pointsToPrimaryKey: this.dream.primaryKeyValue(),
-          associatedModels: (dreamWithLoadedAssociations as any)[associationName] as Dream | Dream[],
+          associatedModels: this.leftJoinLoadedAssociationValue({
+            dreamWithLoadedAssociations,
+            associationMetadata,
+          }),
         })
       )
     })
@@ -117,5 +121,17 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     associatedModels: Dream | Dream[]
   }): PreloadedDreamsAndWhatTheyPointTo[] {
     return [associatedModels].flat().map(dream => ({ dream, pointsToPrimaryKey }))
+  }
+
+  private leftJoinLoadedAssociationValue({
+    dreamWithLoadedAssociations,
+    associationMetadata,
+  }: {
+    dreamWithLoadedAssociations: Dream
+    associationMetadata: AssociationStatement
+  }) {
+    return (dreamWithLoadedAssociations as any)[associationToGetterSetterProp(associationMetadata)] as
+      | Dream
+      | Dream[]
   }
 }

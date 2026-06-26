@@ -27,24 +27,17 @@ describe('Dream#leftJoinLoad', () => {
     expect(() => freshUser.pets).toThrow(NonLoadedAssociation)
   })
 
-  context('with an association provided as an argument to the and clause', () => {
-    it('supports associations as clauses', async () => {
-      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+  context('with an explicit constraint on a non-optional BelongsTo association', () => {
+    // type tests intentionally skipped, since they will fail on build instead.
+    it.skip('rejects the constraint at the type level', async () => {
       const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
-      const composition1 = await Composition.create({ user: user1 })
-      const composition2 = await Composition.create({ user: user2 })
-      const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
-      const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
+      const composition = await Composition.create({ user: user2 })
+      const compositionAsset = await CompositionAsset.create({ composition })
 
-      const reloadedCompositionAsset1 = await compositionAsset1
+      await compositionAsset
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         .leftJoinLoad('composition', { and: { user: user2 } })
         .execute()
-      const reloadedCompositionAsset2 = await compositionAsset2
-        .leftJoinLoad('composition', { and: { user: user2 } })
-        .execute()
-
-      expect(reloadedCompositionAsset1?.composition).toBeNull()
-      expect(reloadedCompositionAsset2?.composition).toMatchDreamModel(composition2)
     })
   })
 
@@ -165,7 +158,7 @@ context.skip('type tests', () => {
         User.new()
           .txn(txn)
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
-          .leftJoinPreload('invalid')
+          .leftJoinLoad('invalid')
 
         User.new()
           .txn(txn)
@@ -175,6 +168,11 @@ context.skip('type tests', () => {
               invalidArg: 123,
             },
           })
+
+        CompositionAsset.new()
+          .txn(txn)
+          // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
+          .leftJoinLoad('composition', { and: { user: User.new() } })
       })
     })
   })

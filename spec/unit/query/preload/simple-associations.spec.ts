@@ -1,4 +1,5 @@
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
+import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'
@@ -251,7 +252,7 @@ describe('Query#preload with simple associations', () => {
         await post.destroy()
 
         const reloadedPostComment = await postComment.load('post').execute()
-        expect(reloadedPostComment.post).toBeNull()
+        expect(() => reloadedPostComment.post).toThrow(MissingRequiredBelongsToAssociation)
         const reloadedPostComment2 = await postComment.load('postEvenIfDeleted').execute()
         expect(reloadedPostComment2.postEvenIfDeleted).toMatchDreamModel(post)
       })
@@ -492,7 +493,7 @@ describe('Query#preload with simple associations', () => {
         await pet.createAssociation('collars', { tagName: 'Aster', pet })
 
         const result = await Collar.preload('pet').first()
-        expect(result!.pet).toBeNull()
+        expect(() => result!.pet).toThrow(MissingRequiredBelongsToAssociation)
       })
     })
   })

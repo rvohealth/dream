@@ -1,5 +1,6 @@
 import { sql } from 'kysely'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
+import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'
@@ -156,7 +157,7 @@ describe('Query#preload with polymorphic associations', () => {
         const rating = await Rating.create({ user, rateable: post })
 
         const reloaded = await Rating.preload('rateable', 'user').find(rating.id)
-        expect(reloaded!.rateable).toBeNull()
+        expect(() => reloaded!.rateable).toThrow(MissingRequiredBelongsToAssociation)
 
         const unscopedReloaded = await Rating.removeAllDefaultScopes()
           .preload('rateable', 'user')
@@ -176,7 +177,7 @@ describe('Query#preload with polymorphic associations', () => {
         const rating = await Rating.create({ user, rateable: post })
 
         const reloaded = await Rating.preload('rateable', 'user').findOrFail(rating.id)
-        expect(reloaded.rateable).toBeNull()
+        expect(() => reloaded.rateable).toThrow(MissingRequiredBelongsToAssociation)
 
         const unscopedReloaded = await Rating.preload('rateableEvenIfDeleted', 'user').findOrFail(rating.id)
         expect(unscopedReloaded.rateableEvenIfDeleted.user).toMatchDreamModel(user)

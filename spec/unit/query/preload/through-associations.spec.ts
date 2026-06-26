@@ -45,22 +45,27 @@ describe('Query#preload through', () => {
       expect(reloaded!.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon2)
     })
 
-    it('supports where clauses farther in', async () => {
-      const balloon = await Latex.create({ color: 'red' })
-      const balloonSpotter = await BalloonSpotter.create()
-      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({ balloonSpotter, balloon })
+    // type tests intentionally skipped, since they will fail on build instead.
+    it.skip('rejects a trailing constraint on a non-optional BelongsTo reached farther in', async () => {
+      const balloonSpotterBalloon = await BalloonSpotterBalloon.create({
+        balloonSpotter: await BalloonSpotter.create(),
+        balloon: await Latex.create({ color: 'red' }),
+      })
 
-      const reloaded = await BalloonSpotter.query()
-        .preload('balloonSpotterBalloons', { and: { id: balloonSpotterBalloon.id } }, 'balloon', {
-          and: { color: 'red' },
-        })
+      await BalloonSpotter.query()
+        .preload(
+          'balloonSpotterBalloons',
+          { and: { id: balloonSpotterBalloon.id } },
+          'balloon',
+          // @ts-expect-error intentionally passing invalid arg to test that type protection is working
+          { and: { color: 'red' } }
+        )
         .first()
-      expect(reloaded!.balloonSpotterBalloons[0]!.balloon).toMatchDreamModel(balloon)
 
-      const reloaded2 = await BalloonSpotter.query()
+      await BalloonSpotter.query()
+        // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         .preload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
         .first()
-      expect(reloaded2!.balloonSpotterBalloons[0]!.balloon).toBeNull()
     })
   })
 

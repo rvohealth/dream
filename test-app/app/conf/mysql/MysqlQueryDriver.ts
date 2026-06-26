@@ -210,17 +210,17 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
    * MySQL implementation of the per-worker test-database claim seam (see
    * {@link TestDatabaseLockSession} and `src/db/testDatabasePool.ts`). MySQL
    * named locks (`GET_LOCK`) are server-wide and owned by the connection that
-   * holds them; the lock auto-releases when the connection closes, so a
-   * dedicated process-lifetime connection reserves a pool index exactly the way
-   * the Postgres advisory lock does. The `(namespace, index)` pair maps to a
-   * `GET_LOCK` name kept under MySQL's 64-character limit by hashing the
-   * namespace.
+   * holds them; a dedicated process-lifetime connection reserves a pool index
+   * exactly the way the Postgres advisory lock does. The `(namespace, index)`
+   * pair maps to a `GET_LOCK` name kept under MySQL's 64-character limit by
+   * hashing the namespace.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public static override async openTestDatabaseLockSession(
     connectionName: string
   ): Promise<TestDatabaseLockSession> {
     const connection = loadMysqlClient({ useSystemDb: true, connectionName })
+    const acquiredLockNames = new Set<string>()
 
     function runQuery<T>(sqlText: string, params: unknown[]): Promise<T> {
       return new Promise((resolve, reject) => {
@@ -236,14 +236,21 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
         // GET_LOCK(name, 0): a 0-second timeout makes this a non-blocking try.
         // Returns 1 when acquired, 0 when another session holds it, NULL on
         // error.
+        const lockName = mysqlAdvisoryLockName(namespace, index)
         const rows = await runQuery<Array<{ locked: number | null }>>('SELECT GET_LOCK(?, 0) AS locked', [
-          mysqlAdvisoryLockName(namespace, index),
+          lockName,
         ])
-        return rows[0]?.locked === 1
+        const acquired = rows[0]?.locked === 1
+        if (acquired) acquiredLockNames.add(lockName)
+        return acquired
       },
-      release(): Promise<void> {
-        // RELEASE_LOCK is implicit when the connection closes.
-        return new Promise<void>(resolve => {
+      async release(): Promise<void> {
+        for (const lockName of acquiredLockNames) {
+          await runQuery('SELECT RELEASE_LOCK(?) AS released', [lockName]).catch(() => undefined)
+        }
+        acquiredLockNames.clear()
+
+        await new Promise<void>(resolve => {
           connection.end(() => resolve())
         })
       },

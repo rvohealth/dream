@@ -1024,15 +1024,17 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     association: AssociationStatement,
     preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[]
   ) {
+    const associationBackingProperty = associationToGetterSetterProp(association)
+
     switch (association.type) {
       case 'HasMany':
         dreams.forEach((dream: any) => {
-          dream[association.as] = []
+          dream[associationBackingProperty] = []
         })
         break
       default:
         dreams.forEach((dream: any) => {
-          dream[associationToGetterSetterProp(association)] = null
+          dream[associationBackingProperty] = null
         })
     }
 
@@ -1047,18 +1049,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         .filter(dream => dream.primaryKeyValue() === preloadedDreamAndWhatItPointsTo.pointsToPrimaryKey)
         .forEach((dream: any) => {
           if (association.type === 'HasMany') {
-            dream[association.as].push(preloadedDreamAndWhatItPointsTo.dream)
+            dream[associationBackingProperty].push(preloadedDreamAndWhatItPointsTo.dream)
           } else {
             // in a HasOne context, order clauses will be applied in advance,
             // prior to hydration. Considering, we only want to set the first
             // result and ignore other results, so we will use ||= to set.
-            dream[association.as] ||= preloadedDreamAndWhatItPointsTo.dream
+            dream[associationBackingProperty] ||= preloadedDreamAndWhatItPointsTo.dream
           }
         })
     })
 
     if (association.type === 'HasMany') {
-      dreams.forEach((dream: any) => Object.freeze(dream[association.as]))
+      dreams.forEach((dream: any) => Object.freeze(dream[associationBackingProperty]))
     }
   }
 
