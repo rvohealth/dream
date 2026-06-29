@@ -1,3 +1,7 @@
+## 2.16.0
+
+- STI children now fail boot if they define associations that are not available on the STI base class. This enforces the intended `StiChildCannotDefineNewAssociations` rule during Dream's decorator initialization pass, where field association decorators have actually registered their metadata. Move any `@deco.BelongsTo`, `@deco.HasOne`, or `@deco.HasMany` declarations from STI children to the STI base class.
+
 ## 2.15.2
 
 - upgrade to pnpm@11.9.0; add strictDepBuilds: false and deny esbuild build scripts in pnpm-workspace.yaml

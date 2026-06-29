@@ -1,4 +1,5 @@
 import Dream from '../../../Dream.js'
+import { validateStiChildAssociations } from '../../../decorators/class/STI.js'
 import DreamMissingRequiredOverride from '../../../errors/DreamMissingRequiredOverride.js'
 import DreamImporter from '../DreamImporter.js'
 import globalModelKeyFromPath from '../globalModelKeyFromPath.js'
@@ -62,6 +63,8 @@ export default async function importModels(
       }
     }
   }
+
+  validateStiChildAssociations(modelClasses.map(([, modelClass]) => modelClass))
 
   /**
    * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
