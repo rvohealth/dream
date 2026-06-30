@@ -1,16 +1,30 @@
 import Dream from '../../../Dream.js'
+import { validateStiChildAssociations } from '../../../decorators/class/STI.js'
 import DreamMissingRequiredOverride from '../../../errors/DreamMissingRequiredOverride.js'
 import DreamImporter from '../DreamImporter.js'
 import globalModelKeyFromPath from '../globalModelKeyFromPath.js'
 
 let _models: Record<string, typeof Dream>
+let _importModelsPromise: Promise<Record<string, typeof Dream>> | undefined
 
 export default async function importModels(
   modelsPath: string,
   modelImportCb: (path: string) => Promise<any>
 ): Promise<Record<string, typeof Dream>> {
   if (_models) return _models
+  if (_importModelsPromise) return await _importModelsPromise
 
+  _importModelsPromise = importModelsUncached(modelsPath, modelImportCb).finally(() => {
+    _importModelsPromise = undefined
+  })
+
+  return await _importModelsPromise
+}
+
+async function importModelsUncached(
+  modelsPath: string,
+  modelImportCb: (path: string) => Promise<any>
+): Promise<Record<string, typeof Dream>> {
   const modelClasses = await DreamImporter.importDreams(modelsPath, modelImportCb)
 
   /**
@@ -21,60 +35,67 @@ export default async function importModels(
    */
   Dream['globallyInitializingDecorators'] = true
 
-  _models = {}
+  const models: Record<string, typeof Dream> = {}
 
-  for (const [modelPath, modelClass] of modelClasses) {
-    // `?` in case modelClass is undefined (e.g. a file without a default export exists in the models directory hierarchy)
-    if (modelClass?.isDream) {
-      try {
-        // Don't create a global lookup for ApplicationModel
-        // ApplicationModel does not have a table
-        if (modelClass.table) {
-          modelClass['defineAttributeAccessors']()
+  try {
+    for (const [modelPath, modelClass] of modelClasses) {
+      // `?` in case modelClass is undefined (e.g. a file without a default export exists in the models directory hierarchy)
+      if (modelClass?.isDream) {
+        try {
+          // Don't create a global lookup for ApplicationModel
+          // ApplicationModel does not have a table
+          if (modelClass.table) {
+            modelClass['defineAttributeAccessors']()
 
-          const modelKey = globalModelKeyFromPath(modelPath, modelsPath)
-          modelClass['setGlobalName'](modelKey)
-          _models[modelKey] = modelClass
+            const modelKey = globalModelKeyFromPath(modelPath, modelsPath)
+            modelClass['setGlobalName'](modelKey)
+            models[modelKey] = modelClass
+          }
+        } catch (error) {
+          // ApplicationModel will automatically raise an exception here,
+          // since it does not have a table.
+          if (!(error instanceof DreamMissingRequiredOverride)) throw error
         }
-      } catch (error) {
-        // ApplicationModel will automatically raise an exception here,
-        // since it does not have a table.
-        if (!(error instanceof DreamMissingRequiredOverride)) throw error
       }
     }
-  }
 
-  for (const [, modelClass] of modelClasses) {
-    // `?` in case modelClass is undefined (e.g. a file without a default export exists in the models directory hierarchy)
-    if (modelClass?.isDream) {
-      try {
-        /**
-         * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
-         * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
-         * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-         * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
-         */
-        new modelClass({}, { _internalUseOnly: true })
-      } catch (error) {
-        // ApplicationModel will automatically raise an exception here,
-        // since it does not have a table.
-        if (!(error instanceof DreamMissingRequiredOverride)) throw error
+    for (const [, modelClass] of modelClasses) {
+      // `?` in case modelClass is undefined (e.g. a file without a default export exists in the models directory hierarchy)
+      if (modelClass?.isDream) {
+        try {
+          /**
+           * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
+           * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
+           * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+           * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+           */
+          new modelClass({}, { _internalUseOnly: true })
+        } catch (error) {
+          // ApplicationModel will automatically raise an exception here,
+          // since it does not have a table.
+          if (!(error instanceof DreamMissingRequiredOverride)) throw error
+        }
       }
     }
+
+    validateStiChildAssociations(modelClasses.map(([, modelClass]) => modelClass))
+
+    _models = models
+
+    return _models
+  } finally {
+    /**
+     * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
+     * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
+     * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
+     * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
+     */
+    Dream['globallyInitializingDecorators'] = false
   }
-
-  /**
-   * Certain features (e.g. passing a Dream instance to `create` so that it automatically destructures polymorphic type and primary key)
-   * need static access to things set up by decorators (e.g. associations). Stage 3 Decorators change the context that is available
-   * at decoration time such that the class of a property being decorated is only avilable during instance instantiation. In order
-   * to only apply static values once, on boot, `globallyInitializingDecorators` is set to true on Dream, and all Dream models are instantiated.
-   */
-  Dream['globallyInitializingDecorators'] = false
-
-  return _models
 }
 
 export function setCachedModels(models: Record<string, typeof Dream>) {
+  _importModelsPromise = undefined
   _models = models
 }
 

@@ -1,8 +1,14 @@
+import Decorators from '../../../../src/decorators/Decorators.js'
+import STI from '../../../../src/decorators/class/STI.js'
 import { findExtendingDreamClass } from '../../../../src/dream/internal/sqlResultToDreamInstance.js'
+import StiChildCannotDefineNewAssociations from '../../../../src/errors/sti/StiChildCannotDefineNewAssociations.js'
+import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import StiBase from '../../../../test-app/app/models/Sti/Base.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Dream STI', () => {
@@ -156,6 +162,24 @@ describe('Dream STI', () => {
 
     const balloon = await Balloon.first()
     expect(balloon).toMatchDreamModel(mylar)
+  })
+
+  context('when an STI child defines a new association', () => {
+    it('raises a targeted exception during decorator initialization', () => {
+      class DynamicStiBase extends StiBase {}
+
+      const deco = new Decorators<typeof InvalidStiChildAssociation>()
+
+      @STI(DynamicStiBase)
+      class InvalidStiChildAssociation extends DynamicStiBase {
+        @deco.BelongsTo('Pet', { on: 'petId' })
+        public invalidPet: Pet
+      }
+
+      expect(() => processDynamicallyDefinedModels(DynamicStiBase, InvalidStiChildAssociation)).toThrow(
+        StiChildCannotDefineNewAssociations
+      )
+    })
   })
 
   describe('findExtendingDreamClass', () => {

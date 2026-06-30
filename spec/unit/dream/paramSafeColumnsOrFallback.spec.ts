@@ -96,15 +96,9 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
     expect(Pet.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['userId']))
   })
 
-  it(
-    'omits association foreign keys defined on STI siblings ' +
-      '(so that associations may be defined on STI children without opening up the ' +
-      'column to being set directly from params when a different sibling is specified ' +
-      'in the OpenAPI decorator in Psychic)',
-    () => {
-      expect(StiB.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['petId']))
-    }
-  )
+  it('omits association foreign keys inherited from an STI base class', () => {
+    expect(StiB.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['petId']))
+  })
 
   it('omits type field for STI models', () => {
     expect(Latex.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['type']))
@@ -118,17 +112,11 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
     expect(Rating.paramSafeColumnsOrFallback()).not.toEqual(expect.arrayContaining(['rateableType']))
   })
 
-  it(
-    'omits association foreign keys defined on STI siblings ' +
-      '(so that associations may be defined on STI children without opening up the ' +
-      'column to being set directly from params when a different sibling is specified ' +
-      'in the OpenAPI decorator in Psychic)',
-    () => {
-      const results = StiA.paramSafeColumnsOrFallback()
-      expect(results).not.toEqual(expect.arrayContaining(['taskableId']))
-      expect(results).not.toEqual(expect.arrayContaining(['taskableType']))
-    }
-  )
+  it('omits polymorphic association foreign keys inherited from an STI base class', () => {
+    const results = StiA.paramSafeColumnsOrFallback()
+    expect(results).not.toEqual(expect.arrayContaining(['taskableId']))
+    expect(results).not.toEqual(expect.arrayContaining(['taskableType']))
+  })
 
   context('#paramSafeColumns is defined on the model', () => {
     class User2 extends User {
