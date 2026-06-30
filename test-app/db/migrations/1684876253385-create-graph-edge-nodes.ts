@@ -4,7 +4,7 @@ import DreamMigrationHelpers from '../../../src/db/migration-helpers/DreamMigrat
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('graph_edge_nodes')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('edge_id', 'bigint', col => col.references('graph_edges.id').onDelete('cascade').notNull())
     .addColumn('node_id', 'bigint', col => col.references('graph_nodes.id').onDelete('cascade').notNull())
     .addColumn('position', 'integer', col => col.notNull())

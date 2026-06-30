@@ -3,7 +3,7 @@ import { Kysely } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('model_with_param_safe_and_unsafe_columns')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('column1', 'varchar(255)')
     .addColumn('allowed_column1', 'varchar(255)')
     .addColumn('disallowed_column1', 'varchar(255)')

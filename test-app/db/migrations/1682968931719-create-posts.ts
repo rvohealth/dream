@@ -4,7 +4,7 @@ import DreamMigrationHelpers from '../../../src/db/migration-helpers/DreamMigrat
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('posts')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('post_visibility_id', 'bigint', col =>
       col.references('post_visibilities.id').onDelete('set null')

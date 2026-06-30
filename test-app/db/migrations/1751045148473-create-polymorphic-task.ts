@@ -5,7 +5,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('polymorphic_tasks')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('taskable_type', sql`polymorphic_taskable_types_enum`, col => col.notNull())
     .addColumn('taskable_id', 'bigint', col => col.notNull())
     .addColumn('polymorphic_user_id', 'bigint', col =>

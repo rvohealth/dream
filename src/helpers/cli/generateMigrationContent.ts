@@ -494,8 +494,13 @@ function generateIdStr({ primaryKeyType }: { primaryKeyType: LegacyCompatiblePri
         .defaultTo(sql\`uuid_generate_v4()\`),
     )`
 
+    case 'integer':
+      return `.addColumn('id', 'integer', col => col.primaryKey().generatedByDefaultAsIdentity())`
+
+    case 'bigint':
+    case 'bigserial':
     default:
-      return `.addColumn('id', '${primaryKeyType}', col => col.primaryKey())`
+      return `.addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())`
   }
 }
 

@@ -37,7 +37,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('localized_texts')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('localizable_type', sql`localizable_types_enum`, col => col.notNull())
     .addColumn('localizable_id', 'bigint', col => col.notNull())
     .addColumn('locale', sql`locales_enum`, col => col.notNull())

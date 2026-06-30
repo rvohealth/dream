@@ -8,7 +8,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('polymorphic_localized_texts')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('localizable_type', sql`polymorphic_tests_localizable_types_enum`, col => col.notNull())
     .addColumn('localizable_id', 'bigint', col => col.notNull())
     .addColumn('locale', sql`locales_enum`, col => col.notNull())

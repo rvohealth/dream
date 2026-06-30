@@ -4,7 +4,7 @@ import DreamMigrationHelpers from '../../../src/db/migration-helpers/DreamMigrat
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('unscoped_sortable_models')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('position', 'integer')
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())

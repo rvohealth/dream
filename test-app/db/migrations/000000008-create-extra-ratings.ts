@@ -7,7 +7,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('extra_ratings')
     .addColumn('type', sql`extra_rating_types_enum`, col => col.notNull())
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('extra_rateable_id', 'bigint', col => col.notNull())
     .addColumn('extra_rateable_type', sql`extra_rateable_types_enum`, col => col.notNull())

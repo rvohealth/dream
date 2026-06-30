@@ -11,7 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
   await db.schema
     .createTable('pets')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('set null'))
     .addColumn('user_uuid', 'uuid', col => col.references('users.uuid').onDelete('set null'))
     .addColumn('favorite_treats', sql`cat_treats[]`)

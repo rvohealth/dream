@@ -5,7 +5,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('sti_bases')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('type', sql`a_and_b_sti_types`, col => col.notNull())
     .addColumn('name', 'varchar(255)', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
