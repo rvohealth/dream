@@ -8,9 +8,12 @@ export default class DreamMigrationHelpers {
    * This method renames the table, its primary key index (`{tablename}_pkey`),
    * and its primary key sequence (`{tablename}_id_seq`) to keep them in sync.
    *
-   * The sequence rename is skipped for tables with UUID primary keys (which have
-   * no associated sequence). The primary key index is always renamed since
-   * PostgreSQL does not automatically rename it when the table is renamed.
+   * The sequence rename applies to both legacy `serial`/`bigserial` columns and
+   * modern `GENERATED ... AS IDENTITY` columns: identity columns are also backed
+   * by a `{tablename}_id_seq` sequence, so they need the same rename. It is
+   * skipped only for tables with UUID primary keys (which have no associated
+   * sequence). The primary key index is always renamed since PostgreSQL does not
+   * automatically rename it when the table is renamed.
    *
    * @param db - The Kysely database object passed into the migration up/down function
    * @param from - The current name of the table to rename
