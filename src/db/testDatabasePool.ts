@@ -80,11 +80,20 @@ const state: PoolState = {
  * probe so they always agree on the index range.
  */
 export function testDatabasePoolSize(parallelTests: number | undefined): number {
-  const n =
-    typeof parallelTests === 'number' && Number.isFinite(parallelTests) && parallelTests > 0
-      ? Math.floor(parallelTests)
-      : 1
+  const n = normalizeTestDatabaseParallelism(parallelTests)
   return 2 * Math.max(1, n) + POOL_MARGIN
+}
+
+/**
+ * Normalize configured test parallelism to the minimum safe pool width input.
+ * Even a serial vitest run can overlap old/new worker processes, so missing,
+ * invalid, zero, or fractional-below-one values all mean "one active worker",
+ * not "disable the per-live-worker database pool".
+ */
+export function normalizeTestDatabaseParallelism(parallelTests: number | undefined): number {
+  return typeof parallelTests === 'number' && Number.isFinite(parallelTests) && parallelTests > 0
+    ? Math.max(1, Math.floor(parallelTests))
+    : 1
 }
 
 /**

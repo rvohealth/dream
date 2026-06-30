@@ -6,6 +6,7 @@ import { Context } from 'node:vm'
 import {
   claimedTestDatabaseIndexOrNull,
   claimTestDatabase,
+  normalizeTestDatabaseParallelism,
   testDatabaseNameForIndex,
 } from '../db/testDatabasePool.js'
 import validateTable from '../db/validators/validateTable.js'
@@ -259,7 +260,7 @@ A new key can also be generated from the CLI:
 
   private _parallelTests: number | undefined
   public get parallelTests() {
-    return process.env.NODE_ENV === 'test' ? this._parallelTests : undefined
+    return process.env.NODE_ENV === 'test' ? normalizeTestDatabaseParallelism(this._parallelTests) : undefined
   }
 
   private _unicodeNormalization: UnicodeNormalizationForm = 'NFC'
@@ -336,7 +337,7 @@ A new key can also be generated from the CLI:
     if (opts?.projectRoot) this._projectRoot = opts.projectRoot
     if (opts?.inflections) this._inflections = opts.inflections
     if (opts?.serializerCasing) this._serializerCasing = opts.serializerCasing
-    if (opts?.parallelTests) this._parallelTests = opts.parallelTests
+    if (opts?.parallelTests !== undefined) this._parallelTests = opts.parallelTests
 
     this._paths = {
       conf: opts?.paths?.conf || 'src/conf',
@@ -616,9 +617,7 @@ A new key can also be generated from the CLI:
         break
 
       case 'parallelTests':
-        if (process.env.NODE_ENV === 'test' && !Number.isNaN(Number(options)) && Number(options) > 1) {
-          this._parallelTests = options as number
-        }
+        if (process.env.NODE_ENV === 'test') this._parallelTests = options as number
         break
 
       case 'unicodeNormalization':
