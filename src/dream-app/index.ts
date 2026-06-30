@@ -272,7 +272,7 @@ A new key can also be generated from the CLI:
     return this._paginationPageSize
   }
 
-  private _primaryKeyType: LegacyCompatiblePrimaryKeyType = 'bigserial'
+  private _primaryKeyType: LegacyCompatiblePrimaryKeyType = 'bigint'
   public get primaryKeyType() {
     return this._primaryKeyType
   }

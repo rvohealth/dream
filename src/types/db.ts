@@ -14,4 +14,4 @@ type valueof<T> = T[keyof T]
 export type NonArrayDbTypes = (typeof postgresDatatypes)[number]
 export type DbTypes = NonArrayDbTypes | `${NonArrayDbTypes}[]`
 export type PrimaryKeyType = (typeof primaryKeyTypes)[number]
-export type LegacyCompatiblePrimaryKeyType = PrimaryKeyType | 'uuid'
+export type LegacyCompatiblePrimaryKeyType = PrimaryKeyType | 'uuid' | 'bigserial'
