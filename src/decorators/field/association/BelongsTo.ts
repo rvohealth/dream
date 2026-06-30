@@ -15,6 +15,7 @@ import {
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
+  markAssociationDeclaration,
 } from './shared.js'
 
 export default function BelongsTo<
@@ -101,6 +102,7 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
   } = opts as any
 
   return function (_: undefined, context: DecoratorContext) {
+    markAssociationDeclaration(context)
     const key = context.name
 
     context.addInitializer(function (this: BaseInstance) {
@@ -145,6 +147,11 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
           return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
         },
       } as BelongsToStatement<any, any, any, any>
+
+      if (dreamClass['isSTIChild']) {
+        applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
+        return
+      }
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
         dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)

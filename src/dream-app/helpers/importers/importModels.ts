@@ -1,5 +1,4 @@
 import Dream from '../../../Dream.js'
-import { validateStiChildAssociations } from '../../../decorators/class/STI.js'
 import DreamMissingRequiredOverride from '../../../errors/DreamMissingRequiredOverride.js'
 import DreamImporter from '../DreamImporter.js'
 import globalModelKeyFromPath from '../globalModelKeyFromPath.js'
@@ -77,9 +76,6 @@ async function importModelsUncached(
         }
       }
     }
-
-    validateStiChildAssociations(modelClasses.map(([, modelClass]) => modelClass))
-
     _models = models
 
     return _models

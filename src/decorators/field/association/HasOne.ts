@@ -14,6 +14,7 @@ import {
   blankAssociationsFactory,
   finalForeignKey,
   foreignKeyTypeField,
+  markAssociationDeclaration,
   validateHasStatementArgs,
 } from './shared.js'
 
@@ -95,6 +96,7 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
   } = opts as any
 
   return function (_: undefined, context: DecoratorContext) {
+    markAssociationDeclaration(context)
     const key = context.name
 
     context.addInitializer(function (this: BaseInstance) {
@@ -150,6 +152,11 @@ export default function HasOne<BaseInstance extends Dream, AssociationGlobalName
           return foreignKeyTypeField(foreignKey, dreamClass, partialAssociation)
         },
       } as HasOneStatement<any, any, any, any>
+
+      if (dreamClass['isSTIChild']) {
+        applyGetterAndSetter(target, association)
+        return
+      }
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
         dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)

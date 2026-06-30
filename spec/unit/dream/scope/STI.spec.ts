@@ -165,20 +165,26 @@ describe('Dream STI', () => {
   })
 
   context('when an STI child defines a new association', () => {
-    it('raises a targeted exception during decorator initialization', () => {
+    it('raises a targeted exception during class decoration', () => {
       class DynamicStiBase extends StiBase {}
 
-      const deco = new Decorators<typeof InvalidStiChildAssociation>()
+      const deco = new Decorators<any>()
 
-      @STI(DynamicStiBase)
-      class InvalidStiChildAssociation extends DynamicStiBase {
-        @deco.BelongsTo('Pet', { on: 'petId' })
-        public invalidPet: Pet
-      }
+      expect(() => {
+        @STI(DynamicStiBase)
+        class InvalidStiChildAssociation extends DynamicStiBase {
+          @deco.BelongsTo('Pet', { on: 'petId' })
+          public invalidPet: Pet
+        }
 
-      expect(() => processDynamicallyDefinedModels(DynamicStiBase, InvalidStiChildAssociation)).toThrow(
-        StiChildCannotDefineNewAssociations
-      )
+        void InvalidStiChildAssociation
+      }).toThrow(StiChildCannotDefineNewAssociations)
+    })
+
+    it('inherits base association metadata without owning a child fork', () => {
+      expect(() => processDynamicallyDefinedModels(Latex, Balloon)).not.toThrow()
+      expect(Object.getOwnPropertyDescriptor(Latex, 'associationMetadataByType')).toBeUndefined()
+      expect(Latex['associationMetadataByType']).toBe(Balloon['associationMetadataByType'])
     })
   })
 
