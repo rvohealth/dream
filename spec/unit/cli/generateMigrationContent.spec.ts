@@ -334,7 +334,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .execute()
@@ -362,7 +362,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('posts')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('body', 'text', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -460,7 +460,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('users')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('email', sql\`citext\`, col => col.notNull().unique())
     .addColumn('token', 'varchar(36)', col => col.notNull().unique())
     .addColumn('my_uuid', 'uuid', col => col.notNull().unique())
@@ -501,7 +501,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('phone_number', 'varchar(255)', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -563,7 +563,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('encrypted_phone_number', 'text', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -595,7 +595,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('communication_preferences')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('sms_marketing', 'boolean', col => col.notNull().defaultTo(false))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -627,7 +627,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('chalupas')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('deliciousness', 'decimal(4, 2)', col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -701,7 +701,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('chalupas')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('name', sql\`text[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('emails', sql\`citext[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('phone_number', sql\`varchar(255)[]\`, col => col.notNull().defaultTo('{}'))
@@ -762,7 +762,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('chalupas')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('topping', sql\`topping_enum\`, col => col.notNull())
     .addColumn('protein_type', sql\`protein_enum\`, col => col.notNull())
     .addColumn('existing_enum', sql\`my_existing_enum\`, col => col.notNull())
@@ -818,7 +818,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('chalupas')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('topping', sql\`topping_enum[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('protein_type', sql\`protein_enum[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('existing_enum', sql\`my_existing_enum[]\`, col => col.notNull().defaultTo('{}'))
@@ -862,7 +862,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('places')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('style', sql\`place_styles_enum\`, col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -901,7 +901,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('places')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('style', sql\`place_styles_enum[]\`, col => col.notNull().defaultTo('{}'))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -932,7 +932,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('places')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('style', sql\`place_styles_enum\`, col => col.notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -972,7 +972,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('balloons')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('type', sql\`balloon_types_enum\`, col => col.notNull())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
@@ -1020,7 +1020,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('balloons')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     // CONSIDER: when using type for STI, always use an enum
     // Try using the enum syntax in your generator, e.g.:
     // pnpm psy g:model Balloon type:enum:balloon_type:latex,mylar
@@ -1062,7 +1062,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -1100,7 +1100,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict').notNull())
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -1222,7 +1222,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('compositions')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('score_id', 'bigint', col => col.references('music_scores.id').onDelete('restrict'))
     .addColumn('created_at', 'timestamp', col => col.notNull())
     .addColumn('updated_at', 'timestamp', col => col.notNull())
@@ -1445,6 +1445,89 @@ export async function down(db: Kysely<any>): Promise<void> {
 }\
 `
         )
+      })
+    })
+  })
+
+  context('non-uuid primary key types emit identity columns', () => {
+    context('when primaryKeyType is "bigint"', () => {
+      it('emits a bigint identity primary key', () => {
+        const res = generateMigrationContent({
+          table: 'users',
+          columnsWithTypes: [],
+          primaryKeyType: 'bigint',
+        })
+        expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('users')
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
+}`)
+      })
+    })
+
+    context('when primaryKeyType is the legacy "bigserial"', () => {
+      it('emits the same bigint identity primary key', () => {
+        const res = generateMigrationContent({
+          table: 'users',
+          columnsWithTypes: [],
+          primaryKeyType: 'bigserial',
+        })
+        expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('users')
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
+}`)
+      })
+    })
+
+    context('when primaryKeyType is "integer"', () => {
+      it('emits an integer identity primary key', () => {
+        const res = generateMigrationContent({
+          table: 'users',
+          columnsWithTypes: [],
+          primaryKeyType: 'integer',
+        })
+        expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('users')
+    .addColumn('id', 'integer', col => col.primaryKey().generatedByDefaultAsIdentity())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('users').execute()
+}`)
       })
     })
   })

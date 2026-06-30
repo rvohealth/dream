@@ -3,7 +3,7 @@ import { Kysely } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('ratings')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade').notNull())
     // .addColumn('rateable', 'references', { polymorphic: true }, col => col.references('users.id').onDelete('cascade').notNull())
     .addColumn('rateable_id', 'bigint', col => col.notNull())

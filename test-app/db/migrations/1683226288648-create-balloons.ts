@@ -7,7 +7,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable('beautiful_balloons')
-    .addColumn('id', 'bigserial', col => col.primaryKey())
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
     .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('cascade'))
     .addColumn('type', sql`balloon_types_enum`, col => col.notNull())
     .addColumn('volume', 'decimal(6, 3)')
