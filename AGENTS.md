@@ -2,6 +2,19 @@
 
 This file provides instructions for AI agents working on this project.
 
+## Starting New Work
+
+Before starting any new work, switch to `main` and pull the latest, unless the
+user explicitly instructs otherwise:
+
+```bash
+git switch main && git pull
+```
+
+We merge pull requests through the GitHub UI, so the local working branch is
+often already merged into `origin/main`. Starting from a stale, already-merged
+branch is the default failure mode this rule prevents.
+
 ## MANDATORY: Completion Gauntlet Before Push / PR
 
 Before pushing a branch, opening a pull request, or otherwise declaring work
