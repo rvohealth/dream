@@ -1,4 +1,5 @@
 import Dream from '../Dream.js'
+import MaxRecursiveStringCaseDepthExceeded from '../errors/MaxRecursiveStringCaseDepthExceeded.js'
 import { NotReadonlyHead, NotReadonlyTail, ReadonlyHead, ReadonlyTail } from '../types/utils.js'
 import BaseClockTime from '../utils/datetime/BaseClockTime.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
@@ -128,16 +129,30 @@ type HyphenizeString<S extends string> = InnerCapitalsToCharacterDelimiter<Camel
 type PascalizeString<S extends string> = Capitalize<InnerCamelizeString<S>>
 type CamelizeString<S extends string> = Uncapitalize<InnerCamelizeString<S>>
 
+// Maximum object-nesting depth `recursiveStringCase` will traverse. Each nesting
+// level recurses once, so without a cap a deeply-nested input (e.g. a malicious
+// ~480KB JSON body under the request size limit) exhausts the call stack and
+// surfaces as an uncontrolled `RangeError` (500). The cap sits far below the
+// point at which this recursion overflows the stack (measured ~2,000+ levels)
+// while remaining far above any legitimate nesting depth, so real application
+// data — request params, serializer output, config objects — is never affected.
+const MAX_RECURSIVE_STRING_CASE_DEPTH = 500
+
 export default function stringCase(target: any, stringCaser: (x: string) => string): any {
   if (typeof target === 'string') return stringCaser(target)
-  return recursiveStringCase(target, stringCaser)
+  return recursiveStringCase(target, stringCaser, 0)
 }
 
-function recursiveStringCase(target: any, stringCaser: (x: string) => string): any {
+function recursiveStringCase(target: any, stringCaser: (x: string) => string, depth: number): any {
   if (target === null) return null
   if (target === undefined) return undefined
   if (typeof target === 'string') return target
-  if (Array.isArray(target)) return target.map(s => recursiveStringCase(s, stringCaser))
+
+  if (depth >= MAX_RECURSIVE_STRING_CASE_DEPTH) {
+    throw new MaxRecursiveStringCaseDepthExceeded(MAX_RECURSIVE_STRING_CASE_DEPTH)
+  }
+
+  if (Array.isArray(target)) return target.map(s => recursiveStringCase(s, stringCaser, depth + 1))
 
   if (isObject(target)) {
     if (
@@ -151,7 +166,11 @@ function recursiveStringCase(target: any, stringCaser: (x: string) => string): a
 
     return Object.keys(target).reduce(
       (stringCasedObject, targetKey) => {
-        stringCasedObject[stringCaser(targetKey)] = recursiveStringCase(target[targetKey], stringCaser)
+        stringCasedObject[stringCaser(targetKey)] = recursiveStringCase(
+          target[targetKey],
+          stringCaser,
+          depth + 1
+        )
         return stringCasedObject
       },
       {} as { [key: string]: any }
