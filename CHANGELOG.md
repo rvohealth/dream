@@ -1,3 +1,7 @@
+## 2.17.2
+
+- The `g:sti-child` CLI help now calls out that `belongs_to` is unsupported for STI children, and the generator rejects `belongs_to` columns before writing files. STI child associations must be declared on the parent model. Plain STI child models also no longer include the commented `Decorators` import/`const deco` scaffold, avoiding boilerplate that points developers toward decorators that are incompatible with STI children.
+
 ## 2.17.1
 
 - Test database pool setup now treats missing or invalid `parallelTests` configuration as one worker instead of disabled. This means apps that omit `DREAM_PARALLEL_TESTS`, pass `Number(process.env.DREAM_PARALLEL_TESTS)` when the env var is unset, or explicitly set `parallelTests` to `1` still create the minimum per-live-worker database pool during test DB setup. The per-worker claim path already needed that pool even for sequential Vitest runs, because Vitest can start a new process before the previous one has fully exited; Dream now makes the CLI create/drop path and the runtime claim path agree on the same minimum pool width.

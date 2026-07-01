@@ -140,10 +140,6 @@ import { STI } from '@rvoh/dream'
 import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
 import FooBar from '@models/Foo/Bar.js'
 
-// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
-// import { Decorators } from '@rvoh/dream'
-// const deco = new Decorators<typeof FooBarBaz>()
-
 @STI(FooBar)
 export default class FooBarBaz extends FooBar {
   public override get serializers(): DreamSerializers<FooBarBaz> {
@@ -241,16 +237,27 @@ import { STI } from '@rvoh/dream'
 import { DreamColumn } from '@rvoh/dream/types'
 import Chalupa from '@models/Chalupa.js'
 
-// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
-// import { Decorators } from '@rvoh/dream'
-// const deco = new Decorators<typeof CrunchyChalupa>()
-
 @STI(Chalupa)
 export default class CrunchyChalupa extends Chalupa {
 
   public deliciousness: DreamColumn<CrunchyChalupa, 'deliciousness'>
 }
 `
+            )
+          })
+
+          it('rejects belongs_to columns', () => {
+            expect(() =>
+              generateDreamContent({
+                fullyQualifiedModelName: 'CrunchyChalupa',
+                modelClassName: modelClassNameFrom('CrunchyChalupa'),
+                fullyQualifiedParentName: 'Chalupa',
+                columnsWithTypes: ['User:belongs_to'],
+                serializer: false,
+                includeAdminSerializers: false,
+              })
+            ).toThrow(
+              'STI children cannot declare belongs_to associations. Declare associations on the STI parent instead. Unsupported columns: User:belongs_to'
             )
           })
         })

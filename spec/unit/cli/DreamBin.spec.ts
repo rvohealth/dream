@@ -246,6 +246,19 @@ describe('DreamBin', () => {
       expect(findWritten('migration')).toBeUndefined()
     })
 
+    it('rejects belongs_to columns before writing files', async () => {
+      await expect(
+        DreamBin.generateStiChild('Room/Kitchen', 'Room', ['User:belongs_to'], {
+          serializer: true,
+          connectionName: 'default',
+        })
+      ).rejects.toThrow(
+        'STI children cannot declare belongs_to associations. Declare associations on the STI parent instead. Unsupported columns: User:belongs_to'
+      )
+
+      expect(spy).not.toHaveBeenCalled()
+    })
+
     context('--admin-serializers flag', () => {
       it('generates admin serializer variants for STI child', async () => {
         await DreamBin.generateStiChild('Room/Kitchen', 'Room', ['oven_count:integer'], {

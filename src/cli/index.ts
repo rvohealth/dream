@@ -25,8 +25,8 @@ export type SpawnOptions = Omit<NodeSpawnOptions, 'shell'> & {
 export const CLI_INDENT = '                  '
 const INDENT = CLI_INDENT
 
-export const baseColumnsWithTypesDescription = `space separated snake-case (except for belongs_to model name, which may take an @alias suffix to rename the FK) properties like this:
-${INDENT}    title:citext subtitle:string body_markdown:text style:enum:post_styles:formal,informal User:belongs_to
+export const baseColumnsWithTypesDescription = `space separated snake-case properties like this:
+${INDENT}    title:citext subtitle:string body_markdown:text style:enum:post_styles:formal,informal
 ${INDENT}
 ${INDENT}all properties default to not nullable; null can be allowed by appending ':optional':
 ${INDENT}    subtitle:string:optional
@@ -76,9 +76,12 @@ ${INDENT}          type:enum:room_types or type:enum:room_types:optional
 ${INDENT}
 ${INDENT}        leveraging arrays, add the "[]" suffix, e.g.: type:enum[]:room_types:bathroom,kitchen,bedroom`
 
-const columnsWithTypesDescription =
-  baseColumnsWithTypesDescription +
-  `
+function buildColumnsWithTypesDescription(belongsToDescription: string): string {
+  return `${baseColumnsWithTypesDescription}
+${belongsToDescription}`
+}
+
+const columnsWithTypesDescription = buildColumnsWithTypesDescription(`
 ${INDENT}
 ${INDENT}    - belongs_to:
 ${INDENT}        ALWAYS use this instead of adding a raw uuid column for foreign keys. It creates the FK column, adds a database index,
@@ -96,11 +99,15 @@ ${INDENT}                                                             #   @deco.
 ${INDENT}          Messaging/Template@template:belongs_to             # template_id column, templateId property, template association
 ${INDENT}                                                             #   (strips the namespace from the property/association names while keeping
 ${INDENT}                                                             #   the namespaced model reference intact)
-${INDENT}        Aliasing also lets you declare multiple FKs to the same model in one generator call without column collisions.`
+${INDENT}        Aliasing also lets you declare multiple FKs to the same model in one generator call without column collisions.`)
 
-const columnsWithTypesDescriptionForMigration =
-  baseColumnsWithTypesDescription +
-  `
+export const columnsWithTypesDescriptionForStiChild = buildColumnsWithTypesDescription(`
+${INDENT}
+${INDENT}    - belongs_to:
+${INDENT}        NOT supported for STI children. STI children cannot declare associations; declare all BelongsTo,
+${INDENT}        HasOne, and HasMany associations on the STI parent model instead.`)
+
+const columnsWithTypesDescriptionForMigration = buildColumnsWithTypesDescription(`
 ${INDENT}
 ${INDENT}    - belongs_to:
 ${INDENT}        ALWAYS use this instead of adding a raw uuid column for foreign keys. It creates the FK column with an index.
@@ -113,7 +120,7 @@ ${INDENT}          User:belongs_to:optional          # nullable foreign key
 ${INDENT}
 ${INDENT}        rename the FK column with Model@alias (snake_case alias becomes the column name):
 ${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column with index
-${INDENT}          Messaging/Template@template:belongs_to             # template_id column (strips the namespace from the column name)`
+${INDENT}          Messaging/Template@template:belongs_to             # template_id column (strips the namespace from the column name)`)
 
 export default class DreamCLI {
   /**
@@ -362,7 +369,7 @@ ${INDENT}  Settings/CommunicationPreferences   # src/app/models/Settings/Communi
       .description(
         `Generates an STI (Single Table Inheritance) child model that extends an existing parent model. The child shares the parent's database table (discriminated by the \`type\` column) and can add child-specific columns. Generates a child model decorated with @STI(Parent), child serializers extending the parent's base serializers, a migration that ALTERs the parent table (not a new table), check constraints, a factory, and spec skeleton.
 ${INDENT}
-${INDENT}If the child declares no additional columns, only the model file is generated — no migration is created. STI children share the parent's table, so a no-columns child requires no schema change. Add a migration only by passing positional field:type args, in which case the generator emits one with the appropriate check constraint. STI children never receive @SoftDelete() — soft delete is enforced at the parent level only — and the generator does not accept --no-soft-delete.
+${INDENT}If the child declares no additional columns, only the model file is generated — no migration is created. STI children share the parent's table, so a no-columns child requires no schema change. Add a migration only by passing positional field:type args, in which case the generator emits one with the appropriate check constraint. STI children cannot declare associations — declare them on the parent model instead. The generator rejects belongs_to columns. STI children never receive @SoftDelete() — soft delete is enforced at the parent level only — and the generator does not accept --no-soft-delete.
 ${INDENT}
 ${INDENT}The parent must already exist (typically generated with g:model --sti-base-serializer or g:resource --sti-base-serializer).
 ${INDENT}
@@ -421,7 +428,7 @@ ${INDENT}Examples:
 ${INDENT}  Room                # extends src/app/models/Room.ts
 ${INDENT}  Health/Coach        # extends src/app/models/Health/Coach.ts`
       )
-      .argument('[columnsWithTypes...]', columnsWithTypesDescription)
+      .argument('[columnsWithTypes...]', columnsWithTypesDescriptionForStiChild)
       .action(
         async (
           childModelName: string,
