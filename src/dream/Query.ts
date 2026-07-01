@@ -1783,6 +1783,20 @@ export default class Query<
   }
 
   /**
+   * @internal
+   *
+   * Resolves the effective page size for a pagination request: applies the
+   * configured default when no page size is requested, and clamps the result to
+   * the configured maximum (`paginationMaxPageSize`, default 200) so that a
+   * forwarded, attacker-controlled `pageSize` cannot force a full-table load.
+   */
+  private clampedPaginationPageSize(requestedPageSize: number | undefined): number {
+    const dreamApp = DreamApp.getOrFail()
+    const pageSize = Math.max(0, requestedPageSize ?? 0) || dreamApp.paginationPageSize
+    return Math.min(pageSize, dreamApp.paginationMaxPageSize)
+  }
+
+  /**
    * Paginates the results of your query, accepting a pageSize and page argument,
    * which it uses to segment your query into pages, leveraging limit and offset
    * to deliver your query to you in pages.
@@ -1826,7 +1840,7 @@ export default class Query<
 
     const page = computedPaginatePage(options.page)
     const recordCount = await this.count()
-    const pageSize = Math.max(0, options.pageSize ?? 0) || DreamApp.getOrFail().paginationPageSize
+    const pageSize = this.clampedPaginationPageSize(options.pageSize)
     const pageCount = Math.ceil(recordCount / pageSize)
 
     const query = this.orderStatements.length
@@ -1944,7 +1958,7 @@ export default class Query<
       : CursorPaginatedDreamQueryOptions
   ): Promise<CursorPaginatedDreamQueryResult<DreamInstance>> {
     const options = opts as CursorPaginatedDreamQueryOptions
-    const pageSize = Math.max(0, options.pageSize ?? 0) || DreamApp.getOrFail().paginationPageSize
+    const pageSize = this.clampedPaginationPageSize(options.pageSize)
     if (options === null) return { cursor: null, results: [] }
     if (this.limitStatement) throw new CannotPaginateWithLimit()
     if (this.offsetStatement) throw new CannotPaginateWithOffset()

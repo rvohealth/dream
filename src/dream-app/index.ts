@@ -273,6 +273,11 @@ A new key can also be generated from the CLI:
     return this._paginationPageSize
   }
 
+  private _paginationMaxPageSize: number = 200
+  public get paginationMaxPageSize() {
+    return this._paginationMaxPageSize
+  }
+
   private _primaryKeyType: LegacyCompatiblePrimaryKeyType = 'bigint'
   public get primaryKeyType() {
     return this._primaryKeyType
@@ -560,7 +565,9 @@ A new key can also be generated from the CLI:
                             ? UnicodeNormalizationForm
                             : ApplyOpt extends 'paginationPageSize'
                               ? number
-                              : never,
+                              : ApplyOpt extends 'paginationMaxPageSize'
+                                ? number
+                                : never,
     secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
@@ -630,6 +637,10 @@ A new key can also be generated from the CLI:
 
       case 'paginationPageSize':
         this._paginationPageSize = options as number
+        break
+
+      case 'paginationMaxPageSize':
+        this._paginationMaxPageSize = options as number
         break
 
       default: {
@@ -708,6 +719,7 @@ export type DreamAppSetOption =
   | 'parallelTests'
   | 'unicodeNormalization'
   | 'paginationPageSize'
+  | 'paginationMaxPageSize'
   | 'packageManager'
 
 export interface DreamDirectoryPaths {
