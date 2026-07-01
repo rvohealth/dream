@@ -265,7 +265,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('balloons_type').execute()
   await db.schema.dropTable('balloons').execute()
 
   await db.schema.dropType('balloon_types_enum').execute()
@@ -306,7 +305,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `

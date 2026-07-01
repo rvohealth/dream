@@ -1,6 +1,7 @@
 ## 2.17.2
 
 - The `g:sti-child` CLI help now calls out that `belongs_to` is unsupported for STI children, and the generator rejects `belongs_to` columns before writing files. STI child associations must be declared on the parent model. Plain STI child models also no longer include the commented `Decorators` import/`const deco` scaffold, avoiding boilerplate that points developers toward decorators that are incompatible with STI children.
+- Generated migrations now create an index on generated `deleted_at` columns. This applies to SoftDelete model/resource generation and to generated migrations that add a `deleted_at` column explicitly, so the default `deleted_at IS NULL` SoftDelete scope has a matching database index.
 
 ## 2.17.1
 

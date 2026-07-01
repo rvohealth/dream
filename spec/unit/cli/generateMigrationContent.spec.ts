@@ -368,6 +368,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .addColumn('deleted_at', 'timestamp')
     .execute()
+
+  await db.schema
+    .createIndex('posts_deleted_at')
+    .on('posts')
+    .column('deleted_at')
+    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -385,6 +391,7 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
       const matches = res.match(/\.addColumn\('deleted_at'/g) ?? []
       expect(matches).toHaveLength(1)
+      expect(res).toContain("createIndex('posts_deleted_at')")
     })
 
     it('does not duplicate created_at or updated_at when also passed explicitly', () => {
@@ -407,6 +414,7 @@ export async function down(db: Kysely<any>): Promise<void> {
         primaryKeyType: 'bigserial',
       })
       expect(res.match(/\.addColumn\('deleted_at'/g) ?? []).toHaveLength(1)
+      expect(res).toContain("createIndex('posts_deleted_at')")
     })
 
     it('does not duplicate created_at or updated_at when also passed explicitly', () => {
@@ -426,6 +434,42 @@ export async function down(db: Kysely<any>): Promise<void> {
         primaryKeyType: 'bigserial',
       })
       expect(res).not.toContain("addColumn('deleted_at'")
+    })
+  })
+
+  context('deleted_at attributes in alter migrations', () => {
+    it('adds an index for the deleted_at column', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['deleted_at:datetime:optional'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('posts')
+    .addColumn('deleted_at', 'timestamp')
+    .execute()
+
+  await db.schema
+    .createIndex('posts_deleted_at')
+    .on('posts')
+    .column('deleted_at')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('posts')
+    .dropColumn('deleted_at')
+    .execute()
+}`)
     })
   })
 
@@ -994,8 +1038,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('balloons_type').execute()
-  await db.schema.dropIndex('balloons_user_id').execute()
   await db.schema.dropTable('balloons').execute()
 
   await db.schema.dropType('balloon_types_enum').execute()
@@ -1038,7 +1080,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('balloons_type').execute()
   await db.schema.dropTable('balloons').execute()
 }\
 `
@@ -1077,7 +1118,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -1115,7 +1155,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -1180,7 +1219,6 @@ export async function down(db: Kysely<any>): Promise<void> {
           )
           expect(res).toContain("createIndex('message_requests_canceled_by_id')")
           expect(res).toContain(".column('canceled_by_id')")
-          expect(res).toContain("dropIndex('message_requests_canceled_by_id')")
         })
 
         it('allows multiple FKs to the same model via distinct aliases', () => {
@@ -1237,7 +1275,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -1281,7 +1318,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_user_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -1325,7 +1361,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_user_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
@@ -1369,7 +1404,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_user_id').execute()
   await db.schema.dropTable('compositions').execute()
 }\
 `
