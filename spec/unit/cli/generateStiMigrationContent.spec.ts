@@ -197,7 +197,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema
     .alterTable('compositions')
     .dropColumn('score_id')
@@ -235,7 +234,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_score_id').execute()
   await db.schema
     .alterTable('compositions')
     .dropColumn('score_id')
@@ -275,7 +273,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropIndex('compositions_user_id').execute()
   await db.schema
     .alterTable('compositions')
     .dropColumn('user_id')

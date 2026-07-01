@@ -11,13 +11,13 @@ import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
-const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
+const DELETED_AT_COLUMN_NAME = 'deleted_at'
+const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME, DELETED_AT_COLUMN_NAME]
 
 interface ColumnDefsAndDrops {
   columnDefs: string[]
   columnDrops: string[]
   indexDefs: string[]
-  indexDrops: string[]
 }
 
 export default function generateMigrationContent({
@@ -60,9 +60,9 @@ export default function generateMigrationContent({
       })
   const emitDeletedAtColumn = !altering && (softDelete || userExplicitlyPassedDeletedAt)
 
-  const { columnDefs, columnDrops, indexDefs, indexDrops } = processedColumnsWithTypes.reduce(
+  const { columnDefs, columnDrops, indexDefs } = processedColumnsWithTypes.reduce(
     (acc: ColumnDefsAndDrops, attributeDeclaration: string) => {
-      const { columnDefs, columnDrops, indexDefs, indexDrops } = acc
+      const { columnDefs, columnDrops, indexDefs } = acc
       const [rawSegmentOne, _attributeType, ...descriptors] = attributeDeclaration.split(':')
       if (!rawSegmentOne) return acc
 
@@ -187,15 +187,7 @@ export default function generateMigrationContent({
       columnDrops.push(`.dropColumn('${attributeName}')`)
 
       if (processedAttrType === 'belongsto' || COLUMNS_TO_INDEX.includes(attributeName)) {
-        const indexName = `${table}_${attributeName}`
-
-        indexDefs.push(`await db.schema
-    .createIndex('${indexName}')
-    .on('${table}')
-    .column('${attributeName}')
-    .execute()`)
-
-        indexDrops.push(`await db.schema.dropIndex('${indexName}').execute()`)
+        indexDefs.push(columnIndexStatement(table, attributeName))
       }
 
       if (stiChildClassName && !userWantsThisOptional && !arrayAttribute && !isBooleanColumn) {
@@ -212,8 +204,12 @@ export default function generateMigrationContent({
 
       return acc
     },
-    { columnDefs: [], columnDrops: [], indexDefs: [], indexDrops: [] } as ColumnDefsAndDrops
+    { columnDefs: [], columnDrops: [], indexDefs: [] } as ColumnDefsAndDrops
   )
+
+  if (emitDeletedAtColumn) {
+    indexDefs.push(columnIndexStatement(table, DELETED_AT_COLUMN_NAME))
+  }
 
   if (!table) {
     return `\
@@ -266,7 +262,7 @@ ${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  ${indexDrops.join(newlineIndent)}${indexDrops.length ? newlineIndent : ''}${
+  ${
     altering
       ? `await db.schema${newlineDoubleIndent}.alterTable('${table}')${columnDropLines}.execute()`
       : `await db.schema.dropTable('${table}').execute()`
@@ -533,6 +529,16 @@ function lookupReferencesTable(
 
 function associationNameToForeignKey(associationName: string) {
   return snakeify(associationName.replace(/\//g, '_').replace(/_id$/, '') + '_id')
+}
+
+function columnIndexStatement(table: string | undefined, attributeName: string) {
+  const indexName = `${table}_${attributeName}`
+
+  return `await db.schema
+    .createIndex('${indexName}')
+    .on('${table}')
+    .column('${attributeName}')
+    .execute()`
 }
 
 export function optionalFromDescriptors(descriptors: string[]): boolean {
