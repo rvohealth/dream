@@ -34,8 +34,13 @@ export default function decryptAESGCM<RetType>(
 
   try {
     return JSON.parse(plaintext) as RetType
-  } catch (cause) {
-    throw Object.assign(new DecryptionParseError(), { cause })
+  } catch {
+    // Intentionally drop the underlying SyntaxError as `cause`: its message embeds a
+    // snippet of the just-decrypted plaintext (e.g. `Unexpected token 'x', "secret..." is
+    // not valid JSON`). Carrying it would leak decrypted plaintext into any logger that
+    // serializes `error.cause`. DecryptionParseError's own message is generic and
+    // plaintext-free, which is all callers need to diagnose an encrypted-format mismatch.
+    throw new DecryptionParseError()
   }
 }
 

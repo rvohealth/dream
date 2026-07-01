@@ -187,6 +187,45 @@ describe('Encrypt', () => {
 
           expect(() => Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A })).toThrow(DecryptionParseError)
         })
+
+        it('does not carry the decrypted plaintext anywhere on the DecryptionParseError (no leak via cause)', () => {
+          // Distinctive, non-JSON plaintext we can grep for anywhere on the thrown error.
+          const secretPlaintext = 'SUPER_SECRET_PLAINTEXT_SNIPPET_should_never_appear_in_error'
+          const iv = crypto.randomBytes(12)
+          const cipher = crypto.createCipheriv(ALG, Buffer.from(KEY_A, 'base64'), iv)
+          const ciphertext = Buffer.concat([cipher.update(secretPlaintext, 'utf8'), cipher.final()])
+          const tag = cipher.getAuthTag()
+          const payload = Buffer.from(
+            JSON.stringify({
+              ciphertext: ciphertext.toString('base64'),
+              tag: tag.toString('base64'),
+              iv: iv.toString('base64'),
+            })
+          ).toString('base64')
+
+          let caught: unknown
+          try {
+            Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A })
+          } catch (error) {
+            caught = error
+          }
+
+          expect(caught).toBeInstanceOf(DecryptionParseError)
+          const err = caught as DecryptionParseError & { cause?: unknown }
+          // The plaintext snippet must not appear in the message, the cause, or any own property.
+          expect(err.message).not.toContain(secretPlaintext)
+          expect(err.cause).toBeUndefined()
+          // Serialize the full error (message + all own props, including any non-enumerable ones)
+          // and confirm the plaintext is nowhere in it.
+          const serialized = JSON.stringify({
+            message: err.message,
+            props: Object.getOwnPropertyNames(err).reduce<Record<string, unknown>>((acc, key) => {
+              acc[key] = (err as unknown as Record<string, unknown>)[key]
+              return acc
+            }, {}),
+          })
+          expect(serialized).not.toContain(secretPlaintext)
+        })
       })
 
       describe('three-arg form (rotation)', () => {
