@@ -8,6 +8,7 @@ import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import uniq from '../uniq.js'
 import parseAttribute from './parseAttribute.js'
+import validateStiChildColumns from './validateStiChildColumns.js'
 
 interface GenerateDreamContentOptions {
   fullyQualifiedModelName: string
@@ -75,6 +76,8 @@ export interface AttributeProcessingResult {
 
 export default function generateDreamContent(options: GenerateDreamContentOptions): string {
   const config = createModelConfig(options)
+  if (config.isSTI) validateStiChildColumns(options.columnsWithTypes)
+
   // SoftDelete is incompatible with STI children, so it's only applied to
   // non-STI-child models.
   const includeSoftDelete = !config.isSTI && !!options.softDelete
@@ -111,16 +114,20 @@ export default function generateDreamContent(options: GenerateDreamContentOption
   })
 
   const decoBlock = decoratorsInUse
-    ? `const deco = new Decorators<typeof ${config.modelClassName}>()`
-    : `// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
+    ? `const deco = new Decorators<typeof ${config.modelClassName}>()
+
+`
+    : config.isSTI
+      ? ''
+      : `// Uncomment when adding decorators (@deco.BelongsTo, @deco.Validates, etc.):
 // import { Decorators } from '@rvoh/dream'
-// const deco = new Decorators<typeof ${config.modelClassName}>()`
+// const deco = new Decorators<typeof ${config.modelClassName}>()
+
+`
 
   return `${importSection}
 
-${decoBlock}
-
-${classDeclaration}
+${decoBlock}${classDeclaration}
 ${tableMethod}${serializersMethod}${fieldsSection}
 }
 `.replace(/^\s*$/gm, '')
