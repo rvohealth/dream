@@ -1,5 +1,7 @@
 import * as LoadModelsModule from '../../../src/dream-app/helpers/importers/importModels.js'
 import DreamApp from '../../../src/dream-app/index.js'
+import Encrypt from '../../../src/encrypt/index.js'
+import DreamAppInitInvalidEncryptionKey from '../../../src/errors/dream-app/DreamAppInitInvalidEncryptionKey.js'
 import DreamAppInitMissingCallToLoadModels from '../../../src/errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../../../src/errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
 import DreamAppInitMissingPackageManager from '../../../src/errors/dream-app/DreamAppInitMissingPackageManager.js'
@@ -85,6 +87,69 @@ describe('DreamApp#init', () => {
         }
 
         await expect(DreamApp.init(cb)).rejects.toThrow(DreamAppInitMissingPackageManager)
+      })
+    })
+
+    context('encryption keys', () => {
+      const baseCb =
+        (encryption: any) =>
+        async (app: DreamApp): Promise<void> => {
+          app.set('packageManager', 'pnpm')
+          app.set('projectRoot', 'how/yadoin')
+          app.set('db', dbCredentials)
+          app.set('encryption', encryption)
+
+          await app.load('models', 'how/yadoin', async path => (await import(path)).default)
+        }
+
+      context('with a valid current key and no legacy key', () => {
+        it('does not raise an exception', async () => {
+          const cb = baseCb({
+            columns: {
+              current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+            },
+          })
+
+          await expect(DreamApp.init(cb)).resolves.not.toThrow()
+        })
+      })
+
+      context('with valid current and legacy keys', () => {
+        it('does not raise an exception', async () => {
+          const cb = baseCb({
+            columns: {
+              current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+              legacy: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+            },
+          })
+
+          await expect(DreamApp.init(cb)).resolves.not.toThrow()
+        })
+      })
+
+      context('with an invalid current key', () => {
+        it('throws (fails to boot) rather than warning', async () => {
+          const cb = baseCb({
+            columns: {
+              current: { algorithm: 'aes-256-gcm', key: 'not-a-valid-key' },
+            },
+          })
+
+          await expect(DreamApp.init(cb)).rejects.toThrow(DreamAppInitInvalidEncryptionKey)
+        })
+      })
+
+      context('with a valid current key but an invalid legacy key', () => {
+        it('throws (fails to boot)', async () => {
+          const cb = baseCb({
+            columns: {
+              current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+              legacy: { algorithm: 'aes-256-gcm', key: 'not-a-valid-key' },
+            },
+          })
+
+          await expect(DreamApp.init(cb)).rejects.toThrow(DreamAppInitInvalidEncryptionKey)
+        })
       })
     })
 

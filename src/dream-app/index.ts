@@ -15,6 +15,7 @@ import Query from '../dream/Query.js'
 import QueryDriverBase from '../dream/QueryDriver/Base.js'
 import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
+import DreamAppInitInvalidEncryptionKey from '../errors/dream-app/DreamAppInitInvalidEncryptionKey.js'
 import DreamAppInitMissingCallToLoadModels from '../errors/dream-app/DreamAppInitMissingCallToLoadModels.js'
 import DreamAppInitMissingMissingProjectRoot from '../errors/dream-app/DreamAppInitMissingMissingProjectRoot.js'
 import DreamAppInitMissingPackageManager from '../errors/dream-app/DreamAppInitMissingPackageManager.js'
@@ -153,8 +154,17 @@ export default class DreamApp {
     if (this.encryption?.columns?.current)
       DreamApp.checkKey(
         'columns',
+        'current',
         this.encryption.columns.current.key,
         this.encryption.columns.current.algorithm
+      )
+
+    if (this.encryption?.columns?.legacy)
+      DreamApp.checkKey(
+        'columns',
+        'legacy',
+        this.encryption.columns.legacy.key,
+        this.encryption.columns.legacy.algorithm
       )
 
     if (
@@ -190,24 +200,14 @@ export default class DreamApp {
     }
   }
 
-  private static checkKey(encryptionIdentifier: 'columns', key: string, algorithm: EncryptAlgorithm) {
+  private static checkKey(
+    encryptionIdentifier: 'columns',
+    keyType: 'current' | 'legacy',
+    key: string,
+    algorithm: EncryptAlgorithm
+  ) {
     if (!Encrypt.validateKey(key, algorithm))
-      // eslint-disable-next-line no-console
-      console.warn(
-        `
-Your current key value for ${encryptionIdentifier} encryption is invalid.
-Try setting it to something valid, like:
-  ${Encrypt.generateKey(algorithm)}
-
-This was done by calling:
-  Encrypt.generateKey('${algorithm}'
-
-A new key can also be generated from the CLI:
-  % pnpm psy g:encryption-key
-  OR
-  % pnpm psy g:encryption-key --algorithm=aes-256-gcm
-`
-      )
+      throw new DreamAppInitInvalidEncryptionKey(encryptionIdentifier, keyType, algorithm)
   }
 
   /**
