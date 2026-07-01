@@ -71,6 +71,14 @@ export default class Post extends ApplicationModel {
   })
   public overriddenNonNullRatings: NonNullRating[]
 
+  // Same target as overriddenNonNullRatings, but keeps NonNullRating's default scopes
+  // so specs can assert whereNot/whereAny default scopes cross into association loads.
+  @deco.HasMany('NonNullRating', {
+    on: 'rateableId',
+    polymorphic: true,
+  })
+  public nonNullRatings: NonNullRating[]
+
   @deco.HasMany('ExtraRating/HeartRating', {
     on: 'extraRateableId',
     polymorphic: true,

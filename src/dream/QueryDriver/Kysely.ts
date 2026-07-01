@@ -2791,18 +2791,48 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       }
     }
 
-    if (scopesQuery['whereStatements'].length) {
+    if (
+      scopesQuery['whereStatements'].length ||
+      scopesQuery['whereNotStatements'].length ||
+      scopesQuery['whereAnyStatements'].length
+    ) {
+      // Mirror the base-table clause logic in QueryDriverBase#buildCommon so that default
+      // scopes expressed with whereNot(...)/whereAny(...) — not just where(...) — cross into
+      // association loads (preload/join/leftJoinPreload/innerJoin). Without the whereNot/whereAny
+      // branches below, such default scopes are silently dropped on association loads, leaking
+      // rows the app intended to hide.
       join = join.on((eb: ExpressionBuilder<any, any>) =>
-        eb.and(
-          scopesQuery['whereStatements'].flatMap(whereStatement =>
+        eb.and([
+          ...scopesQuery['whereStatements'].map(whereStatement =>
             this.whereStatementToExpressionWrapper(
               dreamClass,
               eb,
               this.aliasWhereStatement(whereStatement, tableNameOrAlias),
               { disallowSimilarityOperator: false }
             )
-          )
-        )
+          ),
+
+          ...scopesQuery['whereNotStatements'].map(whereNotStatement =>
+            this.whereStatementToExpressionWrapper(
+              dreamClass,
+              eb,
+              this.aliasWhereStatement(whereNotStatement, tableNameOrAlias),
+              { negate: true }
+            )
+          ),
+
+          ...scopesQuery['whereAnyStatements'].map(whereAnyStatements =>
+            eb.or(
+              whereAnyStatements.map(whereAnyStatement =>
+                this.whereStatementToExpressionWrapper(
+                  dreamClass,
+                  eb,
+                  this.aliasWhereStatement(whereAnyStatement, tableNameOrAlias)
+                )
+              )
+            )
+          ),
+        ])
       )
     }
 

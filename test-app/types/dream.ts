@@ -5861,6 +5861,15 @@ export const schema = {
         requiredAndClauses: null,
         passthroughAndClauses: null,
       },
+      nonNullRatings: {
+        type: 'HasMany',
+        foreignKey: 'rateableId',
+        foreignKeyTypeColumn: 'rateableType',
+        tables: ['ratings'],
+        optional: null,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
       overriddenNonNullRatings: {
         type: 'HasMany',
         foreignKey: 'rateableId',
@@ -5902,7 +5911,7 @@ export const schema = {
   ratings: {
     serializerKeys: ['deep', 'default'],
     scopes: {
-      default: ['nonNullBodies'],
+      default: ['anyRating', 'nonNullBodies'],
       named: [],
     },
     nonJsonColumnNames: [
@@ -7386,6 +7395,7 @@ export const schema = {
 export const connectionTypeConfig = {
   passthroughColumns: ['locale', 'name'],
   allDefaultScopeNames: [
+    'anyRating',
     'dream:STI',
     'dream:SoftDelete',
     'hideDeleted',

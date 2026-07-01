@@ -1,3 +1,9 @@
+## 2.18.0
+
+Security fixes:
+
+- Default scopes expressed with `whereNot(...)` or `whereAny(...)` are now applied on association loads (`preload`, `join`, `leftJoinPreload`, `innerJoin`), matching how they already applied to direct queries. Previously only `where(...)` default scopes crossed into the association `join ... on` predicate, so a `@Scope({ default: true })` built with `whereNot`/`whereAny` was silently dropped when the model was loaded through an association — leaking rows the scope was meant to hide. Built-in `SoftDelete`/STI scopes use `where(...)` and were unaffected. **Behavior change:** apps that (intentionally or not) relied on `whereNot`/`whereAny` default scopes not filtering association loads will now see those associations return fewer rows, consistent with direct queries.
+
 ## 2.17.2
 
 - The `g:sti-child` CLI help now calls out that `belongs_to` is unsupported for STI children, and the generator rejects `belongs_to` columns before writing files. STI child associations must be declared on the parent model. Plain STI child models also no longer include the commented `Decorators` import/`const deco` scaffold, avoiding boilerplate that points developers toward decorators that are incompatible with STI children.
