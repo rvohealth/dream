@@ -39,6 +39,7 @@ import {
 } from '../../db/errors.js'
 import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import { default as _db } from '../../db/index.js'
+import validateColumn from '../../db/validators/validateColumn.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
 import PackageManager from '../../dream-app/helpers/PackageManager.js'
 import DreamApp, { DreamDbConfig } from '../../dream-app/index.js'
@@ -748,6 +749,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const shortAliases: string[] = []
 
     fields.forEach((field: string, index: number) => {
+      this.validatePlainColumn(this.dreamClass, field)
       const shortAlias = `pluck${index}`
       shortAliases.push(shortAlias)
       //  namespace the selection so that when plucking the same column name from
@@ -969,6 +971,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     if (this.query['orderStatements'].length && !bypassOrder) {
       this.query['orderStatements'].forEach(orderStatement => {
+        this.validatePlainColumn(this.dreamClass, orderStatement.column)
         kyselyQuery = kyselyQuery.orderBy(
           this.namespaceColumn(orderStatement.column),
           this.orderByDirection(orderStatement.direction)
@@ -1466,6 +1469,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       query['whereNotStatements'].length ||
       query['whereAnyStatements'].length
     ) {
+      this.validateBaseWhereStatementColumns(query)
+
       kyselyQuery = (kyselyQuery as SelectQueryBuilder<any, any, any>).where(
         (eb: ExpressionBuilder<any, any>) =>
           eb.and([
@@ -1917,6 +1922,66 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    */
   private namespaceColumn(column: string, alias: string = this.query['baseSqlAlias']) {
     return namespaceColumn(column, alias)
+  }
+
+  /**
+   * @internal
+   *
+   * Defense-in-depth (DREAM-SQLI-01): when a runtime column identifier is a
+   * plain, un-namespaced column name, validate it against the owning model's
+   * compiled schema so an unknown identifier throws a Dream `InvalidColumnName`
+   * error before it reaches the database (rather than surfacing as a raw
+   * Postgres error or a silent blind-ordering side-channel).
+   *
+   * Only bare identifiers are validated. Namespaced / table-aliased /
+   * association-namespaced identifiers (anything containing a `.`) are left on
+   * their existing path, because the segment before the `.` may be an
+   * association alias or table alias rather than a schema table name, and
+   * validating those safely is not possible here without risking rejection of
+   * currently-valid input.
+   */
+  private validatePlainColumn(dreamClass: typeof Dream, column: string) {
+    if (typeof column !== 'string') return
+    if (column.includes('.')) return
+    validateColumn(dreamClass.prototype.schema, dreamClass.table, column)
+  }
+
+  /**
+   * @internal
+   *
+   * Defense-in-depth (DREAM-SQLI-01) for the base model's dynamic `where` keys.
+   * These are the un-namespaced keys the developer passed to `where` /
+   * `whereNot` / `whereAny` on the root query (validated here, before
+   * `aliasWhereStatement` namespaces them with the base alias). Only plain
+   * column keys are validated. Deliberately skips:
+   *   - namespaced keys (contain a `.`) — the developer explicitly namespaced
+   *     them (e.g. `{ 'users.email': ... }` or a joined table), and the prefix
+   *     may be an association/table alias rather than a schema table name;
+   *   - association-name keys (e.g. `where({ user: userInstance })`), which are
+   *     resolved to foreign keys, not columns;
+   *   - `DreamConst.passthrough` / `DreamConst.required` sentinel values, whose
+   *     keys are resolved elsewhere.
+   *
+   * Join-and / association where statements (which target other tables and are
+   * pre-namespaced) are left on their existing path.
+   */
+  private validateBaseWhereStatementColumns(query: Query<DreamInstance, any>) {
+    const dreamClass = query['dreamClass'] as typeof Dream
+    const whereStatements = [
+      ...query['whereStatements'],
+      ...query['whereNotStatements'],
+      ...query['whereAnyStatements'].flat(),
+    ]
+
+    whereStatements.forEach(whereStatement =>
+      Object.keys(whereStatement).forEach(attr => {
+        if (attr.includes('.')) return
+        const val = (whereStatement as any)[attr]
+        if (val === DreamConst.passthrough || val === DreamConst.required) return
+        if (dreamClass.associationNames.includes(attr)) return
+        validateColumn(dreamClass.prototype.schema, dreamClass.table, attr)
+      })
+    )
   }
 
   /**
