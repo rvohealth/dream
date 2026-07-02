@@ -9,6 +9,7 @@ interface User {
 interface Pet {
   name?: string
   user?: User
+  defaultLocaleUser?: User
 }
 
 describe('ObjectSerializer#delegatedAttribute', () => {
@@ -42,6 +43,74 @@ describe('ObjectSerializer#delegatedAttribute', () => {
 
     expect(serializer.render()).toEqual({
       name: 'Woodstock',
+    })
+  })
+
+  context('when repeating the same key using required: false to shadow a default', () => {
+    const MySerializer = (data: Pet) =>
+      ObjectSerializer(data)
+        .delegatedAttribute('defaultLocaleUser', 'name', { openapi: 'string' })
+        .delegatedAttribute('user', 'name', { openapi: 'string', required: false })
+
+    it('keeps the fallback value when the shadowing association is absent', () => {
+      const pet: Pet = {
+        defaultLocaleUser: { name: 'Fallback name' },
+      }
+
+      expect(MySerializer(pet).render()).toEqual({
+        name: 'Fallback name',
+      })
+    })
+
+    it('lets the shadowing association override the fallback value when present', () => {
+      const pet: Pet = {
+        defaultLocaleUser: { name: 'Fallback name' },
+        user: { name: 'Shadowing name' },
+      }
+
+      expect(MySerializer(pet).render()).toEqual({
+        name: 'Shadowing name',
+      })
+    })
+
+    it('supports shadowing an output key renamed with as', () => {
+      const pet: Pet = {
+        defaultLocaleUser: { name: 'Fallback name' },
+        user: { name: 'Shadowing name' },
+      }
+
+      const MySerializerWithAs = (data: Pet) =>
+        ObjectSerializer(data)
+          .delegatedAttribute('defaultLocaleUser', 'name', { as: 'displayName', openapi: 'string' })
+          .delegatedAttribute('user', 'name', {
+            as: 'displayName',
+            openapi: 'string',
+            required: false,
+          })
+
+      expect(MySerializerWithAs(pet).render()).toEqual({
+        displayName: 'Shadowing name',
+      })
+    })
+
+    it('keeps the fallback directive required for OpenAPI schema generation', () => {
+      const attributes = (MySerializer({}) as any)['attributes']
+
+      expect(attributes).toMatchObject([
+        {
+          type: 'delegatedAttribute',
+          targetName: 'defaultLocaleUser',
+          name: 'name',
+          options: { openapi: 'string' },
+        },
+        {
+          type: 'delegatedAttribute',
+          targetName: 'user',
+          name: 'name',
+          options: { openapi: 'string', required: false },
+        },
+      ])
+      expect(attributes[0].options).not.toHaveProperty('required')
     })
   })
 

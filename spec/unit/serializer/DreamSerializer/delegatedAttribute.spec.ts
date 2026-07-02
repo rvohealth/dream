@@ -47,6 +47,71 @@ describe('DreamSerializer#delegatedAttribute', () => {
     })
   })
 
+  context('when repeating the same key using required: false to shadow a default', () => {
+    const MySerializer = (data: Pet) =>
+      DreamSerializer(Pet, data)
+        .delegatedAttribute('userThroughUuid', 'name', { openapi: 'string' })
+        .delegatedAttribute('user', 'name', { openapi: 'string', required: false })
+
+    it('keeps the fallback value when the shadowing association is absent', () => {
+      const fallbackUser = User.new({ name: 'Fallback name' })
+      const pet = Pet.new({ userThroughUuid: fallbackUser, user: null })
+
+      expect(MySerializer(pet).render()).toEqual({
+        name: 'Fallback name',
+      })
+    })
+
+    it('lets the shadowing association override the fallback value when present', () => {
+      const fallbackUser = User.new({ name: 'Fallback name' })
+      const shadowingUser = User.new({ name: 'Shadowing name' })
+      const pet = Pet.new({ userThroughUuid: fallbackUser, user: shadowingUser })
+
+      expect(MySerializer(pet).render()).toEqual({
+        name: 'Shadowing name',
+      })
+    })
+
+    it('supports shadowing an output key renamed with as', () => {
+      const fallbackUser = User.new({ name: 'Fallback name' })
+      const shadowingUser = User.new({ name: 'Shadowing name' })
+      const pet = Pet.new({ userThroughUuid: fallbackUser, user: shadowingUser })
+
+      const MySerializerWithAs = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .delegatedAttribute('userThroughUuid', 'name', { as: 'displayName', openapi: 'string' })
+          .delegatedAttribute('user', 'name', {
+            as: 'displayName',
+            openapi: 'string',
+            required: false,
+          })
+
+      expect(MySerializerWithAs(pet).render()).toEqual({
+        displayName: 'Shadowing name',
+      })
+    })
+
+    it('keeps the fallback directive required for OpenAPI schema generation', () => {
+      const attributes = (MySerializer(Pet.new({})) as any)['attributes']
+
+      expect(attributes).toMatchObject([
+        {
+          type: 'delegatedAttribute',
+          targetName: 'userThroughUuid',
+          name: 'name',
+          options: { openapi: 'string' },
+        },
+        {
+          type: 'delegatedAttribute',
+          targetName: 'user',
+          name: 'name',
+          options: { openapi: 'string', required: false },
+        },
+      ])
+      expect(attributes[0].options).not.toHaveProperty('required')
+    })
+  })
+
   context('when the target object is null', () => {
     it('returns null', () => {
       const pet = Pet.new({ user: null, name: 'Snoopy' })
