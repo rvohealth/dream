@@ -1,3 +1,7 @@
+## 2.18.1
+
+- No runtime changes. This patch release republishes the 2.18.0 package contents through GitHub Actions after 2.18.0 was accidentally published from a local machine.
+
 ## 2.18.0
 
 Security fixes:
