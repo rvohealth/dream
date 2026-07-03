@@ -10,6 +10,7 @@ import pg from 'pg'
 import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
 
 import {
+  AliasableExpression,
   AliasedExpression,
   DeleteQueryBuilder,
   ExpressionBuilder,
@@ -625,6 +626,25 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   /**
+   * Retrieves the max value of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().maxBy('name', 'score')
+   * // Map(2) { 'primary' => 9, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to take the max of within each group
+   * @returns A Map from each present group value to the max of the aggregated column in that group
+   */
+  public override async maxBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { max } = this.dbFor('select').fn
+    return this.groupedAggregate(groupColumn, max(aggregatedColumn as any))
+  }
+
+  /**
    * Retrieves the min value of the specified column
    * for this Query
    *
@@ -648,6 +668,25 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.min
+  }
+
+  /**
+   * Retrieves the min value of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().minBy('name', 'score')
+   * // Map(2) { 'primary' => 1, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to take the min of within each group
+   * @returns A Map from each present group value to the min of the aggregated column in that group
+   */
+  public override async minBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { min } = this.dbFor('select').fn
+    return this.groupedAggregate(groupColumn, min(aggregatedColumn as any))
   }
 
   /**
@@ -676,6 +715,27 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   /**
+   * Retrieves the sum of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().sumBy('name', 'score')
+   * // Map(2) { 'primary' => 10, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to sum within each group
+   * @returns A Map from each present group value to the sum of the aggregated column in that group
+   */
+  public override async sumBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { sum } = this.dbFor('select').fn
+    return this.groupedAggregate(groupColumn, sum(aggregatedColumn as any), rawSum =>
+      rawSum === null ? null : parseFloat(rawSum)
+    )
+  }
+
+  /**
    * Retrieves the average value of the specified column
    * for this Query
    *
@@ -698,6 +758,25 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     kyselyQuery = kyselyQuery.select(avg(columnName as any) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.avg
+  }
+
+  /**
+   * Retrieves the average of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().avgBy('name', 'score')
+   * // Map(2) { 'primary' => 5, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to average within each group
+   * @returns A Map from each present group value to the average of the aggregated column in that group
+   */
+  public override async avgBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { avg } = this.dbFor('select').fn
+    return this.groupedAggregate(groupColumn, avg(aggregatedColumn as any))
   }
 
   /**
@@ -729,6 +808,71 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return parseInt(data.tablecount.toString())
+  }
+
+  /**
+   * Retrieves the number of records in each group, keyed by the
+   * value of the provided group column.
+   *
+   * ```ts
+   * await User.query().countBy('name')
+   * // Map(2) { 'fred' => 2, 'zed' => 1 }
+   * ```
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @returns A Map from each present group value to the number of records in that group
+   */
+  public override async countBy(groupColumn: string): Promise<Map<any, number>> {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { count } = this.dbFor('select').fn
+    const primaryKeyRef = this.namespaceColumn(this.query.dreamInstance['_primaryKey'])
+
+    return this.groupedAggregate(groupColumn, count(primaryKeyRef), rawCount => parseInt(rawCount.toString()))
+  }
+
+  /**
+   * @internal
+   *
+   * Shared plumbing for grouped aggregates (`countBy` and the value-aggregate
+   * siblings `minBy` / `maxBy` / `sumBy` / `avgBy`). Selects the group column
+   * alongside a single aggregate expression, groups by the group column, executes,
+   * and folds the resulting rows into a Map keyed by the group value.
+   *
+   * The group column and the aggregate are selected under stable, underscore-free
+   * aliases so they can be read back off each row without being affected by
+   * Kysely's CamelCasePlugin (which would otherwise mangle a namespaced alias),
+   * mirroring the short-alias strategy used by `pluck`.
+   *
+   * @param groupColumn - the column to GROUP BY (base or joined-association-namespaced)
+   * @param aggregateExpression - the Kysely aggregate expression to select per group (e.g. `count(pk)`)
+   * @param coerceValue - maps each raw aggregate value to the value stored in the returned Map
+   * @returns A Map from each present group value to its coerced aggregate value
+   */
+  private async groupedAggregate(
+    this: KyselyQueryDriver<DreamInstance>,
+    groupColumn: string,
+    aggregateExpression: AliasableExpression<any>,
+    coerceValue?: (rawValue: any) => any
+  ): Promise<Map<any, any>> {
+    const groupColumnRef = this.namespaceColumn(groupColumn)
+
+    let kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query).buildSelect({
+      bypassSelectAll: true,
+      bypassOrder: true,
+    })
+
+    kyselyQuery = kyselyQuery
+      .select(`${groupColumnRef} as groupvalue` as any)
+      .select(aggregateExpression.as('aggregatevalue') as any)
+      .groupBy(groupColumnRef as any)
+
+    const rows = await executeDatabaseQuery(kyselyQuery, 'execute')
+
+    const result = new Map<any, any>()
+    for (const row of rows) {
+      result.set(row.groupvalue, coerceValue ? coerceValue(row.aggregatevalue) : row.aggregatevalue)
+    }
+    return result
   }
 
   /**
