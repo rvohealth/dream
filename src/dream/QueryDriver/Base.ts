@@ -341,6 +341,24 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * Retrieves the max value of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().maxBy('name', 'score')
+   * // Map(2) { 'primary' => 9, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to take the max of within each group
+   * @returns A Map from each present group value to the max of the aggregated column in that group
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async maxBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    throw new Error('implement maxBy in child class')
+  }
+
+  /**
    * Retrieves the min value of the specified column
    * for this Query
    *
@@ -355,6 +373,24 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async min(columnName: string): Promise<any> {
     throw new Error('implement min in child class')
+  }
+
+  /**
+   * Retrieves the min value of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().minBy('name', 'score')
+   * // Map(2) { 'primary' => 1, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to take the min of within each group
+   * @returns A Map from each present group value to the min of the aggregated column in that group
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async minBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    throw new Error('implement minBy in child class')
   }
 
   /**
@@ -375,6 +411,24 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * Retrieves the sum of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().sumBy('name', 'score')
+   * // Map(2) { 'primary' => 10, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to sum within each group
+   * @returns A Map from each present group value to the sum of the aggregated column in that group
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async sumBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    throw new Error('implement sumBy in child class')
+  }
+
+  /**
    * Retrieves the average value of the specified column
    * for this Query
    *
@@ -392,6 +446,24 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * Retrieves the average of the specified column within each group,
+   * keyed by the value of the provided group column.
+   *
+   * ```ts
+   * await CompositionAsset.query().avgBy('name', 'score')
+   * // Map(2) { 'primary' => 5, 'secondary' => 4 }
+   * ```
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to average within each group
+   * @returns A Map from each present group value to the average of the aggregated column in that group
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async avgBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
+    throw new Error('implement avgBy in child class')
+  }
+
+  /**
    * Retrieves the number of records in the database
    *
    * ```ts
@@ -403,6 +475,23 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/require-await
   public async count(): Promise<number> {
     throw new Error('implement count in child class')
+  }
+
+  /**
+   * Retrieves the number of records in each group, keyed by the
+   * value of the provided group column.
+   *
+   * ```ts
+   * await User.query().countBy('name')
+   * // Map(2) { 'fred' => 2, 'zed' => 1 }
+   * ```
+   *
+   * @param groupColumn - the column to group by
+   * @returns A Map from each present group value to the number of records in that group
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async countBy(groupColumn: string): Promise<Map<any, number>> {
+    throw new Error('implement countBy in child class')
   }
 
   /**
