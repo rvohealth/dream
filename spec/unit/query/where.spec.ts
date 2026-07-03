@@ -1,4 +1,5 @@
 import { sql } from 'kysely'
+import CannotNamespaceAssociationFilterToAnotherTable from '../../../src/errors/CannotNamespaceAssociationFilterToAnotherTable.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import AnyRequiresArrayColumn from '../../../src/errors/ops/AnyRequiresArrayColumn.js'
 import ScoreMustBeANormalNumber from '../../../src/errors/ops/ScoreMustBeANormalNumber.js'
@@ -14,6 +15,7 @@ import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
@@ -133,6 +135,70 @@ describe('Query#where', () => {
 
     const reloadedPet = await Pet.where({ user }).first()
     expect(reloadedPet).toMatchDreamModel(pet)
+  })
+
+  it('supports querying by an array of belongs to association instances', async () => {
+    const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const user2 = await User.create({ email: 'frez@frewd', password: 'howyadoin' })
+    const user3 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    const pet1 = await Pet.create({ user: user1 })
+    const pet2 = await Pet.create({ user: user2 })
+    await Pet.create({ user: user3 })
+
+    const pets = await Pet.where({ user: [user1, user2] }).all()
+    expect(pets).toMatchDreamModels([pet1, pet2])
+  })
+
+  context('an empty array of belongs to association instances', () => {
+    it('matches nothing', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      await Pet.create({ user })
+
+      const pets = await Pet.where({ user: [] }).all()
+      expect(pets).toMatchDreamModels([])
+    })
+  })
+
+  context('an association instance under a key namespaced to a different table', () => {
+    it('throws CannotNamespaceAssociationFilterToAnotherTable', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user })
+      await CompositionAsset.create({ composition })
+
+      await expect(
+        CompositionAsset.query()
+          .innerJoin('composition as c')
+          .where({ 'c.user': user } as any)
+          .all()
+      ).rejects.toThrow(CannotNamespaceAssociationFilterToAnotherTable)
+    })
+
+    context('an array of association instances', () => {
+      it('throws CannotNamespaceAssociationFilterToAnotherTable', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        await CompositionAsset.create({ composition })
+
+        await expect(
+          CompositionAsset.query()
+            .innerJoin('composition as c')
+            .where({ 'c.user': [user] } as any)
+            .all()
+        ).rejects.toThrow(CannotNamespaceAssociationFilterToAnotherTable)
+      })
+    })
+
+    context('when the namespace matches the alias the where clause applies to', () => {
+      it('behaves the same as an un-namespaced association key', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'frez@frewd', password: 'howyadoin' })
+        const pet1 = await Pet.create({ user: user1 })
+        await Pet.create({ user: user2 })
+
+        expect(await Pet.where({ 'pets.user': user1 } as any).all()).toMatchDreamModels([pet1])
+        expect(await Pet.where({ 'pets.user': [user1] } as any).all()).toMatchDreamModels([pet1])
+      })
+    })
   })
 
   it('supports chaining `where` clauses', async () => {
@@ -1284,6 +1350,84 @@ describe('Query#where', () => {
       expect(await LocalizedText.where({ localizable: compositionAsset }).first()).toMatchDreamModel(
         localizedText2
       )
+    })
+
+    context('an array of instances with mixed types', () => {
+      it('groups foreign keys by the reference type of each instance', async () => {
+        const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
+
+        // restarting sequence on both compositions and composition assets so that
+        // the composition and the composition asset share the same id, proving that
+        // the foreign key type is scoped to each group of instances
+        await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+        await sql`ALTER SEQUENCE composition_assets_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+        const composition = await Composition.create({ user })
+        const compositionAsset = await CompositionAsset.create({ composition })
+
+        const localizedText1 = await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+        const localizedText2 = await LocalizedText.create({
+          localizable: compositionAsset,
+          locale: 'en-US',
+        })
+
+        expect(await LocalizedText.where({ localizable: [composition] }).all()).toMatchDreamModels([
+          localizedText1,
+        ])
+        expect(
+          await LocalizedText.where({ localizable: [composition, compositionAsset] }).all()
+        ).toMatchDreamModels([localizedText1, localizedText2])
+      })
+    })
+
+    context('an array of instances of a single type', () => {
+      it('scopes all of the foreign keys to the type of the instances', async () => {
+        const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
+
+        // restarting sequence on both compositions and composition assets so that
+        // the composition and the composition asset share the same id, proving that
+        // the foreign key type scopes the foreign keys
+        await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+        await sql`ALTER SEQUENCE composition_assets_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+        const composition1 = await Composition.create({ user })
+        const composition2 = await Composition.create({ user })
+        const compositionAsset = await CompositionAsset.create({ composition: composition1 })
+
+        const localizedText1 = await LocalizedText.create({ localizable: composition1, locale: 'en-US' })
+        const localizedText2 = await LocalizedText.create({ localizable: composition2, locale: 'en-US' })
+        await LocalizedText.create({ localizable: compositionAsset, locale: 'en-US' })
+
+        expect(
+          await LocalizedText.where({ localizable: [composition1, composition2] }).all()
+        ).toMatchDreamModels([localizedText1, localizedText2])
+      })
+    })
+
+    context('an array containing STI instances', () => {
+      it('collapses STI children into a single group scoped by their base class type', async () => {
+        const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
+
+        // restarting sequence on both balloons and compositions so that the
+        // composition shares an id with the latex balloon; this spec fails if
+        // the STI instances are not grouped under their base class type with
+        // the foreign key type scoping the foreign keys
+        await sql`ALTER SEQUENCE beautiful_balloons_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+        await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+        const latex = await Latex.create({ user, color: 'red' })
+        const mylar = await Mylar.create({ user, color: 'blue' })
+        const composition = await Composition.create({ user })
+
+        const latexRating = await HeartRating.create({ user, extraRateable: latex })
+        const mylarRating = await HeartRating.create({ user, extraRateable: mylar })
+        await HeartRating.create({ user, extraRateable: composition })
+
+        expect(await HeartRating.where({ extraRateable: [latex, mylar] }).all()).toMatchDreamModels([
+          latexRating,
+          mylarRating,
+        ])
+      })
     })
   })
 

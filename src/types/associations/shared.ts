@@ -221,6 +221,15 @@ type Whereable<R> = {
   [K in keyof Selectable<R>]?: Selectable<R>[K] | Selectable<R>[K][]
 }
 
+// For filtering by BelongsTo model instance(s) in a where/and statement, e.g.
+// `await Room.where({ place: [place1, place2] }).all()`. Unlike
+// `AssociatedModelParam` (the create/update param type, where an array of
+// instances would be meaningless), each association also accepts an array
+// of associated model instances.
+type WhereableAssociatedModelParam<I extends Dream> = {
+  [K in keyof AssociatedModelParam<I>]: AssociatedModelParam<I>[K] | NonNullable<AssociatedModelParam<I>[K]>[]
+}
+
 export type WhereStatement<I extends Dream> = InternalWhereStatement<I, I['DB'], I['schema'], I['table']>
 
 export type InternalWhereStatement<
@@ -230,7 +239,7 @@ export type InternalWhereStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<
-    Whereable<DB[TableName]> | DreamSelectable<DB, Schema, TableName> | AssociatedModelParam<I>
+    Whereable<DB[TableName]> | DreamSelectable<DB, Schema, TableName> | WhereableAssociatedModelParam<I>
   >
 >
 

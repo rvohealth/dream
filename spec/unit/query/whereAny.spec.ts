@@ -3,6 +3,7 @@ import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#whereAny', () => {
@@ -78,6 +79,20 @@ describe('Query#whereAny', () => {
         .whereAny([{ id: user1.id }, { id: user2.id }])
         .all()
       expect(records).toMatchDreamModels([user1, user2])
+    })
+  })
+
+  context('arrays of belongs to association instances', () => {
+    it('matches records whose association matches an instance in any of the clauses', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'aster@brown', password: 'howyadoin' })
+      const user3 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const pet1 = await Pet.create({ user: user1 })
+      const pet2 = await Pet.create({ user: user2 })
+      await Pet.create({ user: user3 })
+
+      const pets = await Pet.whereAny([{ user: [user1] }, { user: [user2] }]).all()
+      expect(pets).toMatchDreamModels([pet1, pet2])
     })
   })
 

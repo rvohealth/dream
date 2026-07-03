@@ -137,6 +137,13 @@ context.skip('type tests', () => {
     })
   })
 
+  it('rejects an array of belongs to association instances (arrays are only valid in where-statements)', async () => {
+    await Pet.findOrCreateBy({
+      // @ts-expect-error an array of associated models cannot be used as a find key
+      user: [User.new(), User.new()],
+    })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
