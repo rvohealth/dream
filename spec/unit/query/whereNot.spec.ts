@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import CannotNegateSimilarityClause from '../../../src/errors/CannotNegateSimilarityClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import ops from '../../../src/ops/index.js'
@@ -5,9 +6,14 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
+import testDb from '../../helpers/testDb.js'
 
 describe('Query#whereNot', () => {
   it('negates the logic of all the clauses ANDed together', async () => {
@@ -17,6 +23,86 @@ describe('Query#whereNot', () => {
 
     const balloons = await Balloon.whereNot({ color: 'red', type: 'Latex' }).all()
     expect(balloons).toMatchDreamModels([redMylarBalloon, greenLatexBalloon])
+  })
+
+  context('a polymorphic belongs to association instance', () => {
+    it('negates the foreign key and type conditions together', async () => {
+      const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
+
+      // restarting sequence on both compositions and composition assets so that
+      // the composition and the composition asset share the same id; this spec
+      // fails if negation drops the foreign key type condition
+      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+      await sql`ALTER SEQUENCE composition_assets_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({ composition })
+
+      await LocalizedText.create({ localizable: composition, locale: 'en-US' })
+      const localizedText2 = await LocalizedText.create({
+        localizable: compositionAsset,
+        locale: 'en-US',
+      })
+
+      expect(await LocalizedText.whereNot({ localizable: composition }).all()).toMatchDreamModels([
+        localizedText2,
+      ])
+    })
+  })
+
+  context('an array of belongs to association instances', () => {
+    it('negates the expanded foreign key clause, including records with a null foreign key', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'frez@frewd', password: 'howyadoin' })
+      const user3 = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+      await Pet.create({ user: user1 })
+      await Pet.create({ user: user2 })
+      const pet3 = await Pet.create({ user: user3 })
+      const petWithoutUser = await Pet.create()
+
+      const pets = await Pet.whereNot({ user: [user1, user2] }).all()
+      expect(pets).toMatchDreamModels([pet3, petWithoutUser])
+    })
+
+    context('an empty array', () => {
+      it('returns results as if the whereNot empty array clause were not present', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        const petWithoutUser = await Pet.create()
+
+        const pets = await Pet.whereNot({ user: [] }).all()
+        expect(pets).toMatchDreamModels([pet, petWithoutUser])
+      })
+    })
+  })
+
+  context('an array of polymorphic belongs to association instances', () => {
+    it('negates each type-scoped foreign key group together', async () => {
+      const user = await User.create({ email: 'a@b.com', password: 'mysecret' })
+
+      // restarting sequence on both compositions and composition assets so that
+      // the composition and the composition asset share the same id; this spec
+      // fails if negation drops the foreign key type conditions
+      await sql`ALTER SEQUENCE compositions_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+      await sql`ALTER SEQUENCE composition_assets_id_seq RESTART 1;`.execute(testDb('default', 'primary'))
+
+      const composition1 = await Composition.create({ user })
+      const composition2 = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({ composition: composition1 })
+
+      await LocalizedText.create({ localizable: composition1, locale: 'en-US' })
+      const localizedText2 = await LocalizedText.create({ localizable: composition2, locale: 'en-US' })
+      const localizedText3 = await LocalizedText.create({ localizable: compositionAsset, locale: 'en-US' })
+
+      expect(await LocalizedText.whereNot({ localizable: [composition1] }).all()).toMatchDreamModels([
+        localizedText2,
+        localizedText3,
+      ])
+
+      expect(
+        await LocalizedText.whereNot({ localizable: [composition1, compositionAsset] }).all()
+      ).toMatchDreamModels([localizedText2])
+    })
   })
 
   context('passing undefined as a value for a field', () => {

@@ -45,6 +45,29 @@ describe('Query#preload with polymorphic associations', () => {
       expect(reloaded!.ratings).toMatchDreamModels([postRating])
     })
 
+    it('supports arrays of polymorphic association instances in and clauses on the preload', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+
+      // the compositions and posts id sequences are restarted in this file's
+      // beforeEach, so the composition and the post share the same id, proving
+      // that the foreign key type scopes each group of foreign keys
+      const composition = await Composition.create({ user })
+      const post = await Post.create({ user })
+
+      const compositionRating = await Rating.create({ user, rateable: composition })
+      const postRating = await Rating.create({ user, rateable: post })
+
+      const reloaded = await User.where({ id: user.id })
+        .preload('ratings', { and: { rateable: [composition] } })
+        .firstOrFail()
+      expect(reloaded.ratings).toMatchDreamModels([compositionRating])
+
+      const reloadedWithBoth = await User.where({ id: user.id })
+        .preload('ratings', { and: { rateable: [composition, post] } })
+        .firstOrFail()
+      expect(reloadedWithBoth.ratings).toMatchDreamModels([compositionRating, postRating])
+    })
+
     it('loads a HasMany association with STI', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user })
