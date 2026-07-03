@@ -106,6 +106,31 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
+   * Retrieves the number of records in each group, keyed by the
+   * value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).countBy('name')
+   *   // Map(2) { 'fred' => 2, 'zed' => 1 }
+   * })
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map; seed absent
+   * groups yourself with `map.get(key) ?? 0`. When the group column is nullable,
+   * records with a `null` value are grouped under a real `null` key.
+   *
+   * @param groupColumn - the column to group by
+   * @returns A Map from each present group value to the number of records in that group
+   */
+  public async countBy<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    T extends DreamColumnNames<DreamInstance>,
+  >(this: I, groupColumn: T) {
+    return this.queryInstance().countBy(groupColumn)
+  }
+
+  /**
    * Returns a new Query instance, specifying a limit
    *
    * ```ts
@@ -167,6 +192,34 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
+   * Retrieves the max value of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await CompositionAsset.txn(txn).maxBy('name', 'score')
+   *   // Map(2) { 'primary' => 9, 'secondary' => 4 }
+   * })
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to take the max of within each group
+   * @returns A Map from each present group value to the max of the aggregated column in that group
+   */
+  public async maxBy<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    GroupColumnName extends DreamColumnNames<DreamInstance>,
+    AggregatedColumnName extends DreamColumnNames<DreamInstance>,
+  >(this: I, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return this.queryInstance().maxBy(groupColumn, aggregatedColumn)
+  }
+
+  /**
    * Retrieves the min value of the specified column
    * for this model's records.
    *
@@ -185,6 +238,34 @@ export default class DreamClassTransactionBuilder<
     T extends DreamColumnNames<DreamInstance>,
   >(this: I, columnName: T) {
     return this.queryInstance().min(columnName)
+  }
+
+  /**
+   * Retrieves the min value of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await CompositionAsset.txn(txn).minBy('name', 'score')
+   *   // Map(2) { 'primary' => 1, 'secondary' => 4 }
+   * })
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to take the min of within each group
+   * @returns A Map from each present group value to the min of the aggregated column in that group
+   */
+  public async minBy<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    GroupColumnName extends DreamColumnNames<DreamInstance>,
+    AggregatedColumnName extends DreamColumnNames<DreamInstance>,
+  >(this: I, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return this.queryInstance().minBy(groupColumn, aggregatedColumn)
   }
 
   /**
@@ -207,6 +288,34 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
+   * Retrieves the sum of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await CompositionAsset.txn(txn).sumBy('name', 'score')
+   *   // Map(2) { 'primary' => 10, 'secondary' => 4 }
+   * })
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to sum within each group
+   * @returns A Map from each present group value to the sum of the aggregated column in that group
+   */
+  public async sumBy<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    GroupColumnName extends DreamColumnNames<DreamInstance>,
+    AggregatedColumnName extends DreamColumnNames<DreamInstance>,
+  >(this: I, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return this.queryInstance().sumBy(groupColumn, aggregatedColumn)
+  }
+
+  /**
    * Retrieves the average value of the specified column
    * for this Query
    *
@@ -223,6 +332,34 @@ export default class DreamClassTransactionBuilder<
     T extends DreamColumnNames<DreamInstance>,
   >(this: I, columnName: T) {
     return this.queryInstance().avg(columnName)
+  }
+
+  /**
+   * Retrieves the average of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await CompositionAsset.txn(txn).avgBy('name', 'score')
+   *   // Map(2) { 'primary' => 5, 'secondary' => 4 }
+   * })
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to average within each group
+   * @returns A Map from each present group value to the average of the aggregated column in that group
+   */
+  public async avgBy<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    GroupColumnName extends DreamColumnNames<DreamInstance>,
+    AggregatedColumnName extends DreamColumnNames<DreamInstance>,
+  >(this: I, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return this.queryInstance().avgBy(groupColumn, aggregatedColumn)
   }
 
   /**

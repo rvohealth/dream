@@ -1479,6 +1479,50 @@ export default class Query<
   }
 
   /**
+   * Retrieves the number of records in each group, keyed by the
+   * value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await User.query().countBy('name')
+   * // Map(2) { 'fred' => 2, 'zed' => 1 }
+   *
+   * await User.where({ email: ops.ilike('%gmail.com') }).countBy('name')
+   * // Map(1) { 'fred' => 3 }
+   * ```
+   *
+   * Any `where` clauses, base scopes (soft-delete / STI), and joined-association
+   * `and` clauses on the Query carry through automatically. A joined-association
+   * column may be grouped on by passing its namespaced name (e.g.
+   * `'compositionAssets.name'`).
+   *
+   * Only groups with at least one matching row appear in the Map (inherent to
+   * `GROUP BY`); seed absent groups yourself with `map.get(key) ?? 0`. When the
+   * group column is nullable, records with a `null` value are grouped under a real
+   * `null` key.
+   *
+   * ```ts
+   * await Composition.query().innerJoin('compositionAssets').countBy('compositionAssets.name')
+   * // Map(2) { 'primary' => 3, null => 1 }
+   * ```
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @returns A Map from each present group value to the number of records in that group
+   */
+  public async countBy<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    GroupColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    GroupKey extends NamespacedOrBaseModelColumnTypes<[GroupColumnName], Q, DreamInstance>[0],
+  >(groupColumn: GroupColumnName): Promise<Map<GroupKey, number>> {
+    return await this.dbDriverInstance().countBy(groupColumn)
+  }
+
+  /**
    * Returns new Query with distinct clause applied.
    * If no column is specified, applies distinct to the primary key.
    * Pass true to apply distinct to primary key, false to disable distinct.
@@ -1550,6 +1594,53 @@ export default class Query<
   }
 
   /**
+   * Retrieves the max value of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.query().maxBy('name', 'score')
+   * // Map(2) { 'primary' => 9, 'secondary' => 4 }
+   * ```
+   *
+   * Any `where` clauses, base scopes (soft-delete / STI), and joined-association
+   * `and` clauses on the Query carry through automatically. A joined-association
+   * column may be grouped on or aggregated by passing its namespaced name (e.g.
+   * `'compositionAssets.name'`).
+   *
+   * Only groups with at least one matching row appear in the Map (inherent to
+   * `GROUP BY`). When the group column is nullable, records with a `null` value
+   * are grouped under a real `null` key; a group whose aggregated values are all
+   * `null` yields a `null` value.
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to take the max of within each group
+   * @returns A Map from each present group value to the max of the aggregated column in that group
+   */
+  public async maxBy<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    GroupColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    AggregatedColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    GroupKey extends NamespacedOrBaseModelColumnTypes<[GroupColumnName], Q, DreamInstance>[0],
+    AggregatedType extends NamespacedOrBaseModelColumnTypes<[AggregatedColumnName], Q, DreamInstance>[0],
+  >(
+    groupColumn: GroupColumnName,
+    aggregatedColumn: AggregatedColumnName
+  ): Promise<Map<GroupKey, AggregatedType>> {
+    return await this.dbDriverInstance().maxBy(groupColumn, aggregatedColumn)
+  }
+
+  /**
    * Retrieves the min value of the specified column
    * for this Query
    *
@@ -1573,6 +1664,53 @@ export default class Query<
     ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
   >(columnName: ColumnName): Promise<ReturnType> {
     return await this.dbDriverInstance().min(columnName)
+  }
+
+  /**
+   * Retrieves the min value of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.query().minBy('name', 'score')
+   * // Map(2) { 'primary' => 1, 'secondary' => 4 }
+   * ```
+   *
+   * Any `where` clauses, base scopes (soft-delete / STI), and joined-association
+   * `and` clauses on the Query carry through automatically. A joined-association
+   * column may be grouped on or aggregated by passing its namespaced name (e.g.
+   * `'compositionAssets.name'`).
+   *
+   * Only groups with at least one matching row appear in the Map (inherent to
+   * `GROUP BY`). When the group column is nullable, records with a `null` value
+   * are grouped under a real `null` key; a group whose aggregated values are all
+   * `null` yields a `null` value.
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to take the min of within each group
+   * @returns A Map from each present group value to the min of the aggregated column in that group
+   */
+  public async minBy<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    GroupColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    AggregatedColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    GroupKey extends NamespacedOrBaseModelColumnTypes<[GroupColumnName], Q, DreamInstance>[0],
+    AggregatedType extends NamespacedOrBaseModelColumnTypes<[AggregatedColumnName], Q, DreamInstance>[0],
+  >(
+    groupColumn: GroupColumnName,
+    aggregatedColumn: AggregatedColumnName
+  ): Promise<Map<GroupKey, AggregatedType>> {
+    return await this.dbDriverInstance().minBy(groupColumn, aggregatedColumn)
   }
 
   /**
@@ -1602,6 +1740,53 @@ export default class Query<
   }
 
   /**
+   * Retrieves the sum of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.query().sumBy('name', 'score')
+   * // Map(2) { 'primary' => 10, 'secondary' => 4 }
+   * ```
+   *
+   * Any `where` clauses, base scopes (soft-delete / STI), and joined-association
+   * `and` clauses on the Query carry through automatically. A joined-association
+   * column may be grouped on or aggregated by passing its namespaced name (e.g.
+   * `'compositionAssets.name'`).
+   *
+   * Only groups with at least one matching row appear in the Map (inherent to
+   * `GROUP BY`). When the group column is nullable, records with a `null` value
+   * are grouped under a real `null` key; a group whose aggregated values are all
+   * `null` yields a `null` value.
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to sum within each group
+   * @returns A Map from each present group value to the sum of the aggregated column in that group
+   */
+  public async sumBy<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    GroupColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    AggregatedColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    GroupKey extends NamespacedOrBaseModelColumnTypes<[GroupColumnName], Q, DreamInstance>[0],
+    AggregatedType extends NamespacedOrBaseModelColumnTypes<[AggregatedColumnName], Q, DreamInstance>[0],
+  >(
+    groupColumn: GroupColumnName,
+    aggregatedColumn: AggregatedColumnName
+  ): Promise<Map<GroupKey, AggregatedType>> {
+    return await this.dbDriverInstance().sumBy(groupColumn, aggregatedColumn)
+  }
+
+  /**
    * Retrieves the average value of the specified column
    * for this Query
    *
@@ -1625,6 +1810,53 @@ export default class Query<
     ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
   >(columnName: ColumnName): Promise<ReturnType> {
     return await this.dbDriverInstance().avg(columnName)
+  }
+
+  /**
+   * Retrieves the average of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.query().avgBy('name', 'score')
+   * // Map(2) { 'primary' => 5, 'secondary' => 4 }
+   * ```
+   *
+   * Any `where` clauses, base scopes (soft-delete / STI), and joined-association
+   * `and` clauses on the Query carry through automatically. A joined-association
+   * column may be grouped on or aggregated by passing its namespaced name (e.g.
+   * `'compositionAssets.name'`).
+   *
+   * Only groups with at least one matching row appear in the Map (inherent to
+   * `GROUP BY`). When the group column is nullable, records with a `null` value
+   * are grouped under a real `null` key; a group whose aggregated values are all
+   * `null` yields a `null` value.
+   *
+   * @param groupColumn - the column to group by (base or joined-association-namespaced)
+   * @param aggregatedColumn - the column to average within each group
+   * @returns A Map from each present group value to the average of the aggregated column in that group
+   */
+  public async avgBy<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    DB extends DreamInstance['DB'],
+    GroupColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    AggregatedColumnName extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DB,
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >,
+    GroupKey extends NamespacedOrBaseModelColumnTypes<[GroupColumnName], Q, DreamInstance>[0],
+    AggregatedType extends NamespacedOrBaseModelColumnTypes<[AggregatedColumnName], Q, DreamInstance>[0],
+  >(
+    groupColumn: GroupColumnName,
+    aggregatedColumn: AggregatedColumnName
+  ): Promise<Map<GroupKey, AggregatedType>> {
+    return await this.dbDriverInstance().avgBy(groupColumn, aggregatedColumn)
   }
 
   /**

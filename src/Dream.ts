@@ -1212,6 +1212,29 @@ export default class Dream {
   }
 
   /**
+   * Retrieves the number of records in each group, keyed by the
+   * value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await User.countBy('name')
+   * // Map(2) { 'fred' => 2, 'zed' => 1 }
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map; seed absent
+   * groups yourself with `map.get(key) ?? 0`. When the group column is nullable,
+   * records with a `null` value are grouped under a real `null` key.
+   *
+   * @param groupColumn - the column to group by
+   * @returns A Map from each present group value to the number of records in that group
+   */
+  public static async countBy<
+    T extends typeof Dream,
+    GroupColumnName extends DreamColumnNames<InstanceType<T>>,
+  >(this: T, groupColumn: GroupColumnName) {
+    return await this.query().countBy(groupColumn)
+  }
+
+  /**
    * Retrieves the max value of the specified column
    * for this model's records.
    *
@@ -1228,6 +1251,32 @@ export default class Dream {
     columnName: ColumnName
   ) {
     return await this.query().max(columnName)
+  }
+
+  /**
+   * Retrieves the max value of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.maxBy('name', 'score')
+   * // Map(2) { 'primary' => 9, 'secondary' => 4 }
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to take the max of within each group
+   * @returns A Map from each present group value to the max of the aggregated column in that group
+   */
+  public static async maxBy<
+    T extends typeof Dream,
+    GroupColumnName extends DreamColumnNames<InstanceType<T>>,
+    AggregatedColumnName extends DreamColumnNames<InstanceType<T>>,
+  >(this: T, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return await this.query().maxBy(groupColumn, aggregatedColumn)
   }
 
   /**
@@ -1251,6 +1300,32 @@ export default class Dream {
   }
 
   /**
+   * Retrieves the min value of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.minBy('name', 'score')
+   * // Map(2) { 'primary' => 1, 'secondary' => 4 }
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to take the min of within each group
+   * @returns A Map from each present group value to the min of the aggregated column in that group
+   */
+  public static async minBy<
+    T extends typeof Dream,
+    GroupColumnName extends DreamColumnNames<InstanceType<T>>,
+    AggregatedColumnName extends DreamColumnNames<InstanceType<T>>,
+  >(this: T, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return await this.query().minBy(groupColumn, aggregatedColumn)
+  }
+
+  /**
    * Retrieves the sum for all values of the specified column
    * for this model's records.
    *
@@ -1271,6 +1346,32 @@ export default class Dream {
   }
 
   /**
+   * Retrieves the sum of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.sumBy('name', 'score')
+   * // Map(2) { 'primary' => 10, 'secondary' => 4 }
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to sum within each group
+   * @returns A Map from each present group value to the sum of the aggregated column in that group
+   */
+  public static async sumBy<
+    T extends typeof Dream,
+    GroupColumnName extends DreamColumnNames<InstanceType<T>>,
+    AggregatedColumnName extends DreamColumnNames<InstanceType<T>>,
+  >(this: T, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return await this.query().sumBy(groupColumn, aggregatedColumn)
+  }
+
+  /**
    * Retrieves the average for all values of the specified column
    * for this model's records.
    *
@@ -1288,6 +1389,32 @@ export default class Dream {
     columnName: ColumnName
   ) {
     return await this.query().avg(columnName)
+  }
+
+  /**
+   * Retrieves the average of the specified column within each group, keyed by
+   * the value of the provided group column (a SQL `GROUP BY`).
+   *
+   * ```ts
+   * await CompositionAsset.avgBy('name', 'score')
+   * // Map(2) { 'primary' => 5, 'secondary' => 4 }
+   * ```
+   *
+   * Only groups with at least one matching row appear in the Map. When the group
+   * column is nullable, records with a `null` value are grouped under a real
+   * `null` key; a group whose aggregated values are all `null` yields a `null`
+   * value.
+   *
+   * @param groupColumn - the column to group by
+   * @param aggregatedColumn - the column to average within each group
+   * @returns A Map from each present group value to the average of the aggregated column in that group
+   */
+  public static async avgBy<
+    T extends typeof Dream,
+    GroupColumnName extends DreamColumnNames<InstanceType<T>>,
+    AggregatedColumnName extends DreamColumnNames<InstanceType<T>>,
+  >(this: T, groupColumn: GroupColumnName, aggregatedColumn: AggregatedColumnName) {
+    return await this.query().avgBy(groupColumn, aggregatedColumn)
   }
 
   /**
