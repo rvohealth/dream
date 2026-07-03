@@ -46,6 +46,89 @@ describe('Query#joins with simple associations', () => {
         .all()
       expect(compositionAssets).toMatchDreamModels([compositionAsset2])
     })
+
+    context('with an array of association instances', () => {
+      it('matches records whose association matches any instance in the array', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+        const user3 = await User.create({ email: 'fred3@frewd', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user: user1 })
+        const composition2 = await Composition.create({ user: user2 })
+        const composition3 = await Composition.create({ user: user3 })
+        await CompositionAsset.create({ composition: composition1 })
+        const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
+        const compositionAsset3 = await CompositionAsset.create({ composition: composition3 })
+
+        const compositionAssets = await CompositionAsset.query()
+          .innerJoin('composition', { and: { user: [user2, user3] } })
+          .all()
+        expect(compositionAssets).toMatchDreamModels([compositionAsset2, compositionAsset3])
+      })
+
+      context('when the array is empty', () => {
+        it('selects no results', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const composition = await Composition.create({ user })
+          await CompositionAsset.create({ composition })
+
+          const compositionAssets = await CompositionAsset.query()
+            .innerJoin('composition', { and: { user: [] } })
+            .all()
+          expect(compositionAssets).toEqual([])
+        })
+      })
+    })
+
+    context('with an array of association instances in an andNot clause', () => {
+      it('excludes records whose association matches any instance in the array', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+        const user3 = await User.create({ email: 'fred3@frewd', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user: user1 })
+        const composition2 = await Composition.create({ user: user2 })
+        const composition3 = await Composition.create({ user: user3 })
+        await CompositionAsset.create({ composition: composition1 })
+        await CompositionAsset.create({ composition: composition2 })
+        const compositionAsset3 = await CompositionAsset.create({ composition: composition3 })
+
+        const compositionAssets = await CompositionAsset.query()
+          .innerJoin('composition', { andNot: { user: [user1, user2] } })
+          .all()
+        expect(compositionAssets).toMatchDreamModels([compositionAsset3])
+      })
+
+      context('when the array is empty', () => {
+        it('returns results as if the andNot clause were not present', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const composition = await Composition.create({ user })
+          const compositionAsset = await CompositionAsset.create({ composition })
+
+          const compositionAssets = await CompositionAsset.query()
+            .innerJoin('composition', { andNot: { user: [] } })
+            .all()
+          expect(compositionAssets).toMatchDreamModels([compositionAsset])
+        })
+      })
+    })
+
+    context('with arrays of association instances in an andAny clause', () => {
+      it('matches records whose association matches an instance in any of the clauses', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+        const user3 = await User.create({ email: 'fred3@frewd', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user: user1 })
+        const composition2 = await Composition.create({ user: user2 })
+        const composition3 = await Composition.create({ user: user3 })
+        const compositionAsset1 = await CompositionAsset.create({ composition: composition1 })
+        const compositionAsset2 = await CompositionAsset.create({ composition: composition2 })
+        await CompositionAsset.create({ composition: composition3 })
+
+        const compositionAssets = await CompositionAsset.query()
+          .innerJoin('composition', { andAny: [{ user: [user1] }, { user: [user2] }] })
+          .all()
+        expect(compositionAssets).toMatchDreamModels([compositionAsset1, compositionAsset2])
+      })
+    })
   })
 
   context('when passed an object', () => {

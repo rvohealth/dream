@@ -54,6 +54,7 @@ import MissingThroughAssociation from '../../errors/associations/MissingThroughA
 import MissingThroughAssociationSource from '../../errors/associations/MissingThroughAssociationSource.js'
 import ThroughAssociationConditionsIncompatibleWithThroughAssociationSource from '../../errors/associations/ThroughAssociationConditionsIncompatibleWithThroughAssociationSource.js'
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
+import CannotNamespaceAssociationFilterToAnotherTable from '../../errors/CannotNamespaceAssociationFilterToAnotherTable.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
 import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
@@ -1562,6 +1563,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       {
         negate,
         disallowSimilarityOperator,
+        expectedAlias: rootTableOrAssociationAlias,
       }
     )
   }
@@ -1622,6 +1624,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
               whereStatement =>
                 this.whereStatementToExpressionWrapper(this.dreamClass, eb, whereStatement, {
                   disallowSimilarityOperator: false,
+                  expectedAlias: query['baseSqlAlias'],
                 })
             ),
 
@@ -1629,13 +1632,16 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
               whereNotStatement =>
                 this.whereStatementToExpressionWrapper(this.dreamClass, eb, whereNotStatement, {
                   negate: true,
+                  expectedAlias: query['baseSqlAlias'],
                 })
             ),
 
             ...query['whereAnyStatements'].map(whereAnyStatements =>
               eb.or(
                 this.aliasWhereStatements(whereAnyStatements, query['baseSqlAlias']).map(whereAnyStatement =>
-                  this.whereStatementToExpressionWrapper(this.dreamClass, eb, whereAnyStatement)
+                  this.whereStatementToExpressionWrapper(this.dreamClass, eb, whereAnyStatement, {
+                    expectedAlias: query['baseSqlAlias'],
+                  })
                 )
               )
             ),
@@ -1653,9 +1659,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     {
       negate = false,
       disallowSimilarityOperator = true,
+      expectedAlias,
     }: {
       negate?: boolean
       disallowSimilarityOperator?: boolean
+      expectedAlias?: string
     } = {}
   ): ExpressionWrapper<any, any, SqlBool> {
     const clauses = compact(
@@ -1663,6 +1671,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         .filter(key => (whereStatement as any)[key] !== DreamConst.required)
         .map(attr => {
           const val = (whereStatement as any)[attr]
+
+          this.validateAssociationFilterAlias(attr, val, expectedAlias)
 
           if (
             (val as OpsStatement<any, any>)?.isOpsStatement &&
@@ -1674,6 +1684,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             // and should be ommited from the where clause directly
             return
           }
+
+          if (this.isAssociationInstanceArray(dreamClass, attr, val))
+            return this.associationInstanceArrayToExpressionWrapper(dreamClass, eb, attr, val, {
+              negate,
+            })
 
           const { a, b, c, a2, b2, c2 } = this.dreamWhereStatementToExpressionBuilderParts(
             dreamClass,
@@ -1722,7 +1737,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
             //
           } else if (b === '=' && negate) {
-            return eb.and([eb(a, '=', c), eb(a, 'is not', null)])
+            const conditions = [eb(a, '=', c), eb(a, 'is not', null)]
+            // when a second condition is present (e.g. the type field of a polymorphic
+            // association), it must be included so that the caller negates the full
+            // conjunction rather than the first condition alone
+            if (b2) conditions.push(eb(a2, b2, c2), eb(a2, 'is not', null))
+            return eb.and(conditions)
 
             //
           } else if (b === '!=' && c !== null) {
@@ -1778,6 +1798,115 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     if (compactedC.length) return eb.and([eb(a, 'not in', compactedC), isNotNullStatement])
     return isNotNullStatement
+  }
+
+  /**
+   * @internal
+   *
+   * A Dream instance (or array of Dream instances) as a where-clause value is
+   * resolved as an association of the dreamClass whose statement is being
+   * compiled, so a key namespaced to a different table (e.g.
+   * `where({ 'c.user': user })` after `innerJoin('composition as c')`) would
+   * silently resolve the association against the wrong class, emitting invalid
+   * SQL or SQL that filters the wrong table. Such keys are already rejected at
+   * the type level; this guard rejects them at runtime. Un-namespaced keys and
+   * keys namespaced to the alias the statement applies to are unaffected, as
+   * are callers that do not declare an expected alias.
+   */
+  private validateAssociationFilterAlias(attr: string, val: any, expectedAlias: string | undefined) {
+    if (expectedAlias === undefined) return
+
+    const isolatedColumn = maybeNamespacedColumnNameToColumnName(attr)
+    if (isolatedColumn === attr) return
+
+    const namespace = attr.slice(0, attr.length - isolatedColumn.length - 1)
+    if (namespace === expectedAlias) return
+
+    if (
+      val instanceof Dream ||
+      (Array.isArray(val) && val.length > 0 && val.every(element => element instanceof Dream))
+    )
+      throw new CannotNamespaceAssociationFilterToAnotherTable(this.dreamClass, attr, expectedAlias)
+  }
+
+  /**
+   * @internal
+   *
+   * An array under an association name can only be an array of Dream instances
+   * (association names are not columns). The every-element check simply avoids
+   * changing the handling of invalid runtime input (e.g. an array of ids under
+   * an association name), which the type system already rejects.
+   */
+  private isAssociationInstanceArray(dreamClass: typeof Dream, attr: string, val: any): val is Dream[] {
+    return (
+      Array.isArray(val) &&
+      dreamClass.associationNames.includes(maybeNamespacedColumnNameToColumnName(attr)) &&
+      val.every(element => element instanceof Dream)
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * Expands an array of Dream instances under a BelongsTo association name into
+   * foreign key filtering:
+   * - non-polymorphic: `foreignKey IN (...)`
+   * - polymorphic: instances are grouped by their reference type (STI children
+   *   collapse into their base class), each group becoming
+   *   `(foreignKey IN (...) AND foreignKeyTypeField = 'TheType')`, with multiple
+   *   groups ORed together
+   * - empty array: matches nothing (FALSE); when the caller negates, NOT(FALSE)
+   *   matches everything, mirroring empty `in`/`not in` array semantics
+   *
+   * When `negate` is set, IS NOT NULL conditions are included so that the
+   * caller's negation also matches records in which the foreign key (or type
+   * field) is null, consistent with negation of single Dream instances and of
+   * `in` arrays.
+   */
+  private associationInstanceArrayToExpressionWrapper(
+    dreamClass: typeof Dream,
+    eb: ExpressionBuilder<any, any>,
+    attr: string,
+    instances: Dream[],
+    { negate }: { negate: boolean }
+  ): ExpressionWrapper<any, any, SqlBool> {
+    if (instances.length === 0) return sql<boolean>`FALSE` as unknown as ExpressionWrapper<any, any, SqlBool>
+
+    const isolatedColumn = maybeNamespacedColumnNameToColumnName(attr)
+    // preserve any table alias prefix from the attribute (e.g. `posts.user` -> `posts.`)
+    // on the columns we compare against
+    const namespacePrefix = attr.slice(0, attr.length - isolatedColumn.length)
+    const association = dreamClass['associationMetadataMap']()[isolatedColumn]!
+    const foreignKeyColumn = `${namespacePrefix}${association.foreignKey()}`
+
+    const primaryKeyValuesFor = (instances: Dream[]) =>
+      instances.map(instance => {
+        const primaryKeyValue = association.primaryKeyValue(instance)
+        if (primaryKeyValue === undefined)
+          throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, foreignKeyColumn)
+        return primaryKeyValue
+      })
+
+    if (!association.polymorphic) {
+      const inClause = eb(foreignKeyColumn, 'in', primaryKeyValuesFor(instances))
+      return negate ? eb.and([inClause, eb(foreignKeyColumn, 'is not', null)]) : inClause
+    }
+
+    const typeColumn = `${namespacePrefix}${association.foreignKeyTypeField()}`
+    const instancesByType = groupBy(instances, instance => instance.referenceTypeString)
+
+    const typeClauses = Object.keys(instancesByType).map(referenceTypeString => {
+      const conditions = [
+        eb(foreignKeyColumn, 'in', primaryKeyValuesFor(instancesByType[referenceTypeString]!)),
+        eb(typeColumn, '=', referenceTypeString),
+      ]
+
+      if (negate) conditions.push(eb(foreignKeyColumn, 'is not', null), eb(typeColumn, 'is not', null))
+
+      return eb.and(conditions)
+    })
+
+    return eb.or(typeClauses)
   }
 
   private dreamWhereStatementToExpressionBuilderParts(dreamClass: typeof Dream, attr: string, val: any) {
@@ -2879,7 +3008,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             association.and as InternalWhereStatement<any, any, any, any>,
             currentTableAlias
           ),
-          { disallowSimilarityOperator: false }
+          { disallowSimilarityOperator: false, expectedAlias: currentTableAlias }
         )
       )
     }
@@ -2893,7 +3022,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             association.andNot as InternalWhereStatement<any, any, any, any>,
             currentTableAlias
           ),
-          { negate: true }
+          { negate: true, expectedAlias: currentTableAlias }
         )
       )
     }
@@ -2906,7 +3035,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
               dreamClass,
               eb,
               this.aliasWhereStatement(whereAnyStatement, currentTableAlias),
-              { disallowSimilarityOperator: false }
+              { disallowSimilarityOperator: false, expectedAlias: currentTableAlias }
             )
           )
         )
@@ -3017,7 +3146,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
               dreamClass,
               eb,
               this.aliasWhereStatement(whereStatement, tableNameOrAlias),
-              { disallowSimilarityOperator: false }
+              { disallowSimilarityOperator: false, expectedAlias: tableNameOrAlias }
             )
           ),
 
@@ -3026,7 +3155,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
               dreamClass,
               eb,
               this.aliasWhereStatement(whereNotStatement, tableNameOrAlias),
-              { negate: true }
+              { negate: true, expectedAlias: tableNameOrAlias }
             )
           ),
 
@@ -3036,7 +3165,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
                 this.whereStatementToExpressionWrapper(
                   dreamClass,
                   eb,
-                  this.aliasWhereStatement(whereAnyStatement, tableNameOrAlias)
+                  this.aliasWhereStatement(whereAnyStatement, tableNameOrAlias),
+                  { expectedAlias: tableNameOrAlias }
                 )
               )
             )

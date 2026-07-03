@@ -55,6 +55,23 @@ describe('Query#innerJoin with aliased associations', () => {
         expect(matching).toMatchDreamModels([composition])
       })
     })
+
+    context('with an array of association instances in the and-clause', () => {
+      it('scopes the expanded foreign keys to the alias', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const compositionAsset = await CompositionAsset.create({ composition })
+
+        const otherUser = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const otherComposition = await Composition.create({ user: otherUser })
+        await CompositionAsset.create({ composition: otherComposition })
+
+        const matching = await CompositionAsset.query()
+          .innerJoin('composition as c', { and: { user: [user] } })
+          .all()
+        expect(matching).toMatchDreamModels([compositionAsset])
+      })
+    })
   })
 
   context('within a transaction', () => {

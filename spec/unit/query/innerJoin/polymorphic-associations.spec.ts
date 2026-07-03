@@ -66,6 +66,65 @@ describe('Query#joins with polymorphic associations', () => {
         .firstOrFail()
       expect(reloaded).toMatchDreamModel(user)
     })
+
+    context('with an array of polymorphic association instances of mixed types', () => {
+      it('scopes each group of foreign keys to the type of its instances', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+        const user3 = await User.create({ email: 'fred3@frewd', password: 'howyadoin' })
+
+        // the compositions and posts id sequences are restarted in this file's
+        // beforeEach, so the composition and the post share the same id, proving
+        // that the foreign key type scopes each group of foreign keys
+        const composition = await Composition.create({ user: user1 })
+        const post = await Post.create({ user: user2 })
+        const composition2 = await Composition.create({ user: user3 })
+
+        await Rating.create({ user: user1, rateable: composition })
+        await Rating.create({ user: user2, rateable: post })
+        await Rating.create({ user: user3, rateable: composition2 })
+
+        const usersRatingTheComposition = await User.query()
+          .innerJoin('ratings', { and: { rateable: [composition] } })
+          .all()
+        expect(usersRatingTheComposition).toMatchDreamModels([user1])
+
+        const usersRatingEither = await User.query()
+          .innerJoin('ratings', { and: { rateable: [composition, post] } })
+          .all()
+        expect(usersRatingEither).toMatchDreamModels([user1, user2])
+      })
+    })
+
+    context('with an array of polymorphic association instances in an andNot clause', () => {
+      it('negates the entire foreign key + type grouping', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+        const user3 = await User.create({ email: 'fred3@frewd', password: 'howyadoin' })
+
+        // the compositions and posts id sequences are restarted in this file's
+        // beforeEach, so the composition and the post share the same id; the
+        // rating on the post must survive the negation despite the matching
+        // foreign key because its type differs
+        const composition = await Composition.create({ user: user1 })
+        const post = await Post.create({ user: user2 })
+        const composition2 = await Composition.create({ user: user3 })
+
+        await Rating.create({ user: user1, rateable: composition })
+        await Rating.create({ user: user2, rateable: post })
+        await Rating.create({ user: user3, rateable: composition2 })
+
+        const users = await User.query()
+          .innerJoin('ratings', { andNot: { rateable: [composition] } })
+          .all()
+        expect(users).toMatchDreamModels([user2, user3])
+
+        const usersNotRatingEither = await User.query()
+          .innerJoin('ratings', { andNot: { rateable: [composition, post] } })
+          .all()
+        expect(usersNotRatingEither).toMatchDreamModels([user3])
+      })
+    })
   })
 
   context('when using a similarity operator to drill down results', () => {
