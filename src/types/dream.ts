@@ -254,6 +254,59 @@ export type IsNonOptionalBelongsToAssociation<
       : false
     : false
 
+/**
+ * Resolves to `true` when the named association on the given table is a
+ * polymorphic BelongsTo. Joining a polymorphic BelongsTo raises
+ * CannotJoinPolymorphicBelongsToError at runtime, so the variadic join types
+ * (innerJoin / leftJoin / leftJoinPreload / leftJoinLoad) reject these
+ * association names at compile time.
+ */
+export type IsPolymorphicBelongsToAssociation<
+  Schema,
+  TableName,
+  AssociationName,
+  Associations = TableName extends null
+    ? null
+    : TableName extends keyof Schema & string
+      ? Schema[TableName]['associations' & keyof Schema[TableName]]
+      : null,
+  Association = Associations extends null
+    ? null
+    : AssociationName extends keyof Associations
+      ? Associations[AssociationName]
+      : null,
+> = Association extends null
+  ? false
+  : Association['type' & keyof Association] extends 'BelongsTo'
+    ? Association['foreignKeyTypeColumn' & keyof Association] extends string
+      ? true
+      : false
+    : false
+
+/**
+ * Union of the association names on the given table that are polymorphic
+ * BelongsTo associations. Used by the variadic join types to exclude these
+ * names from the allowed argument values, since joining a polymorphic
+ * BelongsTo raises CannotJoinPolymorphicBelongsToError at runtime.
+ */
+export type PolymorphicBelongsToAssociationNames<
+  Schema,
+  TableName extends keyof Schema,
+  AssociationMetadata = AssociationMetadataForTable<Schema, TableName>,
+> =
+  // when the schema is untyped (`any`), resolve to `never` so nothing is
+  // excluded from the allowed association names
+  IsAny<AssociationMetadata> extends true
+    ? never
+    : {
+        [K in keyof AssociationMetadata]: AssociationMetadata[K]['type' &
+          keyof AssociationMetadata[K]] extends 'BelongsTo'
+          ? AssociationMetadata[K]['foreignKeyTypeColumn' & keyof AssociationMetadata[K]] extends string
+            ? K
+            : never
+          : never
+      }[keyof AssociationMetadata]
+
 export type DreamAssociationNames<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,
