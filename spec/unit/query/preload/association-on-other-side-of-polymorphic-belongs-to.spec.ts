@@ -58,12 +58,7 @@ describe('preloading associations on the other side of a polymorphic belongs-to'
     async () => {
       const user = await PolymorphicUser.preload('tasks', 'taskable', [
         'cleaningSupplies',
-        /**
-         * TODO: figure out why types disallow loading associations on the other side of a
-         * polymorphic belongs-to association other than those associated with the first
-         * of the polymorphic classes (first as ordered by table name)
-         */
-        'workoutType' as any,
+        'workoutType',
       ]).firstOrFail()
 
       const loadedChoreTask = user.tasks.find(

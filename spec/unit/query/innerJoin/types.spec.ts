@@ -1,4 +1,5 @@
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
+import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
 
 // type tests intentionally skipped, since they will fail on build instead.
@@ -14,6 +15,47 @@ context.skip('type tests', () => {
         invalidArg: 123,
       },
     })
+  })
+
+  it('forbids joining a polymorphic BelongsTo association, which raises at runtime', () => {
+    Rating.query()
+      // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+      .innerJoin('rateable')
+
+    Rating.query()
+      // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+      .innerJoin('rateable as r')
+
+    Rating.query()
+      // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+      .innerJoin('rateable', 'comments')
+  })
+
+  it('forbids reusing an association name or alias as a namespace within a single chain', () => {
+    // allowed: distinct namespaces
+    User.query().innerJoin('posts as p', 'comments')
+
+    User.query()
+      // @ts-expect-error the alias 'comments' collides with the later association name 'comments'
+      .innerJoin('posts as comments', 'comments')
+
+    User.query()
+      // @ts-expect-error the association name 'comments' is used as a namespace twice
+      .innerJoin('posts', 'comments', 'post', 'comments')
+
+    User.query()
+      // @ts-expect-error the association name 'comments' is used as a namespace twice (mid-chain)
+      .innerJoin('posts', 'comments', 'post', 'comments', { and: { body: 'hello' } })
+  })
+
+  it('forbids arrays of association names', () => {
+    User.query()
+      // @ts-expect-error joins do not support arrays of association names
+      .innerJoin('posts', ['comments', 'ratings'])
+
+    User.query()
+      // @ts-expect-error an array of association names is only allowed as the final argument
+      .innerJoin(['posts'], 'compositions')
   })
 
   context('in a transaction', () => {

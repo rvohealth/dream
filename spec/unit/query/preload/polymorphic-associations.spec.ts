@@ -251,6 +251,23 @@ describe('Query#preload with polymorphic associations', () => {
           ).toMatchDreamModels([compositionAssetAudit])
         })
       })
+
+      context('when aliasing an association on the other side of the polymorphic association', () => {
+        it('loads the aliased association and continues the chain through it', async () => {
+          const user = await User.create({
+            email: 'fred@frewd',
+            password: 'howyadoin',
+          })
+          await Composition.create({ user })
+          const post = await Post.create({ user })
+          const rating = await Rating.create({ user, rateable: post })
+          const comment = await post.createAssociation('comments')
+
+          const reloaded = await Rating.preload('rateable', 'comments as c', 'post').findOrFail(rating.id)
+          expect((reloaded.rateable as Post).comments).toMatchDreamModels([comment])
+          expect((reloaded.rateable as Post).comments[0]!.post).toMatchDreamModel(post)
+        })
+      })
     }
   )
 })
