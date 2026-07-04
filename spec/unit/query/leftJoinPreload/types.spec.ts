@@ -1,5 +1,6 @@
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter.js'
+import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
 
 // type tests intentionally skipped, since they will fail on build instead.
@@ -31,7 +32,43 @@ context.skip('type tests', () => {
     User.query().leftJoinPreload('mainComposition', { and: { content: 'hello' } })
 
     // allowed: constraint on an optional BelongsTo
-    User.query().leftJoinPreload('balloons', 'shapable', { and: { name: 'octagon' } })
+    User.query().leftJoinPreload('balloons', 'user', { and: { email: 'hello@world' } })
+  })
+
+  it('forbids joining a polymorphic BelongsTo association, which raises at runtime', () => {
+    Rating.query()
+      // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+      .leftJoinPreload('rateable')
+
+    Rating.query()
+      // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+      .leftJoinPreload('rateable as r')
+
+    Rating.query()
+      // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+      .leftJoinPreload('rateable', 'comments')
+  })
+
+  it('forbids reusing an association name or alias as a namespace within a single chain', () => {
+    // allowed: distinct namespaces
+    User.query().leftJoinPreload('posts as p', 'comments')
+
+    User.query()
+      // @ts-expect-error the alias 'comments' collides with the later association name 'comments'
+      .leftJoinPreload('posts as comments', 'comments')
+
+    User.query()
+      // @ts-expect-error the association name 'comments' is used as a namespace twice
+      .leftJoinPreload('posts', 'comments', 'post', 'comments')
+  })
+
+  it('forbids an array of association names anywhere but the final argument', () => {
+    // allowed: an array as the final argument
+    User.query().leftJoinPreload('posts', ['comments', 'ratings'])
+
+    User.query()
+      // @ts-expect-error an array of association names is only allowed as the final argument
+      .leftJoinPreload(['posts'], 'compositions')
   })
 
   context('in a transaction', () => {
@@ -55,6 +92,11 @@ context.skip('type tests', () => {
           .txn(txn)
           // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
           .leftJoinPreload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
+
+        Rating.query()
+          .txn(txn)
+          // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
+          .leftJoinPreload('rateable')
       })
     })
   })

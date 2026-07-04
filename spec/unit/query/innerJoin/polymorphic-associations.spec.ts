@@ -175,9 +175,12 @@ describe('Query#joins with polymorphic associations', () => {
     const post = await Post.create({ user })
     await Rating.create({ user, rateable: post })
 
-    await expect(Rating.limit(2).innerJoin('rateable').first()).rejects.toThrow(
-      CannotJoinPolymorphicBelongsToError
-    )
+    await expect(
+      Rating.limit(2)
+        // @ts-expect-error joining a polymorphic BelongsTo is also forbidden at the type level
+        .innerJoin('rateable')
+        .first()
+    ).rejects.toThrow(CannotJoinPolymorphicBelongsToError)
   })
 
   context('with a where clause', () => {
