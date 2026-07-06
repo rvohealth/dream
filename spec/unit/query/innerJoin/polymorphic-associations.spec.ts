@@ -7,6 +7,12 @@ import Animal from '../../../../test-app/app/models/Balloon/Latex/Animal.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating.js'
+import Chore from '../../../../test-app/app/models/Polymorphic/Chore.js'
+import PolymorphicMetaUser from '../../../../test-app/app/models/Polymorphic/MetaUser.js'
+import PolymorphicTask from '../../../../test-app/app/models/Polymorphic/Task.js'
+import PolymorphicUser from '../../../../test-app/app/models/Polymorphic/User.js'
+import PolymorphicUserMetaUser from '../../../../test-app/app/models/Polymorphic/UserMetaUser.js'
+import Workout from '../../../../test-app/app/models/Polymorphic/Workout.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -182,6 +188,30 @@ describe('Query#joins with polymorphic associations', () => {
         .first()
     ).rejects.toThrow(CannotJoinPolymorphicBelongsToError)
   })
+
+  context(
+    'and-clause on a through association whose source is itself a through association with a polymorphic source',
+    () => {
+      it('applies the and clause to the collapsed polymorphic target', async () => {
+        const user = await PolymorphicUser.create({ name: 'Mountain Dew' })
+        const metaUser = await PolymorphicMetaUser.create({ name: 'Meta Do' })
+        await PolymorphicUserMetaUser.create({ polymorphicUser: user, polymorphicMetaUser: metaUser })
+
+        const sweepChore = await Chore.create({ name: 'sweep' })
+        const dishesChore = await Chore.create({ name: 'dishes' })
+        // a workout with the matching name must still be excluded by the polymorphic type condition
+        const sweepWorkout = await Workout.create({ name: 'sweep' })
+        await PolymorphicTask.create({ user, taskable: sweepChore })
+        await PolymorphicTask.create({ user, taskable: dishesChore })
+        await PolymorphicTask.create({ user, taskable: sweepWorkout })
+
+        const ids = await PolymorphicMetaUser.query()
+          .innerJoin('choresNamedSweep')
+          .pluck('choresNamedSweep.id')
+        expect(ids).toEqual([sweepChore.id])
+      })
+    }
+  )
 
   context('with a where clause', () => {
     it('joins a HasMany association', async () => {

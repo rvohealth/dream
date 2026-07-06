@@ -146,5 +146,65 @@ describe(
         expect(metaUserWithPreloads.choreLocalizedTexts).toMatchDreamModels([choreLocalizedText])
       })
     })
+
+    context(
+      'and-clause on a through association whose source is itself a through association with a polymorphic source',
+      () => {
+        it('applies the and clause to the collapsed polymorphic target', async () => {
+          const user = await PolymorphicUser.create({ name: 'Mountain Dew' })
+          const metaUser = await PolymorphicMetaUser.create({ name: 'Meta Do' })
+          await PolymorphicUserMetaUser.create({ polymorphicUser: user, polymorphicMetaUser: metaUser })
+
+          const sweepChore = await Chore.create({ name: 'sweep' })
+          const dishesChore = await Chore.create({ name: 'dishes' })
+          // a workout with the matching name must still be excluded by the polymorphic type condition
+          const sweepWorkout = await Workout.create({ name: 'sweep' })
+          await PolymorphicTask.create({ user, taskable: sweepChore })
+          await PolymorphicTask.create({ user, taskable: dishesChore })
+          await PolymorphicTask.create({ user, taskable: sweepWorkout })
+
+          const metaUserWithPreloads = await PolymorphicMetaUser.leftJoinPreload(
+            'choresNamedSweep'
+          ).findOrFail(metaUser.id)
+          expect(metaUserWithPreloads.choresNamedSweep).toMatchDreamModels([sweepChore])
+        })
+
+        it('applies the and clause when bridged by a further through association', async () => {
+          const user = await PolymorphicUser.create({ name: 'Mountain Dew' })
+          const metaUser = await PolymorphicMetaUser.create({ name: 'Meta Do' })
+          await PolymorphicUserMetaUser.create({ polymorphicUser: user, polymorphicMetaUser: metaUser })
+
+          const sweepChore = await Chore.create({ name: 'sweep' })
+          const dishesChore = await Chore.create({ name: 'dishes' })
+          const sweepWorkout = await Workout.create({ name: 'sweep' })
+          await PolymorphicTask.create({ user, taskable: sweepChore })
+          await PolymorphicTask.create({ user, taskable: dishesChore })
+          await PolymorphicTask.create({ user, taskable: sweepWorkout })
+
+          const sweepChoreLocalizedText = await PolymorphicLocalizedText.create({
+            localizable: sweepChore,
+            locale: 'en-US',
+            title: 'My sweep task',
+          })
+          await PolymorphicLocalizedText.create({
+            localizable: dishesChore,
+            locale: 'en-US',
+            title: 'My dishes task',
+          })
+          await PolymorphicLocalizedText.create({
+            localizable: sweepWorkout,
+            locale: 'en-US',
+            title: 'My workout task',
+          })
+
+          const metaUserWithPreloads = await PolymorphicMetaUser.leftJoinPreload(
+            'choresNamedSweepLocalizedTexts'
+          ).findOrFail(metaUser.id)
+          expect(metaUserWithPreloads.choresNamedSweepLocalizedTexts).toMatchDreamModels([
+            sweepChoreLocalizedText,
+          ])
+        })
+      }
+    )
   }
 )

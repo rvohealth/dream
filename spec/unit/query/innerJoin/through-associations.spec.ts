@@ -13,6 +13,11 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import PostComment from '../../../../test-app/app/models/PostComment.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
+import ThroughA from '../../../../test-app/app/models/Through/A.js'
+import ThroughAToOtherModelJoinModel from '../../../../test-app/app/models/Through/AToOtherModelJoinModel.js'
+import ThroughB from '../../../../test-app/app/models/Through/B.js'
+import ThroughMyModel from '../../../../test-app/app/models/Through/MyModel.js'
+import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherModel.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#joins through with simple associations', () => {
@@ -569,4 +574,197 @@ describe('Query#joins through with simple associations', () => {
     const query = BalloonSpotter.query().innerJoin('balloons')
     expect(query['innerJoinDreamClasses']).toEqual([BalloonSpotterBalloon, Balloon])
   })
+
+  context('options on a through association whose source is itself a through association', () => {
+    let myModel: ThroughMyModel
+
+    beforeEach(async () => {
+      myModel = await ThroughMyModel.create({ name: 'My model' })
+    })
+
+    context('and', () => {
+      it('applies the and clause when joining the association directly', async () => {
+        await createAReachableFrom(myModel, 'Beautiful A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const names = await ThroughMyModel.query().innerJoin('myAndA').pluck('myAndA.name')
+        expect(names).toEqual(['Beautiful A'])
+      })
+
+      it('applies the and clause when bridged by a further through association', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const names = await ThroughMyModel.query().innerJoin('myAndB').pluck('myAndB.name')
+        expect(names).toEqual(['B of beautiful A'])
+      })
+
+      context('with an explicit alias', () => {
+        it('applies the and clause when joining the association directly', async () => {
+          await createAReachableFrom(myModel, 'Beautiful A')
+          await createAReachableFrom(myModel, 'Plain A')
+
+          const names = await ThroughMyModel.query().innerJoin('myAndA as maa').pluck('maa.name')
+          expect(names).toEqual(['Beautiful A'])
+        })
+
+        it('applies the and clause when bridged by a further through association', async () => {
+          const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+          const plainA = await createAReachableFrom(myModel, 'Plain A')
+          await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+          await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+          const names = await ThroughMyModel.query().innerJoin('myAndB as mab').pluck('mab.name')
+          expect(names).toEqual(['B of beautiful A'])
+        })
+      })
+    })
+
+    context('andAny', () => {
+      it('applies the andAny clause when joining the association directly', async () => {
+        await createAReachableFrom(myModel, 'Beautiful A')
+        await createAReachableFrom(myModel, 'Gorgeous A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const names = await ThroughMyModel.query().innerJoin('myAndAnyA').pluck('myAndAnyA.name')
+        expect(names).toHaveLength(2)
+        expect(names).toEqual(expect.arrayContaining(['Beautiful A', 'Gorgeous A']))
+      })
+
+      it('applies the andAny clause when bridged by a further through association', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const gorgeousA = await createAReachableFrom(myModel, 'Gorgeous A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+        await ThroughB.create({ name: 'B of gorgeous A', a: gorgeousA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const names = await ThroughMyModel.query().innerJoin('myAndAnyB').pluck('myAndAnyB.name')
+        expect(names).toHaveLength(2)
+        expect(names).toEqual(expect.arrayContaining(['B of beautiful A', 'B of gorgeous A']))
+      })
+    })
+
+    context('andNot', () => {
+      it('applies the andNot clause when joining the association directly', async () => {
+        await createAReachableFrom(myModel, 'Forgettable A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const names = await ThroughMyModel.query().innerJoin('myAndNotA').pluck('myAndNotA.name')
+        expect(names).toEqual(['Plain A'])
+      })
+
+      it('applies the andNot clause when bridged by a further through association', async () => {
+        const forgettableA = await createAReachableFrom(myModel, 'Forgettable A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of forgettable A', a: forgettableA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const names = await ThroughMyModel.query().innerJoin('myAndNotB').pluck('myAndNotB.name')
+        expect(names).toEqual(['B of plain A'])
+      })
+    })
+
+    context('selfAnd', () => {
+      it('applies the selfAnd clause when joining the association directly', async () => {
+        await createAReachableFrom(myModel, 'My model')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const names = await ThroughMyModel.query().innerJoin('mySelfAndA').pluck('mySelfAndA.name')
+        expect(names).toEqual(['My model'])
+      })
+
+      it('applies the selfAnd clause when bridged by a further through association', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of matching A', a: matchingA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const names = await ThroughMyModel.query().innerJoin('mySelfAndB').pluck('mySelfAndB.name')
+        expect(names).toEqual(['B of matching A'])
+      })
+    })
+
+    context('selfAndNot', () => {
+      it('applies the selfAndNot clause when joining the association directly', async () => {
+        await createAReachableFrom(myModel, 'My model')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const names = await ThroughMyModel.query().innerJoin('mySelfAndNotA').pluck('mySelfAndNotA.name')
+        expect(names).toEqual(['Plain A'])
+      })
+
+      it('applies the selfAndNot clause when bridged by a further through association', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of matching A', a: matchingA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const names = await ThroughMyModel.query().innerJoin('mySelfAndNotB').pluck('mySelfAndNotB.name')
+        expect(names).toEqual(['B of plain A'])
+      })
+    })
+
+    context('order', () => {
+      it('applies the order clause when joining the association directly', async () => {
+        await createAReachableFrom(myModel, 'c')
+        await createAReachableFrom(myModel, 'a')
+        await createAReachableFrom(myModel, 'b')
+
+        const names = await ThroughMyModel.query().innerJoin('myOrderedA').pluck('myOrderedA.name')
+        expect(names).toEqual(['a', 'b', 'c'])
+      })
+
+      it('applies the order clause when bridged by a further through association', async () => {
+        const cA = await createAReachableFrom(myModel, 'c')
+        const aA = await createAReachableFrom(myModel, 'a')
+        const bA = await createAReachableFrom(myModel, 'b')
+        await ThroughB.create({ name: 'B of c', a: cA })
+        await ThroughB.create({ name: 'B of a', a: aA })
+        await ThroughB.create({ name: 'B of b', a: bA })
+
+        const names = await ThroughMyModel.query().innerJoin('myOrderedB').pluck('myOrderedB.name')
+        expect(names).toEqual(['B of a', 'B of b', 'B of c'])
+      })
+    })
+
+    context('distinct', () => {
+      it('applies the distinct clause when joining the association directly', async () => {
+        const a = await createAReachableFrom(myModel, 'Shared A')
+        await attachAToNewOtherModel(myModel, a)
+
+        const duplicatedIds = await ThroughMyModel.query().innerJoin('myA').pluck('myA.id')
+        expect(duplicatedIds).toEqual([a.id, a.id])
+
+        const ids = await ThroughMyModel.query().innerJoin('myDistinctA').pluck('myDistinctA.id')
+        expect(ids).toEqual([a.id])
+      })
+
+      it('applies the distinct clause when bridged by a further through association', async () => {
+        const a = await createAReachableFrom(myModel, 'Shared A')
+        await attachAToNewOtherModel(myModel, a)
+        const b = await ThroughB.create({ name: 'B of shared A', a })
+
+        const duplicatedIds = await ThroughMyModel.query().innerJoin('myB').pluck('myB.id')
+        expect(duplicatedIds).toEqual([b.id, b.id])
+
+        const ids = await ThroughMyModel.query().innerJoin('myDistinctB').pluck('myDistinctB.id')
+        expect(ids).toEqual([b.id])
+      })
+    })
+  })
 })
+
+async function createAReachableFrom(myModel: ThroughMyModel, name: string): Promise<ThroughA> {
+  const otherModel = await ThroughOtherModel.create({ name: 'Other model', myModel })
+  const a = await ThroughA.create({ name })
+  await ThroughAToOtherModelJoinModel.create({ a, otherModel })
+  return a
+}
+
+async function attachAToNewOtherModel(myModel: ThroughMyModel, a: ThroughA): Promise<void> {
+  const otherModel = await ThroughOtherModel.create({ name: 'Other model', myModel })
+  await ThroughAToOtherModelJoinModel.create({ a, otherModel })
+}

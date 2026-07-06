@@ -29,4 +29,14 @@ export default class PolymorphicMetaUser extends ApplicationModel {
 
   @deco.HasMany('Polymorphic/LocalizedText', { through: 'chores', source: 'localizedTexts' })
   public choreLocalizedTexts: PolymorphicLocalizedText[]
+
+  @deco.HasMany('Polymorphic/Chore', {
+    through: 'polymorphicUser',
+    source: 'chores',
+    and: { name: 'sweep' },
+  })
+  public choresNamedSweep: Chore[]
+
+  @deco.HasMany('Polymorphic/LocalizedText', { through: 'choresNamedSweep', source: 'localizedTexts' })
+  public choresNamedSweepLocalizedTexts: PolymorphicLocalizedText[]
 }
