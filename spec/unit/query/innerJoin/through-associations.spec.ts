@@ -498,6 +498,42 @@ describe('Query#joins through with simple associations', () => {
       expect(plucked).toEqual([[post2.id, 'world']])
     })
 
+    context('with an explicit alias', () => {
+      it('references the explicit alias in the selfAnd condition', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          featuredPostPosition: 2,
+        })
+
+        // position is automatically set by sortable
+        await Post.create({ user, body: 'hello' })
+        const post2 = await Post.create({ user, body: 'world' })
+
+        const plucked = await User.query().innerJoin('featuredPost as fp').pluck('fp.id', 'fp.body')
+        expect(plucked).toEqual([[post2.id, 'world']])
+      })
+    })
+
+    context('with an explicit alias on an association bridging the selfAnd association', () => {
+      it('applies the selfAnd condition to the intermediate join', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          featuredPostPosition: 2,
+        })
+
+        // position is automatically set by sortable
+        const post1 = await Post.create({ user, body: 'hello' })
+        await Rating.create({ user, rateable: post1, rating: 3 })
+        const post2 = await Post.create({ user, body: 'world' })
+        const rating2 = await Rating.create({ user, rateable: post2, rating: 5 })
+
+        const plucked = await User.query().innerJoin('featuredRatings as fr').pluck('fr.id')
+        expect(plucked).toEqual([rating2.id])
+      })
+    })
+
     context('when the selfAnd is declared on the join association', () => {
       it('applies conditional to selectively bring in records', async () => {
         const user = await User.create({
@@ -525,6 +561,24 @@ describe('Query#joins through with simple associations', () => {
             [rating2a.id, 7],
           ])
         )
+      })
+
+      context('with an explicit alias', () => {
+        it('references the explicit alias in the selfAnd condition', async () => {
+          const user = await User.create({
+            email: 'fred@frewd',
+            password: 'howyadoin',
+            targetRating: 7,
+          })
+          const post1 = await Post.create({ user })
+          await Rating.create({ user, rateable: post1, rating: 3 })
+          const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
+
+          const plucked = await User.query()
+            .innerJoin('ratingsThroughPostsThatMatchUserTargetRating as r')
+            .pluck('r.id', 'r.rating')
+          expect(plucked).toEqual([[rating1b.id, 7]])
+        })
       })
     })
   })
@@ -684,6 +738,26 @@ describe('Query#joins through with simple associations', () => {
 
         const names = await ThroughMyModel.query().innerJoin('mySelfAndB').pluck('mySelfAndB.name')
         expect(names).toEqual(['B of matching A'])
+      })
+
+      context('with an explicit alias', () => {
+        it('applies the selfAnd clause when joining the association directly', async () => {
+          await createAReachableFrom(myModel, 'My model')
+          await createAReachableFrom(myModel, 'Plain A')
+
+          const names = await ThroughMyModel.query().innerJoin('mySelfAndA as msa').pluck('msa.name')
+          expect(names).toEqual(['My model'])
+        })
+
+        it('applies the selfAnd clause when bridged by a further through association', async () => {
+          const matchingA = await createAReachableFrom(myModel, 'My model')
+          const plainA = await createAReachableFrom(myModel, 'Plain A')
+          await ThroughB.create({ name: 'B of matching A', a: matchingA })
+          await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+          const names = await ThroughMyModel.query().innerJoin('mySelfAndB as msb').pluck('msb.name')
+          expect(names).toEqual(['B of matching A'])
+        })
       })
     })
 

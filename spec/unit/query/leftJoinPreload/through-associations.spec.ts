@@ -436,6 +436,25 @@ describe('Query#leftJoinPreload through', () => {
           expect(reloadedUser.featuredRatings).toMatchDreamModels([rating2])
         })
 
+        context('with an explicit alias on an association bridging the selfAnd association', () => {
+          it('applies the selfAnd condition to the intermediate join', async () => {
+            const user = await User.create({
+              email: 'fred@frewd',
+              password: 'howyadoin',
+              featuredPostPosition: 2,
+            })
+
+            // position is automatically set by sortable
+            const post1 = await Post.create({ user })
+            await Rating.create({ user, rateable: post1 })
+            const post2 = await Post.create({ user })
+            const rating2 = await Rating.create({ user, rateable: post2 })
+
+            const reloadedUser = await User.query().leftJoinPreload('featuredRatings as fr').firstOrFail()
+            expect(reloadedUser.featuredRatings).toMatchDreamModels([rating2])
+          })
+        })
+
         context('when the selfAnd is declared on the join association', () => {
           it('applies conditional to selectively bring in records', async () => {
             const user = await User.create({
@@ -457,6 +476,24 @@ describe('Query#leftJoinPreload through', () => {
               rating1b,
               rating2a,
             ])
+          })
+
+          context('with an explicit alias', () => {
+            it('references the explicit alias in the selfAnd condition', async () => {
+              const user = await User.create({
+                email: 'fred@frewd',
+                password: 'howyadoin',
+                targetRating: 7,
+              })
+              const post1 = await Post.create({ user })
+              await Rating.create({ user, rateable: post1, rating: 3 })
+              const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
+
+              const reloadedUser = await User.query()
+                .leftJoinPreload('ratingsThroughPostsThatMatchUserTargetRating as r')
+                .firstOrFail()
+              expect(reloadedUser.ratingsThroughPostsThatMatchUserTargetRating).toMatchDreamModels([rating1b])
+            })
           })
         })
 
@@ -866,6 +903,26 @@ describe('Query#leftJoinPreload through', () => {
 
         const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndB').firstOrFail()
         expect(reloaded.mySelfAndB).toMatchDreamModels([matchingB])
+      })
+
+      context('with an explicit alias', () => {
+        it('applies the selfAnd clause when leftJoinPreloading the association directly', async () => {
+          const matchingA = await createAReachableFrom(myModel, 'My model')
+          await createAReachableFrom(myModel, 'Plain A')
+
+          const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndA as msa').firstOrFail()
+          expect(reloaded.mySelfAndA).toMatchDreamModels([matchingA])
+        })
+
+        it('applies the selfAnd clause when bridged by a further through association', async () => {
+          const matchingA = await createAReachableFrom(myModel, 'My model')
+          const plainA = await createAReachableFrom(myModel, 'Plain A')
+          const matchingB = await ThroughB.create({ name: 'B of matching A', a: matchingA })
+          await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+          const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndB as msb').firstOrFail()
+          expect(reloaded.mySelfAndB).toMatchDreamModels([matchingB])
+        })
       })
     })
 
