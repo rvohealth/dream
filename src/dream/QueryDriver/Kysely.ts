@@ -52,7 +52,6 @@ import MissingRequiredAssociationAndClause from '../../errors/associations/Missi
 import MissingRequiredPassthroughForAssociationAndClause from '../../errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
 import MissingThroughAssociation from '../../errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../errors/associations/MissingThroughAssociationSource.js'
-import ThroughAssociationConditionsIncompatibleWithThroughAssociationSource from '../../errors/associations/ThroughAssociationConditionsIncompatibleWithThroughAssociationSource.js'
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
 import CannotNamespaceAssociationFilterToAnotherTable from '../../errors/CannotNamespaceAssociationFilterToAnotherTable.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
@@ -116,7 +115,6 @@ import {
 } from '../../types/query.js'
 import { DreamConst, primaryKeyTypes } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
-import throughAssociationHasOptionsBesidesThroughAndSource from '../internal/associations/throughAssociationHasOptionsBesidesThroughAndSource.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
 import extractAssignableAssociationAttributes from '../internal/extractAssignableAssociationAttributes.js'
@@ -130,6 +128,26 @@ import QueryDriverBase from './Base.js'
 import checkForNeedToBeRunMigrations from './helpers/kysely/checkForNeedToBeRunMigrations.js'
 import foreignKeyTypeFromPrimaryKey from './helpers/kysely/foreignKeyTypeFromPrimaryKey.js'
 import runMigration from './helpers/kysely/runMigration.js'
+
+/**
+ * A through association whose options (and-family, order, distinct) are still
+ * waiting to be applied to the query. Options declared on a through association
+ * are applied at the join of the table where the through association's target
+ * model finally materializes. When a through association's source is itself a
+ * through association, that join is reached only after bridging further through
+ * associations, so the pending associations are stacked and threaded through
+ * `applyOneJoin` → `joinsBridgeThroughAssociations` →
+ * `addAssociationJoinStatementToQuery` until the terminal concrete join, where
+ * every stacked entry is applied.
+ *
+ * `selfTableAlias` is the alias of the table corresponding to the model the
+ * through association is defined on, which is what `selfAnd`/`selfAndNot`
+ * clauses on that association reference.
+ */
+interface PendingThroughAssociation {
+  association: HasOneStatement<any, any, any, any> | HasManyStatement<any, any, any, any>
+  selfTableAlias: string
+}
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   // ATTENTION FRED
@@ -2047,7 +2065,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         explicitAlias: alias,
         joinAndStatement,
         joinType,
-        previousThroughAssociation: undefined,
+        previousThroughAssociations: [],
         dreamClassThroughAssociationWantsToHydrate: undefined,
       })
 
@@ -2420,20 +2438,35 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    *   public b
    * ```
    *
+   * Options declared on a through association (`and`/`andAny`/`andNot`/`selfAnd`/
+   * `selfAndNot`/`order`/`distinct`) are applied at the join of the table where the
+   * through association's target model materializes. When a source is itself a
+   * through association, that join is only reached after bridging further through
+   * associations, so each through association is pushed onto the
+   * `previousThroughAssociations` stack (along with the alias `selfAnd`/`selfAndNot`
+   * clauses reference) before the terminal `applyOneJoin` call, and the stack is
+   * threaded through every recursion until `addAssociationJoinStatementToQuery`
+   * reaches a concrete (non-through) association, where every stacked entry is
+   * applied to that join.
+   *
    * Then `MyModel.leftJoinPreload('myB')` is processed as follows:
    * - `applyOneJoin` is called with the `myB` association
    *   - `joinsBridgeThroughAssociations` is called with the `myB` association
    *     - `joinsBridgeThroughAssociations` is called with the `myA` association
    *       - `addAssociationJoinStatementToQuery` is called with the `otherModel` association
-   *       - `applyOneJoin` is called with the `a` association from OtherModel
-   *         - `joinsBridgeThroughAssociations` is called with the `a` association from OtherModel
-   *           // throw ThroughAssociationConditionsIncompatibleWithThroughAssociationSource if
-   *           // myA in MyModel defines conditions, distinct, or order
+   *       - `applyOneJoin` is called with the `a` association from OtherModel, with `myA` pushed
+   *         onto the previousThroughAssociations stack
+   *         - `joinsBridgeThroughAssociations` is called with the `a` association from OtherModel,
+   *           inheriting the stack
    *           - `addAssociationJoinStatementToQuery` is called with the `aToOtherModelJoinModel` association
-   *           - `applyOneJoin` is called with the `a` association from AToOtherModelJoinModel with conditions (if present) on `a` defined on OtherModel
-   *             - `addAssociationJoinStatementToQuery` is called with the `myA` association
-   *     - `applyOneJoin` is called with the `b` association from A with conditions (if present) from `myB` defined on MyModel
-   *       - `addAssociationJoinStatementToQuery` is called with the `myB` association
+   *           - `applyOneJoin` is called with the `a` association from AToOtherModelJoinModel, with the
+   *             `a` association from OtherModel pushed onto the stack
+   *             - `addAssociationJoinStatementToQuery` is called with the `a` association from
+   *               AToOtherModelJoinModel, applying the options (if present) of every stacked through
+   *               association (`myA` defined on MyModel, `a` defined on OtherModel) to the `through_as` join
+   *     - `applyOneJoin` is called with the `b` association from A, with `myB` pushed onto the stack
+   *       - `addAssociationJoinStatementToQuery` is called with the `b` association from A, applying
+   *         the options (if present) of `myB` defined on MyModel to the `through_bs` join
    */
 
   private joinsBridgeThroughAssociations<
@@ -2466,6 +2499,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
      */
     previousTableAlias,
     joinAndStatement,
+    /**
+     * Through associations from further out in the association chain whose
+     * options are waiting to be applied at the terminal concrete join of this
+     * chain (see the doc comment above this method).
+     */
+    previousThroughAssociations,
     joinType,
   }: {
     query: QueryType
@@ -2474,6 +2513,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     explicitAlias: string | undefined
     previousTableAlias: string
     joinAndStatement: RelaxedJoinAndStatement<any, any, any>
+    previousThroughAssociations: PendingThroughAssociation[]
     joinType: JoinTypes
   }): {
     query: QueryType
@@ -2522,6 +2562,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         explicitAlias: undefined,
         previousTableAlias,
         joinAndStatement: {},
+        /**
+         * The through associations pending in previousThroughAssociations are
+         * applied at the terminal join of _this_ association's chain (their
+         * target model is this through association's target model), not at the
+         * terminal join of the nested through association being bridged here,
+         * so the nested chain starts with an empty stack.
+         */
+        previousThroughAssociations: [],
         joinType,
       })
 
@@ -2549,7 +2597,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
          * The joinAndStatement is reserved for the final association, not intermediary join tables
          */
         joinAndStatement: {},
-        previousThroughAssociation: undefined,
+        previousThroughAssociations: [],
         joinType,
         dreamClassThroughAssociationWantsToHydrate: undefined,
       })
@@ -2595,16 +2643,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       // recursively and therefore may have added other through associations and their sources prior to reaching this point)
       explicitAlias,
       previousTableAlias: recursiveResult.association.as,
-      selfTableAlias:
-        (throughAssociation.selfAnd ?? throughAssociation.selfAndNot)
-          ? previousTableAlias
-          : recursiveResult.association.as,
+      selfTableAlias: recursiveResult.association.as,
       // since joinsBridgeThroughAssociations passes {} to joinAndStatement recursively, we know this is only set on the
       // first call to joinsBridgeThroughAssociations, which corresponds to the outermoset through association and therefore
       // the last source association to be added to the statement (because joinsBridgeThroughAssociations was called
       // recursively and therefore may have added other through associations and their sources prior to reaching this point)
       joinAndStatement,
-      previousThroughAssociation: throughAssociation,
+      previousThroughAssociations: [
+        ...previousThroughAssociations,
+        /**
+         * This through association's options are applied at the terminal
+         * concrete join of this chain. `selfAnd`/`selfAndNot` clauses on a
+         * through association reference the model the association is defined
+         * on, whose table is aliased with this method's previousTableAlias.
+         */
+        { association: throughAssociation, selfTableAlias: previousTableAlias },
+      ],
       joinType,
       dreamClassThroughAssociationWantsToHydrate,
     })
@@ -2641,7 +2695,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousTableAlias,
     selfTableAlias = previousTableAlias,
     joinAndStatement = {},
-    previousThroughAssociation,
+    previousThroughAssociations,
     joinType,
     dreamClassThroughAssociationWantsToHydrate,
   }: {
@@ -2655,10 +2709,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousTableAlias: string
     selfTableAlias?: string
     joinAndStatement?: RelaxedJoinAndStatement<any, any, any>
-    previousThroughAssociation:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | undefined
+    previousThroughAssociations: PendingThroughAssociation[]
 
     joinType: JoinTypes
     dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
@@ -2667,13 +2718,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     association: AssociationStatement
   } {
     if (association.type !== 'BelongsTo' && association.through) {
-      if (throughAssociationHasOptionsBesidesThroughAndSource(previousThroughAssociation)) {
-        throw new ThroughAssociationConditionsIncompatibleWithThroughAssociationSource({
-          dreamClass,
-          association,
-        })
-      }
-
       return this.joinsBridgeThroughAssociations({
         query,
         dreamClassTheAssociationIsDefinedOn: dreamClass,
@@ -2681,6 +2725,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         explicitAlias,
         previousTableAlias,
         joinAndStatement,
+        previousThroughAssociations,
         joinType,
       })
     }
@@ -2693,7 +2738,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       previousTableAlias,
       selfTableAlias,
       joinAndStatement,
-      previousThroughAssociation,
+      previousThroughAssociations,
       joinType,
       dreamClassThroughAssociationWantsToHydrate,
     })
@@ -2730,7 +2775,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousTableAlias,
     selfTableAlias,
     joinAndStatement,
-    previousThroughAssociation,
+    previousThroughAssociations,
     joinType,
     dreamClassThroughAssociationWantsToHydrate,
   }: {
@@ -2744,10 +2789,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousTableAlias: string
     selfTableAlias: string
     joinAndStatement: RelaxedJoinAndStatement<any, any, any>
-    previousThroughAssociation:
-      | HasOneStatement<any, any, any, any>
-      | HasManyStatement<any, any, any, any>
-      | undefined
+    previousThroughAssociations: PendingThroughAssociation[]
 
     joinType: JoinTypes
     dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
@@ -2761,21 +2803,29 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       ? _associatedDreamClass[0]!
       : _associatedDreamClass
 
-    if (previousThroughAssociation?.type === 'HasMany') {
-      if ((query as SelectQueryBuilder<any, any, any>)?.distinctOn && previousThroughAssociation.distinct) {
+    /**
+     * Stacked order/distinct clauses are applied in join order: the options of
+     * the through association whose bridging joins were added to the query
+     * first are applied first, and the terminal association's own
+     * order/distinct (applied after the join, below) come last.
+     */
+    for (const { association: throughAssociation } of previousThroughAssociations) {
+      if (throughAssociation.type !== 'HasMany') continue
+
+      if ((query as SelectQueryBuilder<any, any, any>)?.distinctOn && throughAssociation.distinct) {
         query = (query as SelectQueryBuilder<any, any, any>).distinctOn(
           this.distinctColumnNameForAssociation({
-            association: previousThroughAssociation,
+            association: throughAssociation,
             tableNameOrAlias: currentTableAlias,
-            foreignKey: previousThroughAssociation.primaryKey(),
+            foreignKey: throughAssociation.primaryKey(),
           }) as string
         ) as QueryType
       }
 
-      if (previousThroughAssociation?.order) {
+      if (throughAssociation.order) {
         query = this.applyOrderStatementForAssociation({
           query,
-          association: previousThroughAssociation,
+          association: throughAssociation,
           tableNameOrAlias: currentTableAlias,
         })
       }
@@ -2807,32 +2857,29 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             )
           )
 
-          if (previousThroughAssociation) {
-            if (dreamClassThroughAssociationWantsToHydrate) {
-              join = join.on((eb: ExpressionBuilder<any, any>) =>
-                this.whereStatementToExpressionWrapper(
-                  dreamClass,
-                  eb,
-                  this.aliasWhereStatement(
-                    {
-                      [association.foreignKeyTypeField()]:
-                        dreamClassThroughAssociationWantsToHydrate.sanitizedName,
-                    } as InternalWhereStatement<any, any, any, any>,
-                    previousThroughAssociation.through!
-                  )
+          if (dreamClassThroughAssociationWantsToHydrate) {
+            join = join.on((eb: ExpressionBuilder<any, any>) =>
+              this.whereStatementToExpressionWrapper(
+                dreamClass,
+                eb,
+                this.aliasWhereStatement(
+                  {
+                    [association.foreignKeyTypeField()]:
+                      dreamClassThroughAssociationWantsToHydrate.sanitizedName,
+                  } as InternalWhereStatement<any, any, any, any>,
+                  previousTableAlias
                 )
               )
-            }
-
-            join = this.applyAssociationAndStatementsToJoinStatement({
-              dreamClass,
-              join,
-              association: previousThroughAssociation,
-              currentTableAlias,
-              selfTableAlias,
-              joinAndStatement,
-            })
+            )
           }
+
+          join = this.applyPreviousThroughAssociationAndStatementsToJoinStatement({
+            dreamClass,
+            join,
+            previousThroughAssociations,
+            currentTableAlias,
+            joinAndStatement,
+          })
 
           join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
             dreamClass,
@@ -2877,16 +2924,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             )
           }
 
-          if (previousThroughAssociation) {
-            join = this.applyAssociationAndStatementsToJoinStatement({
-              dreamClass,
-              join,
-              association: previousThroughAssociation,
-              currentTableAlias,
-              selfTableAlias,
-              joinAndStatement,
-            })
-          }
+          join = this.applyPreviousThroughAssociationAndStatementsToJoinStatement({
+            dreamClass,
+            join,
+            previousThroughAssociations,
+            currentTableAlias,
+            joinAndStatement,
+          })
 
           join = this.applyAssociationAndStatementsToJoinStatement({
             dreamClass,
@@ -2982,6 +3026,45 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return this.namespaceColumn(association.distinct, tableNameOrAlias)
   }
 
+  /**
+   * Applies the and-family clauses (`and`/`andAny`/`andNot`/`selfAnd`/`selfAndNot`)
+   * of every pending through association to the terminal concrete join of a
+   * through association chain.
+   *
+   * The first entry in the stack is the association the developer named in the
+   * join/preload/associationQuery statement, so it is the association the
+   * developer-supplied joinAndStatement corresponds to (used to satisfy
+   * `DreamConst.required` clauses); `DreamConst.required` on any other stacked
+   * through association cannot be satisfied and will throw
+   * `MissingRequiredAssociationAndClause`.
+   */
+  private applyPreviousThroughAssociationAndStatementsToJoinStatement({
+    dreamClass,
+    join,
+    previousThroughAssociations,
+    currentTableAlias,
+    joinAndStatement,
+  }: {
+    dreamClass: typeof Dream
+    join: JoinBuilder<any, any>
+    previousThroughAssociations: PendingThroughAssociation[]
+    currentTableAlias: string
+    joinAndStatement: RelaxedJoinAndStatement<any, any, any>
+  }) {
+    previousThroughAssociations.forEach(({ association, selfTableAlias }, index) => {
+      join = this.applyAssociationAndStatementsToJoinStatement({
+        dreamClass,
+        join,
+        association,
+        currentTableAlias,
+        selfTableAlias,
+        joinAndStatement: index === 0 ? joinAndStatement : {},
+      })
+    })
+
+    return join
+  }
+
   private applyAssociationAndStatementsToJoinStatement({
     dreamClass,
     join,
@@ -3048,7 +3131,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           dreamClass,
           eb,
           this.rawifiedSelfOnClause({
-            associationAlias: association.as,
+            associationAlias: currentTableAlias,
             selfAlias: selfTableAlias,
             selfAndClause: association.selfAnd as any,
           })
@@ -3062,7 +3145,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           dreamClass,
           eb,
           this.rawifiedSelfOnClause({
-            associationAlias: association.as,
+            associationAlias: currentTableAlias,
             selfAlias: selfTableAlias,
             selfAndClause: association.selfAndNot as any,
           }),

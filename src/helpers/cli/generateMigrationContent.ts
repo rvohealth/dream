@@ -77,13 +77,19 @@ export default function generateMigrationContent({
 
       /**
        * Automatically set email columns to citext since different casings of
-       * email address are the same email address
+       * email address are the same email address. Skip this when the user
+       * explicitly asked for an encrypted column, since encrypted columns
+       * are always stored as encrypted text and must not be overridden by
+       * the name-based heuristic.
        */
-      const attributeType = /email$/.test(nonStandardAttributeName)
-        ? 'citext'
-        : /uuid$/.test(nonStandardAttributeName)
-          ? 'uuid'
-          : _attributeType
+      const attributeType =
+        _attributeType === 'encrypted' || _attributeType === 'encrypted[]'
+          ? _attributeType
+          : /email$/.test(nonStandardAttributeName)
+            ? 'citext'
+            : /uuid$/.test(nonStandardAttributeName)
+              ? 'uuid'
+              : _attributeType
       const processedAttrType = camelize(attributeType)?.toLowerCase()
 
       const userWantsThisOptional = optionalFromDescriptors(descriptors)
@@ -165,6 +171,7 @@ export default function generateMigrationContent({
           columnDefs.push(
             generateColumnStr(attributeName, 'text', descriptors, {
               omitInlineNonNull,
+              skipUniqueHeuristic: true,
             })
           )
           break
@@ -384,14 +391,17 @@ function generateColumnStr(
   attributeName: string,
   attributeType: string,
   descriptors: string[],
-  { omitInlineNonNull: optional }: { omitInlineNonNull: boolean }
+  {
+    omitInlineNonNull: optional,
+    skipUniqueHeuristic = false,
+  }: { omitInlineNonNull: boolean; skipUniqueHeuristic?: boolean }
 ) {
   let returnStr = `.addColumn('${attributeName}', ${attributeTypeString(attributeType)}`
 
   const providedDefaultArg = descriptors.find(d => /^default\(/.test(d))
   const providedDefault = providedDefaultArg?.replace(/^default\(/, '')?.replace(/\)$/, '')
   const notNull = !optional
-  const isUnique = /(email|token|uuid)$/.test(attributeName)
+  const isUnique = !skipUniqueHeuristic && /(email|token|uuid)$/.test(attributeName)
   const hasExtraValues = providedDefault || notNull || isUnique
   const isArray = /\[\]$/.test(attributeType)
 
