@@ -621,6 +621,38 @@ export async function down(db: Kysely<any>): Promise<void> {
 `
         )
       })
+
+      it('does not apply the citext/unique email, token, or uuid heuristics to columns explicitly declared as encrypted, even when the column name ends in email, token, or uuid', () => {
+        const res = generateMigrationContent({
+          table: 'sent_email_logs',
+          columnsWithTypes: ['to_email:encrypted', 'auth_token:encrypted', 'external_uuid:encrypted'],
+          primaryKeyType: 'bigserial',
+        })
+
+        expect(res).toEqual(
+          `\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .createTable('sent_email_logs')
+    .addColumn('id', 'bigint', col => col.primaryKey().generatedByDefaultAsIdentity())
+    .addColumn('encrypted_to_email', 'text', col => col.notNull())
+    .addColumn('encrypted_auth_token', 'text', col => col.notNull())
+    .addColumn('encrypted_external_uuid', 'text', col => col.notNull())
+    .addColumn('created_at', 'timestamp', col => col.notNull())
+    .addColumn('updated_at', 'timestamp', col => col.notNull())
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema.dropTable('sent_email_logs').execute()
+}\
+`
+        )
+      })
     })
 
     context('boolean attributes', () => {
