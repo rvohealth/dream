@@ -17,6 +17,11 @@ import Node from '../../../../test-app/app/models/Graph/Node.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
+import ThroughA from '../../../../test-app/app/models/Through/A.js'
+import ThroughAToOtherModelJoinModel from '../../../../test-app/app/models/Through/AToOtherModelJoinModel.js'
+import ThroughB from '../../../../test-app/app/models/Through/B.js'
+import ThroughMyModel from '../../../../test-app/app/models/Through/MyModel.js'
+import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherModel.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#leftJoinPreload through', () => {
@@ -431,6 +436,25 @@ describe('Query#leftJoinPreload through', () => {
           expect(reloadedUser.featuredRatings).toMatchDreamModels([rating2])
         })
 
+        context('with an explicit alias on an association bridging the selfAnd association', () => {
+          it('applies the selfAnd condition to the intermediate join', async () => {
+            const user = await User.create({
+              email: 'fred@frewd',
+              password: 'howyadoin',
+              featuredPostPosition: 2,
+            })
+
+            // position is automatically set by sortable
+            const post1 = await Post.create({ user })
+            await Rating.create({ user, rateable: post1 })
+            const post2 = await Post.create({ user })
+            const rating2 = await Rating.create({ user, rateable: post2 })
+
+            const reloadedUser = await User.query().leftJoinPreload('featuredRatings as fr').firstOrFail()
+            expect(reloadedUser.featuredRatings).toMatchDreamModels([rating2])
+          })
+        })
+
         context('when the selfAnd is declared on the join association', () => {
           it('applies conditional to selectively bring in records', async () => {
             const user = await User.create({
@@ -452,6 +476,24 @@ describe('Query#leftJoinPreload through', () => {
               rating1b,
               rating2a,
             ])
+          })
+
+          context('with an explicit alias', () => {
+            it('references the explicit alias in the selfAnd condition', async () => {
+              const user = await User.create({
+                email: 'fred@frewd',
+                password: 'howyadoin',
+                targetRating: 7,
+              })
+              const post1 = await Post.create({ user })
+              await Rating.create({ user, rateable: post1, rating: 3 })
+              const rating1b = await Rating.create({ user, rateable: post1, rating: 7 })
+
+              const reloadedUser = await User.query()
+                .leftJoinPreload('ratingsThroughPostsThatMatchUserTargetRating as r')
+                .firstOrFail()
+              expect(reloadedUser.ratingsThroughPostsThatMatchUserTargetRating).toMatchDreamModels([rating1b])
+            })
           })
         })
 
@@ -763,4 +805,189 @@ describe('Query#leftJoinPreload through', () => {
     const reloadedAfterSoftdelete = await Node.query().leftJoinPreload('edges').firstOrFail()
     expect(reloadedAfterSoftdelete.edges).toEqual([])
   })
+
+  context('options on a through association whose source is itself a through association', () => {
+    let myModel: ThroughMyModel
+
+    beforeEach(async () => {
+      myModel = await ThroughMyModel.create({ name: 'My model' })
+    })
+
+    context('and', () => {
+      it('applies the and clause when leftJoinPreloading the association directly', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myAndA').firstOrFail()
+        expect(reloaded.myAndA).toMatchDreamModels([beautifulA])
+      })
+
+      it('applies the and clause when bridged by a further through association', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        const beautifulB = await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myAndB').firstOrFail()
+        expect(reloaded.myAndB).toMatchDreamModels([beautifulB])
+      })
+
+      context('with an explicit alias', () => {
+        it('applies the and clause when leftJoinPreloading the association directly', async () => {
+          const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+          await createAReachableFrom(myModel, 'Plain A')
+
+          const reloaded = await ThroughMyModel.leftJoinPreload('myAndA as maa').firstOrFail()
+          expect(reloaded.myAndA).toMatchDreamModels([beautifulA])
+        })
+      })
+    })
+
+    context('andAny', () => {
+      it('applies the andAny clause when leftJoinPreloading the association directly', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const gorgeousA = await createAReachableFrom(myModel, 'Gorgeous A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myAndAnyA').firstOrFail()
+        expect(reloaded.myAndAnyA).toMatchDreamModels([beautifulA, gorgeousA])
+      })
+
+      it('applies the andAny clause when bridged by a further through association', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const gorgeousA = await createAReachableFrom(myModel, 'Gorgeous A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        const beautifulB = await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+        const gorgeousB = await ThroughB.create({ name: 'B of gorgeous A', a: gorgeousA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myAndAnyB').firstOrFail()
+        expect(reloaded.myAndAnyB).toMatchDreamModels([beautifulB, gorgeousB])
+      })
+    })
+
+    context('andNot', () => {
+      it('applies the andNot clause when leftJoinPreloading the association directly', async () => {
+        await createAReachableFrom(myModel, 'Forgettable A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myAndNotA').firstOrFail()
+        expect(reloaded.myAndNotA).toMatchDreamModels([plainA])
+      })
+
+      it('applies the andNot clause when bridged by a further through association', async () => {
+        const forgettableA = await createAReachableFrom(myModel, 'Forgettable A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of forgettable A', a: forgettableA })
+        const plainB = await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myAndNotB').firstOrFail()
+        expect(reloaded.myAndNotB).toMatchDreamModels([plainB])
+      })
+    })
+
+    context('selfAnd', () => {
+      it('applies the selfAnd clause when leftJoinPreloading the association directly', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndA').firstOrFail()
+        expect(reloaded.mySelfAndA).toMatchDreamModels([matchingA])
+      })
+
+      it('applies the selfAnd clause when bridged by a further through association', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        const matchingB = await ThroughB.create({ name: 'B of matching A', a: matchingA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndB').firstOrFail()
+        expect(reloaded.mySelfAndB).toMatchDreamModels([matchingB])
+      })
+
+      context('with an explicit alias', () => {
+        it('applies the selfAnd clause when leftJoinPreloading the association directly', async () => {
+          const matchingA = await createAReachableFrom(myModel, 'My model')
+          await createAReachableFrom(myModel, 'Plain A')
+
+          const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndA as msa').firstOrFail()
+          expect(reloaded.mySelfAndA).toMatchDreamModels([matchingA])
+        })
+
+        it('applies the selfAnd clause when bridged by a further through association', async () => {
+          const matchingA = await createAReachableFrom(myModel, 'My model')
+          const plainA = await createAReachableFrom(myModel, 'Plain A')
+          const matchingB = await ThroughB.create({ name: 'B of matching A', a: matchingA })
+          await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+          const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndB as msb').firstOrFail()
+          expect(reloaded.mySelfAndB).toMatchDreamModels([matchingB])
+        })
+      })
+    })
+
+    context('selfAndNot', () => {
+      it('applies the selfAndNot clause when leftJoinPreloading the association directly', async () => {
+        await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndNotA').firstOrFail()
+        expect(reloaded.mySelfAndNotA).toMatchDreamModels([plainA])
+      })
+
+      it('applies the selfAndNot clause when bridged by a further through association', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of matching A', a: matchingA })
+        const plainB = await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('mySelfAndNotB').firstOrFail()
+        expect(reloaded.mySelfAndNotB).toMatchDreamModels([plainB])
+      })
+    })
+
+    context('order', () => {
+      it('applies the order clause when leftJoinPreloading the association directly', async () => {
+        const cA = await createAReachableFrom(myModel, 'c')
+        const aA = await createAReachableFrom(myModel, 'a')
+        const bA = await createAReachableFrom(myModel, 'b')
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myOrderedA').firstOrFail()
+        expect(reloaded.myOrderedA[0]).toMatchDreamModel(aA)
+        expect(reloaded.myOrderedA[1]).toMatchDreamModel(bA)
+        expect(reloaded.myOrderedA[2]).toMatchDreamModel(cA)
+      })
+
+      it('applies the order clause when bridged by a further through association', async () => {
+        const cA = await createAReachableFrom(myModel, 'c')
+        const aA = await createAReachableFrom(myModel, 'a')
+        const bA = await createAReachableFrom(myModel, 'b')
+        const cB = await ThroughB.create({ name: 'B of c', a: cA })
+        const aB = await ThroughB.create({ name: 'B of a', a: aA })
+        const bB = await ThroughB.create({ name: 'B of b', a: bA })
+
+        const reloaded = await ThroughMyModel.leftJoinPreload('myOrderedB').firstOrFail()
+        expect(reloaded.myOrderedB[0]).toMatchDreamModel(aB)
+        expect(reloaded.myOrderedB[1]).toMatchDreamModel(bB)
+        expect(reloaded.myOrderedB[2]).toMatchDreamModel(cB)
+      })
+    })
+
+    /**
+     * `distinct` is intentionally not specced for leftJoinPreload: a
+     * distinct-carrying through association cannot be leftJoinPreloaded at all
+     * (Postgres rejects the query with "SELECT DISTINCT ON expressions must
+     * match initial ORDER BY expressions" because leftJoinPreload adds its own
+     * hydration ORDER BY). That limitation predates through-source option
+     * threading and applies equally to a through association with a concrete
+     * source (e.g. `Pet.leftJoinPreload('distinctBalloons')`).
+     */
+  })
 })
+
+async function createAReachableFrom(myModel: ThroughMyModel, name: string): Promise<ThroughA> {
+  const otherModel = await ThroughOtherModel.create({ name: 'Other model', myModel })
+  const a = await ThroughA.create({ name })
+  await ThroughAToOtherModelJoinModel.create({ a, otherModel })
+  return a
+}

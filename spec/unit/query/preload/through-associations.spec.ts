@@ -17,6 +17,11 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
 import Sandbag from '../../../../test-app/app/models/Sandbag.js'
+import ThroughA from '../../../../test-app/app/models/Through/A.js'
+import ThroughAToOtherModelJoinModel from '../../../../test-app/app/models/Through/AToOtherModelJoinModel.js'
+import ThroughB from '../../../../test-app/app/models/Through/B.js'
+import ThroughMyModel from '../../../../test-app/app/models/Through/MyModel.js'
+import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherModel.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#preload through', () => {
@@ -730,4 +735,173 @@ describe('Query#preload through', () => {
       })
     })
   })
+
+  context('options on a through association whose source is itself a through association', () => {
+    let myModel: ThroughMyModel
+
+    beforeEach(async () => {
+      myModel = await ThroughMyModel.create({ name: 'My model' })
+    })
+
+    context('and', () => {
+      it('applies the and clause when preloading the association directly', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.preload('myAndA').firstOrFail()
+        expect(reloaded.myAndA).toMatchDreamModels([beautifulA])
+      })
+
+      it('applies the and clause when bridged by a further through association', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        const beautifulB = await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.preload('myAndB').firstOrFail()
+        expect(reloaded.myAndB).toMatchDreamModels([beautifulB])
+      })
+    })
+
+    context('andAny', () => {
+      it('applies the andAny clause when preloading the association directly', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const gorgeousA = await createAReachableFrom(myModel, 'Gorgeous A')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.preload('myAndAnyA').firstOrFail()
+        expect(reloaded.myAndAnyA).toMatchDreamModels([beautifulA, gorgeousA])
+      })
+
+      it('applies the andAny clause when bridged by a further through association', async () => {
+        const beautifulA = await createAReachableFrom(myModel, 'Beautiful A')
+        const gorgeousA = await createAReachableFrom(myModel, 'Gorgeous A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        const beautifulB = await ThroughB.create({ name: 'B of beautiful A', a: beautifulA })
+        const gorgeousB = await ThroughB.create({ name: 'B of gorgeous A', a: gorgeousA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.preload('myAndAnyB').firstOrFail()
+        expect(reloaded.myAndAnyB).toMatchDreamModels([beautifulB, gorgeousB])
+      })
+    })
+
+    context('andNot', () => {
+      it('applies the andNot clause when preloading the association directly', async () => {
+        await createAReachableFrom(myModel, 'Forgettable A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.preload('myAndNotA').firstOrFail()
+        expect(reloaded.myAndNotA).toMatchDreamModels([plainA])
+      })
+
+      it('applies the andNot clause when bridged by a further through association', async () => {
+        const forgettableA = await createAReachableFrom(myModel, 'Forgettable A')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of forgettable A', a: forgettableA })
+        const plainB = await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.preload('myAndNotB').firstOrFail()
+        expect(reloaded.myAndNotB).toMatchDreamModels([plainB])
+      })
+    })
+
+    context('selfAnd', () => {
+      it('applies the selfAnd clause when preloading the association directly', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.preload('mySelfAndA').firstOrFail()
+        expect(reloaded.mySelfAndA).toMatchDreamModels([matchingA])
+      })
+
+      it('applies the selfAnd clause when bridged by a further through association', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        const matchingB = await ThroughB.create({ name: 'B of matching A', a: matchingA })
+        await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.preload('mySelfAndB').firstOrFail()
+        expect(reloaded.mySelfAndB).toMatchDreamModels([matchingB])
+      })
+    })
+
+    context('selfAndNot', () => {
+      it('applies the selfAndNot clause when preloading the association directly', async () => {
+        await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+
+        const reloaded = await ThroughMyModel.preload('mySelfAndNotA').firstOrFail()
+        expect(reloaded.mySelfAndNotA).toMatchDreamModels([plainA])
+      })
+
+      it('applies the selfAndNot clause when bridged by a further through association', async () => {
+        const matchingA = await createAReachableFrom(myModel, 'My model')
+        const plainA = await createAReachableFrom(myModel, 'Plain A')
+        await ThroughB.create({ name: 'B of matching A', a: matchingA })
+        const plainB = await ThroughB.create({ name: 'B of plain A', a: plainA })
+
+        const reloaded = await ThroughMyModel.preload('mySelfAndNotB').firstOrFail()
+        expect(reloaded.mySelfAndNotB).toMatchDreamModels([plainB])
+      })
+    })
+
+    context('order', () => {
+      it('applies the order clause when preloading the association directly', async () => {
+        const cA = await createAReachableFrom(myModel, 'c')
+        const aA = await createAReachableFrom(myModel, 'a')
+        const bA = await createAReachableFrom(myModel, 'b')
+
+        const reloaded = await ThroughMyModel.preload('myOrderedA').firstOrFail()
+        expect(reloaded.myOrderedA[0]).toMatchDreamModel(aA)
+        expect(reloaded.myOrderedA[1]).toMatchDreamModel(bA)
+        expect(reloaded.myOrderedA[2]).toMatchDreamModel(cA)
+      })
+
+      it('applies the order clause when bridged by a further through association', async () => {
+        const cA = await createAReachableFrom(myModel, 'c')
+        const aA = await createAReachableFrom(myModel, 'a')
+        const bA = await createAReachableFrom(myModel, 'b')
+        const cB = await ThroughB.create({ name: 'B of c', a: cA })
+        const aB = await ThroughB.create({ name: 'B of a', a: aA })
+        const bB = await ThroughB.create({ name: 'B of b', a: bA })
+
+        const reloaded = await ThroughMyModel.preload('myOrderedB').firstOrFail()
+        expect(reloaded.myOrderedB[0]).toMatchDreamModel(aB)
+        expect(reloaded.myOrderedB[1]).toMatchDreamModel(bB)
+        expect(reloaded.myOrderedB[2]).toMatchDreamModel(cB)
+      })
+    })
+
+    context('distinct', () => {
+      it('applies the distinct clause when preloading the association directly', async () => {
+        const a = await createAReachableFrom(myModel, 'Shared A')
+        await attachAToNewOtherModel(myModel, a)
+
+        const reloaded = await ThroughMyModel.preload('myDistinctA').firstOrFail()
+        expect(reloaded.myDistinctA).toMatchDreamModels([a])
+      })
+
+      it('applies the distinct clause when bridged by a further through association', async () => {
+        const a = await createAReachableFrom(myModel, 'Shared A')
+        await attachAToNewOtherModel(myModel, a)
+        const b = await ThroughB.create({ name: 'B of shared A', a })
+
+        const reloaded = await ThroughMyModel.preload('myDistinctB').firstOrFail()
+        expect(reloaded.myDistinctB).toMatchDreamModels([b])
+      })
+    })
+  })
 })
+
+async function createAReachableFrom(myModel: ThroughMyModel, name: string): Promise<ThroughA> {
+  const otherModel = await ThroughOtherModel.create({ name: 'Other model', myModel })
+  const a = await ThroughA.create({ name })
+  await ThroughAToOtherModelJoinModel.create({ a, otherModel })
+  return a
+}
+
+async function attachAToNewOtherModel(myModel: ThroughMyModel, a: ThroughA): Promise<void> {
+  const otherModel = await ThroughOtherModel.create({ name: 'Other model', myModel })
+  await ThroughAToOtherModelJoinModel.create({ a, otherModel })
+}
