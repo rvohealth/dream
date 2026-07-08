@@ -1,5 +1,6 @@
 import ops from '../../../src/ops/index.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import Node from '../../../test-app/app/models/Graph/Node.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import PetUnderstudyJoinModel from '../../../test-app/app/models/PetUnderstudyJoinModel.js'
@@ -75,8 +76,10 @@ describe('Dream.distinct', () => {
           })
 
           const reloaded = await Pet.preload('uniqueCollars').first()
-          expect(reloaded!.uniqueCollars.length).toEqual(1)
-          expect([collar1.id, collar2.id].includes(reloaded!.uniqueCollars[0]!.id)).toBe(true)
+          // the test-app intentionally types uniqueCollars as singular Collar
+          const uniqueCollars = reloaded!.uniqueCollars as unknown as Collar[]
+          expect(uniqueCollars.length).toEqual(1)
+          expect([collar1.id, collar2.id].includes(uniqueCollars[0]!.id)).toBe(true)
         })
       })
 
