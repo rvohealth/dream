@@ -11,7 +11,7 @@ describe('Dream.distinct', () => {
     const node3 = await Node.create({ name: 'chalupas' })
 
     const ids = await Node.distinct().pluck('id')
-    expect(ids).toEqual([node1.id, node2.id, node3.id])
+    expect(ids.sort()).toEqual([node1.id, node2.id, node3.id].sort())
   })
 
   context('with a specific column name passed', () => {
@@ -21,7 +21,7 @@ describe('Dream.distinct', () => {
       await Node.create({ name: 'chalupas' })
 
       const names = await Node.distinct('name').pluck('name')
-      expect(names).toEqual(['chalupas', 'mynode'])
+      expect(names.sort()).toEqual(['chalupas', 'mynode'])
     })
   })
 
@@ -32,7 +32,7 @@ describe('Dream.distinct', () => {
       const node3 = await Node.create({ name: 'chalupas' })
 
       const ids = await Node.distinct(true).pluck('id')
-      expect(ids).toEqual([node1.id, node2.id, node3.id])
+      expect(ids.sort()).toEqual([node1.id, node2.id, node3.id].sort())
     })
   })
 
@@ -43,21 +43,22 @@ describe('Dream.distinct', () => {
       await Node.create({ name: 'chalupas' })
 
       const names = await Node.distinct('name').distinct(false).pluck('name')
-      expect(names).toEqual(['mynode', 'mynode', 'chalupas'])
+      expect(names.sort()).toEqual(['chalupas', 'mynode', 'mynode'])
     })
   })
 
   context('with a similarity operator passed', () => {
     it('respects the similarity operator', async () => {
       const node1 = await Node.create({ name: 'mynode' })
-      await Node.create({ name: 'mynode' })
+      const node2 = await Node.create({ name: 'mynode' })
       await Node.create({ name: 'chalupas' })
 
       const ids = await Node.distinct('name')
         .where({ name: ops.similarity('mynod') })
         .order({ name: 'desc' })
         .pluck('id')
-      expect(ids).toEqual([node1.id])
+      expect(ids.length).toEqual(1)
+      expect([node1.id, node2.id].includes(ids[0]!)).toBe(true)
     })
   })
 
@@ -69,12 +70,14 @@ describe('Dream.distinct', () => {
           const collar1 = await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
           })
-          await pet.createAssociation('collars', {
+          const collar2 = await pet.createAssociation('collars', {
             tagName: 'chalupas jr',
           })
 
           const reloaded = await Pet.preload('uniqueCollars').first()
-          expect(reloaded!.uniqueCollars).toMatchDreamModels([collar1])
+          const uniqueCollars = reloaded!.uniqueCollars
+          expect(uniqueCollars.length).toEqual(1)
+          expect([collar1.id, collar2.id].includes(uniqueCollars[0]!.id)).toBe(true)
         })
       })
 

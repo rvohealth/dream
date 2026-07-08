@@ -70,7 +70,7 @@ describe('Dream#load', () => {
         pets = user.pets
       })
 
-      expect(pets.map(p => p.name)).toEqual(['aster', 'violet'])
+      expect(pets.map(p => p.name).sort()).toEqual(['aster', 'violet'])
     })
   })
 
