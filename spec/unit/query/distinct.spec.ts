@@ -56,7 +56,7 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
       const ids = await Edge.innerJoin('edgeNodes').distinct('name').distinct(false).pluck('graph_edges.id')
-      expect(ids).toEqual([edge1.id, edge2.id])
+      expect(ids.sort()).toEqual([edge1.id, edge2.id].sort())
     })
   })
 
