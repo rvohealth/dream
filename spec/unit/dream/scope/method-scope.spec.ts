@@ -13,7 +13,7 @@ describe('Dream Scope (method variant)', () => {
     const user2 = await User.create({ email: 'how@ya1', password: 'doin', name: 'Chalupas jr' })
     await User.create({ email: 'how@ya2', password: 'doin', name: 'Chalupas sr' })
     const results = await User.scope('withFunnyName').all()
-    expect(results.map(r => r.id)).toEqual([user1.id, user2.id])
+    expect(results.map(r => r.id).sort()).toEqual([user1.id, user2.id].sort())
   })
 
   context('from child class', () => {

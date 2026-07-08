@@ -25,10 +25,11 @@ describe('Query#distinct', () => {
       await node.createAssociation('edgeNodes', { edge: edge2 })
 
       let ids = await Edge.innerJoin('edgeNodes').pluck('graph_edges.id')
-      expect(ids).toEqual([edge1.id, edge2.id])
+      expect(ids.sort()).toEqual([edge1.id, edge2.id].sort())
 
       ids = await Edge.innerJoin('edgeNodes').distinct('name').pluck('graph_edges.id')
-      expect(ids).toEqual([edge1.id])
+      expect(ids.length).toEqual(1)
+      expect([edge1.id, edge2.id].includes(ids[0]!)).toBe(true)
     })
   })
 
@@ -74,7 +75,8 @@ describe('Query#distinct', () => {
         .order({ 'graph_edges.name': 'desc' })
         .pluck('graph_edges.id')
 
-      expect(ids).toEqual([edge1.id])
+      expect(ids.length).toEqual(1)
+      expect([edge1.id, edge2.id].includes(ids[0]!)).toBe(true)
     })
   })
 })

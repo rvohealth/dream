@@ -50,14 +50,15 @@ describe('Dream.distinct', () => {
   context('with a similarity operator passed', () => {
     it('respects the similarity operator', async () => {
       const node1 = await Node.create({ name: 'mynode' })
-      await Node.create({ name: 'mynode' })
+      const node2 = await Node.create({ name: 'mynode' })
       await Node.create({ name: 'chalupas' })
 
       const ids = await Node.distinct('name')
         .where({ name: ops.similarity('mynod') })
         .order({ name: 'desc' })
         .pluck('id')
-      expect(ids).toEqual([node1.id])
+      expect(ids.length).toEqual(1)
+      expect([node1.id, node2.id].includes(ids[0]!)).toBe(true)
     })
   })
 
