@@ -131,6 +131,11 @@ async function destroyConnectionWithinTimeout(conn: Kysely<any>, label: string):
       // stack(s) of the client(s) that never got released.
       reportLeakedDbConnections(label)
     }
+  } catch (error) {
+    // teardown is best-effort (the registry entry has already been removed,
+    // so a subsequent getConnection() builds a fresh pool), but a rejected
+    // destroy() must not vanish silently
+    DreamApp.logWithLevel('error', `[dream] failed to close db connection "${label}"`, error)
   } finally {
     if (timer) clearTimeout(timer)
   }
