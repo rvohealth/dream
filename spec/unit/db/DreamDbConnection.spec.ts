@@ -1,5 +1,8 @@
 import { Kysely } from 'kysely'
-import { closeAllConnectionsForConnectionName, dreamDbConnections } from '../../../src/db/DreamDbConnection.js'
+import {
+  closeAllConnectionsForConnectionName,
+  dreamDbConnections,
+} from '../../../src/db/DreamDbConnection.js'
 import DreamApp from '../../../src/dream-app/index.js'
 
 describe('closeAllConnectionsForConnectionName', () => {
