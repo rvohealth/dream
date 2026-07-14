@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.21.0",
+  "version": "2.22.0",
   "description": "dream orm",
   "publishConfig": {
     "access": "public"
@@ -87,11 +87,11 @@
     "kysely-codegen": "~0.20.0",
     "pg": "*",
     "pluralize-esm": "^9.0.5",
-    "typescript": "^5.9.3"
+    "typescript": ">=5.0.0"
   },
   "devDependencies": {
     "@eslint/js": "=9.0.0",
-    "@rvoh/dream-spec-helpers": "^2.2.0",
+    "@rvoh/dream-spec-helpers": "^2.2.1",
     "@types/luxon": "^3.7.1",
     "@types/node": "^25.3.3",
     "@types/pg": "^8.11.11",
