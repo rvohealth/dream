@@ -368,12 +368,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', 'timestamp', col => col.notNull())
     .addColumn('deleted_at', 'timestamp')
     .execute()
-
-  await db.schema
-    .createIndex('posts_deleted_at')
-    .on('posts')
-    .column('deleted_at')
-    .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -391,7 +385,6 @@ export async function down(db: Kysely<any>): Promise<void> {
       })
       const matches = res.match(/\.addColumn\('deleted_at'/g) ?? []
       expect(matches).toHaveLength(1)
-      expect(res).toContain("createIndex('posts_deleted_at')")
     })
 
     it('does not duplicate created_at or updated_at when also passed explicitly', () => {
@@ -414,7 +407,6 @@ export async function down(db: Kysely<any>): Promise<void> {
         primaryKeyType: 'bigserial',
       })
       expect(res.match(/\.addColumn\('deleted_at'/g) ?? []).toHaveLength(1)
-      expect(res).toContain("createIndex('posts_deleted_at')")
     })
 
     it('does not duplicate created_at or updated_at when also passed explicitly', () => {
@@ -437,8 +429,59 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
+  context('deleted_at is deliberately NOT indexed', () => {
+    // DELIBERATE OMISSION — do not "fix" this by re-adding a deleted_at
+    // index (see the 2.21.0 CHANGELOG entry and the commit introducing this
+    // spec for the full argument). In short: the SoftDelete default scope's
+    // `WHERE deleted_at IS NULL` is unselective on healthy tables, so the
+    // planner won't choose the index while every soft-delete table pays its
+    // size and write amplification; Dream internals never issue a query the
+    // index could serve; and the partial-index alternative is
+    // Postgres/SQLite-only syntax the generator must not emit by default.
+    it('emits no index for the auto-generated deleted_at column (softDelete: true)', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['body:text'],
+        primaryKeyType: 'bigserial',
+        softDelete: true,
+      })
+      expect(res).toContain(".addColumn('deleted_at', 'timestamp')")
+      expect(res).not.toContain('createIndex')
+    })
+
+    it('emits no index for an explicitly passed deleted_at column in a create migration', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['deleted_at:datetime:optional'],
+        primaryKeyType: 'bigserial',
+      })
+      expect(res).toContain(".addColumn('deleted_at', 'timestamp')")
+      expect(res).not.toContain('createIndex')
+    })
+
+    it('emits no index for an explicitly passed deleted_at column in an alter migration', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['deleted_at:datetime:optional'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toContain(".addColumn('deleted_at', 'timestamp')")
+      expect(res).not.toContain('createIndex')
+    })
+
+    it('still auto-indexes the STI type column', () => {
+      const res = generateMigrationContent({
+        table: 'balloons',
+        columnsWithTypes: ['type:string'],
+        primaryKeyType: 'bigserial',
+      })
+      expect(res).toContain("createIndex('balloons_type')")
+    })
+  })
+
   context('deleted_at attributes in alter migrations', () => {
-    it('adds an index for the deleted_at column', () => {
+    it('adds the column without an index', () => {
       const res = generateMigrationContent({
         table: 'posts',
         columnsWithTypes: ['deleted_at:datetime:optional'],
@@ -454,12 +497,6 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('posts')
     .addColumn('deleted_at', 'timestamp')
-    .execute()
-
-  await db.schema
-    .createIndex('posts_deleted_at')
-    .on('posts')
-    .column('deleted_at')
     .execute()
 }
 

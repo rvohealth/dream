@@ -348,6 +348,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       await DreamCLI.logger.logProgress('[dream] sync failed, reverting file contents...', async () => {
         await CliFileWriter.revert()
       })
+
+      // rethrow after reverting so callers (e.g. the `psy sync` and
+      // `db:migrate` CLI commands) exit nonzero instead of reporting success
+      // with stale generated types
+      throw error
     }
   }
 
