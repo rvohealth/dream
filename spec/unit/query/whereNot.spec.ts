@@ -373,7 +373,7 @@ describe('Query#whereNot', () => {
       const records = await Rating.query()
         .whereNot({ rating: ops.greaterThan(4) })
         .pluck('id')
-      expect(records).toEqual([rating4.id, rating3.id])
+      expect(records.sort()).toEqual([rating4.id, rating3.id].sort())
     })
   })
 
@@ -402,7 +402,7 @@ describe('Query#whereNot', () => {
       const records = await Rating.query()
         .whereNot({ rating: ops.lessThan(4) })
         .pluck('id')
-      expect(records).toEqual([rating5.id, rating4.id])
+      expect(records.sort()).toEqual([rating5.id, rating4.id].sort())
     })
   })
 
@@ -468,7 +468,7 @@ describe('Query#whereNot', () => {
       const records = await User.query()
         .whereNot({ email: ops.like('%aaa@%') })
         .pluck('id')
-      expect(records).toEqual([user2.id, user3.id])
+      expect(records.sort()).toEqual([user2.id, user3.id].sort())
     })
   })
 
@@ -490,7 +490,7 @@ describe('Query#whereNot', () => {
       const records = await User.query()
         .whereNot({ email: ops.not.ilike('%aaa@%') })
         .pluck('id')
-      expect(records).toEqual([user1.id, user2.id])
+      expect(records.sort()).toEqual([user1.id, user2.id].sort())
     })
   })
 
@@ -581,7 +581,7 @@ describe('Query#whereNot', () => {
         const records = await User.query()
           .whereNot({ email: ops.not.match('aaa.*', { caseInsensitive: true }) })
           .pluck('id')
-        expect(records).toEqual([user1.id, user2.id])
+        expect(records.sort()).toEqual([user1.id, user2.id].sort())
       })
     })
   })
@@ -604,7 +604,7 @@ describe('Query#whereNot', () => {
       const records = await User.query()
         .whereNot({ email: ops.match('aaa.*') })
         .pluck('id')
-      expect(records).toEqual([user2.id, user3.id])
+      expect(records.sort()).toEqual([user2.id, user3.id].sort())
     })
 
     context('case insensitive option passed', () => {

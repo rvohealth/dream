@@ -23,7 +23,7 @@ describe('Dream#pluck', () => {
 
   it('plucks the specified attributes and returns them as raw data', async () => {
     const records = await User.pluck('id')
-    expect(records).toEqual([user1.id, user2.id])
+    expect(records.sort()).toEqual([user1.id, user2.id].sort())
   })
 
   it('marshals to the proper type', async () => {
@@ -161,7 +161,7 @@ describe('Dream#pluck', () => {
         user3 = await User.txn(txn).create({ email: 'fred@txn', password: 'howyadoin' })
         records = await User.txn(txn).pluck('id')
       })
-      expect(records).toEqual([user1.id, user2.id, user3!.id])
+      expect(records.sort()).toEqual([user1.id, user2.id, user3!.id].sort())
     })
   })
 

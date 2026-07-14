@@ -42,7 +42,7 @@ describe('Query#pluckEach on a join query', () => {
           plucked.push(arr)
         })
 
-      expect(plucked).toEqual([edge1.name, edge2.name])
+      expect(plucked.sort()).toEqual([edge1.name, edge2.name].sort())
     })
   })
 

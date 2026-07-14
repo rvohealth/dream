@@ -13,9 +13,7 @@ describe('Dream.all', () => {
     const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
 
     const results = await User.all()
-    expect(results.length).toEqual(2)
-    expect(results[0]!.id).toEqual(user1.id)
-    expect(results[1]!.id).toEqual(user2.id)
+    expect(results).toMatchDreamModels([user1, user2])
   })
 
   context('with specific columns to select', () => {

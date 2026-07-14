@@ -1,3 +1,7 @@
+## 2.22.0
+
+- Widened the `typescript` peer-dependency range from `^5.9.3` to `>=5.0.0`. The caret range pinned consumers below TypeScript 6, so installing Dream alongside a newer TypeScript (6.x, 7.x, and beyond) produced a peer-dependency conflict even though Dream works fine on them. The range is now floor-only: it still signals that a modern TypeScript (5.0+) is required, but never blocks a TypeScript upgrade.
+
 ## 2.21.0
 
 - A failed `sync` now fails the CLI command. Previously, any error during sync (db introspection, schema building, a throwing `onSync` callback) was logged and the generated files were reverted, but the command still exited 0 — so CI running `psy sync` or `db:migrate` went green while the generated types had just been reverted or left stale. The revert still runs; the error is then rethrown so the command exits nonzero.
