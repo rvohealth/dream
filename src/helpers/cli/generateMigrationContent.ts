@@ -11,8 +11,13 @@ import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 
 const STI_TYPE_COLUMN_NAME = 'type'
-const DELETED_AT_COLUMN_NAME = 'deleted_at'
-const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME, DELETED_AT_COLUMN_NAME]
+// deleted_at is deliberately NOT in this list: the SoftDelete default scope's
+// `WHERE deleted_at IS NULL` is unselective on healthy tables, Dream internals
+// never issue a query a deleted_at index could serve, and the useful partial
+// index alternatives are dialect-specific SQL the generator must not emit by
+// default. See spec/unit/cli/generateMigrationContent.spec.ts
+// ("deleted_at is deliberately NOT indexed") and the CHANGELOG.
+const COLUMNS_TO_INDEX = [STI_TYPE_COLUMN_NAME]
 
 interface ColumnDefsAndDrops {
   columnDefs: string[]
@@ -213,10 +218,6 @@ export default function generateMigrationContent({
     },
     { columnDefs: [], columnDrops: [], indexDefs: [] } as ColumnDefsAndDrops
   )
-
-  if (emitDeletedAtColumn) {
-    indexDefs.push(columnIndexStatement(table, DELETED_AT_COLUMN_NAME))
-  }
 
   if (!table) {
     return `\

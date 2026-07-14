@@ -39,6 +39,18 @@ export const SOFT_DELETE_SCOPE_NAME = 'dream:SoftDelete'
  *     return 'customDatetimeField' as const
  *   }
  * }
+ *
+ * Note on indexing: Dream deliberately does not index `deleted_at`.
+ * The default scope's `WHERE deleted_at IS NULL` matches nearly every
+ * row on a healthy table, so a plain b-tree on the column is rarely
+ * chosen by the planner while still costing index size and write
+ * amplification, and Dream itself never issues a query such an index
+ * could serve. If your app needs one, add it yourself based on your
+ * own access patterns — on Postgres, the two useful shapes are a
+ * composite partial index on your hot lookup columns with
+ * `WHERE deleted_at IS NULL` (fast scoped reads), or a partial index
+ * `WHERE deleted_at IS NOT NULL` (purge/GC sweeps over soft-deleted
+ * rows). Both are Postgres-specific syntax.
  */
 export default function SoftDelete() {
   return function (target: typeof Dream): void {
