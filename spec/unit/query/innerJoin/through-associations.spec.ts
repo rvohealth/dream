@@ -595,7 +595,7 @@ describe('Query#joins through with simple associations', () => {
       await pet.createAssociation('collars', { balloon: blueBalloon })
 
       const ids = await pet.associationQuery('andNot_red').pluck('id')
-      expect(ids).toEqual([greenBalloon.id, blueBalloon.id])
+      expect(ids.sort()).toEqual([greenBalloon.id, blueBalloon.id].sort())
     })
   })
 

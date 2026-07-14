@@ -62,8 +62,7 @@ describe('Query#pluck', () => {
         await Edge.create({ name: 'E2', weight: 7.1 })
 
         const plucked = await Edge.query().pluck('weight')
-        expect(plucked[0]).toEqual(2.3)
-        expect(plucked[1]).toEqual(7.1)
+        expect(plucked.sort()).toEqual([2.3, 7.1])
       })
     })
 
@@ -73,8 +72,10 @@ describe('Query#pluck', () => {
         await Edge.create({ name: 'E2', weight: 7.1 })
 
         const plucked = await Edge.query().pluck('name', 'weight')
-        expect(plucked[0]).toEqual(['E1', 2.3])
-        expect(plucked[1]).toEqual(['E2', 7.1])
+        expect(plucked.sort()).toEqual([
+          ['E1', 2.3],
+          ['E2', 7.1],
+        ])
       })
     })
   })
@@ -112,7 +113,7 @@ describe('Query#pluck', () => {
         plucked = ids
       })
 
-      expect(plucked).toEqual([user1.id, user2.id, user3.id])
+      expect(plucked.sort()).toEqual([user1.id, user2.id, user3.id].sort())
     })
   })
 

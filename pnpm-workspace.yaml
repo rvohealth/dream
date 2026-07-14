@@ -19,4 +19,4 @@ allowBuilds:
   esbuild: false
 
 minimumReleaseAgeExclude:
-  - '@rvoh/dream-spec-helpers@2.2.0'
+  - '@rvoh/dream-spec-helpers@2.2.0 || 2.3.0'
