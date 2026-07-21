@@ -2904,26 +2904,45 @@ export default class Dream {
    * application code become type errors, which is the point: they must be
    * removed before the column can be dropped.
    *
-   * This enables safely dropping a column under rolling deploys, using the
-   * same two-deploy process Rails codifies with `ignored_columns`:
+   * This enables safely dropping a column under rolling deploys — the same
+   * problem Rails solves with `ignored_columns`. The safety requirement is
+   * that no image that can run against the post-drop schema names the
+   * column in any SQL it generates. To satisfy it: remove all application
+   * code that uses the column, declare it here, and run `sync`; then let
+   * the drop migration run only once no image lacking the declaration can
+   * run against the database — whether the migration ships in a later
+   * deploy of its own, or together with the declaration in a pipeline that
+   * runs migrations only after the new images have rolled out. Once the
+   * column is dropped, remove this declaration and resync.
    *
-   * 1. Remove all application code that uses the column, declare it here,
-   *    run `sync`, and deploy. Once this deploy has fully rolled out, no
-   *    running container names the column in any SQL it generates.
-   * 2. Ship the migration that drops the column, then remove this
-   *    declaration and resync.
+   * Precondition: as soon as an image built with this declaration runs,
+   * the column is never placed in INSERT column lists, so before that
+   * image can run, the column must be nullable or carry a database
+   * default — a live `NOT NULL` column without a default fails every
+   * create against the table.
    *
-   * Skipping step 1 leaves a window during which already-running containers
-   * (or a rolled-back image) still name the dropped column and fail with
-   * `42703 column does not exist` — `leftJoinPreload` in particular has no
-   * runtime tolerance for this, since it must enumerate aliased columns.
+   * Dropping the column while an image that names it can still run leaves
+   * a window during which those containers (including a rolled-back image)
+   * fail with `42703 column does not exist` — `leftJoinPreload` in
+   * particular has no runtime tolerance for this, since it must enumerate
+   * aliased columns.
+   *
+   * This is a mechanism for the drop window, not for permanently hiding
+   * wide columns: the ignored column is still transferred from the
+   * database on every `RETURNING *` / `select *` until it is actually
+   * dropped.
    *
    * The declaration is read only while `sync` generates the types files; it
    * has no runtime behavior of its own. A declared-but-not-synced model is
    * therefore not yet protected — CI should verify that `sync` produces no
-   * diff. `sync` will fail loudly if a model attempts to ignore its primary
-   * key or an STI model attempts to ignore its `type` column, or if models
-   * sharing a table declare different ignored columns.
+   * diff. `sync` will fail loudly if a declared name is not camelCase
+   * (generated column names are camelized, so any other shape could never
+   * match and would be silently inert), if models sharing a table declare
+   * different ignored columns, or if a model attempts to ignore a column
+   * the framework itself reads and writes by name: its primary key, an STI
+   * model's `type` column, any association's foreign key or polymorphic
+   * type field, an `@Sortable` position field, an `@Encrypted` backing
+   * column, or a SoftDelete model's `deletedAt` column.
    *
    * Because an ignored column vanishes from `columns()`, runtime access via
    * type escape hatches behaves exactly like any unknown attribute: reads
