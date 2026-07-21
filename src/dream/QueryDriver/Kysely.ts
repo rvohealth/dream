@@ -118,7 +118,6 @@ import DreamTransaction from '../DreamTransaction.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
 import extractAssignableAssociationAttributes from '../internal/extractAssignableAssociationAttributes.js'
-import filterRowToKnownColumns from '../internal/filterRowToKnownColumns.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
@@ -3476,7 +3475,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     // alias is lowercase without underscores so Kysely's CamelCasePlugin
     // passes it through untouched (the same strategy as `pluck0` /
     // `groupvalue`), and is extended until it cannot collide with a real
-    // column of the associated table.
+    // column of the associated table. That collision loop can only consult
+    // the compiled column set, so under add-column skew a live column
+    // literally named like the alias would produce two identically-named
+    // result fields. The aliased base PK is deliberately selected last,
+    // and node-postgres resolves duplicate field names last-wins, so the
+    // base PK still wins even in that pathological case — and the
+    // hydration filter strips the colliding key from the instance's
+    // attributes.
     let basePrimaryKeyAlias = 'preloadbasepk'
     while (dreamClassToHydrateColumns.has(basePrimaryKeyAlias)) basePrimaryKeyAlias += '0'
 
@@ -3506,8 +3512,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     // assert the compiled schema against the live database: under
     // schema/image skew (rolling deploy or rollback around a drop-column
     // migration), naming a dropped column fails the whole preload with
-    // `42703 column does not exist`. The row is filtered to the compiled
-    // column list at hydration, so a column the image doesn't know about
+    // `42703 column does not exist`. The raw row is passed straight to
+    // hydration, where sqlResultToDreamInstance — the single filtering
+    // point — intersects it with the compiled column list (also stripping
+    // the base-PK alias key), so a column the image doesn't know about
     // (the add-column direction of skew) never reaches the instance. See
     // the prepared-statements note on `saveDream` before changing this
     // back to an enumerated select.
@@ -3522,8 +3530,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = rows.map(
       (row: Record<string, any>) => {
-        const attributes = filterRowToKnownColumns(row, dreamClassToHydrateColumns)
-        const hydratedDream = this.dbResultToDreamInstance(attributes, dreamClassToHydrate)
+        const hydratedDream = this.dbResultToDreamInstance(row, dreamClassToHydrate)
 
         return {
           dream: hydratedDream,
