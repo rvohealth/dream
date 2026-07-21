@@ -555,13 +555,13 @@ context.skip('type tests', () => {
 
       beforeEach(async () => {
         model = await ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello', column2: 'goodbye' })
-        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN column2`.execute(
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN IF EXISTS column2`.execute(
           db('default', 'primary')
         )
       })
 
       afterEach(async () => {
-        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN column2 varchar(255)`.execute(
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN IF NOT EXISTS column2 varchar(255)`.execute(
           db('default', 'primary')
         )
       })
@@ -575,7 +575,9 @@ context.skip('type tests', () => {
       })
 
       it('still fails loudly when the write explicitly sets the dropped column', async () => {
-        await expect(model.update({ column2: 'explicit write' })).rejects.toThrow()
+        await expect(model.update({ column2: 'explicit write' })).rejects.toThrow(
+          /column "column2" of relation "model_with_param_safe_and_unsafe_columns" does not exist/
+        )
       })
     })
   })

@@ -389,13 +389,13 @@ context.skip('type tests', () => {
   context('when the compiled schema and the live database schema disagree (rolling-deploy skew)', () => {
     context('a column in the compiled schema has been dropped from the database', () => {
       beforeEach(async () => {
-        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN column2`.execute(
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN IF EXISTS column2`.execute(
           db('default', 'primary')
         )
       })
 
       afterEach(async () => {
-        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN column2 varchar(255)`.execute(
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN IF NOT EXISTS column2 varchar(255)`.execute(
           db('default', 'primary')
         )
       })
@@ -413,19 +413,21 @@ context.skip('type tests', () => {
       it('still fails loudly when the write explicitly sets the dropped column', async () => {
         await expect(
           ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello', column2: 'explicit write' })
-        ).rejects.toThrow()
+        ).rejects.toThrow(
+          /column "column2" of relation "model_with_param_safe_and_unsafe_columns" does not exist/
+        )
       })
     })
 
     context('the database has a column the compiled schema does not know about', () => {
       beforeEach(async () => {
-        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN IF NOT EXISTS brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
           db('default', 'primary')
         )
       })
 
       afterEach(async () => {
-        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN brandnewcolumn`.execute(
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN IF EXISTS brandnewcolumn`.execute(
           db('default', 'primary')
         )
       })

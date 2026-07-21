@@ -508,11 +508,11 @@ describe('Query#preload with simple associations', () => {
       beforeEach(async () => {
         pet = await Pet.create({ name: 'Aster' })
         collar = await Collar.create({ pet, tagName: 'Aster' })
-        await sql`ALTER TABLE collars DROP COLUMN lost`.execute(db('default', 'primary'))
+        await sql`ALTER TABLE collars DROP COLUMN IF EXISTS lost`.execute(db('default', 'primary'))
       })
 
       afterEach(async () => {
-        await sql`ALTER TABLE collars ADD COLUMN lost boolean`.execute(db('default', 'primary'))
+        await sql`ALTER TABLE collars ADD COLUMN IF NOT EXISTS lost boolean`.execute(db('default', 'primary'))
       })
 
       it('preloads the association successfully', async () => {
@@ -534,13 +534,13 @@ describe('Query#preload with simple associations', () => {
       beforeEach(async () => {
         pet = await Pet.create({ name: 'Aster' })
         collar = await Collar.create({ pet, tagName: 'Aster' })
-        await sql`ALTER TABLE collars ADD COLUMN brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
+        await sql`ALTER TABLE collars ADD COLUMN IF NOT EXISTS brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
           db('default', 'primary')
         )
       })
 
       afterEach(async () => {
-        await sql`ALTER TABLE collars DROP COLUMN brandnewcolumn`.execute(db('default', 'primary'))
+        await sql`ALTER TABLE collars DROP COLUMN IF EXISTS brandnewcolumn`.execute(db('default', 'primary'))
       })
 
       it('never hydrates the unknown column onto preloaded instances', async () => {

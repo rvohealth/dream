@@ -1,8 +1,10 @@
+import { sql } from 'kysely'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
 import User from '../../../test-app/app/models/User.js'
+import db from '../../../test-app/db/index.js'
 
 describe('Dream.find', () => {
   let user: User
@@ -38,6 +40,38 @@ describe('Dream.find', () => {
       const latexBalloon = await Latex.create({ color: 'green' })
       const balloon = await Balloon.find(latexBalloon.id)
       expect(balloon).toMatchDreamModel(latexBalloon)
+    })
+
+    context('the database has a column the compiled schema does not know about (rolling-deploy skew)', () => {
+      beforeEach(async () => {
+        await sql`ALTER TABLE beautiful_balloons ADD COLUMN IF NOT EXISTS brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE beautiful_balloons DROP COLUMN IF EXISTS brandnewcolumn`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      it('hydrates the correct STI child class via find without the unknown column', async () => {
+        const latexBalloon = await Latex.create({ color: 'green' })
+        const balloon = await Balloon.find(latexBalloon.id)
+        expect(balloon).toMatchDreamModel(latexBalloon)
+        expect(balloon).toBeInstanceOf(Latex)
+        expect((balloon as any).brandnewcolumn).toBeUndefined()
+        expect(Object.keys(balloon!.getAttributes())).not.toContain('brandnewcolumn')
+      })
+
+      it('hydrates the correct STI child class via all without the unknown column', async () => {
+        const latexBalloon = await Latex.create({ color: 'green' })
+        const balloons = await Balloon.all()
+        expect(balloons).toMatchDreamModels([latexBalloon])
+        expect(balloons[0]).toBeInstanceOf(Latex)
+        expect((balloons[0] as any).brandnewcolumn).toBeUndefined()
+        expect(Object.keys(balloons[0]!.getAttributes())).not.toContain('brandnewcolumn')
+      })
     })
   })
 
