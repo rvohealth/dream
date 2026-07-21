@@ -1798,6 +1798,12 @@ export default class Dream {
    * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
+   * 6. leftJoinPreload must enumerate every compiled column of every joined
+   * model, so unlike base-model reads, `preload`/`load`, and saves, it does
+   * not tolerate schema/image skew from an unplanned column drop during a
+   * rolling deploy; see {@link Query.leftJoinPreload} and the
+   * `ignoredColumns` getter for the two-deploy process that makes a
+   * planned drop safe.
    *
    * ```ts
    * const user = await User.leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
@@ -2884,6 +2890,64 @@ export default class Dream {
    */
   public get table(): AssociationTableNames<any, any> {
     throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'table')
+  }
+
+  /**
+   * Columns that Dream should behave as though they do not exist.
+   *
+   * Declaring a column ignored removes it from the generated types the next
+   * time `sync` runs: it is omitted from both the db types file (the Kysely
+   * `DB` interface) and the dream schema file, so it disappears from
+   * `columns()` and from every place that flows from `columns()` — select
+   * lists built for `preload`/`load` and `leftJoinPreload`, save hydration,
+   * attribute definition, and param safety. References to the column in
+   * application code become type errors, which is the point: they must be
+   * removed before the column can be dropped.
+   *
+   * This enables safely dropping a column under rolling deploys, using the
+   * same two-deploy process Rails codifies with `ignored_columns`:
+   *
+   * 1. Remove all application code that uses the column, declare it here,
+   *    run `sync`, and deploy. Once this deploy has fully rolled out, no
+   *    running container names the column in any SQL it generates.
+   * 2. Ship the migration that drops the column, then remove this
+   *    declaration and resync.
+   *
+   * Skipping step 1 leaves a window during which already-running containers
+   * (or a rolled-back image) still name the dropped column and fail with
+   * `42703 column does not exist` — `leftJoinPreload` in particular has no
+   * runtime tolerance for this, since it must enumerate aliased columns.
+   *
+   * The declaration is read only while `sync` generates the types files; it
+   * has no runtime behavior of its own. A declared-but-not-synced model is
+   * therefore not yet protected — CI should verify that `sync` produces no
+   * diff. `sync` will fail loudly if a model attempts to ignore its primary
+   * key or an STI model attempts to ignore its `type` column, or if models
+   * sharing a table declare different ignored columns.
+   *
+   * Because an ignored column vanishes from `columns()`, runtime access via
+   * type escape hatches behaves exactly like any unknown attribute: reads
+   * return `undefined`, and writes assign a plain instance property that is
+   * never persisted.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   public override get ignoredColumns() {
+   *     return ['legacyEmail'] as const
+   *   }
+   * }
+   * ```
+   *
+   * NOTE: this getter is intentionally typed as `readonly string[]` rather
+   * than as a union of known column names: during the deploy that declares
+   * a column ignored, the regenerated types no longer contain the column,
+   * so a column-name-derived type would reject the very declaration that
+   * removed it.
+   *
+   * @returns The list of column names this model should ignore
+   */
+  public get ignoredColumns(): readonly string[] {
+    return []
   }
 
   /**

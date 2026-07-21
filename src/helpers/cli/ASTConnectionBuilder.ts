@@ -16,6 +16,7 @@ import intersection from '../intersection.js'
 import sortBy from '../sortBy.js'
 import uniq from '../uniq.js'
 import ASTBuilder, { SchemaBuilderAssociationData, SchemaData } from './ASTBuilder.js'
+import resolveIgnoredColumns from './resolveIgnoredColumns.js'
 
 /**
  * @internal
@@ -324,13 +325,52 @@ may need to update the table getter in the corresponding Dream.
           models.flatMap(model => model['scopes'].named.map(scopeStatement => scopeStatement.method))
         ),
       },
-      columns: await this.getColumnData(tableName, associationData),
+      columns: this.withoutIgnoredColumns(await this.getColumnData(tableName, associationData), tableName),
       virtualColumns: uniq(
         models.flatMap(model => model['virtualAttributes'].map(prop => prop.property) || [])
       ),
       associations: associationData,
       serializerKeys,
     }
+  }
+
+  /**
+   * @internal
+   *
+   * resolves the ignored columns declared by the models backed by the
+   * given table (validating the declarations; see resolveIgnoredColumns)
+   */
+  protected ignoredColumnsForTable(tableName: string): Set<string> {
+    const dreamApp = DreamApp.getOrFail()
+    const models = Object.values(dreamApp.models).filter(
+      model => model.prototype?.connectionName === this.connectionName && model.table === tableName
+    )
+
+    return resolveIgnoredColumns(models, tableName)
+  }
+
+  /**
+   * @internal
+   *
+   * returns the provided column data without the columns that the table's
+   * models declare in ignoredColumns. This is what removes ignored columns
+   * from the generated dream schema file: `columns()` reads the generated
+   * schema at runtime, so every column enumeration built from `columns()`
+   * (preload and join-load select lists, save hydration, attribute
+   * definition) inherits this filtering. A column that is ignored but not
+   * present in the introspected table (e.g. after the drop migration has
+   * run but before the declaration is removed) is a no-op.
+   */
+  private withoutIgnoredColumns<T extends Record<string, unknown>>(columnData: T, tableName: string): T {
+    const ignoredColumns = this.ignoredColumnsForTable(tableName)
+    if (!ignoredColumns.size) return columnData
+
+    return Object.keys(columnData)
+      .filter(columnName => !ignoredColumns.has(columnName))
+      .reduce((filtered, columnName) => {
+        ;(filtered as Record<string, unknown>)[columnName] = columnData[columnName]
+        return filtered
+      }, {} as T)
   }
 
   /**

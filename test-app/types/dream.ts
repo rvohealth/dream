@@ -3219,6 +3219,73 @@ export const schema = {
     virtualColumns: [],
     associations: {},
   },
+  model_with_ignored_columns: {
+    serializerKeys: [],
+    scopes: {
+      default: [],
+      named: [],
+    },
+    nonJsonColumnNames: ['createdAt', 'id', 'name', 'updatedAt', 'userId'],
+    columns: {
+      createdAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      id: {
+        coercedType: {} as string,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: false,
+        isArray: false,
+      },
+      name: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'character varying',
+        allowNull: true,
+        isArray: false,
+      },
+      updatedAt: {
+        coercedType: {} as DateTime,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'timestamp without time zone',
+        allowNull: false,
+        isArray: false,
+      },
+      userId: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'bigint',
+        allowNull: true,
+        isArray: false,
+      },
+    },
+    virtualColumns: [],
+    associations: {
+      user: {
+        type: 'BelongsTo',
+        foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
+        tables: ['users'],
+        optional: true,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
+    },
+  },
   model_with_param_safe_and_unsafe_columns: {
     serializerKeys: [],
     scopes: {
@@ -7361,6 +7428,15 @@ export const schema = {
         requiredAndClauses: null,
         passthroughAndClauses: null,
       },
+      modelsWithIgnoredColumns: {
+        type: 'HasMany',
+        foreignKey: 'userId',
+        foreignKeyTypeColumn: null,
+        tables: ['model_with_ignored_columns'],
+        optional: null,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
       nonExtantCompositionAssets1: {
         type: 'HasMany',
         foreignKey: null,
@@ -7589,6 +7665,7 @@ export const connectionTypeConfig = {
       ModelForOpenapiTypeSpec: 'model_for_openapi_type_specs',
       ModelWithDateTimeConditionalHooks:
         'model_with_date_time_conditional_hooks',
+      ModelWithIgnoredColumns: 'model_with_ignored_columns',
       ModelWithParamSafeAndUnsafeColumns:
         'model_with_param_safe_and_unsafe_columns',
       ModelWithParamUnsafeColumns: 'model_with_param_unsafe_columns',

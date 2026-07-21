@@ -118,6 +118,7 @@ import DreamTransaction from '../DreamTransaction.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
 import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
 import extractAssignableAssociationAttributes from '../internal/extractAssignableAssociationAttributes.js'
+import filterRowToKnownColumns from '../internal/filterRowToKnownColumns.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
@@ -984,6 +985,27 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * is provided as a second argument, it will use that transaction
    * to encapsulate the persisting of the dream, as well as any
    * subsequent model hooks that are fired.
+   *
+   * `RETURNING *` (rather than enumerating the compiled column list) keeps
+   * writes working under schema/image skew: during a rolling deploy, a
+   * container built before a drop-column migration would otherwise name the
+   * dropped column in `RETURNING` and fail with `42703 column does not
+   * exist` on every write, even writes that never touch that column. The
+   * `SET`/`VALUES` half still names only dirty attributes, so a write that
+   * actually sets a dropped column still fails loudly. The returned row is
+   * filtered to the compiled column list before hydration (see
+   * internal/saveDream.ts), so a column the image doesn't know about never
+   * reaches `setAttributes`.
+   *
+   * KNOWN CONSTRAINT: star-selects are only safe because nothing in this
+   * stack uses named prepared statements — node-postgres prepares a
+   * statement only when given an explicit `name`, and Kysely never names
+   * them, so every query is re-planned. With named prepared statements, a
+   * concurrent `ADD COLUMN` changes a cached plan's result shape and
+   * Postgres raises `cached plan must not change result type` (the reason
+   * Rails added `enumerate_columns_in_select_statements`). If a future
+   * driver or pooling layer enables named prepared statements, revisit
+   * every `RETURNING *` / `select *` in this driver.
    */
   public static override async saveDream(dream: Dream, txn: DreamTransaction<Dream> | null = null) {
     const connectionName = (dream as any).connectionName || 'default'
@@ -996,15 +1018,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           .updateTable(dream.table)
           .set(sqlifiedAttributes as any)
           .where(namespaceColumn(dream['_primaryKey'], dream.table), '=', dream.primaryKeyValue())
-        return await executeDatabaseQuery(
-          query.returning([...dream.columns()] as any),
-          'executeTakeFirstOrThrow'
-        )
+        return await executeDatabaseQuery(query.returningAll(), 'executeTakeFirstOrThrow')
       } else {
         const query = db
           .insertInto(dream.table)
           .values(sqlifiedAttributes as any)
-          .returning([...dream.columns()] as any)
+          .returningAll()
         return await executeDatabaseQuery(query, 'executeTakeFirstOrThrow')
       }
     } catch (error) {
@@ -3450,13 +3469,16 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       return preloadedPolymorphicBelongsTos
     }
 
-    const dreamClassToHydrateColumns = [...dreamClassToHydrate.columns()]
+    const dreamClassToHydrateColumns = dreamClassToHydrate.columns()
 
-    const columnsToPluck = dreamClassToHydrateColumns.map(column =>
-      this.namespaceColumn(column.toString(), alias)
-    ) as any[]
-
-    columnsToPluck.push(this.namespaceColumn(dreamClass.primaryKey, dreamClass.table))
+    // The base-model primary key rides along under a short alias so each
+    // associated row can be matched back to the dream it belongs to. The
+    // alias is lowercase without underscores so Kysely's CamelCasePlugin
+    // passes it through untouched (the same strategy as `pluck0` /
+    // `groupvalue`), and is extended until it cannot collide with a real
+    // column of the associated table.
+    let basePrimaryKeyAlias = 'preloadbasepk'
+    while (dreamClassToHydrateColumns.has(basePrimaryKeyAlias)) basePrimaryKeyAlias += '0'
 
     const baseClass = dreamClass['stiBaseClassOrOwnClass']['getAssociationMetadata'](associationName)
       ? dreamClass['stiBaseClassOrOwnClass']
@@ -3464,7 +3486,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     const associationDataScope = this.dreamClassQueryWithScopeBypasses(baseClass, {
       // In order to stay DRY, preloading leverages the association logic built into
-      // `joins` (by using `pluck`, which calls `joins`). However, baseClass may have
+      // `joins`. However, baseClass may have
       // default scopes that would preclude finding that instance. We remove all
       // default scopes on baseClass, but not subsequent associations, so that the
       // single query will be able to find each row corresponding to a Dream in `dreams`,
@@ -3474,23 +3496,38 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       [dreamClass.primaryKey]: dreams.map(obj => obj.primaryKeyValue()),
     })
 
-    const hydrationData: any[][] = await associationDataScope['_connection'](this.connectionOverride)
-      .innerJoin(associationName, (onStatement || {}) as JoinAndStatements<any, any, any, any, any>)
-      .pluck(...columnsToPluck)
+    const joinedQuery = associationDataScope['_connection'](this.connectionOverride).innerJoin(
+      associationName,
+      (onStatement || {}) as JoinAndStatements<any, any, any, any, any>
+    )
 
-    const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = hydrationData.map(
-      pluckedData => {
-        const attributes = {} as any
-        dreamClassToHydrateColumns.forEach(
-          (columnName, index) =>
-            (attributes[protectAgainstPollutingAssignment(columnName)] = pluckedData[index])
-        )
+    // Select the association's row wholesale (`"alias".*`) rather than
+    // enumerating the compiled column list. Enumerating made every preload
+    // assert the compiled schema against the live database: under
+    // schema/image skew (rolling deploy or rollback around a drop-column
+    // migration), naming a dropped column fails the whole preload with
+    // `42703 column does not exist`. The row is filtered to the compiled
+    // column list at hydration, so a column the image doesn't know about
+    // (the add-column direction of skew) never reaches the instance. See
+    // the prepared-statements note on `saveDream` before changing this
+    // back to an enumerated select.
+    const kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(joinedQuery)
+      .buildSelect({ bypassSelectAll: true })
+      .selectAll(alias as any)
+      .select(
+        `${this.namespaceColumn(dreamClass.primaryKey, dreamClass.table)} as ${basePrimaryKeyAlias}` as any
+      )
 
+    const rows = await executeDatabaseQuery(kyselyQuery, 'execute')
+
+    const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = rows.map(
+      (row: Record<string, any>) => {
+        const attributes = filterRowToKnownColumns(row, dreamClassToHydrateColumns)
         const hydratedDream = this.dbResultToDreamInstance(attributes, dreamClassToHydrate)
 
         return {
           dream: hydratedDream,
-          pointsToPrimaryKey: pluckedData.at(-1),
+          pointsToPrimaryKey: row[basePrimaryKeyAlias],
         }
       }
     )

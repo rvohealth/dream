@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import { MockInstance } from 'vitest'
 import Dream from '../../../src/Dream.js'
 import DreamTransaction from '../../../src/dream/DreamTransaction.js'
@@ -11,11 +12,13 @@ import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import ModelWithoutUpdatedAt from '../../../test-app/app/models/ModelWithoutUpdatedAt.js'
+import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
 import UserSettings from '../../../test-app/app/models/UserSettings.js'
+import db from '../../../test-app/db/index.js'
 
 describe('Dream#update', () => {
   it('updates the underlying model in the db', async () => {
@@ -542,6 +545,37 @@ context.skip('type tests', () => {
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
           invalidArg: 123,
         })
+      })
+    })
+  })
+
+  context('when the compiled schema and the live database schema disagree (rolling-deploy skew)', () => {
+    context('a column in the compiled schema has been dropped from the database', () => {
+      let model: ModelWithParamSafeAndUnsafeColumns
+
+      beforeEach(async () => {
+        model = await ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello', column2: 'goodbye' })
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN column2`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN column2 varchar(255)`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      it('updates successfully when the write does not set the dropped column', async () => {
+        await model.update({ column1: 'updated' })
+        expect(model.column1).toEqual('updated')
+
+        const reloaded = await ModelWithParamSafeAndUnsafeColumns.findOrFail(model.id)
+        expect(reloaded.column1).toEqual('updated')
+      })
+
+      it('still fails loudly when the write explicitly sets the dropped column', async () => {
+        await expect(model.update({ column2: 'explicit write' })).rejects.toThrow()
       })
     })
   })

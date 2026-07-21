@@ -557,6 +557,14 @@ export interface ModelWithDateTimeConditionalHooks {
   updatedAt: Timestamp
 }
 
+export interface ModelWithIgnoredColumns {
+  createdAt: Timestamp
+  id: Generated<Int8>
+  name: string | null
+  updatedAt: Timestamp
+  userId: Int8 | null
+}
+
 export interface ModelWithoutCustomDeletedAts {
   createdAt: Timestamp
   deletedAt: Timestamp | null
@@ -909,6 +917,7 @@ export interface DB {
   model_for_database_type_specs: ModelForDatabaseTypeSpecs
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_with_date_time_conditional_hooks: ModelWithDateTimeConditionalHooks
+  model_with_ignored_columns: ModelWithIgnoredColumns
   model_with_param_safe_and_unsafe_columns: ModelWithParamSafeAndUnsafeColumns
   model_with_param_unsafe_columns: ModelWithParamUnsafeColumns
   model_with_serial_primary_keys: ModelWithSerialPrimaryKeys
@@ -973,6 +982,7 @@ export class DBClass {
   model_for_database_type_specs: ModelForDatabaseTypeSpecs
   model_for_openapi_type_specs: ModelForOpenapiTypeSpecs
   model_with_date_time_conditional_hooks: ModelWithDateTimeConditionalHooks
+  model_with_ignored_columns: ModelWithIgnoredColumns
   model_with_param_safe_and_unsafe_columns: ModelWithParamSafeAndUnsafeColumns
   model_with_param_unsafe_columns: ModelWithParamUnsafeColumns
   model_with_serial_primary_keys: ModelWithSerialPrimaryKeys

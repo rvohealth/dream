@@ -4,6 +4,7 @@ import sqlAttributes from '../../helpers/sqlAttributes.js'
 import { DateTime } from '../../utils/datetime/DateTime.js'
 import DreamTransaction from '../DreamTransaction.js'
 import Query from '../Query.js'
+import filterRowToKnownColumns from './filterRowToKnownColumns.js'
 import runHooksFor from './runHooksFor.js'
 
 export default async function saveDream<DreamInstance extends Dream>(
@@ -41,7 +42,11 @@ export default async function saveDream<DreamInstance extends Dream>(
     const data = await Query.dbDriverClass(dream.connectionName || 'default').saveDream(dream, txn)
 
     dream['isPersisted'] = true
-    dream.setAttributes(data)
+    // the row returned by the driver comes from `RETURNING *` (or a
+    // `select *` reload on drivers without RETURNING support), so under
+    // schema/image skew it can contain columns this build's compiled
+    // schema doesn't know about; those must never reach setAttributes
+    dream.setAttributes(filterRowToKnownColumns(data, dream.columns() as Set<string>) as any)
   }
 
   // set frozen attributes to what has already been saved
