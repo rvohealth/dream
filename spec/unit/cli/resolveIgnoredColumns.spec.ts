@@ -4,6 +4,7 @@ import CannotIgnoreEncryptedColumn from '../../../src/errors/schema-builder/Cann
 import CannotIgnorePrimaryKey from '../../../src/errors/schema-builder/CannotIgnorePrimaryKey.js'
 import CannotIgnoreSoftDeleteColumn from '../../../src/errors/schema-builder/CannotIgnoreSoftDeleteColumn.js'
 import CannotIgnoreSortablePositionColumn from '../../../src/errors/schema-builder/CannotIgnoreSortablePositionColumn.js'
+import CannotIgnoreSortableScopeColumn from '../../../src/errors/schema-builder/CannotIgnoreSortableScopeColumn.js'
 import CannotIgnoreStiTypeColumn from '../../../src/errors/schema-builder/CannotIgnoreStiTypeColumn.js'
 import ConflictingIgnoredColumns from '../../../src/errors/schema-builder/ConflictingIgnoredColumns.js'
 import IgnoredColumnMustBeCamelCase from '../../../src/errors/schema-builder/IgnoredColumnMustBeCamelCase.js'
@@ -11,6 +12,7 @@ import resolveIgnoredColumns from '../../../src/helpers/cli/resolveIgnoredColumn
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import ModelWithIgnoredColumns from '../../../test-app/app/models/ModelWithIgnoredColumns.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
@@ -18,21 +20,31 @@ import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('resolveIgnoredColumns', () => {
-  const overriddenPrototypes: object[] = []
+  const overriddenPrototypes: {
+    prototype: object
+    originalDescriptor: PropertyDescriptor | undefined
+  }[] = []
 
   function overrideIgnoredColumns(modelClass: typeof Dream, ignoredColumns: string[]) {
-    Object.defineProperty(modelClass.prototype, 'ignoredColumns', {
+    const prototype = modelClass.prototype
+    overriddenPrototypes.push({
+      prototype,
+      originalDescriptor: Object.getOwnPropertyDescriptor(prototype, 'ignoredColumns'),
+    })
+    Object.defineProperty(prototype, 'ignoredColumns', {
       get: () => ignoredColumns,
       configurable: true,
     })
-    overriddenPrototypes.push(modelClass.prototype)
   }
 
   afterEach(() => {
-    // remove the own descriptor so the getter inherited from Dream shows
-    // through again
-    overriddenPrototypes.forEach(prototype => {
-      delete (prototype as any).ignoredColumns
+    // put back the prototype's own descriptor when it had one (e.g.
+    // ModelWithIgnoredColumns's real getter); otherwise remove ours so the
+    // getter inherited from Dream shows through again. Restore in reverse
+    // order so stacked overrides of the same prototype unwind correctly
+    overriddenPrototypes.reverse().forEach(({ prototype, originalDescriptor }) => {
+      if (originalDescriptor) Object.defineProperty(prototype, 'ignoredColumns', originalDescriptor)
+      else delete (prototype as any).ignoredColumns
     })
     overriddenPrototypes.length = 0
   })
@@ -130,10 +142,61 @@ describe('resolveIgnoredColumns', () => {
     })
   })
 
+  context('an association names an ignored column as its primaryKeyOverride', () => {
+    it('throws CannotIgnoreAssociationColumn for a BelongsTo on another model pointing at the table', () => {
+      // Pet declares `@deco.BelongsTo('User', { primaryKeyOverride: 'uuid', on: 'userUuid' })`;
+      // for a BelongsTo, the primaryKeyOverride column lives on the
+      // associated model's table (users)
+      overrideIgnoredColumns(User, ['uuid'])
+      expect(() => resolveIgnoredColumns([User], 'users', [Pet])).toThrow(CannotIgnoreAssociationColumn)
+    })
+
+    it('throws CannotIgnoreAssociationColumn for a HasMany on a model backed by the table', () => {
+      // User declares `@deco.HasMany('Pet', { on: 'userUuid', primaryKeyOverride: 'uuid' })`;
+      // for a HasMany/HasOne, the primaryKeyOverride column lives on the
+      // declaring model's own table (users)
+      overrideIgnoredColumns(User, ['uuid'])
+      expect(() => resolveIgnoredColumns([User], 'users', [User])).toThrow(CannotIgnoreAssociationColumn)
+    })
+  })
+
   context('a model attempts to ignore an @Sortable position field', () => {
     it('throws CannotIgnoreSortablePositionColumn', () => {
       overrideIgnoredColumns(Pet, ['positionWithinSpecies'])
       expect(() => resolveIgnoredColumns([Pet], 'pets', [Pet])).toThrow(CannotIgnoreSortablePositionColumn)
+    })
+  })
+
+  context('a model attempts to ignore a plain-column @Sortable scope', () => {
+    it('throws CannotIgnoreSortableScopeColumn', () => {
+      // Pet declares `@deco.Sortable({ scope: 'species' })`, and species is a
+      // plain column on the pets table, not an association
+      overrideIgnoredColumns(Pet, ['species'])
+      expect(() => resolveIgnoredColumns([Pet], 'pets', [Pet])).toThrow(CannotIgnoreSortableScopeColumn)
+    })
+
+    it('throws CannotIgnoreSortableScopeColumn when the column appears within an array scope', () => {
+      // Collar declares `@deco.Sortable({ scope: ['pet', 'tagName'] })`; pet
+      // names a BelongsTo association, but tagName is a plain column
+      overrideIgnoredColumns(Collar, ['tagName'])
+      expect(() => resolveIgnoredColumns([Collar], 'collars', [Collar])).toThrow(
+        CannotIgnoreSortableScopeColumn
+      )
+    })
+  })
+
+  context('an @Sortable scope names a BelongsTo association rather than a column', () => {
+    it('does not treat an ignored column matching the association name as a scope column', () => {
+      // Collar's @Sortable scopes name the pet and balloon BelongsTo
+      // associations, which the sortable machinery resolves to their foreign
+      // keys (petId/balloonId) rather than to columns named pet/balloon
+      overrideIgnoredColumns(Collar, ['balloon'])
+      expect(resolveIgnoredColumns([Collar], 'collars', [Collar])).toEqual(new Set(['balloon']))
+    })
+
+    it('resolves cleanly when an unrelated column is ignored', () => {
+      overrideIgnoredColumns(Collar, ['hidden'])
+      expect(resolveIgnoredColumns([Collar], 'collars', [Collar])).toEqual(new Set(['hidden']))
     })
   })
 

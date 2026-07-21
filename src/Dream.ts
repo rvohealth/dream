@@ -2940,9 +2940,10 @@ export default class Dream {
    * match and would be silently inert), if models sharing a table declare
    * different ignored columns, or if a model attempts to ignore a column
    * the framework itself reads and writes by name: its primary key, an STI
-   * model's `type` column, any association's foreign key or polymorphic
-   * type field, an `@Sortable` position field, an `@Encrypted` backing
-   * column, or a SoftDelete model's `deletedAt` column.
+   * model's `type` column, any association's foreign key, polymorphic type
+   * field, or `primaryKeyOverride` column, an `@Sortable` position field or
+   * plain-column `@Sortable` scope, an `@Encrypted` backing column, or a
+   * SoftDelete model's `deletedAt` column.
    *
    * Because an ignored column vanishes from `columns()`, runtime access via
    * type escape hatches behaves exactly like any unknown attribute: reads

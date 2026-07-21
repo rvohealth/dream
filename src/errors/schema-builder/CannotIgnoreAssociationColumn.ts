@@ -7,7 +7,7 @@ export default class CannotIgnoreAssociationColumn extends Error {
     private columnName: string,
     private modelClass: typeof Dream,
     private association: AssociationStatement,
-    private columnRole: 'foreign key' | 'polymorphic type field'
+    private columnRole: 'foreign key' | 'polymorphic type field' | 'primary key override'
   ) {
     super()
   }
@@ -21,10 +21,20 @@ ${this.columnRole} of the ${this.association.type} association
 
 Associations read and write their columns by name, so ignoring
 "${this.columnName}" would silently break "${this.association.as}" at
-runtime: writes to the column would stop persisting, and association loads
-would reference a column missing from the generated schema. Remove the
+runtime: ${this.consequence}. Remove the
 "${this.association.as}" association from ${this.modelClass.sanitizedName}
 (or point it at a different column) before ignoring "${this.columnName}".
 `
+  }
+
+  private get consequence() {
+    if (this.columnRole === 'primary key override')
+      return `associating a record would read "${this.columnName}" from an
+instance that no longer hydrates it, silently persisting an empty foreign
+key, and association loads would join on a column missing from the
+generated schema`
+
+    return `writes to the column would stop persisting, and association loads
+would reference a column missing from the generated schema`
   }
 }
