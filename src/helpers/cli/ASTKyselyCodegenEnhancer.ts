@@ -465,7 +465,7 @@ ${output}`)
               member =>
                 !(
                   ts.isPropertySignature(member) &&
-                  ts.isIdentifier(member.name) &&
+                  (ts.isIdentifier(member.name) || ts.isStringLiteral(member.name)) &&
                   ignoredColumns.has(member.name.text)
                 )
             )

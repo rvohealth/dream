@@ -342,11 +342,12 @@ may need to update the table getter in the corresponding Dream.
    */
   protected ignoredColumnsForTable(tableName: string): Set<string> {
     const dreamApp = DreamApp.getOrFail()
-    const models = Object.values(dreamApp.models).filter(
-      model => model.prototype?.connectionName === this.connectionName && model.table === tableName
+    const allModels = Object.values(dreamApp.models).filter(
+      model => model.prototype?.connectionName === this.connectionName
     )
+    const models = allModels.filter(model => model.table === tableName)
 
-    return resolveIgnoredColumns(models, tableName)
+    return resolveIgnoredColumns(models, tableName, allModels)
   }
 
   /**
