@@ -266,7 +266,21 @@ export async function down(db: Kysely<any>): Promise<void> {
   // columns to add/drop would otherwise emit a bare `.alterTable(...).execute()`
   // with no column operation at all, which Postgres rejects at migration-run
   // time rather than generation time. Fail loudly here instead.
-  if (altering && columnDefs.length === 0 && table !== MIGRATION_TABLE_NAME_PLACEHOLDER) {
+  //
+  // This guard is scoped to the standalone `g:migration` `-to-`/`-from-` flow
+  // only (`stiChildClassName` is unset there). `g:sti-child` legitimately
+  // calls this function in alter mode with zero `columnsWithTypes` — a
+  // zero-attribute STI child is a documented use case (see `g:sti-child`'s
+  // help example in src/cli/index.ts), and `generateStiMigrationContent`
+  // handles the type-column/check-constraint machinery separately from the
+  // `columnDefs` this check inspects, so an empty `columnDefs` there is
+  // expected, not a sign of a mistyped/unparseable column list.
+  if (
+    altering &&
+    columnDefs.length === 0 &&
+    table !== MIGRATION_TABLE_NAME_PLACEHOLDER &&
+    !stiChildClassName
+  ) {
     throw new NoColumnsToAlterMigration(table, alterDirection)
   }
 

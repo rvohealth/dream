@@ -283,6 +283,22 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
+  context(
+    'zero-attribute STI child (e.g. `g:sti-child --model-name=Kitchen Room/Kitchen extends Room`)',
+    () => {
+      it('does not throw when columnsWithTypes is empty', () => {
+        expect(() => {
+          generateStiMigrationContent({
+            table: 'rooms',
+            columnsWithTypes: [],
+            primaryKeyType: 'bigserial',
+            stiChildClassName: 'RoomsKitchen',
+          })
+        }).not.toThrow()
+      })
+    }
+  )
+
   context('has_one and has_many attributes', () => {
     it('ignores has_one and has_many statements', () => {
       const res = generateStiMigrationContent({

@@ -269,6 +269,18 @@ export async function down(db: Kysely<any>): Promise<void> {
         })
       }).not.toThrow()
     })
+
+    it('does not throw for a zero-attribute g:sti-child-style call (stiChildClassName set, columnsWithTypes empty)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'rooms',
+          columnsWithTypes: [],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          stiChildClassName: 'RoomsLivingRoom',
+        })
+      }).not.toThrow()
+    })
   })
 
   context('stiChildClassName', () => {
