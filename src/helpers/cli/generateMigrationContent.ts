@@ -3,12 +3,21 @@ import Dream from '../../Dream.js'
 import lookupModelByGlobalName from '../../dream-app/helpers/lookupModelByGlobalName.js'
 import Query from '../../dream/Query.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
+import NoColumnsToAlterMigration from '../../errors/NoColumnsToAlterMigration.js'
+import UnparseableMigrationColumn from '../../errors/UnparseableMigrationColumn.js'
 import { LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
+
+// Sentinel table name used by generateMigration.ts when a standalone
+// migration name matches neither a `-to-<table>` nor `-from-<table>` suffix.
+// That path intentionally produces a stub the user is expected to hand-edit
+// (e.g. an index-only migration with no column operations at all), so it's
+// exempt from the "no valid columns" check below.
+export const MIGRATION_TABLE_NAME_PLACEHOLDER = '<table-name>'
 
 const STI_TYPE_COLUMN_NAME = 'type'
 // deleted_at is deliberately NOT in this list: the SoftDelete default scope's
@@ -31,6 +40,7 @@ export default function generateMigrationContent({
   columnsWithTypes = [],
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
+  alterDirection = 'add',
   stiChildClassName,
   softDelete = false,
 }: {
@@ -39,6 +49,15 @@ export default function generateMigrationContent({
   columnsWithTypes?: string[] | undefined
   primaryKeyType?: LegacyCompatiblePrimaryKeyType | undefined
   createOrAlter?: 'create' | 'alter' | undefined
+  /**
+   * Only meaningful when `createOrAlter: 'alter'`. `'add'` (the default,
+   * matching a `-to-<table>`-suffixed migration name) emits column additions
+   * in `up` and the matching drops in `down`. `'remove'` (matching a
+   * `-from-<table>`-suffixed migration name) inverts this: `up` drops the
+   * named columns and `down` re-adds them with their declared types, so
+   * `down` is the rollback that restores what `up` removed.
+   */
+  alterDirection?: 'add' | 'remove' | undefined
   stiChildClassName?: string | undefined
   /**
    * When true (and creating a new table), auto-emits a nullable `deleted_at`
@@ -48,6 +67,7 @@ export default function generateMigrationContent({
   softDelete?: boolean
 } = {}) {
   const altering = createOrAlter === 'alter'
+  const removingInUp = altering && alterDirection === 'remove'
   let requireCitextExtension = false
   const checkConstraints: string[] = []
 
@@ -102,7 +122,16 @@ export default function generateMigrationContent({
       // instead, we'll add a check constraint that uses the STI child class name
       const sqlAttributeType = getAttributeType(attributeType, descriptors)
 
-      if (attributeType === undefined || ['hasone', 'hasmany'].includes(processedAttrType!)) return acc
+      if (attributeType === undefined) {
+        // In alter mode (both `-to-`/add and `-from-`/remove), a column whose
+        // type can't be resolved (e.g. a mistyped declaration with no `:type`
+        // segment) must not silently vanish from the generated migration —
+        // that's especially dangerous for `-from-` migrations, whose whole
+        // premise is describing removed columns so `down` can restore them.
+        if (altering) throw new UnparseableMigrationColumn(attributeDeclaration)
+        return acc
+      }
+      if (['hasone', 'hasmany'].includes(processedAttrType!)) return acc
       if (attributeType === 'citext') requireCitextExtension = true
 
       const arrayAttribute = /\[\]$/.test(attributeType)
@@ -233,6 +262,28 @@ export async function down(db: Kysely<any>): Promise<void> {
 `
   }
 
+  // An alter migration (either `-to-`/add or `-from-`/remove) with no valid
+  // columns to add/drop would otherwise emit a bare `.alterTable(...).execute()`
+  // with no column operation at all, which Postgres rejects at migration-run
+  // time rather than generation time. Fail loudly here instead.
+  //
+  // This guard is scoped to the standalone `g:migration` `-to-`/`-from-` flow
+  // only (`stiChildClassName` is unset there). `g:sti-child` legitimately
+  // calls this function in alter mode with zero `columnsWithTypes` — a
+  // zero-attribute STI child is a documented use case (see `g:sti-child`'s
+  // help example in src/cli/index.ts), and `generateStiMigrationContent`
+  // handles the type-column/check-constraint machinery separately from the
+  // `columnDefs` this check inspects, so an empty `columnDefs` there is
+  // expected, not a sign of a mistyped/unparseable column list.
+  if (
+    altering &&
+    columnDefs.length === 0 &&
+    table !== MIGRATION_TABLE_NAME_PLACEHOLDER &&
+    !stiChildClassName
+  ) {
+    throw new NoColumnsToAlterMigration(table, alterDirection)
+  }
+
   const citextExtension = requireCitextExtension
     ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
     : ''
@@ -243,7 +294,27 @@ export async function down(db: Kysely<any>): Promise<void> {
   const newlineIndent = '\n  '
   const newlineDoubleIndent = '\n    '
   const doubleNewlineIndent = '\n\n  '
-  const columnDefLines = columnDefs.length ? newlineDoubleIndent + columnDefs.join(newlineDoubleIndent) : ''
+
+  // For a `-from-` migration (`alterDirection: 'remove'`), `down` re-adds the
+  // column(s) that `up` removed. The generator has no way to know the
+  // column's original default, so a non-optional (`.notNull()`) column with
+  // no default emitted here will fail at migration-run time against a table
+  // that already has rows. We can't fix that without a lot more heavy
+  // lifting (and the risk that comes with it), so flag it with a comment
+  // instead of silently generating a `down` that's likely to break.
+  const NO_KNOWN_DEFAULT_COMMENT =
+    "// NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand."
+  const finalColumnDefs = removingInUp
+    ? columnDefs.map(def =>
+        def.includes('.notNull()') && !def.includes('.defaultTo(')
+          ? `${NO_KNOWN_DEFAULT_COMMENT}\n    ${def}`
+          : def
+      )
+    : columnDefs
+
+  const columnDefLines = finalColumnDefs.length
+    ? newlineDoubleIndent + finalColumnDefs.join(newlineDoubleIndent)
+    : ''
   const columnDropLines = columnDrops.length
     ? newlineDoubleIndent + columnDrops.join(newlineDoubleIndent) + newlineDoubleIndent
     : ''
@@ -256,25 +327,41 @@ export async function down(db: Kysely<any>): Promise<void> {
       ".addColumn('updated_at', 'timestamp', col => col.notNull())" +
       (emitDeletedAtColumn ? newlineDoubleIndent + ".addColumn('deleted_at', 'timestamp')" : '')
 
+  // For `alterDirection: 'remove'` (a `-from-` migration), the enum *type*
+  // itself must never be created or dropped here, even when the column
+  // declaration includes inline enum values — enums are frequently reused
+  // across columns/tables, so `up` must drop only the column (no `dropType`)
+  // and `down` must re-add only the column (no `createType`), identical to
+  // referencing an existing enum by name with no values.
+  const enumCreateStatements = removingInUp ? '' : generateEnumStatements(columnsWithTypes)
+  const enumDropStatements = removingInUp ? '' : generateEnumDropStatements(columnsWithTypes)
+
+  const addColumnsBody = `${citextExtension}${enumCreateStatements}  await db.schema
+    .${altering ? 'alterTable' : 'createTable'}('${table}')${
+      altering ? '' : newlineDoubleIndent + generateIdStr({ primaryKeyType })
+    }${columnDefLines}${timestampColumnLines}
+    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(doubleNewlineIndent)}${checkConstraints.join('')}`
+
+  const removeColumnsBody = `  ${
+    altering
+      ? `await db.schema${newlineDoubleIndent}.alterTable('${table}')${columnDropLines}.execute()`
+      : `await db.schema.dropTable('${table}').execute()`
+  }${enumDropStatements}`
+
+  const upBody = removingInUp ? removeColumnsBody : addColumnsBody
+  const downBody = removingInUp ? addColumnsBody : removeColumnsBody
+
   return `\
 ${dreamDbImports.length ? `import { ${dreamDbImports.join(', ')} } from '@rvoh/dream/db'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
-    .${altering ? 'alterTable' : 'createTable'}('${table}')${
-      altering ? '' : newlineDoubleIndent + generateIdStr({ primaryKeyType })
-    }${columnDefLines}${timestampColumnLines}
-    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(doubleNewlineIndent)}${checkConstraints.join('')}
+${upBody}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  ${
-    altering
-      ? `await db.schema${newlineDoubleIndent}.alterTable('${table}')${columnDropLines}.execute()`
-      : `await db.schema.dropTable('${table}').execute()`
-  }${generateEnumDropStatements(columnsWithTypes)}
+${downBody}
 }\
 `
 }

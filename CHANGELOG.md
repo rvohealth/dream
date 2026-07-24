@@ -1,3 +1,11 @@
+## 2.21.1
+
+- `g:migration --help` (and the shared `baseColumnsWithTypesDescription` used by `g:model`) now lists `boolean`/`boolean[]` among the supported `columnsWithTypes` shorthand types. `boolean` was already a fully-implemented column type; it was simply missing from the documented list.
+
+## 2.21.0
+
+- `g:migration`'s `-from-<table_name>` name suffix is now recognized, matching the already-documented `-to-<table_name>` behavior. Previously only `-to-` resolved a table name for the `alterTable` scaffold; a `-from-`-suffixed name (e.g. `remove-legacy-fields-from-posts`) fell through to the `<table-name>` placeholder, producing a migration that failed at runtime against a nonexistent table. `-from-` now resolves the table name the same way `-to-` does, and accepts the same `columnsWithTypes` shorthand (e.g. `legacy_status:string`) — but inverted: `up` drops the named columns and `down` re-adds them with their declared types, so `down` is the rollback that restores what `up` removed (the reverse of `-to-`, where `up` adds and `down` drops). The `g:migration --help` text's worked examples now include a typed column so they demonstrate a non-empty scaffold.
+
 ## 2.20.0
 
 Schema/image skew tolerance for rolling deploys. During a rolling deploy, a migration can finish before containers built against the previous schema have drained; the same window opens in reverse when application code is rolled back after a drop-column migration has already run. Several Dream code paths previously asserted the compiled column list against the live database and failed with `42703 column "…" does not exist` in that window, even when the running code never used the dropped column. This release makes writes and separate-query preloads tolerant of dropped/added-column skew, and adds `ignoredColumns` for making planned column drops fully safe. **Scope**: column drops and additions only — renames, added `NOT NULL` constraints, and type changes remain expand/contract territory that no ORM mechanism fixes; and `leftJoinPreload` retains a documented residual fragility for unplanned drops (see below).

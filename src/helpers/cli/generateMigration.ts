@@ -1,6 +1,8 @@
 import * as path from 'node:path'
 import pluralize from 'pluralize-esm'
-import generateMigrationContent from '../cli/generateMigrationContent.js'
+import generateMigrationContent, {
+  MIGRATION_TABLE_NAME_PLACEHOLDER,
+} from '../cli/generateMigrationContent.js'
 import primaryKeyType from '../db/primaryKeyType.js'
 import hyphenize from '../hyphenize.js'
 import migrationVersion from '../migrationVersion.js'
@@ -9,6 +11,18 @@ import dreamPath from '../path/dreamPath.js'
 import snakeify from '../snakeify.js'
 import generateStiMigrationContent from './generateStiMigrationContent.js'
 import writeGeneratedFile from './writeGeneratedFile.js'
+
+/**
+ * Equivalent to `migrationName.match(new RegExp(`${marker}(.+)$`))?.[1]`, but
+ * without a regex: CodeQL flags `.+` anchored to `$` as a polynomial-ReDoS
+ * shape, and a plain `indexOf`/`slice` does the same leftmost-match-to-end
+ * job with no backtracking risk.
+ */
+function tableNameFromSuffix(migrationName: string, marker: string): string | undefined {
+  const markerIndex = migrationName.indexOf(marker)
+  if (markerIndex === -1) return undefined
+  return migrationName.slice(markerIndex + marker.length) || undefined
+}
 
 export default async function generateMigration({
   migrationName,
@@ -64,12 +78,17 @@ export default async function generateMigration({
       softDelete,
     })
   } else {
-    const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
+    const toTableName: string | undefined = tableNameFromSuffix(migrationName, '-to-')
+    const fromTableName: string | undefined = toTableName
+      ? undefined
+      : tableNameFromSuffix(migrationName, '-from-')
+    const tableName = toTableName || fromTableName
     content = generateMigrationContent({
-      table: tableName ? pluralize(snakeify(tableName)) : '<table-name>',
+      table: tableName ? pluralize(snakeify(tableName)) : MIGRATION_TABLE_NAME_PLACEHOLDER,
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
       createOrAlter: 'alter',
+      alterDirection: fromTableName ? 'remove' : 'add',
     })
   }
 
