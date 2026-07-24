@@ -67,6 +67,23 @@ they get neither a changelog entry nor (on their own) a version bump.
 When in doubt, ask: "could someone who only installs the npm package tell this
 happened?" If no, keep it out of the changelog.
 
+### One Version Component Per PR
+
+A pull request bumps **exactly one** version component. Never stack two bumps in
+the same PR — no major _and_ minor, no minor _and_ patch.
+
+If a PR's scope grows while you work on it, so that the bump you already made is
+no longer the right level, do not add a second bump on top of it. Bump the
+higher component and reset every component below it to zero:
+
+- Started at `2.20.0`, bumped the patch to `2.20.1`, then the work grew into a
+  feature: the release is `2.21.0`, not `2.21.1`.
+- Started at `2.20.0`, bumped the minor to `2.21.0`, then the work turned into a
+  breaking change: the release is `3.0.0`, not `3.1.0`.
+
+Stacked bumps produce confusing release jumps (a single PR appearing to skip a
+version) and misrepresent the release's level to consumers.
+
 ## Database Adapters: No Postgres-Only Code in Shared Paths
 
 Dream is moving toward real multi-database support, so framework code in shared
