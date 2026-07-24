@@ -31,6 +31,66 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
+  context('alterDirection: remove (as with a -from-<table_name> migration name)', () => {
+    it('inverts the direction: up drops the named columns, down re-adds them with their declared types', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['legacy_status:string'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+        alterDirection: 'remove',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('posts')
+    .dropColumn('legacy_status')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('posts')
+    .addColumn('legacy_status', 'varchar(255)', col => col.notNull())
+    .execute()
+}`)
+    })
+
+    it('handles multiple columns and indexed columns (e.g. belongs_to) in the down rollback', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['legacy_status:string', 'archived:boolean'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+        alterDirection: 'remove',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('posts')
+    .dropColumn('legacy_status')
+    .dropColumn('archived')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('posts')
+    .addColumn('legacy_status', 'varchar(255)', col => col.notNull())
+    .addColumn('archived', 'boolean', col => col.notNull().defaultTo(false))
+    .execute()
+}`)
+    })
+  })
+
   context('stiChildClassName', () => {
     it('creates a check constraint rather than notNull', () => {
       const res = generateMigrationContent({

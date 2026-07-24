@@ -64,12 +64,17 @@ export default async function generateMigration({
       softDelete,
     })
   } else {
-    const tableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
+    const toTableName: string | undefined = migrationName.match(/-to-(.+)$/)?.[1]
+    const fromTableName: string | undefined = toTableName
+      ? undefined
+      : migrationName.match(/-from-(.+)$/)?.[1]
+    const tableName = toTableName || fromTableName
     content = generateMigrationContent({
       table: tableName ? pluralize(snakeify(tableName)) : '<table-name>',
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
       createOrAlter: 'alter',
+      alterDirection: fromTableName ? 'remove' : 'add',
     })
   }
 

@@ -31,6 +31,7 @@ export default function generateMigrationContent({
   columnsWithTypes = [],
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
+  alterDirection = 'add',
   stiChildClassName,
   softDelete = false,
 }: {
@@ -39,6 +40,15 @@ export default function generateMigrationContent({
   columnsWithTypes?: string[] | undefined
   primaryKeyType?: LegacyCompatiblePrimaryKeyType | undefined
   createOrAlter?: 'create' | 'alter' | undefined
+  /**
+   * Only meaningful when `createOrAlter: 'alter'`. `'add'` (the default,
+   * matching a `-to-<table>`-suffixed migration name) emits column additions
+   * in `up` and the matching drops in `down`. `'remove'` (matching a
+   * `-from-<table>`-suffixed migration name) inverts this: `up` drops the
+   * named columns and `down` re-adds them with their declared types, so
+   * `down` is the rollback that restores what `up` removed.
+   */
+  alterDirection?: 'add' | 'remove' | undefined
   stiChildClassName?: string | undefined
   /**
    * When true (and creating a new table), auto-emits a nullable `deleted_at`
@@ -48,6 +58,7 @@ export default function generateMigrationContent({
   softDelete?: boolean
 } = {}) {
   const altering = createOrAlter === 'alter'
+  const removingInUp = altering && alterDirection === 'remove'
   let requireCitextExtension = false
   const checkConstraints: string[] = []
 
@@ -256,25 +267,32 @@ export async function down(db: Kysely<any>): Promise<void> {
       ".addColumn('updated_at', 'timestamp', col => col.notNull())" +
       (emitDeletedAtColumn ? newlineDoubleIndent + ".addColumn('deleted_at', 'timestamp')" : '')
 
+  const addColumnsBody = `${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
+    .${altering ? 'alterTable' : 'createTable'}('${table}')${
+      altering ? '' : newlineDoubleIndent + generateIdStr({ primaryKeyType })
+    }${columnDefLines}${timestampColumnLines}
+    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(doubleNewlineIndent)}${checkConstraints.join('')}`
+
+  const removeColumnsBody = `  ${
+    altering
+      ? `await db.schema${newlineDoubleIndent}.alterTable('${table}')${columnDropLines}.execute()`
+      : `await db.schema.dropTable('${table}').execute()`
+  }${generateEnumDropStatements(columnsWithTypes)}`
+
+  const upBody = removingInUp ? removeColumnsBody : addColumnsBody
+  const downBody = removingInUp ? addColumnsBody : removeColumnsBody
+
   return `\
 ${dreamDbImports.length ? `import { ${dreamDbImports.join(', ')} } from '@rvoh/dream/db'\n` : ''}import { ${kyselyImports.join(', ')} } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-${citextExtension}${generateEnumStatements(columnsWithTypes)}  await db.schema
-    .${altering ? 'alterTable' : 'createTable'}('${table}')${
-      altering ? '' : newlineDoubleIndent + generateIdStr({ primaryKeyType })
-    }${columnDefLines}${timestampColumnLines}
-    .execute()${indexDefs.length ? `\n${newlineIndent}` : ''}${indexDefs.join(doubleNewlineIndent)}${checkConstraints.join('')}
+${upBody}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  ${
-    altering
-      ? `await db.schema${newlineDoubleIndent}.alterTable('${table}')${columnDropLines}.execute()`
-      : `await db.schema.dropTable('${table}').execute()`
-  }${generateEnumDropStatements(columnsWithTypes)}
+${downBody}
 }\
 `
 }

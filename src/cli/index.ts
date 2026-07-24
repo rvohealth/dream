@@ -229,8 +229,9 @@ ${INDENT}  # Add columns to an existing table (suffix with -to-<table_name> for 
 ${INDENT}  pnpm psy g:migration add-timezone-to-users timezone:string
 ${INDENT}  pnpm psy g:migration add-bio-to-users bio:text:optional avatar_url:string:optional
 ${INDENT}
-${INDENT}  # Remove columns (suffix with -from-<table_name>)
-${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts
+${INDENT}  # Remove columns (suffix with -from-<table_name>; columns are described with
+${INDENT}  # their types, same shorthand as -to-, so the rollback (down) can recreate them)
+${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts legacy_status:string
 ${INDENT}
 ${INDENT}  # General schema change (no table suffix — generates empty up/down methods)
 ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
@@ -240,8 +241,8 @@ ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
         `Kebab-case name describing the change. End with -to-<table_name> or -from-<table_name> to auto-generate an alterTable scaffold for that table.
 ${INDENT}
 ${INDENT}Examples:
-${INDENT}  add-phone-to-users          # scaffolds alterTable('users', ...)
-${INDENT}  remove-status-from-posts    # scaffolds alterTable('posts', ...)
+${INDENT}  add-phone-to-users phone:string             # scaffolds alterTable('users', ...)
+${INDENT}  remove-status-from-posts status:string      # scaffolds alterTable('posts', ...)
 ${INDENT}  create-join-table-host-places  # empty migration (no table suffix match)`
       )
       .option(
