@@ -1645,6 +1645,9 @@ export default class Dream {
    * // User{email: 'goodbye@world'}
    * ```
    *
+   * Records are always visited in ascending primary key order; any `order`
+   * applied to the query is discarded. See {@link Query.findEach} for why.
+   *
    * @param cb - The callback to call for each found record
    * @param opts - Optional parameters for batch processing
    * @param opts.batchSize - the batch size you wish to collect records in. If not provided, it will default to 1000

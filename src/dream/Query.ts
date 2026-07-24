@@ -544,12 +544,29 @@ export default class Query<
    * records matching the Query have been fetched.
    *
    * ```ts
-   * await User.order('id').findEach(user => {
+   * await User.where({ deletedAt: null }).findEach(user => {
    *   DreamApp.log(user)
    * })
    * // User{id: 1}
    * // User{id: 2}
    * ```
+   *
+   * IMPORTANT: `findEach` always iterates in ascending primary key order.
+   * Any `order` applied to the Query is discarded; passing one has no effect
+   * on the order records are visited in.
+   *
+   * This is not a limitation that can be lifted. `findEach` guarantees that
+   * every matching record is visited exactly once, and it delivers that by
+   * paginating on a keyset: each batch selects the next `batchSize` records
+   * with a primary key greater than the last record of the previous batch.
+   * That guarantee only holds over a stable, unique key. Ordering by a
+   * mutable, non-unique column would mean a record whose sort value changed
+   * partway through the iteration could be skipped entirely or visited twice.
+   * ({@link Query.cursorPaginate} can honor an arbitrary order precisely
+   * because a paginated UI tolerates that anomaly; a full traversal cannot.)
+   *
+   * If you need records processed in a particular order, load them with a
+   * regular ordered query instead of `findEach`.
    *
    * @param cb - The callback to call for each found record
    * @param __namedParameters - Options for batch processing

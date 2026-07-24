@@ -1,3 +1,7 @@
+## 2.21.2
+
+- `findEach`'s documentation now states that iteration order is always ascending primary key, regardless of any `order` applied to the query. This has always been the behavior — `findEach` paginates on a keyset over the primary key, which is what guarantees every matching record is visited exactly once — but the TSDoc never said so, and its example (`User.order('id').findEach(...)`) happened to match the forced order, reading as though the caller's order was honored. The example has been replaced and the reasoning documented, including why `cursorPaginate` can honor an arbitrary order while a full traversal cannot. Documentation only; no behavior change.
+
 ## 2.21.1
 
 - `g:migration --help` (and the shared `baseColumnsWithTypesDescription` used by `g:model`) now lists `boolean`/`boolean[]` among the supported `columnsWithTypes` shorthand types. `boolean` was already a fully-implemented column type; it was simply missing from the documented list.
