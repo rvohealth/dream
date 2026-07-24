@@ -59,6 +59,8 @@ ${INDENT}    - timetz
 ${INDENT}    - timetz[]
 ${INDENT}    - integer
 ${INDENT}    - integer[]
+${INDENT}    - boolean
+${INDENT}    - boolean[]
 ${INDENT}
 ${INDENT}    - decimal:
 ${INDENT}    - decimal[]:
