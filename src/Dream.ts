@@ -1798,6 +1798,12 @@ export default class Dream {
    * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
+   * 6. leftJoinPreload must enumerate every compiled column of every joined
+   * model, so unlike base-model reads, `preload`/`load`, and saves, it does
+   * not tolerate schema/image skew from an unplanned column drop during a
+   * rolling deploy; see {@link Query.leftJoinPreload} and the
+   * `ignoredColumns` getter for the two-deploy process that makes a
+   * planned drop safe.
    *
    * ```ts
    * const user = await User.leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
@@ -2884,6 +2890,84 @@ export default class Dream {
    */
   public get table(): AssociationTableNames<any, any> {
     throw new DreamMissingRequiredOverride(this.constructor as typeof Dream, 'table')
+  }
+
+  /**
+   * Columns that Dream should behave as though they do not exist.
+   *
+   * Declaring a column ignored removes it from the generated types the next
+   * time `sync` runs: it is omitted from both the db types file (the Kysely
+   * `DB` interface) and the dream schema file, so it disappears from
+   * `columns()` and from every place that flows from `columns()` — select
+   * lists built for `preload`/`load` and `leftJoinPreload`, save hydration,
+   * attribute definition, and param safety. References to the column in
+   * application code become type errors, which is the point: they must be
+   * removed before the column can be dropped.
+   *
+   * This enables safely dropping a column under rolling deploys — the same
+   * problem Rails solves with `ignored_columns`. The safety requirement is
+   * that no image that can run against the post-drop schema names the
+   * column in any SQL it generates. To satisfy it: remove all application
+   * code that uses the column, declare it here, and run `sync`; then let
+   * the drop migration run only once no image lacking the declaration can
+   * run against the database — whether the migration ships in a later
+   * deploy of its own, or together with the declaration in a pipeline that
+   * runs migrations only after the new images have rolled out. Once the
+   * column is dropped, remove this declaration and resync.
+   *
+   * Precondition: as soon as an image built with this declaration runs,
+   * the column is never placed in INSERT column lists, so before that
+   * image can run, the column must be nullable or carry a database
+   * default — a live `NOT NULL` column without a default fails every
+   * create against the table.
+   *
+   * Dropping the column while an image that names it can still run leaves
+   * a window during which those containers (including a rolled-back image)
+   * fail with `42703 column does not exist` — `leftJoinPreload` in
+   * particular has no runtime tolerance for this, since it must enumerate
+   * aliased columns.
+   *
+   * This is a mechanism for the drop window, not for permanently hiding
+   * wide columns: the ignored column is still transferred from the
+   * database on every `RETURNING *` / `select *` until it is actually
+   * dropped.
+   *
+   * The declaration is read only while `sync` generates the types files; it
+   * has no runtime behavior of its own. A declared-but-not-synced model is
+   * therefore not yet protected — CI should verify that `sync` produces no
+   * diff. `sync` will fail loudly if a declared name is not camelCase
+   * (generated column names are camelized, so any other shape could never
+   * match and would be silently inert), if models sharing a table declare
+   * different ignored columns, or if a model attempts to ignore a column
+   * the framework itself reads and writes by name: its primary key, an STI
+   * model's `type` column, any association's foreign key, polymorphic type
+   * field, or `primaryKeyOverride` column, an `@Sortable` position field or
+   * plain-column `@Sortable` scope, an `@Encrypted` backing column, or a
+   * SoftDelete model's `deletedAt` column.
+   *
+   * Because an ignored column vanishes from `columns()`, runtime access via
+   * type escape hatches behaves exactly like any unknown attribute: reads
+   * return `undefined`, and writes assign a plain instance property that is
+   * never persisted.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   public override get ignoredColumns() {
+   *     return ['legacyEmail'] as const
+   *   }
+   * }
+   * ```
+   *
+   * NOTE: this getter is intentionally typed as `readonly string[]` rather
+   * than as a union of known column names: during the deploy that declares
+   * a column ignored, the regenerated types no longer contain the column,
+   * so a column-name-derived type would reject the very declaration that
+   * removed it.
+   *
+   * @returns The list of column names this model should ignore
+   */
+  public get ignoredColumns(): readonly string[] {
+    return []
   }
 
   /**

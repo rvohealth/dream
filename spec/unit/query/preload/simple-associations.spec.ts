@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
@@ -15,6 +16,7 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import PostComment from '../../../../test-app/app/models/PostComment.js'
 import User from '../../../../test-app/app/models/User.js'
+import db from '../../../../test-app/db/index.js'
 
 describe('Query#preload with simple associations', () => {
   context('multiple associations', () => {
@@ -494,6 +496,58 @@ describe('Query#preload with simple associations', () => {
 
         const result = await Collar.preload('pet').first()
         expect(() => result!.pet).toThrow(MissingRequiredBelongsToAssociation)
+      })
+    })
+  })
+
+  context('when the compiled schema and the live database schema disagree (rolling-deploy skew)', () => {
+    let pet: Pet
+    let collar: Collar
+
+    context('a column of the associated table has been dropped from the database', () => {
+      beforeEach(async () => {
+        pet = await Pet.create({ name: 'Aster' })
+        collar = await Collar.create({ pet, tagName: 'Aster' })
+        await sql`ALTER TABLE collars DROP COLUMN IF EXISTS lost`.execute(db('default', 'primary'))
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE collars ADD COLUMN IF NOT EXISTS lost boolean`.execute(db('default', 'primary'))
+      })
+
+      it('preloads the association successfully', async () => {
+        const reloaded = await Pet.query().preload('collars').firstOrFail()
+        expect(reloaded.collars).toHaveLength(1)
+        expect(reloaded.collars[0]!.id).toEqual(collar.id)
+        expect(reloaded.collars[0]!.tagName).toEqual('Aster')
+        expect(reloaded.collars[0]!.lost).toBeUndefined()
+      })
+
+      it('loads the association onto an existing instance successfully', async () => {
+        const loaded = await pet.load('collars').execute()
+        expect(loaded.collars).toHaveLength(1)
+        expect(loaded.collars[0]!.id).toEqual(collar.id)
+      })
+    })
+
+    context('the associated table has a column the compiled schema does not know about', () => {
+      beforeEach(async () => {
+        pet = await Pet.create({ name: 'Aster' })
+        collar = await Collar.create({ pet, tagName: 'Aster' })
+        await sql`ALTER TABLE collars ADD COLUMN IF NOT EXISTS brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE collars DROP COLUMN IF EXISTS brandnewcolumn`.execute(db('default', 'primary'))
+      })
+
+      it('never hydrates the unknown column onto preloaded instances', async () => {
+        const reloaded = await Pet.query().preload('collars').firstOrFail()
+        expect(reloaded.collars).toMatchDreamModels([collar])
+        expect((reloaded.collars[0] as any).brandnewcolumn).toBeUndefined()
+        expect(Object.keys(reloaded.collars[0]!.getAttributes())).not.toContain('brandnewcolumn')
       })
     })
   })

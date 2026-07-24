@@ -594,6 +594,17 @@ export default class Query<
    * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.preload('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
+   * 6. unlike base-model reads, `preload`/`load`, and saves — which tolerate
+   * schema/image skew (e.g. a rolling deploy dropping a column while
+   * containers compiled against the previous schema are still draining) —
+   * leftJoinPreload must enumerate every compiled column of every joined
+   * model under per-alias names (per-alias `*` is not expressible in a
+   * single flat row), so an **unplanned** column drop breaks
+   * leftJoinPreload queries for the duration of the rollout window. A
+   * **planned** drop is safe when performed via the two-deploy process
+   * documented on the `ignoredColumns` getter of Dream: declaring the
+   * column ignored removes it from the generated schema, so leftJoinPreload
+   * stops naming it a full deploy before the column is actually dropped.
    *
    *
    * ```ts

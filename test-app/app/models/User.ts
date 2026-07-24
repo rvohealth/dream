@@ -15,6 +15,7 @@ import CompositionAsset from './CompositionAsset.js'
 import CompositionAssetAudit from './CompositionAssetAudit.js'
 import HeartRating from './ExtraRating/HeartRating.js'
 import IncompatibleForeignKeyTypeExample from './IncompatibleForeignKeyTypeExample.js'
+import ModelWithIgnoredColumns from './ModelWithIgnoredColumns.js'
 import Pet from './Pet.js'
 import Post from './Post.js'
 import PostComment from './PostComment.js'
@@ -145,6 +146,9 @@ export default class User extends ApplicationModel {
 
   @deco.HasMany('IncompatibleForeignKeyTypeExample')
   public incompatibleForeignKeyTypeExamples: IncompatibleForeignKeyTypeExample[]
+
+  @deco.HasMany('ModelWithIgnoredColumns')
+  public modelsWithIgnoredColumns: ModelWithIgnoredColumns[]
 
   @deco.HasMany('CompositionAsset', {
     through: 'compositions',

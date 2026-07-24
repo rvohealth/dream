@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import { MockInstance } from 'vitest'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
@@ -9,11 +10,13 @@ import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import EdgeCaseAttribute from '../../../test-app/app/models/EdgeCaseAttribute.js'
+import ModelWithParamSafeAndUnsafeColumns from '../../../test-app/app/models/ModelWithParamSafeAndUnsafeColumns.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
 import UserSettings from '../../../test-app/app/models/UserSettings.js'
+import db from '../../../test-app/db/index.js'
 
 describe('Dream.create', () => {
   it('creates the underlying model in the db', async () => {
@@ -379,6 +382,85 @@ context.skip('type tests', () => {
           // @ts-expect-error intentionally passing invalid arg to test that type protection is working
           invalidArg: 123,
         })
+      })
+    })
+  })
+
+  context('when the compiled schema and the live database schema disagree (rolling-deploy skew)', () => {
+    context('a column in the compiled schema has been dropped from the database', () => {
+      beforeEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN IF EXISTS column2`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN IF NOT EXISTS column2 varchar(255)`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      it('creates successfully when the write does not set the dropped column', async () => {
+        const model = await ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello' })
+        expect(model.isPersisted).toBe(true)
+        expect(typeof model.id).toBe('string')
+        expect(model.column1).toEqual('hello')
+
+        const reloaded = await ModelWithParamSafeAndUnsafeColumns.findOrFail(model.id)
+        expect(reloaded.column1).toEqual('hello')
+      })
+
+      it('still fails loudly when the write explicitly sets the dropped column', async () => {
+        await expect(
+          ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello', column2: 'explicit write' })
+        ).rejects.toThrow(
+          /column "column2" of relation "model_with_param_safe_and_unsafe_columns" does not exist/
+        )
+      })
+    })
+
+    context('the database has a column the compiled schema does not know about', () => {
+      beforeEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ADD COLUMN IF NOT EXISTS brandnewcolumn varchar(255) DEFAULT 'from the future'`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns DROP COLUMN IF EXISTS brandnewcolumn`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      it('never hydrates the unknown column onto the instance', async () => {
+        const model = await ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello' })
+        expect((model as any).brandnewcolumn).toBeUndefined()
+        expect(Object.keys(model.getAttributes())).not.toContain('brandnewcolumn')
+
+        // base-model reads select `*`, so the row contains the unknown
+        // column; it must be filtered during find hydration as well
+        const reloaded = await ModelWithParamSafeAndUnsafeColumns.findOrFail(model.id)
+        expect((reloaded as any).brandnewcolumn).toBeUndefined()
+        expect(Object.keys(reloaded.getAttributes())).not.toContain('brandnewcolumn')
+      })
+    })
+
+    context('a compiled-schema column with a database-side default is left unset at creation', () => {
+      beforeEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ALTER COLUMN column2 SET DEFAULT 'db-computed'`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      afterEach(async () => {
+        await sql`ALTER TABLE model_with_param_safe_and_unsafe_columns ALTER COLUMN column2 DROP DEFAULT`.execute(
+          db('default', 'primary')
+        )
+      })
+
+      it('hydrates the database-computed value onto the instance after save', async () => {
+        const model = await ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello' })
+        expect(model.column2).toEqual('db-computed')
       })
     })
   })
