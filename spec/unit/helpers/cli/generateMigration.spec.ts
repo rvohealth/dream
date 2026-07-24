@@ -94,5 +94,36 @@ describe('generateMigration', () => {
         expect(writtenMigration().content).toContain("alterTable('<table-name>')")
       })
     })
+
+    context('a migration name matching both -to- and -from- suffixes', () => {
+      // PINNED CURRENT BEHAVIOR: generateMigration checks -to- first and only
+      // falls back to -from- when there's no -to- match (see
+      // src/helpers/cli/generateMigration.ts). A name containing both
+      // suffixes therefore silently resolves to the -to- table with add
+      // semantics, discarding the -from- table/intent entirely. This spec
+      // exists so a future change to that precedence can't happen silently —
+      // if this starts failing, the resolution order changed and the
+      // implications (for existing -from- migration names that happen to
+      // also match -to-) need to be considered deliberately.
+      it('resolves to the -to- table with add semantics, ignoring the -from- table', async () => {
+        await generateMigration({
+          migrationName: 'migrate-notifications-from-inbox-to-archive',
+          columnsWithTypes: ['moved_at:datetime'],
+          connectionName: 'default',
+        })
+
+        const { content } = writtenMigration()
+        expect(content).toContain("alterTable('archives')")
+        expect(content).not.toContain("alterTable('inboxes')")
+
+        const [, upBody, downBody] = content.split(
+          /export async function (?:up|down)\(db: Kysely<any>\): Promise<void> \{/
+        )
+        expect(upBody).toContain("addColumn('moved_at', 'timestamp'")
+        expect(upBody).not.toContain('dropColumn')
+        expect(downBody).toContain("dropColumn('moved_at')")
+        expect(downBody).not.toContain('addColumn')
+      })
+    })
   })
 })

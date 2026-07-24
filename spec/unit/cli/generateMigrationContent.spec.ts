@@ -55,6 +55,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('posts')
+    // NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.
     .addColumn('legacy_status', 'varchar(255)', col => col.notNull())
     .execute()
 }`)
@@ -63,7 +64,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     it('handles multiple columns and indexed columns (e.g. belongs_to) in the down rollback', () => {
       const res = generateMigrationContent({
         table: 'posts',
-        columnsWithTypes: ['legacy_status:string', 'archived:boolean'],
+        columnsWithTypes: ['legacy_status:string', 'archived:boolean', 'User:belongs_to'],
         primaryKeyType: 'bigserial',
         createOrAlter: 'alter',
         alterDirection: 'remove',
@@ -77,6 +78,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .alterTable('posts')
     .dropColumn('legacy_status')
     .dropColumn('archived')
+    .dropColumn('user_id')
     .execute()
 }
 
@@ -84,10 +86,188 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable('posts')
+    // NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.
     .addColumn('legacy_status', 'varchar(255)', col => col.notNull())
     .addColumn('archived', 'boolean', col => col.notNull().defaultTo(false))
+    // NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.
+    .addColumn('user_id', 'bigint', col => col.references('users.id').onDelete('restrict').notNull())
+    .execute()
+
+  await db.schema
+    .createIndex('posts_user_id')
+    .on('posts')
+    .column('user_id')
     .execute()
 }`)
+
+      // the index is regenerated in down (the rollback that re-adds the
+      // removed columns), and must be absent from up, which only drops
+      // columns
+      const [, upBody, downBody] = res.split(
+        /export async function (?:up|down)\(db: Kysely<any>\): Promise<void> \{/
+      )
+      expect(upBody).not.toContain('createIndex')
+      expect(downBody).toContain("createIndex('posts_user_id')")
+    })
+  })
+
+  context('alterDirection: remove — no known default for the re-added column (down rollback)', () => {
+    it('emits a comment above notNull columns with no default, but not above columns that already have one (boolean, provided default)', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['legacy_status:string', 'archived:boolean', 'priority:integer:default(3)'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+        alterDirection: 'remove',
+      })
+
+      const [, , downBody] = res.split(
+        /export async function (?:up|down)\(db: Kysely<any>\): Promise<void> \{/
+      )
+
+      expect(downBody).toContain(
+        "// NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.\n    .addColumn('legacy_status'"
+      )
+      // boolean has a sensible default (false) — no comment directly above it
+      expect(downBody).not.toContain(
+        "// NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.\n    .addColumn('archived'"
+      )
+      // explicit default provided — no comment directly above it
+      expect(downBody).not.toContain(
+        "// NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.\n    .addColumn('priority'"
+      )
+      // exactly one comment total (only for legacy_status)
+      expect((downBody!.match(/NOTE:/g) ?? []).length).toEqual(1)
+    })
+
+    it('does not emit the comment for optional (nullable) columns re-added in down', () => {
+      const res = generateMigrationContent({
+        table: 'posts',
+        columnsWithTypes: ['legacy_status:string:optional'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+        alterDirection: 'remove',
+      })
+
+      expect(res).not.toContain('NOTE:')
+    })
+  })
+
+  context('alterDirection: remove — inline enum columns never touch the enum type', () => {
+    it('drops only the column in up and re-adds only the column in down, even when the declaration includes inline enum values', () => {
+      const res = generateMigrationContent({
+        table: 'chalupas',
+        columnsWithTypes: ['status:enum:statuses:a,b'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+        alterDirection: 'remove',
+      })
+
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    .dropColumn('status')
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('chalupas')
+    // NOTE: the generator doesn't know this column's original default; this addColumn will fail against a table with existing rows unless you add a default by hand.
+    .addColumn('status', sql\`statuses_enum\`, col => col.notNull())
+    .execute()
+}`)
+      expect(res).not.toContain('createType')
+      expect(res).not.toContain('dropType')
+    })
+  })
+
+  context('alter mode: unparseable / missing-type columns', () => {
+    it('throws when a column declaration has no resolvable type (alterDirection: add)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'posts',
+          columnsWithTypes: ['bad_field'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          alterDirection: 'add',
+        })
+      }).toThrow(/bad_field/)
+    })
+
+    it('throws when a column declaration has no resolvable type (alterDirection: remove)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'posts',
+          columnsWithTypes: ['bad_field'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          alterDirection: 'remove',
+        })
+      }).toThrow(/bad_field/)
+    })
+
+    it('does not throw for the same unparseable column outside of alter mode (pre-existing create-mode behavior)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'posts',
+          columnsWithTypes: ['bad_field'],
+          primaryKeyType: 'bigserial',
+        })
+      }).not.toThrow()
+    })
+  })
+
+  context('alter mode: no valid columns to add/drop', () => {
+    it('throws when there are zero columns to add (alterDirection: add)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'posts',
+          columnsWithTypes: [],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          alterDirection: 'add',
+        })
+      }).toThrow(/posts/)
+    })
+
+    it('throws when there are zero columns to drop (alterDirection: remove)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'posts',
+          columnsWithTypes: [],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+          alterDirection: 'remove',
+        })
+      }).toThrow(/posts/)
+    })
+
+    it('throws when every column is filtered out (e.g. only has_one/has_many attributes)', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: 'posts',
+          columnsWithTypes: ['comments:has_many'],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+        })
+      }).toThrow(/posts/)
+    })
+
+    it('does not throw for the <table-name> placeholder used when no -to-/-from- suffix matches', () => {
+      expect(() => {
+        generateMigrationContent({
+          table: '<table-name>',
+          columnsWithTypes: [],
+          primaryKeyType: 'bigserial',
+          createOrAlter: 'alter',
+        })
+      }).not.toThrow()
     })
   })
 

@@ -1,6 +1,8 @@
 import * as path from 'node:path'
 import pluralize from 'pluralize-esm'
-import generateMigrationContent from '../cli/generateMigrationContent.js'
+import generateMigrationContent, {
+  MIGRATION_TABLE_NAME_PLACEHOLDER,
+} from '../cli/generateMigrationContent.js'
 import primaryKeyType from '../db/primaryKeyType.js'
 import hyphenize from '../hyphenize.js'
 import migrationVersion from '../migrationVersion.js'
@@ -70,7 +72,7 @@ export default async function generateMigration({
       : migrationName.match(/-from-(.+)$/)?.[1]
     const tableName = toTableName || fromTableName
     content = generateMigrationContent({
-      table: tableName ? pluralize(snakeify(tableName)) : '<table-name>',
+      table: tableName ? pluralize(snakeify(tableName)) : MIGRATION_TABLE_NAME_PLACEHOLDER,
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
       createOrAlter: 'alter',
