@@ -3,7 +3,6 @@ import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import destroyAssociatedRecords from './destroyAssociatedRecords.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
-import loadDependentDestroyTree from './loadDependentDestroyTree.js'
 import runHooksFor from './runHooksFor.js'
 
 type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
@@ -51,12 +50,12 @@ async function destroyDreamWithTransaction<I extends Dream>(
   const { cascade, reallyDestroy, skipHooks } = options
 
   if (cascade) {
-    const dreamWithAssociations = await loadDependentDestroyTree(dream, txn, {
-      reallyDestroy,
-      bypassAllDefaultScopes: options.bypassAllDefaultScopes ?? false,
-      defaultScopesToBypass: options.defaultScopesToBypass ?? [],
-    })
-    await destroyAssociatedRecords(dreamWithAssociations, txn, options)
+    // NOTE: the dependent-destroy tree is loaded lazily, inside
+    // destroyAssociatedRecords, so that a cascaded descendant whose
+    // associations the root already preloaded does not re-query its own
+    // subtree. `dream` itself is intentionally never replaced by the loaded
+    // clone: the hooks and the delete below operate on the original.
+    await destroyAssociatedRecords(dream, txn, options)
   }
 
   if (!skipHooks) {

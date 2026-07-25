@@ -3,9 +3,11 @@ import { blankHooksFactory } from '../../../src/decorators/field/lifecycle/share
 import Dream from '../../../src/Dream.js'
 import DreamTransaction from '../../../src/dream/DreamTransaction.js'
 import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/destroyAssociatedRecords.js'
+import * as executeDatabaseQueryModule from '../../../src/dream/internal/executeDatabaseQuery.js'
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor.js'
 import { HookStatement } from '../../../src/types/lifecycle.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
@@ -403,6 +405,66 @@ describe('Dream#destroy', () => {
       await pet.destroy({ cascade: false })
 
       expectNoCascadeDestroying(pet)
+    })
+  })
+
+  context('cascade destroy query count', () => {
+    async function countQueries(cb: () => Promise<void>): Promise<number> {
+      const querySpy = vi.spyOn(executeDatabaseQueryModule, 'default')
+      try {
+        await cb()
+        return querySpy.mock.calls.length
+      } finally {
+        querySpy.mockRestore()
+      }
+    }
+
+    async function buildChain(length: number): Promise<CircularReferenceModel> {
+      const root = await CircularReferenceModel.create({})
+      let current = root
+      for (let i = 1; i < length; i++) {
+        current = await CircularReferenceModel.create({ parent: current })
+      }
+      return root
+    }
+
+    it('loads the dependent-destroy tree once at the root, rather than re-loading it at every level', async () => {
+      const root = await buildChain(3)
+
+      const queryCount = await countQueries(async () => {
+        await root.destroy()
+      })
+
+      // The root's single batched preload walks one level at a time until it
+      // finds no more descendants: 3 queries for a 3-deep chain. Before this
+      // was fixed, every intermediate descendant re-loaded its own subtree,
+      // which cost 6.
+      expect(queryCount).toEqual(3)
+      expect(await CircularReferenceModel.count()).toEqual(0)
+    })
+
+    it('resumes loading past the preload horizon without re-loading every intermediate node', async () => {
+      const root = await buildChain(6)
+
+      const queryCount = await countQueries(async () => {
+        await root.destroy()
+      })
+
+      // 4 queries for the root's preload (capped at
+      // RECURSIVE_DESTROY_PRELOAD_MAX_REPEATS levels), then 2 more when the
+      // node sitting at the horizon resumes the batched load for what remains
+      // below it. Before this was fixed, this cost 18.
+      expect(queryCount).toEqual(6)
+      expect(await CircularReferenceModel.count()).toEqual(0)
+    })
+
+    it('still destroys every descendant of a cascade deeper than the preload horizon', async () => {
+      const root = await buildChain(10)
+      expect(await CircularReferenceModel.count()).toEqual(10)
+
+      await root.destroy()
+
+      expect(await CircularReferenceModel.count()).toEqual(0)
     })
   })
 
