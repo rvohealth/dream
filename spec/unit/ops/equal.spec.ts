@@ -1,3 +1,4 @@
+import ArrayEqualityRequiresArrayColumn from '../../../src/errors/ops/ArrayEqualityRequiresArrayColumn.js'
 import ops from '../../../src/ops/index.js'
 import { type TableColumnIsArray } from '../../../src/types/dream.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
@@ -144,6 +145,27 @@ describe('ops.equal', () => {
 
       const balloons = await Balloon.where({ color: ops.equal('red') }).all()
       expect(balloons).toMatchDreamModels([redBalloon])
+    })
+
+    // Binding a whole array as a single value only makes sense for an array
+    // column. Against a scalar column the same rewrite would render
+    // `"name" = '{}'`, a clause that quietly matches nothing, where the same
+    // call raised before whole-array equality existed. The types already reject
+    // this shape, so the casts stand in for the callers the types cannot reach:
+    // Javascript consumers, `DreamConst.passthrough` values, and values
+    // reconstructed from JSON.
+    it('rejects an array value rather than silently matching nothing', async () => {
+      await User.create({ email: 'fred@fred', name: 'aster', password: 'howyadoin' })
+
+      await expect(User.where({ name: ops.equal([]) as any }).all()).rejects.toThrow(
+        ArrayEqualityRequiresArrayColumn
+      )
+      await expect(User.where({ name: ops.equal(['aster']) as any }).all()).rejects.toThrow(
+        ArrayEqualityRequiresArrayColumn
+      )
+      await expect(User.where({ name: ops.not.equal(['aster']) as any }).all()).rejects.toThrow(
+        ArrayEqualityRequiresArrayColumn
+      )
     })
 
     it('leaves a bare array meaning "IN"', async () => {

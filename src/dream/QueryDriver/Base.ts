@@ -317,9 +317,38 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options: {
       columns?: DreamColumnNames<DreamInstance>[]
+      lock?: boolean
     } = {}
   ): Promise<DreamInstance[]> {
     throw new Error('implement takeAll in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * Adapter seam for exclusive row locking. Given the select statement about to
+   * be executed, return a statement that additionally acquires an exclusive
+   * lock on each row it returns, held until the enclosing transaction commits
+   * or rolls back (Postgres: `SELECT ... FOR UPDATE OF <table>`).
+   *
+   * This is only ever reached when a caller opts into a locked read (today,
+   * `Query#destroy({ lock: true })`), and only from inside a transaction. The
+   * base implementation throws so that an adapter which has not implemented row
+   * locking fails loud rather than silently performing an unlocked read and
+   * quietly dropping the compare-and-set guarantee the caller asked for.
+   *
+   * @param kyselyQuery - the select statement to lock
+   * @param tableAlias - the alias of the Query's base table; only rows of that
+   * table are locked, so a joined query does not lock unrelated rows and does
+   * not fail on the nullable side of an outer join
+   */
+  public applyRowLock(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    kyselyQuery: SelectQueryBuilder<any, any, any>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    tableAlias: string
+  ): SelectQueryBuilder<any, any, any> {
+    throw new Error('implement applyRowLock in child class')
   }
 
   /**

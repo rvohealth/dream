@@ -8,7 +8,7 @@
 // @ts-ignore
 import pg from 'pg'
 
-import { sql } from 'kysely'
+import { sql, type SelectQueryBuilder } from 'kysely'
 import DreamCLI from '../../cli/index.js'
 import { isPrimitiveDataType } from '../../db/dataTypes.js'
 import DreamApp from '../../dream-app/index.js'
@@ -272,6 +272,31 @@ export default class PostgresQueryDriver<
     await client.end()
 
     DreamCLI.logger.logEndProgress()
+  }
+
+  /**
+   * @internal
+   *
+   * Postgres implementation of the row-locking seam: appends
+   * `FOR UPDATE OF "<tableAlias>"` to the select, so every row the statement
+   * returns is exclusively locked until the enclosing transaction ends.
+   *
+   * Scoping the lock to the Query's own base table (rather than a bare
+   * `FOR UPDATE`) means a query that joins other tables neither locks rows the
+   * caller never asked about nor raises Postgres's "FOR UPDATE cannot be
+   * applied to the nullable side of an outer join".
+   *
+   * This is a waiting lock: neither `NOWAIT` nor `SKIP LOCKED` is applied, so a
+   * statement that collides with another transaction's lock blocks until that
+   * transaction ends. Callers that cannot afford an unbounded wait should set a
+   * `lock_timeout` on the connection; see the guarded-destroy notes on
+   * `Query#destroy`.
+   */
+  public override applyRowLock(
+    kyselyQuery: SelectQueryBuilder<any, any, any>,
+    tableAlias: string
+  ): SelectQueryBuilder<any, any, any> {
+    return kyselyQuery.forUpdate(tableAlias)
   }
 
   public static override supportsParallelTestDatabases = true

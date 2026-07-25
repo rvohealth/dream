@@ -57,6 +57,26 @@ describe('Dream#reallyDestroy', () => {
         await post.reallyDestroy()
         expect(await PostComment.removeAllDefaultScopes().count()).toEqual(0)
       })
+
+      context('when the caller preloaded the dependent-destroy association themselves', () => {
+        it('reloads the association rather than trusting the caller-loaded, soft-delete-scoped records', async () => {
+          const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+          const post = await Post.create({ user })
+          const postComment = await PostComment.create({ post })
+          await postComment.destroy()
+
+          // the caller's own preload runs under the SoftDelete default scope, so
+          // the soft-deleted comment is missing from it; reallyDestroy strips
+          // that scope, so the cascade must NOT reuse what the caller loaded
+          const preloadedPost = await Post.preload('comments').findOrFail(post.id)
+          expect(preloadedPost.comments).toEqual([])
+
+          await preloadedPost.reallyDestroy()
+
+          expect(await PostComment.removeAllDefaultScopes().count()).toEqual(0)
+          expect(await Post.removeAllDefaultScopes().count()).toEqual(0)
+        })
+      })
     })
 
     context('with another, non-SoftDelete default scope on an associated model', () => {
