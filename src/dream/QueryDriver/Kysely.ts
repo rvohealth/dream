@@ -2029,8 +2029,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       c = val
     }
 
-    c = this.normalizedWhereValue(dreamClass, attr, c)
-    c2 = this.normalizedWhereValue(dreamClass, attr, c2)
+    c = maybeBindArrayAsSingleValue(b, this.normalizedWhereValue(dreamClass, attr, c))
+    c2 = maybeBindArrayAsSingleValue(b2, this.normalizedWhereValue(dreamClass, attr, c2))
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
@@ -3602,6 +3602,22 @@ export function resolvePostgresSsl(connectionConf: DreamDbConfig): TlsConnection
   if (connectionConf.ssl !== undefined) return connectionConf.ssl
   if (connectionConf.useSsl) return { rejectUnauthorized: false }
   return false
+}
+
+const EQUALITY_OPERATORS_TAKING_A_WHOLE_ARRAY_VALUE = ['=', '!=', '<>'] as const
+
+/**
+ * Kysely renders a raw Javascript array passed as the right-hand side of a
+ * comparison as a value list (`($1, $2)`), which is what `in` / `not in` need,
+ * but which Postgres rejects for `=` against an array column
+ * (`operator does not exist: text[] = record`). For the equality operators,
+ * bind the array as a single parameter so that `ops.equal([...])` against an
+ * array column means literal array equality (`"col" = $1`).
+ */
+function maybeBindArrayAsSingleValue(operator: KyselyComparisonOperatorExpression | null, val: any) {
+  if (!Array.isArray(val)) return val
+  if (!EQUALITY_OPERATORS_TAKING_A_WHOLE_ARRAY_VALUE.includes(operator as any)) return val
+  return sql.val(val)
 }
 
 function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {

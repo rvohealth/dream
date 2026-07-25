@@ -22,6 +22,7 @@ import {
   ModelColumnType,
   OrderDir,
   TableColumnEnumTypeArray,
+  TableColumnIsArray,
   TableColumnNames,
   TableColumnType,
   TableNameForGlobalModelName,
@@ -88,75 +89,103 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   ModelPropertyType = ModelColumnType<Schema, TableName, Column>,
   ColumnType = TableColumnType<Schema, TableName, Column>,
   EnumTypeArray extends string[] | null = TableColumnEnumTypeArray<Schema, TableName, Column>,
+  IsArrayColumn = TableColumnIsArray<Schema, TableName, Column>,
   //
   PermanentOpsValTypes = null | readonly [],
-  OpsValType = EnumTypeArray extends null
-    ? ColumnType extends 'bigint'
-      ? TypesAllowedForBigintAgainstTheDb | PermanentOpsValTypes
-      : ModelPropertyType extends DateTime | CalendarDate
-        ? DateTime | CalendarDate | null
-        : ModelPropertyType extends ClockTime
-          ? ClockTime | null
-          : ModelPropertyType extends ClockTimeTz
-            ? ClockTimeTz | null
-            : ModelPropertyType extends number | string
-              ? ModelPropertyType | PermanentOpsValTypes
-              : never
-    : EnumTypeArray extends string[]
-      ? EnumTypeArray[number] | PermanentOpsValTypes
-      : never,
+  // The element type of an array column, e.g. `string` for `text[]` and
+  // `BalloonColorsEnum` for `balloon_colors_enum[]`.
+  ArrayElementType = ModelPropertyType extends readonly (infer ElementType)[] ? ElementType : never,
+  // The whole-array value accepted by equality operators against an array
+  // column, e.g. `ops.equal(['a', 'b'])` against a `text[]` column. Readonly,
+  // because `ops.equal`'s `const` type parameter infers array literals as
+  // readonly tuples.
+  ArrayOpsValType = readonly ArrayElementType[] | PermanentOpsValTypes | RawBuilder<unknown>,
+  //
+  // NOTE: the array-ness branch MUST come before the enum branches: the schema
+  // sets `enumArrayType` for scalar enum columns AND for enum array columns, so
+  // an enum array column would otherwise take the scalar enum path.
+  OpsValType = IsArrayColumn extends true
+    ? ArrayElementType | PermanentOpsValTypes
+    : EnumTypeArray extends null
+      ? ColumnType extends 'bigint'
+        ? TypesAllowedForBigintAgainstTheDb | PermanentOpsValTypes
+        : ModelPropertyType extends DateTime | CalendarDate
+          ? DateTime | CalendarDate | null
+          : ModelPropertyType extends ClockTime
+            ? ClockTime | null
+            : ModelPropertyType extends ClockTimeTz
+              ? ClockTimeTz | null
+              : ModelPropertyType extends number | string
+                ? ModelPropertyType | PermanentOpsValTypes
+                : never
+      : EnumTypeArray extends string[]
+        ? EnumTypeArray[number] | PermanentOpsValTypes
+        : never,
   //
   ResolvedOpsValType = OpsValType | RawBuilder<unknown>,
   //
-  PartialTypes = EnumTypeArray extends null
-    ? ModelPropertyType extends DateTime
-      ?
-          | Range<DateTime | CalendarDate>
-          | Range<null, DateTime | CalendarDate>
-          | (() => Range<DateTime | CalendarDate>)
-          | (() => Range<null, DateTime | CalendarDate>)
-          | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-      : ModelPropertyType extends ClockTime
+  // NOTE: as with `OpsValType` above, the array-ness branch MUST come first.
+  //
+  // A whole-array value is only accepted under the equality operators, which
+  // are the only ones the driver binds as a single array parameter
+  // (EQUALITY_OPERATORS_TAKING_A_WHOLE_ARRAY_VALUE in QueryDriver/Kysely.ts).
+  // Under any other operator an array value is rendered as a SQL value list,
+  // which PostgreSQL rejects, so it stays a compile error rather than becoming
+  // a database error.
+  PartialTypes = IsArrayColumn extends true
+    ?
+        | (EnumTypeArray extends string[] ? EnumTypeArray : never)
+        | OpsStatement<'=' | '!=' | '<>', ArrayOpsValType, any>
+        | OpsStatement<KyselyComparisonOperatorExpression, PermanentOpsValTypes | RawBuilder<unknown>, any>
+    : EnumTypeArray extends null
+      ? ModelPropertyType extends DateTime
         ?
-            | Range<ClockTime>
-            | Range<null, ClockTime>
-            | (() => Range<ClockTime>)
-            | (() => Range<null, ClockTime>)
+            | Range<DateTime | CalendarDate>
+            | Range<null, DateTime | CalendarDate>
+            | (() => Range<DateTime | CalendarDate>)
+            | (() => Range<null, DateTime | CalendarDate>)
             | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-        : ModelPropertyType extends ClockTimeTz
+        : ModelPropertyType extends ClockTime
           ?
-              | Range<ClockTimeTz>
-              | Range<null, ClockTimeTz>
-              | (() => Range<ClockTimeTz>)
-              | (() => Range<null, ClockTimeTz>)
+              | Range<ClockTime>
+              | Range<null, ClockTime>
+              | (() => Range<ClockTime>)
+              | (() => Range<null, ClockTime>)
               | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-          : ModelPropertyType extends CalendarDate
+          : ModelPropertyType extends ClockTimeTz
             ?
-                | Range<DateTime | CalendarDate>
-                | Range<null, DateTime | CalendarDate>
-                | (() => Range<DateTime | CalendarDate>)
-                | (() => Range<null, DateTime | CalendarDate>)
-                | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType>
-            : ColumnType extends 'bigint'
+                | Range<ClockTimeTz>
+                | Range<null, ClockTimeTz>
+                | (() => Range<ClockTimeTz>)
+                | (() => Range<null, ClockTimeTz>)
+                | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
+            : ModelPropertyType extends CalendarDate
               ?
-                  | Range<TypesAllowedForBigintAgainstTheDb>
-                  | Range<null, TypesAllowedForBigintAgainstTheDb>
-                  | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-              : ModelPropertyType extends number
+                  | Range<DateTime | CalendarDate>
+                  | Range<null, DateTime | CalendarDate>
+                  | (() => Range<DateTime | CalendarDate>)
+                  | (() => Range<null, DateTime | CalendarDate>)
+                  | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType>
+              : ColumnType extends 'bigint'
                 ?
-                    | Range<ModelPropertyType>
-                    | Range<null, ModelPropertyType>
+                    | Range<TypesAllowedForBigintAgainstTheDb>
+                    | Range<null, TypesAllowedForBigintAgainstTheDb>
                     | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-                : ModelPropertyType extends string
+                : ModelPropertyType extends number
                   ?
-                      | Range<string>
-                      | Range<null, string>
-                      | OpsStatement<KyselyComparisonOperatorExpression, string, any>
-                      | OpsStatement<TrigramOperator, ResolvedOpsValType, ExtraSimilarityArgs>
-                  : never
-    : EnumTypeArray extends string[]
-      ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-      : never,
+                      | Range<ModelPropertyType>
+                      | Range<null, ModelPropertyType>
+                      | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
+                  : ModelPropertyType extends string
+                    ?
+                        | Range<string>
+                        | Range<null, string>
+                        | OpsStatement<KyselyComparisonOperatorExpression, string, any>
+                        | OpsStatement<TrigramOperator, ResolvedOpsValType, ExtraSimilarityArgs>
+                    : never
+      : EnumTypeArray extends string[]
+        ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
+        : never,
 > = PartialTypes extends never
   ?
       | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
