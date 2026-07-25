@@ -441,6 +441,36 @@ export type TableColumnEnumTypeArray<
         : never,
 > = EnumTypeArray
 
+/**
+ * Resolves to `true` when the schema marks the column as a database array
+ * column (e.g. `text[]`, `integer[]`, `balloon_colors_enum[]`), otherwise
+ * `false`. Enum array columns carry both `enumArrayType` and `isArray: true`,
+ * so any branch keyed off array-ness must be checked before branching on
+ * `TableColumnEnumTypeArray`, which is also set for scalar enum columns.
+ */
+export type TableColumnIsArray<
+  Schema,
+  TableName,
+  Column,
+  TableSchema extends Schema[TableName & keyof Schema] = Schema[TableName & keyof Schema],
+  TableColumns extends TableSchema['columns' & keyof TableSchema] = TableSchema['columns' &
+    keyof TableSchema],
+  TableColumnMetadata extends TableColumns[Column & keyof TableColumns] = TableColumns[Column &
+    keyof TableColumns],
+  IsArrayCandidate = TableColumnMetadata['isArray' & keyof TableColumnMetadata],
+  // NOTE: the leading `never` arm is load-bearing. A schema entry that omits
+  // `isArray` makes `IsArrayCandidate` resolve to `never`, and a bare
+  // `IsArrayCandidate extends true` distributes over that naked type parameter
+  // and yields `never` rather than the documented `false` — which then
+  // propagates into the array-ness branches of `OpsValType`/`PartialTypes`
+  // (also keyed off naked type parameters) and erases every `ops` and `Range`
+  // form from the column in `where()`. The tuple wrappers defuse distribution
+  // for that one check only: the second arm stays deliberately distributive so
+  // that an `any` schema still resolves to `boolean` and reaches both the
+  // array and the scalar branch, as internal callers with an untyped schema
+  // rely on.
+> = [IsArrayCandidate] extends [never] ? false : IsArrayCandidate extends true ? true : false
+
 ///////////////////////////
 // Association type helpers
 ///////////////////////////

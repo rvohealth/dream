@@ -145,11 +145,27 @@ const ops = {
   /**
    * Creates an `OpsStatement` using the `=` operator for strict equality.
    *
+   * **Array columns:** passing an array means literal array equality — the
+   * whole array is bound as a single parameter, so the column must match
+   * element-for-element, in order. This is the opt-in counterpart to a bare
+   * array in a where clause (`Post.where({ tags: ['a', 'b'] })`), which means
+   * `IN`, and to `ops.any`, which tests for containment of a single element.
+   * Element types are constrained by the column, so an enum array column
+   * rejects a string that is not a member of its enum.
+   *
+   * Note that PostgreSQL defines no equality operator for `json` (as opposed
+   * to `jsonb`), so `ops.equal` against a `json[]` column raises at the
+   * database.
+   *
    * @param equal - The value the column must equal.
    * @returns An `OpsStatement` using the `=` operator.
    *
    * @example
    * User.where({ role: ops.equal('admin') })
+   *
+   * @example
+   * // matches only rows whose tags column is exactly ['a', 'b'], in that order
+   * Post.where({ tags: ops.equal(['a', 'b']) })
    */
   equal: <const T>(equal: T) => new OpsStatement('=', equal),
 
@@ -303,6 +319,9 @@ const ops = {
 
     /**
      * Creates an `OpsStatement` using the `!=` operator for inequality.
+     *
+     * **Array columns:** as with `ops.equal`, passing an array compares against
+     * the whole array rather than against its elements.
      *
      * @param equal - The value the column must not equal.
      * @returns An `OpsStatement` using the `!=` operator.
