@@ -20,6 +20,15 @@ describe('Dream#loaded', () => {
     })
   })
 
+  context('when a HasMany association matched zero rows, but loading has been attempted', () => {
+    it('is true', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const reloadedUser = await User.preload('compositions').find(user.id)
+      expect(reloadedUser!.loaded('compositions')).toBe(true)
+      expect(reloadedUser!.compositions).toEqual([])
+    })
+  })
+
   context('when loading has NOT been attempted', () => {
     it('is false', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
