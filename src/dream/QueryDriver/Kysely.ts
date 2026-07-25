@@ -55,6 +55,9 @@ import MissingThroughAssociationSource from '../../errors/associations/MissingTh
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
 import CannotNamespaceAssociationFilterToAnotherTable from '../../errors/CannotNamespaceAssociationFilterToAnotherTable.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import ArrayEqualityRequiresArrayColumn from '../../errors/ops/ArrayEqualityRequiresArrayColumn.js'
+import RowLockIncompatibleWithDistinct from '../../errors/RowLockIncompatibleWithDistinct.js'
+import RowLockIncompatibleWithJoinLoad from '../../errors/RowLockIncompatibleWithJoinLoad.js'
 import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
 import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
@@ -66,6 +69,7 @@ import ASTSchemaBuilder from '../../helpers/cli/ASTSchemaBuilder.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
 import compact from '../../helpers/compact.js'
 import { normalizeDataForDb } from '../../helpers/db/normalizeDataForDb.js'
+import isDatabaseArrayColumn from '../../helpers/db/types/isDatabaseArrayColumn.js'
 import EnvInternal from '../../helpers/EnvInternal.js'
 import groupBy from '../../helpers/groupBy.js'
 import isEmpty from '../../helpers/isEmpty.js'
@@ -605,11 +609,24 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async takeAll(
     options: {
       columns?: DreamColumnNames<DreamInstance>[]
+      lock?: boolean
     } = {}
   ): Promise<DreamInstance[]> {
-    if (this.query['joinLoadActivated']) return await this.executeJoinLoad(options)
+    if (this.query['joinLoadActivated']) {
+      // executeJoinLoad builds its own select and has nowhere to put a row
+      // lock, so a locked read here has to fail rather than quietly return
+      // unlocked rows and drop the guarantee the caller asked for
+      if (options.lock) throw new RowLockIncompatibleWithJoinLoad()
+      return await this.executeJoinLoad(options)
+    }
 
-    const kyselyQuery = this.buildSelect(options)
+    // `SELECT DISTINCT ON (...) ... FOR UPDATE` is rejected by the database, so
+    // fail loudly here instead of emitting SQL that cannot run
+    if (options.lock && this.query['distinctColumn']) throw new RowLockIncompatibleWithDistinct()
+
+    let kyselyQuery = this.buildSelect(options)
+    // row locking is adapter-specific, so it goes through the query driver seam
+    if (options.lock) kyselyQuery = this.applyRowLock(kyselyQuery, this.query['baseSqlAlias'])
     const results = await executeDatabaseQuery(kyselyQuery, 'execute')
     const theAll = results.map(r => this.dbResultToDreamInstance(r, this.dreamClass))
     await this.applyPreload(
@@ -2029,8 +2046,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       c = val
     }
 
-    c = maybeBindArrayAsSingleValue(b, this.normalizedWhereValue(dreamClass, attr, c))
-    c2 = maybeBindArrayAsSingleValue(b2, this.normalizedWhereValue(dreamClass, attr, c2))
+    c = maybeBindArrayAsSingleValue(dreamClass, a, b, this.normalizedWhereValue(dreamClass, attr, c))
+    c2 = maybeBindArrayAsSingleValue(dreamClass, a2, b2, this.normalizedWhereValue(dreamClass, attr, c2))
 
     if (a && c === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a)
     if (a2 && c2 === undefined) throw new CannotPassUndefinedAsAValueToAWhereClause(this.dreamClass, a2)
@@ -3613,10 +3630,26 @@ const EQUALITY_OPERATORS_TAKING_A_WHOLE_ARRAY_VALUE = ['=', '!=', '<>'] as const
  * (`operator does not exist: text[] = record`). For the equality operators,
  * bind the array as a single parameter so that `ops.equal([...])` against an
  * array column means literal array equality (`"col" = $1`).
+ *
+ * The rewrite is gated on the column actually being a database array column.
+ * An array reaching an equality operator against a *scalar* column is a
+ * mistake, and binding it as a single value would turn that mistake into a
+ * clause that matches nothing (`"name" = '{}'`) instead of one that raises, so
+ * it throws instead.
  */
-function maybeBindArrayAsSingleValue(operator: KyselyComparisonOperatorExpression | null, val: any) {
+function maybeBindArrayAsSingleValue(
+  dreamClass: typeof Dream,
+  column: string | null,
+  operator: KyselyComparisonOperatorExpression | null,
+  val: any
+) {
   if (!Array.isArray(val)) return val
   if (!EQUALITY_OPERATORS_TAKING_A_WHOLE_ARRAY_VALUE.includes(operator as any)) return val
+
+  const isolatedColumn = maybeNamespacedColumnNameToColumnName(column ?? '')
+  if (!isDatabaseArrayColumn(dreamClass, isolatedColumn as any))
+    throw new ArrayEqualityRequiresArrayColumn(dreamClass, isolatedColumn, operator as string)
+
   return sql.val(val)
 }
 

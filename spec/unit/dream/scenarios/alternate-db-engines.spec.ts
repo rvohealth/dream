@@ -33,6 +33,22 @@ describe('leveraging alternate db engines', () => {
       expect(reloaded.email).toEqual('goodbye@world')
     })
 
+    context('a locked read on a driver that has not implemented the row-locking seam', () => {
+      it('fails loudly rather than silently performing an unlocked read', async () => {
+        // MysqlQueryDriver does not override `applyRowLock`, so the base
+        // implementation's throw is what a guarded destroy hits. Silently
+        // falling through to an unlocked read would drop the compare-and-set
+        // guarantee `lock: true` promises without any signal to the caller.
+        await MysqlUser.create({ email: 'hello@world', name: 'freddyboy' })
+
+        await expect(MysqlUser.where({ email: 'hello@world' }).destroy({ lock: true })).rejects.toThrow(
+          'implement applyRowLock in child class'
+        )
+
+        expect(await MysqlUser.where({ email: 'hello@world' }).count()).toEqual(1)
+      })
+    })
+
     context(
       'the live database has a column the compiled schema does not know about (rolling-deploy skew)',
       () => {

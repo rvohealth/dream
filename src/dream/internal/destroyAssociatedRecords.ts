@@ -100,12 +100,12 @@ function cascadeLoaded(dream: Dream, associationName: string): boolean {
 
 /**
  * @internal
+ *
+ * A plain assignment rather than `Object.defineProperty`: the key is a symbol,
+ * so it is already excluded from `Object.keys`, `for...in` and
+ * `JSON.stringify` without an explicit descriptor, and this runs once per node
+ * of a potentially wide cascade tree.
  */
 function markCascadeLoaded(dream: Dream): void {
-  Object.defineProperty(dream, CASCADE_LOADED, {
-    value: true,
-    enumerable: false,
-    configurable: true,
-    writable: true,
-  })
+  ;(dream as any)[CASCADE_LOADED] = true
 }

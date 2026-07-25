@@ -5,7 +5,9 @@ import Dream from '../Dream.js'
 import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../errors/CannotPassAdditionalFieldsToPluckEachAfterCallback.js'
+import InvalidBatchSize from '../errors/InvalidBatchSize.js'
 import LeftJoinPreloadIncompatibleWithFindEach from '../errors/LeftJoinPreloadIncompatibleWithFindEach.js'
+import RowLockIncompatibleWithDistinct from '../errors/RowLockIncompatibleWithDistinct.js'
 import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequiredCallbackFunctionToPluckEach.js'
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
@@ -78,6 +80,7 @@ import DreamTransaction from './DreamTransaction.js'
 import buildSerializerPreloadPaths from './internal/buildSerializerPreloadPaths.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
+import { DestroyOptions } from './internal/destroyOptions.js'
 import QueryDriverBase from './QueryDriver/Base.js'
 
 // Cache for serializer preload-path results, keyed by "${globalName}:${serializerKey}"
@@ -95,6 +98,10 @@ export default class Query<
    */
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
+    // deliberately small: every record in a locked destroy batch stays
+    // row-locked for the whole batch, so an oversized batch blocks unrelated
+    // writers. See Query#destroy's `lock` option.
+    LOCKED_DESTROY: 10,
     PLUCK_EACH: 10000,
     PLUCK_EACH_THROUGH: 1000,
   }
@@ -2493,21 +2500,111 @@ export default class Query<
    * // 12
    * ```
    *
+   * ## Guarded (compare-and-set) destroy
+   *
+   * By default, `destroy` reads the matching records and then destroys each of
+   * them, so a concurrent writer can change a record in between — the record is
+   * destroyed even though it no longer matches the Query that selected it.
+   * Passing `lock: true` closes that window, making `destroy` a compare-and-set
+   * the way `update(..., { skipHooks: true })` already is:
+   *
+   * ```ts
+   * const destroyed = await Order.where({ status: 'pending' }).destroy({ lock: true })
+   * // 0 — someone else moved every one of them out of 'pending' first
+   * ```
+   *
+   * With `lock: true`, records are processed in batches, and each batch runs in
+   * its own transaction which first re-selects that batch's records with an
+   * exclusive row lock and then destroys them before committing. Because the
+   * database re-checks the Query's conditions after acquiring each row lock,
+   * a record a concurrent transaction has already moved out of the Query drops
+   * out of the locked read and is never destroyed. The returned count is the
+   * number of records actually claimed, so a caller can detect that it lost a
+   * race by comparing the count against what it expected.
+   *
+   * Things to know before relying on it:
+   *
+   * - **The guarantee is per batch, not set-wide.** A run spanning more than one
+   *   batch can win a race in batch 1 and lose one in batch 2; nothing holds the
+   *   whole matched set still for the duration of the run. Sharing one
+   *   transaction across every batch — by threading a transaction onto the Query
+   *   itself, `Order.query().txn(txn).where({ ... }).destroy({ lock: true })` —
+   *   buys two things: the destroys become all-or-nothing (a rollback undoes the
+   *   whole run), and the row locks taken by every batch are held until you
+   *   commit. It does **not** extend the compare-and-set to the part of the set
+   *   the run has not reached yet: under READ COMMITTED each statement takes a
+   *   fresh snapshot, so a record moved out of the Query between batch 1 and
+   *   batch 2 still drops out of batch 2's locked read. A genuinely set-wide
+   *   guarantee needs REPEATABLE READ / SERIALIZABLE, or a single locking
+   *   statement over the whole set.
+   * - **Only a transaction carried by the Query is shared.** Merely wrapping the
+   *   call in `Model.transaction(...)` does not thread that transaction onto the
+   *   Query — `Dream.transaction` establishes no ambient transaction, it only
+   *   hands a `txn` to your callback — so each batch would open its own
+   *   transaction on a different pooled connection. Worse, if the surrounding
+   *   transaction has already written to any of the matched rows, each batch's
+   *   locked read blocks on locks the surrounding transaction holds while that
+   *   transaction awaits the destroy: a cycle across two connections, which
+   *   Postgres's deadlock detector cannot see, so it hangs rather than aborting.
+   *   Always pass the transaction with `.txn(txn)`.
+   * - **Behavior above READ COMMITTED differs.** The drop-out-of-the-result
+   *   behavior described above is READ COMMITTED (Postgres's default). Under
+   *   REPEATABLE READ or SERIALIZABLE, the same race raises a serialization
+   *   failure instead of silently returning a lower count. Both are safe; only
+   *   one of them is quiet.
+   * - **`batchSize` defaults to 10 here**, not `findEach`'s 1000, and the
+   *   default is deliberately small. Every row in a batch stays locked for the
+   *   whole batch, including the time spent running each record's hooks and
+   *   `dependent: 'destroy'` cascade, so an oversized batch blocks unrelated
+   *   writers touching those rows and surfaces as timeouts somewhere else in the
+   *   application, which is very hard to trace back to this destroy. Too small a
+   *   batch, by contrast, only slows down this call, which you can see and fix.
+   *   Lower it further for models with deep `dependent: 'destroy'` cascades or
+   *   expensive destroy hooks.
+   * - **A batch waits, without bound, for whoever holds the row.** The locked
+   *   read is a plain `FOR UPDATE`: if another transaction already holds a lock
+   *   on one of the batch's rows, this call blocks until that transaction ends,
+   *   holding its own transaction and its pooled connection open the whole
+   *   time. Dream sets no `lock_timeout` or `statement_timeout`, so a
+   *   long-running writer on the other side stalls the run indefinitely and, at
+   *   scale, ties up connections. If that is a risk in your application, set a
+   *   `lock_timeout` on the connection so a stuck batch fails instead of
+   *   hanging.
+   * - **If you are destroying a large set and do not need compare-and-set, do
+   *   not pass `lock`.** Plain `destroy()` (hooks and cascade, no locking) or
+   *   {@link Query.delete | delete} (a single statement, no hooks or cascade)
+   *   are the right tools for bulk removal.
+   *
    * @param __namedParameters - Options for destroying the instance
    * @param __namedParameters.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param __namedParameters.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param __namedParameters.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. Defaults to false
+   * @param __namedParameters.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
    * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
    * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
+   * @throws InvalidBatchSize if `batchSize` is not a positive integer
    */
   public async destroy({
     skipHooks,
     cascade,
+    lock,
+    batchSize,
   }: {
     skipHooks?: boolean | undefined
     cascade?: boolean | undefined
+    lock?: boolean | undefined
+    batchSize?: number | undefined
   } = {}): Promise<number> {
     let counter = 0
+
+    // resolve the default before validating: `??` would let an explicit 0
+    // through, and `limit(0)` means "no limit", which would turn a batched
+    // destroy into a single unbounded pass (and, with `lock`, a lock over the
+    // entire matched set)
+    const resolvedBatchSize =
+      batchSize ?? (lock ? Query.BATCH_SIZES.LOCKED_DESTROY : Query.BATCH_SIZES.FIND_EACH)
+    if (!Number.isInteger(resolvedBatchSize) || resolvedBatchSize < 1) throw new InvalidBatchSize(batchSize)
 
     const options = {
       bypassAllDefaultScopes: this.bypassAllDefaultScopes,
@@ -2516,18 +2613,121 @@ export default class Query<
       cascade,
     }
 
-    await this.findEach(async result => {
-      const subquery = this.dreamTransaction
-        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
-        : result
+    if (lock) {
+      return await this.lockedDestroy(options, resolvedBatchSize)
+    }
 
-      if (this.shouldReallyDestroy) {
-        await subquery.reallyDestroy(options)
-      } else {
-        await subquery.destroy(options)
+    await this.findEach(
+      async result => {
+        const subquery = this.dreamTransaction
+          ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+          : result
+
+        if (this.shouldReallyDestroy) {
+          await subquery.reallyDestroy(options)
+        } else {
+          await subquery.destroy(options)
+        }
+        counter++
+      },
+      {
+        batchSize: resolvedBatchSize,
       }
-      counter++
-    })
+    )
+
+    return counter
+  }
+
+  /**
+   * @internal
+   *
+   * The compare-and-set implementation behind `destroy({ lock: true })`.
+   *
+   * Each batch is handled in two steps inside one transaction:
+   *
+   * 1. an unlocked pluck of the next `batchSize` primary keys, in ascending
+   *    primary key order, which establishes the batch's window (its keyset
+   *    cursor) and tells us how many records were *attempted*. Only the keys are
+   *    read: hydrating and preloading these records would duplicate the work
+   *    step 2 does over the same rows; then
+   * 2. a locked re-read restricted to exactly those primary keys, which
+   *    re-applies every condition on the Query while acquiring an exclusive row
+   *    lock on each row it returns. Records a concurrent transaction has moved
+   *    out of the Query since step 1 do not come back, and are the records this
+   *    run lost the race for.
+   *
+   * The count comes from step 2's result set, which is why it reports records
+   * actually claimed rather than records attempted. (One thing it does not
+   * account for, because it never has: a `beforeDestroy` hook that sets
+   * `_preventDeletion` leaves the record in place but still counts.)
+   *
+   * The two-step shape is what keeps iteration correct. If the locked read both
+   * claimed rows and advanced the cursor, a batch whose records all lost the
+   * race would come back empty and end the run early, silently skipping every
+   * record after it. Advancing the cursor from step 1 instead means losing a
+   * race skips only the records that were lost.
+   *
+   * When the Query already carries a transaction, that transaction is used for
+   * every batch rather than opening one per batch, so the caller's transaction
+   * boundary wins and the locks are held until the caller commits.
+   */
+  private async lockedDestroy(options: DestroyOptions<DreamInstance>, batchSize: number): Promise<number> {
+    if (this.joinLoadActivated) throw new LeftJoinPreloadIncompatibleWithFindEach()
+    // the driver seam refuses this combination too, but catching it here means
+    // failing before any transaction is opened or any row is touched
+    if (this.distinctColumn) throw new RowLockIncompatibleWithDistinct()
+
+    const primaryKey = this.dreamInstance['_primaryKey']
+    const orderedQuery = this.order(null)
+      .order(this.namespacedPrimaryKey as any)
+      .limit(batchSize as any)
+
+    let counter = 0
+    // the cursor is compared against a sentinel rather than tested for
+    // truthiness, since a primary key of 0 is a legitimate cursor value that
+    // would otherwise reset the window to the start of the set
+    let lastId: any = undefined
+    let attemptedCount = 0
+
+    do {
+      const batchQuery =
+        lastId === undefined
+          ? orderedQuery
+          : orderedQuery.where({ [primaryKey]: ops.greaterThan(lastId) } as any)
+
+      const destroyBatch = async (txn: DreamTransaction<Dream>) => {
+        const candidateIds: any[] = await batchQuery.txn(txn).pluck(this.namespacedPrimaryKey as any)
+        if (!candidateIds.length) return { attempted: 0, claimed: 0, lastId }
+
+        const claimed = await this.dbDriverInstance(
+          batchQuery.txn(txn).where({ [primaryKey]: candidateIds } as any)
+        ).takeAll({ lock: true })
+
+        for (const record of claimed) {
+          const inTransaction = record.txn(txn) as unknown as DreamInstance
+
+          if (this.shouldReallyDestroy) {
+            await inTransaction.reallyDestroy(options)
+          } else {
+            await inTransaction.destroy(options)
+          }
+        }
+
+        return {
+          attempted: candidateIds.length,
+          claimed: claimed.length,
+          lastId: candidateIds.at(-1),
+        }
+      }
+
+      const results = this.dreamTransaction
+        ? await destroyBatch(this.dreamTransaction)
+        : await this.dreamClass.transaction(async txn => await destroyBatch(txn))
+
+      counter += results.claimed
+      attemptedCount = results.attempted
+      lastId = results.lastId
+    } while (attemptedCount > 0 && attemptedCount === batchSize)
 
     return counter
   }
@@ -2553,15 +2753,20 @@ export default class Query<
    * @param __namedParameters - Options for destroying the instance
    * @param __namedParameters.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param __namedParameters.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param __namedParameters.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. See {@link Query.destroy} for the full semantics. Defaults to false
+   * @param __namedParameters.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
    * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
    * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
+   * @throws InvalidBatchSize if `batchSize` is not a positive integer
    */
   public async reallyDestroy({
     skipHooks,
     cascade,
-  }: { skipHooks?: boolean; cascade?: boolean } = {}): Promise<number> {
-    return await this.clone({ shouldReallyDestroy: true }).destroy({ skipHooks, cascade })
+    lock,
+    batchSize,
+  }: { skipHooks?: boolean; cascade?: boolean; lock?: boolean; batchSize?: number } = {}): Promise<number> {
+    return await this.clone({ shouldReallyDestroy: true }).destroy({ skipHooks, cascade, lock, batchSize })
   }
 
   /**
