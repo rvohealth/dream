@@ -48,4 +48,60 @@ describe('@Encrypted', () => {
       expect(typeof user.getAttribute('myOtherEncryptedSecret')).toEqual('string')
     })
   })
+
+  context('when set to null', () => {
+    it('stores null in the encrypted column rather than encrypting null', () => {
+      const user = User.new()
+      user.secret = null
+      user.otherSecret = null
+      expect(user.getAttribute('encryptedSecret')).toBeNull()
+      expect(user.getAttribute('myOtherEncryptedSecret')).toBeNull()
+      expect(user.secret).toBeNull()
+      expect(user.otherSecret).toBeNull()
+    })
+
+    it('persists null to the database and restores it as null', async () => {
+      const user = await User.create({
+        secret: null,
+        otherSecret: null,
+        email: 'a@b.com',
+        password: 's3cr3t!',
+      })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.getAttribute('encryptedSecret')).toBeNull()
+      expect(reloadedUser.getAttribute('myOtherEncryptedSecret')).toBeNull()
+      expect(reloadedUser.secret).toBeNull()
+      expect(reloadedUser.otherSecret).toBeNull()
+    })
+
+    it('clears a previously-encrypted value when updated to null', async () => {
+      const user = await User.create({
+        secret: 'Howdy world',
+        otherSecret: { token: 'SHH!' },
+        email: 'a@b.com',
+        password: 's3cr3t!',
+      })
+      expect(user.getAttribute('encryptedSecret')).toEqual(expect.any(String))
+
+      await user.update({ secret: null, otherSecret: null })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.getAttribute('encryptedSecret')).toBeNull()
+      expect(reloadedUser.getAttribute('myOtherEncryptedSecret')).toBeNull()
+      expect(reloadedUser.secret).toBeNull()
+      expect(reloadedUser.otherSecret).toBeNull()
+    })
+  })
+
+  context('when never set', () => {
+    it('reads back as null from a database row with a null encrypted column', async () => {
+      const user = await User.create({ email: 'a@b.com', password: 's3cr3t!' })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.getAttribute('encryptedSecret')).toBeNull()
+      expect(reloadedUser.secret).toBeNull()
+      expect(reloadedUser.otherSecret).toBeNull()
+    })
+  })
 })
