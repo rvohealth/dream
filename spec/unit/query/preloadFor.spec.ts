@@ -1,13 +1,16 @@
+import Dream from '../../../src/Dream.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
 import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
 import ModelA from '../../../test-app/app/models/CircularReference/ModelA.js'
 import ModelB from '../../../test-app/app/models/CircularReference/ModelB.js'
 import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
 import ChoreCleaningSupply from '../../../test-app/app/models/Polymorphic/ChoreCleaningSupply.js'
@@ -18,6 +21,7 @@ import Workout from '../../../test-app/app/models/Polymorphic/Workout.js'
 import WorkoutType from '../../../test-app/app/models/Polymorphic/WorkoutType.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
+import Sandbag from '../../../test-app/app/models/Sandbag.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.preloadFor(serializerKey)', () => {
@@ -102,6 +106,68 @@ describe('Dream.preloadFor(serializerKey)', () => {
       const summaryCollar = await Collar.query().preloadFor('summary').firstOrFail()
       expect(summaryCollar.pet).toMatchDreamModel(pet)
       expect(summaryCollar.pet.loaded('ratings')).toBe(false)
+    })
+  })
+
+  context("with a callback function that returns 'omit'", () => {
+    context('when the omitted association is nested', () => {
+      it('leaves its parent preloaded and preloads nothing beneath it', async () => {
+        const user = await User.create({ email: 'omit-nested@preload.test', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        const post = await Post.create({ body: 'hi', user })
+        await Rating.create({ user, rateable: post })
+        await Collar.create({ pet })
+
+        // Collar's `default` serializer yields the single path [[Collar, 'pet'], [Pet, 'ratings']]
+        const query = Collar.query().preloadFor('default', associationName =>
+          associationName === 'ratings' ? 'omit' : undefined
+        )
+        const collar = await query.firstOrFail()
+
+        expect(Object.keys((query as any)['preloadStatements'])).toEqual(['pet'])
+        expect(collar.loaded('pet')).toBe(true)
+        expect(collar.pet).toMatchDreamModel(pet)
+        expect(collar.pet.loaded('ratings')).toBe(false)
+      })
+    })
+
+    context('when the omitted association is at the top level', () => {
+      it('preloads nothing from that path', async () => {
+        const user = await User.create({ email: 'omit-top@preload.test', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        const post = await Post.create({ body: 'hi', user })
+        await Rating.create({ user, rateable: post })
+        await Collar.create({ pet })
+
+        const query = Collar.query().preloadFor('default', associationName =>
+          associationName === 'pet' ? 'omit' : undefined
+        )
+        const collar = await query.firstOrFail()
+
+        expect((query as any)['preloadStatements']).toEqual({})
+        expect(collar.loaded('pet')).toBe(false)
+      })
+
+      it("never re-roots the omitted association's tail on the queried class", async () => {
+        const user = await User.create({ email: 'omit-reroot@preload.test', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        const post = await Post.create({ body: 'hi', user })
+        await Rating.create({ user, rateable: post })
+        await Collar.create({ pet })
+
+        const seen: string[] = []
+        const query = Collar.query().preloadFor('default', associationName => {
+          seen.push(associationName)
+          return associationName === 'pet' ? 'omit' : undefined
+        })
+        await query.firstOrFail()
+
+        // `ratings` is only reachable through `pet`. Omitting `pet` must discard the rest of the
+        // path; otherwise `ratings` is re-interpreted against Collar, the class the query is rooted
+        // on, and an association the caller never asked for gets preloaded.
+        expect(seen).not.toContain('ratings')
+        expect(Object.keys((query as any)['preloadStatements'])).not.toContain('ratings')
+      })
     })
   })
 
@@ -284,6 +350,125 @@ describe('Dream.preloadFor(serializerKey)', () => {
       expect(reloaded.balloonLine).toMatchDreamModel(
         await BalloonLine.where({ balloonId: mylar.id }).firstOrFail()
       )
+    })
+  })
+
+  context('STI: a serializer key that every STI child registers with a different serializer', () => {
+    // The `stiUnion` key is registered by all three of Balloon's STI children, each with its own
+    // serializer (Balloon/StiUnion{Animal,Latex,Mylar}Serializer):
+    //
+    //   Animal (sorts first)  rendersMany('sandbags'), delegatedAttribute('balloonLine', 'material')
+    //   Latex                 rendersMany('sandbags'), rendersMany('heartRatings')
+    //   Mylar                 rendersMany('sandbags'), rendersOne('balloonLine')
+    //
+    // preloadFor on the Balloon STI base must union the preload paths derived from every child's
+    // serializer, rather than deriving them from the alphabetically-first child alone.
+    it('preloads an association rendered only by a child that does not sort first alphabetically', async () => {
+      const user = await User.create({ email: 'sti-union@preload.test', password: 'howyadoin' })
+      const latex = await Latex.create({ user, color: 'blue' })
+      const heartRating = await HeartRating.create({ user, extraRateable: latex, rating: 5 })
+
+      const reloaded = (await Balloon.query().preloadFor('stiUnion').firstOrFail()) as Latex
+      expect(reloaded).toMatchDreamModel(latex)
+      // `heartRatings` is rendered only by Latex's `stiUnion` serializer, and Latex sorts after
+      // Animal, so a traversal of the alphabetically-first child's serializer never sees it.
+      expect(reloaded.loaded('heartRatings')).toBe(true)
+      expect(reloaded.heartRatings).toMatchDreamModels([heartRating])
+    })
+
+    context('when more than one child renders the same association identically', () => {
+      it('dedupes to a single path, calling modifierFn once with the STI base class and applying its `and`', async () => {
+        const user = await User.create({ email: 'sti-union-dedupe@preload.test', password: 'howyadoin' })
+        const mylar = await Mylar.create({ user, color: 'red' })
+        await Sandbag.create({ mylar, weight: 3 })
+        const heavySandbag = await Sandbag.create({ mylar, weight: 7 })
+
+        const calls: [string, typeof Dream][] = []
+        const reloaded = (await Balloon.query()
+          .preloadFor('stiUnion', (associationName, dreamClass) => {
+            calls.push([associationName, dreamClass])
+            if (associationName === 'sandbags') {
+              const modifier: DreamClassAssociationAndStatement<typeof Balloon, 'sandbags'> = {
+                and: { weight: 7 },
+              }
+              return modifier
+            }
+          })
+          .firstOrFail()) as Mylar
+
+        // all three children render `sandbags` identically, so the three identical paths collapse
+        expect(calls.filter(([associationName]) => associationName === 'sandbags')).toEqual([
+          ['sandbags', Balloon],
+        ])
+        expect(reloaded.sandbags).toMatchDreamModels([heavySandbag])
+      })
+    })
+
+    context('when two children reach the same association by different shapes', () => {
+      it('emits both prefix-sharing paths, calling modifierFn once per path, with the last path’s `and` winning', async () => {
+        const user = await User.create({ email: 'sti-union-diverge@preload.test', password: 'howyadoin' })
+        const mylar = await Mylar.create({ user, color: 'red' })
+        await BalloonLine.create({ balloon: mylar, material: 'twine' })
+
+        const balloonLineAnds: { material: string }[] = []
+        const reloaded = (await Balloon.query()
+          .preloadFor('stiUnion', associationName => {
+            if (associationName !== 'balloonLine') return undefined
+            // Animal's path is emitted before Mylar's, so the first call belongs to Animal's
+            // `delegatedAttribute('balloonLine', ...)` and the second to Mylar's
+            // `rendersOne('balloonLine')`, whose serializer adds a nested `balloon` edge.
+            const and = { material: balloonLineAnds.length === 0 ? 'nylon' : 'twine' } as const
+            balloonLineAnds.push(and)
+            return { and }
+          })
+          .firstOrFail()) as Mylar
+
+        // Animal terminates `balloonLine` while Mylar renders it with a nested edge, so the two
+        // paths share a prefix but are not identical and the dedupe cannot collapse them.
+        expect(balloonLineAnds).toEqual([{ material: 'nylon' }, { material: 'twine' }])
+        // `and` statements are assigned, not merged, so the later path's `and` replaces the
+        // earlier one: the balloon line survives the preload because it is twine, not nylon.
+        expect(reloaded.balloonLine).toMatchDreamModel(
+          await BalloonLine.where({ balloonId: mylar.id }).firstOrFail()
+        )
+      })
+    })
+
+    context('when modifierFn omits an association that another child extends with a nested edge', () => {
+      it('prunes the whole subtree rather than re-rooting the omitted association’s tail on the queried class', async () => {
+        const user = await User.create({ email: 'sti-union-omit@preload.test', password: 'howyadoin' })
+        const mylar = await Mylar.create({ user, color: 'red' })
+        await BalloonLine.create({ balloon: mylar, material: 'twine' })
+
+        const seen: [string, typeof Dream][] = []
+        const query = Balloon.query().preloadFor('stiUnion', (associationName, dreamClass) => {
+          seen.push([associationName, dreamClass])
+          return associationName === 'balloonLine' ? 'omit' : undefined
+        })
+        const reloaded = await query.firstOrFail()
+
+        expect(reloaded.loaded('balloonLine')).toBe(false)
+        // Mylar's path is [Balloon.balloonLine, BalloonLine.balloon]. Omitting `balloonLine` must
+        // discard the rest of that path; otherwise `balloon` is re-interpreted against Balloon (the
+        // queried class), preloading an association the caller never asked for.
+        expect(seen.map(([associationName]) => associationName)).not.toContain('balloon')
+        expect(Object.keys((query as any)['preloadStatements'])).toEqual(['sandbags', 'heartRatings'])
+      })
+    })
+
+    context('rooted on an STI child rather than the STI base', () => {
+      it("preloads only that child's serializer's associations, not the union across its siblings", async () => {
+        const user = await User.create({ email: 'sti-union-child@preload.test', password: 'howyadoin' })
+        const latex = await Latex.create({ user, color: 'blue' })
+        await BalloonLine.create({ balloon: latex, material: 'nylon' })
+
+        const reloaded = await Latex.query().preloadFor('stiUnion').firstOrFail()
+        expect(reloaded).toMatchDreamModel(latex)
+        expect(reloaded.loaded('sandbags')).toBe(true)
+        expect(reloaded.loaded('heartRatings')).toBe(true)
+        // `balloonLine` is reached only by Animal's and Mylar's `stiUnion` serializers
+        expect(reloaded.loaded('balloonLine')).toBe(false)
+      })
     })
   })
 })

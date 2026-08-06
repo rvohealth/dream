@@ -802,12 +802,14 @@ export default class Query<
     let query: RetQuery = this as unknown as RetQuery
 
     preloadArgs.forEach(dreamClassAndAssociationNameTupleArray => {
-      query = (query as any).preload(
-        ...(convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
-          dreamClassAndAssociationNameTupleArray,
-          modifierFn
-        ) as any)
-      ) as RetQuery
+      const args = convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
+        dreamClassAndAssociationNameTupleArray,
+        modifierFn
+      )
+      // `modifierFn` returning 'omit' prunes the path from the omitted association down, which can
+      // leave nothing to preload
+      if (args.length === 0) return
+      query = (query as any).preload(...(args as any)) as RetQuery
     })
 
     return query

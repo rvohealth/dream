@@ -1,6 +1,10 @@
 import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
 import Collar from '../../../test-app/app/models/Collar.js'
+import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
@@ -56,6 +60,30 @@ describe('Dream#loadFor(serializerKey)', () => {
       })
 
       expect(reloaded!.pet).toMatchDreamModel(pet)
+    })
+  })
+
+  context('STI', () => {
+    // Counterpart to the `stiUnion` specs in spec/unit/query/preloadFor.spec.ts. A persisted STI
+    // record always hydrates to its child class (sqlResultToDreamInstance throws STIChildMissing
+    // rather than instantiating the base), and Dream#query roots at `this.constructor`, so
+    // instance-rooted loadFor is always rooted on an STI child and never on the STI base. The
+    // union across children therefore cannot arise here — this spec pins that.
+    it("loads only the hydrated STI child's serializer's associations, not the union across its siblings", async () => {
+      const user = await User.create({ email: 'sti-union@loadfor.test', password: 'howyadoin' })
+      const latex = await Latex.create({ user, color: 'blue' })
+      const heartRating = await HeartRating.create({ user, extraRateable: latex, rating: 5 })
+      await BalloonLine.create({ balloon: latex, material: 'nylon' })
+
+      const balloon = await Balloon.query().firstOrFail()
+      expect(balloon.constructor).toBe(Latex)
+
+      const reloaded = await balloon.loadFor('stiUnion').execute()
+      // rendered by Latex's `stiUnion` serializer
+      expect(reloaded.heartRatings).toMatchDreamModels([heartRating])
+      expect(reloaded.loaded('sandbags')).toBe(true)
+      // rendered only by Animal's and Mylar's `stiUnion` serializers
+      expect(reloaded.loaded('balloonLine')).toBe(false)
     })
   })
 })

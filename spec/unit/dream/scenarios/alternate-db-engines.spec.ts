@@ -39,13 +39,18 @@ describe('leveraging alternate db engines', () => {
         // implementation's throw is what a guarded destroy hits. Silently
         // falling through to an unlocked read would drop the compare-and-set
         // guarantee `lock: true` promises without any signal to the caller.
-        await MysqlUser.create({ email: 'hello@world', name: 'freddyboy' })
+        const user = await MysqlUser.create({ email: 'hello@world', name: 'freddyboy' })
 
         await expect(MysqlUser.where({ email: 'hello@world' }).destroy({ lock: true })).rejects.toThrow(
           'implement applyRowLock in child class'
         )
 
-        expect(await MysqlUser.where({ email: 'hello@world' }).count()).toEqual(1)
+        // scoped to the record this example created, since the `mysql`
+        // connection is never truncated between examples (spec/setup/hooks.ts
+        // truncates only `default` and `alternateConnection`), so `mysql_users`
+        // accumulates rows across examples and runs. Counting by email instead
+        // would drift above 1 as soon as another row shares it.
+        expect(await MysqlUser.where({ id: user.id }).count()).toEqual(1)
       })
     })
 

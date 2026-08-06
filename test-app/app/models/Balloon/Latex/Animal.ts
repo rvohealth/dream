@@ -19,6 +19,7 @@ export default class Animal extends Latex {
       default: 'Balloon/Latex/AnimalSerializer',
       allBalloonStiChildren: 'BalloonSummarySerializer',
       delegated: 'Balloon/DelegatedAttributeSerializer',
+      stiUnion: 'Balloon/StiUnionAnimalSerializer',
     }
   }
 }

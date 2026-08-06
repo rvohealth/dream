@@ -14,7 +14,6 @@ import {
 
 export interface ResolvedSerializerAssociationEdge {
   associationAs: string
-  sourceDreamClass: typeof Dream
   type: 'rendersOne' | 'rendersMany' | 'delegatedAttribute'
   serializerAssociationName: string
   targets: {
@@ -23,7 +22,51 @@ export interface ResolvedSerializerAssociationEdge {
   }[]
 }
 
+/**
+ * Keyed on the two arguments, which are the function's only inputs. Weak on both, so an entry is
+ * collectable once either the Dream class or the serializer is. The cached arrays are handed out
+ * by reference and must be treated as read-only by callers.
+ */
+const resolvedEdgesCache = new WeakMap<
+  typeof Dream,
+  WeakMap<DreamModelSerializerType | SimpleObjectSerializerType, ResolvedSerializerAssociationEdge[]>
+>()
+
+/**
+ * @internal
+ *
+ * Resolves the rendersOne/rendersMany/delegatedAttribute attributes of `serializer` to the
+ * associations of `dreamClass` they preload, along with the classes and serializers each one
+ * targets.
+ *
+ * Pure in its two arguments and memoized on them: every call rebuilds a throwaway serializer
+ * builder and re-infers the serializers of every association target, and the traversal in
+ * buildSerializerPreloadPaths revisits the same (class, serializer) pair many times.
+ *
+ * The memo shares the staleness window of `Query`'s own preload-path cache: a target class's
+ * resolved serializers depend on STI children registering themselves as their modules evaluate, so
+ * both are only reliable once models are loaded (which `DreamApp#load('models')` does at boot).
+ */
 export default function resolveSerializerAssociationEdges(
+  dreamClass: typeof Dream,
+  serializer: DreamModelSerializerType | SimpleObjectSerializerType
+): ResolvedSerializerAssociationEdge[] {
+  let cachedForDreamClass = resolvedEdgesCache.get(dreamClass)
+
+  if (cachedForDreamClass === undefined) {
+    cachedForDreamClass = new WeakMap()
+    resolvedEdgesCache.set(dreamClass, cachedForDreamClass)
+  }
+
+  const cached = cachedForDreamClass.get(serializer)
+  if (cached !== undefined) return cached
+
+  const edges = buildSerializerAssociationEdges(dreamClass, serializer)
+  cachedForDreamClass.set(serializer, edges)
+  return edges
+}
+
+function buildSerializerAssociationEdges(
   dreamClass: typeof Dream,
   serializer: DreamModelSerializerType | SimpleObjectSerializerType
 ): ResolvedSerializerAssociationEdge[] {
@@ -48,7 +91,6 @@ export default function resolveSerializerAssociationEdges(
       if (serializerAssociation.type === 'delegatedAttribute') {
         return {
           associationAs: association.as,
-          sourceDreamClass: dreamClass,
           type: serializerAssociation.type,
           serializerAssociationName,
           targets: [],
@@ -90,7 +132,6 @@ export default function resolveSerializerAssociationEdges(
 
       return {
         associationAs: association.as,
-        sourceDreamClass: dreamClass,
         type: serializerAssociation.type,
         serializerAssociationName,
         targets,
