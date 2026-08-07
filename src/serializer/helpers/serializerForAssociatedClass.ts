@@ -36,10 +36,8 @@ export function serializerForAssociatedClass<ObjectType extends Dream | ViewMode
   // It is observable, though, so it is not "nothing happens": the picked serializer is invoked and
   // its output spread into the parent's payload, so the parent JSON carries the
   // alphabetically-first child's flattened keys as nulls, and omits keys only a later-sorting child
-  // would flatten. That is a shape question about a null association, not the preload bug 2.23.0
-  // fixed (see CHANGELOG) — that one was preload paths taking a single STI child's serializer,
-  // and it is fixed by unioning every child's serializer in buildSerializerPreloadPaths (and, for
-  // `psy i:serialization`, in Dream.displaySerialization). Unioning here is meaningless: exactly one
-  // set of keys can be flattened into the payload.
+  // would flatten. Unioning every child's serializer here — which is what buildSerializerPreloadPaths
+  // does for preload paths — is meaningless: exactly one set of keys can be flattened into the
+  // payload.
   return inferSerializersFromDreamClassOrViewModelClass(associatedClass, options.serializerKey)[0] ?? null
 }

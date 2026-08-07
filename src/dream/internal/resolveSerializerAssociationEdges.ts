@@ -156,16 +156,6 @@ function buildSerializerAssociationEdges(
         // so the association is preloaded but never descended into, and a row of a *well-formed*
         // sibling fails at render with NonLoadedAssociation — an error naming a class that has
         // nothing wrong with it.
-        //
-        // History: a catch for MissingSerializersDefinition stood here from PR #569 ("Fix
-        // `preloadFor` on circular references", commit 22489677) until 2.23.0, with no written
-        // rationale anywhere. It was motivated by a `delegatedAttribute` to a serializer-less model
-        // (the CircularReference LocalizedText model in the test app), a shape that no longer
-        // reaches this code at all, since delegated attributes return early above. It was not
-        // vestigial, though: what it actually masked was a different shape — a rendersOne/rendersMany whose
-        // *target class* has no `serializers` getter, which Dream's own test app still contains
-        // (CompositionSerializer renders `compositionAssets`; CompositionAsset has no `serializers`
-        // getter). Masking that shape is what 2.23.0 deliberately stopped doing.
         const serializers = (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer
           ? compact([(serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer])
           : compact(

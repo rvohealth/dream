@@ -680,10 +680,10 @@ export default class Dream {
     // Deliberately one serializer: this maps a single serializer's view of the class, and taking
     // the first is only a narrowing when `this` is an STI base (where
     // inferSerializersFromDreamClassOrViewModelClass returns one serializer per child, sorted by
-    // sanitizedName). That narrowing is *not* the bug 2.23.0 fixed (see CHANGELOG) — that one was
-    // in preload-path building, which is now unioned across every child in
-    // buildSerializerPreloadPaths, and in `displaySerialization` below, which is unioned for the
-    // same reason. Nothing in src/ calls
+    // sanitizedName). That narrowing is deliberate and differs from `buildSerializerPreloadPaths`
+    // and `displaySerialization` below, both of which union every child's serializer because they
+    // answer "what does a query load / display for this class", not "what does one serializer
+    // render". Nothing in src/ calls
     // this method; it exists as the single-serializer entry point onto recursiveSerializationMap and
     // is exercised by spec/unit/dream/serializationMap.spec.ts, which pins the narrowing on an STI
     // base so that the divergence from displaySerialization is executable rather than only
@@ -770,14 +770,11 @@ export default class Dream {
           // target underneath it, and then — below all of them — the union of their association
           // trees, which is what `preloadFor` loads through this association.
           //
-          // Before the merge this printed a heading per serializer, each immediately followed by
-          // that serializer's own tree. It cannot print that any more: the recursion below is a
-          // single merged walk of every serializer of the target, so there is one tree, not one
-          // per child. Grouping the serializer names under a single heading is what keeps that
-          // honest — repeating the heading would leave the merged tree indented directly beneath
-          // the last child's serializer name and attribute every sibling's associations to it.
-          // Output is unchanged for any target that resolves to a single serializer, which is
-          // every association that does not target an STI base.
+          // The recursion below is a single merged walk of every serializer of the target, so
+          // there is one tree, not one per child. Grouping the serializer names under a single
+          // heading is what keeps that honest — repeating the heading per serializer would leave
+          // the merged tree indented directly beneath the last one's name and attribute every
+          // sibling's associations to it.
           printSerializerHierarchyLevel({ targetSerializers: target.serializers, forDisplayDepth })
         }
 
