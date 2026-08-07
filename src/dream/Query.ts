@@ -83,20 +83,29 @@ import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './intern
 import { DestroyOptions } from './internal/destroyOptions.js'
 import QueryDriverBase from './QueryDriver/Base.js'
 
-// Cache for serializer preload-path results, keyed by "${globalName}:${serializerKey}"
-let extractedNestedPathsCache = new Map<string, DreamClassAndAssociationNameTuple[][]>()
+/**
+ * Cache for serializer preload-path results, keyed on the root class itself and then the serializer
+ * key. Keying on the class rather than its global name is what makes the cache self-invalidating:
+ * loading a fresh set of model classes into the process yields new class objects, so entries
+ * resolved against the previous ones become unreachable and collectable rather than being served
+ * under a name that now means something else.
+ */
+let extractedNestedPathsCache = new WeakMap<
+  typeof Dream,
+  Map<string, DreamClassAndAssociationNameTuple[][]>
+>()
 
 /**
  * @internal
  *
- * Drops every memoized preload path. The cache key is the root class's global name plus the
- * serializer key, but the paths it holds are resolved against process-global state the key does not
- * capture (each target's `serializers` getter, the STI children registered on each target, and the
- * DreamApp serializer registry), so anything that replaces that state must clear this cache. See
- * `clearResolvedSerializerAssociationEdgesCache`, which is cleared alongside it.
+ * Drops every memoized preload path. Only needed when a class object that stays in the process has
+ * its `serializers` getter replaced, which the cache cannot detect — specs that install or remove
+ * one around an example. Replacing the model classes themselves needs no call, since the cache
+ * keys on the class object. See `clearResolvedSerializerAssociationEdgesCache`, which has the same
+ * contract and is cleared alongside it.
  */
 export function clearSerializerPreloadPathsCache() {
-  extractedNestedPathsCache = new Map()
+  extractedNestedPathsCache = new WeakMap()
 }
 
 export default class Query<
@@ -804,12 +813,18 @@ export default class Query<
       >
     >,
   >(this: Q, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn): RetQuery {
-    const cacheKey = `${this.dreamClass.globalName}:${serializerKey ?? 'default'}`
+    const cacheKey = serializerKey ?? 'default'
 
-    let preloadArgs = extractedNestedPathsCache.get(cacheKey)
+    let pathsBySerializerKey = extractedNestedPathsCache.get(this.dreamClass)
+    if (!pathsBySerializerKey) {
+      pathsBySerializerKey = new Map()
+      extractedNestedPathsCache.set(this.dreamClass, pathsBySerializerKey)
+    }
+
+    let preloadArgs = pathsBySerializerKey.get(cacheKey)
     if (!preloadArgs) {
       preloadArgs = buildSerializerPreloadPaths(this.dreamClass, serializerKey)
-      extractedNestedPathsCache.set(cacheKey, preloadArgs)
+      pathsBySerializerKey.set(cacheKey, preloadArgs)
     }
 
     // Rather than calling `preload` once per path (which deep clones the accumulating preload tree

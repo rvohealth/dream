@@ -11,8 +11,7 @@ import {
 } from '../db/testDatabasePool.js'
 import validateTable from '../db/validators/validateTable.js'
 import Dream from '../Dream.js'
-import Query, { clearSerializerPreloadPathsCache } from '../dream/Query.js'
-import { clearResolvedSerializerAssociationEdgesCache } from '../dream/internal/resolveSerializerAssociationEdges.js'
+import Query from '../dream/Query.js'
 import QueryDriverBase from '../dream/QueryDriver/Base.js'
 import PostgresQueryDriver from '../dream/QueryDriver/Postgres.js'
 import Encrypt, { EncryptAlgorithm, EncryptOptions } from '../encrypt/index.js'
@@ -76,12 +75,6 @@ export default class DreamApp {
     if (!dreamApp.serializers) setCachedSerializers({})
 
     cacheDreamApp(dreamApp)
-
-    // Serializer resolution memoizes against the models, STI registrations, and serializer registry
-    // of whichever app was cached. A second init in the same process (embedders, hot reload, specs
-    // that re-initialize) replaces all three, so drop anything resolved against the previous one.
-    clearResolvedSerializerAssociationEdgesCache()
-    clearSerializerPreloadPathsCache()
 
     if (!opts.bypassDbConnectionsDuringInit) {
       // Claim this worker's pool database before any connection is built, so

@@ -34,16 +34,11 @@ let resolvedEdgesCache = new WeakMap<
 /**
  * @internal
  *
- * Drops every memoized edge set. The memo keys on (dreamClass, serializer) but its result also
- * depends on process-global state those two keys do not capture — each target's `serializers`
- * getter, the STI children registered on each target, and the DreamApp serializer registry — so
- * anything that replaces that state must clear the memo rather than let it serve edges resolved
- * against the old state.
- *
- * In a normal application lifecycle there is nothing to clear: `DreamApp.init` loads models and
- * serializers before the first query, and none of those inputs change afterward. This exists for
- * the lifecycles where they do: a second `DreamApp.init` in one process (embedders, hot reload),
- * and specs that install or remove a `serializers` getter around an example.
+ * Drops every memoized edge set. Only needed when a class object that stays in the process has its
+ * `serializers` getter replaced, which the memo cannot detect — specs that install or remove one
+ * around an example. Replacing the model classes themselves needs no call, since the memo keys on
+ * the class and serializer objects and entries resolved against the previous ones become
+ * unreachable.
  */
 export function clearResolvedSerializerAssociationEdgesCache() {
   resolvedEdgesCache = new WeakMap()
@@ -62,10 +57,9 @@ export function clearResolvedSerializerAssociationEdgesCache() {
  *
  * The two arguments are not the function's only inputs, though: resolving a target's serializers
  * also reads that target's `serializers` getter, the STI children registered on it, and the
- * DreamApp serializer registry. Like `Query`'s own preload-path cache, the memo is therefore only
- * meaningful once models and serializers are loaded (which `DreamApp.init` does at boot), and it
- * must be dropped whenever that state is replaced — see
- * `clearResolvedSerializerAssociationEdgesCache`.
+ * DreamApp serializer registry. Loading a fresh set of classes replaces the keys along with that
+ * state, so the memo follows it. Mutating a `serializers` getter in place does not, and needs
+ * `clearResolvedSerializerAssociationEdgesCache` — see there.
  */
 export default function resolveSerializerAssociationEdges(
   dreamClass: typeof Dream,
