@@ -30,9 +30,9 @@ import {
 } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
+import mergeSerializerAssociationEdges from './dream/internal/mergeSerializerAssociationEdges.js'
 import printSerializerHierarchyLevel from './dream/internal/printSerializerHierarchyLevel.js'
 import reload from './dream/internal/reload.js'
-import resolveSerializerAssociationEdges from './dream/internal/resolveSerializerAssociationEdges.js'
 import runValidations from './dream/internal/runValidations.js'
 import saveDream from './dream/internal/saveDream.js'
 import {
@@ -677,9 +677,18 @@ export default class Dream {
     SerializerKey extends DreamSerializerKey<I>,
   >(this: T, serializerKey?: SerializerKey): RecursiveSerializerInfo {
     const key = serializerKey || 'default'
+    // Deliberately one serializer: this maps a single serializer's view of the class, and taking
+    // the first is only a narrowing when `this` is an STI base (where
+    // inferSerializersFromDreamClassOrViewModelClass returns one serializer per child, sorted by
+    // sanitizedName). That narrowing is *not* the bug PR #740 fixed — that one was in preload-path
+    // building, which is now unioned across every child (buildSerializerPreloadPaths.ts:26-32), and
+    // in `displaySerialization` below, which is unioned for the same reason. Nothing in src/ calls
+    // this method; it exists as the single-serializer entry point onto recursiveSerializationMap and
+    // is exercised by spec/unit/dream/serializationMap.spec.ts. A caller that wants the union for an
+    // STI base wants displaySerialization's shape, not this one.
     const serializer = inferSerializersFromDreamClassOrViewModelClass(this, key)[0] ?? null
     if (!serializer) throw new Error(`unable to find serializer with key: ${key as string}`)
-    return this.recursiveSerializationMap(serializer)
+    return this.recursiveSerializationMap([serializer])
   }
 
   private static displaySerialization<
@@ -688,22 +697,51 @@ export default class Dream {
     SerializerKey extends DreamSerializerKey<I>,
   >(this: T, serializerKey?: SerializerKey): RecursiveSerializerInfo {
     const key = serializerKey || 'default'
-    const serializer = inferSerializersFromDreamClassOrViewModelClass(this, key)[0] ?? null
-    if (!serializer) throw new Error(`unable to find serializer with key: ${key as string}`)
+
+    /**
+     * When `this` is an STI base, this is one serializer per STI child (deduped), since each child
+     * may register a different serializer under `key`. Every one is walked, because this method
+     * backs `psy i:serialization`, whose purpose is verifying what gets preloaded — and
+     * `preloadFor` unions the preload paths of every child's serializer. Walking only one child's
+     * serializer would print a strict subset of what the query actually loads.
+     */
+    const serializers = inferSerializersFromDreamClassOrViewModelClass(this, key)
+    // Unreachable today, and deliberately not phrased as "no serializer found for key": a serializer
+    // key that a class does not register throws MissingSerializersDefinitionForKey (and a class with
+    // no `serializers` getter at all throws MissingSerializersDefinition) from inside the call above,
+    // and expandStiClasses always yields at least one class. The guard exists only so that a future
+    // change to any of those cannot turn an unresolvable serializer into a silently empty display.
+    if (serializers.length === 0)
+      throw new Error(
+        `displaySerialization: no serializers resolved for ${this.globalName} under serializer key "${key as string}". This should be impossible — an unresolvable serializer key throws before reaching here — and indicates a bug in Dream.`
+      )
 
     // eslint-disable-next-line no-console
     console.log(yoctocolors.cyan(this.sanitizedName))
 
-    // eslint-disable-next-line no-console
-    console.log(yoctocolors.gray((serializer as unknown as Record<'globalName', string>).globalName))
+    // One line per serializer: for an STI base the displayed tree is the union across its children,
+    // so naming a single child's serializer under the base's own name would misattribute the tree.
+    serializers.forEach(serializer => {
+      // eslint-disable-next-line no-console
+      console.log(yoctocolors.gray((serializer as unknown as Record<'globalName', string>).globalName))
+    })
 
-    return this.recursiveSerializationMap(serializer, {
+    return this.recursiveSerializationMap(serializers, {
       forDisplay: true,
     })
   }
 
+  /**
+   * @internal
+   *
+   * Maps the association tree reachable from `serializers` — every serializer that can render this
+   * class at this point in the walk, which is more than one when this class is an STI base. The
+   * serializers are merged into one edge set (see mergeSerializerAssociationEdges) rather than
+   * walked one at a time, so an association several of them render is visited once and the nested
+   * trees of a shared target merge instead of clobbering each other.
+   */
   private static recursiveSerializationMap(
-    serializer: DreamModelSerializerType | SimpleObjectSerializerType,
+    serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
     {
       forDisplay = false,
       forDisplayDepth = 0,
@@ -719,22 +757,32 @@ export default class Dream {
     if (repeatedAssociationTracker[depthTrackerId] + 1 > RECURSIVE_SERIALIZATION_MAX_REPEATS) return {}
     repeatedAssociationTracker[depthTrackerId]++
 
-    const edges = resolveSerializerAssociationEdges(this, serializer)
+    const edges = mergeSerializerAssociationEdges(this, serializers)
 
     const mappedAssociations = edges.reduce((accumulator, edge) => {
+      // An edge with no targets terminates: either a delegatedAttribute (never printed, and
+      // carrying `targets: []` by construction) or an association resolving to no serializer. Its
+      // nestedSerializerInfo is `{}` because this reduce never runs.
       const innerAssociationSerializerInfo = edge.targets.reduce((innerAccumulator, target) => {
-        if (forDisplay && edge.type !== 'delegatedAttribute') {
-          printSerializerHierarchyLevel({
-            serializerAssociationType: edge.type,
-            serializerAssociationName: edge.serializerAssociationName,
-            associationSerializer: target.serializer,
-            forDisplayDepth,
-          })
+        if (forDisplay) {
+          // One line per (association, target class, serializer). A target class with several
+          // serializers is an STI base on the other side of the association, and each child's
+          // serializer is its own line, exactly as before the merge.
+          target.serializers.forEach(associationSerializer =>
+            printSerializerHierarchyLevel({
+              serializerAssociationType: target.type,
+              serializerAssociationName: target.serializerAssociationName,
+              associationSerializer,
+              forDisplayDepth,
+            })
+          )
         }
 
         return {
           ...innerAccumulator,
-          ...target.dreamClass['recursiveSerializationMap'](target.serializer, {
+          // recursed once per target class with *all* of that class's serializers, so their nested
+          // trees merge rather than the last one winning a shallow spread
+          ...target.dreamClass['recursiveSerializationMap'](target.serializers, {
             forDisplay,
             forDisplayDepth: forDisplayDepth + 1,
             repeatedAssociationTracker,
@@ -744,7 +792,7 @@ export default class Dream {
 
       accumulator[edge.associationAs] = {
         parentDreamClass: this,
-        nestedSerializerInfo: edge.type === 'delegatedAttribute' ? {} : innerAssociationSerializerInfo,
+        nestedSerializerInfo: innerAssociationSerializerInfo,
       }
 
       return accumulator

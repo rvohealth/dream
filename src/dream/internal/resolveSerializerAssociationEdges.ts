@@ -84,6 +84,19 @@ function buildSerializerAssociationEdges(
         (serializerAssociation as InternalAnyTypedSerializerDelegatedAttribute).targetName ??
         serializerAssociation.name
 
+      // `dreamClass` is the class the walk is rooted at, which for an STI base is the base itself
+      // even while `serializer` is one child's serializer. That pairing is safe because an STI child
+      // cannot declare associations of its own — `@STI` throws
+      // StiChildCannotDefineNewAssociations (decorators/class/STI.ts:14-15) — so every association a
+      // child's serializer can render is declared on the base and resolves here.
+      //
+      // The one hole: that guard reads decorator metadata and
+      // `associationDeclarationNamesFromMetadata` returns [] when the metadata is absent
+      // (decorators/field/association/shared.ts:34-35), which is also what happens when the class
+      // decorator runs without a `context` (STI.ts:11). Under a TS config that does not emit
+      // decorator metadata the guard silently passes, a child-declared association survives, and it
+      // is dropped *here*, silently, by the return below — the symptom is then a missing preload and
+      // a NonLoadedAssociation at render, not a decorator error naming the real problem.
       const association = dreamClass['getAssociationMetadata'](serializerAssociationName)
       if (!association) return null
 
