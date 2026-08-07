@@ -3446,13 +3446,40 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const { name: associationName } = associationStringToNameAndAlias(associationNameAndMaybeAlias)
     dreams = dreams.filter(dream => dream.hasAssociation(associationName))
 
-    const groupedDreams = groupBy(dreams, dream => dream.sanitizedConstructorName)
+    // A single preload level can hold Dreams of unrelated classes: a polymorphic
+    // BelongsTo resolves to several target classes, and the Dreams it hands to the
+    // next level down declare their same-named associations independently. Each
+    // distinct declaration needs its own query, so the Dreams are batched by the
+    // pair that determines every query `_applyOnePreload` derives — the association
+    // metadata the Dream resolves for this name, and the class that query roots at.
+    // STI siblings share both (`STI` forbids a child from declaring its own
+    // associations, and all siblings root at the STI base), so they resolve in one
+    // query rather than one per concrete class.
+    const batchesByAssociation = new Map<AssociationStatement, Map<typeof Dream, Dream[]>>()
+
+    for (const dream of dreams) {
+      const association = dream['getAssociationMetadata'](associationName)
+      if (association === undefined) throw new UnexpectedUndefined()
+
+      let batchesByRootClass = batchesByAssociation.get(association)
+      if (batchesByRootClass === undefined) {
+        batchesByRootClass = new Map()
+        batchesByAssociation.set(association, batchesByRootClass)
+      }
+
+      const rootClass = (dream.constructor as typeof Dream)['stiBaseClassOrOwnClass']
+      const batch = batchesByRootClass.get(rootClass)
+      if (batch === undefined) batchesByRootClass.set(rootClass, [dream])
+      else batch.push(dream)
+    }
+
+    const batches = [...batchesByAssociation.values()].flatMap(batchesByRootClass => [
+      ...batchesByRootClass.values(),
+    ])
 
     return (
       await Promise.all(
-        Object.keys(groupedDreams).map(key =>
-          this._applyOnePreload(associationNameAndMaybeAlias, groupedDreams[key]!, onStatement)
-        )
+        batches.map(batch => this._applyOnePreload(associationNameAndMaybeAlias, batch, onStatement))
       )
     ).flat()
   }
