@@ -1,5 +1,4 @@
 import Dream from '../../Dream.js'
-import MissingSerializersDefinition from '../../errors/serializers/MissingSerializersDefinition.js'
 import compact from '../../helpers/compact.js'
 import DreamSerializerBuilder from '../../serializer/builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from '../../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
@@ -108,21 +107,39 @@ function buildSerializerAssociationEdges(
         : [maybeAssociatedClasses]
 
       const targets = associatedClasses.flatMap(associatedClass => {
-        let serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[] = []
-
-        try {
-          serializers = (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer
-            ? compact([(serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer])
-            : compact(
-                inferSerializersFromDreamClassOrViewModelClass(
-                  associatedClass,
-                  (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
-                )
+        // Deliberately unguarded: every serializer that cannot be resolved while building preload
+        // paths throws, and there is no tolerance here by design.
+        //
+        // Why: an unresolvable serializer is a configuration error, and the first query that walks
+        // the serializer graph is where it should be found — no rows, no rendering required.
+        // Swallowing it means the only way to discover a broken `serializerKey` (or a missing
+        // `serializers` getter) is a spec that creates a row of the affected class *and* renders it.
+        //
+        // Why the obvious tolerance is also wrong, not merely undesirable: the call below expands
+        // STI and throws on the *first* child that fails
+        // (inferSerializerFromDreamOrViewModel.ts:53-57), so catching here would drop the
+        // serializers of *every* child of this target. `edge.targets.length === 0` then sets
+        // `terminates = true` (buildSerializerPreloadPaths.ts:110-112), so the association is
+        // preloaded but never descended into, and a row of a *well-formed* sibling fails at render
+        // with NonLoadedAssociation — an error naming a class that has nothing wrong with it.
+        //
+        // History: a catch for MissingSerializersDefinition stood here from 2025-07-11 (22489677,
+        // PR #569, "Fix `preloadFor` on circular references") until 2.23.0, with no written
+        // rationale anywhere. It was motivated by a `delegatedAttribute` to a serializer-less model
+        // (test-app/app/models/CircularReference/LocalizedText.ts), a shape that no longer reaches
+        // this code at all, since delegated attributes return early above. It was not vestigial,
+        // though: what it actually masked was a different shape — a rendersOne/rendersMany whose
+        // *target class* has no `serializers` getter, which Dream's own test app still contains
+        // (CompositionSerializer renders `compositionAssets`; CompositionAsset has no `serializers`
+        // getter). Masking that shape is what 2.23.0 deliberately stopped doing.
+        const serializers = (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer
+          ? compact([(serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializer])
+          : compact(
+              inferSerializersFromDreamClassOrViewModelClass(
+                associatedClass,
+                (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
               )
-        } catch (error) {
-          if (!(error instanceof MissingSerializersDefinition)) throw error
-          serializers = []
-        }
+            )
 
         return serializers.map(associatedSerializer => ({
           dreamClass: associatedClass,

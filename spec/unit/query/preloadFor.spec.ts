@@ -1,5 +1,11 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import Dream from '../../../src/Dream.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
+import MissingSerializersDefinition from '../../../src/errors/serializers/MissingSerializersDefinition.js'
+import MissingSerializersDefinitionForKey from '../../../src/errors/serializers/MissingSerializersDefinitionForKey.js'
+import NoGlobalSerializerForSpecifiedKey from '../../../src/errors/serializers/NoGlobalSerializerForSpecifiedKey.js'
+import NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey from '../../../src/errors/serializers/NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey.js'
+import inferSerializerFromDreamOrViewModel from '../../../src/serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -10,7 +16,10 @@ import ModelA from '../../../test-app/app/models/CircularReference/ModelA.js'
 import ModelB from '../../../test-app/app/models/CircularReference/ModelB.js'
 import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
+import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
+import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
 import ChoreCleaningSupply from '../../../test-app/app/models/Polymorphic/ChoreCleaningSupply.js'
@@ -471,4 +480,103 @@ describe('Dream.preloadFor(serializerKey)', () => {
       })
     })
   })
+
+  // Through 2.22.x, `resolveSerializerAssociationEdges` caught MissingSerializersDefinition while
+  // resolving a rendersOne/rendersMany target's serializers and treated the target as having none.
+  // As of 2.23.0 there is no such tolerance: every serializer that cannot be resolved while
+  // building preload paths throws.
+  context('when a rendersOne/rendersMany target cannot resolve a serializer', () => {
+    // CompositionSerializer renders `compositionAssets`, and CompositionAsset declares no
+    // `serializers` getter at all.
+    context('when the target class has no `serializers` getter', () => {
+      it('throws MissingSerializersDefinition', () => {
+        expect(() => Composition.query().preloadFor('default')).toThrow(MissingSerializersDefinition)
+        expect(() => Composition.query().preloadFor('default')).toThrow(
+          /Missing serializers definition on class `CompositionAsset`/
+        )
+      })
+
+      // This is the sub-case that succeeded end-to-end before 2.23.0: rendersMany resolves the
+      // associated serializer once per element, so an empty association never reaches the missing
+      // `serializers` getter at render time. Such code preloaded *and* rendered, and now throws.
+      it('throws even when the association is empty, so rendering it succeeds', async () => {
+        const user = await User.create({ email: 'no-serializers@preload.test', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        composition.compositionAssets = []
+        composition.passthroughCurrentLocalizedText = null as unknown as LocalizedText
+
+        const serializer = inferSerializerFromDreamOrViewModel(composition, 'default')
+        expect(serializer(composition as never).render()).toEqual({
+          id: composition.id,
+          metadata: {},
+          compositionAssets: [],
+          passthroughCurrentLocalizedText: null,
+        })
+
+        expect(() => Composition.query().preloadFor('default')).toThrow(MissingSerializersDefinition)
+      })
+    })
+
+    // The remaining three resolution errors were never swallowed — the catch only tolerated
+    // MissingSerializersDefinition — but nothing pinned that they reach the caller. These do.
+    context('when the target registers a `serializers` getter that omits the key', () => {
+      it('throws MissingSerializersDefinitionForKey', () => {
+        withTargetSerializers({}, () => {
+          expect(() => Composition.query().preloadFor('default')).toThrow(MissingSerializersDefinitionForKey)
+          expect(() => Composition.query().preloadFor('default')).toThrow(
+            /Missing serializers definition for `default` on class `CompositionAsset`/
+          )
+        })
+      })
+    })
+
+    context('when the target names a global serializer that is not registered', () => {
+      it('throws NoGlobalSerializerForSpecifiedKey', () => {
+        withTargetSerializers({ default: 'NotARegisteredSerializer' }, () => {
+          expect(() => Composition.query().preloadFor('default')).toThrow(NoGlobalSerializerForSpecifiedKey)
+          expect(() => Composition.query().preloadFor('default')).toThrow(
+            /CompositionAsset specified a global name of "NotARegisteredSerializer" for serializer key "default",\s+but no serializer corresponds to "NotARegisteredSerializer"/
+          )
+        })
+      })
+    })
+
+    context('when the target names a global name registered to something that is not a serializer', () => {
+      it('throws NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey', () => {
+        const registry = DreamApp.getOrFail().serializers
+        registry['NotASerializerAtAll'] = (() => 'definitely not a serializer builder') as never
+
+        try {
+          withTargetSerializers({ default: 'NotASerializerAtAll' }, () => {
+            expect(() => Composition.query().preloadFor('default')).toThrow(
+              NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey
+            )
+            expect(() => Composition.query().preloadFor('default')).toThrow(
+              /the derived serializer is not a Dream serializer/
+            )
+          })
+        } finally {
+          Reflect.deleteProperty(registry, 'NotASerializerAtAll')
+        }
+      })
+    })
+  })
 })
+
+/**
+ * CompositionAsset has no `serializers` getter to spy on, so one is defined on its prototype for
+ * the duration of `cb` and removed afterward. Safe to leave no cache behind: every call under it
+ * throws, and neither `Query`'s preload-path cache nor the resolved-edges memo caches a throw.
+ */
+function withTargetSerializers(serializers: Record<string, string>, cb: () => void) {
+  Object.defineProperty(CompositionAsset.prototype, 'serializers', {
+    configurable: true,
+    get: () => serializers,
+  })
+
+  try {
+    cb()
+  } finally {
+    Reflect.deleteProperty(CompositionAsset.prototype, 'serializers')
+  }
+}

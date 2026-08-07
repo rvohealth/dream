@@ -1,7 +1,9 @@
+import MissingSerializersDefinition from '../../../src/errors/serializers/MissingSerializersDefinition.js'
 import { RecursiveSerializerInfo } from '../../../src/types/recursiveSerialization.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
+import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
 import PolymorphicTask from '../../../test-app/app/models/Polymorphic/Task.js'
@@ -134,6 +136,18 @@ describe('Dream.serializationMap', () => {
           },
         },
       } satisfies RecursiveSerializerInfo)
+    })
+  })
+
+  // `recursiveSerializationMap` shares its serializer-resolution path with `preloadFor`
+  // (`resolveSerializerAssociationEdges`), so the 2.23.0 removal of the
+  // MissingSerializersDefinition swallow reaches this method — and `psy i:serialization`, which
+  // is built on it — not only `preloadFor`.
+  context('when a rendersOne/rendersMany target class has no `serializers` getter', () => {
+    it('throws MissingSerializersDefinition', () => {
+      // CompositionSerializer renders `compositionAssets`; CompositionAsset declares no
+      // `serializers` getter.
+      expect(() => Composition['serializationMap']()).toThrow(MissingSerializersDefinition)
     })
   })
 })
