@@ -53,15 +53,17 @@ describe('Query#limit', () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
 
         const post1 = await Post.create({ user })
+        const post2 = await Post.create({ user })
 
         const rating1 = await Rating.create({ user, rateable: post1, rating: 3 })
-        const rating2 = await Rating.create({ user, rateable: post1, rating: 4 })
+        await Rating.create({ user, rateable: post1, rating: 4 })
         const rating3 = await Rating.create({ user, rateable: post1, rating: 1 })
+        // belongs to a different post, and would sort into the limited window if the polymorphic
+        // association filter leaked
+        await Rating.create({ user, rateable: post2, rating: 2 })
 
-        const results = await post1.associationQuery('ratings').limit(2).all()
-        const ratingIds = [rating1.id, rating2.id, rating3.id]
-        expect(results.length).toEqual(2)
-        expect(results.every(rating => ratingIds.includes(rating.id))).toBe(true)
+        const results = await post1.associationQuery('ratings').order('rating').limit(2).all()
+        expect(results).toMatchDreamModels([rating3, rating1])
       })
     })
 

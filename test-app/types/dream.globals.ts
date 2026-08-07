@@ -71,6 +71,7 @@ export const globalTypeConfig = {
     'Balloon/StiUnionLatexSerializer',
     'Balloon/StiUnionMylarSerializer',
     'BalloonLineSerializer',
+    'BalloonLineStiUnionSerializer',
     'BalloonSerializer',
     'BalloonSpotterBalloonSerializer',
     'BalloonSpotterSerializer',

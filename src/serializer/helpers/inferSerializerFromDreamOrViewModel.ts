@@ -4,6 +4,7 @@ import MissingSerializersDefinition from '../../errors/serializers/MissingSerial
 import MissingSerializersDefinitionForKey from '../../errors/serializers/MissingSerializersDefinitionForKey.js'
 import NoGlobalSerializerForSpecifiedKey from '../../errors/serializers/NoGlobalSerializerForSpecifiedKey.js'
 import NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey from '../../errors/serializers/NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey.js'
+import NoSerializersResolvedForKey from '../../errors/serializers/NoSerializersResolvedForKey.js'
 import compact from '../../helpers/compact.js'
 import expandStiClasses from '../../helpers/sti/expandStiClasses.js'
 import uniq from '../../helpers/uniq.js'
@@ -57,4 +58,28 @@ export function inferSerializersFromDreamClassOrViewModelClass(
   )
 
   return uniq(compact(serializers))
+}
+
+/**
+ * As `inferSerializersFromDreamClassOrViewModelClass`, but guarantees a non-empty result.
+ *
+ * The guard is unreachable today, and deliberately not phrased as "no serializer found for key": a
+ * serializer key that a class does not register throws `MissingSerializersDefinitionForKey` (and a
+ * class with no `serializers` getter at all throws `MissingSerializersDefinition`) from inside the
+ * inference above, and `expandStiClasses` always yields at least one class. It exists only so that
+ * a future change to any of those cannot turn an unresolvable serializer key into a silently empty
+ * serializer set — which, for the callers below, means a silently empty preload set and a
+ * `NonLoadedAssociation` at render rather than an error naming the real problem.
+ *
+ * Used by everything that walks a serializer graph rooted on a class rather than an instance —
+ * preload-path building and serialization display — so that they raise one typed error between
+ * them.
+ */
+export function inferSerializersFromDreamClassOrViewModelClassOrFail(
+  classDef: typeof Dream | ViewModelClass | null | undefined,
+  serializerKey: string
+): (DreamModelSerializerType | SimpleObjectSerializerType)[] {
+  const serializers = inferSerializersFromDreamClassOrViewModelClass(classDef, serializerKey)
+  if (serializers.length === 0) throw new NoSerializersResolvedForKey(classDef, serializerKey)
+  return serializers
 }

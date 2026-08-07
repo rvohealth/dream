@@ -1,12 +1,10 @@
 import Dream from '../../Dream.js'
-import { inferSerializersFromDreamClassOrViewModelClass } from '../../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import { inferSerializersFromDreamClassOrViewModelClassOrFail } from '../../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
 import { DreamClassAndAssociationNameTuple } from '../../types/recursiveSerialization.js'
-import { DreamModelSerializerType, SimpleObjectSerializerType } from '../../types/serializer.js'
+import { SerializerType } from '../../types/serializer.js'
 import { RECURSIVE_SERIALIZATION_MAX_REPEATS } from '../constants.js'
 import buildAssociationPaths, { AssociationPathEdge } from './buildAssociationPaths.js'
-import resolveSerializerAssociationEdges from './resolveSerializerAssociationEdges.js'
-
-type SerializerType = DreamModelSerializerType | SimpleObjectSerializerType
+import mergeSerializerAssociationEdges from './mergeSerializerAssociationEdges.js'
 
 /**
  * A single traversal node covers a Dream class together with *every* serializer that can render it
@@ -29,16 +27,7 @@ export default function buildSerializerPreloadPaths(
    * walked: an association rendered only by, say, the alphabetically-last child would otherwise be
    * missing from the preload set and throw NonLoadedAssociation at render time.
    */
-  const serializers = inferSerializersFromDreamClassOrViewModelClass(dreamClass, key)
-  // Unreachable today, and deliberately not phrased as "no serializer found for key": a serializer
-  // key that a class does not register throws MissingSerializersDefinitionForKey (and a class with
-  // no `serializers` getter at all throws MissingSerializersDefinition) from inside the call above,
-  // and expandStiClasses always yields at least one class. The guard exists only so that a future
-  // change to any of those cannot turn an unresolvable serializer into a silently empty preload set.
-  if (serializers.length === 0)
-    throw new Error(
-      `buildSerializerPreloadPaths: no serializers resolved for ${dreamClass.globalName} under serializer key "${key}". This should be impossible — an unresolvable serializer key throws before reaching here — and indicates a bug in Dream.`
-    )
+  const serializers = inferSerializersFromDreamClassOrViewModelClassOrFail(dreamClass, key)
 
   /**
    * All of the serializers are walked in a *single* traversal, as one node per Dream class carrying
@@ -64,7 +53,7 @@ export default function buildSerializerPreloadPaths(
     { dreamClass, serializers },
     {
       getKey: node => node.dreamClass.globalName,
-      getEdges: serializerNodeToEdges,
+      getEdges: memoizedSerializerNodeToEdges(),
       maxRepeats: RECURSIVE_SERIALIZATION_MAX_REPEATS,
     }
   )
@@ -82,60 +71,81 @@ export default function buildSerializerPreloadPaths(
   return [...dedupedPaths.values()]
 }
 
-type MergedEdge = {
-  /**
-   * true when some serializer in the node's set terminates this association (a delegatedAttribute,
-   * or a rendersOne/rendersMany whose target resolves to no serializer)
-   */
-  terminates: boolean
-  targets: Map<string, SerializerTraversalNode>
+/**
+ * `serializerNodeToEdges` is a pure function of the node's (Dream class, ordered serializer set), so
+ * two nodes carrying the same pair have the same edges no matter which route reached them. The
+ * traversal hands `getEdges` a *fresh* node object per edge it descends — the `nextNode`s built
+ * below are new objects every time — so memoizing on the object itself would never hit; the key has
+ * to be the node's contents. Without this the whole merge (resolve every serializer's edges, then
+ * one Map per association and one node object per target class) is rebuilt at every visit, and the
+ * visit count is the number of *routes* through the serializer graph rather than the number of
+ * distinct nodes in it: an STI base whose children render `n` differently-named self-referential
+ * associations visits 1 + n + n² + n³ nodes to reach n⁴ paths, all of them the same one node.
+ *
+ * The serializer identifiers are assigned per call rather than globally so that the key stays short
+ * and so that nothing here holds a serializer alive; identity is all that matters, since the key is
+ * only ever compared against others built in the same call. Order-sensitive on purpose: the merge
+ * is insertion-ordered, so two nodes carrying the same serializers in a different order do not have
+ * the same edges.
+ *
+ * Scoped to a single `buildSerializerPreloadPaths` call for the same reason: it cannot then serve
+ * edges resolved against a stale serializer registry or a not-yet-complete set of STI children.
+ */
+function memoizedSerializerNodeToEdges(): (
+  node: SerializerTraversalNode
+) => AssociationPathEdge<SerializerTraversalNode>[] {
+  const cache = new Map<string, AssociationPathEdge<SerializerTraversalNode>[]>()
+  const serializerIds = new Map<SerializerType, number>()
+
+  const serializerId = (serializer: SerializerType): number => {
+    let id = serializerIds.get(serializer)
+
+    if (id === undefined) {
+      id = serializerIds.size
+      serializerIds.set(serializer, id)
+    }
+
+    return id
+  }
+
+  return node => {
+    const cacheKey = `${node.dreamClass.globalName}|${node.serializers.map(serializerId).join(',')}`
+    const cached = cache.get(cacheKey)
+    if (cached !== undefined) return cached
+
+    const edges = serializerNodeToEdges(node)
+    cache.set(cacheKey, edges)
+    return edges
+  }
 }
 
+/**
+ * `mergeSerializerAssociationEdges` — the single union both serializer walks run on, the other being
+ * `Dream.recursiveSerializationMap`'s display walk — has already resolved every serializer in the
+ * node's set and merged them into one insertion-ordered edge set keyed on (association, target
+ * class). All that is left here is to shed what only the display walk needs (the per-serializer edge
+ * type and serializer-side association name) and turn each merged edge into path edges: a leaf where
+ * some serializer terminates the association, plus one traversal node per target class carrying that
+ * class's serializers.
+ */
 function serializerNodeToEdges({
   dreamClass,
   serializers,
 }: SerializerTraversalNode): AssociationPathEdge<SerializerTraversalNode>[] {
-  // insertion-ordered, so edges are emitted in the order the serializers declare them
-  const mergedEdges = new Map<string, MergedEdge>()
+  return mergeSerializerAssociationEdges(dreamClass, serializers).flatMap<
+    AssociationPathEdge<SerializerTraversalNode>
+  >(edge => {
+    const tuple: DreamClassAndAssociationNameTuple = [dreamClass, edge.associationAs]
 
-  for (const serializer of serializers) {
-    for (const edge of resolveSerializerAssociationEdges(dreamClass, serializer)) {
-      let mergedEdge = mergedEdges.get(edge.associationAs)
-
-      if (mergedEdge === undefined) {
-        mergedEdge = { terminates: false, targets: new Map() }
-        mergedEdges.set(edge.associationAs, mergedEdge)
-      }
-
-      if (edge.type === 'delegatedAttribute' || edge.targets.length === 0) {
-        mergedEdge.terminates = true
-        continue
-      }
-
-      for (const target of edge.targets) {
-        const targetKey = target.dreamClass.globalName
-        const targetNode = mergedEdge.targets.get(targetKey)
-
-        if (targetNode === undefined) {
-          mergedEdge.targets.set(targetKey, {
-            dreamClass: target.dreamClass,
-            serializers: [target.serializer],
-          })
-        } else if (!targetNode.serializers.includes(target.serializer)) {
-          targetNode.serializers.push(target.serializer)
-        }
-      }
-    }
-  }
-
-  return [...mergedEdges.entries()].flatMap<AssociationPathEdge<SerializerTraversalNode>>(
-    ([associationAs, mergedEdge]) => {
-      const tuple: DreamClassAndAssociationNameTuple = [dreamClass, associationAs]
-
-      return [
-        ...(mergedEdge.terminates ? [{ nextNode: null, tuple }] : []),
-        ...[...mergedEdge.targets.values()].map(nextNode => ({ nextNode, tuple })),
-      ]
-    }
-  )
+    return [
+      ...(edge.terminates ? [{ nextNode: null, tuple }] : []),
+      ...edge.targets.map(target => ({
+        nextNode: {
+          dreamClass: target.dreamClass,
+          serializers: target.serializers.map(({ serializer }) => serializer),
+        },
+        tuple,
+      })),
+    ]
+  })
 }

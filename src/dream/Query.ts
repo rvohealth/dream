@@ -84,7 +84,20 @@ import { DestroyOptions } from './internal/destroyOptions.js'
 import QueryDriverBase from './QueryDriver/Base.js'
 
 // Cache for serializer preload-path results, keyed by "${globalName}:${serializerKey}"
-const extractedNestedPathsCache = new Map<string, DreamClassAndAssociationNameTuple[][]>()
+let extractedNestedPathsCache = new Map<string, DreamClassAndAssociationNameTuple[][]>()
+
+/**
+ * @internal
+ *
+ * Drops every memoized preload path. The cache key is the root class's global name plus the
+ * serializer key, but the paths it holds are resolved against process-global state the key does not
+ * capture (each target's `serializers` getter, the STI children registered on each target, and the
+ * DreamApp serializer registry), so anything that replaces that state must clear this cache. See
+ * `clearResolvedSerializerAssociationEdgesCache`, which is cleared alongside it.
+ */
+export function clearSerializerPreloadPathsCache() {
+  extractedNestedPathsCache = new Map()
+}
 
 export default class Query<
   DreamInstance extends Dream,
@@ -799,7 +812,16 @@ export default class Query<
       extractedNestedPathsCache.set(cacheKey, preloadArgs)
     }
 
-    let query: RetQuery = this as unknown as RetQuery
+    // Rather than calling `preload` once per path (which deep clones the accumulating preload tree
+    // on every call, making this quadratic in the number of paths), clone once, flesh out every
+    // path against the same accumulators, and clone the Query once at the end. Iteration order is
+    // preserved, so a later path's `and` still wins over an earlier path's for a shared prefix.
+    const preloadStatements = cloneDeepSafe(this.preloadStatements)
+    const preloadOnStatements: RelaxedPreloadOnStatement<
+      DreamInstance,
+      DreamInstance['DB'],
+      DreamInstance['schema']
+    > = cloneDeepSafe(this.preloadOnStatements)
 
     preloadArgs.forEach(dreamClassAndAssociationNameTupleArray => {
       const args = convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
@@ -807,12 +829,11 @@ export default class Query<
         modifierFn
       )
       // `modifierFn` returning 'omit' prunes the path from the omitted association down, which can
-      // leave nothing to preload
-      if (args.length === 0) return
-      query = (query as any).preload(...(args as any)) as RetQuery
+      // leave nothing to preload; `fleshOutJoinStatements` treats an empty arg list as a no-op.
+      this.fleshOutJoinStatements([], preloadStatements, preloadOnStatements, null, args as any)
     })
 
-    return query
+    return this.clone({ preloadStatements, preloadOnStatements }) as unknown as RetQuery
   }
 
   /**

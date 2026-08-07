@@ -1,5 +1,9 @@
 import DreamApp from '../../../src/dream-app/index.js'
+import { clearSerializerPreloadPathsCache } from '../../../src/dream/Query.js'
+import { clearResolvedSerializerAssociationEdgesCache } from '../../../src/dream/internal/resolveSerializerAssociationEdges.js'
 import Dream from '../../../src/Dream.js'
+import buildSerializerPreloadPaths from '../../../src/dream/internal/buildSerializerPreloadPaths.js'
+import Query from '../../../src/dream/Query.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
 import MissingSerializersDefinition from '../../../src/errors/serializers/MissingSerializersDefinition.js'
 import MissingSerializersDefinitionForKey from '../../../src/errors/serializers/MissingSerializersDefinitionForKey.js'
@@ -85,6 +89,25 @@ describe('Dream.preloadFor(serializerKey)', () => {
     })
   })
 
+  context('when the serializer yields more than one preload path', () => {
+    it('builds the preload statements in a single pass, cloning the Query once rather than once per path', () => {
+      // Balloon's `stiUnion` serializer union spans its STI children and yields several paths.
+      const paths = buildSerializerPreloadPaths(Balloon, 'stiUnion')
+      expect(paths.length).toBeGreaterThan(1)
+
+      const query = Balloon.query()
+      const cloneSpy = vi.spyOn(Query.prototype, 'clone')
+      const preloadingQuery = query.preloadFor('stiUnion')
+
+      // one clone total, regardless of path count; applying each path with its own `preload` call
+      // deep clones the accumulating preload tree once per path, which is quadratic per request
+      expect(cloneSpy).toHaveBeenCalledTimes(1)
+      expect(Object.keys((preloadingQuery as any)['preloadStatements']).sort()).toEqual(
+        ['balloonLine', 'heartRatings', 'sandbags'].sort()
+      )
+    })
+  })
+
   context('cached generation of preloadFor associations', () => {
     it('renders the same results multiple times', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
@@ -120,7 +143,7 @@ describe('Dream.preloadFor(serializerKey)', () => {
   })
 
   context("with a callback function that returns 'omit'", () => {
-    context('when the omitted association is nested', () => {
+    context('when the omitted association is in the middle of a path', () => {
       it('leaves its parent preloaded and preloads nothing beneath it', async () => {
         const user = await User.create({ email: 'omit-nested@preload.test', password: 'howyadoin' })
         const pet = await Pet.create({ user })
@@ -128,16 +151,24 @@ describe('Dream.preloadFor(serializerKey)', () => {
         await Rating.create({ user, rateable: post })
         await Collar.create({ pet })
 
-        // Collar's `default` serializer yields the single path [[Collar, 'pet'], [Pet, 'ratings']]
-        const query = Collar.query().preloadFor('default', associationName =>
-          associationName === 'ratings' ? 'omit' : undefined
-        )
+        // Collar's `deep` serializer yields [[Collar, 'pet'], [Pet, 'ratings'], [Rating, 'user']]
+        // and [[Collar, 'balloon']]. Omitting the *middle* tuple is what distinguishes truncating
+        // the path from dropping only the omitted tuple: dropping only `ratings` leaves `user`
+        // behind, which is then re-rooted onto `pet` and preloads Pet's `user` — an association the
+        // caller never asked for, on a class it was never resolved against.
+        const seen: string[] = []
+        const query = Collar.query().preloadFor('deep', associationName => {
+          seen.push(associationName)
+          return associationName === 'ratings' ? 'omit' : undefined
+        })
         const collar = await query.firstOrFail()
 
-        expect(Object.keys((query as any)['preloadStatements'])).toEqual(['pet'])
+        expect(seen).not.toContain('user')
+        expect((query as any)['preloadStatements']).toEqual({ pet: {}, balloon: {} })
         expect(collar.loaded('pet')).toBe(true)
         expect(collar.pet).toMatchDreamModel(pet)
         expect(collar.pet.loaded('ratings')).toBe(false)
+        expect(collar.pet.loaded('user')).toBe(false)
       })
     })
 
@@ -495,27 +526,40 @@ describe('Dream.preloadFor(serializerKey)', () => {
         const mylar = await Mylar.create({ user, color: 'red' })
         await BalloonLine.create({ balloon: mylar, material: 'twine' })
 
-        const balloonLineAnds: { material: string }[] = []
+        const balloonLineCalls: [string, typeof Dream][] = []
         const reloaded = (await Balloon.query()
-          .preloadFor('stiUnion', associationName => {
+          .preloadFor('stiUnion', (associationName, dreamClass) => {
             if (associationName !== 'balloonLine') return undefined
-            // Animal's path is emitted before Mylar's, so the first call belongs to Animal's
-            // `delegatedAttribute('balloonLine', ...)` and the second to Mylar's
-            // `rendersOne('balloonLine')`, whose serializer adds a nested `balloon` edge.
-            const and = { material: balloonLineAnds.length === 0 ? 'nylon' : 'twine' } as const
-            balloonLineAnds.push(and)
-            return { and }
+            balloonLineCalls.push([associationName, dreamClass])
+            // The terminating path is emitted first (pinned below, read straight off the path
+            // builder), so this matches the balloon line on the first call and rejects it on the
+            // second — whether the row loads is then evidence of which call's `and` was applied.
+            return { and: { material: balloonLineCalls.length === 1 ? 'twine' : 'nylon' } } as const
           })
           .firstOrFail()) as Mylar
 
-        // Animal terminates `balloonLine` while Mylar renders it with a nested edge, so the two
-        // paths share a prefix but are not identical and the dedupe cannot collapse them.
-        expect(balloonLineAnds).toEqual([{ material: 'nylon' }, { material: 'twine' }])
+        // Animal terminates `balloonLine` with a `delegatedAttribute` while Mylar renders it with a
+        // nested `balloon` edge, so the two paths share a prefix but are not identical and the
+        // dedupe cannot collapse them: modifierFn is invoked once per surviving path, both times
+        // with the STI base the query is rooted on.
+        expect(balloonLineCalls).toEqual([
+          ['balloonLine', Balloon],
+          ['balloonLine', Balloon],
+        ])
+
+        // The order those two calls arrive in, pinned at its source: the terminating one-tuple path
+        // before the two-tuple path that extends it.
+        expect(
+          buildSerializerPreloadPaths(Balloon as unknown as typeof Dream, 'stiUnion')
+            .filter(path => path[0]![1] === 'balloonLine')
+            .map(path => path.length)
+        ).toEqual([1, 2])
+
         // `and` statements are assigned, not merged, so the later path's `and` replaces the
-        // earlier one: the balloon line survives the preload because it is twine, not nylon.
-        expect(reloaded.balloonLine).toMatchDreamModel(
-          await BalloonLine.where({ balloonId: mylar.id }).firstOrFail()
-        )
+        // earlier one: the twine balloon line is rejected by the second call's `nylon`, and a
+        // merge (or the first `and` winning) would have loaded it.
+        expect(reloaded.loaded('balloonLine')).toBe(true)
+        expect(reloaded.balloonLine).toBeNull()
       })
     })
 
@@ -553,6 +597,31 @@ describe('Dream.preloadFor(serializerKey)', () => {
         expect(reloaded.loaded('heartRatings')).toBe(true)
         // `balloonLine` is reached only by Animal's and Mylar's `stiUnion` serializers
         expect(reloaded.loaded('balloonLine')).toBe(false)
+      })
+    })
+
+    context('the over-fetch the union costs', () => {
+      // Pinned deliberately, as the price of the union rather than as desirable behavior. The
+      // preload set has to be decided before the query knows which STI types come back, so a
+      // base-rooted call loads the union onto *every* row: an Animal carries `heartRatings`, which
+      // only Latex's serializer renders, and a Latex carries `balloonLine`, which only Animal's and
+      // Mylar's do. Nothing extra is rendered — each row is serialized by its own child's
+      // serializer — so the cost is rows fetched and held, not output. A future narrowing (per
+      // concrete-class partition, which `applyOnePreload` already groups by) would be a deliberate
+      // change and should fail this example.
+      it("loads sibling children's associations onto every STI row", async () => {
+        const user = await User.create({ email: 'sti-union-overfetch@preload.test', password: 'howyadoin' })
+        const animal = await Animal.create({ user, color: 'green' })
+        const latex = await Latex.create({ user, color: 'blue' })
+
+        const balloons = await Balloon.query().preloadFor('stiUnion').all()
+        const reloadedAnimal = balloons.find(balloon => balloon.id === animal.id)!
+        const reloadedLatex = balloons.find(balloon => balloon.id === latex.id)!
+
+        // Animal's `stiUnion` serializer renders neither, yet both are loaded
+        expect(reloadedAnimal.loaded('heartRatings')).toBe(true)
+        // Latex's renders neither `balloonLine` nor anything reached through it
+        expect(reloadedLatex.loaded('balloonLine')).toBe(true)
       })
     })
   })
@@ -606,6 +675,19 @@ describe('Dream.preloadFor(serializerKey)', () => {
       })
     })
 
+    // The resolved-edges memo keys on (dreamClass, serializer) and `Query`'s preload-path cache on
+    // globalName + serializerKey; the target's `serializers` getter is an input to neither. A
+    // successful resolution against a getter that is later removed must therefore not survive it.
+    context('when the target resolves a serializer and then loses its `serializers` getter', () => {
+      it('does not serve the edges resolved against the removed getter', () => {
+        withTargetSerializers({ default: 'BalloonLineSerializer' }, () => {
+          expect(() => Composition.query().preloadFor('default')).not.toThrow()
+        })
+
+        expect(() => Composition.query().preloadFor('default')).toThrow(MissingSerializersDefinition)
+      })
+    })
+
     context('when the target names a global serializer that is not registered', () => {
       it('throws NoGlobalSerializerForSpecifiedKey', () => {
         withTargetSerializers({ default: 'NotARegisteredSerializer' }, () => {
@@ -641,8 +723,10 @@ describe('Dream.preloadFor(serializerKey)', () => {
 
 /**
  * CompositionAsset has no `serializers` getter to spy on, so one is defined on its prototype for
- * the duration of `cb` and removed afterward. Safe to leave no cache behind: every call under it
- * throws, and neither `Query`'s preload-path cache nor the resolved-edges memo caches a throw.
+ * the duration of `cb` and removed afterward. Neither `Query`'s preload-path cache nor the
+ * resolved-edges memo keys on that getter, so both are cleared when it is removed: a call under
+ * `cb` that resolves successfully would otherwise be served from cache to every later example in
+ * this file, long after the getter is gone.
  */
 function withTargetSerializers(serializers: Record<string, string>, cb: () => void) {
   Object.defineProperty(CompositionAsset.prototype, 'serializers', {
@@ -654,5 +738,7 @@ function withTargetSerializers(serializers: Record<string, string>, cb: () => vo
     cb()
   } finally {
     Reflect.deleteProperty(CompositionAsset.prototype, 'serializers')
+    clearResolvedSerializerAssociationEdgesCache()
+    clearSerializerPreloadPathsCache()
   }
 }

@@ -102,7 +102,7 @@ import {
 
 export const schema = {
   balloon_lines: {
-    serializerKeys: ['default', 'summary'],
+    serializerKeys: ['default', 'stiUnion', 'summary'],
     scopes: {
       default: [],
       named: [],

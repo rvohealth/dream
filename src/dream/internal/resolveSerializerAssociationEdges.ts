@@ -22,14 +22,32 @@ export interface ResolvedSerializerAssociationEdge {
 }
 
 /**
- * Keyed on the two arguments, which are the function's only inputs. Weak on both, so an entry is
- * collectable once either the Dream class or the serializer is. The cached arrays are handed out
- * by reference and must be treated as read-only by callers.
+ * Keyed on the two arguments. Weak on both, so an entry is collectable once either the Dream class
+ * or the serializer is. The cached arrays are handed out by reference and must be treated as
+ * read-only by callers.
  */
-const resolvedEdgesCache = new WeakMap<
+let resolvedEdgesCache = new WeakMap<
   typeof Dream,
   WeakMap<DreamModelSerializerType | SimpleObjectSerializerType, ResolvedSerializerAssociationEdge[]>
 >()
+
+/**
+ * @internal
+ *
+ * Drops every memoized edge set. The memo keys on (dreamClass, serializer) but its result also
+ * depends on process-global state those two keys do not capture — each target's `serializers`
+ * getter, the STI children registered on each target, and the DreamApp serializer registry — so
+ * anything that replaces that state must clear the memo rather than let it serve edges resolved
+ * against the old state.
+ *
+ * In a normal application lifecycle there is nothing to clear: `DreamApp.init` loads models and
+ * serializers before the first query, and none of those inputs change afterward. This exists for
+ * the lifecycles where they do: a second `DreamApp.init` in one process (embedders, hot reload),
+ * and specs that install or remove a `serializers` getter around an example.
+ */
+export function clearResolvedSerializerAssociationEdgesCache() {
+  resolvedEdgesCache = new WeakMap()
+}
 
 /**
  * @internal
@@ -38,13 +56,16 @@ const resolvedEdgesCache = new WeakMap<
  * associations of `dreamClass` they preload, along with the classes and serializers each one
  * targets.
  *
- * Pure in its two arguments and memoized on them: every call rebuilds a throwaway serializer
- * builder and re-infers the serializers of every association target, and the traversal in
+ * Memoized on its two arguments, because every call rebuilds a throwaway serializer builder and
+ * re-infers the serializers of every association target, and the traversal in
  * buildSerializerPreloadPaths revisits the same (class, serializer) pair many times.
  *
- * The memo shares the staleness window of `Query`'s own preload-path cache: a target class's
- * resolved serializers depend on STI children registering themselves as their modules evaluate, so
- * both are only reliable once models are loaded (which `DreamApp#load('models')` does at boot).
+ * The two arguments are not the function's only inputs, though: resolving a target's serializers
+ * also reads that target's `serializers` getter, the STI children registered on it, and the
+ * DreamApp serializer registry. Like `Query`'s own preload-path cache, the memo is therefore only
+ * meaningful once models and serializers are loaded (which `DreamApp.init` does at boot), and it
+ * must be dropped whenever that state is replaced — see
+ * `clearResolvedSerializerAssociationEdgesCache`.
  */
 export default function resolveSerializerAssociationEdges(
   dreamClass: typeof Dream,
@@ -86,17 +107,17 @@ function buildSerializerAssociationEdges(
 
       // `dreamClass` is the class the walk is rooted at, which for an STI base is the base itself
       // even while `serializer` is one child's serializer. That pairing is safe because an STI child
-      // cannot declare associations of its own — `@STI` throws
-      // StiChildCannotDefineNewAssociations (decorators/class/STI.ts:14-15) — so every association a
-      // child's serializer can render is declared on the base and resolves here.
+      // cannot declare associations of its own — the `STI` class decorator throws
+      // StiChildCannotDefineNewAssociations — so every association a child's serializer can render
+      // is declared on the base and resolves here.
       //
       // The one hole: that guard reads decorator metadata and
-      // `associationDeclarationNamesFromMetadata` returns [] when the metadata is absent
-      // (decorators/field/association/shared.ts:34-35), which is also what happens when the class
-      // decorator runs without a `context` (STI.ts:11). Under a TS config that does not emit
-      // decorator metadata the guard silently passes, a child-declared association survives, and it
-      // is dropped *here*, silently, by the return below — the symptom is then a missing preload and
-      // a NonLoadedAssociation at render, not a decorator error naming the real problem.
+      // `associationDeclarationNamesFromMetadata` returns [] when the metadata is absent, which is
+      // also what happens when the `STI` decorator runs without a `context`. Under a TS config that
+      // does not emit decorator metadata the guard silently passes, a child-declared association
+      // survives, and it is dropped *here*, silently, by the return below — the symptom is then a
+      // missing preload and a NonLoadedAssociation at render, not a decorator error naming the real
+      // problem.
       const association = dreamClass['getAssociationMetadata'](serializerAssociationName)
       if (!association) return null
 
@@ -128,20 +149,20 @@ function buildSerializerAssociationEdges(
         // Swallowing it means the only way to discover a broken `serializerKey` (or a missing
         // `serializers` getter) is a spec that creates a row of the affected class *and* renders it.
         //
-        // Why the obvious tolerance is also wrong, not merely undesirable: the call below expands
-        // STI and throws on the *first* child that fails
-        // (inferSerializerFromDreamOrViewModel.ts:53-57), so catching here would drop the
-        // serializers of *every* child of this target. `edge.targets.length === 0` then sets
-        // `terminates = true` (buildSerializerPreloadPaths.ts:110-112), so the association is
-        // preloaded but never descended into, and a row of a *well-formed* sibling fails at render
-        // with NonLoadedAssociation — an error naming a class that has nothing wrong with it.
+        // Why the obvious tolerance is also wrong, not merely undesirable:
+        // `inferSerializersFromDreamClassOrViewModelClass` below expands STI and throws on the
+        // *first* child that fails, so catching here would drop the serializers of *every* child of
+        // this target. An edge with no targets is treated as terminal by buildSerializerPreloadPaths,
+        // so the association is preloaded but never descended into, and a row of a *well-formed*
+        // sibling fails at render with NonLoadedAssociation — an error naming a class that has
+        // nothing wrong with it.
         //
-        // History: a catch for MissingSerializersDefinition stood here from 2025-07-11 (22489677,
-        // PR #569, "Fix `preloadFor` on circular references") until 2.23.0, with no written
+        // History: a catch for MissingSerializersDefinition stood here from PR #569 ("Fix
+        // `preloadFor` on circular references", commit 22489677) until 2.23.0, with no written
         // rationale anywhere. It was motivated by a `delegatedAttribute` to a serializer-less model
-        // (test-app/app/models/CircularReference/LocalizedText.ts), a shape that no longer reaches
-        // this code at all, since delegated attributes return early above. It was not vestigial,
-        // though: what it actually masked was a different shape — a rendersOne/rendersMany whose
+        // (the CircularReference LocalizedText model in the test app), a shape that no longer
+        // reaches this code at all, since delegated attributes return early above. It was not
+        // vestigial, though: what it actually masked was a different shape — a rendersOne/rendersMany whose
         // *target class* has no `serializers` getter, which Dream's own test app still contains
         // (CompositionSerializer renders `compositionAssets`; CompositionAsset has no `serializers`
         // getter). Masking that shape is what 2.23.0 deliberately stopped doing.
