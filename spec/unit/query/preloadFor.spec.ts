@@ -10,6 +10,7 @@ import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Animal from '../../../test-app/app/models/Balloon/Latex/Animal.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
 import ModelA from '../../../test-app/app/models/CircularReference/ModelA.js'
@@ -383,6 +384,81 @@ describe('Dream.preloadFor(serializerKey)', () => {
       // Animal, so a traversal of the alphabetically-first child's serializer never sees it.
       expect(reloaded.loaded('heartRatings')).toBe(true)
       expect(reloaded.heartRatings).toMatchDreamModels([heartRating])
+    })
+
+    context('when the result set contains a row of every STI child at once', () => {
+      it("loads and renders each row's own child serializer's associations", async () => {
+        const user = await User.create({ email: 'sti-union-all@preload.test', password: 'howyadoin' })
+
+        const animal = await Animal.create({ user, color: 'green' })
+        const animalSandbag = await Sandbag.create({ balloonId: animal.id, weight: 1 })
+        await BalloonLine.create({ balloon: animal, material: 'nylon' })
+
+        const latex = await Latex.create({ user, color: 'blue' })
+        const latexSandbag = await Sandbag.create({ balloonId: latex.id, weight: 2 })
+        const heartRating = await HeartRating.create({ user, extraRateable: latex, rating: 5 })
+
+        const mylar = await Mylar.create({ user, color: 'red' })
+        const mylarSandbag = await Sandbag.create({ balloonId: mylar.id, weight: 3 })
+        const mylarBalloonLine = await BalloonLine.create({ balloon: mylar, material: 'twine' })
+
+        const balloons = await Balloon.query().preloadFor('stiUnion').all()
+        expect(balloons.map(balloon => balloon.type).sort()).toEqual(['Animal', 'Latex', 'Mylar'])
+        const reloaded = <T extends Balloon>(balloon: T) => balloons.find(b => b.id === balloon.id) as T
+        const reloadedAnimal = reloaded(animal)
+        const reloadedLatex = reloaded(latex)
+        const reloadedMylar = reloaded(mylar)
+
+        // Every row must carry the associations its *own* serializer renders. A narrowing of the
+        // union that decided once per query — off the first row's class, say — instead of once per
+        // concrete-class partition would leave two of these three rows under-loaded.
+        expect(reloadedAnimal.loaded('sandbags')).toBe(true)
+        expect(reloadedAnimal.sandbags).toMatchDreamModels([animalSandbag])
+        expect(reloadedAnimal.loaded('balloonLine')).toBe(true)
+
+        expect(reloadedLatex.loaded('sandbags')).toBe(true)
+        expect(reloadedLatex.sandbags).toMatchDreamModels([latexSandbag])
+        expect(reloadedLatex.loaded('heartRatings')).toBe(true)
+        expect(reloadedLatex.heartRatings).toMatchDreamModels([heartRating])
+
+        expect(reloadedMylar.loaded('sandbags')).toBe(true)
+        expect(reloadedMylar.sandbags).toMatchDreamModels([mylarSandbag])
+        expect(reloadedMylar.loaded('balloonLine')).toBe(true)
+        expect(reloadedMylar.balloonLine).toMatchDreamModel(mylarBalloonLine)
+
+        // ...and serializing proves it, rather than the `loaded` proxy standing in for it: an
+        // association the union failed to preload for this row's partition throws
+        // NonLoadedAssociation from render.
+        const render = (balloon: Balloon) =>
+          inferSerializerFromDreamOrViewModel(balloon, 'stiUnion')(balloon as never).render()
+
+        expect(render(reloadedAnimal)).toEqual({
+          color: 'green',
+          // Animal terminates `balloonLine` with `delegatedAttribute('balloonLine', 'material')`
+          material: 'nylon',
+          sandbags: [expect.objectContaining({ weight: 1 })],
+        })
+
+        expect(render(reloadedLatex)).toEqual({
+          color: 'blue',
+          multicolor: null,
+          sandbags: [expect.objectContaining({ weight: 2 })],
+          heartRatings: [{ id: heartRating.id, type: 'HeartRating' }],
+        })
+
+        expect(render(reloadedMylar)).toEqual({
+          color: 'red',
+          mylarOnlyProperty: null,
+          sandbags: [expect.objectContaining({ weight: 3 })],
+          // Mylar renders `balloonLine` with `rendersOne`, whose serializer nests `balloon` —
+          // rendering it at all proves the nested level of Mylar's path was preloaded too.
+          // (`createdAt` is excluded from the assertion because it is clock-dependent.)
+          balloonLine: expect.objectContaining({
+            material: 'twine',
+            balloon: { color: 'red', mylarOnlyProperty: null },
+          }),
+        })
+      })
     })
 
     context('when more than one child renders the same association identically', () => {
