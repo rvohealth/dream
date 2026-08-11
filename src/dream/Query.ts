@@ -83,8 +83,30 @@ import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './intern
 import { DestroyOptions } from './internal/destroyOptions.js'
 import QueryDriverBase from './QueryDriver/Base.js'
 
-// Cache for serializer preload-path results, keyed by "${globalName}:${serializerKey}"
-const extractedNestedPathsCache = new Map<string, DreamClassAndAssociationNameTuple[][]>()
+/**
+ * Cache for serializer preload-path results, keyed on the root class itself and then the serializer
+ * key. Keying on the class rather than its global name is what makes the cache self-invalidating:
+ * loading a fresh set of model classes into the process yields new class objects, so entries
+ * resolved against the previous ones become unreachable and collectable rather than being served
+ * under a name that now means something else.
+ */
+let extractedNestedPathsCache = new WeakMap<
+  typeof Dream,
+  Map<string, DreamClassAndAssociationNameTuple[][]>
+>()
+
+/**
+ * @internal
+ *
+ * Drops every memoized preload path. Only needed when a class object that stays in the process has
+ * its `serializers` getter replaced, which the cache cannot detect — specs that install or remove
+ * one around an example. Replacing the model classes themselves needs no call, since the cache
+ * keys on the class object. See `clearResolvedSerializerAssociationEdgesCache`, which has the same
+ * contract and is cleared alongside it.
+ */
+export function clearSerializerPreloadPathsCache() {
+  extractedNestedPathsCache = new WeakMap()
+}
 
 export default class Query<
   DreamInstance extends Dream,
@@ -791,26 +813,42 @@ export default class Query<
       >
     >,
   >(this: Q, serializerKey: SerializerKey, modifierFn?: LoadForModifierFn): RetQuery {
-    const cacheKey = `${this.dreamClass.globalName}:${serializerKey ?? 'default'}`
+    const cacheKey = serializerKey ?? 'default'
 
-    let preloadArgs = extractedNestedPathsCache.get(cacheKey)
-    if (!preloadArgs) {
-      preloadArgs = buildSerializerPreloadPaths(this.dreamClass, serializerKey)
-      extractedNestedPathsCache.set(cacheKey, preloadArgs)
+    let pathsBySerializerKey = extractedNestedPathsCache.get(this.dreamClass)
+    if (!pathsBySerializerKey) {
+      pathsBySerializerKey = new Map()
+      extractedNestedPathsCache.set(this.dreamClass, pathsBySerializerKey)
     }
 
-    let query: RetQuery = this as unknown as RetQuery
+    let preloadArgs = pathsBySerializerKey.get(cacheKey)
+    if (!preloadArgs) {
+      preloadArgs = buildSerializerPreloadPaths(this.dreamClass, serializerKey)
+      pathsBySerializerKey.set(cacheKey, preloadArgs)
+    }
+
+    // Rather than calling `preload` once per path (which deep clones the accumulating preload tree
+    // on every call, making this quadratic in the number of paths), clone once, flesh out every
+    // path against the same accumulators, and clone the Query once at the end. Iteration order is
+    // preserved, so a later path's `and` still wins over an earlier path's for a shared prefix.
+    const preloadStatements = cloneDeepSafe(this.preloadStatements)
+    const preloadOnStatements: RelaxedPreloadOnStatement<
+      DreamInstance,
+      DreamInstance['DB'],
+      DreamInstance['schema']
+    > = cloneDeepSafe(this.preloadOnStatements)
 
     preloadArgs.forEach(dreamClassAndAssociationNameTupleArray => {
-      query = (query as any).preload(
-        ...(convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
-          dreamClassAndAssociationNameTupleArray,
-          modifierFn
-        ) as any)
-      ) as RetQuery
+      const args = convertDreamClassAndAssociationNameTupleArrayToPreloadArgs(
+        dreamClassAndAssociationNameTupleArray,
+        modifierFn
+      )
+      // `modifierFn` returning 'omit' prunes the path from the omitted association down, which can
+      // leave nothing to preload; `fleshOutJoinStatements` treats an empty arg list as a no-op.
+      this.fleshOutJoinStatements([], preloadStatements, preloadOnStatements, null, args as any)
     })
 
-    return query
+    return this.clone({ preloadStatements, preloadOnStatements }) as unknown as RetQuery
   }
 
   /**

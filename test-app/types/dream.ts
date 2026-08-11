@@ -102,7 +102,7 @@ import {
 
 export const schema = {
   balloon_lines: {
-    serializerKeys: ['default', 'summary'],
+    serializerKeys: ['default', 'stiUnion', 'summary'],
     scopes: {
       default: [],
       named: [],
@@ -352,7 +352,12 @@ export const schema = {
     },
   },
   beautiful_balloons: {
-    serializerKeys: ['allBalloonStiChildren', 'default', 'delegated'],
+    serializerKeys: [
+      'allBalloonStiChildren',
+      'default',
+      'delegated',
+      'stiUnion',
+    ],
     scopes: {
       default: ['dream:STI', 'dream:SoftDelete'],
       named: ['red'],

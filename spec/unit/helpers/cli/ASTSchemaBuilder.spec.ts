@@ -203,6 +203,7 @@ describe('ASTSchemaBuilder', () => {
             'allBalloonStiChildren',
             'default',
             'delegated',
+            'stiUnion',
           ])
         })
       })
