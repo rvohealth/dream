@@ -41,6 +41,8 @@ export default function generateMigrationContent({
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
   alterDirection = 'add',
+  migrationName,
+  alterMarker,
   stiChildClassName,
   softDelete = false,
 }: {
@@ -58,6 +60,18 @@ export default function generateMigrationContent({
    * `down` is the rollback that restores what `up` removed.
    */
   alterDirection?: 'add' | 'remove' | undefined
+  /**
+   * The migration name the user typed. Only the standalone `g:migration` flow
+   * has one; it is threaded through solely so `NoColumnsToAlterMigration` can
+   * name it, and the error message degrades to a table-only explanation when it
+   * (or `alterMarker`) is absent.
+   */
+  migrationName?: string | undefined
+  /**
+   * The `-to-`/`-from-` marker that matched within `migrationName` and selected
+   * alter mode. Reported by `NoColumnsToAlterMigration`; see `migrationName`.
+   */
+  alterMarker?: '-to-' | '-from-' | undefined
   stiChildClassName?: string | undefined
   /**
    * When true (and creating a new table), auto-emits a nullable `deleted_at`
@@ -281,7 +295,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     table !== MIGRATION_TABLE_NAME_PLACEHOLDER &&
     !stiChildClassName
   ) {
-    throw new NoColumnsToAlterMigration(table, alterDirection)
+    throw new NoColumnsToAlterMigration(table, alterDirection, migrationName, alterMarker)
   }
 
   const citextExtension = requireCitextExtension

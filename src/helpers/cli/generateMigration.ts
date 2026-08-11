@@ -89,6 +89,8 @@ export default async function generateMigration({
       primaryKeyType: primaryKeyType(connectionName)!,
       createOrAlter: 'alter',
       alterDirection: fromTableName ? 'remove' : 'add',
+      migrationName,
+      alterMarker: toTableName ? '-to-' : fromTableName ? '-from-' : undefined,
     })
   }
 
