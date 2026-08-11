@@ -227,25 +227,26 @@ export default class DreamCLI {
         `Generates a new Kysely migration file for schema changes. Use this for altering existing tables (adding/removing columns, indexes, constraints). Prefer g:resource or g:model when creating a new model, since they generate the migration along with the model, serializer, and spec files.
 ${INDENT}
 ${INDENT}Examples:
-${INDENT}  # Add columns to an existing table (suffix with -to-<table_name> for auto alterTable scaffolding)
+${INDENT}  # Add columns to an existing table (include -to-<table_name> for auto alterTable scaffolding)
 ${INDENT}  pnpm psy g:migration add-timezone-to-users timezone:string
 ${INDENT}  pnpm psy g:migration add-bio-to-users bio:text:optional avatar_url:string:optional
 ${INDENT}
-${INDENT}  # Remove columns (suffix with -from-<table_name>; columns are described with
+${INDENT}  # Remove columns (include -from-<table_name>; columns are described with
 ${INDENT}  # their types, same shorthand as -to-, so the rollback (down) can recreate them)
 ${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts legacy_status:string
 ${INDENT}
-${INDENT}  # General schema change (no table suffix — generates empty up/down methods)
+${INDENT}  # General schema change (no -to-/-from- marker — scaffolds alterTable('<table-name>') to hand-edit)
 ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
       )
       .argument(
         '<migrationName>',
-        `Kebab-case name describing the change. End with -to-<table_name> or -from-<table_name> to auto-generate an alterTable scaffold for that table.
+        `Kebab-case name describing the change. The FIRST -to-<table_name> or -from-<table_name> anywhere in the name — not just at the end — auto-generates an alterTable scaffold for that table. A hand-written migration must avoid both strings anywhere in its name.
 ${INDENT}
 ${INDENT}Examples:
 ${INDENT}  add-phone-to-users phone:encrypted           # scaffolds alterTable('users', ...)
 ${INDENT}  remove-status-from-posts status:string      # scaffolds alterTable('posts', ...)
-${INDENT}  create-join-table-host-places  # empty migration (no table suffix match)`
+${INDENT}  create-many-to-many-posts-users  # WRONG: -to- inside "many-to-many" selects alterTable('many_posts_users'), so this errors and writes nothing
+${INDENT}  create-posts-users-join-table    # correct: no marker match, scaffolds alterTable('<table-name>') to hand-edit`
       )
       .option(
         '--connection-name <connectionName>',

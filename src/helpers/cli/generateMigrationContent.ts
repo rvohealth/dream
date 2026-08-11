@@ -13,7 +13,7 @@ import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 
 // Sentinel table name used by generateMigration.ts when a standalone
-// migration name matches neither a `-to-<table>` nor `-from-<table>` suffix.
+// migration name contains neither a `-to-<table>` nor `-from-<table>` marker.
 // That path intentionally produces a stub the user is expected to hand-edit
 // (e.g. an index-only migration with no column operations at all), so it's
 // exempt from the "no valid columns" check below.
@@ -51,9 +51,9 @@ export default function generateMigrationContent({
   createOrAlter?: 'create' | 'alter' | undefined
   /**
    * Only meaningful when `createOrAlter: 'alter'`. `'add'` (the default,
-   * matching a `-to-<table>`-suffixed migration name) emits column additions
-   * in `up` and the matching drops in `down`. `'remove'` (matching a
-   * `-from-<table>`-suffixed migration name) inverts this: `up` drops the
+   * matching a migration name containing a `-to-<table>` marker) emits column
+   * additions in `up` and the matching drops in `down`. `'remove'` (matching a
+   * migration name containing a `-from-<table>` marker) inverts this: `up` drops the
    * named columns and `down` re-adds them with their declared types, so
    * `down` is the rollback that restores what `up` removed.
    */
