@@ -131,13 +131,24 @@ ${INDENT}          Messaging/Template@template:belongs_to             # template
  * example that drifts from what the generator actually produces then fails the
  * suite instead of shipping.
  */
-export const migrationNameArgumentDescription = `Kebab-case name describing the change. A -to-<table_name> anywhere in the name — not just at the end — auto-generates an add-columns alterTable scaffold for that table; -from-<table_name> generates a remove-columns scaffold, but only when the name contains no -to- at all. The text after the marker is snake-cased and pluralized into the table name. A hand-written migration must avoid both strings anywhere in its name.
+export const migrationNameArgumentDescription = `Kebab-case name describing the change. A -to-<table_name>
+${INDENT}anywhere in the name — not just at the end — auto-generates
+${INDENT}an add-columns alterTable scaffold for that table;
+${INDENT}-from-<table_name> generates a remove-columns scaffold, but
+${INDENT}only when the name contains no -to- at all. The text after
+${INDENT}the marker's first occurrence is snake-cased and pluralized
+${INDENT}into the table name, so add-a-to-b-to-cs targets b_to_cs. A
+${INDENT}hand-written migration must avoid both strings anywhere in
+${INDENT}its name.
 ${INDENT}
 ${INDENT}Examples:
-${INDENT}  add-phone-to-users phone:encrypted           # scaffolds alterTable('users', ...)
-${INDENT}  remove-status-from-posts status:string      # scaffolds alterTable('posts', ...)
-${INDENT}  create-many-to-many-posts-users  # WRONG: -to- inside "many-to-many" selects alterTable('many_posts_users') — with no columns this errors; with columns it silently scaffolds against that table
-${INDENT}  create-posts-users-join-table    # correct: no marker match, scaffolds alterTable('<table-name>') to hand-edit`
+${INDENT}  add-phone-to-users phone:encrypted      # scaffolds alterTable('users', ...)
+${INDENT}  remove-status-from-posts status:string  # scaffolds alterTable('posts', ...)
+${INDENT}  create-many-to-many-posts-users         # WRONG: selects 'many_posts_users'
+${INDENT}    # -to- inside "many-to-many" matches: with no columns
+${INDENT}    # this errors; with columns it silently scaffolds it
+${INDENT}  create-posts-users-join-table           # correct: no marker match
+${INDENT}    # scaffolds alterTable('<table-name>') to hand-edit`
 
 export default class DreamCLI {
   /**
