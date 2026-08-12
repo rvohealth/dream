@@ -1,3 +1,4 @@
+import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import Post from '../../../test-app/app/models/Post.js'
 import PostComment from '../../../test-app/app/models/PostComment.js'
@@ -53,6 +54,23 @@ describe('Query#undestroy', () => {
 
       expect(await PostComment.count()).toEqual(0)
       expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
+    })
+  })
+
+  context('when the Query carries a limit or offset', () => {
+    it('rejects them rather than corrupting the batch windows', async () => {
+      // the batch windows re-apply the Query's conditions per batch, so a
+      // carried limit would be silently replaced by the batch size and a
+      // carried offset re-applied to every window
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      await Post.create({ user, body: 'hello world' })
+      await Post.create({ user, body: 'hello world' })
+      await Post.where({ body: 'hello world' }).destroy()
+
+      await expect(Post.query().limit(1).undestroy()).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+      await expect(Post.query().offset(1).undestroy()).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+
+      expect(await Post.count()).toEqual(0)
     })
   })
 

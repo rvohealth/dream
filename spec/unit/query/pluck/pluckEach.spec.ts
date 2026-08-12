@@ -1,3 +1,4 @@
+import BatchingIncompatibleWithLimitOrOffset from '../../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback.js'
 import MissingRequiredCallbackFunctionToPluckEach from '../../../../src/errors/MissingRequiredCallbackFunctionToPluckEach.js'
 import ops from '../../../../src/ops/index.js'
@@ -127,6 +128,32 @@ describe('Query#pluckEach', () => {
 
         expect(plucked).toEqual([user2.id, user1.id])
       })
+    })
+  })
+
+  context('when the Query carries a limit or offset', () => {
+    it('rejects them rather than silently ignoring them', async () => {
+      // pluckEach's windows replace the Query's limit with the batch size and
+      // its offset with the running window offset, so a carried limit or
+      // offset would be silently ignored
+      const plucked: any[] = []
+
+      await expect(
+        User.query()
+          .limit(1)
+          .pluckEach('id', id => {
+            plucked.push(id)
+          })
+      ).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+      await expect(
+        User.query()
+          .offset(1)
+          .pluckEach('id', id => {
+            plucked.push(id)
+          })
+      ).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+
+      expect(plucked).toEqual([])
     })
   })
 

@@ -8,6 +8,7 @@ import * as destroyAssociatedRecordsModule from '../../../src/dream/internal/des
 import * as runHooksForModule from '../../../src/dream/internal/runHooksFor.js'
 import KyselyQueryDriver from '../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
+import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import InvalidBatchSize from '../../../src/errors/InvalidBatchSize.js'
 import RowLockIncompatibleWithDistinct from '../../../src/errors/RowLockIncompatibleWithDistinct.js'
 import { HookStatement } from '../../../src/types/lifecycle.js'
@@ -598,6 +599,26 @@ describe('Query#destroy', () => {
       })
     })
 
+    context('when the Query carries a limit or offset', () => {
+      it('rejects them rather than re-applying their window to every batch', async () => {
+        // an offset surviving into the batch queries would skip rows in the
+        // candidate pluck *and* discard already-claimed rows from the locked
+        // re-read; a limit would be silently replaced by batchSize. Both
+        // corrupt the run's window, so both fail before any row is touched
+        await Pet.create({ name: 'aster' })
+        await Pet.create({ name: 'aster' })
+
+        await expect(Pet.where({ name: 'aster' }).limit(1).destroy({ lock: true })).rejects.toThrow(
+          BatchingIncompatibleWithLimitOrOffset
+        )
+        await expect(
+          Pet.where({ name: 'aster' }).offset(1).destroy({ lock: true, batchSize: 2 })
+        ).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+
+        expect(await Pet.where({ name: 'aster' }).count()).toEqual(2)
+      })
+    })
+
     context('when the Query also calls distinct', () => {
       it('fails loudly rather than emitting FOR UPDATE alongside DISTINCT ON, which the database rejects', async () => {
         await Pet.create({ name: 'aster' })
@@ -656,6 +677,25 @@ describe('Query#destroy', () => {
 
     it('rejects an invalid batchSize passed to reallyDestroy', async () => {
       await expect(Pet.query().reallyDestroy({ batchSize: 0 })).rejects.toThrow(InvalidBatchSize)
+    })
+  })
+
+  context('when the Query carries a limit or offset', () => {
+    it('rejects them on the plain (unlocked) destroy rather than corrupting the batch windows', async () => {
+      // the batch windows re-apply the Query's conditions per batch, so a
+      // carried limit would be silently replaced by the batch size and a
+      // carried offset re-applied to every window
+      await Pet.create({ name: 'aster' })
+      await Pet.create({ name: 'aster' })
+
+      await expect(Pet.where({ name: 'aster' }).limit(1).destroy()).rejects.toThrow(
+        BatchingIncompatibleWithLimitOrOffset
+      )
+      await expect(Pet.where({ name: 'aster' }).offset(1).destroy()).rejects.toThrow(
+        BatchingIncompatibleWithLimitOrOffset
+      )
+
+      expect(await Pet.where({ name: 'aster' }).count()).toEqual(2)
     })
   })
 

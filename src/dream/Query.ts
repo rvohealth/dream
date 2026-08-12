@@ -5,10 +5,12 @@ import Dream from '../Dream.js'
 import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../errors/CannotPassAdditionalFieldsToPluckEachAfterCallback.js'
+import BatchingIncompatibleWithLimitOrOffset from '../errors/BatchingIncompatibleWithLimitOrOffset.js'
 import InvalidBatchSize from '../errors/InvalidBatchSize.js'
 import LeftJoinPreloadIncompatibleWithFindEach from '../errors/LeftJoinPreloadIncompatibleWithFindEach.js'
 import RowLockIncompatibleWithDistinct from '../errors/RowLockIncompatibleWithDistinct.js'
 import MissingRequiredCallbackFunctionToPluckEach from '../errors/MissingRequiredCallbackFunctionToPluckEach.js'
+import MissingRequiredLockOptionForUpdateCallback from '../errors/MissingRequiredLockOptionForUpdateCallback.js'
 import NoUpdateAllOnJoins from '../errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
 import CannotPaginateWithLeftJoinPreload from '../errors/pagination/CannotPaginateWithLeftJoinPreload.js'
@@ -120,10 +122,12 @@ export default class Query<
    */
   public static readonly BATCH_SIZES = {
     FIND_EACH: 1000,
-    // deliberately small: every record in a locked destroy batch stays
-    // row-locked for the whole batch, so an oversized batch blocks unrelated
-    // writers. See Query#destroy's `lock` option.
+    // deliberately small: every record in a locked destroy or update batch
+    // stays row-locked for the whole batch, so an oversized batch blocks
+    // unrelated writers. See the `lock` options on Query#destroy and
+    // Query#update.
     LOCKED_DESTROY: 10,
+    LOCKED_UPDATE: 10,
     PLUCK_EACH: 10000,
     PLUCK_EACH_THROUGH: 1000,
   }
@@ -597,10 +601,16 @@ export default class Query<
    * If you need records processed in a particular order, load them with a
    * regular ordered query instead of `findEach`.
    *
+   * A `limit` or `offset` on the Query cannot compose with the batch windows
+   * — each batch re-applies the Query's conditions, so the limit would be
+   * silently replaced by `batchSize` and the offset re-applied to every
+   * window — so a limit- or offset-carrying Query throws at runtime.
+   *
    * @param cb - The callback to call for each found record
    * @param __namedParameters - Options for batch processing
    * @param __namedParameters.batchSize - The batch size you wish to collect records in. If not provided, it will default to 1000
    * @returns void
+   * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
   public async findEach(
     this: Query<DreamInstance, QueryTypeOpts>,
@@ -608,18 +618,25 @@ export default class Query<
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
     if (this.joinLoadActivated) throw new LeftJoinPreloadIncompatibleWithFindEach()
+    // a limit or offset cannot compose with the batch windows: the window
+    // queries would re-apply it per batch — the limit silently replaced by
+    // batchSize, the offset skipping rows inside every window
+    if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
     let records: any[]
     const query = this.order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
-    let lastId = null
+    // the cursor is compared against a sentinel rather than tested for
+    // truthiness, since a primary key of 0 is a legitimate cursor value that
+    // would otherwise reset the window to the start of the set
+    let lastId: any = undefined
 
     do {
-      if (lastId)
+      if (lastId === undefined) records = await query.all()
+      else
         records = await query
           .where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
           .all()
-      else records = await query.all()
 
       for (const record of records) {
         await cb(record)
@@ -1399,6 +1416,12 @@ export default class Query<
    * // [User{id: 1}, User{id: 2}]
    * ```
    *
+   * A limit is incompatible with `paginate` and `leftJoinPreload`, and with
+   * the batched and set-write operations — `findEach`, `pluckEach`,
+   * `destroy`, `reallyDestroy`, `undestroy`, and `update` — none of which can
+   * honor one: the batched and set-write operations throw
+   * `BatchingIncompatibleWithLimitOrOffset` on a limit-carrying Query.
+   *
    * @returns A cloned Query with the limit clause applied
    */
   public limit<
@@ -1430,6 +1453,12 @@ export default class Query<
    * await User.order('id').offset(2).limit(2).all()
    * // [User{id: 3}, User{id: 4}]
    * ```
+   *
+   * An offset is incompatible with `paginate` and `leftJoinPreload`, and with
+   * the batched and set-write operations — `findEach`, `pluckEach`,
+   * `destroy`, `reallyDestroy`, `undestroy`, and `update` — none of which can
+   * honor one: the batched and set-write operations throw
+   * `BatchingIncompatibleWithLimitOrOffset` on an offset-carrying Query.
    *
    * @returns A cloned Query with the offset clause applied
    */
@@ -1983,8 +2012,14 @@ export default class Query<
    * // 3
    * ```
    *
+   * A `limit` or `offset` on the Query cannot compose with the batch windows
+   * — each window replaces the limit with the batch size and the offset with
+   * the running window offset, silently ignoring both — so a limit- or
+   * offset-carrying Query throws at runtime.
+   *
    * @param args - a list of column names to pluck, followed by a callback function to call for each set of found fields
    * @returns void
+   * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
   public async pluckEach<
     Q extends Query<DreamInstance, QueryTypeOpts>,
@@ -2004,6 +2039,10 @@ export default class Query<
     if (!providedCb) throw new MissingRequiredCallbackFunctionToPluckEach('pluckEach', args)
     if (providedOpts !== undefined && !providedOpts?.batchSize)
       throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEach', args)
+    // a limit or offset cannot compose with the batch windows: the window
+    // queries would replace the limit with batchSize and the offset with the
+    // running window offset, silently ignoring both
+    if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
 
     const onlyColumns = args.filter(
       (_, index) => index < providedCbIndex
@@ -2608,20 +2647,27 @@ export default class Query<
    *   scale, ties up connections. If that is a risk in your application, set a
    *   `lock_timeout` on the connection so a stuck batch fails instead of
    *   hanging.
+   * - **A `limit` or `offset` on the Query is incompatible with `destroy` on
+   *   every path.** The batches — locked and unlocked alike — re-apply the
+   *   Query's conditions to each window, where a limit or offset would skip
+   *   or truncate rows inside every window instead of bounding the run as a
+   *   whole, so `destroy` throws rather than silently corrupting the
+   *   windows.
    * - **If you are destroying a large set and do not need compare-and-set, do
    *   not pass `lock`.** Plain `destroy()` (hooks and cascade, no locking) or
    *   {@link Query.delete | delete} (a single statement, no hooks or cascade)
    *   are the right tools for bulk removal.
    *
-   * @param __namedParameters - Options for destroying the instance
-   * @param __namedParameters.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
-   * @param __namedParameters.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param __namedParameters.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. Defaults to false
-   * @param __namedParameters.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
-   * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
-   * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
+   * @param options - Options for destroying the instance
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. Defaults to false
+   * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
+   * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
   public async destroy({
     skipHooks,
@@ -2679,41 +2725,80 @@ export default class Query<
   /**
    * @internal
    *
-   * The compare-and-set implementation behind `destroy({ lock: true })`.
+   * The compare-and-set implementation behind `destroy({ lock: true })`,
+   * driven by {@link Query.lockedBatches}, which owns the keyset cursor, the
+   * pluck/claim two-step, and the transaction dispatch.
+   *
+   * Each claimed record is destroyed via the ordinary per-instance path, and
+   * every claimed record counts. (One thing the count does not account for,
+   * because it never has: a `beforeDestroy` hook that sets `_preventDeletion`
+   * leaves the record in place but still counts.)
+   */
+  private async lockedDestroy(options: DestroyOptions<DreamInstance>, batchSize: number): Promise<number> {
+    if (this.joinLoadActivated) throw new LeftJoinPreloadIncompatibleWithFindEach()
+
+    return await this.lockedBatches(batchSize, async (claimed, txn) => {
+      for (const record of claimed) {
+        const inTransaction = record.txn(txn) as unknown as DreamInstance
+
+        if (this.shouldReallyDestroy) {
+          await inTransaction.reallyDestroy(options)
+        } else {
+          await inTransaction.destroy(options)
+        }
+      }
+
+      return claimed.length
+    })
+  }
+
+  /**
+   * @internal
+   *
+   * The shared batch driver behind `destroy({ lock: true })` and
+   * `update(..., { lock: true })`: the keyset cursor, the pluck/claim
+   * two-step, and the transaction dispatch live here, so the locked
+   * operations cannot drift apart.
    *
    * Each batch is handled in two steps inside one transaction:
    *
    * 1. an unlocked pluck of the next `batchSize` primary keys, in ascending
    *    primary key order, which establishes the batch's window (its keyset
-   *    cursor) and tells us how many records were *attempted*. Only the keys are
-   *    read: hydrating and preloading these records would duplicate the work
-   *    step 2 does over the same rows; then
+   *    cursor) and tells us how many records were *attempted*. Only the keys
+   *    are read: hydrating and preloading these records would duplicate the
+   *    work step 2 does over the same rows; then
    * 2. a locked re-read restricted to exactly those primary keys, which
-   *    re-applies every condition on the Query while acquiring an exclusive row
-   *    lock on each row it returns. Records a concurrent transaction has moved
-   *    out of the Query since step 1 do not come back, and are the records this
-   *    run lost the race for.
+   *    re-applies every condition on the Query while acquiring an exclusive
+   *    row lock on each row it returns. Records a concurrent transaction has
+   *    moved out of the Query since step 1 do not come back, and are the
+   *    records this run lost the race for.
    *
-   * The count comes from step 2's result set, which is why it reports records
-   * actually claimed rather than records attempted. (One thing it does not
-   * account for, because it never has: a `beforeDestroy` hook that sets
-   * `_preventDeletion` leaves the record in place but still counts.)
+   * The claimed records are handed to `perBatch` inside the batch's
+   * transaction; its return value — how many of the claimed records were
+   * processed — accumulates into the returned count.
    *
-   * The two-step shape is what keeps iteration correct. If the locked read both
-   * claimed rows and advanced the cursor, a batch whose records all lost the
-   * race would come back empty and end the run early, silently skipping every
-   * record after it. Advancing the cursor from step 1 instead means losing a
-   * race skips only the records that were lost.
+   * The two-step shape is what keeps iteration correct. If the locked read
+   * both claimed rows and advanced the cursor, a batch whose records all lost
+   * the race would come back empty and end the run early, silently skipping
+   * every record after it. Advancing the cursor from step 1 instead means
+   * losing a race skips only the records that were lost.
    *
    * When the Query already carries a transaction, that transaction is used for
    * every batch rather than opening one per batch, so the caller's transaction
    * boundary wins and the locks are held until the caller commits.
    */
-  private async lockedDestroy(options: DestroyOptions<DreamInstance>, batchSize: number): Promise<number> {
-    if (this.joinLoadActivated) throw new LeftJoinPreloadIncompatibleWithFindEach()
+  private async lockedBatches(
+    batchSize: number,
+    perBatch: (claimed: DreamInstance[], txn: DreamTransaction<Dream>) => Promise<number>
+  ): Promise<number> {
     // the driver seam refuses this combination too, but catching it here means
     // failing before any transaction is opened or any row is touched
     if (this.distinctColumn) throw new RowLockIncompatibleWithDistinct()
+    // a limit or offset cannot compose with the batch windows: the window
+    // queries would re-apply it per batch — the offset skipping rows in the
+    // candidate pluck and discarding already-claimed rows from the locked
+    // re-read, the limit silently replaced by batchSize
+    if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
 
     const primaryKey = this.dreamInstance['_primaryKey']
     const orderedQuery = this.order(null)
@@ -2733,36 +2818,26 @@ export default class Query<
           ? orderedQuery
           : orderedQuery.where({ [primaryKey]: ops.greaterThan(lastId) } as any)
 
-      const destroyBatch = async (txn: DreamTransaction<Dream>) => {
+      const processBatch = async (txn: DreamTransaction<Dream>) => {
         const candidateIds: any[] = await batchQuery.txn(txn).pluck(this.namespacedPrimaryKey as any)
-        if (!candidateIds.length) return { attempted: 0, claimed: 0, lastId }
+        if (!candidateIds.length) return { attempted: 0, processed: 0, lastId }
 
         const claimed = await this.dbDriverInstance(
           batchQuery.txn(txn).where({ [primaryKey]: candidateIds } as any)
         ).takeAll({ lock: true })
 
-        for (const record of claimed) {
-          const inTransaction = record.txn(txn) as unknown as DreamInstance
-
-          if (this.shouldReallyDestroy) {
-            await inTransaction.reallyDestroy(options)
-          } else {
-            await inTransaction.destroy(options)
-          }
-        }
-
         return {
           attempted: candidateIds.length,
-          claimed: claimed.length,
+          processed: await perBatch(claimed, txn),
           lastId: candidateIds.at(-1),
         }
       }
 
       const results = this.dreamTransaction
-        ? await destroyBatch(this.dreamTransaction)
-        : await this.dreamClass.transaction(async txn => await destroyBatch(txn))
+        ? await processBatch(this.dreamTransaction)
+        : await this.dreamClass.transaction(async txn => await processBatch(txn))
 
-      counter += results.claimed
+      counter += results.processed
       attemptedCount = results.attempted
       lastId = results.lastId
     } while (attemptedCount > 0 && attemptedCount === batchSize)
@@ -2788,15 +2863,20 @@ export default class Query<
    * // 12
    * ```
    *
-   * @param __namedParameters - Options for destroying the instance
-   * @param __namedParameters.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
-   * @param __namedParameters.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param __namedParameters.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. See {@link Query.destroy} for the full semantics. Defaults to false
-   * @param __namedParameters.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
-   * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
-   * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
+   * A `limit` or `offset` on the Query is incompatible with `reallyDestroy`,
+   * exactly as it is with {@link Query.destroy}: a limit- or offset-carrying
+   * Query throws at runtime.
+   *
+   * @param options - Options for destroying the instance
+   * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
+   * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. See {@link Query.destroy} for the full semantics. Defaults to false
+   * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
+   * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
   public async reallyDestroy({
     skipHooks,
@@ -2819,12 +2899,19 @@ export default class Query<
    * // 12
    * ```
    *
-   * @param __namedParameters - Options for undestroying the instance
-   * @param __namedParameters.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
-   * @param __namedParameters.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param __namedParameters.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
-   * @param __namedParameters.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
+   * A `limit` or `offset` on the Query cannot compose with the batch windows
+   * `undestroy` iterates in — each batch re-applies the Query's conditions,
+   * so the limit would be silently replaced by the batch size and the offset
+   * re-applied to every window — so a limit- or offset-carrying Query throws
+   * at runtime.
+   *
+   * @param options - Options for undestroying the instance
+   * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
+   * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
+   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
+   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The number of records that were removed
+   * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
   public async undestroy({
     cascade,
@@ -2882,39 +2969,351 @@ export default class Query<
    * await User.where({ email: ops.ilike('%burpcollaborator%') }).update({ email: null })
    * // 12
    * ```
-   * @param attributes - The attributes used to update the records
+   *
+   * Instead of an attributes object, the first argument may be a callback
+   * that derives each record's attributes from the record itself. The
+   * callback (sync or async) receives each matching record and returns the
+   * attributes to write for it, or `undefined` to skip it — a skipped record
+   * gets no write, runs no hooks, and is not counted (a `null` return, from
+   * untyped callers, is treated the same). Only the returned attributes are
+   * written: the callback receives a clone of the record, so mutations made
+   * directly on the received record are discarded rather than riding along
+   * with the write. With a callback, the options object and its `lock` key
+   * are mandatory, and `lock` is a full boolean, so every call site says out
+   * loud whether the callback runs under row locks:
+   *
+   * ```ts
+   * await User.query().update(
+   *   user => (user.email.endsWith('@example.com') ? { name: 'example user' } : undefined),
+   *   { lock: false }
+   * )
+   * ```
+   *
+   * Under `lock: false`, the callback runs once per matching record —
+   * batched reads (`batchSize` defaults to 1000 here), no locks, no claim
+   * step, no compare-and-set guarantee — the right shape for a derived
+   * backfill where racing writers are not a concern. (On a `@ReplicaSafe`
+   * model, these unlocked batch reads may come from a lagging replica,
+   * feeding stale column values into the callback; use `lock: true` to
+   * derive from the freshest committed state — its transactional reads pin
+   * the primary.) Under `lock: true`, the callback runs once per claimed
+   * record, under that record's row lock, inside the batch's transaction,
+   * receiving a clone of the freshly locked read; Dream applies the returned
+   * attributes to the record it holds and writes before the batch commits,
+   * so there is no transaction handle for the caller to forget. (The record
+   * the callback receives is not bound to the batch's transaction — see the
+   * callback bullet below before touching the database from inside a
+   * callback.) That makes the callback form the tool
+   * for serializing writers on state a `WHERE` clause cannot express — for
+   * example an `@Encrypted` column, whose ciphertext changes on every write
+   * and whose plaintext has no column to compare against in the database:
+   *
+   * ```ts
+   * const rotated = await User.where({ id: userId }).update(
+   *   user => (user.secret === expectedSecret ? { secret: newSecret } : undefined),
+   *   { lock: true }
+   * )
+   * // 1 — or 0, if a competing writer got there first (the callback saw a
+   * // different secret and skipped the record)
+   * ```
+   *
+   * With a callback, the returned count is the number of records the
+   * callback returned attributes for: skipped records are not counted, and
+   * under `lock: true` records that lost the race never reach the callback
+   * at all. (As with the attributes form, a write that turns out to be a
+   * no-op still counts — the count means "the callback chose to write", not
+   * "SQL was emitted".)
+   *
+   * The `lock` option turns the update into a guarded (compare-and-set)
+   * update: each record is written only if it still matches the Query at the
+   * moment an exclusive row lock on it is acquired. Use it when the Query's
+   * conditions are the thing being changed and a concurrent writer racing this
+   * call must not have its write clobbered:
+   *
+   * ```ts
+   * const updated = await Order.where({ status: 'pending' })
+   *   .update({ status: 'processing' }, { lock: true })
+   * // 0 — someone else moved every one of them out of 'pending' first
+   * ```
+   *
+   * With `lock: true`, records are processed in batches, and each batch runs
+   * in its own transaction which first re-selects that batch's records with an
+   * exclusive row lock and then updates them before committing. Because the
+   * database re-checks the Query's conditions after acquiring each row lock, a
+   * record a concurrent transaction has already moved out of the Query drops
+   * out of the locked read and is never updated. The returned count is the
+   * number of records claimed and submitted for writing, so a caller can
+   * detect that it lost a race by comparing the count against what it
+   * expected. (A claimed record whose write turns out to be a no-op — the
+   * attributes already match, or a hook cleared every dirty attribute — still
+   * counts; the count is not a guarantee that SQL was emitted per counted
+   * record.)
+   *
+   * Things to know before relying on it:
+   *
+   * - **The guarantee is per batch, not set-wide.** A run spanning more than
+   *   one batch can win a race in batch 1 and lose one in batch 2; nothing
+   *   holds the whole matched set still for the duration of the run. Sharing
+   *   one transaction across every batch — by threading a transaction onto the
+   *   Query itself, `Order.query().txn(txn).where({ ... }).update({ ... },
+   *   { lock: true })` — buys two things: the updates become all-or-nothing (a
+   *   rollback undoes the whole run), and the row locks taken by every batch
+   *   are held until you commit. It does **not** extend the compare-and-set to
+   *   the part of the set the run has not reached yet: under READ COMMITTED
+   *   each statement takes a fresh snapshot, so a record moved out of the
+   *   Query between batch 1 and batch 2 still drops out of batch 2's locked
+   *   read. A genuinely set-wide guarantee needs REPEATABLE READ /
+   *   SERIALIZABLE, or a single locking statement over the whole set.
+   * - **Only a transaction carried by the Query is shared.** Merely wrapping
+   *   the call in `Model.transaction(...)` does not thread that transaction
+   *   onto the Query — `Dream.transaction` establishes no ambient transaction,
+   *   it only hands a `txn` to your callback — so each batch would open its
+   *   own transaction on a different pooled connection. Worse, if the
+   *   surrounding transaction has already written to any of the matched rows,
+   *   each batch's locked read blocks on locks the surrounding transaction
+   *   holds while that transaction awaits the update: a cycle across two
+   *   connections, which Postgres's deadlock detector cannot see, so it hangs
+   *   rather than aborting. Always pass the transaction with `.txn(txn)`.
+   * - **Behavior above READ COMMITTED differs.** The drop-out-of-the-result
+   *   behavior described above is READ COMMITTED (Postgres's default). Under
+   *   REPEATABLE READ or SERIALIZABLE, the same race raises a serialization
+   *   failure instead of silently returning a lower count. Both are safe; only
+   *   one of them is quiet.
+   * - **`batchSize` defaults to 10 here**, not `findEach`'s 1000, and the
+   *   default is deliberately small. Every row in a batch stays locked for the
+   *   whole batch, including the time spent running each record's hooks — and,
+   *   on the callback form, the time spent running the Query's `preload`
+   *   queries, which are fetched inside the lock window (the attributes form
+   *   strips preloads, which it never consumes) — so an oversized batch blocks
+   *   unrelated writers touching those rows and surfaces as timeouts somewhere
+   *   else in the application, which is very hard to trace back to this
+   *   update. Too small a batch, by contrast, only slows down this call, which
+   *   you can see and fix. Lower it further for models with expensive update
+   *   hooks.
+   * - **The callback must not write to the database.** The record handed to
+   *   the callback is not bound to the batch's transaction: a write through it
+   *   (e.g. `await record.update(...)`) goes out on a different pooled
+   *   connection and blocks on the batch's own row locks while the batch
+   *   transaction waits on the callback — a cycle across two connections that
+   *   the database's deadlock detector cannot see, so with no `lock_timeout`
+   *   the run hangs indefinitely and pins both connections. Reads through the
+   *   record (`reload`, `associationQuery`, ...) likewise run on a separate
+   *   connection and snapshot. Derive the attributes and return them; Dream
+   *   performs the write inside the batch's transaction.
+   * - **`lock: false` can throw mid-run when racing a deleter.** On the
+   *   unlocked paths, a matched record that a concurrent transaction destroys
+   *   between a batch's read and that record's write aborts the run with an
+   *   error: earlier batches stay committed, and no count is returned. Use
+   *   `lock: true` when deleters may race the update — claimed rows are held
+   *   under their locks until written.
+   * - **A `limit` or `offset` on the Query is incompatible with `update` on
+   *   every path.** The batched paths re-apply the Query's conditions to each
+   *   batch window, where a limit or offset would skip or truncate rows
+   *   inside every window instead of bounding the run as a whole, and the
+   *   single-statement `skipHooks` attributes form cannot express either in
+   *   its SQL UPDATE. Every form throws rather than silently corrupting the
+   *   windows or ignoring the caller's scope.
+   * - **A batch waits, without bound, for whoever holds the row.** The locked
+   *   read is a plain `FOR UPDATE`: if another transaction already holds a
+   *   lock on one of the batch's rows, this call blocks until that transaction
+   *   ends, holding its own transaction and its pooled connection open the
+   *   whole time. Dream sets no `lock_timeout` or `statement_timeout`, so a
+   *   long-running writer on the other side stalls the run indefinitely and,
+   *   at scale, ties up connections. If that is a risk in your application,
+   *   set a `lock_timeout` on the connection so a stuck batch fails instead of
+   *   hanging.
+   * - **`skipHooks` composes with `lock`, but stays on the per-instance
+   *   path.** With an attributes object and no `lock`, `skipHooks: true`
+   *   issues a single `UPDATE ... WHERE` statement that writes raw columns.
+   *   With `lock: true`, `skipHooks: true` skips the model hooks on each
+   *   claimed record but still writes through the instance, so custom setters
+   *   — including the setters encrypted attributes encrypt through — run as
+   *   they would for a plain instance update. (Virtual attributes whose
+   *   processing lives in a hook are still skipped, exactly as in an instance
+   *   update with `skipHooks`.) A callback never takes the single-statement
+   *   path: `skipHooks` beside a callback only skips the hooks on each
+   *   per-record write, under `lock: true` and `lock: false` alike.
+   * - **If you are updating a large set and do not need compare-and-set, do
+   *   not pass `lock`.** Plain `update(attributes)` (hooks, no locking) or
+   *   `update(attributes, { skipHooks: true })` (a single statement, no hooks)
+   *   are the right tools for bulk updates.
+   *
+   * @param attributesOrCb - The attributes used to update the records, or a callback receiving each record and returning the attributes to write for it (or `undefined` to skip that record). Passing a callback makes `options` and its `lock` key mandatory
    * @param options - Options for updating the instance
    * @param options.skipHooks - If true, skips applying model hooks. Defaults to false
+   * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being updated, making the update a compare-and-set. Defaults to false for the attributes form; with a callback there is no default — an explicit boolean is required. One typing asymmetry to know: with an attributes object, an explicit `lock: false` keeps the raw single-statement (`DreamTableSchema`) typing that `skipHooks` uses, so virtual/encrypted attributes type-check only when the options object is omitted entirely or `lock` is `true`
+   * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 for the unlocked callback form
    * @returns The number of records that were updated
+   * @throws InvalidBatchSize if `batchSize` is not a positive integer
+   * @throws MissingRequiredLockOptionForUpdateCallback if a callback is passed without an options object carrying a boolean `lock`
+   * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
   public async update(
+    cb: (
+      record: DreamInstance
+    ) =>
+      | UpdateableProperties<DreamInstance>
+      | undefined
+      | Promise<UpdateableProperties<DreamInstance> | undefined>,
+    options: { lock: boolean; batchSize?: number; skipHooks?: boolean }
+  ): Promise<number>
+  public async update(
+    attributes: UpdateableProperties<DreamInstance>,
+    options: { lock: true; batchSize?: number; skipHooks?: boolean }
+  ): Promise<number>
+  public async update(
     attributes: DreamTableSchema<DreamInstance>,
-    options?: { skipHooks?: boolean }
+    options?: { skipHooks?: boolean; lock?: false }
   ): Promise<number>
   public async update(attributes: UpdateableProperties<DreamInstance>): Promise<number>
   public async update(
-    attributes: UpdateableProperties<DreamInstance>,
-    { skipHooks }: { skipHooks?: boolean } = {}
+    attributesOrCb:
+      | UpdateableProperties<DreamInstance>
+      | DreamTableSchema<DreamInstance>
+      | ((
+          record: DreamInstance
+        ) =>
+          | UpdateableProperties<DreamInstance>
+          | undefined
+          | Promise<UpdateableProperties<DreamInstance> | undefined>),
+    { skipHooks, lock, batchSize }: { skipHooks?: boolean; lock?: boolean; batchSize?: number } = {}
   ): Promise<number> {
     if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
     if (Object.keys(this.innerJoinStatements).length) throw new NoUpdateAllOnJoins()
     if (Object.keys(this.leftJoinStatements).length) throw new NoUpdateAllOnJoins()
 
-    if (skipHooks)
-      return await this.updateWithoutCallingModelHooks(attributes as DreamTableSchema<DreamInstance>)
+    const cb = typeof attributesOrCb === 'function' ? attributesOrCb : undefined
+    // the overloads already demand an options object with a boolean `lock`
+    // whenever a callback is passed; this backstops callers outside the type
+    // system, so a callback can never silently take (or skip) row locks the
+    // call site did not spell out
+    if (cb && typeof lock !== 'boolean') throw new MissingRequiredLockOptionForUpdateCallback()
+
+    // resolve the default before validating: `??` would let an explicit 0
+    // through, and `limit(0)` means "no limit", which would turn a batched
+    // update into a single unbounded pass (and, with `lock`, a lock over the
+    // entire matched set)
+    const resolvedBatchSize =
+      batchSize ?? (lock ? Query.BATCH_SIZES.LOCKED_UPDATE : Query.BATCH_SIZES.FIND_EACH)
+    if (!Number.isInteger(resolvedBatchSize) || resolvedBatchSize < 1) throw new InvalidBatchSize(batchSize)
+
+    // a limit or offset cannot compose with any update path: the batched
+    // paths (findEach and lockedBatches, which also guard) would re-apply it
+    // to every batch window, silently skipping or truncating rows within each
+    // window rather than bounding the run, and the single-statement skipHooks
+    // path's SQL UPDATE cannot express it, so it would be silently ignored
+    if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
+
+    if (lock) {
+      // the attributes form never consumes the records it claims, so its
+      // preloads would be pure wasted queries run while every row in the
+      // batch is exclusively locked; the callback form keeps them, since the
+      // callback may consume the preloaded associations
+      const baseQuery = cb ? this : this.clone({ preloadStatements: {}, preloadOnStatements: {} })
+
+      return await baseQuery.lockedUpdate(
+        cb
+          ? // the callback receives a clone of the claimed record, so that only
+            // the attributes it *returns* are written: the per-instance write is
+            // dirty-state-based, and mutations made directly on the record
+            // Dream holds would otherwise ride along with the save
+            (record: DreamInstance) => cb(record['clone']())
+          : () => attributesOrCb as UpdateableProperties<DreamInstance>,
+        { skipHooks },
+        resolvedBatchSize
+      )
+    }
+
+    if (!cb && skipHooks)
+      return await this.updateWithoutCallingModelHooks(attributesOrCb as DreamTableSchema<DreamInstance>)
 
     let counter = 0
 
-    await this.findEach(async result => {
-      const subquery = this.dreamTransaction
-        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
-        : result
+    await this.findEach(
+      async result => {
+        // as on the locked path, the callback receives a clone, so only the
+        // attributes it returns are written
+        const attributes = cb
+          ? await cb(result['clone']())
+          : (attributesOrCb as UpdateableProperties<DreamInstance>)
+        // null is not part of the callback's advertised contract, but it is
+        // the natural untyped-JS skip idiom; treat it as a skip rather than
+        // letting it crash the per-instance write mid-run
+        if (attributes == null) return
 
-      await subquery.update(attributes as any)
-      counter++
-    })
+        const subquery = this.dreamTransaction
+          ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+          : result
+
+        await subquery.update(attributes as any, skipHooks ? { skipHooks } : undefined)
+        counter++
+      },
+      {
+        batchSize: resolvedBatchSize,
+      }
+    )
 
     return counter
+  }
+
+  /**
+   * @internal
+   *
+   * The compare-and-set implementation behind `update(attributes, { lock: true })`,
+   * driven by {@link Query.lockedBatches}, which owns the keyset cursor, the
+   * pluck/claim two-step, and the transaction dispatch.
+   *
+   * Each claimed record is handed to `cb`, which returns the attributes to
+   * write for it, or a nullish value to skip it. The attributes form is the
+   * constant-callback case (a callback ignoring the record and always
+   * returning the same attributes), which is how the two forms share this
+   * implementation. (`update` hands the user's own callback a clone of each
+   * claimed record, so only the returned attributes reach the write below —
+   * see the dispatch in {@link Query.update}.)
+   *
+   * The count is the number of claimed records the callback returned
+   * attributes for: records attempted but not claimed (lost races) never
+   * reach the callback, and claimed records the callback skipped are not
+   * counted. For the attributes form the callback is total, so the count
+   * degenerates to records claimed and submitted for writing. (A record whose
+   * write turns out to be a no-op still counts: the instance path returns
+   * without issuing SQL when nothing is dirty.)
+   *
+   * Each claimed record is written via the ordinary per-instance update, so
+   * hooks (unless `skipHooks`), custom setters, and virtual/encrypted
+   * attribute preprocessing behave exactly as in a plain instance update.
+   *
+   * No join-load guard is needed here: update's own joins guards have already
+   * thrown on every join-load query (leftJoinPreload always carries left-join
+   * statements).
+   */
+  private async lockedUpdate(
+    cb: (
+      record: DreamInstance
+    ) =>
+      | UpdateableProperties<DreamInstance>
+      | undefined
+      | Promise<UpdateableProperties<DreamInstance> | undefined>,
+    { skipHooks }: { skipHooks?: boolean | undefined },
+    batchSize: number
+  ): Promise<number> {
+    return await this.lockedBatches(batchSize, async (claimed, txn) => {
+      let written = 0
+
+      for (const record of claimed) {
+        const attributes = await cb(record)
+        // null is not part of the callback's advertised contract, but it is
+        // the natural untyped-JS skip idiom; treat it as a skip rather than
+        // letting it crash the per-instance write mid-batch
+        if (attributes == null) continue
+
+        const inTransaction = record.txn(txn) as unknown as DreamInstance
+        await inTransaction.update(attributes as any, skipHooks ? { skipHooks } : undefined)
+        written++
+      }
+
+      return written
+    })
   }
 
   private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {

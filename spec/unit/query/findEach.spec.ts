@@ -1,4 +1,5 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
+import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import ops from '../../../src/ops/index.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -52,6 +53,37 @@ describe('Query#findEach', () => {
       records.push(user)
     })
     expect(records).toMatchDreamModels([usera, userb, userc])
+  })
+
+  context('when the Query carries a limit or offset', () => {
+    it('rejects them rather than corrupting the batch windows', async () => {
+      // the batch windows re-apply the Query's conditions per batch, so a
+      // carried limit would be silently replaced by the batch size and a
+      // carried offset re-applied to every window
+      const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      await User.create({ email: 'b@b.com', password: 'howyadoin' })
+
+      await expect(
+        User.query()
+          .limit(1)
+          .findEach(() => {})
+      ).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+      await expect(
+        User.query()
+          .offset(1)
+          .findEach(() => {})
+      ).rejects.toThrow(BatchingIncompatibleWithLimitOrOffset)
+
+      // a limit of zero means "no limit", so it batches as if no limit were set
+      const users: User[] = []
+      await User.query()
+        .limit(0)
+        .findEach(user => {
+          users.push(user)
+        })
+      expect(users.length).toEqual(2)
+      expect(users[0]).toMatchDreamModel(usera)
+    })
   })
 
   context('regarding connections', () => {

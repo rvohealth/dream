@@ -210,3 +210,15 @@ describe('Query#paginate', () => {
     })
   })
 })
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('rejects paginate on a Query carrying a limit or offset', async () => {
+    // @ts-expect-error paginate is incompatible with limit
+    await User.query().limit(1).paginate({ pageSize: 2, page: 1 })
+    // @ts-expect-error paginate is incompatible with offset
+    await User.query().offset(1).paginate({ pageSize: 2, page: 1 })
+    // without a limit or offset, paginate accepts its options
+    await User.query().paginate({ pageSize: 2, page: 1 })
+  })
+})

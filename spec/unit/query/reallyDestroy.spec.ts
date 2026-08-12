@@ -1,4 +1,5 @@
 import Query from '../../../src/dream/Query.js'
+import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
@@ -89,6 +90,24 @@ describe('Query#reallyDestroy', () => {
         expect(await Rating.count()).toEqual(0)
         expect(await Rating.removeAllDefaultScopes().count()).toEqual(0)
       })
+    })
+  })
+
+  context('when the Query carries a limit or offset', () => {
+    it('rejects them rather than corrupting the batch windows', async () => {
+      // the batch windows re-apply the Query's conditions per batch, so a
+      // carried limit would be silently replaced by the batch size and a
+      // carried offset re-applied to every window
+      await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+      await expect(User.query().limit(1).reallyDestroy()).rejects.toThrow(
+        BatchingIncompatibleWithLimitOrOffset
+      )
+      await expect(User.query().offset(1).reallyDestroy()).rejects.toThrow(
+        BatchingIncompatibleWithLimitOrOffset
+      )
+
+      expect(await User.count()).toEqual(1)
     })
   })
 
