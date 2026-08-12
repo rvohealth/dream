@@ -335,6 +335,20 @@ describe('generateMigration', () => {
         expect(spy).toHaveBeenCalledTimes(1)
         expect(writtenMigration().content).toContain("alterTable('host_listings')")
       })
+
+      it('still generates when the derived table name starts with a digit', async () => {
+        // Kysely quotes the identifier, so alterTable('2fa_tokens') is valid;
+        // the guard blocks characters that could escape the generated string
+        // literal, not identifiers a database convention would frown on.
+        await generateMigration({
+          migrationName: 'add-x-to-2fa-tokens',
+          columnsWithTypes: ['x:string'],
+          connectionName: 'default',
+        })
+
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(writtenMigration().content).toContain("alterTable('2fa_tokens')")
+      })
     })
 
     context('a marker spelled with an underscore', () => {
@@ -359,6 +373,80 @@ describe('generateMigration', () => {
         // tail of the filename is asserted
         expect(fileName).toMatch(/^\d+-replace-lean-to-with-treehouse\.ts$/)
         expect(content).toContain("alterTable('<table-name>')")
+      })
+    })
+  })
+
+  context('a model-context migration (g:model / g:resource)', () => {
+    // The same unescaped interpolation is reached by the table name of a model
+    // migration, from either of two sources: `--table-name` verbatim, or the
+    // name derived from the fully qualified model name. Both are validated.
+    const injectingValue = "users');await db.schema.dropTable('users"
+
+    context('an explicit --table-name that is not a plain identifier', () => {
+      it('throws InvalidMigrationTableName, naming it, and writes no file', async () => {
+        let error: InvalidMigrationTableName | undefined
+
+        try {
+          await generateMigration({
+            migrationName: 'CreateFoo',
+            columnsWithTypes: ['name:string'],
+            connectionName: 'default',
+            fullyQualifiedModelName: 'Foo',
+            tableName: injectingValue,
+          })
+        } catch (err) {
+          error = err as InvalidMigrationTableName
+        }
+
+        expect(error).toBeInstanceOf(InvalidMigrationTableName)
+        expect(error!.message).toContain(injectingValue)
+        expect(spy).not.toHaveBeenCalled()
+      })
+
+      it('still generates for an ordinary explicit table name', async () => {
+        await generateMigration({
+          migrationName: 'CreateSettings/NotificationPreference',
+          columnsWithTypes: ['name:string'],
+          connectionName: 'default',
+          fullyQualifiedModelName: 'Settings/NotificationPreference',
+          tableName: 'notif_prefs',
+        })
+
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(writtenMigration().content).toContain("createTable('notif_prefs')")
+      })
+    })
+
+    context('a model name whose derived table name is not a plain identifier', () => {
+      it('throws InvalidMigrationTableName and writes no file', async () => {
+        let error: unknown
+
+        try {
+          await generateMigration({
+            migrationName: 'CreateFoo',
+            columnsWithTypes: ['name:string'],
+            connectionName: 'default',
+            fullyQualifiedModelName: `Foo${injectingValue}`,
+          })
+        } catch (err) {
+          error = err
+        }
+
+        expect(error).toBeInstanceOf(InvalidMigrationTableName)
+        expect(spy).not.toHaveBeenCalled()
+      })
+
+      it('still generates for an ordinary model name', async () => {
+        await generateMigration({
+          migrationName: 'CreateSettings/NotificationPreference',
+          columnsWithTypes: ['name:string'],
+          connectionName: 'default',
+          fullyQualifiedModelName: 'Settings/NotificationPreference',
+        })
+
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(writtenMigration().content).toContain("createTable('settings_notification_preferences')")
       })
     })
   })
