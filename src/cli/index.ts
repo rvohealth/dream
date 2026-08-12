@@ -124,6 +124,21 @@ ${INDENT}        rename the FK column with Model@alias (snake_case alias becomes
 ${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column with index
 ${INDENT}          Messaging/Template@template:belongs_to             # template_id column (strips the namespace from the column name)`)
 
+/**
+ * The `<migrationName>` argument description for `g:migration`. Exported so
+ * that spec/unit/helpers/cli/generateMigration.spec.ts can read the example
+ * migration names out of this text and run them through the generator: a help
+ * example that drifts from what the generator actually produces then fails the
+ * suite instead of shipping.
+ */
+export const migrationNameArgumentDescription = `Kebab-case name describing the change. A -to-<table_name> anywhere in the name — not just at the end — auto-generates an add-columns alterTable scaffold for that table; -from-<table_name> generates a remove-columns scaffold, but only when the name contains no -to- at all. The text after the marker is snake-cased and pluralized into the table name. A hand-written migration must avoid both strings anywhere in its name.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  add-phone-to-users phone:encrypted           # scaffolds alterTable('users', ...)
+${INDENT}  remove-status-from-posts status:string      # scaffolds alterTable('posts', ...)
+${INDENT}  create-many-to-many-posts-users  # WRONG: -to- inside "many-to-many" selects alterTable('many_posts_users') — with no columns this errors; with columns it silently scaffolds against that table
+${INDENT}  create-posts-users-join-table    # correct: no marker match, scaffolds alterTable('<table-name>') to hand-edit`
+
 export default class DreamCLI {
   /**
    * Starts the Dream console
@@ -238,16 +253,7 @@ ${INDENT}
 ${INDENT}  # General schema change (no -to-/-from- marker — scaffolds alterTable('<table-name>') to hand-edit)
 ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
       )
-      .argument(
-        '<migrationName>',
-        `Kebab-case name describing the change. The FIRST -to-<table_name> or -from-<table_name> anywhere in the name — not just at the end — auto-generates an alterTable scaffold for that table. A hand-written migration must avoid both strings anywhere in its name.
-${INDENT}
-${INDENT}Examples:
-${INDENT}  add-phone-to-users phone:encrypted           # scaffolds alterTable('users', ...)
-${INDENT}  remove-status-from-posts status:string      # scaffolds alterTable('posts', ...)
-${INDENT}  create-many-to-many-posts-users  # WRONG: -to- inside "many-to-many" selects alterTable('many_posts_users'), so this errors and writes nothing
-${INDENT}  create-posts-users-join-table    # correct: no marker match, scaffolds alterTable('<table-name>') to hand-edit`
-      )
+      .argument('<migrationName>', migrationNameArgumentDescription)
       .option(
         '--connection-name <connectionName>',
         'the database connection to use for this migration. Only needed for multi-database setups; defaults to "default"'

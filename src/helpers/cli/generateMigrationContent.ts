@@ -68,8 +68,10 @@ export default function generateMigrationContent({
    */
   migrationName?: string | undefined
   /**
-   * The `-to-`/`-from-` marker that matched within `migrationName` and selected
-   * alter mode. Reported by `NoColumnsToAlterMigration`; see `migrationName`.
+   * The `-to-`/`-from-` marker that matched within `migrationName` and resolved
+   * both the table and the add/remove direction (alter mode itself is
+   * unconditional on that path). Reported by `NoColumnsToAlterMigration`; see
+   * `migrationName`.
    */
   alterMarker?: '-to-' | '-from-' | undefined
   stiChildClassName?: string | undefined

@@ -40,10 +40,11 @@ Pass at least one column declaration with a resolvable type, e.g.:
     return `
 no valid columns to ${verb} table '${this.table}' in this alter migration.
 
-Alter mode was selected automatically: the migration name
-'${this.migrationName}' contains '${this.marker}'. The FIRST '-to-' or '-from-' anywhere in
-the name - not just at the end - is the marker, and everything after it is read
-as the table name.
+The migration name '${this.migrationName}' contains '${this.marker}', which selected that
+table and the '${this.alterDirection}' direction: everything after the marker -
+wherever in the name it appears - is snake-cased and pluralized into the table
+name. A '-to-' anywhere in the name wins, even when a '-from-' appears earlier;
+'-from-' applies only when the name contains no '-to-' at all.
 
 Either:
 
