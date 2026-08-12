@@ -41,10 +41,10 @@ Pass at least one column declaration with a resolvable type, e.g.:
 no valid columns to ${verb} table '${this.table}' in this alter migration.
 
 The migration name '${this.migrationName}' contains '${this.marker}', which selected that
-table and the '${this.alterDirection}' direction: everything after the marker -
-wherever in the name it appears - is snake-cased and pluralized into the table
-name. A '-to-' anywhere in the name wins, even when a '-from-' appears earlier;
-'-from-' applies only when the name contains no '-to-' at all.
+table and the '${this.alterDirection}' direction: everything after the marker's first
+occurrence - wherever in the name that falls - is snake-cased and pluralized
+into the table name. A '-to-' anywhere in the name wins, even when a '-from-'
+appears earlier; '-from-' applies only when the name contains no '-to-' at all.
 
 Either:
 

@@ -26,17 +26,24 @@ function tableNameFromSuffix(migrationName: string, marker: string): string | un
 }
 
 /**
- * A table name derived from a migration name is written verbatim into a
- * single-quoted string literal in the generated migration file, which
+ * Whatever table name a generated migration ends up with is written verbatim
+ * into a single-quoted string literal in the migration file, which
  * `db:migrate` later executes. Anything that is not a plain identifier could
  * therefore close that literal and inject statements, so the generator fails
- * closed instead of escaping.
+ * closed instead of escaping. Every source of that table name is validated:
+ * the text after a `-to-`/`-from-` marker, the `--table-name` option, and the
+ * name derived from a model name.
+ *
+ * The pattern's job is blocking characters that can escape the generated
+ * string literal, not enforcing an SQL identifier convention: Kysely quotes
+ * identifiers, so a leading digit (`alterTable('2fa_tokens')`) is legal and is
+ * allowed here. Non-ASCII names stay rejected.
  *
  * This is a pure string check: it never consults the database, since the
  * derived name legitimately need not be an existing table (e.g.
  * `add-treehouse-to-place-styles` targets a Postgres enum).
  */
-const VALID_DERIVED_TABLE_NAME = /^[a-z_][a-z0-9_]*$/
+const VALID_DERIVED_TABLE_NAME = /^[a-z0-9_]+$/
 
 function validTableNameOrThrow(migrationName: string, table: string): string {
   if (!VALID_DERIVED_TABLE_NAME.test(table)) throw new InvalidMigrationTableName(migrationName, table)
@@ -84,14 +91,20 @@ export default async function generateMigration({
 
   if (isSTI) {
     content = generateStiMigrationContent({
-      table: snakeify(pluralize(pascalizePath(fullyQualifiedParentName))),
+      table: validTableNameOrThrow(
+        migrationName,
+        snakeify(pluralize(pascalizePath(fullyQualifiedParentName)))
+      ),
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
       stiChildClassName: modelClassName || pascalizePath(fullyQualifiedModelName!),
     })
   } else if (fullyQualifiedModelName) {
     content = generateMigrationContent({
-      table: explicitTableName || snakeify(pluralize(pascalizePath(fullyQualifiedModelName))),
+      table: validTableNameOrThrow(
+        migrationName,
+        explicitTableName || snakeify(pluralize(pascalizePath(fullyQualifiedModelName)))
+      ),
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
       softDelete,
