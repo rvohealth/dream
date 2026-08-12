@@ -1,3 +1,5 @@
+import { migrationNameArgumentDescription } from '../../../../src/cli/index.js'
+import InvalidMigrationTableName from '../../../../src/errors/InvalidMigrationTableName.js'
 import NoColumnsToAlterMigration from '../../../../src/errors/NoColumnsToAlterMigration.js'
 import generateMigration from '../../../../src/helpers/cli/generateMigration.js'
 import type { WriteGeneratedFileArgs } from '../../../../src/helpers/cli/writeGeneratedFile.js'
@@ -37,6 +39,27 @@ async function migrationError(migrationName: string): Promise<NoColumnsToAlterMi
   }
 
   throw new Error(`expected generateMigration('${migrationName}') to throw, but it resolved`)
+}
+
+/**
+ * Reads a migration name out of the `g:migration` <migrationName> help text:
+ * the first word of the example line whose trailing comment starts with
+ * `commentMarker` (e.g. '# WRONG:'). Derived from the help text rather than
+ * hard-coded so that the generator is exercised with whatever example the help
+ * currently prints, and throws when that example line is gone.
+ */
+function helpExampleMigrationName(commentMarker: string): string {
+  const exampleLine = migrationNameArgumentDescription
+    .split('\n')
+    .find(candidate => candidate.includes(commentMarker))
+
+  if (!exampleLine)
+    throw new Error(
+      `no '${commentMarker}' example line in the g:migration <migrationName> help text; ` +
+        'update this spec together with src/cli/index.ts'
+    )
+
+  return exampleLine.trim().split(/\s+/)[0]!
 }
 
 describe('generateMigration', () => {
@@ -148,10 +171,12 @@ describe('generateMigration', () => {
 
     context('a marker matched, but no columns were passed', () => {
       // Each of these reads as a hand-written migration to the person typing
-      // it, but the FIRST -to-/-from- anywhere in the name silently selects
-      // alter mode, so it errors and writes nothing. The error has to say so:
-      // naming only the resolved table (a table the user never typed, and
-      // which need not exist) sends them off inventing a bogus column on it.
+      // it. Every standalone migration name generates in alter mode; what a
+      // -to-/-from- anywhere in the name changes is which concrete table is
+      // altered and in which direction, and altering a concrete table with no
+      // columns errors and writes nothing. The error has to say so: naming
+      // only the resolved table (a table the user never typed, and which need
+      // not exist) sends them off inventing a bogus column on it.
       const cases = [
         {
           migrationName: 'rename-host-places-to-host-listings',
@@ -177,6 +202,14 @@ describe('generateMigration', () => {
           table: 'user_profiles',
           verb: 'drop from',
         },
+        // A both-marker name, so the corpus is not exclusively single-marker:
+        // see the precedence spec below for why this one resolves via '-to-'.
+        {
+          migrationName: 'migrate-notifications-from-inbox-to-archive',
+          marker: '-to-',
+          table: 'archives',
+          verb: 'add to',
+        },
       ]
 
       for (const { migrationName, marker, table, verb } of cases) {
@@ -200,15 +233,36 @@ describe('generateMigration', () => {
           })
         })
       }
+
+      // PINNED CURRENT BEHAVIOR: '-to-' is searched across the whole name
+      // before '-from-' is considered at all, so a name containing both
+      // resolves via '-to-' even when the '-from-' appears earlier. Position
+      // does not break the tie, and this is the one name shape that falsifies
+      // a "the first marker anywhere in the name wins" phrasing — so the
+      // error message's wording, and the matching wording in the g:migration
+      // --help text, are pinned here against exactly that shape.
+      it("resolves a both-marker name via '-to-', not via the earlier '-from-'", async () => {
+        const { message } = await migrationError('migrate-notifications-from-inbox-to-archive')
+
+        expect(message).toContain("no valid columns to add to table 'archives'")
+        expect(message).toContain("'migrate-notifications-from-inbox-to-archive' contains '-to-'")
+        expect(message).not.toContain('inboxes')
+        expect(message).not.toContain('drop from')
+      })
     })
 
     context('the --help counter-example pair', () => {
-      // Pins the two example lines in the `generate:migration` help block in
-      // src/cli/index.ts. If either of these starts failing, the help text is
-      // making a claim the generator no longer honors.
-      context('create-many-to-many-posts-users (the WRONG line)', () => {
+      // The names run through the generator here are read out of the
+      // `g:migration` <migrationName> help text itself, so editing that help
+      // block to a different (or reverted) example runs *that* example through
+      // the generator: a help example that stops matching what the generator
+      // produces fails here rather than shipping.
+      const wrongExample = helpExampleMigrationName('# WRONG:')
+      const correctedExample = helpExampleMigrationName('# correct:')
+
+      context(`${wrongExample} (the WRONG line)`, () => {
         it("errors rather than scaffolding, because -to- inside 'many-to-many' selects alterTable('many_posts_users')", async () => {
-          const error = await migrationError('create-many-to-many-posts-users')
+          const error = await migrationError(wrongExample)
 
           expect(error).toBeInstanceOf(NoColumnsToAlterMigration)
           expect(error.message).toContain("no valid columns to add to table 'many_posts_users'")
@@ -216,10 +270,10 @@ describe('generateMigration', () => {
         })
       })
 
-      context('create-posts-users-join-table (the corrected line)', () => {
+      context(`${correctedExample} (the corrected line)`, () => {
         it("matches no marker, and scaffolds alterTable('<table-name>') to hand-edit", async () => {
           await generateMigration({
-            migrationName: 'create-posts-users-join-table',
+            migrationName: correctedExample,
             columnsWithTypes: [],
             connectionName: 'default',
           })
@@ -227,6 +281,59 @@ describe('generateMigration', () => {
           expect(spy).toHaveBeenCalledTimes(1)
           expect(writtenMigration().content).toContain("alterTable('<table-name>')")
         })
+      })
+    })
+
+    context('a migration name whose derived table name is not a plain identifier', () => {
+      // The derived table name is interpolated into a single-quoted string
+      // literal in the generated migration, and `psy db:migrate` later
+      // executes that file. A quote in the migration name would otherwise
+      // close the literal and inject statements, so the derived name is
+      // validated and the generator fails closed.
+      const injectingName = "add-foo-to-users');await db.schema.dropTable('users"
+
+      it('throws InvalidMigrationTableName and writes no file', async () => {
+        let error: unknown
+
+        try {
+          await generateMigration({
+            migrationName: injectingName,
+            columnsWithTypes: ['foo:string'],
+            connectionName: 'default',
+          })
+        } catch (err) {
+          error = err
+        }
+
+        expect(error).toBeInstanceOf(InvalidMigrationTableName)
+        expect(spy).not.toHaveBeenCalled()
+      })
+
+      it('names the offending migration name in the message', async () => {
+        let error: InvalidMigrationTableName | undefined
+
+        try {
+          await generateMigration({
+            migrationName: injectingName,
+            columnsWithTypes: ['foo:string'],
+            connectionName: 'default',
+          })
+        } catch (err) {
+          error = err as InvalidMigrationTableName
+        }
+
+        expect(error!.message).toContain(injectingName)
+      })
+
+      it('still generates for an ordinary migration name', async () => {
+        await generateMigration({
+          migrationName: 'add-phone-to-host-listings',
+          columnsWithTypes: ['phone:string'],
+          connectionName: 'default',
+        })
+
+        expect(spy).toHaveBeenCalledTimes(1)
+        expect(writtenMigration().content).toContain("alterTable('host_listings')")
       })
     })
 
@@ -259,10 +366,12 @@ describe('generateMigration', () => {
 
 describe('NoColumnsToAlterMigration', () => {
   context('constructed without a migration name or marker', () => {
-    // Reachable, not hypothetical: generateStiMigrationContent forwards
-    // createOrAlter: 'alter' with an optional stiChildClassName, and
-    // spec/unit/cli/generateStiMigrationContent.spec.ts already calls it
-    // without one.
+    // No in-repo path reaches this branch: generateMigration always supplies
+    // a migrationName on the standalone path and an stiChildClassName on the
+    // STI path (and the throw is gated on !stiChildClassName). The degraded
+    // wording exists for direct library callers of generateMigrationContent /
+    // generateStiMigrationContent, which may omit both, and is asserted here
+    // by constructing the error directly.
     it('degrades to the table-only wording and mentions neither marker', () => {
       const error = new NoColumnsToAlterMigration('users', 'add')
 
