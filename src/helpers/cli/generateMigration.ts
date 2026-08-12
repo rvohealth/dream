@@ -1,5 +1,6 @@
 import * as path from 'node:path'
 import pluralize from 'pluralize-esm'
+import InvalidMigrationTableName from '../../errors/InvalidMigrationTableName.js'
 import generateMigrationContent, {
   MIGRATION_TABLE_NAME_PLACEHOLDER,
 } from '../cli/generateMigrationContent.js'
@@ -22,6 +23,24 @@ function tableNameFromSuffix(migrationName: string, marker: string): string | un
   const markerIndex = migrationName.indexOf(marker)
   if (markerIndex === -1) return undefined
   return migrationName.slice(markerIndex + marker.length) || undefined
+}
+
+/**
+ * A table name derived from a migration name is written verbatim into a
+ * single-quoted string literal in the generated migration file, which
+ * `db:migrate` later executes. Anything that is not a plain identifier could
+ * therefore close that literal and inject statements, so the generator fails
+ * closed instead of escaping.
+ *
+ * This is a pure string check: it never consults the database, since the
+ * derived name legitimately need not be an existing table (e.g.
+ * `add-treehouse-to-place-styles` targets a Postgres enum).
+ */
+const VALID_DERIVED_TABLE_NAME = /^[a-z_][a-z0-9_]*$/
+
+function validTableNameOrThrow(migrationName: string, table: string): string {
+  if (!VALID_DERIVED_TABLE_NAME.test(table)) throw new InvalidMigrationTableName(migrationName, table)
+  return table
 }
 
 export default async function generateMigration({
@@ -83,8 +102,12 @@ export default async function generateMigration({
       ? undefined
       : tableNameFromSuffix(migrationName, '-from-')
     const tableName = toTableName || fromTableName
+    const table = tableName
+      ? validTableNameOrThrow(migrationName, pluralize(snakeify(tableName)))
+      : MIGRATION_TABLE_NAME_PLACEHOLDER
+
     content = generateMigrationContent({
-      table: tableName ? pluralize(snakeify(tableName)) : MIGRATION_TABLE_NAME_PLACEHOLDER,
+      table,
       columnsWithTypes,
       primaryKeyType: primaryKeyType(connectionName)!,
       createOrAlter: 'alter',
