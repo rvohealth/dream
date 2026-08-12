@@ -13,7 +13,7 @@ import snakeify from '../snakeify.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 
 // Sentinel table name used by generateMigration.ts when a standalone
-// migration name matches neither a `-to-<table>` nor `-from-<table>` suffix.
+// migration name contains neither a `-to-<table>` nor `-from-<table>` marker.
 // That path intentionally produces a stub the user is expected to hand-edit
 // (e.g. an index-only migration with no column operations at all), so it's
 // exempt from the "no valid columns" check below.
@@ -41,6 +41,8 @@ export default function generateMigrationContent({
   primaryKeyType = 'bigserial',
   createOrAlter = 'create',
   alterDirection = 'add',
+  migrationName,
+  alterMarker,
   stiChildClassName,
   softDelete = false,
 }: {
@@ -51,13 +53,27 @@ export default function generateMigrationContent({
   createOrAlter?: 'create' | 'alter' | undefined
   /**
    * Only meaningful when `createOrAlter: 'alter'`. `'add'` (the default,
-   * matching a `-to-<table>`-suffixed migration name) emits column additions
-   * in `up` and the matching drops in `down`. `'remove'` (matching a
-   * `-from-<table>`-suffixed migration name) inverts this: `up` drops the
+   * matching a migration name containing a `-to-<table>` marker) emits column
+   * additions in `up` and the matching drops in `down`. `'remove'` (matching a
+   * migration name containing a `-from-<table>` marker) inverts this: `up` drops the
    * named columns and `down` re-adds them with their declared types, so
    * `down` is the rollback that restores what `up` removed.
    */
   alterDirection?: 'add' | 'remove' | undefined
+  /**
+   * The migration name the user typed. Only the standalone `g:migration` flow
+   * has one; it is threaded through solely so `NoColumnsToAlterMigration` can
+   * name it, and the error message degrades to a table-only explanation when it
+   * (or `alterMarker`) is absent.
+   */
+  migrationName?: string | undefined
+  /**
+   * The `-to-`/`-from-` marker that matched within `migrationName` and resolved
+   * both the table and the add/remove direction (alter mode itself is
+   * unconditional on that path). Reported by `NoColumnsToAlterMigration`; see
+   * `migrationName`.
+   */
+  alterMarker?: '-to-' | '-from-' | undefined
   stiChildClassName?: string | undefined
   /**
    * When true (and creating a new table), auto-emits a nullable `deleted_at`
@@ -281,7 +297,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     table !== MIGRATION_TABLE_NAME_PLACEHOLDER &&
     !stiChildClassName
   ) {
-    throw new NoColumnsToAlterMigration(table, alterDirection)
+    throw new NoColumnsToAlterMigration(table, alterDirection, migrationName, alterMarker)
   }
 
   const citextExtension = requireCitextExtension

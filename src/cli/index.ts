@@ -124,6 +124,32 @@ ${INDENT}        rename the FK column with Model@alias (snake_case alias becomes
 ${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column with index
 ${INDENT}          Messaging/Template@template:belongs_to             # template_id column (strips the namespace from the column name)`)
 
+/**
+ * The `<migrationName>` argument description for `g:migration`. Exported so
+ * that spec/unit/helpers/cli/generateMigration.spec.ts can read the example
+ * migration names out of this text and run them through the generator: a help
+ * example that drifts from what the generator actually produces then fails the
+ * suite instead of shipping.
+ */
+export const migrationNameArgumentDescription = `Kebab-case name describing the change. A -to-<table_name>
+${INDENT}anywhere in the name — not just at the end — auto-generates
+${INDENT}an add-columns alterTable scaffold for that table;
+${INDENT}-from-<table_name> generates a remove-columns scaffold, but
+${INDENT}only when the name contains no -to- at all. The text after
+${INDENT}the marker's first occurrence is snake-cased and pluralized
+${INDENT}into the table name, so add-a-to-b-to-cs targets b_to_cs. A
+${INDENT}hand-written migration must avoid both strings anywhere in
+${INDENT}its name.
+${INDENT}
+${INDENT}Examples:
+${INDENT}  add-phone-to-users phone:encrypted      # scaffolds alterTable('users', ...)
+${INDENT}  remove-status-from-posts status:string  # scaffolds alterTable('posts', ...)
+${INDENT}  create-many-to-many-posts-users         # WRONG: selects 'many_posts_users'
+${INDENT}    # -to- inside "many-to-many" matches: with no columns
+${INDENT}    # this errors; with columns it silently scaffolds it
+${INDENT}  create-posts-users-join-table           # correct: no marker match
+${INDENT}    # scaffolds alterTable('<table-name>') to hand-edit`
+
 export default class DreamCLI {
   /**
    * Starts the Dream console
@@ -227,26 +253,18 @@ export default class DreamCLI {
         `Generates a new Kysely migration file for schema changes. Use this for altering existing tables (adding/removing columns, indexes, constraints). Prefer g:resource or g:model when creating a new model, since they generate the migration along with the model, serializer, and spec files.
 ${INDENT}
 ${INDENT}Examples:
-${INDENT}  # Add columns to an existing table (suffix with -to-<table_name> for auto alterTable scaffolding)
+${INDENT}  # Add columns to an existing table (include -to-<table_name> for auto alterTable scaffolding)
 ${INDENT}  pnpm psy g:migration add-timezone-to-users timezone:string
 ${INDENT}  pnpm psy g:migration add-bio-to-users bio:text:optional avatar_url:string:optional
 ${INDENT}
-${INDENT}  # Remove columns (suffix with -from-<table_name>; columns are described with
+${INDENT}  # Remove columns (include -from-<table_name>; columns are described with
 ${INDENT}  # their types, same shorthand as -to-, so the rollback (down) can recreate them)
 ${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts legacy_status:string
 ${INDENT}
-${INDENT}  # General schema change (no table suffix — generates empty up/down methods)
+${INDENT}  # General schema change (no -to-/-from- marker — scaffolds alterTable('<table-name>') to hand-edit)
 ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
       )
-      .argument(
-        '<migrationName>',
-        `Kebab-case name describing the change. End with -to-<table_name> or -from-<table_name> to auto-generate an alterTable scaffold for that table.
-${INDENT}
-${INDENT}Examples:
-${INDENT}  add-phone-to-users phone:encrypted           # scaffolds alterTable('users', ...)
-${INDENT}  remove-status-from-posts status:string      # scaffolds alterTable('posts', ...)
-${INDENT}  create-join-table-host-places  # empty migration (no table suffix match)`
-      )
+      .argument('<migrationName>', migrationNameArgumentDescription)
       .option(
         '--connection-name <connectionName>',
         'the database connection to use for this migration. Only needed for multi-database setups; defaults to "default"'
