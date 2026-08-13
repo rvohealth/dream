@@ -23,6 +23,52 @@ describe('Dream#undestroy', () => {
     expect(await Post.all()).toMatchDreamModels([post])
   })
 
+  context('the record is not deleted', () => {
+    it('is idempotent: a second undestroy leaves the sort scope contiguous', async () => {
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      const post1 = await Post.create({ user, body: 'a' })
+      const post2 = await Post.create({ user, body: 'b' })
+      const post3 = await Post.create({ user, body: 'c' })
+
+      await post2.destroy()
+      await post2.undestroy()
+      await post2.undestroy()
+
+      await post1.reload()
+      await post2.reload()
+      await post3.reload()
+
+      expect([post1.position, post3.position, post2.position]).toEqual([1, 2, 3])
+    })
+
+    it('does not move a record that was never destroyed', async () => {
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      const post1 = await Post.create({ user, body: 'a' })
+      const post2 = await Post.create({ user, body: 'b' })
+
+      await post2.undestroy()
+
+      await post1.reload()
+      await post2.reload()
+
+      expect([post1.position, post2.position]).toEqual([1, 2])
+      expect(post2.deletedAt).toBeNull()
+    })
+
+    it('still cascades to child associations', async () => {
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      const post = await Post.create({ user, body: 'hello world' })
+      const comment = await PostComment.create({ post })
+
+      await post.destroy()
+      await post.undestroy()
+      await comment.destroy()
+      await post.undestroy()
+
+      expect(await PostComment.all()).toMatchDreamModels([comment])
+    })
+  })
+
   context('without cascade: true passed', () => {
     it('undestroys child associations which are marked "dependent: `destroy`"', async () => {
       const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })

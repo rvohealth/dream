@@ -13,6 +13,7 @@ export const FOREIGN_KEY_VIOLATION = 'FOREIGN_KEY_VIOLATION'
 export const INTEGRITY_CONSTRAINT_VIOLATION = 'INTEGRITY_CONSTRAINT_VIOLATION'
 export const INVALID_INPUT_SYNTAX = 'INVALID_INPUT_SYNTAX'
 export const COLUMN_OVERFLOW = 'COLUMN_OVERFLOW'
+export const LOCK_NOT_AVAILABLE = 'LOCK_NOT_AVAILABLE'
 export const NOT_NULL_VIOLATION = 'NOT_NULL_VIOLATION'
 export const RESTRICT_VIOLATION = 'RESTRICT_VIOLATION'
 export const UNIQUE_VIOLATION = 'UNIQUE_VIOLATION'
@@ -32,6 +33,10 @@ export const PG_ERRORS = {
   '23000': INTEGRITY_CONSTRAINT_VIOLATION,
   '23001': RESTRICT_VIOLATION,
   '23503': FOREIGN_KEY_VIOLATION,
+
+  // a statement Postgres cancelled because its `lock_timeout` elapsed while it
+  // waited for a lock — the bound Dream puts on the sortable scope-lock wait
+  '55P03': LOCK_NOT_AVAILABLE,
 } as const
 
 type PgErrorType = (typeof PG_ERRORS)[keyof typeof PG_ERRORS]

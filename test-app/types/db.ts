@@ -814,6 +814,15 @@ export interface StiBases {
   updatedAt: Timestamp
 }
 
+export interface TextScopedSortableModels {
+  createdAt: Timestamp
+  id: Generated<Int8>
+  position: number | null
+  scopeA: string | null
+  scopeB: string | null
+  updatedAt: Timestamp
+}
+
 export interface ThroughAs {
   createdAt: Timestamp
   id: Generated<Int8>
@@ -947,6 +956,7 @@ export interface DB {
   sandbags: Sandbags
   shapes: Shapes
   sti_bases: StiBases
+  text_scoped_sortable_models: TextScopedSortableModels
   through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels
   through_as: ThroughAs
   through_bs: ThroughBs
@@ -1012,6 +1022,7 @@ export class DBClass {
   sandbags: Sandbags
   shapes: Shapes
   sti_bases: StiBases
+  text_scoped_sortable_models: TextScopedSortableModels
   through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels
   through_as: ThroughAs
   through_bs: ThroughBs

@@ -1,5 +1,7 @@
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
+import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
+import { invalidateSortableRowCache } from '../decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamApp from '../dream-app/index.js'
 import Dream from '../Dream.js'
 import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
@@ -2672,9 +2674,11 @@ export default class Query<
    *   read is a plain `FOR UPDATE`: if another transaction already holds a lock
    *   on one of the batch's rows, this call blocks until that transaction ends,
    *   holding its own transaction and its pooled connection open the whole
-   *   time. Dream sets no `lock_timeout` or `statement_timeout`, so a
-   *   long-running writer on the other side stalls the run indefinitely and, at
-   *   scale, ties up connections. If that is a risk in your application, set a
+   *   time. Dream sets no `lock_timeout` or `statement_timeout` on a row-lock
+   *   wait — the one it does set, around a sortable model's scope-lock
+   *   acquisition, is restored before the rows are claimed — so a long-running
+   *   writer on the other side stalls the run indefinitely and, at scale, ties
+   *   up connections. If that is a risk in your application, set a
    *   `lock_timeout` on the connection so a stuck batch fails instead of
    *   hanging.
    * - **A `limit` or `offset` on the Query is incompatible with `destroy` on
@@ -2816,10 +2820,41 @@ export default class Query<
    * When the Query already carries a transaction, that transaction is used for
    * every batch rather than opening one per batch, so the caller's transaction
    * boundary wins and the locks are held until the caller commits.
+   *
+   * On a sortable model, the advisory scope keys this batch needs are acquired
+   * before the claim (see `acquireStabilizedSortableBatchLocks`), which removes
+   * the row-lock/advisory-lock inversion for the rows the batch itself claims.
+   * Two things stay outside that guarantee and are fallbacks rather than
+   * guarantees, with Postgres's `40P01` as the residual failure in both:
+   *
+   * - the ordering is **per batch**. A multi-batch run inside a caller-owned
+   *   transaction keeps batch N-1's row locks while batch N preflights. The
+   *   same shape accumulates *advisory* locks: they are released only when the
+   *   transaction ends, so every batch's scope keys are still held when the
+   *   next one preflights. That accumulation is bounded — the preflight counts
+   *   the keys the transaction already holds along with the ones the batch
+   *   would add, and refuses with `SortableBatchRequiresTooManyScopeLocks`
+   *   rather than letting a long run over a high-cardinality sort scope exhaust
+   *   `max_locks_per_transaction` for the whole cluster — so a run long enough
+   *   raises instead of completing. Letting Dream open a transaction per batch
+   *   releases the keys as it goes and gives each batch the whole budget.
+   * - the preflight covers **the claimed rows' own scopes only**. A
+   *   `dependent: 'destroy'` cascade under `destroy({ lock: true })` destroys
+   *   child records of other tables, and a sortable child takes its own table's
+   *   advisory key inside `perBatch` — after this transaction is already
+   *   holding the root rows' row locks. Walking
+   *   `dependentDestroyAssociationNames()` to fold those keys into the sorted
+   *   pass is deliberately not done: the cascade's shape is only knowable per
+   *   record, and the deadlock it leaves is detected and retryable. The keys
+   *   the preflight *did* take are held across the whole batch, cascade
+   *   included — a per-record destroy holds its scope lock across one delete
+   *   and one compaction, while here the hold spans batch size × cascade depth.
+   *   A smaller `batchSize` shortens it (the default is 10).
    */
   private async lockedBatches(
     batchSize: number,
-    perBatch: (claimed: DreamInstance[], txn: DreamTransaction<Dream>) => Promise<number>
+    perBatch: (claimed: DreamInstance[], txn: DreamTransaction<Dream>) => Promise<number>,
+    sortableIncomingAttributes?: Record<string, unknown>
   ): Promise<number> {
     // the driver seam refuses this combination too, but catching it here means
     // failing before any transaction is opened or any row is touched
@@ -2852,13 +2887,38 @@ export default class Query<
         const candidateIds: any[] = await batchQuery.txn(txn).pluck(this.namespacedPrimaryKey as any)
         if (!candidateIds.length) return { attempted: 0, processed: 0, lastId }
 
+        // On a sortable model, every advisory scope lock this batch will need is
+        // taken here, sorted, before a single row is claimed. Claiming first and
+        // locking per record inside `perBatch` is the lock-order inversion that
+        // deadlocks against an ordinary concurrent writer of the same scope,
+        // which holds the advisory lock while waiting for the row.
+        //
+        // The ordering this establishes is per batch. A multi-batch run inside a
+        // caller-owned transaction keeps batch N-1's row locks while batch N
+        // preflights, and is a documented fallback rather than a guarantee.
+        await acquireStabilizedSortableBatchLocks(
+          this.dreamInstance,
+          txn,
+          candidateIds,
+          sortableIncomingAttributes
+        )
+
         const claimed = await this.dbDriverInstance(
           batchQuery.txn(txn).where({ [primaryKey]: candidateIds } as any)
         ).takeAll({ lock: true })
 
+        const processed = await perBatch(claimed, txn)
+
+        // The preflight stashed the rows it read so this batch's per-record
+        // sortable work could consume them instead of re-reading each one. They
+        // describe this batch's candidates as they were before it ran, so they
+        // are worth nothing to whatever the enclosing transaction does next —
+        // and a caller-owned transaction outlives the batch.
+        invalidateSortableRowCache(txn)
+
         return {
           attempted: candidateIds.length,
-          processed: await perBatch(claimed, txn),
+          processed,
           lastId: candidateIds.at(-1),
         }
       }
@@ -3147,10 +3207,12 @@ export default class Query<
    *   read is a plain `FOR UPDATE`: if another transaction already holds a
    *   lock on one of the batch's rows, this call blocks until that transaction
    *   ends, holding its own transaction and its pooled connection open the
-   *   whole time. Dream sets no `lock_timeout` or `statement_timeout`, so a
-   *   long-running writer on the other side stalls the run indefinitely and,
-   *   at scale, ties up connections. If that is a risk in your application,
-   *   set a `lock_timeout` on the connection so a stuck batch fails instead of
+   *   whole time. Dream sets no `lock_timeout` or `statement_timeout` on a
+   *   row-lock wait — the one it does set, around a sortable model's scope-lock
+   *   acquisition, is restored before the rows are claimed — so a long-running
+   *   writer on the other side stalls the run indefinitely and, at scale, ties
+   *   up connections. If that is a risk in your application, set a
+   *   `lock_timeout` on the connection so a stuck batch fails instead of
    *   hanging.
    * - **`skipHooks` composes with `lock`, but stays on the per-instance
    *   path.** With an attributes object and no `lock`, `skipHooks: true`
@@ -3250,7 +3312,11 @@ export default class Query<
             (record: DreamInstance) => cb(record['clone']())
           : () => attributesOrCb as UpdateableProperties<DreamInstance>,
         { skipHooks },
-        resolvedBatchSize
+        resolvedBatchSize,
+        // only the attributes form knows what it is going to write before the
+        // claim; the callback form computes it inside the batch, after the row
+        // locks are taken, and is a documented preflight fallback
+        cb ? undefined : (attributesOrCb as Record<string, unknown>)
       )
     }
 
@@ -3325,25 +3391,30 @@ export default class Query<
       | undefined
       | Promise<UpdateableProperties<DreamInstance> | undefined>,
     { skipHooks }: { skipHooks?: boolean | undefined },
-    batchSize: number
+    batchSize: number,
+    sortableIncomingAttributes?: Record<string, unknown>
   ): Promise<number> {
-    return await this.lockedBatches(batchSize, async (claimed, txn) => {
-      let written = 0
+    return await this.lockedBatches(
+      batchSize,
+      async (claimed, txn) => {
+        let written = 0
 
-      for (const record of claimed) {
-        const attributes = await cb(record)
-        // null is not part of the callback's advertised contract, but it is
-        // the natural untyped-JS skip idiom; treat it as a skip rather than
-        // letting it crash the per-instance write mid-batch
-        if (attributes == null) continue
+        for (const record of claimed) {
+          const attributes = await cb(record)
+          // null is not part of the callback's advertised contract, but it is
+          // the natural untyped-JS skip idiom; treat it as a skip rather than
+          // letting it crash the per-instance write mid-batch
+          if (attributes == null) continue
 
-        const inTransaction = record.txn(txn) as unknown as DreamInstance
-        await inTransaction.update(attributes as any, skipHooks ? { skipHooks } : undefined)
-        written++
-      }
+          const inTransaction = record.txn(txn) as unknown as DreamInstance
+          await inTransaction.update(attributes as any, skipHooks ? { skipHooks } : undefined)
+          written++
+        }
 
-      return written
-    })
+        return written
+      },
+      sortableIncomingAttributes
+    )
   }
 
   private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {

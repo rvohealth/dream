@@ -14,7 +14,8 @@ import { TRIGRAM_OPERATORS } from '../../constants.js'
 import DreamTransaction from '../../DreamTransaction.js'
 import similaritySelectSql from './similaritySelectSql.js'
 import similarityWhereSql from './similarityWhereSql.js'
-import { getPostgresQueryDriver } from '../../../decorators/field/sortable/helpers/setPosition.js'
+import DreamApp from '../../../dream-app/index.js'
+import PostgresQueryDriver from '../../QueryDriver/Postgres.js'
 
 export default class SimilarityBuilder<
   DreamInstance extends Dream,
@@ -276,7 +277,7 @@ export default class SimilarityBuilder<
     const primaryKeyName = this.dreamClass.primaryKey
     const { tableName, tableAlias, columnName } = similarityStatement
 
-    const queryDriverClass = getPostgresQueryDriver(this.dreamInstance.connectionName)
+    const queryDriverClass = postgresQueryDriverForSimilaritySearch(this.dreamInstance.connectionName)
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { ref } = queryDriverClass.dbFor(
@@ -341,7 +342,7 @@ export default class SimilarityBuilder<
 
     const trigramSearchAlias = this.similaritySearchId(tableAlias, columnName)
 
-    const queryDriverClass = getPostgresQueryDriver(this.dreamInstance.connectionName)
+    const queryDriverClass = postgresQueryDriverForSimilaritySearch(this.dreamInstance.connectionName)
     const selectQuery = queryDriverClass
       .dbFor(this.dreamInstance.connectionName, this.dbConnectionType('select'))
       .selectFrom(validatedTableAlias)
@@ -374,7 +375,7 @@ export default class SimilarityBuilder<
     const validatedTable = validateTable(schema, tableName)
     const validatedPrimaryKey = validateColumn(schema, tableName, primaryKeyName)
 
-    const queryDriverClass = getPostgresQueryDriver(this.dreamInstance.connectionName)
+    const queryDriverClass = postgresQueryDriverForSimilaritySearch(this.dreamInstance.connectionName)
     let nestedQuery = queryDriverClass
       .dbFor(this.dreamInstance.connectionName, this.dbConnectionType('select'))
       .selectFrom(tableName as any)
@@ -441,6 +442,27 @@ export default class SimilarityBuilder<
   private rankSQLAlias(statementType: SimilarityStatementType, statementIndex: number) {
     return `${statementType}_rank_${statementIndex + 1}`
   }
+}
+
+/**
+ * Trigram similarity search is built on Postgres's `pg_trgm` operators and on
+ * kysely builders taken straight off the Postgres driver, so it resolves the
+ * connection's query driver to that driver — accepting a consumer subclass of
+ * it, which inherits the same operators — and otherwise fails loud rather than
+ * emitting SQL another engine cannot run.
+ */
+function postgresQueryDriverForSimilaritySearch(connectionName: string): typeof PostgresQueryDriver {
+  const queryDriverClass = DreamApp.getOrFail().dbConnectionQueryDriverClass(connectionName)
+
+  if (
+    queryDriverClass !== PostgresQueryDriver &&
+    !(queryDriverClass.prototype instanceof PostgresQueryDriver)
+  )
+    throw new Error(
+      `${queryDriverClass.name} is not the PostgresQueryDriver, nor a subclass of it. Similarity search (similarity, wordSimilarity, strictWordSimilarity) requires the PostgresQueryDriver.`
+    )
+
+  return queryDriverClass as typeof PostgresQueryDriver
 }
 
 export interface SimilarityBuilderOpts<

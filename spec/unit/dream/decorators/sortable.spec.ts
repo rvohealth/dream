@@ -7,10 +7,13 @@ import Collar from '../../../../test-app/app/models/Collar.js'
 import Edge from '../../../../test-app/app/models/Graph/Edge.js'
 import EdgeNode from '../../../../test-app/app/models/Graph/EdgeNode.js'
 import Node from '../../../../test-app/app/models/Graph/Node.js'
+import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
 import InvalidAssociationSortableModel from '../../../../test-app/app/models/InvalidAssociationSortableModel.js'
 import InvalidScopeSortableModel from '../../../../test-app/app/models/InvalidScopeSortableModel.js'
+import LateHookSortableModel from '../../../../test-app/app/models/LateHookSortableModel.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
+import TextScopedSortableModel from '../../../../test-app/app/models/TextScopedSortableModel.js'
 import UnscopedSortableModel from '../../../../test-app/app/models/UnscopedSortableModel.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -481,6 +484,32 @@ describe('@Sortable', () => {
           expect(postB1.position).toEqual(1)
           expect(postB2.position).toEqual(2)
         })
+
+        context('when the destination scope is smaller than the position being vacated', () => {
+          let posts: Post[]
+
+          beforeEach(async () => {
+            posts = []
+            for (let i = 0; i < 5; i++) posts.push(await Post.create({ body: `p${i}`, user: user2 }))
+            expect(posts.map(post => post.position)).toEqual([1, 2, 3, 4, 5])
+          })
+
+          it('closes the gap left behind in the old scope', async () => {
+            // user's scope is empty, so the destination position is 1 — lower
+            // than the position of 2 being vacated in user2's scope
+            await posts[1]!.update({ user })
+
+            expect(await positionsForUser(user2)).toEqual([1, 2, 3, 4])
+            expect(await positionsForUser(user)).toEqual([1])
+          })
+
+          it('closes the gap left behind in the old scope on the locked batch path', async () => {
+            await Post.where({ id: posts[1]!.id }).update({ userId: user.id }, { lock: true })
+
+            expect(await positionsForUser(user2)).toEqual([1, 2, 3, 4])
+            expect(await positionsForUser(user)).toEqual([1])
+          })
+        })
       })
 
       context('when part of the scope is pointing to a column', () => {
@@ -741,6 +770,76 @@ describe('@Sortable', () => {
     })
   })
 
+  context('when a beforeSave hook declared after the Sortable field introduces the change', () => {
+    context('a position change', () => {
+      it('receives full position handling: a transaction opens and the scope reshuffles', async () => {
+        const model1 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const model2 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const model3 = await LateHookSortableModel.create({ scopeA: 'a' })
+
+        const transactionSpy = vi.spyOn(KyselyQueryDriver, 'transaction')
+        model3.stagedPosition = 1
+        await model3.save()
+
+        expect(transactionSpy).toHaveBeenCalled()
+
+        await model1.reload()
+        await model2.reload()
+        await model3.reload()
+
+        expect(model3.position).toEqual(1)
+        expect(model1.position).toEqual(2)
+        expect(model2.position).toEqual(3)
+      })
+    })
+
+    context('a position change staged by the caller and overridden by the hook', () => {
+      it('applies the position the hook chain settled on, not a value cached mid-chain', async () => {
+        const model1 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const model2 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const model3 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const model4 = await LateHookSortableModel.create({ scopeA: 'a' })
+
+        model3.position = 4
+        model3.stagedPosition = 1
+        await model3.save()
+
+        await model1.reload()
+        await model2.reload()
+        await model3.reload()
+        await model4.reload()
+
+        expect(model3.position).toEqual(1)
+        expect(model1.position).toEqual(2)
+        expect(model2.position).toEqual(3)
+        expect(model4.position).toEqual(4)
+      })
+    })
+
+    context('a scope change', () => {
+      it('lands the record at N+1 in the destination scope rather than committing its stale position', async () => {
+        const modelA1 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const modelA2 = await LateHookSortableModel.create({ scopeA: 'a' })
+        const modelB1 = await LateHookSortableModel.create({ scopeA: 'b' })
+        const modelB2 = await LateHookSortableModel.create({ scopeA: 'b' })
+
+        modelA2.stagedScopeA = 'b'
+        await modelA2.save()
+
+        await modelA1.reload()
+        await modelA2.reload()
+        await modelB1.reload()
+        await modelB2.reload()
+
+        expect(modelA2.scopeA).toEqual('b')
+        expect(modelA2.position).toEqual(3)
+        expect(modelB1.position).toEqual(1)
+        expect(modelB2.position).toEqual(2)
+        expect(modelA1.position).toEqual(1)
+      })
+    })
+  })
+
   context('upon destroying', () => {
     it('adjusts the positions of related records', async () => {
       const unrelatedEdgeNode = await EdgeNode.create({
@@ -861,6 +960,34 @@ describe('@Sortable', () => {
       expect(unrelatedPost.position).toEqual(1)
     })
 
+    context('when no positioned records remain in the scope', () => {
+      it('restores the only record in the scope at position 1', async () => {
+        const post = await Post.create({ body: 'hello', user })
+
+        await post.destroy()
+        await post.undestroy()
+        await post.reload()
+
+        expect(post.position).toEqual(1)
+      })
+
+      it('restores into a scope whose every remaining record is soft deleted', async () => {
+        const post1 = await Post.create({ body: 'hello', user })
+        const post2 = await Post.create({ body: 'hello', user })
+
+        await post1.destroy()
+        await post2.destroy()
+
+        await post1.undestroy()
+        await post1.reload()
+        expect(post1.position).toEqual(1)
+
+        await post2.undestroy()
+        await post2.reload()
+        expect(post2.position).toEqual(2)
+      })
+    })
+
     context('within a transaction', () => {
       it('adjusts the positions of related records', async () => {
         await ApplicationModel.transaction(async txn => {
@@ -938,6 +1065,45 @@ describe('@Sortable', () => {
       expect(collarWithoutBalloon2.positionOnBalloonAndPet).toEqual(2)
       expect(collarWithBalloon1.positionOnBalloonAndPet).toEqual(1)
       expect(collarWithBalloon2.positionOnBalloonAndPet).toEqual(2)
+    })
+
+    context('destroying', () => {
+      it('compacts the positions of the remaining records in the null-valued scope', async () => {
+        const pet = await Pet.create({ species: 'dog' })
+        const balloon = await Latex.create()
+
+        const collarWithoutBalloon1 = await Collar.create({ pet })
+        const collarWithBalloon1 = await Collar.create({ pet, balloon })
+        const collarWithoutBalloon2 = await Collar.create({ pet })
+        const collarWithoutBalloon3 = await Collar.create({ pet })
+
+        await collarWithoutBalloon1.destroy()
+
+        await collarWithBalloon1.reload()
+        await collarWithoutBalloon2.reload()
+        await collarWithoutBalloon3.reload()
+
+        expect(collarWithoutBalloon2.positionOnBalloonAndPet).toEqual(1)
+        expect(collarWithoutBalloon3.positionOnBalloonAndPet).toEqual(2)
+        expect(collarWithBalloon1.positionOnBalloonAndPet).toEqual(1)
+      })
+    })
+
+    context('when every column in the scope is null', () => {
+      it('compacts the positions of the remaining records upon destroying', async () => {
+        const model1 = await TextScopedSortableModel.create({ scopeA: null, scopeB: null })
+        const model2 = await TextScopedSortableModel.create({ scopeA: null, scopeB: null })
+        const model3 = await TextScopedSortableModel.create({ scopeA: null, scopeB: null })
+
+        expect([model1.position, model2.position, model3.position]).toEqual([1, 2, 3])
+
+        await model1.destroy()
+
+        await model2.reload()
+        await model3.reload()
+
+        expect([model2.position, model3.position]).toEqual([1, 2])
+      })
     })
 
     context('updating position', () => {
@@ -1204,3 +1370,8 @@ describe('@Sortable', () => {
     })
   })
 })
+
+async function positionsForUser(user: User): Promise<(number | null)[]> {
+  const posts = await Post.where({ userId: user.id }).order({ position: 'asc' }).all()
+  return posts.map(post => post.position)
+}

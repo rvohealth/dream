@@ -67,6 +67,36 @@ describe('@SoftDelete', () => {
     )
   })
 
+  context('destroying a record that is already soft deleted', () => {
+    it('leaves deletedAt as it was and does not re-run the after-destroy hooks', async () => {
+      const post = await Post.create({ body: 'hello', user })
+      await post.destroy()
+      const deletedAt = (await Post.removeAllDefaultScopes().findOrFail(post.id)).deletedAt
+
+      const hooksSpy = vi.spyOn(runHooksForModule, 'default')
+
+      await post.destroy()
+
+      expect(hooksSpy).not.toHaveBeenCalledWith(
+        'afterDestroy',
+        expect.toMatchDreamModel(post),
+        true,
+        null,
+        expect.any(DreamTransaction)
+      )
+      expect(hooksSpy).not.toHaveBeenCalledWith(
+        'afterDestroyCommit',
+        expect.toMatchDreamModel(post),
+        true,
+        null,
+        expect.any(DreamTransaction)
+      )
+      expect((await Post.removeAllDefaultScopes().findOrFail(post.id)).deletedAt!.toISO()).toEqual(
+        deletedAt!.toISO()
+      )
+    })
+  })
+
   it('hides deleted records from scope by default', async () => {
     const post = await Post.create({ body: 'hello', user })
     await post.destroy()
