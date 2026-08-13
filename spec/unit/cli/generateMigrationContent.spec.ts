@@ -270,6 +270,52 @@ export async function down(db: Kysely<any>): Promise<void> {
       }).not.toThrow()
     })
 
+    it('emits empty up/down bodies for the <table-name> placeholder with no columns', () => {
+      const res = generateMigrationContent({
+        table: '<table-name>',
+        columnsWithTypes: [],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toEqual(`\
+import { Kysely } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+}`)
+    })
+
+    it('still scaffolds the <table-name> placeholder when columns were declared', () => {
+      const res = generateMigrationContent({
+        table: '<table-name>',
+        columnsWithTypes: ['flag:boolean'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('<table-name>')
+    .addColumn('flag', 'boolean', col => col.notNull().defaultTo(false))
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('<table-name>')
+    .dropColumn('flag')
+    .execute()
+}`)
+    })
+
     it('does not throw for a zero-attribute g:sti-child-style call (stiChildClassName set, columnsWithTypes empty)', () => {
       expect(() => {
         generateMigrationContent({

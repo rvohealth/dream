@@ -148,7 +148,9 @@ ${INDENT}  create-many-to-many-posts-users         # WRONG: selects 'many_posts_
 ${INDENT}    # -to- inside "many-to-many" matches: with no columns
 ${INDENT}    # this errors; with columns it silently scaffolds it
 ${INDENT}  create-posts-users-join-table           # correct: no marker match
-${INDENT}    # scaffolds alterTable('<table-name>') to hand-edit`
+${INDENT}    # with no columns, generates empty up/down methods to
+${INDENT}    # write by hand; with columns, scaffolds
+${INDENT}    # alterTable('<table-name>') to hand-edit`
 
 export default class DreamCLI {
   /**
@@ -261,7 +263,9 @@ ${INDENT}  # Remove columns (include -from-<table_name>; columns are described w
 ${INDENT}  # their types, same shorthand as -to-, so the rollback (down) can recreate them)
 ${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts legacy_status:string
 ${INDENT}
-${INDENT}  # General schema change (no -to-/-from- marker — scaffolds alterTable('<table-name>') to hand-edit)
+${INDENT}  # General schema change (no -to-/-from- marker — with no columns, generates
+${INDENT}  # empty up/down methods to write by hand; with columns, scaffolds
+${INDENT}  # alterTable('<table-name>') to hand-edit)
 ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
       )
       .argument('<migrationName>', migrationNameArgumentDescription)

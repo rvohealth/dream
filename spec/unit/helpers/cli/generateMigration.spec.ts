@@ -23,6 +23,26 @@ function writtenMigration() {
 }
 
 /**
+ * What a markerless `g:migration` (no `-to-`/`-from-` marker) with no columns
+ * now writes: there is no table to alter and no column operation to emit, so
+ * `up` and `down` are left genuinely empty for the developer to fill in,
+ * rather than scaffolding an `alterTable('<table-name>')` statement that could
+ * never run as generated. Asserted in full (rather than with `toContain`) so
+ * that "empty" stays literally true — a body that regrew a statement or a TODO
+ * comment would still satisfy a substring check.
+ */
+const EMPTY_MIGRATION_CONTENT = `\
+import { Kysely } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+}`
+
+/**
  * Runs generateMigration with no columns and returns the error it threw. Kept
  * separate from `writtenMigration` on purpose: these paths write no file at
  * all, and `writtenMigration` would non-null-assert an empty array.
@@ -127,14 +147,36 @@ describe('generateMigration', () => {
     })
 
     context('no -to- or -from- suffix match', () => {
-      it('falls back to the <table-name> placeholder', async () => {
-        await generateMigration({
-          migrationName: 'create-unique-index-on-invitations',
-          columnsWithTypes: [],
-          connectionName: 'default',
-        })
+      context('and no columns', () => {
+        it('generates empty up and down bodies rather than an unrunnable <table-name> scaffold', async () => {
+          await generateMigration({
+            migrationName: 'create-unique-index-on-invitations',
+            columnsWithTypes: [],
+            connectionName: 'default',
+          })
 
-        expect(writtenMigration().content).toContain("alterTable('<table-name>')")
+          expect(writtenMigration().content).toEqual(EMPTY_MIGRATION_CONTENT)
+        })
+      })
+
+      context('but with columns', () => {
+        // PINNED CURRENT BEHAVIOR: emptying the bodies here would silently
+        // discard column declarations the user typed on the command line, so
+        // the `<table-name>` placeholder scaffold survives for this case and
+        // remains a stub to hand-edit (the table name is the one part the
+        // generator can't work out).
+        it("still scaffolds alterTable('<table-name>') with the declared columns", async () => {
+          await generateMigration({
+            migrationName: 'create-unique-index-on-invitations',
+            columnsWithTypes: ['flag:boolean'],
+            connectionName: 'default',
+          })
+
+          const { content } = writtenMigration()
+          expect(content).toContain("alterTable('<table-name>')")
+          expect(content).toContain("addColumn('flag', 'boolean', col => col.notNull().defaultTo(false))")
+          expect(content).toContain("dropColumn('flag')")
+        })
       })
     })
 
@@ -271,7 +313,7 @@ describe('generateMigration', () => {
       })
 
       context(`${correctedExample} (the corrected line)`, () => {
-        it("matches no marker, and scaffolds alterTable('<table-name>') to hand-edit", async () => {
+        it('matches no marker, and generates empty up/down bodies to fill in by hand', async () => {
           await generateMigration({
             migrationName: correctedExample,
             columnsWithTypes: [],
@@ -279,7 +321,7 @@ describe('generateMigration', () => {
           })
 
           expect(spy).toHaveBeenCalledTimes(1)
-          expect(writtenMigration().content).toContain("alterTable('<table-name>')")
+          expect(writtenMigration().content).toEqual(EMPTY_MIGRATION_CONTENT)
         })
       })
     })
@@ -360,7 +402,7 @@ describe('generateMigration', () => {
       // it did not, so grepping the migrations directory for '-to-' finds a
       // file whose name never matched. Recorded so a future change to either
       // half can't drift them apart silently.
-      it('generates a placeholder migration whose filename is nonetheless spelled -to-', async () => {
+      it('generates an empty migration whose filename is nonetheless spelled -to-', async () => {
         await generateMigration({
           migrationName: 'replace-lean_to-with-treehouse',
           columnsWithTypes: [],
@@ -372,7 +414,7 @@ describe('generateMigration', () => {
         // the numeric prefix is `new Date().getTime()`, so only the hyphenized
         // tail of the filename is asserted
         expect(fileName).toMatch(/^\d+-replace-lean-to-with-treehouse\.ts$/)
-        expect(content).toContain("alterTable('<table-name>')")
+        expect(content).toEqual(EMPTY_MIGRATION_CONTENT)
       })
     })
   })
