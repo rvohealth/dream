@@ -1,3 +1,5 @@
+import * as path from 'node:path'
+import * as prettier from 'prettier'
 import DreamApp from '../../../src/dream-app/index.js'
 import generateFactoryContent from '../../../src/helpers/cli/generateFactoryContent.js'
 import modelClassNameFrom from '../../../src/helpers/cli/modelClassNameFrom.js'
@@ -303,7 +305,7 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    user: attrs.user ?? await createUser(),
+    user: attrs.user ?? (await createUser()),
     name: \`Post name \${++counter}\`,
     ...attrs,
   })
@@ -320,7 +322,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
           columnsWithTypes: ['InternalUser@canceled_by:belongs_to'],
         })
 
-        expect(res).toContain('canceledBy: attrs.canceledBy ?? await createInternalUser(),')
+        expect(res).toContain('canceledBy: attrs.canceledBy ?? (await createInternalUser()),')
         expect(res).toContain("import createInternalUser from '@spec/factories/InternalUserFactory.js'")
       })
 
@@ -335,10 +337,10 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
 
         expect(res).toContain(
-          'lastInboundMessage: attrs.lastInboundMessage ?? await createMessagingMessage(),'
+          'lastInboundMessage: attrs.lastInboundMessage ?? (await createMessagingMessage()),'
         )
         expect(res).toContain(
-          'lastOutboundMessage: attrs.lastOutboundMessage ?? await createMessagingMessage(),'
+          'lastOutboundMessage: attrs.lastOutboundMessage ?? (await createMessagingMessage()),'
         )
       })
     })
@@ -360,7 +362,7 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    user: attrs.user ?? await createUser(),
+    user: attrs.user ?? (await createUser()),
     name: \`Post name \${++counter}\`,
     ...attrs,
   })
@@ -387,7 +389,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? (await createMyNestedDoubleNestedOrganization()),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -420,7 +422,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? (await createMyNestedDoubleNestedOrganization()),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -451,7 +453,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? (await createMyNestedDoubleNestedOrganization()),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -482,7 +484,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? (await createMyNestedDoubleNestedOrganization()),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -490,6 +492,75 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
 `
         )
       })
+    })
+  })
+
+  // `writeGeneratedFile` does `fs.writeFile(absFilePath, content)` with no
+  // formatting pass, so the string this generator returns is byte-for-byte what
+  // a developer's `prettier --check` sees on a brand-new factory. These specs
+  // assert that against the real Prettier rather than against a hand-copied
+  // expectation, so no future edit to this template can ship output that fails
+  // a consumer's format check the moment `psy g:model <name>` writes the file.
+  context("the generated factory is clean under a consumer's tooling", () => {
+    async function expectPrettierFixedPoint(content: string) {
+      const filepath = path.join(process.cwd(), 'spec', 'factories', 'GeneratedFactory.ts')
+      const prettierConfig = await prettier.resolveConfig(filepath)
+      const formatted = await prettier.format(content, { ...prettierConfig, filepath })
+
+      expect(formatted).toEqual(content)
+    }
+
+    it('is a Prettier fixed point with no attributes', async () => {
+      await expectPrettierFixedPoint(
+        generateFactoryContent({
+          fullyQualifiedModelName: 'User',
+          modelClassName: modelClassNameFrom('User'),
+          columnsWithTypes: [],
+        })
+      )
+    })
+
+    it('is a Prettier fixed point with scalar attributes', async () => {
+      await expectPrettierFixedPoint(
+        generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
+          columnsWithTypes: [
+            'style:enum:building_style:formal,informal',
+            'kind:enum:existing_kind_type',
+            'tags:string[]',
+            'my_uuid:uuid',
+            'title:citext',
+            'email:string',
+            'rating:decimal:3,2',
+            'signed_on:date',
+            'signed_at:datetime',
+          ],
+        })
+      )
+    })
+
+    it('is a Prettier fixed point with a belongs_to association', async () => {
+      await expectPrettierFixedPoint(
+        generateFactoryContent({
+          fullyQualifiedModelName: 'Post',
+          modelClassName: modelClassNameFrom('Post'),
+          columnsWithTypes: ['name:string', 'User:belongs_to'],
+        })
+      )
+    })
+
+    it('is a Prettier fixed point with aliased and deeply namespaced belongs_to associations', async () => {
+      await expectPrettierFixedPoint(
+        generateFactoryContent({
+          fullyQualifiedModelName: 'My/Nested/User',
+          modelClassName: modelClassNameFrom('My/Nested/User'),
+          columnsWithTypes: [
+            'My/Nested/DoubleNested/Organization:belongs_to',
+            'Messaging/Message@last_inbound_message:belongs_to',
+          ],
+        })
+      )
     })
   })
 })
