@@ -303,7 +303,7 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    user: attrs.user ? null : await createUser(),
+    user: attrs.user ?? await createUser(),
     name: \`Post name \${++counter}\`,
     ...attrs,
   })
@@ -320,7 +320,7 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
           columnsWithTypes: ['InternalUser@canceled_by:belongs_to'],
         })
 
-        expect(res).toContain('canceledBy: attrs.canceledBy ? null : await createInternalUser(),')
+        expect(res).toContain('canceledBy: attrs.canceledBy ?? await createInternalUser(),')
         expect(res).toContain("import createInternalUser from '@spec/factories/InternalUserFactory.js'")
       })
 
@@ -335,10 +335,10 @@ export default async function createPost(attrs: UpdateableProperties<Post> = {})
         })
 
         expect(res).toContain(
-          'lastInboundMessage: attrs.lastInboundMessage ? null : await createMessagingMessage(),'
+          'lastInboundMessage: attrs.lastInboundMessage ?? await createMessagingMessage(),'
         )
         expect(res).toContain(
-          'lastOutboundMessage: attrs.lastOutboundMessage ? null : await createMessagingMessage(),'
+          'lastOutboundMessage: attrs.lastOutboundMessage ?? await createMessagingMessage(),'
         )
       })
     })
@@ -360,7 +360,7 @@ let counter = 0
 
 export default async function createPost(attrs: UpdateableProperties<Post> = {}) {
   return await Post.create({
-    user: attrs.user ? null : await createUser(),
+    user: attrs.user ?? await createUser(),
     name: \`Post name \${++counter}\`,
     ...attrs,
   })
@@ -387,7 +387,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ? null : await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -420,7 +420,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ? null : await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -451,7 +451,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ? null : await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })
@@ -482,7 +482,7 @@ let counter = 0
 
 export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
   return await MyNestedUser.create({
-    organization: attrs.organization ? null : await createMyNestedDoubleNestedOrganization(),
+    organization: attrs.organization ?? await createMyNestedDoubleNestedOrganization(),
     name: \`My/Nested/User name \${++counter}\`,
     ...attrs,
   })

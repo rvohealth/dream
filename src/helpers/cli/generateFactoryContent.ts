@@ -68,7 +68,7 @@ export default function generateFactoryContent({
         belongsToTypedNames.push(`${attributeVariable}: ${associationModelName}`)
         additionalImports.push(associationFactoryImportStatement)
         associationCreationStatements.push(
-          `${attributeVariable}: attrs.${attributeVariable} ? null : await create${associationModelName}(),`
+          `${attributeVariable}: attrs.${attributeVariable} ?? await create${associationModelName}(),`
         )
         break
       }
