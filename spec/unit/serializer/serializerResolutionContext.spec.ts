@@ -35,11 +35,21 @@ describe('serializer resolution errors name how resolution reached the failing c
       // so this half of the context is deliberately absent here and present on the preload path
       // below. A message that printed an empty slot for it would be worse than one that omits it.
       it('does not claim a declaring serializer', () => {
-        expect(() => renderCompositionWithPopulatedAssets()).not.toThrow(/declared by/)
+        const render = () => renderCompositionWithPopulatedAssets()
+
+        // Anchors: without these the example passes if the render stops failing, or if the context
+        // block disappears entirely, since a render that throws nothing throws no `declared by`.
+        expect(render).toThrow(MissingSerializersDefinition)
+        expect(render).toThrow(/Serializer resolution context:/)
+        expect(render).not.toThrow(/declared by/)
       })
 
       it('does not claim an STI base, since no expansion produced CompositionAsset', () => {
-        expect(() => renderCompositionWithPopulatedAssets()).not.toThrow(/expanded from/)
+        const render = () => renderCompositionWithPopulatedAssets()
+
+        expect(render).toThrow(MissingSerializersDefinition)
+        expect(render).toThrow(/Serializer resolution context:/)
+        expect(render).not.toThrow(/expanded from/)
       })
     })
 
@@ -87,7 +97,11 @@ describe('serializer resolution errors name how resolution reached the failing c
         // line arriving does not drag the declaring serializer in with it.
         it('does not claim a declaring serializer', () => {
           withSerializersOverride(Mylar, {}, () => {
-            expect(() => renderCollarWithNullFlattenedBalloon()).not.toThrow(/declared by/)
+            const render = () => renderCollarWithNullFlattenedBalloon()
+
+            expect(render).toThrow(MissingSerializersDefinitionForKey)
+            expect(render).toThrow(/Serializer resolution context:/)
+            expect(render).not.toThrow(/declared by/)
           })
         })
       }
@@ -164,6 +178,33 @@ describe('serializer resolution errors name how resolution reached the failing c
           expect(() => Balloon.query().preloadFor('default')).not.toThrow(/reached through/)
         })
       })
+    })
+  })
+
+  // MissingSerializersDefinition is the only one of the five resolution errors the package exports
+  // (src/package-exports/errors.ts), and this change widened its constructor. The single production
+  // call site passes all three arguments, so without these two examples nothing in the repo
+  // exercises the narrower call and the compatibility promise has no guard.
+  context('the exported MissingSerializersDefinition constructor', () => {
+    it('still accepts the single argument it took before, and renders no context block for it', () => {
+      // Load-bearing at compile time as well as at runtime: `spec/**/*` is inside
+      // tsconfig.esm.build.test-app.json's `include`, so making either new parameter required breaks
+      // `pnpm build:test-app` on this line.
+      const error = new MissingSerializersDefinition(CompositionAsset.new({ id: '1' }))
+
+      expect(error.message).toContain('Missing serializers definition on class `CompositionAsset`')
+      expect(error.message).not.toContain('Serializer resolution context:')
+    })
+
+    it('accepts the widened three-argument form and renders the context', () => {
+      const error = new MissingSerializersDefinition(CompositionAsset.new({ id: '1' }), 'summary', {
+        edge: { type: 'rendersMany', associationName: 'compositionAssets' },
+      })
+
+      expect(error.message).toContain(`Serializer resolution context:
+
+  serializer key:  summary
+  reached through: rendersMany \`compositionAssets\``)
     })
   })
 })

@@ -9,6 +9,7 @@ import {
   InternalAnyRendersOneOrManyOpts,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   SerializerCasing,
+  SerializerResolutionContext,
   SerializerResolutionEdge,
   SimpleObjectSerializerType,
 } from '../types/serializer.js'
@@ -159,10 +160,11 @@ export default class SerializerRenderer {
           let serializer: DreamModelSerializerType | SimpleObjectSerializerType | null = null
 
           if (associatedObject) {
-            serializer = serializerForAssociatedObject(associatedObject, attribute.options, {
-              type: 'rendersOne',
-              associationName: attribute.name,
-            })
+            serializer = serializerForAssociatedObject(
+              associatedObject,
+              attribute.options,
+              renderTimeResolutionContext(attribute.options, 'rendersOne', attribute.name)
+            )
           } else if (attribute.options.flatten) {
             /**
              * Only used when flatten: true, and the associated model is null, in which case,
@@ -215,12 +217,22 @@ export default class SerializerRenderer {
 
           if (!associatedObjects) throw new RendersManyMustReceiveArray(attribute, associatedObjects)
 
+          // Hoisted out of the map: the context is identical for every element, is immutable, and is
+          // read only while an error message is being built, so one object serves the whole
+          // collection rather than one per element.
+          const resolutionContext = renderTimeResolutionContext(
+            attribute.options,
+            'rendersMany',
+            attribute.name
+          )
+
           accumulator[outputAttributeName] = compact(associatedObjects as ViewModel[]).map(
             associatedObject => {
-              const serializer = serializerForAssociatedObject(associatedObject, attribute.options, {
-                type: 'rendersMany',
-                associationName: attribute.name,
-              })
+              const serializer = serializerForAssociatedObject(
+                associatedObject,
+                attribute.options,
+                resolutionContext
+              )
 
               return (
                 // passthrough data going into the serializer is the argument that gets
@@ -318,16 +330,38 @@ function _applyRenderingOptionsToAttribute(
 }
 
 /**
- * `edge` is error-only: it names the rendersOne/rendersMany this object is being rendered through,
- * so that a serializer that cannot be resolved for it says which association led here rather than
- * only which class failed. The renderer holds no serializer object, so the edge carries no
- * `declaredBy` — see `SerializerResolutionContext`.
+ * `resolutionContext` is error-only: it names the rendersOne/rendersMany this object is being
+ * rendered through, so that a serializer that cannot be resolved for it says which association led
+ * here rather than only which class failed. It is `undefined` whenever no resolution will happen —
+ * see `renderTimeResolutionContext`.
  */
 function serializerForAssociatedObject<ObjectType extends Dream | ViewModel>(
   associatedObject: ObjectType,
   options: InternalAnyRendersOneOrManyOpts,
-  edge: SerializerResolutionEdge
+  resolutionContext: SerializerResolutionContext | undefined
 ): DreamModelSerializerType | SimpleObjectSerializerType {
   if (options.serializer) return options.serializer
-  return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey, { edge })
+  return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey, resolutionContext)
+}
+
+/**
+ * Builds the error-only resolution context for one rendered association, or `undefined` when the
+ * render will not resolve a serializer at all.
+ *
+ * Rendering is a hot path — once per rendered association per request, and `rendersMany` renders one
+ * element at a time from a collection — so this deliberately allocates nothing it cannot use:
+ * `serializerForAssociatedObject` returns `options.serializer` before resolving anything when the
+ * association declares its own serializer, and in that case there is no resolution to describe.
+ * Callers build this once per rendered association and share it across every element.
+ *
+ * The renderer holds no serializer object, so the edge carries no `declaredBy` — see
+ * `SerializerResolutionContext`.
+ */
+function renderTimeResolutionContext(
+  options: InternalAnyRendersOneOrManyOpts,
+  type: SerializerResolutionEdge['type'],
+  associationName: string
+): SerializerResolutionContext | undefined {
+  if (options.serializer) return undefined
+  return { edge: { type, associationName } }
 }

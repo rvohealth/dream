@@ -1,5 +1,6 @@
 import yoctocolors from 'yoctocolors'
 import { indent } from '../../helpers/indent.js'
+import serializerGlobalName from '../../serializer/helpers/serializerGlobalName.js'
 import { SerializerType } from '../../types/serializer.js'
 import { MergedSerializerAssociationTargetSerializer } from './mergeSerializerAssociationEdges.js'
 
@@ -41,12 +42,12 @@ export default function printSerializerHierarchyLevel({
     console.log(indentation + `${prefix}${type} ${yoctocolors.cyan(serializerAssociationName)}`)
 
     serializers.forEach(serializer => {
+      // Interpolated rather than defaulted so the printed line is unchanged for a serializer with no
+      // globalName; naming inline serializers in this tree is its own change.
       // eslint-disable-next-line no-console
       console.log(
         yoctocolors.gray(
-          indentation +
-            indent(prefix.length, { tabWidth: 1 }) +
-            (serializer as unknown as Record<'globalName', string>).globalName
+          indentation + indent(prefix.length, { tabWidth: 1 }) + `${serializerGlobalName(serializer)}`
         )
       )
     })

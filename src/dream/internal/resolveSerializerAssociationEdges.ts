@@ -2,6 +2,7 @@ import Dream from '../../Dream.js'
 import compact from '../../helpers/compact.js'
 import DreamSerializerBuilder from '../../serializer/builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from '../../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import serializerGlobalName from '../../serializer/helpers/serializerGlobalName.js'
 import {
   DreamModelSerializerType,
   InternalAnyRendersOneOrManyOpts,
@@ -163,6 +164,8 @@ function buildSerializerAssociationEdges(
                   edge: {
                     type: serializerAssociation.type,
                     associationName: serializerAssociationName,
+                    // Undefined for a serializer built inline, which is never stamped with a
+                    // globalName — the message simply drops the declarer.
                     declaredBy: serializerGlobalName(serializer),
                   },
                 }
@@ -183,15 +186,4 @@ function buildSerializerAssociationEdges(
       }
     })
   )
-}
-
-/**
- * Serializers are plain functions; `globalName` is stamped onto them by `importSerializers` when the
- * app loads them, so a serializer built inline (a spec, or a `{ serializer }` option) has none.
- * Undefined is a legitimate answer — the resolution-context message simply drops the declarer.
- */
-function serializerGlobalName(
-  serializer: DreamModelSerializerType | SimpleObjectSerializerType
-): string | undefined {
-  return (serializer as unknown as { globalName?: string }).globalName
 }

@@ -64,6 +64,7 @@ import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import { inferSerializersFromDreamClassOrViewModelClassOrFail } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import serializerGlobalName from './serializer/helpers/serializerGlobalName.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -723,8 +724,10 @@ export default class Dream {
     // One line per serializer: for an STI base the displayed tree is the union across its children,
     // so naming a single child's serializer under the base's own name would misattribute the tree.
     serializers.forEach(serializer => {
+      // Interpolated rather than defaulted so the printed line is unchanged for a serializer with no
+      // globalName; naming inline serializers in this tree is its own change.
       // eslint-disable-next-line no-console
-      console.log(yoctocolors.gray((serializer as unknown as Record<'globalName', string>).globalName))
+      console.log(yoctocolors.gray(`${serializerGlobalName(serializer)}`))
     })
 
     return this.recursiveSerializationMap(serializers, {
