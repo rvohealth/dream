@@ -264,19 +264,7 @@ export default function generateMigrationContent({
     { columnDefs: [], columnDrops: [], indexDefs: [] } as ColumnDefsAndDrops
   )
 
-  if (!table) {
-    return `\
-import { Kysely, sql } from 'kysely'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function up(db: Kysely<any>): Promise<void> {
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function down(db: Kysely<any>): Promise<void> {
-}\
-`
-  }
+  if (!table) return emptyMigrationContent()
 
   // An alter migration (either `-to-`/add or `-from-`/remove) with no valid
   // columns to add/drop would otherwise emit a bare `.alterTable(...).execute()`
@@ -299,6 +287,23 @@ export async function down(db: Kysely<any>): Promise<void> {
   ) {
     throw new NoColumnsToAlterMigration(table, alterDirection, migrationName, alterMarker)
   }
+
+  // The placeholder table is the standalone `g:migration` markerless path (see
+  // MIGRATION_TABLE_NAME_PLACEHOLDER above): the migration name resolved no
+  // table, so there is nothing to alter. With no columns declared either, there
+  // is no column operation to scaffold, so emit genuinely empty `up`/`down`
+  // bodies for the developer to fill in rather than an
+  // `alterTable('<table-name>')` statement that cannot run as generated.
+  //
+  // The test is `columnsWithTypes`, deliberately, and not `columnDefs`: the two
+  // diverge. A declaration the reduce above filters out entirely (e.g.
+  // `comments:has_many`) leaves `columnDefs` empty while the user did type a
+  // column, and emptying the bodies there would silently discard it. Markerless
+  // *with* columns therefore keeps the placeholder scaffold — the table name is
+  // the only part the generator cannot work out, and `g:migration`'s help
+  // already documents that case as a stub to hand-edit.
+  if (altering && table === MIGRATION_TABLE_NAME_PLACEHOLDER && columnsWithTypes.length === 0)
+    return emptyMigrationContent()
 
   const citextExtension = requireCitextExtension
     ? `  await DreamMigrationHelpers.createExtension(db, 'citext')\n\n`
@@ -379,6 +384,69 @@ ${upBody}
 export async function down(db: Kysely<any>): Promise<void> {
 ${downBody}
 }\
+`
+}
+
+/**
+ * A migration file with nothing in it: correct imports, the standard `up`/`down`
+ * signatures, and empty bodies.
+ *
+ * Three deliberate departures from the scaffolded migrations above. All three
+ * exist so that the file this generator writes is clean the instant it lands in
+ * a consumer's project — under their formatter as well as their linter. See
+ * `spec/unit/cli/generateMigrationContent.spec.ts`
+ * ("the generated empty migration is clean under a consumer's tooling"), which
+ * runs this exact output through Prettier and through ESLint's
+ * `recommended` + `typescript-eslint recommended` and pins zero of both.
+ *
+ * - The bodies are `{}`, closed on the signature's own line, not `{\n}`, and
+ *   the file ends in a newline. Prettier collapses an empty block onto one line
+ *   and requires a final newline, so either spelling is a formatting violation
+ *   the moment it is written and fails `prettier --check` in the consumer's CI
+ *   (and this repo's own `pnpm lint`, which ends in `pnpm prettier . --check`);
+ *   `writeGeneratedFile` writes this string byte-for-byte with no formatting
+ *   pass. The final newline is why this template does not end with the
+ *   backslash line-continuation the scaffolded return above uses. (Those
+ *   scaffolds are missing their own final newline, which is pre-existing and
+ *   pinned by ~90 `toEqual` expectations across three spec files; it is not
+ *   this template's to fix. `generateFactoryContent` and
+ *   `generateUnitSpecContent` already terminate their output the way this one
+ *   now does.)
+ * - `sql` is left out of the import list. Every other generated migration
+ *   imports it unconditionally because most bodies need it, but an empty body
+ *   never does, and an unused import is an error under
+ *   `@typescript-eslint/no-unused-vars` in a file that would otherwise have
+ *   nothing to report.
+ * - `db` keeps its name — the developer's first keystroke in the body is going
+ *   to be `db.`, and dropping the parameter (with the `Kysely` import that only
+ *   it uses) would make them type both back — and the existing
+ *   `no-explicit-any` directive is widened to disable `no-unused-vars` too.
+ *   `db` is unused until the body is written, and `no-unused-vars` is
+ *   *error*-level under `typescript-eslint`'s `recommended` with
+ *   `args: 'after-used'`, so without the directive `psy g:migration <name> &&
+ *   pnpm lint` fails on a brand-new, untouched file. (The `await`-less `async`
+ *   needs nothing: `require-await` deliberately ignores empty function bodies.)
+ *   An `_db` rename is not a substitute: `no-unused-vars` sets no
+ *   `argsIgnorePattern` by default, so `_db` reports too, and the developer
+ *   then has to rename it back.
+ *
+ *   The cost of the widened directive is that the `no-unused-vars` half goes
+ *   stale once the body uses `db`, which ESLint 9 reports via its default
+ *   `reportUnusedDisableDirectives`. That is a *warning* rather than the two
+ *   *errors* it replaces, it lands in the file the developer is already
+ *   editing, and `eslint --fix` removes just that rule name from the directive
+ *   and leaves `no-explicit-any` in place — so it is strictly the cheaper of
+ *   the two, in severity and in effort.
+ */
+function emptyMigrationContent() {
+  return `\
+import { Kysely } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function up(db: Kysely<any>): Promise<void> {}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function down(db: Kysely<any>): Promise<void> {}
 `
 }
 

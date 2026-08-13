@@ -1,5 +1,58 @@
+import { createRequire } from 'node:module'
+import * as path from 'node:path'
+import * as prettier from 'prettier'
+import tseslint from 'typescript-eslint'
 import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator.js'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent.js'
+
+/**
+ * `eslint` and `@eslint/js` are pinned at 9.0.0 here, which predates ESLint's
+ * bundled type declarations and ships no `@types/*` package, so a plain
+ * `import` of either trips `noImplicitAny` (TS7016) in `pnpm build:test-app`.
+ * They are pulled in through `createRequire` against the minimal surface these
+ * specs actually use, so no dependency has to be added to exercise the
+ * generated migration against the real linter.
+ */
+interface LintMessage {
+  ruleId: string | null
+  message: string
+  severity: number
+  line: number
+}
+
+interface EslintLike {
+  lintText(code: string, options: { filePath: string }): Promise<{ messages: LintMessage[] }[]>
+}
+
+const requireFromRepoRoot = createRequire(path.join(process.cwd(), 'noop.cjs'))
+const { ESLint } = requireFromRepoRoot('eslint') as {
+  ESLint: new (options: Record<string, unknown>) => EslintLike
+}
+const js = requireFromRepoRoot('@eslint/js') as { configs: { recommended: unknown } }
+
+/**
+ * The exact file the markerless `g:migration` path writes. Kept as one constant
+ * so the "is it clean under a consumer's tooling" specs below and the
+ * output-shape specs above can never disagree about what is being asserted.
+ */
+const EMPTY_MIGRATION_CONTENT = `\
+import { Kysely } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function up(db: Kysely<any>): Promise<void> {}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function down(db: Kysely<any>): Promise<void> {}
+`
+
+function emptyMigration() {
+  return generateMigrationContent({
+    table: '<table-name>',
+    columnsWithTypes: [],
+    primaryKeyType: 'bigserial',
+    createOrAlter: 'alter',
+  })
+}
 
 describe('generateMigrationContent', () => {
   context('createOrAlter: true', () => {
@@ -268,6 +321,58 @@ export async function down(db: Kysely<any>): Promise<void> {
           createOrAlter: 'alter',
         })
       }).not.toThrow()
+    })
+
+    it('emits empty up/down bodies for the <table-name> placeholder with no columns', () => {
+      const res = generateMigrationContent({
+        table: '<table-name>',
+        columnsWithTypes: [],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toEqual(EMPTY_MIGRATION_CONTENT)
+    })
+
+    // The `if (!table)` guard in generateMigrationContent is not reachable from
+    // any shipped caller (generateMigration.ts and generateStiMigrationContent.ts
+    // both always resolve a table, falling back to MIGRATION_TABLE_NAME_PLACEHOLDER),
+    // but it is a second, independent route into the empty-migration template.
+    // Pin its output so the two spellings of "empty migration" cannot drift apart
+    // untested again, as they did before they were unified.
+    it('emits the same empty migration when no table is supplied at all', () => {
+      const res = generateMigrationContent({
+        columnsWithTypes: ['greeting:string'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toEqual(EMPTY_MIGRATION_CONTENT)
+    })
+
+    it('still scaffolds the <table-name> placeholder when columns were declared', () => {
+      const res = generateMigrationContent({
+        table: '<table-name>',
+        columnsWithTypes: ['flag:boolean'],
+        primaryKeyType: 'bigserial',
+        createOrAlter: 'alter',
+      })
+      expect(res).toEqual(`\
+import { Kysely, sql } from 'kysely'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('<table-name>')
+    .addColumn('flag', 'boolean', col => col.notNull().defaultTo(false))
+    .execute()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function down(db: Kysely<any>): Promise<void> {
+  await db.schema
+    .alterTable('<table-name>')
+    .dropColumn('flag')
+    .execute()
+}`)
     })
 
     it('does not throw for a zero-attribute g:sti-child-style call (stiChildClassName set, columnsWithTypes empty)', () => {
@@ -1884,6 +1989,42 @@ export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('users').execute()
 }`)
       })
+    })
+  })
+
+  // `writeGeneratedFile` does `fs.writeFile(absFilePath, content)` with no
+  // formatting pass, so the string this generator returns is byte-for-byte what
+  // a developer's `prettier --check` and `eslint` see on a brand-new migration.
+  // These two specs assert that against the real tools rather than against a
+  // hand-copied expectation, so no future edit to the template can ship output
+  // that fails a consumer's lint the moment `psy g:migration <name>` writes it.
+  context("the generated empty migration is clean under a consumer's tooling", () => {
+    it('is a Prettier fixed point', async () => {
+      const content = emptyMigration()
+      const filepath = path.join(process.cwd(), 'db', 'migrations', '000000001-generated.ts')
+      const prettierConfig = await prettier.resolveConfig(filepath)
+      const formatted = await prettier.format(content, { ...prettierConfig, filepath })
+
+      expect(formatted).toEqual(content)
+    })
+
+    it('reports zero ESLint errors and zero warnings under recommended + typescript-eslint recommended', async () => {
+      const eslint = new ESLint({
+        // `overrideConfigFile: true` skips config-file lookup entirely, so this
+        // measures the generated file against a stock app config rather than
+        // against dream's own eslint.config.js (which switches
+        // `@typescript-eslint/no-explicit-any` off, and would therefore report
+        // the template's `no-explicit-any` directive as stale — an artifact of
+        // this repo, not of a consumer's project).
+        overrideConfigFile: true,
+        overrideConfig: [js.configs.recommended, ...tseslint.configs.recommended],
+      })
+
+      const results = await eslint.lintText(emptyMigration(), {
+        filePath: '000000001-generated.ts',
+      })
+
+      expect(results[0]!.messages).toEqual([])
     })
   })
 })

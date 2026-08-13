@@ -67,8 +67,14 @@ export default function generateFactoryContent({
         belongsToNames.push(attributeVariable)
         belongsToTypedNames.push(`${attributeVariable}: ${associationModelName}`)
         additionalImports.push(associationFactoryImportStatement)
+        // The parens around `await` are what Prettier itself emits for an
+        // `await` operand of `??` (it parenthesizes unconditionally), and this
+        // string is written to the consumer's file verbatim — no formatting
+        // pass — so omitting them makes every freshly generated factory fail
+        // `prettier --check` in their project. See the Prettier fixed-point
+        // specs in spec/unit/cli/generateFactoryContent.spec.ts.
         associationCreationStatements.push(
-          `${attributeVariable}: attrs.${attributeVariable} ? null : await create${associationModelName}(),`
+          `${attributeVariable}: attrs.${attributeVariable} ?? (await create${associationModelName}()),`
         )
         break
       }

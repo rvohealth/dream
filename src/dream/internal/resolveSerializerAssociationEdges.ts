@@ -2,6 +2,7 @@ import Dream from '../../Dream.js'
 import compact from '../../helpers/compact.js'
 import DreamSerializerBuilder from '../../serializer/builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from '../../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import serializerGlobalName from '../../serializer/helpers/serializerGlobalName.js'
 import {
   DreamModelSerializerType,
   InternalAnyRendersOneOrManyOpts,
@@ -155,7 +156,19 @@ function buildSerializerAssociationEdges(
           : compact(
               inferSerializersFromDreamClassOrViewModelClass(
                 associatedClass,
-                (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
+                (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey,
+                // Error-only, and derived entirely from this function's two arguments, so nothing
+                // route-dependent is introduced: it never enters the memo key in
+                // `resolveSerializerAssociationEdges` and is never stored in the returned edges.
+                {
+                  edge: {
+                    type: serializerAssociation.type,
+                    associationName: serializerAssociationName,
+                    // Undefined for a serializer built inline, which is never stamped with a
+                    // globalName — the message simply drops the declarer.
+                    declaredBy: serializerGlobalName(serializer),
+                  },
+                }
               )
             )
 

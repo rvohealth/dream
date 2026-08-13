@@ -39,5 +39,12 @@ export function serializerForAssociatedClass<ObjectType extends Dream | ViewMode
   // would flatten. Unioning every child's serializer here — which is what buildSerializerPreloadPaths
   // does for preload paths — is meaningless: exactly one set of keys can be flattened into the
   // payload.
-  return inferSerializersFromDreamClassOrViewModelClass(associatedClass, options.serializerKey)[0] ?? null
+  return (
+    inferSerializersFromDreamClassOrViewModelClass(associatedClass, options.serializerKey, {
+      // Reached only from SerializerRenderer's rendersOne branch, so the edge type is fixed. No
+      // declaring serializer: the renderer holds the rendered attribute, not the serializer that
+      // declared it.
+      edge: { type: 'rendersOne', associationName },
+    })[0] ?? null
+  )
 }

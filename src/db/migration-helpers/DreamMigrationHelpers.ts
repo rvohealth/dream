@@ -1,5 +1,9 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
+import DropEnumValueRetypeFailed, {
+  DropEnumValueRetypeFailedOpts,
+  quotedRelationName,
+} from '../../errors/DropEnumValueRetypeFailed.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -203,16 +207,38 @@ export default class DreamMigrationHelpers {
     db: Kysely<any>,
     { enumName, value, replacements }: DropValueFromEnumOpts
   ) {
+    // Read the check constraints on every replacement column up front, before anything is
+    // retyped. They are only ever *used* from the catch blocks below, but they cannot be read
+    // from there: dropEnumValue runs inside a migration transaction (runMigration.ts routes any
+    // migration mentioning it through `newTransaction`), and once a statement in a transaction
+    // block errors, Postgres aborts the block and fails every subsequent statement with
+    // `25P02 current transaction is aborted`. A pg_constraint SELECT issued from a catch block
+    // would therefore throw itself and bury the very error we are trying to explain.
+    const checkConstraintsByPosition = await checkConstraintsOnColumns(db, replacements)
+
     // temporarily set all table columns depending on this enum to an acceptable alternate type
-    for (const tableAndColumnToChange of replacements) {
+    for (const [position, tableAndColumnToChange] of replacements.entries()) {
       const tableAndColumnToChangeAsArray =
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
       const isArray = tableAndColumnToChangeAsArray.array || false
 
-      await db.schema
-        .alterTable(tableAndColumnToChange.table)
-        .alterColumn(tableAndColumnToChange.column, col => col.setDataType(computedTemporaryType(isArray)))
-        .execute()
+      await retypeOrExplain(
+        () =>
+          db.schema
+            .alterTable(tableAndColumnToChange.table)
+            .alterColumn(tableAndColumnToChange.column, col =>
+              col.setDataType(computedTemporaryType(isArray))
+            )
+            .execute(),
+        {
+          enumName,
+          value,
+          table: tableAndColumnToChange.table,
+          column: tableAndColumnToChange.column,
+          retypeDirection: 'toText',
+          ...constraintContextFor(checkConstraintsByPosition, position),
+        }
+      )
     }
 
     // collect enum values before dropping type
@@ -226,8 +252,17 @@ export default class DreamMigrationHelpers {
       .asEnum(allEnumValues.filter(val => val !== value))
       .execute()
 
-    for (const tableAndColumnToChange of replacements) {
+    for (const [position, tableAndColumnToChange] of replacements.entries()) {
       const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
+
+      const retypeContext: Omit<DropEnumValueRetypeFailedOpts, 'originalError'> = {
+        enumName,
+        value,
+        table: tableAndColumnToChange.table,
+        column: tableAndColumnToChange.column,
+        retypeDirection: 'toEnum',
+        ...constraintContextFor(checkConstraintsByPosition, position),
+      }
 
       if (isArray) {
         await replaceArrayValues(
@@ -235,14 +270,20 @@ export default class DreamMigrationHelpers {
           value,
           tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
         )
-        await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
+        await retypeOrExplain(
+          () => updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange),
+          retypeContext
+        )
       } else {
         await replaceNonArrayValues(
           db,
           value,
           tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
         )
-        await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
+        await retypeOrExplain(
+          () => updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange),
+          retypeContext
+        )
       }
     }
   }
@@ -422,6 +463,117 @@ export default class DreamMigrationHelpers {
   }
 }
 
+/**
+ * Run one of dropEnumValue's internal column retypes, and on failure re-raise it as a
+ * {@link DropEnumValueRetypeFailed} naming the table, the column and the check constraints
+ * that were read before any retype ran. The original error is kept reachable underneath.
+ *
+ * A caught throwable is normalized to an `Error` rather than cast to one: the error's
+ * message getter dereferences `originalError.message`, so a driver (or a mock) that rejects
+ * with a non-Error would otherwise blow up inside the getter and destroy the very
+ * diagnostic this wrapping exists to produce.
+ */
+async function retypeOrExplain(
+  retype: () => Promise<unknown>,
+  context: Omit<DropEnumValueRetypeFailedOpts, 'originalError'>
+) {
+  try {
+    await retype()
+  } catch (error) {
+    throw new DropEnumValueRetypeFailed({
+      ...context,
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
+  }
+}
+
+/**
+ * The check constraints defined on each replacement's column, indexed by the replacement's
+ * position in `replacements` (both of dropEnumValue's loops walk the same array in order, so
+ * the position identifies a replacement exactly and no key string has to be kept in sync).
+ *
+ * Position, rather than the replacement object, because the same object may legitimately
+ * appear at two positions — `const r = {...}; replacements: [r, r]` — and a Map keyed on the
+ * object would collapse those two entries onto one, reporting each column's constraints twice
+ * and emitting a duplicated dropConstraint line for every one of them.
+ *
+ * One catalog query covers every replacement: the (relation, column) pairs are passed as two
+ * arrays and unnested `WITH ORDINALITY`, so each row carries the 1-based position of the
+ * replacement it belongs to. Issuing one query per replacement would cost a round trip per
+ * column on every successful `dropEnumValue`, and Kysely serializes them all on the
+ * migration's single connection.
+ *
+ * `relationResolved` is selected separately from the constraints, because "the table has no
+ * check constraints" and "the table name did not resolve" both produce zero constraint rows
+ * and the error message must not confuse the two.
+ *
+ * `to_regclass` rather than a `::regclass` cast so that an unknown table yields no rows
+ * instead of throwing, leaving the retype itself to report a missing table exactly as it
+ * does today. The name handed to it is quoted per segment, because Kysely quotes the
+ * identifiers it emits (`alterTable('MixedCase')` -> `"MixedCase"`) while an unquoted
+ * `to_regclass` argument case-folds and would silently miss every non-lowercase table.
+ *
+ * The selected aliases are deliberately single words: a `CamelCasePlugin` on the connection
+ * rewrites result keys, and `ord`/`resolved`/`name`/`definition` survive that rewrite
+ * unchanged.
+ */
+async function checkConstraintsOnColumns(
+  db: Kysely<any>,
+  replacements: DropValueFromEnumTablesAndColumns[]
+): Promise<ColumnCheckConstraints[]> {
+  const byPosition: ColumnCheckConstraints[] = replacements.map(() => ({
+    relationResolved: false,
+    checkConstraints: [],
+  }))
+  if (replacements.length === 0) return byPosition
+
+  const relationNames = replacements.map(replacement => quotedRelationName(replacement.table))
+  const columnNames = replacements.map(replacement => replacement.column)
+
+  const response = await sql<CheckConstraintRow>`
+    SELECT
+      t.ord::int AS ord,
+      (to_regclass(t.relname) IS NOT NULL) AS resolved,
+      con.name AS name,
+      con.definition AS definition
+    FROM unnest(${relationNames}::text[], ${columnNames}::text[])
+      WITH ORDINALITY AS t(relname, colname, ord)
+    LEFT JOIN LATERAL (
+      SELECT c.conname AS name, pg_get_constraintdef(c.oid) AS definition
+      FROM pg_constraint c
+      JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+      WHERE c.contype = 'c'
+        AND c.conrelid = to_regclass(t.relname)
+        AND a.attname = t.colname
+    ) con ON true
+    ORDER BY t.ord, con.name
+  `.execute(db)
+
+  for (const row of response.rows) {
+    const entry = byPosition[Number(row.ord) - 1]
+    if (entry === undefined) continue
+
+    entry.relationResolved = row.resolved
+    if (row.name !== null && row.definition !== null) {
+      entry.checkConstraints.push({ name: row.name, definition: row.definition })
+    }
+  }
+
+  return byPosition
+}
+
+/**
+ * The constraint metadata for the replacement at `position`. A position with no entry (which
+ * cannot happen today, but would be a silent lie if it did) reads as "not read", never as
+ * "none defined".
+ */
+function constraintContextFor(
+  byPosition: ColumnCheckConstraints[],
+  position: number
+): ColumnCheckConstraints {
+  return byPosition[position] ?? { relationResolved: false, checkConstraints: [] }
+}
+
 async function getEnumValues(db: Kysely<any>, enumName: string) {
   const response = await sql`SELECT unnest(enum_range(NULL::${sql.raw(enumName)}))`.execute(db)
   return response.rows.map(row => (row as any).unnest)
@@ -505,6 +657,15 @@ async function updateTableColumnToNewEnumType(
 function computedTemporaryType(array: boolean): ColumnDataType | RawBuilder<unknown> {
   if (array) return sql`text[]`
   return 'text'
+}
+
+type ColumnCheckConstraints = Pick<DropEnumValueRetypeFailedOpts, 'relationResolved' | 'checkConstraints'>
+
+interface CheckConstraintRow {
+  ord: number | string
+  resolved: boolean
+  name: string | null
+  definition: string | null
 }
 
 interface DropValueFromEnumOpts {

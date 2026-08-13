@@ -5,6 +5,7 @@ import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
 import Encrypt, { EncryptAlgorithm } from '../encrypt/index.js'
 import SspawnRequiresDevelopmentOrTest from '../errors/SspawnRequiresDevelopmentOrTest.js'
 import generateDream from '../helpers/cli/generateDream.js'
+import syncWithFailureContext from '../helpers/cli/syncWithFailureContext.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
@@ -148,7 +149,9 @@ ${INDENT}  create-many-to-many-posts-users         # WRONG: selects 'many_posts_
 ${INDENT}    # -to- inside "many-to-many" matches: with no columns
 ${INDENT}    # this errors; with columns it silently scaffolds it
 ${INDENT}  create-posts-users-join-table           # correct: no marker match
-${INDENT}    # scaffolds alterTable('<table-name>') to hand-edit`
+${INDENT}    # with no columns, generates empty up/down methods to
+${INDENT}    # write by hand; with columns, scaffolds
+${INDENT}    # alterTable('<table-name>') to hand-edit`
 
 export default class DreamCLI {
   /**
@@ -261,7 +264,9 @@ ${INDENT}  # Remove columns (include -from-<table_name>; columns are described w
 ${INDENT}  # their types, same shorthand as -to-, so the rollback (down) can recreate them)
 ${INDENT}  pnpm psy g:migration remove-legacy-fields-from-posts legacy_status:string
 ${INDENT}
-${INDENT}  # General schema change (no -to-/-from- marker — scaffolds alterTable('<table-name>') to hand-edit)
+${INDENT}  # General schema change (no -to-/-from- marker — with no columns, generates
+${INDENT}  # empty up/down methods to write by hand; with columns, scaffolds
+${INDENT}  # alterTable('<table-name>') to hand-edit)
 ${INDENT}  pnpm psy g:migration create-unique-index-on-invitations`
       )
       .argument('<migrationName>', migrationNameArgumentDescription)
@@ -547,7 +552,15 @@ ${INDENT}  pnpm psy db:migrate`
         await DreamBin.dbMigrate()
 
         if (EnvInternal.isTest && !skipSync) {
-          await DreamBin.sync(onSync)
+          await syncWithFailureContext(
+            {
+              commandName: 'db:migrate',
+              completedWork: 'Every pending migration ran successfully',
+              recoveryAdvice:
+                'run `sync` on its own, or re-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync',
+            },
+            async () => await DreamBin.sync(onSync)
+          )
         }
 
         process.exit()
@@ -573,7 +586,17 @@ ${INDENT}  pnpm psy db:rollback --steps=3    # rolls back the last 3 migrations`
         await DreamBin.dbRollback({ steps })
 
         if (EnvInternal.isTest && !skipSync) {
-          await DreamBin.sync(onSync)
+          await syncWithFailureContext(
+            {
+              commandName: 'db:rollback',
+              completedWork: 'The rollback completed successfully and is already committed',
+              // never `re-run db:rollback` here: the rollback is already
+              // committed, so a second run rolls back a further migration
+              recoveryAdvice:
+                'run `sync` on its own. Do not re-run `db:rollback` — the rollback it would perform is a further one, undoing a migration you did not ask to undo',
+            },
+            async () => await DreamBin.sync(onSync)
+          )
         }
 
         process.exit()
@@ -633,7 +656,22 @@ ${INDENT}Warning: all existing data will be lost. The seed file (db/seed.ts) wil
           logPrefix: ' ',
           logPrefixColor: 'green',
         })
-        await DreamBin.sync(onSync)
+        await syncWithFailureContext(
+          {
+            commandName: 'db:reset',
+            completedWork: 'db:drop, db:create and db:migrate all completed successfully',
+            didNotRun: 'db:seed, which db:reset runs after the sync, did not run',
+            // the two routes are not interchangeable, so the second one names
+            // the env var it needs: db:reset seeds by calling the app's seed
+            // hook directly (below), while the `db:seed` *command* refuses to
+            // seed under NODE_ENV=test unless DREAM_SEED_DB_IN_TEST=1 — and
+            // NODE_ENV=test is the only environment DreamBin.sync does any
+            // work in, so it is the only environment this advice is printed in
+            recoveryAdvice:
+              're-run `db:reset`, which seeds directly and so picks up the skipped seeding step, or run `sync` on its own followed by `DREAM_SEED_DB_IN_TEST=1 db:seed` — this sync only runs under `NODE_ENV=test`, and a bare `db:seed` does not seed there',
+          },
+          async () => await DreamBin.sync(onSync)
+        )
         DreamCLI.logger.log(arrows, { logPrefix: ' ' })
 
         DreamCLI.logger.log(colorize('db:seed', { color: 'green' }), {

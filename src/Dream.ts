@@ -64,6 +64,7 @@ import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import { inferSerializersFromDreamClassOrViewModelClassOrFail } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
+import serializerGlobalName from './serializer/helpers/serializerGlobalName.js'
 import { HasManyStatement } from './types/associations/hasMany.js'
 import { HasOneStatement } from './types/associations/hasOne.js'
 import {
@@ -723,8 +724,10 @@ export default class Dream {
     // One line per serializer: for an STI base the displayed tree is the union across its children,
     // so naming a single child's serializer under the base's own name would misattribute the tree.
     serializers.forEach(serializer => {
+      // Interpolated rather than defaulted so the printed line is unchanged for a serializer with no
+      // globalName; naming inline serializers in this tree is its own change.
       // eslint-disable-next-line no-console
-      console.log(yoctocolors.gray((serializer as unknown as Record<'globalName', string>).globalName))
+      console.log(yoctocolors.gray(`${serializerGlobalName(serializer)}`))
     })
 
     return this.recursiveSerializationMap(serializers, {
@@ -842,9 +845,15 @@ export default class Dream {
    *   * foreign key fields for belongs to associations (these should usually be verified before being set)
    *   * type fields corresponding to polymorphic associations
    *
+   * @internal
+   *
+   * Not part of the public API. Psychic reaches it through the bracketed
+   * back-door (`dreamClass['paramSafeColumnsOrFallback']()`), the same escape
+   * hatch used for other Dream internals such as `virtualAttributes`.
+   *
    * @returns A subset of columns for the given dream class
    */
-  public static paramSafeColumnsOrFallback<
+  private static paramSafeColumnsOrFallback<
     T extends typeof Dream,
     I extends InstanceType<T>,
     ParamSafeColumnsOverride extends InstanceType<T>['paramSafeColumns' & keyof InstanceType<T>] extends never
