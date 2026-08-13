@@ -2,6 +2,7 @@ import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DropEnumValueRetypeFailed, {
   DropEnumValueRetypeFailedOpts,
+  quotedRelationName,
 } from '../../errors/DropEnumValueRetypeFailed.js'
 
 export default class DreamMigrationHelpers {
@@ -213,10 +214,10 @@ export default class DreamMigrationHelpers {
     // block errors, Postgres aborts the block and fails every subsequent statement with
     // `25P02 current transaction is aborted`. A pg_constraint SELECT issued from a catch block
     // would therefore throw itself and bury the very error we are trying to explain.
-    const checkConstraintsByReplacement = await checkConstraintsOnColumns(db, replacements)
+    const checkConstraintsByPosition = await checkConstraintsOnColumns(db, replacements)
 
     // temporarily set all table columns depending on this enum to an acceptable alternate type
-    for (const tableAndColumnToChange of replacements) {
+    for (const [position, tableAndColumnToChange] of replacements.entries()) {
       const tableAndColumnToChangeAsArray =
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
       const isArray = tableAndColumnToChangeAsArray.array || false
@@ -235,7 +236,7 @@ export default class DreamMigrationHelpers {
           table: tableAndColumnToChange.table,
           column: tableAndColumnToChange.column,
           retypeDirection: 'toText',
-          ...constraintContextFor(checkConstraintsByReplacement, tableAndColumnToChange),
+          ...constraintContextFor(checkConstraintsByPosition, position),
         }
       )
     }
@@ -251,7 +252,7 @@ export default class DreamMigrationHelpers {
       .asEnum(allEnumValues.filter(val => val !== value))
       .execute()
 
-    for (const tableAndColumnToChange of replacements) {
+    for (const [position, tableAndColumnToChange] of replacements.entries()) {
       const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
 
       const retypeContext: Omit<DropEnumValueRetypeFailedOpts, 'originalError'> = {
@@ -260,7 +261,7 @@ export default class DreamMigrationHelpers {
         table: tableAndColumnToChange.table,
         column: tableAndColumnToChange.column,
         retypeDirection: 'toEnum',
-        ...constraintContextFor(checkConstraintsByReplacement, tableAndColumnToChange),
+        ...constraintContextFor(checkConstraintsByPosition, position),
       }
 
       if (isArray) {
@@ -487,9 +488,14 @@ async function retypeOrExplain(
 }
 
 /**
- * The check constraints defined on each replacement's column, keyed by the replacement
- * object itself (both of dropEnumValue's loops walk the same array, so object identity is
- * exact and no key string has to be kept in sync).
+ * The check constraints defined on each replacement's column, indexed by the replacement's
+ * position in `replacements` (both of dropEnumValue's loops walk the same array in order, so
+ * the position identifies a replacement exactly and no key string has to be kept in sync).
+ *
+ * Position, rather than the replacement object, because the same object may legitimately
+ * appear at two positions — `const r = {...}; replacements: [r, r]` — and a Map keyed on the
+ * object would collapse those two entries onto one, reporting each column's constraints twice
+ * and emitting a duplicated dropConstraint line for every one of them.
  *
  * One catalog query covers every replacement: the (relation, column) pairs are passed as two
  * arrays and unnested `WITH ORDINALITY`, so each row carries the 1-based position of the
@@ -514,13 +520,12 @@ async function retypeOrExplain(
 async function checkConstraintsOnColumns(
   db: Kysely<any>,
   replacements: DropValueFromEnumTablesAndColumns[]
-): Promise<Map<DropValueFromEnumTablesAndColumns, ColumnCheckConstraints>> {
-  const byReplacement = new Map<DropValueFromEnumTablesAndColumns, ColumnCheckConstraints>()
-  if (replacements.length === 0) return byReplacement
-
-  for (const replacement of replacements) {
-    byReplacement.set(replacement, { relationResolved: false, checkConstraints: [] })
-  }
+): Promise<ColumnCheckConstraints[]> {
+  const byPosition: ColumnCheckConstraints[] = replacements.map(() => ({
+    relationResolved: false,
+    checkConstraints: [],
+  }))
+  if (replacements.length === 0) return byPosition
 
   const relationNames = replacements.map(replacement => quotedRelationName(replacement.table))
   const columnNames = replacements.map(replacement => replacement.column)
@@ -545,40 +550,28 @@ async function checkConstraintsOnColumns(
   `.execute(db)
 
   for (const row of response.rows) {
-    const replacement = replacements[Number(row.ord) - 1]
-    if (replacement === undefined) continue
+    const entry = byPosition[Number(row.ord) - 1]
+    if (entry === undefined) continue
 
-    const entry = byReplacement.get(replacement)!
     entry.relationResolved = row.resolved
     if (row.name !== null && row.definition !== null) {
       entry.checkConstraints.push({ name: row.name, definition: row.definition })
     }
   }
 
-  return byReplacement
+  return byPosition
 }
 
 /**
- * Quote every segment of a possibly schema-qualified table name the same way Kysely does, so
- * `to_regclass` resolves exactly the relation the retype will target.
- */
-function quotedRelationName(table: string) {
-  return table
-    .split('.')
-    .map(segment => `"${segment.replace(/"/g, '""')}"`)
-    .join('.')
-}
-
-/**
- * The constraint metadata for one replacement. A replacement missing from the map (which
+ * The constraint metadata for the replacement at `position`. A position with no entry (which
  * cannot happen today, but would be a silent lie if it did) reads as "not read", never as
  * "none defined".
  */
 function constraintContextFor(
-  byReplacement: Map<DropValueFromEnumTablesAndColumns, ColumnCheckConstraints>,
-  replacement: DropValueFromEnumTablesAndColumns
+  byPosition: ColumnCheckConstraints[],
+  position: number
 ): ColumnCheckConstraints {
-  return byReplacement.get(replacement) ?? { relationResolved: false, checkConstraints: [] }
+  return byPosition[position] ?? { relationResolved: false, checkConstraints: [] }
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {

@@ -213,6 +213,30 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
           expect(retypeError.message).toContain('operator does not exist')
         })
 
+        // `replacements: [r, r]` — the same object at two positions. Bucketing the catalog rows by
+        // the replacement object rather than by position collapses both positions onto a single
+        // entry and pushes every constraint once per position, which would list the constraint
+        // twice and hand the caller the same dropConstraint line twice.
+        it('does not duplicate the constraints when the same replacement object is listed twice', async () => {
+          const replacement = { table: 'pets', column: 'temporary_enum', replaceWith: 'b' }
+
+          const retypeError = await captureRetypeFailure(trx =>
+            DreamMigrationHelpers.dropEnumValue(trx, {
+              enumName: 'temp_enum',
+              value: 'c',
+              replacements: [replacement, replacement],
+            })
+          )
+
+          expect(retypeError.checkConstraints.map(constraint => constraint.name)).toEqual([
+            'temporary_enum_is_not_c_check',
+          ])
+
+          const dropCall =
+            "await DreamMigrationHelpers.dropConstraint(db, 'temporary_enum_is_not_c_check', { table: 'pets' })"
+          expect(retypeError.message.split(dropCall)).toHaveLength(2)
+        })
+
         context('and a second check constraint also references the enum', () => {
           beforeEach(async () => {
             await _db.schema
@@ -241,6 +265,89 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
             expect(retypeError.message).toContain(
               "await DreamMigrationHelpers.dropConstraint(db, 'temporary_enum_is_not_c_check', { table: 'pets' })"
             )
+          })
+        })
+      })
+
+      // A check constraint is not the only expression the retype re-derives: a partial index's WHERE
+      // predicate raises the identical SQLSTATE (42883, verified against Postgres:
+      // `CREATE INDEX ... WHERE val <> 'a'` then `ALTER COLUMN val TYPE text` ->
+      // `operator does not exist: text <> zz`). The SQLSTATE gate therefore cannot establish that a
+      // *check constraint* was the expression that failed, and the message must not say it did.
+      context('a partial index predicate, not a check constraint, is what blocks the retype', () => {
+        beforeEach(async () => {
+          // survives both retypes untouched: `IS NOT NULL` re-derives against text and against the enum
+          await _db.schema
+            .alterTable('pets')
+            .addCheckConstraint('temporary_enum_not_null_check', sql`temporary_enum IS NOT NULL`)
+            .execute()
+
+          await sql`CREATE INDEX temporary_enum_partial_index ON pets (id) WHERE temporary_enum <> 'c'`.execute(
+            _db
+          )
+        })
+
+        afterEach(async () => {
+          await sql`DROP INDEX IF EXISTS temporary_enum_partial_index`.execute(_db)
+        })
+
+        it('does not blame the check constraints it found, and names the other expressions that block a retype', async () => {
+          const retypeError = await captureRetypeFailure(trx =>
+            DreamMigrationHelpers.dropEnumValue(trx, {
+              enumName: 'temp_enum',
+              value: 'c',
+              replacements: [{ table: 'pets', column: 'temporary_enum', replaceWith: 'b' }],
+            })
+          )
+
+          // the same SQLSTATE a blocking check constraint raises, from an index predicate instead
+          expect(retypeError.retypeDirection).toEqual('toText')
+          expect(retypeError.originalError.message).toContain('operator does not exist')
+          expect(retypeError.checkConstraints.map(constraint => constraint.name)).toEqual([
+            'temporary_enum_not_null_check',
+          ])
+
+          // the constraint that is not the blocker is still reported, as context
+          expect(retypeError.message).toContain('temporary_enum_not_null_check')
+
+          // ...but never diagnosed as the cause, and never handed over as an unconditional remedy
+          expect(retypeError.message).not.toContain('Drop the constraints above before calling dropEnumValue')
+          expect(retypeError.message).not.toContain('blocks the\nretype')
+
+          // the actual blocker's category is named, so the caller knows where else to look
+          expect(retypeError.message).toContain('a partial index whose WHERE predicate references')
+          expect(retypeError.message).toContain('an expression index over')
+          expect(retypeError.message).toContain("the column's DEFAULT")
+
+          // and the copy-pasteable remedy survives, explicitly conditional on the constraint being the blocker
+          expect(retypeError.message).toContain('If one of the check constraints above is the blocker')
+          expect(retypeError.message).toContain(
+            "await DreamMigrationHelpers.dropConstraint(db, 'temporary_enum_not_null_check', { table: 'pets' })"
+          )
+          expect(retypeError.message).toContain('If dropping it changes nothing')
+        })
+
+        context('and no check constraint is defined on the column at all', () => {
+          beforeEach(async () => {
+            await _db.schema.alterTable('pets').dropConstraint('temporary_enum_not_null_check').execute()
+          })
+
+          it('still names the expressions that block a retype rather than closing the question', async () => {
+            const retypeError = await captureRetypeFailure(trx =>
+              DreamMigrationHelpers.dropEnumValue(trx, {
+                enumName: 'temp_enum',
+                value: 'c',
+                replacements: [{ table: 'pets', column: 'temporary_enum', replaceWith: 'b' }],
+              })
+            )
+
+            expect(retypeError.checkConstraints).toEqual([])
+            expect(retypeError.originalError.message).toContain('operator does not exist')
+
+            expect(retypeError.message).toContain('a partial index whose WHERE predicate references')
+            expect(retypeError.message).toContain('an expression index over')
+            expect(retypeError.message).not.toContain('No check constraints to reconcile.')
+            expect(retypeError.message).not.toContain('DreamMigrationHelpers.dropConstraint')
           })
         })
       })
