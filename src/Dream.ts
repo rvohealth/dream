@@ -842,9 +842,15 @@ export default class Dream {
    *   * foreign key fields for belongs to associations (these should usually be verified before being set)
    *   * type fields corresponding to polymorphic associations
    *
+   * @internal
+   *
+   * Not part of the public API. Psychic reaches it through the bracketed
+   * back-door (`dreamClass['paramSafeColumnsOrFallback']()`), the same escape
+   * hatch used for other Dream internals such as `virtualAttributes`.
+   *
    * @returns A subset of columns for the given dream class
    */
-  public static paramSafeColumnsOrFallback<
+  private static paramSafeColumnsOrFallback<
     T extends typeof Dream,
     I extends InstanceType<T>,
     ParamSafeColumnsOverride extends InstanceType<T>['paramSafeColumns' & keyof InstanceType<T>] extends never
