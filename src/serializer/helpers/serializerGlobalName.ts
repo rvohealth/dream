@@ -1,8 +1,4 @@
-import {
-  DreamModelSerializerType,
-  SerializerType,
-  SimpleObjectSerializerType,
-} from '../../types/serializer.js'
+import { SerializerType } from '../../types/serializer.js'
 
 /**
  * @internal
@@ -17,8 +13,6 @@ import {
  * option) is never stamped. Callers decide what that means for them — the resolution-context message
  * simply drops the declarer.
  */
-export default function serializerGlobalName(
-  serializer: DreamModelSerializerType | SimpleObjectSerializerType | SerializerType
-): string | undefined {
+export default function serializerGlobalName(serializer: SerializerType): string | undefined {
   return (serializer as unknown as { globalName?: string }).globalName
 }
