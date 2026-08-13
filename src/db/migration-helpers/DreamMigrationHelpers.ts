@@ -1,5 +1,9 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
+import DropEnumValueRetypeFailed, {
+  DropEnumValueCheckConstraint,
+  DropEnumValueRetypeFailedOpts,
+} from '../../errors/DropEnumValueRetypeFailed.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -203,16 +207,48 @@ export default class DreamMigrationHelpers {
     db: Kysely<any>,
     { enumName, value, replacements }: DropValueFromEnumOpts
   ) {
+    // Read the check constraints on every replacement column up front, before anything is
+    // retyped. They are only ever *used* from the catch blocks below, but they cannot be read
+    // from there: dropEnumValue runs inside a migration transaction (runMigration.ts routes any
+    // migration mentioning it through `newTransaction`), and once a statement in a transaction
+    // block errors, Postgres aborts the block and fails every subsequent statement with
+    // `25P02 current transaction is aborted`. A pg_constraint SELECT issued from a catch block
+    // would therefore throw itself and bury the very error we are trying to explain.
+    const checkConstraintsByReplacement = new Map<
+      DropValueFromEnumTablesAndColumns,
+      DropEnumValueCheckConstraint[]
+    >()
+
+    for (const tableAndColumnToChange of replacements) {
+      checkConstraintsByReplacement.set(
+        tableAndColumnToChange,
+        await checkConstraintsOnColumn(db, tableAndColumnToChange.table, tableAndColumnToChange.column)
+      )
+    }
+
     // temporarily set all table columns depending on this enum to an acceptable alternate type
     for (const tableAndColumnToChange of replacements) {
       const tableAndColumnToChangeAsArray =
         tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArrayBase
       const isArray = tableAndColumnToChangeAsArray.array || false
 
-      await db.schema
-        .alterTable(tableAndColumnToChange.table)
-        .alterColumn(tableAndColumnToChange.column, col => col.setDataType(computedTemporaryType(isArray)))
-        .execute()
+      await retypeOrExplain(
+        () =>
+          db.schema
+            .alterTable(tableAndColumnToChange.table)
+            .alterColumn(tableAndColumnToChange.column, col =>
+              col.setDataType(computedTemporaryType(isArray))
+            )
+            .execute(),
+        {
+          enumName,
+          value,
+          table: tableAndColumnToChange.table,
+          column: tableAndColumnToChange.column,
+          retypeDirection: 'toText',
+          checkConstraints: checkConstraintsByReplacement.get(tableAndColumnToChange) ?? [],
+        }
+      )
     }
 
     // collect enum values before dropping type
@@ -229,20 +265,35 @@ export default class DreamMigrationHelpers {
     for (const tableAndColumnToChange of replacements) {
       const isArray = (tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray).array || false
 
+      const retypeContext: Omit<DropEnumValueRetypeFailedOpts, 'originalError'> = {
+        enumName,
+        value,
+        table: tableAndColumnToChange.table,
+        column: tableAndColumnToChange.column,
+        retypeDirection: 'toEnum',
+        checkConstraints: checkConstraintsByReplacement.get(tableAndColumnToChange) ?? [],
+      }
+
       if (isArray) {
         await replaceArrayValues(
           db,
           value,
           tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForArray
         )
-        await updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange)
+        await retypeOrExplain(
+          () => updateTableColumnToNewEnumArrayType(db, enumName, tableAndColumnToChange),
+          retypeContext
+        )
       } else {
         await replaceNonArrayValues(
           db,
           value,
           tableAndColumnToChange as DropValueFromEnumTablesAndColumnsForNonArray
         )
-        await updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange)
+        await retypeOrExplain(
+          () => updateTableColumnToNewEnumType(db, enumName, tableAndColumnToChange),
+          retypeContext
+        )
       }
     }
   }
@@ -420,6 +471,51 @@ export default class DreamMigrationHelpers {
       }
     }
   }
+}
+
+/**
+ * Run one of dropEnumValue's internal column retypes, and on failure re-raise it as a
+ * {@link DropEnumValueRetypeFailed} naming the table, the column and the check constraints
+ * that were read before any retype ran. The original error is kept reachable underneath.
+ */
+async function retypeOrExplain(
+  retype: () => Promise<unknown>,
+  context: Omit<DropEnumValueRetypeFailedOpts, 'originalError'>
+) {
+  try {
+    await retype()
+  } catch (error) {
+    throw new DropEnumValueRetypeFailed({ ...context, originalError: error as Error })
+  }
+}
+
+/**
+ * Every check constraint defined on `table`.`column`, including table-level check
+ * constraints that happen to reference the column, since those block a retype just as
+ * column-level ones do.
+ *
+ * `to_regclass` rather than a `::regclass` cast so that an unknown table yields no rows
+ * instead of throwing, leaving the retype itself to report a missing table exactly as it
+ * does today. The selected aliases are deliberately single words: a `CamelCasePlugin` on
+ * the connection rewrites result keys, and `name`/`definition` survive that rewrite
+ * unchanged.
+ */
+async function checkConstraintsOnColumn(
+  db: Kysely<any>,
+  table: string,
+  column: string
+): Promise<DropEnumValueCheckConstraint[]> {
+  const response = await sql<DropEnumValueCheckConstraint>`
+    SELECT con.conname AS name, pg_get_constraintdef(con.oid) AS definition
+    FROM pg_constraint con
+    JOIN pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
+    WHERE con.contype = 'c'
+      AND con.conrelid = to_regclass(${table})
+      AND att.attname = ${column}
+    ORDER BY con.conname
+  `.execute(db)
+
+  return response.rows.map(row => ({ name: row.name, definition: row.definition }))
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {
