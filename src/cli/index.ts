@@ -661,8 +661,14 @@ ${INDENT}Warning: all existing data will be lost. The seed file (db/seed.ts) wil
             commandName: 'db:reset',
             completedWork: 'db:drop, db:create and db:migrate all completed successfully',
             didNotRun: 'db:seed, which db:reset runs after the sync, did not run',
+            // the two routes are not interchangeable, so the second one names
+            // the env var it needs: db:reset seeds by calling the app's seed
+            // hook directly (below), while the `db:seed` *command* refuses to
+            // seed under NODE_ENV=test unless DREAM_SEED_DB_IN_TEST=1 — and
+            // NODE_ENV=test is the only environment DreamBin.sync does any
+            // work in, so it is the only environment this advice is printed in
             recoveryAdvice:
-              're-run `db:reset`, which also picks up the skipped `db:seed`, or run `sync` on its own followed by `db:seed`',
+              're-run `db:reset`, which seeds directly and so picks up the skipped seeding step, or run `sync` on its own followed by `DREAM_SEED_DB_IN_TEST=1 db:seed` — this sync only runs under `NODE_ENV=test`, and a bare `db:seed` does not seed there',
           },
           async () => await DreamBin.sync(onSync)
         )
