@@ -639,6 +639,10 @@ describe('Dream.preloadFor(serializerKey)', () => {
         expect(() => Composition.query().preloadFor('default')).toThrow(
           /Missing serializers definition on class `CompositionAsset`/
         )
+        // ...and says how resolution reached CompositionAsset, not only that it landed there
+        expect(() => Composition.query().preloadFor('default')).toThrow(
+          /reached through: rendersMany `compositionAssets`, declared by CompositionSerializer/
+        )
       })
 
       // This is the sub-case that succeeded end-to-end before 2.23.0: rendersMany resolves the
@@ -671,6 +675,9 @@ describe('Dream.preloadFor(serializerKey)', () => {
           expect(() => Composition.query().preloadFor('default')).toThrow(
             /Missing serializers definition for `default` on class `CompositionAsset`/
           )
+          expect(() => Composition.query().preloadFor('default')).toThrow(
+            /reached through: rendersMany `compositionAssets`, declared by CompositionSerializer/
+          )
         })
       })
     })
@@ -695,6 +702,9 @@ describe('Dream.preloadFor(serializerKey)', () => {
           expect(() => Composition.query().preloadFor('default')).toThrow(
             /CompositionAsset specified a global name of "NotARegisteredSerializer" for serializer key "default",\s+but no serializer corresponds to "NotARegisteredSerializer"/
           )
+          expect(() => Composition.query().preloadFor('default')).toThrow(
+            /reached through: rendersMany `compositionAssets`, declared by CompositionSerializer/
+          )
         })
       })
     })
@@ -711,6 +721,9 @@ describe('Dream.preloadFor(serializerKey)', () => {
             )
             expect(() => Composition.query().preloadFor('default')).toThrow(
               /the derived serializer is not a Dream serializer/
+            )
+            expect(() => Composition.query().preloadFor('default')).toThrow(
+              /reached through: rendersMany `compositionAssets`, declared by CompositionSerializer/
             )
           })
         } finally {

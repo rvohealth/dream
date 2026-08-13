@@ -155,7 +155,17 @@ function buildSerializerAssociationEdges(
           : compact(
               inferSerializersFromDreamClassOrViewModelClass(
                 associatedClass,
-                (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey
+                (serializerAssociation.options as InternalAnyRendersOneOrManyOpts).serializerKey,
+                // Error-only, and derived entirely from this function's two arguments, so nothing
+                // route-dependent is introduced: it never enters the memo key in
+                // `resolveSerializerAssociationEdges` and is never stored in the returned edges.
+                {
+                  edge: {
+                    type: serializerAssociation.type,
+                    associationName: serializerAssociationName,
+                    declaredBy: serializerGlobalName(serializer),
+                  },
+                }
               )
             )
 
@@ -173,4 +183,15 @@ function buildSerializerAssociationEdges(
       }
     })
   )
+}
+
+/**
+ * Serializers are plain functions; `globalName` is stamped onto them by `importSerializers` when the
+ * app loads them, so a serializer built inline (a spec, or a `{ serializer }` option) has none.
+ * Undefined is a legitimate answer — the resolution-context message simply drops the declarer.
+ */
+function serializerGlobalName(
+  serializer: DreamModelSerializerType | SimpleObjectSerializerType
+): string | undefined {
+  return (serializer as unknown as { globalName?: string }).globalName
 }

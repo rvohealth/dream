@@ -9,6 +9,7 @@ import {
   InternalAnyRendersOneOrManyOpts,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   SerializerCasing,
+  SerializerResolutionEdge,
   SimpleObjectSerializerType,
 } from '../types/serializer.js'
 import BaseClockTime from '../utils/datetime/BaseClockTime.js'
@@ -158,7 +159,10 @@ export default class SerializerRenderer {
           let serializer: DreamModelSerializerType | SimpleObjectSerializerType | null = null
 
           if (associatedObject) {
-            serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+            serializer = serializerForAssociatedObject(associatedObject, attribute.options, {
+              type: 'rendersOne',
+              associationName: attribute.name,
+            })
           } else if (attribute.options.flatten) {
             /**
              * Only used when flatten: true, and the associated model is null, in which case,
@@ -213,7 +217,10 @@ export default class SerializerRenderer {
 
           accumulator[outputAttributeName] = compact(associatedObjects as ViewModel[]).map(
             associatedObject => {
-              const serializer = serializerForAssociatedObject(associatedObject, attribute.options)
+              const serializer = serializerForAssociatedObject(associatedObject, attribute.options, {
+                type: 'rendersMany',
+                associationName: attribute.name,
+              })
 
               return (
                 // passthrough data going into the serializer is the argument that gets
@@ -310,10 +317,17 @@ function _applyRenderingOptionsToAttribute(
   return value ?? null
 }
 
+/**
+ * `edge` is error-only: it names the rendersOne/rendersMany this object is being rendered through,
+ * so that a serializer that cannot be resolved for it says which association led here rather than
+ * only which class failed. The renderer holds no serializer object, so the edge carries no
+ * `declaredBy` — see `SerializerResolutionContext`.
+ */
 function serializerForAssociatedObject<ObjectType extends Dream | ViewModel>(
   associatedObject: ObjectType,
-  options: InternalAnyRendersOneOrManyOpts
+  options: InternalAnyRendersOneOrManyOpts,
+  edge: SerializerResolutionEdge
 ): DreamModelSerializerType | SimpleObjectSerializerType {
   if (options.serializer) return options.serializer
-  return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey)
+  return inferSerializerFromDreamOrViewModel(associatedObject, options.serializerKey, { edge })
 }

@@ -1,8 +1,14 @@
 import Dream from '../../Dream.js'
 import { ViewModel } from '../../types/dream.js'
+import { SerializerResolutionContext } from '../../types/serializer.js'
+import serializerResolutionContextMessage from './serializerResolutionContextMessage.js'
 
 export default class MissingSerializersDefinition extends Error {
-  constructor(private viewModel: Dream | ViewModel) {
+  constructor(
+    private viewModel: Dream | ViewModel,
+    private serializerKey?: string | undefined,
+    private resolutionContext?: SerializerResolutionContext | undefined
+  ) {
     super()
   }
 
@@ -21,6 +27,6 @@ class ${className} {
     }
   }
   ...
-}`
+}${serializerResolutionContextMessage(this.serializerKey, this.resolutionContext)}`
   }
 }

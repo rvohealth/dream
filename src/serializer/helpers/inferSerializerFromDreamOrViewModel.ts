@@ -11,6 +11,7 @@ import uniq from '../../helpers/uniq.js'
 import { ViewModel, ViewModelClass } from '../../types/dream.js'
 import {
   DreamModelSerializerType,
+  SerializerResolutionContext,
   SerializerType,
   SimpleObjectSerializerType,
 } from '../../types/serializer.js'
@@ -18,29 +19,43 @@ import isDreamSerializer from './isDreamSerializer.js'
 
 export const DEFAULT_SERIALIZER_KEY = 'default'
 
+/**
+ * `resolutionContext` says how resolution reached `obj` — the `rendersOne`/`rendersMany` edge that
+ * led here, and the STI base it was expanded from. It is threaded down purely so that the errors
+ * below can name the route instead of only the class, and it is optional so that a caller with no
+ * route to describe (and every existing caller outside this repo) is unaffected. See
+ * `SerializerResolutionContext`.
+ */
 export default function inferSerializerFromDreamOrViewModel<
   T extends Dream | ViewModel | null | undefined,
   ReturnType extends T extends null | undefined ? null : T extends Dream | ViewModel ? SerializerType : never,
->(obj: T, serializerKey: string | undefined = DEFAULT_SERIALIZER_KEY): ReturnType {
+>(
+  obj: T,
+  serializerKey: string | undefined = DEFAULT_SERIALIZER_KEY,
+  resolutionContext?: SerializerResolutionContext
+): ReturnType {
   if (!obj) return null as ReturnType
   const serializers = (obj as ViewModel).serializers
-  if (!serializers) throw new MissingSerializersDefinition(obj)
+  if (!serializers) throw new MissingSerializersDefinition(obj, serializerKey, resolutionContext)
 
   const serializerOrGlobalName = serializers[serializerKey]
-  if (!serializerOrGlobalName) throw new MissingSerializersDefinitionForKey(obj, serializerKey)
+  if (!serializerOrGlobalName)
+    throw new MissingSerializersDefinitionForKey(obj, serializerKey, resolutionContext)
 
   if (isDreamSerializer(serializerOrGlobalName)) return serializerOrGlobalName as unknown as ReturnType
   const globalName = serializerOrGlobalName as string
 
   const dreamApp = DreamApp.getOrFail()
   const serializer = dreamApp.serializers[globalName]
-  if (!serializer) throw new NoGlobalSerializerForSpecifiedKey(obj, serializerKey, globalName)
+  if (!serializer)
+    throw new NoGlobalSerializerForSpecifiedKey(obj, serializerKey, globalName, resolutionContext)
   if (!isDreamSerializer(serializer))
     throw new NonDreamSerializerDerivedFromGlobalSerializerForSpecifiedKey(
       obj,
       serializerKey,
       globalName,
-      serializer
+      serializer,
+      resolutionContext
     )
 
   return serializer as ReturnType
@@ -48,16 +63,31 @@ export default function inferSerializerFromDreamOrViewModel<
 
 export function inferSerializersFromDreamClassOrViewModelClass(
   classDef: typeof Dream | ViewModelClass | null | undefined,
-  serializerKey: string | undefined = undefined
+  serializerKey: string | undefined = undefined,
+  resolutionContext?: SerializerResolutionContext
 ): (DreamModelSerializerType | SimpleObjectSerializerType)[] {
   if (!classDef) return []
   const classes = expandStiClasses(classDef)
 
+  // This is the one place that knows *whether* the class an error ends up naming came from STI
+  // expansion: below this line the class the caller passed is gone, replaced by one child per
+  // iteration, and every downstream error names a child. Identity rather than `isSTIBase` because
+  // `classDef` may be a ViewModelClass, which `expandStiClasses` hands straight back.
+  const expandedFromStiBase = classes.length !== 1 || classes[0] !== classDef
+
+  const childResolutionContext: SerializerResolutionContext | undefined = expandedFromStiBase
+    ? { ...resolutionContext, stiBase: stiBaseName(classDef) }
+    : resolutionContext
+
   const serializers = classes.map(classDef =>
-    inferSerializerFromDreamOrViewModel(classDef.prototype, serializerKey)
+    inferSerializerFromDreamOrViewModel(classDef.prototype, serializerKey, childResolutionContext)
   )
 
   return uniq(compact(serializers))
+}
+
+function stiBaseName(classDef: typeof Dream | ViewModelClass): string {
+  return (classDef as typeof Dream).sanitizedName ?? classDef.name
 }
 
 /**
@@ -77,9 +107,15 @@ export function inferSerializersFromDreamClassOrViewModelClass(
  */
 export function inferSerializersFromDreamClassOrViewModelClassOrFail(
   classDef: typeof Dream | ViewModelClass | null | undefined,
-  serializerKey: string
+  serializerKey: string,
+  resolutionContext?: SerializerResolutionContext
 ): (DreamModelSerializerType | SimpleObjectSerializerType)[] {
-  const serializers = inferSerializersFromDreamClassOrViewModelClass(classDef, serializerKey)
-  if (serializers.length === 0) throw new NoSerializersResolvedForKey(classDef, serializerKey)
+  const serializers = inferSerializersFromDreamClassOrViewModelClass(
+    classDef,
+    serializerKey,
+    resolutionContext
+  )
+  if (serializers.length === 0)
+    throw new NoSerializersResolvedForKey(classDef, serializerKey, resolutionContext)
   return serializers
 }

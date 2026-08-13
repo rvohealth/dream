@@ -1,5 +1,7 @@
 import Dream from '../../Dream.js'
 import { ViewModelClass } from '../../types/dream.js'
+import { SerializerResolutionContext } from '../../types/serializer.js'
+import serializerResolutionContextMessage from './serializerResolutionContextMessage.js'
 
 /**
  * Raised when resolving a serializer key against a class yields an empty set of serializers.
@@ -14,7 +16,8 @@ import { ViewModelClass } from '../../types/dream.js'
 export default class NoSerializersResolvedForKey extends Error {
   constructor(
     private classDef: typeof Dream | ViewModelClass | null | undefined,
-    private serializerKey: string
+    private serializerKey: string,
+    private resolutionContext?: SerializerResolutionContext | undefined
   ) {
     super()
   }
@@ -30,6 +33,6 @@ No serializers resolved for \`${className}\` under serializer key \`${this.seria
 
 This should be impossible — a serializer key that cannot be resolved throws while it is being
 resolved, before reaching here — and indicates a bug in Dream rather than a problem with your
-application. Please report it.`
+application. Please report it.${serializerResolutionContextMessage(this.serializerKey, this.resolutionContext)}`
   }
 }
