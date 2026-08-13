@@ -5,6 +5,7 @@ import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
 import Encrypt, { EncryptAlgorithm } from '../encrypt/index.js'
 import SspawnRequiresDevelopmentOrTest from '../errors/SspawnRequiresDevelopmentOrTest.js'
 import generateDream from '../helpers/cli/generateDream.js'
+import syncWithFailureContext from '../helpers/cli/syncWithFailureContext.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
 import DreamCliLogger from './logger/DreamCliLogger.js'
@@ -551,7 +552,13 @@ ${INDENT}  pnpm psy db:migrate`
         await DreamBin.dbMigrate()
 
         if (EnvInternal.isTest && !skipSync) {
-          await DreamBin.sync(onSync)
+          await syncWithFailureContext(
+            {
+              commandName: 'db:migrate',
+              completedWork: 'Every pending migration ran successfully',
+            },
+            async () => await DreamBin.sync(onSync)
+          )
         }
 
         process.exit()
@@ -577,7 +584,13 @@ ${INDENT}  pnpm psy db:rollback --steps=3    # rolls back the last 3 migrations`
         await DreamBin.dbRollback({ steps })
 
         if (EnvInternal.isTest && !skipSync) {
-          await DreamBin.sync(onSync)
+          await syncWithFailureContext(
+            {
+              commandName: 'db:rollback',
+              completedWork: 'The rollback completed successfully and is already committed',
+            },
+            async () => await DreamBin.sync(onSync)
+          )
         }
 
         process.exit()
@@ -637,7 +650,14 @@ ${INDENT}Warning: all existing data will be lost. The seed file (db/seed.ts) wil
           logPrefix: ' ',
           logPrefixColor: 'green',
         })
-        await DreamBin.sync(onSync)
+        await syncWithFailureContext(
+          {
+            commandName: 'db:reset',
+            completedWork: 'db:drop, db:create and db:migrate all completed successfully',
+            didNotRun: 'db:seed, which db:reset runs after the sync, did not run',
+          },
+          async () => await DreamBin.sync(onSync)
+        )
         DreamCLI.logger.log(arrows, { logPrefix: ' ' })
 
         DreamCLI.logger.log(colorize('db:seed', { color: 'green' }), {
