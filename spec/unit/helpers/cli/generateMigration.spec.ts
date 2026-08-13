@@ -30,17 +30,23 @@ function writtenMigration() {
  * never run as generated. Asserted in full (rather than with `toContain`) so
  * that "empty" stays literally true — a body that regrew a statement or a TODO
  * comment would still satisfy a substring check.
+ *
+ * The `{}` bodies, the widened eslint-disable directives and the trailing
+ * newline are all load-bearing: they are what makes this file clean under a
+ * consumer's Prettier and ESLint the instant it is written. See
+ * `spec/unit/cli/generateMigrationContent.spec.ts`
+ * ("the generated empty migration is clean under a consumer's tooling"), which
+ * pins that against the real tools.
  */
 const EMPTY_MIGRATION_CONTENT = `\
 import { Kysely } from 'kysely'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function up(db: Kysely<any>): Promise<void> {
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function up(db: Kysely<any>): Promise<void> {}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function down(db: Kysely<any>): Promise<void> {
-}`
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function down(db: Kysely<any>): Promise<void> {}
+`
 
 /**
  * Runs generateMigration with no columns and returns the error it threw. Kept
