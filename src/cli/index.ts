@@ -556,6 +556,8 @@ ${INDENT}  pnpm psy db:migrate`
             {
               commandName: 'db:migrate',
               completedWork: 'Every pending migration ran successfully',
+              recoveryAdvice:
+                'run `sync` on its own, or re-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync',
             },
             async () => await DreamBin.sync(onSync)
           )
@@ -588,6 +590,10 @@ ${INDENT}  pnpm psy db:rollback --steps=3    # rolls back the last 3 migrations`
             {
               commandName: 'db:rollback',
               completedWork: 'The rollback completed successfully and is already committed',
+              // never `re-run db:rollback` here: the rollback is already
+              // committed, so a second run rolls back a further migration
+              recoveryAdvice:
+                'run `sync` on its own. Do not re-run `db:rollback` — the rollback it would perform is a further one, undoing a migration you did not ask to undo',
             },
             async () => await DreamBin.sync(onSync)
           )
@@ -655,6 +661,8 @@ ${INDENT}Warning: all existing data will be lost. The seed file (db/seed.ts) wil
             commandName: 'db:reset',
             completedWork: 'db:drop, db:create and db:migrate all completed successfully',
             didNotRun: 'db:seed, which db:reset runs after the sync, did not run',
+            recoveryAdvice:
+              're-run `db:reset`, which also picks up the skipped `db:seed`, or run `sync` on its own followed by `db:seed`',
           },
           async () => await DreamBin.sync(onSync)
         )

@@ -70,6 +70,44 @@ describe('syncWithFailureContext', () => {
     expect((caught as Error).message).toEqual('operator does not exist: text <> room_types_enum')
   })
 
+  it('never points at a position for the sync error, which the driver has already printed above', async () => {
+    await expect(
+      syncWithFailureContext(
+        { commandName: 'db:migrate', completedWork: 'Every pending migration ran' },
+        () => Promise.reject(new Error('boom'))
+      )
+    ).rejects.toThrow('boom')
+
+    expect(loggedText()).not.toContain('The error below')
+    expect(loggedText()).toContain('The sync error itself is printed alongside this message.')
+  })
+
+  it('defaults to the always-safe recovery advice, never recommending a re-run of the command', async () => {
+    await expect(
+      syncWithFailureContext({ commandName: 'db:rollback', completedWork: 'The rollback ran' }, () =>
+        Promise.reject(new Error('boom'))
+      )
+    ).rejects.toThrow('boom')
+
+    expect(loggedText()).toContain('Once it is resolved, run `sync` on its own.')
+    expect(loggedText()).not.toContain('re-run `db:rollback`')
+  })
+
+  it('renders the recovery advice a caller supplies', async () => {
+    await expect(
+      syncWithFailureContext(
+        {
+          commandName: 'db:migrate',
+          completedWork: 'Every pending migration ran',
+          recoveryAdvice: 're-run `db:migrate`',
+        },
+        () => Promise.reject(new Error('boom'))
+      )
+    ).rejects.toThrow('boom')
+
+    expect(loggedText()).toContain('Once it is resolved, re-run `db:migrate`.')
+  })
+
   it('omits the skipped-step clause when nothing was skipped', async () => {
     await expect(
       syncWithFailureContext(
@@ -96,6 +134,17 @@ describe('the CLI commands that sync after their own work', () => {
       expect(message).toContain('The rollback completed successfully and is already committed.')
       expect(message).toContain('the sync that db:rollback runs to regenerate')
       expect(message).not.toContain('did not run')
+    })
+
+    it('sends the operator to `sync` alone, and explicitly warns off a second rollback', async () => {
+      vi.spyOn(DreamBin, 'sync').mockRejectedValue(new Error('sync blew up'))
+
+      await expect(buildCli().parseAsync(['db:rollback'], { from: 'user' })).rejects.toThrow('sync blew up')
+
+      expect(loggedText()).toContain(
+        'Once it is resolved, run `sync` on its own. Do not re-run `db:rollback` — the rollback it would perform is a further one, undoing a migration you did not ask to undo.'
+      )
+      expect(loggedText()).not.toContain('Once it is resolved, re-run `db:rollback`')
     })
 
     it('does not reach the sync, or the message, when --skip-sync is passed', async () => {
@@ -139,6 +188,16 @@ describe('the CLI commands that sync after their own work', () => {
       expect(message).toContain('the sync that db:migrate runs to regenerate')
       expect(message).not.toContain('did not run')
     })
+
+    it('says re-running db:migrate is safe, because the applied migrations make it a no-op', async () => {
+      vi.spyOn(DreamBin, 'sync').mockRejectedValue(new Error('sync blew up'))
+
+      await expect(buildCli().parseAsync(['db:migrate'], { from: 'user' })).rejects.toThrow('sync blew up')
+
+      expect(loggedText()).toContain(
+        'Once it is resolved, run `sync` on its own, or re-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync.'
+      )
+    })
   })
 
   context('db:reset', () => {
@@ -154,6 +213,16 @@ describe('the CLI commands that sync after their own work', () => {
       // db:reset's sync is a middle step, so the message must never claim the
       // reset as a whole completed
       expect(message).not.toContain('db:reset completed')
+    })
+
+    it('recovers the skipped seed, whichever route the operator takes', async () => {
+      vi.spyOn(DreamBin, 'sync').mockRejectedValue(new Error('sync blew up'))
+
+      await expect(buildCli().parseAsync(['db:reset'], { from: 'user' })).rejects.toThrow('sync blew up')
+
+      expect(loggedText()).toContain(
+        'Once it is resolved, re-run `db:reset`, which also picks up the skipped `db:seed`, or run `sync` on its own followed by `db:seed`.'
+      )
     })
 
     it('does not seed when the sync fails', async () => {
