@@ -170,3 +170,17 @@ describe('Query#pluckEach', () => {
     })
   })
 })
+
+context.skip('type tests', () => {
+  it('accepts generic union tuple spreads', () => {
+    async function pluckGeneric<ColumnNames extends ['id'] | ['createdAt']>(...columnNames: ColumnNames) {
+      await User.query().pluckEach(...columnNames, (...values) => {
+        const typedValues: (User['id'] | User['createdAt'])[] = values
+
+        void typedValues
+      })
+    }
+
+    void pluckGeneric
+  })
+})

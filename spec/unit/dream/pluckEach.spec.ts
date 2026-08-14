@@ -67,6 +67,16 @@ context.skip('type tests', () => {
   type ExpectFalse<T extends false> = T
 
   it('validates static fields and preserves static callback types', async () => {
+    async function pluckGeneric<ColumnNames extends ['id'] | ['createdAt']>(...columnNames: ColumnNames) {
+      await User.pluckEach(...columnNames, (...values) => {
+        const typedValues: (User['id'] | User['createdAt'])[] = values
+
+        void typedValues
+      })
+    }
+
+    void pluckGeneric
+
     await User.pluckEach(
       // @ts-expect-error invalidField is not a User column
       'invalidField',
@@ -104,6 +114,16 @@ context.skip('type tests', () => {
 
   it('validates transaction fields and preserves transaction callback types', async () => {
     await ApplicationModel.transaction(async txn => {
+      async function pluckGeneric<ColumnNames extends ['name'] | ['createdAt']>(...columnNames: ColumnNames) {
+        await User.txn(txn).pluckEach(...columnNames, (...values) => {
+          const typedValues: (User['name'] | User['createdAt'])[] = values
+
+          void typedValues
+        })
+      }
+
+      void pluckGeneric
+
       await User.txn(txn).pluckEach(
         // @ts-expect-error invalidField is not an updateable User property
         'invalidField',

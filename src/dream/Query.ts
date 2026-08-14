@@ -2022,7 +2022,7 @@ export default class Query<
    * @returns void
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
-  public async pluckEach<Q extends Query<DreamInstance, QueryTypeOpts>, const ColumnNames extends unknown[]>(
+  public pluckEach<Q extends Query<DreamInstance, QueryTypeOpts>, const ColumnNames extends unknown[]>(
     this: Q,
     ...args: PluckEachArgs<
       ValidatedPluckEachColumnNames<
@@ -2048,9 +2048,22 @@ export default class Query<
         DreamInstance
       >
     >
-  ): Promise<void> {
+  ): Promise<void>
+  public pluckEach<
+    Q extends Query<DreamInstance, QueryTypeOpts>,
+    const ColumnNames extends ColumnNamesAccountingForJoinedAssociations<
+      Q['queryTypeOpts']['joinedAssociations'],
+      DreamInstance['DB'],
+      QueryTypeOpts['rootTableName'],
+      QueryTypeOpts['rootTableAlias']
+    >[],
+  >(
+    this: Q,
+    ...args: PluckEachArgs<ColumnNames, NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>>
+  ): Promise<void>
+  public async pluckEach(...args: unknown[]): Promise<void> {
     const providedCbIndex = args.findIndex(v => typeof v === 'function')
-    const providedCb = args[providedCbIndex] as unknown as (...plucked: any[]) => void | Promise<void>
+    const providedCb = args[providedCbIndex] as (...plucked: any[]) => void | Promise<void>
     const providedOpts = args[providedCbIndex + 1] as FindEachOpts
 
     if (!providedCb) throw new MissingRequiredCallbackFunctionToPluckEach('pluckEach', args)
