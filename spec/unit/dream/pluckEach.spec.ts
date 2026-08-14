@@ -69,7 +69,15 @@ context.skip('type tests', () => {
   it('validates static fields and preserves static callback types', async () => {
     await User.pluckEach(
       // @ts-expect-error invalidField is not a User column
-      'invalidField'
+      'invalidField',
+      invalidField => {
+        type InvalidFieldIsNotAny = ExpectFalse<IsAny<typeof invalidField>>
+        type InvalidFieldIsNotNever = ExpectFalse<IsNever<typeof invalidField>>
+
+        void invalidField
+        void (null as unknown as InvalidFieldIsNotAny)
+        void (null as unknown as InvalidFieldIsNotNever)
+      }
     )
 
     await User.pluckEach('id', 'createdAt', (id, createdAt) => {
@@ -98,7 +106,15 @@ context.skip('type tests', () => {
     await ApplicationModel.transaction(async txn => {
       await User.txn(txn).pluckEach(
         // @ts-expect-error invalidField is not an updateable User property
-        'invalidField'
+        'invalidField',
+        invalidField => {
+          type InvalidFieldIsNotAny = ExpectFalse<IsAny<typeof invalidField>>
+          type InvalidFieldIsNotNever = ExpectFalse<IsNever<typeof invalidField>>
+
+          void invalidField
+          void (null as unknown as InvalidFieldIsNotAny)
+          void (null as unknown as InvalidFieldIsNotNever)
+        }
       )
 
       await User.txn(txn).pluckEach('name', name => {
