@@ -1,6 +1,9 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import Edge from '../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../test-app/app/models/Graph/Node.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#maxBy', () => {
@@ -91,6 +94,41 @@ describe('Query#maxBy', () => {
   })
 
   context('on a join', () => {
+    it('targets the root alias when a bare aggregate field collides with joined fields', async () => {
+      const node = await Node.create({ name: 'root' })
+      const edge = await Edge.create({ name: 'joined' })
+      await EdgeNode.create({ node, edge })
+
+      const query = Node.query().innerJoin('edgeNodes', 'edge')
+
+      expect(await query.maxBy('name', 'id')).toEqual(await query.maxBy('graph_nodes.name', 'graph_nodes.id'))
+    })
+
+    it('supports a bare root field in both grouped aggregate positions', async () => {
+      await CompositionAsset.create({ composition, name: 'primary', score: 3 })
+      await CompositionAsset.create({ composition, name: 'primary', score: 7 })
+      await CompositionAsset.create({ composition, name: 'secondary', score: 4 })
+
+      const query = CompositionAsset.query().innerJoin('composition')
+      const groupedByRoot = await query.maxBy('name', 'composition.createdAt')
+      const aggregatingRoot = await query.maxBy('composition.content', 'score')
+      const legacyQualified = await query.maxBy('composition_assets.name', 'composition_assets.score')
+
+      expect(groupedByRoot).toEqual(
+        new Map([
+          ['primary', composition.createdAt],
+          ['secondary', composition.createdAt],
+        ])
+      )
+      expect(aggregatingRoot).toEqual(new Map([[composition.content, 7]]))
+      expect(legacyQualified).toEqual(
+        new Map<string | null, number | null>([
+          ['primary', 7],
+          ['secondary', 4],
+        ])
+      )
+    })
+
     it('groups the max by a joined association column', async () => {
       await CompositionAsset.create({ composition, name: 'primary', score: 3 })
       await CompositionAsset.create({ composition, name: 'primary', score: 7 })

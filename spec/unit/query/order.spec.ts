@@ -27,6 +27,20 @@ describe('Query#order', () => {
   })
 
   context('after an innerJoin', () => {
+    it('supports ordering by a bare root column', async () => {
+      const violet = await Pet.create({ name: 'Violet' })
+      const aster = await Pet.create({ name: 'Aster' })
+      await violet.createAssociation('collars')
+      await aster.createAssociation('collars')
+
+      const query = Pet.innerJoin('collars')
+      const names = await query.order('name').pluck('pets.name')
+      const legacyQualifiedNames = await query.order('pets.name').pluck('pets.name')
+
+      expect(names).toEqual(['Aster', 'Violet'])
+      expect(legacyQualifiedNames).toEqual(['Aster', 'Violet'])
+    })
+
     it('supports ordering by a joined column', async () => {
       const pet1 = await Pet.create({ name: 'Violet' })
       const pet2 = await Pet.create({ name: 'Aster' })

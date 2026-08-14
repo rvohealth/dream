@@ -2,6 +2,9 @@ import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
+import Edge from '../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../test-app/app/models/Graph/Node.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import User from '../../../test-app/app/models/User.js'
@@ -103,6 +106,31 @@ describe('Query#max', () => {
   })
 
   context('on a join', () => {
+    it('targets the root alias when a bare root field collides with joined fields', async () => {
+      const node = await Node.create({ name: 'root' })
+      const edge = await Edge.create({ name: 'joined' })
+      await EdgeNode.create({ node, edge })
+
+      const query = Node.query().innerJoin('edgeNodes', 'edge')
+
+      expect(await query.max('id')).toEqual(await query.max('graph_nodes.id'))
+    })
+
+    it('returns a bare root field', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const composition = await Composition.create({ user })
+
+      await CompositionAsset.create({ composition, score: 7 })
+      await CompositionAsset.create({ composition, score: 3 })
+
+      const query = CompositionAsset.query().innerJoin('composition')
+      const max = await query.max('score')
+      const legacyQualifiedMax = await query.max('composition_assets.score')
+
+      expect(max).toEqual(7)
+      expect(legacyQualifiedMax).toEqual(7)
+    })
+
     it('returns the max field, first traveling through nested associations', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
       const composition = await Composition.create({ user })

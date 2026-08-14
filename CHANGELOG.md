@@ -1,6 +1,8 @@
-## 2.26.1
+## 2.27.0
 
-- `pluckEach` now reports an invalid field at the field argument while preserving positional callback typing. Previously, an invalid field could collapse the callback tuple and surface a misleading error on the callback instead. This is a TypeScript-only fix: joined queries still require qualified root and joined-alias fields, and runtime behavior and supported call forms are unchanged.
+- Joined query field APIs now accept bare root-model properties consistently, so adding a join does not require rewriting a root field as a qualified name. Association fields remain qualified, and existing root-qualified calls remain compatible.
+
+- `pluckEach` preserves precise callback tuple inference and reports an invalid field at the field argument across query, static, and transaction entry points.
 
 ## 2.26.0
 

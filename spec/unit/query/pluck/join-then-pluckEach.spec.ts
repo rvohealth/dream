@@ -10,6 +10,22 @@ import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#pluckEach on a join query', () => {
+  it('can pluck a bare root field alongside an associated field', async () => {
+    const node = await Node.create({ name: 'N1' })
+    const edge = await Edge.create({ name: 'E1' })
+    await EdgeNode.create({ node, edge })
+
+    const plucked: [Node['id'], Edge['name']][] = []
+    await Node.query()
+      .innerJoin('edgeNodes', 'edge')
+      .pluckEach('id', 'edge.name', (nodeId, edgeName) => {
+        const typedValues: [Node['id'], Edge['name']] = [nodeId, edgeName]
+        plucked.push(typedValues)
+      })
+
+    expect(plucked).toEqual([[node.id, edge.name]])
+  })
+
   it('can pluck from the root and associated namespaces', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -170,25 +186,59 @@ context.skip('type tests', () => {
   type IsAny<T> = 0 extends 1 & T ? true : false
   type IsNever<T> = [T] extends [never] ? true : false
   type ExpectFalse<T extends false> = T
+  type MapKey<T> = T extends ReadonlyMap<infer Key, unknown> ? Key : never
+  type MapValue<T> = T extends ReadonlyMap<unknown, infer Value> ? Value : never
 
-  it('rejects a bare root field at the field while preserving callback contextual typing', async () => {
+  it('rejects an invalid bare field at the field while preserving callback contextual typing', async () => {
     await Node.query()
       .innerJoin('edgeNodes', 'edge')
       .pluckEach(
-        // @ts-expect-error joined pluckEach fields must be qualified
-        'id',
-        id => {
-          type IdIsNotAny = ExpectFalse<IsAny<typeof id>>
-          type IdIsNotNever = ExpectFalse<IsNever<typeof id>>
+        // @ts-expect-error invalidField is neither a root nor joined field
+        'invalidField',
+        invalidField => {
+          type InvalidFieldIsNotAny = ExpectFalse<IsAny<typeof invalidField>>
+          type InvalidFieldIsNotNever = ExpectFalse<IsNever<typeof invalidField>>
 
-          const value: string | number | DateTime | null = id
+          const value: string | number | DateTime | null = invalidField
           // @ts-expect-error the callback value is a model-property union, not any or never
-          const invalidValue: boolean = id
+          const invalidValue: boolean = invalidField
 
-          void (null as unknown as IdIsNotAny)
-          void (null as unknown as IdIsNotNever)
+          void (null as unknown as InvalidFieldIsNotAny)
+          void (null as unknown as InvalidFieldIsNotNever)
           void value
           void invalidValue
+        }
+      )
+  })
+
+  it('rejects an invalid qualified field at the field while preserving positional callback types', async () => {
+    await Node.query()
+      .innerJoin('edgeNodes', 'edge')
+      .pluckEach(
+        // @ts-expect-error edge.invalidField is not a joined field
+        'edge.invalidField',
+        'id',
+        (invalidField, nodeId) => {
+          type InvalidFieldIsNotAny = ExpectFalse<IsAny<typeof invalidField>>
+          type InvalidFieldIsNotNever = ExpectFalse<IsNever<typeof invalidField>>
+          type NodeIdIsNotAny = ExpectFalse<IsAny<typeof nodeId>>
+          type NodeIdIsNotNever = ExpectFalse<IsNever<typeof nodeId>>
+
+          const invalidFieldValue: string | number | DateTime | null = invalidField
+          const typedNodeId: Node['id'] = nodeId
+          // @ts-expect-error the invalid field callback value is not any
+          const invalidValue: boolean = invalidField
+          // @ts-expect-error the valid root id retains its string type
+          const invalidNodeId: number = nodeId
+
+          void (null as unknown as InvalidFieldIsNotAny)
+          void (null as unknown as InvalidFieldIsNotNever)
+          void (null as unknown as NodeIdIsNotAny)
+          void (null as unknown as NodeIdIsNotNever)
+          void invalidFieldValue
+          void typedNodeId
+          void invalidValue
+          void invalidNodeId
         }
       )
   })
@@ -221,5 +271,140 @@ context.skip('type tests', () => {
         },
         { batchSize: 1 }
       )
+  })
+
+  it('accepts bare root fields across joined ordering, plucking, and aggregate APIs', async () => {
+    const node = Node.new({ name: 'root', omittedEdgePosition: 1 })
+    const query = Node.query().innerJoin('edgeNodes', 'edge')
+
+    async function pluckGeneric<ColumnNames extends ['id'] | ['edge.name']>(...columnNames: ColumnNames) {
+      await query.pluckEach(...columnNames, (...values) => {
+        const typedValues: (Node['id'] | Edge['name'])[] = values
+
+        void typedValues
+      })
+    }
+
+    query.order('id')
+
+    await query.pluckEach('id', 'edge.name', (nodeId, edgeName) => {
+      type RootIdIsNotAny = ExpectFalse<IsAny<typeof nodeId>>
+      type RootIdIsNotNever = ExpectFalse<IsNever<typeof nodeId>>
+
+      const inferredRootId: typeof nodeId = node.id
+      const typedValues: [Node['id'], Edge['name']] = [nodeId, edgeName]
+
+      void (null as unknown as RootIdIsNotAny)
+      void (null as unknown as RootIdIsNotNever)
+      void inferredRootId
+      void typedValues
+    })
+
+    const countBy = await query.countBy('name')
+    const typedCountBy: Map<Node['name'], number> = countBy
+
+    type CountByRootKey = MapKey<typeof countBy>
+    type CountByRootKeyIsNotAny = ExpectFalse<IsAny<CountByRootKey>>
+    type CountByRootKeyIsNotNever = ExpectFalse<IsNever<CountByRootKey>>
+    const inferredCountByRootKey: CountByRootKey = node.name
+
+    const max = await query.max('omittedEdgePosition')
+    const min = await query.min('omittedEdgePosition')
+    const sum = await query.sum('omittedEdgePosition')
+    const avg = await query.avg('omittedEdgePosition')
+    const typedScalars: Node['omittedEdgePosition'][] = [max, min, sum, avg]
+
+    type ScalarRootValue = typeof max
+    type ScalarRootValueIsNotAny = ExpectFalse<IsAny<ScalarRootValue>>
+    type ScalarRootValueIsNotNever = ExpectFalse<IsNever<ScalarRootValue>>
+    const inferredScalarRootValue: ScalarRootValue = node.omittedEdgePosition
+
+    const maxByRootGroup = await query.maxBy('name', 'edge.weight')
+    const maxByRootAggregate = await query.maxBy('edge.name', 'omittedEdgePosition')
+    const minByRootGroup = await query.minBy('name', 'edge.weight')
+    const minByRootAggregate = await query.minBy('edge.name', 'omittedEdgePosition')
+    const sumByRootGroup = await query.sumBy('name', 'edge.weight')
+    const sumByRootAggregate = await query.sumBy('edge.name', 'omittedEdgePosition')
+    const avgByRootGroup = await query.avgBy('name', 'edge.weight')
+    const avgByRootAggregate = await query.avgBy('edge.name', 'omittedEdgePosition')
+
+    const typedRootGroups: Map<Node['name'], Edge['weight']>[] = [
+      maxByRootGroup,
+      minByRootGroup,
+      sumByRootGroup,
+      avgByRootGroup,
+    ]
+    const typedRootAggregates: Map<Edge['name'], Node['omittedEdgePosition']>[] = [
+      maxByRootAggregate,
+      minByRootAggregate,
+      sumByRootAggregate,
+      avgByRootAggregate,
+    ]
+
+    type GroupedRootKey = MapKey<typeof maxByRootGroup>
+    type GroupedRootKeyIsNotAny = ExpectFalse<IsAny<GroupedRootKey>>
+    type GroupedRootKeyIsNotNever = ExpectFalse<IsNever<GroupedRootKey>>
+    const inferredGroupedRootKey: GroupedRootKey = node.name
+
+    type GroupedRootAggregate = MapValue<typeof maxByRootAggregate>
+    type GroupedRootAggregateIsNotAny = ExpectFalse<IsAny<GroupedRootAggregate>>
+    type GroupedRootAggregateIsNotNever = ExpectFalse<IsNever<GroupedRootAggregate>>
+    const inferredGroupedRootAggregate: GroupedRootAggregate = node.omittedEdgePosition
+
+    void (null as unknown as CountByRootKeyIsNotAny)
+    void (null as unknown as CountByRootKeyIsNotNever)
+    void (null as unknown as ScalarRootValueIsNotAny)
+    void (null as unknown as ScalarRootValueIsNotNever)
+    void (null as unknown as GroupedRootKeyIsNotAny)
+    void (null as unknown as GroupedRootKeyIsNotNever)
+    void (null as unknown as GroupedRootAggregateIsNotAny)
+    void (null as unknown as GroupedRootAggregateIsNotNever)
+    void inferredCountByRootKey
+    void inferredScalarRootValue
+    void inferredGroupedRootKey
+    void inferredGroupedRootAggregate
+    void typedCountBy
+    void typedScalars
+    void typedRootGroups
+    void typedRootAggregates
+    void pluckGeneric
+  })
+
+  it('keeps legacy root-qualified fields compatible across joined APIs', async () => {
+    const query = Node.query().innerJoin('edgeNodes', 'edge')
+
+    query.order('graph_nodes.id')
+
+    const countBy = await query.countBy('graph_nodes.name')
+    const max = await query.max('graph_nodes.omittedEdgePosition')
+    const min = await query.min('graph_nodes.omittedEdgePosition')
+    const sum = await query.sum('graph_nodes.omittedEdgePosition')
+    const avg = await query.avg('graph_nodes.omittedEdgePosition')
+    const maxBy = await query.maxBy('graph_nodes.name', 'graph_nodes.omittedEdgePosition')
+    const minBy = await query.minBy('graph_nodes.name', 'graph_nodes.omittedEdgePosition')
+    const sumBy = await query.sumBy('graph_nodes.name', 'graph_nodes.omittedEdgePosition')
+    const avgBy = await query.avgBy('graph_nodes.name', 'graph_nodes.omittedEdgePosition')
+    const plucked = await query.pluck('graph_nodes.id', 'edge.name')
+
+    const typedCountBy: Map<Node['name'], number> = countBy
+    const typedScalars: Node['omittedEdgePosition'][] = [max, min, sum, avg]
+    const typedGrouped: Map<Node['name'], Node['omittedEdgePosition']>[] = [maxBy, minBy, sumBy, avgBy]
+    const typedPlucked: [Node['id'], Edge['name']][] = plucked
+
+    void typedCountBy
+    void typedScalars
+    void typedGrouped
+    void typedPlucked
+  })
+
+  it('does not broaden root qualification into where or distinct', () => {
+    const query = Node.query().innerJoin('edgeNodes', 'edge')
+
+    query.where({
+      // @ts-expect-error joined where keeps bare root fields canonical
+      'graph_nodes.id': 'node-id',
+    })
+    // @ts-expect-error distinct continues to accept only bare root fields
+    query.distinct('graph_nodes.id')
   })
 })

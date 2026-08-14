@@ -101,6 +101,26 @@ describe('Query#countBy', () => {
   })
 
   context('on a join', () => {
+    it('groups by a bare root field', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user })
+      await CompositionAsset.create({ composition, name: 'primary' })
+      await CompositionAsset.create({ composition, name: 'primary' })
+      await CompositionAsset.create({ composition, name: 'secondary' })
+
+      const query = CompositionAsset.query().innerJoin('composition')
+      const result = await query.countBy('name')
+      const legacyQualifiedResult = await query.countBy('composition_assets.name')
+
+      expect(result).toEqual(
+        new Map<string | null, number>([
+          ['primary', 2],
+          ['secondary', 1],
+        ])
+      )
+      expect(legacyQualifiedResult).toEqual(result)
+    })
+
     it('groups the count by a joined association column', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user })
