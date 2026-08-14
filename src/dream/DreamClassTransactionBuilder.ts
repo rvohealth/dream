@@ -15,6 +15,7 @@ import {
   UpdateableProperties,
   UpdateablePropertiesForClass,
   UpdateOrCreateByExtraOpts,
+  ValidatedPluckEachColumnNames,
 } from '../types/dream.js'
 import {
   BaseModelColumnTypes,
@@ -1017,10 +1018,17 @@ export default class DreamClassTransactionBuilder<
    */
   public async pluckEach<
     I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
-    ColumnName extends keyof UpdateableProperties<DreamInstance>,
-    ColumnNames extends ColumnName[],
-    CbArgTypes extends BaseModelColumnTypes<ColumnNames, DreamInstance>,
-  >(this: I, ...args: PluckEachArgs<ColumnNames, CbArgTypes>) {
+    const ColumnNames extends unknown[],
+  >(
+    this: I,
+    ...args: PluckEachArgs<
+      ValidatedPluckEachColumnNames<ColumnNames, keyof UpdateableProperties<DreamInstance>>,
+      BaseModelColumnTypes<
+        ValidatedPluckEachColumnNames<ColumnNames, keyof UpdateableProperties<DreamInstance>>,
+        DreamInstance
+      >
+    >
+  ) {
     await this.queryInstance().pluckEach(...(args as any))
   }
 

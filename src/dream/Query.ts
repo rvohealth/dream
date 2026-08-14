@@ -55,6 +55,7 @@ import {
   TableColumnNames,
   TableOrAssociationName,
   UpdateableProperties,
+  ValidatedPluckEachColumnNames,
 } from '../types/dream.js'
 import {
   CursorPaginatedDreamQueryOptions,
@@ -2021,17 +2022,33 @@ export default class Query<
    * @returns void
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
-  public async pluckEach<
-    Q extends Query<DreamInstance, QueryTypeOpts>,
-    DB extends DreamInstance['DB'],
-    const ColumnNames extends ColumnNamesAccountingForJoinedAssociations<
-      Q['queryTypeOpts']['joinedAssociations'],
-      DB,
-      QueryTypeOpts['rootTableName'],
-      QueryTypeOpts['rootTableAlias']
-    >[],
-    CbArgTypes extends NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>,
-  >(this: Q, ...args: PluckEachArgs<ColumnNames, CbArgTypes>): Promise<void> {
+  public async pluckEach<Q extends Query<DreamInstance, QueryTypeOpts>, const ColumnNames extends unknown[]>(
+    this: Q,
+    ...args: PluckEachArgs<
+      ValidatedPluckEachColumnNames<
+        ColumnNames,
+        ColumnNamesAccountingForJoinedAssociations<
+          Q['queryTypeOpts']['joinedAssociations'],
+          DreamInstance['DB'],
+          QueryTypeOpts['rootTableName'],
+          QueryTypeOpts['rootTableAlias']
+        >
+      >,
+      NamespacedOrBaseModelColumnTypes<
+        ValidatedPluckEachColumnNames<
+          ColumnNames,
+          ColumnNamesAccountingForJoinedAssociations<
+            Q['queryTypeOpts']['joinedAssociations'],
+            DreamInstance['DB'],
+            QueryTypeOpts['rootTableName'],
+            QueryTypeOpts['rootTableAlias']
+          >
+        >,
+        Q,
+        DreamInstance
+      >
+    >
+  ): Promise<void> {
     const providedCbIndex = args.findIndex(v => typeof v === 'function')
     const providedCb = args[providedCbIndex] as unknown as (...plucked: any[]) => void | Promise<void>
     const providedOpts = args[providedCbIndex + 1] as FindEachOpts

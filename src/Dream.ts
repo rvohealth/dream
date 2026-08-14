@@ -110,6 +110,7 @@ import {
   UpdateableProperties,
   UpdateablePropertiesForClass,
   UpdateOrCreateByExtraOpts,
+  ValidatedPluckEachColumnNames,
 } from './types/dream.js'
 import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
@@ -2279,9 +2280,17 @@ export default class Dream {
   public static async pluckEach<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    ColumnNames extends TableColumnNames<I['DB'], I['table']>[],
-    CbArgTypes extends BaseModelColumnTypes<ColumnNames, I>,
-  >(this: T, ...args: PluckEachArgs<ColumnNames, CbArgTypes>) {
+    const ColumnNames extends unknown[],
+  >(
+    this: T,
+    ...args: PluckEachArgs<
+      ValidatedPluckEachColumnNames<ColumnNames, TableColumnNames<I['DB'], I['table']>>,
+      BaseModelColumnTypes<
+        ValidatedPluckEachColumnNames<ColumnNames, TableColumnNames<I['DB'], I['table']>>,
+        I
+      >
+    >
+  ) {
     return await this.query().pluckEach(...(args as any))
   }
 

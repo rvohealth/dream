@@ -52,9 +52,10 @@ describe('Query#pluckEach', () => {
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        await expect(User.query().pluckEach('id', () => {}, 'email' as any)).rejects.toThrow(
-          CannotPassAdditionalFieldsToPluckEachAfterCallback
-        )
+        const query = User.query()
+        await expect(
+          Reflect.apply(query.pluckEach.bind(query), query, ['id', () => {}, 'email'])
+        ).rejects.toThrow(CannotPassAdditionalFieldsToPluckEachAfterCallback)
       })
     })
   })
