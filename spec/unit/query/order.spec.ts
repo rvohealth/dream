@@ -34,7 +34,7 @@ describe('Query#order', () => {
       await aster.createAssociation('collars')
 
       const query = Pet.innerJoin('collars')
-      const names = await query.order('name').pluck('pets.name')
+      const names = await query.order('name').pluck('name')
       const legacyQualifiedNames = await query.order('pets.name').pluck('pets.name')
 
       expect(names).toEqual(['Aster', 'Violet'])

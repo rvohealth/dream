@@ -26,7 +26,7 @@ describe('Query#pluckEach on a join query', () => {
     expect(plucked).toEqual([[node.id, edge.name]])
   })
 
-  it('can pluck from the root and associated namespaces', async () => {
+  it('can pluck from the qualified root and associated namespaces', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
     const edge2 = await Edge.create({ name: 'E2' })
