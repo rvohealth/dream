@@ -408,24 +408,31 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   /**
    * destroys a dream, possibly implementing soft delete if reallyDestroy is false
-   * and the record being deleted implements soft delete.
+   * and the record being deleted implements soft delete. Does nothing at all when a
+   * beforeDestroy hook called `preventDeletion`.
    *
    * @param dream - the dream instance you wish to destroy
    * @param txn - a transaction to encapsulate, consistently provided by underlying dream mechanisms
    * @param reallyDestroy - whether or not to reallyDestroy. If false, soft delete will be attempted when relevant
+   * @returns the number of rows removed — zero when a `preventDeletion` veto
+   *   stopped the write, and zero when the row was already gone, which on the
+   *   soft delete path includes a row that is already soft deleted
    */
   public static override async destroyDream(
     dream: Dream,
     txn: DreamTransaction<Dream>,
     reallyDestroy: boolean
-  ) {
+  ): Promise<number> {
+    if (dream['_preventDeletion']) return 0
+
     if (shouldSoftDelete(dream, reallyDestroy)) {
-      await softDeleteDream(dream, txn)
-    } else if (!dream['_preventDeletion']) {
-      await txn.kyselyTransaction
+      return await softDeleteDream(dream, txn)
+    } else {
+      const results = await txn.kyselyTransaction
         .deleteFrom(dream.table as any)
         .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
         .execute()
+      return Number(results[0]?.numDeletedRows ?? 0)
     }
   }
 

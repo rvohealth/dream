@@ -11,7 +11,9 @@ import pg from 'pg'
 import { sql, type SelectQueryBuilder } from 'kysely'
 import DreamCLI from '../../cli/index.js'
 import { isPrimitiveDataType } from '../../db/dataTypes.js'
+import { LOCK_NOT_AVAILABLE, pgErrorType } from '../../db/errors.js'
 import DreamApp from '../../dream-app/index.js'
+import SortableScopeLockWaitTimedOut from '../../errors/SortableScopeLockWaitTimedOut.js'
 import Dream from '../../Dream.js'
 import camelize from '../../helpers/camelize.js'
 import {
@@ -36,6 +38,7 @@ import EnvInternal from '../../helpers/EnvInternal.js'
 import createDb from './helpers/pg/createDb.js'
 import _dropDb from './helpers/pg/dropDb.js'
 import loadPgClient from './helpers/pg/loadPgClient.js'
+import DreamTransaction from '../DreamTransaction.js'
 import KyselyQueryDriver from './Kysely.js'
 import type { TestDatabaseLockSession } from './Base.js'
 
@@ -297,6 +300,85 @@ export default class PostgresQueryDriver<
     tableAlias: string
   ): SelectQueryBuilder<any, any, any> {
     return kyselyQuery.forUpdate(tableAlias)
+  }
+
+  public static override supportsAdvisoryTransactionLocks = true
+
+  /**
+   * @internal
+   *
+   * Postgres implementation of the transaction-scoped advisory lock seam.
+   *
+   * Uses the single-`bigint` form `pg_advisory_xact_lock(bigint)`, whose lock
+   * space is distinct from the two-`int4` form the test-database pool claims
+   * with (see {@link openTestDatabaseLockSession}), so an application lock can
+   * never collide with a pool claim.
+   *
+   * Every key is taken in one statement, over `unnest` of the key array: a
+   * function scan yields its rows in array order, so the caller's sorted
+   * acquisition order — the thing that keeps two operations over the same
+   * scopes from deadlocking — is preserved, while a batch that needs one key
+   * per candidate record costs one round trip rather than N.
+   *
+   * The locks are held until the enclosing transaction ends, and are waiting
+   * (no `NOWAIT`): a second transaction asking for the same key blocks at that
+   * key's row until the holder commits or rolls back. Because they are
+   * transaction-scoped there is nothing to release, and re-acquiring a key
+   * within one transaction is a no-op rather than an error.
+   *
+   * The wait is bounded by `lock_timeout`, taken from
+   * {@link DreamApp.sortableScopeLockTimeout} and applied to the acquisition
+   * statement alone: the prior value is read in the same statement that sets
+   * the bound and restored in the next one, so the transaction's row-lock waits
+   * keep whatever the application configured. Postgres cancels the statement
+   * with `55P03` when the bound elapses, and that is translated here into
+   * {@link SortableScopeLockWaitTimedOut} so no Postgres error code escapes the
+   * driver.
+   *
+   * A timeout of `0` means "no bound", which is what `lock_timeout` itself
+   * means by it, and is sent as the bound rather than skipped: an application
+   * whose connection carries a `lock_timeout` of its own would otherwise have
+   * its acquisition cancelled by that bound, which is neither the unbounded
+   * wait `0` asks for nor a cancellation this driver could translate.
+   */
+  public static override async acquireAdvisoryTransactionLocks(
+    txn: DreamTransaction<Dream>,
+    keys: bigint[]
+  ): Promise<void> {
+    if (!keys.length) return
+
+    // the keys are passed as text and cast, since a JS bigint is not a value
+    // the pg driver can bind directly
+    const lockKeys = keys.map(key => key.toString())
+    const timeoutMs = DreamApp.getOrFail().sortableScopeLockTimeout
+
+    let priorLockTimeout: string
+
+    try {
+      // one statement, three things in a forced order: `bounded` selects from
+      // `prior_setting`, so the prior value is read before the bound replaces
+      // it, and both are `from` items, so both are scanned before the target
+      // list takes a single lock. Merging them costs nothing where separate
+      // statements would cost round trips inside the lock window.
+      //
+      // The returned column is aliased to a single word deliberately: result
+      // keys come back camelized, and a one-word alias is the same either way
+      const result = await sql<{ prior: string }>`
+        with prior_setting as (select current_setting('lock_timeout') as value),
+             bounded as (select set_config('lock_timeout', ${timeoutMs.toString()}, true) as value from prior_setting)
+        select prior_setting.value as prior, pg_advisory_xact_lock(sortable_lock_keys.lock_key)
+        from prior_setting, bounded, unnest(${lockKeys}::bigint[]) as sortable_lock_keys(lock_key)
+      `.execute(txn.kyselyTransaction)
+
+      priorLockTimeout = result.rows[0]!.prior
+    } catch (error) {
+      if (pgErrorType(error) === LOCK_NOT_AVAILABLE) throw new SortableScopeLockWaitTimedOut(timeoutMs)
+      throw error
+    }
+
+    // `current_setting` returns the value with its unit ('0', '5s', '250ms'),
+    // which is a form `set_config` accepts back unchanged
+    await sql`select set_config('lock_timeout', ${priorLockTimeout}, true)`.execute(txn.kyselyTransaction)
   }
 
   public static override supportsParallelTestDatabases = true

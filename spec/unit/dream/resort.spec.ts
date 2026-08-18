@@ -1,5 +1,8 @@
 import { ExpressionBuilder } from 'kysely'
+import Query from '../../../src/dream/Query.js'
+import KyselyQueryDriver from '../../../src/dream/QueryDriver/Kysely.js'
 import NonExistentScopeProvidedToResort from '../../../src/errors/NonExistentScopeProvidedToResort.js'
+import ops from '../../../src/ops/index.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
@@ -8,6 +11,8 @@ import Edge from '../../../test-app/app/models/Graph/Edge.js'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode.js'
 import Node from '../../../test-app/app/models/Graph/Node.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import TextScopedSortableModel from '../../../test-app/app/models/TextScopedSortableModel.js'
+import UnscopedSortableModel from '../../../test-app/app/models/UnscopedSortableModel.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#resort', () => {
@@ -71,6 +76,16 @@ describe('Dream#resort', () => {
       expect(edge2Node2_1.multiScopedPosition).toEqual(1)
       await edge2Node2_2.reload()
       expect(edge2Node2_2.multiScopedPosition).toEqual(2)
+    })
+
+    it('writes nothing at all', async () => {
+      const kyselyBuilders = vi.spyOn(Query.prototype, 'toKysely')
+
+      await EdgeNode.resort('multiScopedPosition')
+
+      // each sort scope is summarized under its lock and left alone when it
+      // already runs 1..n, so no renumbering statement is built for any of them
+      expect(kyselyBuilders.mock.calls.filter(([type]) => type === 'update')).toHaveLength(0)
     })
   })
 
@@ -156,6 +171,78 @@ describe('Dream#resort', () => {
       expect(balloon1.positionAlpha).toEqual(4)
       await unrelatedBalloon.reload()
       expect(unrelatedBalloon.positionAlpha).toEqual(1)
+    })
+  })
+
+  context('when rows are deleted while the sort scopes are being discovered', () => {
+    // Discovering the sort scopes by walking the table in windows is not stable
+    // under a concurrent delete: deleting rows an earlier window returned shifts
+    // every later window past rows it never returned, and a sort scope whose
+    // only rows fall in that gap is never renumbered — while `resort` reports
+    // success. The shrunken batch size below makes any such walk take several
+    // windows over these few rows; a single read is unaffected by it.
+    function deleteOnFirstWindowRead(sabotage: () => Promise<void>) {
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const originalPluck = KyselyQueryDriver.prototype.pluck
+      let sabotaged = false
+
+      return vi.spyOn(KyselyQueryDriver.prototype, 'pluck').mockImplementation(async function (
+        this: KyselyQueryDriver<TextScopedSortableModel>,
+        ...fields: any[]
+      ) {
+        const results = await originalPluck.apply(this, fields)
+
+        if (!sabotaged) {
+          sabotaged = true
+          await sabotage()
+        }
+
+        return results
+      })
+    }
+
+    it('renumbers a sort scope whose only row is ordered behind the deleted rows', async () => {
+      const doomed1 = await TextScopedSortableModel.create({ scopeA: 'shared' })
+      const doomed2 = await TextScopedSortableModel.create({ scopeA: 'shared' })
+      const lonely = await TextScopedSortableModel.create({ scopeA: 'lonely' })
+      await TextScopedSortableModel.create({ scopeA: 'shared' })
+      await TextScopedSortableModel.create({ scopeA: 'shared' })
+
+      await TextScopedSortableModel.where({ id: lonely.id }).update({ position: 7 }, { skipHooks: true })
+
+      const originalBatchSize = Query.BATCH_SIZES.PLUCK_EACH_THROUGH
+      Query.BATCH_SIZES.PLUCK_EACH_THROUGH = 2
+      const spy = deleteOnFirstWindowRead(async () => {
+        await TextScopedSortableModel.where({ id: ops.in([doomed1.id, doomed2.id]) })
+          .toKysely('delete')
+          .execute()
+      })
+
+      try {
+        await TextScopedSortableModel.resort('position')
+      } finally {
+        Query.BATCH_SIZES.PLUCK_EACH_THROUGH = originalBatchSize
+        spy.mockRestore()
+      }
+
+      await lonely.reload()
+      expect(lonely.position).toEqual(1)
+    })
+  })
+
+  context('with a sortable field that has no scope', () => {
+    it('renumbers the whole table', async () => {
+      const model1 = await UnscopedSortableModel.create()
+      const model2 = await UnscopedSortableModel.create()
+
+      await UnscopedSortableModel.where({ id: model1.id }).update({ position: 7 }, { skipHooks: true })
+
+      await UnscopedSortableModel.resort('position')
+
+      await model1.reload()
+      await model2.reload()
+      expect(model2.position).toEqual(1)
+      expect(model1.position).toEqual(2)
     })
   })
 

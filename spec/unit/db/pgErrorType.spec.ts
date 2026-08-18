@@ -6,6 +6,7 @@ import {
   FOREIGN_KEY_VIOLATION,
   INTEGRITY_CONSTRAINT_VIOLATION,
   INVALID_INPUT_SYNTAX,
+  LOCK_NOT_AVAILABLE,
   NOT_NULL_VIOLATION,
   PG_ERRORS,
   pgErrorType,
@@ -38,6 +39,7 @@ describe('pgErrorType', () => {
           FOREIGN_KEY_VIOLATION,
           INTEGRITY_CONSTRAINT_VIOLATION,
           INVALID_INPUT_SYNTAX,
+          LOCK_NOT_AVAILABLE,
           NOT_NULL_VIOLATION,
           RESTRICT_VIOLATION,
           UNIQUE_VIOLATION,
@@ -173,6 +175,29 @@ describe('pgErrorType', () => {
         const error = await errorFromStatement(sql`INSERT INTO ${sql.ref(CHILD_TABLE)} (amount) VALUES (-1)`)
 
         expect(pgErrorType(error)).toEqual(CHECK_VIOLATION)
+      })
+    })
+
+    context('a statement cancelled by its lock timeout', () => {
+      it('is a LOCK_NOT_AVAILABLE', async () => {
+        // an advisory key nothing else in the suite derives
+        const lockKey = 736_251
+        let error: unknown
+
+        await _db.transaction().execute(async holder => {
+          await sql`select pg_advisory_xact_lock(${lockKey})`.execute(holder)
+
+          error = await _db
+            .transaction()
+            .execute(async waiter => {
+              await sql`select set_config('lock_timeout', '250', true)`.execute(waiter)
+              await sql`select pg_advisory_xact_lock(${lockKey})`.execute(waiter)
+            })
+            .then(() => null)
+            .catch((waitError: unknown) => waitError)
+        })
+
+        expect(pgErrorType(error)).toEqual(LOCK_NOT_AVAILABLE)
       })
     })
 

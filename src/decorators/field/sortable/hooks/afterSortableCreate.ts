@@ -4,7 +4,7 @@ import Query from '../../../../dream/Query.js'
 import clearCachedSortableValues from '../helpers/clearCachedSortableValues.js'
 import setPosition from '../helpers/setPosition.js'
 import sortableCacheValuesName from '../helpers/sortableCacheValuesName.js'
-import { SortableCache } from './beforeSortableSave.js'
+import { SortableCache } from '../helpers/prepareSortableFieldsForSave.js'
 
 export default async function afterSortableCreate({
   positionField,
@@ -16,7 +16,7 @@ export default async function afterSortableCreate({
   positionField: string
   dream: Dream
   query: Query<Dream>
-  txn?: DreamTransaction<any> | undefined
+  txn: DreamTransaction<any>
   scope: string | string[] | undefined
 }) {
   const cachedValuesName = sortableCacheValuesName(positionField)

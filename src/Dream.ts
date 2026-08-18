@@ -2313,6 +2313,25 @@ export default class Dream {
    * with no gaps, accounting for the scopes specified in the
    * corresponding Sortable decorator.
    *
+   * Each sort scope is renumbered in its own transaction, under the same
+   * advisory lock every other position-mutating path takes on that scope, from
+   * a read of the scope taken inside that lock — so a concurrent create or
+   * destroy cannot make the renumbering land on positions it never read.
+   *
+   * **Do not call `resort` from inside a transaction you own.** It opens those
+   * transactions itself, on connections of its own, so it can neither join
+   * yours nor roll back with it: its writes commit on their own. Worse, if your
+   * transaction already holds the scope lock for a scope being renumbered — any
+   * position-mutating write to that scope earlier in the transaction takes it —
+   * `resort` waits on that lock from the outside, where no deadlock detector
+   * can see the cycle, until the wait bound expires and it throws
+   * `SortableScopeLockWaitTimedOut`.
+   *
+   * On an STI hierarchy the position space is shared by every class in the
+   * hierarchy, exactly as it is for creates, updates and destroys. Calling
+   * `resort` on a child class therefore renumbers the hierarchy's rows, not
+   * only the receiver's.
+   *
    * ```ts
    * class Post extends ApplicationModel {
    *   @deco.Sortable({ scope: ['user']})
@@ -5042,6 +5061,19 @@ export default class Dream {
    * actually destroy when in a destroy phase.
    * This is usually used for a soft-delete
    * pattern
+   *
+   * The veto is fail-closed, and the record is left
+   * entirely untouched: on a soft-delete model the soft
+   * delete is skipped as well, no `afterDestroy` or
+   * `afterDestroyCommit` hooks run, since the record is
+   * still present, and the destroy returns before the
+   * `dependent: 'destroy'` cascade, so this record's
+   * dependent associations survive too.
+   *
+   * A veto only stops the subtree rooted at the record
+   * that called it. When a record is reached by another
+   * record's cascade, vetoing spares it and its own
+   * dependents; the destroy that reached it carries on.
    *
    * ```ts
    * class User extends ApplicationModel {

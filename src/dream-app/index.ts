@@ -278,6 +278,25 @@ export default class DreamApp {
     return this._paginationMaxPageSize
   }
 
+  /**
+   * How long, in milliseconds, a position-mutating operation on a
+   * `@deco.Sortable` model will wait for another transaction to release the
+   * sort scope it needs before giving up with
+   * `SortableScopeLockWaitTimedOut`. Applied to the lock acquisition statement
+   * alone — the transaction's other lock waits keep whatever `lock_timeout`
+   * the application has configured.
+   *
+   * `0` waits without bound, which is what Postgres's `lock_timeout` means by
+   * it, and holds even on a connection configured with a `lock_timeout` of its
+   * own: the acquisition disables the bound for the duration of the statement.
+   *
+   * Set it with `dreamApp.set('sortableScopeLockTimeout', milliseconds)`.
+   */
+  private _sortableScopeLockTimeout: number = 5000
+  public get sortableScopeLockTimeout() {
+    return this._sortableScopeLockTimeout
+  }
+
   private _primaryKeyType: LegacyCompatiblePrimaryKeyType = 'bigint'
   public get primaryKeyType() {
     return this._primaryKeyType
@@ -567,7 +586,9 @@ export default class DreamApp {
                               ? number
                               : ApplyOpt extends 'paginationMaxPageSize'
                                 ? number
-                                : never,
+                                : ApplyOpt extends 'sortableScopeLockTimeout'
+                                  ? number
+                                  : never,
     secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
@@ -641,6 +662,10 @@ export default class DreamApp {
 
       case 'paginationMaxPageSize':
         this._paginationMaxPageSize = options as number
+        break
+
+      case 'sortableScopeLockTimeout':
+        this._sortableScopeLockTimeout = options as number
         break
 
       default: {
@@ -720,6 +745,7 @@ export type DreamAppSetOption =
   | 'unicodeNormalization'
   | 'paginationPageSize'
   | 'paginationMaxPageSize'
+  | 'sortableScopeLockTimeout'
   | 'packageManager'
 
 export interface DreamDirectoryPaths {

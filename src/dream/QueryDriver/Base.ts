@@ -250,6 +250,72 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     throw new Error('override openTestDatabaseLockSession in child class')
   }
 
+  /**
+   * @internal
+   *
+   * Whether this driver implements the transaction-scoped advisory lock seam
+   * ({@link acquireAdvisoryTransactionLocks}). Adapters that can hold a
+   * key-addressed lock for the life of a transaction override this to `true`.
+   * It defaults to `false` so that a driver without the primitive fails loud
+   * for features that depend on it (today, the `Sortable` decorator) rather
+   * than silently racing on position values.
+   */
+  public static supportsAdvisoryTransactionLocks = false
+
+  /**
+   * @internal
+   *
+   * Acquire exclusive, transaction-scoped locks on arbitrary keys, waiting
+   * until any other transaction holding one of them finishes. The locks are
+   * released when the enclosing transaction commits or rolls back — never by an
+   * explicit unlock — so callers only ever have to acquire (Postgres:
+   * `pg_advisory_xact_lock(bigint)`).
+   *
+   * Unlike {@link applyRowLock}, this does not depend on rows existing: it is
+   * the only way to serialize writers that are about to insert into the same
+   * logical group. The `Sortable` decorator uses it to make each sort scope's
+   * position computation exclusive, keyed on the physical database, table,
+   * position field and scope values.
+   *
+   * The seam takes the whole key set rather than one key at a time so that a
+   * driver able to express it can take them in a single round trip — the
+   * batched, row-locking query APIs can need one key per candidate record per
+   * sortable field. **Keys must be acquired in the order given**: callers sort
+   * them, and that shared order is what keeps two operations over the same
+   * scopes from deadlocking. A driver that has no bulk form implements this by
+   * looping over the keys in order.
+   *
+   * **The wait must be bounded.** A caller that finds a key held waits for the
+   * holder's transaction, and an implementation that waits forever turns an
+   * ordinary mistake — a sortable operation issued without the enclosing
+   * transaction, so that it waits on a key that transaction itself holds — into
+   * a permanently wedged connection that no deadlock detector can see, because
+   * only one side is waiting. So an implementation applies the
+   * `sortableScopeLockTimeout` DreamApp option (milliseconds) to the
+   * acquisition and raises `SortableScopeLockWaitTimedOut` when it elapses. A
+   * configured `0` means no bound, and is applied just as literally: the
+   * acquisition waits without bound even where the connection carries a
+   * wait bound of its own. The bound belongs to
+   * the acquisition alone: whatever lock-wait behavior the connection was
+   * configured with has to be in force again by the time this returns, so that
+   * the row locks {@link applyRowLock} takes are unaffected.
+   *
+   * Only ever called when {@link supportsAdvisoryTransactionLocks} is `true`;
+   * the base default throws.
+   *
+   * @param txn - the transaction the locks are scoped to
+   * @param keys - the 64-bit signed lock keys, in acquisition order
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async acquireAdvisoryTransactionLocks(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    txn: DreamTransaction<Dream>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    keys: bigint[]
+  ): Promise<void> {
+    throw new Error('override acquireAdvisoryTransactionLocks in child class')
+  }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async getColumnData(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -593,9 +659,20 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * @param dream - the dream instance you wish to destroy
    * @param txn - a transaction to encapsulate, consistently provided by underlying dream mechanisms
    * @param reallyDestroy - whether or not to reallyDestroy. If false, soft delete will be attempted when relevant
+   * @returns the number of rows this call removed (or soft deleted). Zero means
+   *   the row was already gone, or that a `preventDeletion` veto stopped the
+   *   write — callers distinguish the two by the veto flag, and use the count to
+   *   decide whether there is anything for the after-destroy hooks to act on.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-  public static async destroyDream(dream: Dream, txn: DreamTransaction<Dream>, reallyDestroy: boolean) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async destroyDream(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dream: Dream,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    txn: DreamTransaction<Dream>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    reallyDestroy: boolean
+  ): Promise<number> {
     throw new Error('implement destroyDream in child class')
   }
 
