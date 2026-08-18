@@ -15,6 +15,7 @@ import {
   UpdateableProperties,
   UpdateablePropertiesForClass,
   UpdateOrCreateByExtraOpts,
+  ValidatedPluckEachColumnNames,
 } from '../types/dream.js'
 import {
   BaseModelColumnTypes,
@@ -1015,12 +1016,27 @@ export default class DreamClassTransactionBuilder<
    * @param fields - A list of fields to pluck, followed by a callback function to call for each set of found fields
    * @returns void
    */
-  public async pluckEach<
+  public pluckEach<
     I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
-    ColumnName extends keyof UpdateableProperties<DreamInstance>,
-    ColumnNames extends ColumnName[],
-    CbArgTypes extends BaseModelColumnTypes<ColumnNames, DreamInstance>,
-  >(this: I, ...args: PluckEachArgs<ColumnNames, CbArgTypes>) {
+    const ColumnNames extends unknown[],
+  >(
+    this: I,
+    ...args: PluckEachArgs<
+      ValidatedPluckEachColumnNames<ColumnNames, keyof UpdateableProperties<DreamInstance>>,
+      BaseModelColumnTypes<
+        ValidatedPluckEachColumnNames<ColumnNames, keyof UpdateableProperties<DreamInstance>>,
+        DreamInstance
+      >
+    >
+  ): Promise<void>
+  public pluckEach<
+    I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>,
+    const ColumnNames extends (keyof UpdateableProperties<DreamInstance>)[],
+  >(
+    this: I,
+    ...args: PluckEachArgs<ColumnNames, BaseModelColumnTypes<ColumnNames, DreamInstance>>
+  ): Promise<void>
+  public async pluckEach(...args: unknown[]) {
     await this.queryInstance().pluckEach(...(args as any))
   }
 

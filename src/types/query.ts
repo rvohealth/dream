@@ -101,7 +101,7 @@ export type NamespacedColumnType<
   // begin: inferred types
   JoinedAssociationsArr = Q['queryTypeOpts']['joinedAssociations'],
   AssociationName = ColumnName extends `${infer Name extends string}.${string}` ? Name : never,
-  RealColumnName = ColumnName extends `${string}.${infer Col extends string}` ? Col : never,
+  RealColumnName = ColumnName extends `${string}.${infer Col extends string}` ? Col : ColumnName,
   JoinedAssociation extends FindInterfaceWithValue<
     JoinedAssociationsArr,
     'alias',

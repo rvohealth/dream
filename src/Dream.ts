@@ -110,6 +110,7 @@ import {
   UpdateableProperties,
   UpdateablePropertiesForClass,
   UpdateOrCreateByExtraOpts,
+  ValidatedPluckEachColumnNames,
 } from './types/dream.js'
 import { HookStatement, HookStatementMap } from './types/lifecycle.js'
 import {
@@ -2276,12 +2277,26 @@ export default class Dream {
    * @param args - a list of fields to pluck, followed by a callback function to call for each set of found fields
    * @returns void
    */
-  public static async pluckEach<
+  public static pluckEach<
     T extends typeof Dream,
     I extends InstanceType<T>,
-    ColumnNames extends TableColumnNames<I['DB'], I['table']>[],
-    CbArgTypes extends BaseModelColumnTypes<ColumnNames, I>,
-  >(this: T, ...args: PluckEachArgs<ColumnNames, CbArgTypes>) {
+    const ColumnNames extends unknown[],
+  >(
+    this: T,
+    ...args: PluckEachArgs<
+      ValidatedPluckEachColumnNames<ColumnNames, TableColumnNames<I['DB'], I['table']>>,
+      BaseModelColumnTypes<
+        ValidatedPluckEachColumnNames<ColumnNames, TableColumnNames<I['DB'], I['table']>>,
+        I
+      >
+    >
+  ): Promise<void>
+  public static pluckEach<
+    T extends typeof Dream,
+    I extends InstanceType<T>,
+    const ColumnNames extends TableColumnNames<I['DB'], I['table']>[],
+  >(this: T, ...args: PluckEachArgs<ColumnNames, BaseModelColumnTypes<ColumnNames, I>>): Promise<void>
+  public static async pluckEach(this: typeof Dream, ...args: unknown[]) {
     return await this.query().pluckEach(...(args as any))
   }
 

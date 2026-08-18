@@ -12,6 +12,17 @@ import PostComment from '../../../../test-app/app/models/PostComment.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#pluck on a join query', () => {
+  it('can pluck a bare root field alongside an associated field', async () => {
+    const node = await Node.create({ name: 'N1' })
+    const edge = await Edge.create({ name: 'E1' })
+    await EdgeNode.create({ node, edge })
+
+    const plucked = await Node.query().innerJoin('edgeNodes', 'edge').pluck('id', 'edge.name')
+    const typedPlucked: [Node['id'], Edge['name']][] = plucked
+
+    expect(typedPlucked).toEqual([[node.id, edge.name]])
+  })
+
   it('can pluck from the associated namespace', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
@@ -185,5 +196,28 @@ describe('Query#pluck on a join query', () => {
           .pluck('comments.body')
       ).toEqual(['hello world'])
     })
+  })
+})
+
+context.skip('type tests', () => {
+  type IsAny<T> = 0 extends 1 & T ? true : false
+  type IsNever<T> = [T] extends [never] ? true : false
+  type ExpectFalse<T extends false> = T
+
+  it('maps a bare root field to its exact root value type', async () => {
+    const node = Node.new({ name: 'root' })
+    const plucked = await Node.query().innerJoin('edgeNodes', 'edge').pluck('id', 'edge.name')
+
+    type RootId = (typeof plucked)[number][0]
+    type RootIdIsNotAny = ExpectFalse<IsAny<RootId>>
+    type RootIdIsNotNever = ExpectFalse<IsNever<RootId>>
+
+    const inferredRootId: RootId = node.id
+    const typedPlucked: [Node['id'], Edge['name']][] = plucked
+
+    void (null as unknown as RootIdIsNotAny)
+    void (null as unknown as RootIdIsNotNever)
+    void inferredRootId
+    void typedPlucked
   })
 })

@@ -925,3 +925,9 @@ export type PluckEachArgs<ColumnNames extends unknown[], CbArgTypes extends unkn
   | [...fields: ColumnNames]
   | [...fields: ColumnNames, callback: (...values: CbArgTypes) => void | Promise<void>]
   | [...fields: ColumnNames, callback: (...values: CbArgTypes) => void | Promise<void>, opts: FindEachOpts]
+
+export type ValidatedPluckEachColumnNames<ColumnNames extends unknown[], AllowedColumnName> = {
+  [Index in keyof ColumnNames]: ColumnNames[Index] extends AllowedColumnName
+    ? ColumnNames[Index]
+    : AllowedColumnName
+}

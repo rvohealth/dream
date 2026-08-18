@@ -659,7 +659,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(max(columnName as any) as any)
+    kyselyQuery = kyselyQuery.select(max(this.namespaceColumn(columnName)) as any)
 
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
@@ -682,7 +682,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async maxBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { max } = this.dbFor('select').fn
-    return this.groupedAggregate(groupColumn, max(aggregatedColumn as any))
+    return this.groupedAggregate(groupColumn, max(this.namespaceColumn(aggregatedColumn)))
   }
 
   /**
@@ -705,7 +705,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(min(columnName as any) as any)
+    kyselyQuery = kyselyQuery.select(min(this.namespaceColumn(columnName)) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.min
@@ -727,7 +727,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async minBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { min } = this.dbFor('select').fn
-    return this.groupedAggregate(groupColumn, min(aggregatedColumn as any))
+    return this.groupedAggregate(groupColumn, min(this.namespaceColumn(aggregatedColumn)))
   }
 
   /**
@@ -750,7 +750,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(sum(columnName as any) as any)
+    kyselyQuery = kyselyQuery.select(sum(this.namespaceColumn(columnName)) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.sum === null ? null : parseFloat(data.sum)
   }
@@ -771,7 +771,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async sumBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { sum } = this.dbFor('select').fn
-    return this.groupedAggregate(groupColumn, sum(aggregatedColumn as any), rawSum =>
+    return this.groupedAggregate(groupColumn, sum(this.namespaceColumn(aggregatedColumn)), rawSum =>
       rawSum === null ? null : parseFloat(rawSum)
     )
   }
@@ -796,7 +796,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       bypassOrder: true,
     })
 
-    kyselyQuery = kyselyQuery.select(avg(columnName as any) as any)
+    kyselyQuery = kyselyQuery.select(avg(this.namespaceColumn(columnName)) as any)
     const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.avg
   }
@@ -817,7 +817,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override async avgBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { avg } = this.dbFor('select').fn
-    return this.groupedAggregate(groupColumn, avg(aggregatedColumn as any))
+    return this.groupedAggregate(groupColumn, avg(this.namespaceColumn(aggregatedColumn)))
   }
 
   /**

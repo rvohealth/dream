@@ -60,3 +60,96 @@ describe('Dream#pluckEach', () => {
     })
   })
 })
+
+context.skip('type tests', () => {
+  type IsAny<T> = 0 extends 1 & T ? true : false
+  type IsNever<T> = [T] extends [never] ? true : false
+  type ExpectFalse<T extends false> = T
+
+  it('validates static fields and preserves static callback types', async () => {
+    async function pluckGeneric<ColumnNames extends ['id'] | ['createdAt']>(...columnNames: ColumnNames) {
+      await User.pluckEach(...columnNames, (...values) => {
+        const typedValues: (User['id'] | User['createdAt'])[] = values
+
+        void typedValues
+      })
+    }
+
+    void pluckGeneric
+
+    await User.pluckEach(
+      // @ts-expect-error invalidField is not a User column
+      'invalidField',
+      invalidField => {
+        type InvalidFieldIsNotAny = ExpectFalse<IsAny<typeof invalidField>>
+        type InvalidFieldIsNotNever = ExpectFalse<IsNever<typeof invalidField>>
+
+        void invalidField
+        void (null as unknown as InvalidFieldIsNotAny)
+        void (null as unknown as InvalidFieldIsNotNever)
+      }
+    )
+
+    await User.pluckEach('id', 'createdAt', (id, createdAt) => {
+      type IdIsNotAny = ExpectFalse<IsAny<typeof id>>
+      type IdIsNotNever = ExpectFalse<IsNever<typeof id>>
+      type CreatedAtIsNotAny = ExpectFalse<IsAny<typeof createdAt>>
+      type CreatedAtIsNotNever = ExpectFalse<IsNever<typeof createdAt>>
+
+      const values: [User['id'], User['createdAt']] = [id, createdAt]
+      // @ts-expect-error id retains its string type
+      const invalidId: number = id
+      // @ts-expect-error createdAt retains its DateTime type
+      const invalidCreatedAt: string = createdAt
+
+      void (null as unknown as IdIsNotAny)
+      void (null as unknown as IdIsNotNever)
+      void (null as unknown as CreatedAtIsNotAny)
+      void (null as unknown as CreatedAtIsNotNever)
+      void values
+      void invalidId
+      void invalidCreatedAt
+    })
+  })
+
+  it('validates transaction fields and preserves transaction callback types', async () => {
+    await ApplicationModel.transaction(async txn => {
+      async function pluckGeneric<ColumnNames extends ['name'] | ['createdAt']>(...columnNames: ColumnNames) {
+        await User.txn(txn).pluckEach(...columnNames, (...values) => {
+          const typedValues: (User['name'] | User['createdAt'])[] = values
+
+          void typedValues
+        })
+      }
+
+      void pluckGeneric
+
+      await User.txn(txn).pluckEach(
+        // @ts-expect-error invalidField is not an updateable User property
+        'invalidField',
+        invalidField => {
+          type InvalidFieldIsNotAny = ExpectFalse<IsAny<typeof invalidField>>
+          type InvalidFieldIsNotNever = ExpectFalse<IsNever<typeof invalidField>>
+
+          void invalidField
+          void (null as unknown as InvalidFieldIsNotAny)
+          void (null as unknown as InvalidFieldIsNotNever)
+        }
+      )
+
+      await User.txn(txn).pluckEach('name', name => {
+        type NameIsNotAny = ExpectFalse<IsAny<typeof name>>
+        type NameIsNotNever = ExpectFalse<IsNever<typeof name>>
+
+        const value: User['name'] = name
+        // @ts-expect-error name retains its nullable string type
+        const invalidName: number = name
+
+        void (null as unknown as NameIsNotAny)
+        void (null as unknown as NameIsNotNever)
+        void value
+        void invalidName
+      })
+    })
+  })
+})

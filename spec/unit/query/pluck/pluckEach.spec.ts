@@ -52,9 +52,10 @@ describe('Query#pluckEach', () => {
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        await expect(User.query().pluckEach('id', () => {}, 'email' as any)).rejects.toThrow(
-          CannotPassAdditionalFieldsToPluckEachAfterCallback
-        )
+        await expect(
+          // @ts-expect-error a field after the callback is intentionally invalid
+          User.query().pluckEach('id', () => {}, 'email')
+        ).rejects.toThrow(CannotPassAdditionalFieldsToPluckEachAfterCallback)
       })
     })
   })
@@ -167,5 +168,19 @@ describe('Query#pluckEach', () => {
       })
       expect(plucked).toEqual([user1.id, user2.id, user3.id])
     })
+  })
+})
+
+context.skip('type tests', () => {
+  it('accepts generic union tuple spreads', () => {
+    async function pluckGeneric<ColumnNames extends ['id'] | ['createdAt']>(...columnNames: ColumnNames) {
+      await User.query().pluckEach(...columnNames, (...values) => {
+        const typedValues: (User['id'] | User['createdAt'])[] = values
+
+        void typedValues
+      })
+    }
+
+    void pluckGeneric
   })
 })
