@@ -182,6 +182,11 @@ describe('Query#pluckEach on a join query', () => {
   })
 })
 
+/*
+ * These compile-only tests protect TypeScript diagnostic quality, not runtime behavior. An
+ * invalid-field assertion without a callback would miss a regression that moves the useful error
+ * away from the field argument or collapses the callback parameter to `any` or `never`.
+ */
 context.skip('type tests', () => {
   type IsAny<T> = 0 extends 1 & T ? true : false
   type IsNever<T> = [T] extends [never] ? true : false
