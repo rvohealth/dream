@@ -157,8 +157,21 @@ describe('@Sortable staleness', () => {
       expect((await Post.findOrFail(postB2!.id)).position).toEqual(2)
       expect((await Post.findOrFail(postB3!.id)).position).toEqual(3)
 
-      // ...and the scope it was loaded from is not: its physical hole at
-      // position 2 is not this destroy's to close
+      // ...and the scope it was loaded from is not. Its physical hole at
+      // position 2 is not this destroy's to close, for three reasons. A
+      // destroy owes closure only for the vacancy it creates, and it creates
+      // one only where the row physically was — which is what the snapshot
+      // read under the scope lock establishes; the hole here predates the
+      // destroy, left by the skipHooks writer that moved the row out without
+      // Sortable's bookkeeping, and holes like it are `Dream.resort`'s to
+      // repair. Closing it would also be unsafe: the destroy holds no advisory
+      // lock on this scope, so the shift would race the scope's writers
+      // unserialized, from a remembered position the instance cannot vouch
+      // for. And when a scope move goes through Sortable properly, the old
+      // scope is compacted at move time and holds no hole at all — a destroy
+      // that compacted the scope its instance was loaded from would shift that
+      // contiguous scope's rows down onto still-occupied positions, a
+      // guaranteed duplicate with no concurrency involved.
       expect(await positionsFor(user)).toEqual([1, 3])
       expect((await Post.findOrFail(postA3!.id)).position).toEqual(3)
     })
