@@ -52,10 +52,9 @@ describe('Query#pluckEach', () => {
 
     context('when additional pluck arguments are following the call to pluckEachThrough', () => {
       it('raises a targeted exception', async () => {
-        const query = User.query()
         await expect(
           // @ts-expect-error a field after the callback is intentionally invalid
-          query.pluckEach('id', () => {}, 'email')
+          User.query().pluckEach('id', () => {}, 'email')
         ).rejects.toThrow(CannotPassAdditionalFieldsToPluckEachAfterCallback)
       })
     })
