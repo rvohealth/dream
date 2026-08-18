@@ -1,3 +1,4 @@
+import performSortableDestroyWork from '../../decorators/field/sortable/helpers/performSortableDestroyWork.js'
 import prepareSortableFieldsForDestroy, {
   clearSortableFieldsForDestroy,
 } from '../../decorators/field/sortable/helpers/prepareSortableFieldsForDestroy.js'
@@ -118,6 +119,11 @@ async function destroyDreamWithTransaction<I extends Dream>(
   if (removedNothing) clearSortableFieldsForDestroy(dream)
 
   if (!skipHooks && !deletionPrevented && !removedNothing) {
+    // The compaction is a phase before the after-destroy hooks, never a hook
+    // among them, so every user afterDestroy hook observes the compacted scope
+    // regardless of where it was declared — the destroy-side counterpart of
+    // performSortablePositionWork running before the after-save hooks.
+    await performSortableDestroyWork(dream, txn)
     await runHooksFor('afterDestroy', dream, true, null, txn)
     await runHooksFor('afterDestroyCommit', dream, true, null, txn)
   }

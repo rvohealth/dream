@@ -19,8 +19,9 @@ export default async function afterSortableDestroy({
   scope: string | string[] | undefined
   txn: DreamTransaction<any>
 }) {
-  // The row's real position and scope, read in the `beforeDestroy` hook while
-  // the row still existed. The instance's own position is whatever it held when
+  // The row's real position and scope, read by the destroy's preparation phase
+  // (`prepareSortableFieldsForDestroy`) while the row still existed. The
+  // instance's own position is whatever it held when
   // it was loaded, which is too low as soon as another create or update moved
   // the record down — and shifting from a position lower than the vacated one
   // moves rows onto occupied positions rather than closing the gap.

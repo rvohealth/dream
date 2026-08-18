@@ -23,7 +23,8 @@ import { cacheSortableSnapshots, clearSortableSnapshot } from './sortableSnapsho
  * it is transaction-scoped, and `destroyDream` opens a transaction that spans
  * the delete and the after-destroy hooks, so one acquisition covers both.
  *
- * The per-field `afterDestroy` compactions consume the cached snapshots.
+ * The per-field compactions (`performSortableDestroyWork`) consume the cached
+ * snapshots.
  *
  * @returns false when the snapshot read found no row — this destroy has nothing
  *   to vacate, and compacting from the instance's remembered position would
@@ -47,7 +48,7 @@ export default async function prepareSortableFieldsForDestroy(
  * @internal
  *
  * Discards what the preparation phase stashed on the instance. The per-field
- * `afterDestroy` compaction clears its own snapshot as it consumes it, so this
+ * compaction clears its own snapshot as it consumes it, so this
  * exists for the path where that compaction never runs: a destroy that removed
  * nothing leaves the snapshot behind, and a later save or destroy of the same
  * instance would compute its shift from a reading of a row this operation

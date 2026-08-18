@@ -11,7 +11,11 @@ const deco = new Decorators<typeof CommitHookSortableModel>()
  * on. Exists to pin that on a self-opened sortable save the scope lock is
  * released at COMMIT — before any user after-hook runs — that the `*Commit`
  * families receive no transaction, and that a throwing after-hook leaves the
- * committed row in place.
+ * committed row in place. The afterDestroy hook records the scope's surviving
+ * positions, pinning that the compaction runs before every user afterDestroy
+ * hook — the hooks here are method decorators, which register ahead of any
+ * field decorator's work, so a compaction seated among the hooks would run
+ * after this one.
  */
 export default class CommitHookSortableModel extends ApplicationModel {
   public override get table() {
@@ -33,6 +37,19 @@ export default class CommitHookSortableModel extends ApplicationModel {
     hook: string
     txn: DreamTransaction<any> | null | undefined
   }[] = []
+
+  /**
+   * The scope's positions as the afterDestroy hook below observed them, one
+   * array per destroy. Specs that read it reset it first.
+   */
+  public static observedPositionsInAfterDestroy: (number | null)[][] = []
+
+  @deco.AfterDestroy()
+  public async recordsSurvivorPositions(txn?: DreamTransaction<any> | null): Promise<void> {
+    if (!txn) return
+    const survivors = await CommitHookSortableModel.txn(txn).order('position').all()
+    CommitHookSortableModel.observedPositionsInAfterDestroy.push(survivors.map(record => record.position))
+  }
 
   @deco.AfterSave()
   public runsAfterSave(txn?: DreamTransaction<any> | null): Promise<void> | void {

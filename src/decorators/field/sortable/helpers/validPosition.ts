@@ -29,10 +29,11 @@ export default async function validPosition({
 
   const scopeMax = await filterQueryToInstanceScope(query.txn(txn), dream, scope).max(positionField)
 
-  // The record's own row is inside that read, and on a save that wrote the
-  // position sentinel it carries `0` there rather than the position it holds in
-  // this scope. Where that position belongs to this same scope it is part of the
-  // scope's extent, so the clamp has to take it back into account.
+  // `scopeMax` includes this record's own row, but mid-save that row holds the
+  // sentinel `0` instead of its real position. When the record already had a
+  // position in this scope, the caller passes it as `positionUnderSentinel`,
+  // and it counts toward the scope's true max — so take the larger of the two
+  // before clamping.
   const maxPosition =
     Math.max(scopeMax ?? 0, positionUnderSentinel ?? 0) + (increasingNumberOfItemsToSort ? 1 : 0)
 

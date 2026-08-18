@@ -624,21 +624,38 @@ describe('@Sortable concurrency', () => {
       expect((await UnscopedSortableModel.findOrFail(model.id)).position).toEqual(2)
     })
 
-    it('registers no sortable position work in the shared after-hook lists', () => {
+    it('registers no sortable work in the shared hook lists at all', () => {
       const hooks = UnscopedSortableModel['hooks']
 
+      // every path's sortable work runs as phases called by saveDream,
+      // destroyDream and undestroyDream, never as hooks among the user's own —
+      // the destroy compaction included, which runs in destroyDream before the
+      // afterDestroy hooks
       expect(hooks.afterCreate).toHaveLength(0)
       expect(hooks.afterCreateCommit).toHaveLength(0)
       expect(hooks.afterUpdate).toHaveLength(0)
       expect(hooks.afterUpdateCommit).toHaveLength(0)
-      expect(hooks.afterDestroyCommit).toHaveLength(0)
-      // destroy's lock acquisition and snapshot read run as a phase in
-      // destroyDream, not as beforeDestroy hooks; only the per-field
-      // compaction remains registered, after the delete
       expect(hooks.beforeDestroy).toHaveLength(0)
-      expect(hooks.afterDestroy.map(hook => hook.method)).toEqual([
-        '_setValuesAfterDestructionForPositionAfterDestroy',
-      ])
+      expect(hooks.afterDestroy).toHaveLength(0)
+      expect(hooks.afterDestroyCommit).toHaveLength(0)
+    })
+  })
+
+  context('user afterDestroy hooks on a sortable destroy', () => {
+    it('runs the compaction before every user afterDestroy hook, regardless of declaration order', async () => {
+      CommitHookSortableModel.observedPositionsInAfterDestroy = []
+
+      const model = await CommitHookSortableModel.create()
+      await CommitHookSortableModel.create()
+      await CommitHookSortableModel.create()
+
+      // the model's hooks are method decorators, which register ahead of any
+      // field decorator's — so a compaction seated among the afterDestroy
+      // hooks would run after this one, and it would observe the vacancy
+      // still open ([2, 3]) rather than the compacted scope
+      await model.destroy()
+
+      expect(CommitHookSortableModel.observedPositionsInAfterDestroy).toEqual([[1, 2]])
     })
   })
 

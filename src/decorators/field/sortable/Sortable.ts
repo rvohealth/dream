@@ -1,11 +1,6 @@
 import Dream from '../../../Dream.js'
-import DreamTransaction from '../../../dream/DreamTransaction.js'
-import pascalize from '../../../helpers/pascalize.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
-import { STI_SCOPE_NAME } from '../../class/STI.js'
-import { afterDestroyImplementation } from '../lifecycle/AfterDestroy.js'
 import scopeArray from './helpers/scopeArray.js'
-import afterSortableDestroy from './hooks/afterSortableDestroy.js'
 
 /**
  * Marks an integer column as a sortable position: Dream keeps the positions of
@@ -56,48 +51,20 @@ export default function Sortable(opts: SortableOpts = {}): any {
         // already declared on the base STI class.
         dreamClass['sortableFields'] = [...dreamClass['sortableFields']]
       }
+      // the decorator registers nothing but this metadata: none of a sortable
+      // field's runtime work runs as hooks. A save's preparation and position
+      // write run as phases in `saveDream` (`prepareSortableFieldsForSave`,
+      // `performSortablePositionWork`), a destroy's lock acquisition, snapshot
+      // read and compaction as phases in `destroyDream`
+      // (`prepareSortableFieldsForDestroy`, `performSortableDestroyWork`), and
+      // an undestroy's restore inline in `undestroyDream` — each seated
+      // relative to the user's hooks by the caller, so no user hook code can
+      // interleave with the position work and every after-hook observes
+      // computed positions and compacted scopes
       ;(dreamClass['sortableFields'] as SortableFieldConfig[]).push({
         scope: scopeArray(opts.scope),
         positionField: key,
       })
-
-      const positionField = key
-
-      const afterDestroyMethodName = `_setValuesAfterDestructionFor${pascalize(key)}AfterDestroy`
-
-      const dreamPrototype = Object.getPrototypeOf(dream)
-
-      // a save's sortable work is not registered as hooks: preparation —
-      // caching the values the position work needs and applying the position
-      // sentinel — runs as a phase in `saveDream` after every consumer
-      // before-hook (`prepareSortableFieldsForSave`), and the position work
-      // itself runs as a direct call after the driver write
-      // (`performSortablePositionWork`), so no user hook code runs while the
-      // scope lock is held on a self-opened save
-
-      // a destroy's lock acquisition and snapshot read are likewise a phase,
-      // not hooks: `destroyDream` calls `prepareSortableFieldsForDestroy`
-      // after every user beforeDestroy hook, taking all sortable fields' keys
-      // in one sorted pass with one snapshot SELECT
-
-      // after destroy, auto-adjust positions of all related records with a greater position
-      // than this one to maintain incrementing order,
-      dreamPrototype[afterDestroyMethodName] = async function (txn?: DreamTransaction<any>) {
-        // destroyDream always opens a transaction, so this is only ever null on a
-        // path that does not destroy at all
-        if (!txn) return
-        const query = dreamClass.query().removeDefaultScope(STI_SCOPE_NAME).txn(txn)
-
-        await afterSortableDestroy({
-          dream: this,
-          positionField,
-          query,
-          scope: opts.scope,
-          txn,
-        })
-      }
-
-      afterDestroyImplementation(dream, afterDestroyMethodName)
     })
   }
 }

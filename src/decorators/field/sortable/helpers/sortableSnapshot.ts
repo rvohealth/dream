@@ -125,11 +125,12 @@ function sortableSnapshotName(positionField: string) {
 /**
  * @internal
  *
- * Stashes snapshots on the instance so the hook that computes the shift can
- * reach the read the earlier phase made. The read and the shift are separated
- * by a hook boundary on every path — `beforeDestroy` to `afterDestroy`, the
- * `saveDream` sortable phase to `afterUpdate` — and the instance is what
- * crosses it.
+ * Stashes snapshots on the instance so the phase that computes the shift can
+ * reach the read the earlier phase made. The read and the shift are separate
+ * calls on every path — `prepareSortableFieldsForDestroy` to
+ * `performSortableDestroyWork`, the `saveDream` lock acquisition to
+ * `performSortablePositionWork` — and the instance is what crosses between
+ * them.
  */
 export function cacheSortableSnapshots(dream: Dream, snapshots: SortableSnapshots) {
   for (const [positionField, snapshot] of snapshots) {
