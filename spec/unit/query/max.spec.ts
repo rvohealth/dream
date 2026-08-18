@@ -113,7 +113,7 @@ describe('Query#max', () => {
 
       const query = Node.query().innerJoin('edgeNodes', 'edge')
 
-      expect(await query.max('id')).toEqual(await query.max('graph_nodes.id'))
+      expect(await query.max('id')).toEqual(node.id)
     })
 
     it('returns a bare root field', async () => {

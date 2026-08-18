@@ -26,7 +26,7 @@ describe('Query#pluckEach on a join query', () => {
     expect(plucked).toEqual([[node.id, edge.name]])
   })
 
-  it('can pluck from the qualified root and associated namespaces', async () => {
+  it('can pluck from the legacy-qualified root and associated namespaces', async () => {
     const node = await Node.create({ name: 'N1' })
     const edge1 = await Edge.create({ name: 'E1' })
     const edge2 = await Edge.create({ name: 'E2' })
@@ -248,7 +248,7 @@ context.skip('type tests', () => {
       )
   })
 
-  it('preserves positional callback types for qualified root and joined fields with options', async () => {
+  it('preserves positional callback types for legacy-qualified root and joined fields with options', async () => {
     await Node.query()
       .innerJoin('edgeNodes', 'edge')
       .pluckEach(

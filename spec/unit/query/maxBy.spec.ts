@@ -101,7 +101,7 @@ describe('Query#maxBy', () => {
 
       const query = Node.query().innerJoin('edgeNodes', 'edge')
 
-      expect(await query.maxBy('name', 'id')).toEqual(await query.maxBy('graph_nodes.name', 'graph_nodes.id'))
+      expect(await query.maxBy('name', 'id')).toEqual(new Map([[node.name, node.id]]))
     })
 
     it('supports a bare root field in both grouped aggregate positions', async () => {
