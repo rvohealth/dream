@@ -5,6 +5,7 @@ import { pgErrorType, UNIQUE_VIOLATION } from './db/errors.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
+import { EncryptedAttributeStatement } from './decorators/field/Encrypted.js'
 import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
@@ -380,6 +381,17 @@ export default class Dream {
    * assignment simply ensures that it is always an array rather than undefined)
    */
   private static explicitUnsafeParamColumns: readonly string[] | string[] = Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * Model storage for encrypted attribute metadata, set on the inheriting class when
+   * using the Encrypted decorator (this default assignment simply ensures that it is
+   * always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
+   */
+  private static encryptedAttributes: readonly EncryptedAttributeStatement[] | EncryptedAttributeStatement[] =
+    Object.freeze([])
 
   /**
    * @internal

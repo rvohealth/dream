@@ -7,6 +7,7 @@ export { default as DataIncompatibleWithDatabaseField } from '../errors/db/DataI
 export { default as DataTypeColumnTypeMismatch } from '../errors/db/DataTypeColumnTypeMismatch.js'
 export { default as NotNullViolation } from '../errors/db/NotNullViolation.js'
 export { default as GlobalNameNotSet } from '../errors/dream-app/GlobalNameNotSet.js'
+export { default as CannotSetEncryptedColumnInQueryUpdate } from '../errors/encrypt/CannotSetEncryptedColumnInQueryUpdate.js'
 export { default as DecryptionError } from '../errors/encrypt/DecryptionError.js'
 export { default as DecryptionParseError } from '../errors/encrypt/DecryptionParseError.js'
 export { default as DecryptionRotationError } from '../errors/encrypt/DecryptionRotationError.js'

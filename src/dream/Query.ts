@@ -3,6 +3,7 @@ import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
 import { invalidateSortableRowCache } from '../decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamApp from '../dream-app/index.js'
+import assertNoEncryptedColumnWrites from '../encrypt/assertNoEncryptedColumnWrites.js'
 import Dream from '../Dream.js'
 import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
@@ -3418,6 +3419,10 @@ export default class Query<
   }
 
   private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {
+    // this path compiles to a single UPDATE statement and never instantiates a
+    // model, so the setter that encrypts an @Encrypted property never runs
+    assertNoEncryptedColumnWrites(this.dreamClass, attributes as Record<string, unknown>)
+
     return await this.dbDriverInstance().update(attributes)
   }
 
