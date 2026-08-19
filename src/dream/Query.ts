@@ -3217,7 +3217,10 @@ export default class Query<
    *   hanging.
    * - **`skipHooks` composes with `lock`, but stays on the per-instance
    *   path.** With an attributes object and no `lock`, `skipHooks: true`
-   *   issues a single `UPDATE ... WHERE` statement that writes raw columns.
+   *   issues a single `UPDATE ... WHERE` statement that writes raw columns —
+   *   with one refusal: it will not write a non-null value into an
+   *   `@Encrypted` backing column, since nothing on that path encrypts it, and
+   *   throws instead; `null`, which clears the column, is permitted.
    *   With `lock: true`, `skipHooks: true` skips the model hooks on each
    *   claimed record but still writes through the instance, so custom setters
    *   — including the setters encrypted attributes encrypt through — run as
@@ -3240,6 +3243,7 @@ export default class Query<
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
    * @throws MissingRequiredLockOptionForUpdateCallback if a callback is passed without an options object carrying a boolean `lock`
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
+   * @throws CannotSetEncryptedColumnInQueryUpdate if the single-statement `skipHooks` form's attributes name an `@Encrypted` backing column with anything other than `null`
    */
   public async update(
     cb: (

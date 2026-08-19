@@ -230,11 +230,21 @@ describe('Query#update', () => {
       it('does not type check the plaintext property, which is not part of the table schema', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
 
-        await expect(
+        // The virtual property is not a backing column, so the guard must leave it alone.
+        // The call still fails, but the failure belongs to the database — it is handed a
+        // column that does not exist — and the message it raises is adapter-specific, so
+        // only the identity of the error is asserted here.
+        const error = await User.where({ id: user.id })
           // @ts-expect-error the no-lock skipHooks form is typed as the raw table
           // schema, which has no virtual columns
-          User.where({ id: user.id }).update({ secret: 'updated' }, { skipHooks: true })
-        ).rejects.toThrow()
+          .update({ secret: 'updated' }, { skipHooks: true })
+          .catch((error: unknown) => error)
+
+        expect(error).toBeInstanceOf(Error)
+        expect(error).not.toBeInstanceOf(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.secret).toEqual('original')
       })
     })
   })
