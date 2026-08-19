@@ -3419,11 +3419,15 @@ export default class Query<
   }
 
   private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {
+    // the guard and the driver must read the same values, so the caller's object
+    // is materialized once here and both read the snapshot
+    const snapshot = { ...attributes }
+
     // this path compiles to a single UPDATE statement and never instantiates a
     // model, so the setter that encrypts an @Encrypted property never runs
-    assertNoEncryptedColumnWrites(this.dreamClass, attributes as Record<string, unknown>)
+    assertNoEncryptedColumnWrites(this.dreamClass, snapshot as Record<string, unknown>)
 
-    return await this.dbDriverInstance().update(attributes)
+    return await this.dbDriverInstance().update(snapshot)
   }
 
   private invertOrder() {

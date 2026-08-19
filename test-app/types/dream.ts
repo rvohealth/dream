@@ -6277,6 +6277,7 @@ export const schema = {
     },
     nonJsonColumnNames: [
       'createdAt',
+      'encryptedSecret',
       'id',
       'name',
       'petId',
@@ -6293,6 +6294,15 @@ export const schema = {
         enumValues: null,
         dbType: 'timestamp without time zone',
         allowNull: false,
+        isArray: false,
+      },
+      encryptedSecret: {
+        coercedType: {} as string | null,
+        enumType: null,
+        enumArrayType: null,
+        enumValues: null,
+        dbType: 'text',
+        allowNull: true,
         isArray: false,
       },
       id: {
@@ -6359,7 +6369,7 @@ export const schema = {
         isArray: false,
       },
     },
-    virtualColumns: [],
+    virtualColumns: ['secret'],
     associations: {
       pet: {
         type: 'BelongsTo',

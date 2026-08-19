@@ -12,9 +12,12 @@ import NoUpdateAllOnJoins from '../../../src/errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociationQuery.js'
 import RowLockIncompatibleWithDistinct from '../../../src/errors/RowLockIncompatibleWithDistinct.js'
 import ops from '../../../src/ops/index.js'
-import { UpdateableProperties } from '../../../src/types/dream.js'
+import { DreamTableSchema, UpdateableProperties } from '../../../src/types/dream.js'
 import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
+import StiA from '../../../test-app/app/models/Sti/A.js'
+import StiBase from '../../../test-app/app/models/Sti/Base.js'
 import User from '../../../test-app/app/models/User.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
@@ -151,6 +154,77 @@ describe('Query#update', () => {
         await user.reload()
         expect(user.getAttribute('myOtherEncryptedSecret')).toEqual(originalCiphertext)
         expect(user.otherSecret).toEqual({ token: 'original' })
+      })
+
+      it('rejects the snake_case spelling of the backing column, which Kysely resolves to the same column', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+        const originalCiphertext = user.getAttribute('encryptedSecret')
+
+        await expect(
+          User.where({ id: user.id }).update(
+            { encrypted_secret: 'plaintext' } as unknown as DreamTableSchema<User>,
+            { skipHooks: true }
+          )
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.getAttribute('encryptedSecret')).toEqual(originalCiphertext)
+        expect(user.secret).toEqual('original')
+      })
+
+      it('rejects the snake_case spelling of a custom-named backing column', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          otherSecret: { token: 'original' },
+        })
+        const originalCiphertext = user.getAttribute('myOtherEncryptedSecret')
+
+        await expect(
+          User.where({ id: user.id }).update(
+            { my_other_encrypted_secret: 'plaintext' } as unknown as DreamTableSchema<User>,
+            { skipHooks: true }
+          )
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.getAttribute('myOtherEncryptedSecret')).toEqual(originalCiphertext)
+        expect(user.otherSecret).toEqual({ token: 'original' })
+      })
+
+      it('rejects a backing column declared on an STI child when the query is rooted at the STI base', async () => {
+        const stiA = await StiA.create({
+          name: 'sti a',
+          secret: 'original',
+          pet: await Pet.create(),
+          taskable: await Chore.create(),
+        })
+        const originalCiphertext = stiA.getAttribute('encryptedSecret')
+
+        await expect(
+          StiBase.where({ id: stiA.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await stiA.reload()
+        expect(stiA.getAttribute('encryptedSecret')).toEqual(originalCiphertext)
+        expect(stiA.secret).toEqual('original')
+      })
+
+      it('writes the same values the guard validated when the attributes are getter-backed', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+        let reads = 0
+
+        const attributes = {
+          get encryptedSecret() {
+            return reads++ === 0 ? null : 'plaintext'
+          },
+        }
+
+        await User.where({ id: user.id }).update(attributes as DreamTableSchema<User>, { skipHooks: true })
+
+        expect(reads).toEqual(1)
+        await user.reload()
+        expect(user.getAttribute('encryptedSecret')).toBeNull()
       })
 
       it('does not type check the plaintext property, which is not part of the table schema', async () => {
