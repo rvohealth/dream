@@ -10,9 +10,9 @@ import { snakeifyString } from '../helpers/snakeify.js'
  * than null. Guards the write paths that never instantiate a model, and so never
  * reach the throwing setter the Encrypted decorator installs for that column.
  *
- * `encryptedAttributes` is class-scoped, but a query rooted at an STI base spans
- * every child's rows on the shared table, so the whole hierarchy below
- * `dreamClass` is searched for backing columns.
+ * `encryptedAttributes` is class-scoped, but every class in an STI hierarchy shares
+ * one physical table, so the whole hierarchy is searched for backing columns
+ * regardless of which of its classes the query is rooted at.
  *
  * Keys are matched in their snakeified form, since Kysely's CamelCasePlugin
  * resolves both the camelCase and the snake_case spelling of a key to the same
@@ -47,26 +47,26 @@ interface DeclaredEncryptedAttribute extends EncryptedAttributeStatement {
 /**
  * @internal
  *
- * Every @Encrypted backing column declared on `dreamClass` or on any class below
- * it in its STI hierarchy, keyed by the snakeified backing column name.
+ * Every @Encrypted backing column declared anywhere in `dreamClass`'s STI hierarchy —
+ * on the STI base, on `dreamClass` itself, and on all of their descendants — keyed by
+ * the snakeified backing column name.
  */
 function encryptedAttributesInStiHierarchy(
-  dreamClass: typeof Dream,
-  encryptedAttributes: Map<string, DeclaredEncryptedAttribute> = new Map()
+  dreamClass: typeof Dream
 ): Map<string, DeclaredEncryptedAttribute> {
-  dreamClass['encryptedAttributes'].forEach(({ property, encryptedColumnName }) => {
-    const snakeifiedColumnName = snakeifyString(encryptedColumnName)
-    if (encryptedAttributes.has(snakeifiedColumnName)) return
-    encryptedAttributes.set(snakeifiedColumnName, {
-      property,
-      encryptedColumnName,
-      declaringClass: dreamClass,
+  const encryptedAttributes = new Map<string, DeclaredEncryptedAttribute>()
+
+  dreamClass['stiHierarchyClasses']().forEach(stiClass => {
+    stiClass['encryptedAttributes'].forEach(({ property, encryptedColumnName }) => {
+      const snakeifiedColumnName = snakeifyString(encryptedColumnName)
+      if (encryptedAttributes.has(snakeifiedColumnName)) return
+      encryptedAttributes.set(snakeifiedColumnName, {
+        property,
+        encryptedColumnName,
+        declaringClass: stiClass,
+      })
     })
   })
-
-  dreamClass['extendedBy']?.forEach(stiChildClass =>
-    encryptedAttributesInStiHierarchy(stiChildClass, encryptedAttributes)
-  )
 
   return encryptedAttributes
 }

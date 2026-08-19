@@ -501,6 +501,24 @@ export default class Dream {
     return !!this.extendedBy?.length && !this.isSTIChild
   }
 
+  /**
+   * @internal
+   *
+   * Every class sharing this class's physical table by way of STI: the STI base
+   * (or this class, when it belongs to no STI hierarchy) together with every class
+   * below it, however deeply nested.
+   *
+   * @returns An array of Dream classes
+   */
+  private static stiHierarchyClasses(this: typeof Dream): (typeof Dream)[] {
+    const withDescendants = (dreamClass: typeof Dream): (typeof Dream)[] => [
+      dreamClass,
+      ...(dreamClass['extendedBy'] ?? []).flatMap(withDescendants),
+    ]
+
+    return withDescendants(this.stiBaseClassOrOwnClass)
+  }
+
   private static stiSiblings(): (typeof Dream)[] {
     const stiBase = this.stiBaseClassOrOwnClass
     if (!stiBase.isSTIBase) return []
@@ -899,12 +917,18 @@ export default class Dream {
   private static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
+    // `columns()` is table scoped, and every class in an STI hierarchy shares one table,
+    // so a column any of them marks unsafe is unsafe for all of them.
+    const explicitUnsafeParamColumns = new Set(
+      this.stiHierarchyClasses().flatMap(dreamClass => [...dreamClass.explicitUnsafeParamColumns])
+    )
+
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
       if (this.prototype._primaryKey === column) return false
       if (this.prototype._createdAtField === column) return false
       if (this.prototype._updatedAtField === column) return false
       if (this.prototype._deletedAtField === column) return false
-      if (this.explicitUnsafeParamColumns.includes(column)) return false
+      if (explicitUnsafeParamColumns.has(column)) return false
       if (this.isBelongsToAssociationForeignKey(column, { includeStiSiblings: true })) return false
       if (this.isBelongsToAssociationPolymorphicTypeField(column, { includeStiSiblings: true })) return false
       if ((this.isSTIChild || this.isSTIBase) && column === 'type') return false

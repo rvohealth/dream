@@ -8,6 +8,7 @@ import Pet from '../../../test-app/app/models/Pet.js'
 import Rating from '../../../test-app/app/models/Rating.js'
 import StiA from '../../../test-app/app/models/Sti/A.js'
 import StiB from '../../../test-app/app/models/Sti/B.js'
+import StiBase from '../../../test-app/app/models/Sti/Base.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#paramSafeColumnsOrFallback', () => {
@@ -107,6 +108,17 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
 
   it('omits association foreign keys inherited from an STI base class', () => {
     expect(StiB['paramSafeColumnsOrFallback']()).not.toEqual(expect.arrayContaining(['petId']))
+  })
+
+  it('omits an @Encrypted backing column declared on the class itself', () => {
+    const results = StiA['paramSafeColumnsOrFallback']()
+    expect(results).not.toEqual(expect.arrayContaining(['encryptedSecret']))
+    expect(results).toEqual(expect.arrayContaining(['secret']))
+  })
+
+  it('omits an @Encrypted backing column declared anywhere in the STI hierarchy', () => {
+    expect(StiBase['paramSafeColumnsOrFallback']()).not.toEqual(expect.arrayContaining(['encryptedSecret']))
+    expect(StiB['paramSafeColumnsOrFallback']()).not.toEqual(expect.arrayContaining(['encryptedSecret']))
   })
 
   it('omits type field for STI models', () => {

@@ -17,6 +17,7 @@ import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSer
 import Pet from '../../../test-app/app/models/Pet.js'
 import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
 import StiA from '../../../test-app/app/models/Sti/A.js'
+import StiB from '../../../test-app/app/models/Sti/B.js'
 import StiBase from '../../../test-app/app/models/Sti/Base.js'
 import User from '../../../test-app/app/models/User.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -208,6 +209,21 @@ describe('Query#update', () => {
         await stiA.reload()
         expect(stiA.getAttribute('encryptedSecret')).toEqual(originalCiphertext)
         expect(stiA.secret).toEqual('original')
+      })
+
+      it('rejects a backing column declared on an STI sibling of the queried class', async () => {
+        const stiB = await StiB.create({
+          name: 'sti b',
+          pet: await Pet.create(),
+          taskable: await Chore.create(),
+        })
+
+        await expect(
+          StiB.where({ id: stiB.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await stiB.reload()
+        expect(stiB.getAttribute('encryptedSecret')).toBeNull()
       })
 
       it('writes the same values the guard validated when the attributes are getter-backed', async () => {
