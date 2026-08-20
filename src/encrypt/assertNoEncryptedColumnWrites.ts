@@ -10,9 +10,17 @@ import { snakeifyString } from '../helpers/snakeify.js'
  * than null. Guards the write paths that never instantiate a model, and so never
  * reach the throwing setter the Encrypted decorator installs for that column.
  *
- * `encryptedAttributes` is class-scoped, but every class in an STI hierarchy shares
- * one physical table, so the whole hierarchy is searched for backing columns
- * regardless of which of its classes the query is rooted at.
+ * `encryptedAttributes` is class-scoped, but a query rooted at an STI base reaches
+ * every one of its children's rows on the shared table, so `dreamClass` and every STI
+ * class below it are searched for backing columns.
+ *
+ * The search deliberately stops there rather than covering the whole hierarchy. A query
+ * rooted at an STI child matches only that child's rows, and a backing column only a
+ * sibling declares holds nothing meaningful for them: writing plaintext into it corrupts
+ * no ciphertext, because there is none to corrupt. Converting such a row to the sibling
+ * type is what has to clear that column, and it has to clear it whatever this guard did.
+ * Widening the walk to the siblings therefore buys no protection, and this guard runs on
+ * every single-statement update, so keep it narrow.
  *
  * Keys are matched in their snakeified form, since Kysely's CamelCasePlugin
  * resolves both the camelCase and the snake_case spelling of a key to the same
@@ -24,7 +32,7 @@ export default function assertNoEncryptedColumnWrites(
   dreamClass: typeof Dream,
   attributes: Record<string, unknown>
 ) {
-  const encryptedAttributes = encryptedAttributesInStiHierarchy(dreamClass)
+  const encryptedAttributes = encryptedAttributesInStiDescendants(dreamClass)
   if (encryptedAttributes.size === 0) return
 
   Object.keys(attributes).forEach(key => {
@@ -47,16 +55,15 @@ interface DeclaredEncryptedAttribute extends EncryptedAttributeStatement {
 /**
  * @internal
  *
- * Every @Encrypted backing column declared anywhere in `dreamClass`'s STI hierarchy —
- * on the STI base, on `dreamClass` itself, and on all of their descendants — keyed by
- * the snakeified backing column name.
+ * Every @Encrypted backing column declared on `dreamClass` or on an STI class below it,
+ * keyed by the snakeified backing column name.
  */
-function encryptedAttributesInStiHierarchy(
+function encryptedAttributesInStiDescendants(
   dreamClass: typeof Dream
 ): Map<string, DeclaredEncryptedAttribute> {
   const encryptedAttributes = new Map<string, DeclaredEncryptedAttribute>()
 
-  dreamClass['stiHierarchyClasses']().forEach(stiClass => {
+  dreamClass['selfAndStiDescendants']().forEach(stiClass => {
     stiClass['encryptedAttributes'].forEach(({ property, encryptedColumnName }) => {
       const snakeifiedColumnName = snakeifyString(encryptedColumnName)
       if (encryptedAttributes.has(snakeifiedColumnName)) return

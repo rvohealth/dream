@@ -116,9 +116,8 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
     expect(results).toEqual(expect.arrayContaining(['secret']))
   })
 
-  it('omits an @Encrypted backing column declared anywhere in the STI hierarchy', () => {
+  it('omits an @Encrypted backing column declared on an STI class below this one', () => {
     expect(StiBase['paramSafeColumnsOrFallback']()).not.toEqual(expect.arrayContaining(['encryptedSecret']))
-    expect(StiB['paramSafeColumnsOrFallback']()).not.toEqual(expect.arrayContaining(['encryptedSecret']))
   })
 
   it('omits type field for STI models', () => {

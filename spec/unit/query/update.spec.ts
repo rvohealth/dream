@@ -211,19 +211,17 @@ describe('Query#update', () => {
         expect(stiA.secret).toEqual('original')
       })
 
-      it('rejects a backing column declared on an STI sibling of the queried class', async () => {
+      it('permits a backing column declared only on an STI sibling, which holds nothing for these rows', async () => {
         const stiB = await StiB.create({
           name: 'sti b',
           pet: await Pet.create(),
           taskable: await Chore.create(),
         })
 
-        await expect(
-          StiB.where({ id: stiB.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
-        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+        await StiB.where({ id: stiB.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
 
         await stiB.reload()
-        expect(stiB.getAttribute('encryptedSecret')).toBeNull()
+        expect(stiB.getAttribute('encryptedSecret')).toEqual('plaintext')
       })
 
       it('writes the same values the guard validated when the attributes are getter-backed', async () => {

@@ -504,19 +504,19 @@ export default class Dream {
   /**
    * @internal
    *
-   * Every class sharing this class's physical table by way of STI: the STI base
-   * (or this class, when it belongs to no STI hierarchy) together with every class
-   * below it, however deeply nested.
+   * This class together with every STI class below it, however deeply nested. These
+   * are the classes whose rows a query rooted at this class can reach, since an STI
+   * child's rows are a subset of its base's.
+   *
+   * The classes *above* this one are deliberately excluded, as are its siblings: a
+   * column that only a sibling declares is meaningless for the rows this class
+   * matches, so treating it as this class's business protects nothing and costs a
+   * wider walk on every call.
    *
    * @returns An array of Dream classes
    */
-  private static stiHierarchyClasses(this: typeof Dream): (typeof Dream)[] {
-    const withDescendants = (dreamClass: typeof Dream): (typeof Dream)[] => [
-      dreamClass,
-      ...(dreamClass['extendedBy'] ?? []).flatMap(withDescendants),
-    ]
-
-    return withDescendants(this.stiBaseClassOrOwnClass)
+  private static selfAndStiDescendants(this: typeof Dream): (typeof Dream)[] {
+    return [this, ...(this.extendedBy ?? []).flatMap(dreamClass => dreamClass.selfAndStiDescendants())]
   }
 
   private static stiSiblings(): (typeof Dream)[] {
@@ -917,10 +917,11 @@ export default class Dream {
   private static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
-    // `columns()` is table scoped, and every class in an STI hierarchy shares one table,
-    // so a column any of them marks unsafe is unsafe for all of them.
+    // `columns()` is table scoped, so it offers this class every column of the shared
+    // STI table, including those an STI child marks unsafe. A column unsafe for a child
+    // is unsafe here, because a query rooted at this class reaches that child's rows.
     const explicitUnsafeParamColumns = new Set(
-      this.stiHierarchyClasses().flatMap(dreamClass => [...dreamClass.explicitUnsafeParamColumns])
+      this.selfAndStiDescendants().flatMap(dreamClass => [...dreamClass.explicitUnsafeParamColumns])
     )
 
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
