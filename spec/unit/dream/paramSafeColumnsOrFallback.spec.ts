@@ -35,17 +35,19 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
         case 'title':
       }
 
-      let unsafeParams: DreamParamUnsafeColumnNames<LocalizedText>
-      switch (unsafeParams!) {
-        case 'createdAt':
-        case 'updatedAt':
-        case 'deletedAt':
-        case 'id':
-        case 'localizable':
-        case 'localizableId':
-        case 'type':
-        case 'localizableType':
+      const checkUnsafeParams = (unsafeParams: DreamParamUnsafeColumnNames<LocalizedText>) => {
+        switch (unsafeParams) {
+          case 'createdAt':
+          case 'updatedAt':
+          case 'deletedAt':
+          case 'id':
+          case 'localizable':
+          case 'localizableId':
+          case 'type':
+          case 'localizableType':
+        }
       }
+      void checkUnsafeParams
     })
 
     it.skip('preserves concrete types for virtual and encrypted param-safe attributes', () => {
