@@ -3043,7 +3043,7 @@ export default class Query<
    * use {@link Query.destroy} instead.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%').delete() })
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).delete()
    * // 12
    * ```
    *
