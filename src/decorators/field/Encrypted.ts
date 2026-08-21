@@ -47,6 +47,18 @@ export default function Encrypted(encryptedColumnName?: string): any {
       }
       ;(dreamClass['explicitUnsafeParamColumns'] as string[]).push(encryptedKey)
 
+      if (!Object.getOwnPropertyDescriptor(dreamClass, 'encryptedAttributes')) {
+        // This pattern allows `encryptedAttributes` on a base STI class and on
+        // child STI classes. The new `encryptedAttributes` property will be created
+        // on the child STI class, but it will include all the `encryptedAttributes`
+        // already declared on the base STI class.
+        dreamClass['encryptedAttributes'] = [...dreamClass['encryptedAttributes']]
+      }
+      ;(dreamClass['encryptedAttributes'] as EncryptedAttributeStatement[]).push({
+        property: key,
+        encryptedColumnName: encryptedKey,
+      } satisfies EncryptedAttributeStatement)
+
       const dreamPrototype = Object.getPrototypeOf(this)
 
       Object.defineProperty(dreamPrototype, key, {

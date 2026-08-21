@@ -29,6 +29,15 @@ describe('@Encrypted', () => {
     )
   })
 
+  it("adds each backing column to the Dream class's encryptedAttributes", () => {
+    expect(User['encryptedAttributes']).toEqual(
+      expect.arrayContaining([
+        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
+      ])
+    )
+  })
+
   context('with no arguments', () => {
     it('uses the word "encrypted" in front of the pascalized method name', () => {
       const user = User.new()

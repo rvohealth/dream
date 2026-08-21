@@ -3,6 +3,7 @@ import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
 import { invalidateSortableRowCache } from '../decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamApp from '../dream-app/index.js'
+import assertNoEncryptedColumnWrites from '../encrypt/assertNoEncryptedColumnWrites.js'
 import Dream from '../Dream.js'
 import AssociationDeclaredWithoutAssociatedDreamClass from '../errors/associations/AssociationDeclaredWithoutAssociatedDreamClass.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
@@ -3042,7 +3043,7 @@ export default class Query<
    * use {@link Query.destroy} instead.
    *
    * ```ts
-   * await User.where({ email: ops.ilike('%burpcollaborator%').delete() })
+   * await User.where({ email: ops.ilike('%burpcollaborator%') }).delete()
    * // 12
    * ```
    *
@@ -3216,7 +3217,10 @@ export default class Query<
    *   hanging.
    * - **`skipHooks` composes with `lock`, but stays on the per-instance
    *   path.** With an attributes object and no `lock`, `skipHooks: true`
-   *   issues a single `UPDATE ... WHERE` statement that writes raw columns.
+   *   issues a single `UPDATE ... WHERE` statement that writes raw columns —
+   *   with one refusal: it will not write a non-null value into an
+   *   `@Encrypted` backing column, since nothing on that path encrypts it, and
+   *   throws instead; `null`, which clears the column, is permitted.
    *   With `lock: true`, `skipHooks: true` skips the model hooks on each
    *   claimed record but still writes through the instance, so custom setters
    *   — including the setters encrypted attributes encrypt through — run as
@@ -3239,6 +3243,7 @@ export default class Query<
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
    * @throws MissingRequiredLockOptionForUpdateCallback if a callback is passed without an options object carrying a boolean `lock`
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
+   * @throws CannotSetEncryptedColumnInQueryUpdate if the single-statement `skipHooks` form's attributes name an `@Encrypted` backing column with anything other than `null`
    */
   public async update(
     cb: (
@@ -3418,7 +3423,15 @@ export default class Query<
   }
 
   private async updateWithoutCallingModelHooks(attributes: DreamTableSchema<DreamInstance>) {
-    return await this.dbDriverInstance().update(attributes)
+    // the guard and the driver must read the same values, so the caller's object
+    // is materialized once here and both read the snapshot
+    const snapshot = { ...attributes }
+
+    // this path compiles to a single UPDATE statement and never instantiates a
+    // model, so the setter that encrypts an @Encrypted property never runs
+    assertNoEncryptedColumnWrites(this.dreamClass, snapshot as Record<string, unknown>)
+
+    return await this.dbDriverInstance().update(snapshot)
   }
 
   private invertOrder() {

@@ -4,14 +4,21 @@ import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import KyselyQueryDriver from '../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
+import DoNotSetEncryptedFieldsDirectly from '../../../src/errors/DoNotSetEncryptedFieldsDirectly.js'
+import CannotSetEncryptedColumnInQueryUpdate from '../../../src/errors/encrypt/CannotSetEncryptedColumnInQueryUpdate.js'
 import InvalidBatchSize from '../../../src/errors/InvalidBatchSize.js'
 import MissingRequiredLockOptionForUpdateCallback from '../../../src/errors/MissingRequiredLockOptionForUpdateCallback.js'
 import NoUpdateAllOnJoins from '../../../src/errors/NoUpdateAllOnJoins.js'
 import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociationQuery.js'
 import RowLockIncompatibleWithDistinct from '../../../src/errors/RowLockIncompatibleWithDistinct.js'
 import ops from '../../../src/ops/index.js'
+import { DreamTableSchema, UpdateableProperties } from '../../../src/types/dream.js'
 import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
+import StiA from '../../../test-app/app/models/Sti/A.js'
+import StiB from '../../../test-app/app/models/Sti/B.js'
+import StiBase from '../../../test-app/app/models/Sti/Base.js'
 import User from '../../../test-app/app/models/User.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 
@@ -82,6 +89,177 @@ describe('Query#update', () => {
       await Pet.query().update({ name: 'change me' }, { skipHooks: true })
       const pet = await Pet.first()
       expect(pet!.name).toEqual('change me')
+    })
+
+    context('with an @Encrypted backing column', () => {
+      it('permits null, clearing the column', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+
+        const count = await User.where({ id: user.id }).update({ encryptedSecret: null }, { skipHooks: true })
+        expect(count).toEqual(1)
+
+        await user.reload()
+        expect(user.getAttribute('encryptedSecret')).toBeNull()
+        expect(user.secret).toBeNull()
+      })
+
+      it('permits a plain column alongside a cleared encrypted column', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+
+        await User.where({ id: user.id }).update(
+          { name: 'Chalupa Joe', encryptedSecret: null },
+          { skipHooks: true }
+        )
+
+        await user.reload()
+        expect(user.name).toEqual('Chalupa Joe')
+        expect(user.getAttribute('encryptedSecret')).toBeNull()
+      })
+
+      it('rejects a non-null value, leaving the row unchanged', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+        const originalCiphertext = user.getAttribute('encryptedSecret')
+
+        await expect(
+          User.where({ id: user.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.getAttribute('encryptedSecret')).toEqual(originalCiphertext)
+        expect(user.secret).toEqual('original')
+      })
+
+      it('rejects undefined, which is not a request to clear the column', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+
+        await expect(
+          User.where({ id: user.id }).update({ encryptedSecret: undefined }, { skipHooks: true })
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.secret).toEqual('original')
+      })
+
+      it('rejects a non-null value written to a custom-named backing column', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          otherSecret: { token: 'original' },
+        })
+        const originalCiphertext = user.getAttribute('myOtherEncryptedSecret')
+
+        await expect(
+          User.where({ id: user.id }).update({ myOtherEncryptedSecret: 'plaintext' }, { skipHooks: true })
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.getAttribute('myOtherEncryptedSecret')).toEqual(originalCiphertext)
+        expect(user.otherSecret).toEqual({ token: 'original' })
+      })
+
+      it('rejects the snake_case spelling of the backing column, which Kysely resolves to the same column', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+        const originalCiphertext = user.getAttribute('encryptedSecret')
+
+        await expect(
+          User.where({ id: user.id }).update(
+            { encrypted_secret: 'plaintext' } as unknown as DreamTableSchema<User>,
+            { skipHooks: true }
+          )
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.getAttribute('encryptedSecret')).toEqual(originalCiphertext)
+        expect(user.secret).toEqual('original')
+      })
+
+      it('rejects the snake_case spelling of a custom-named backing column', async () => {
+        const user = await User.create({
+          email: 'fred@frewd',
+          password: 'howyadoin',
+          otherSecret: { token: 'original' },
+        })
+        const originalCiphertext = user.getAttribute('myOtherEncryptedSecret')
+
+        await expect(
+          User.where({ id: user.id }).update(
+            { my_other_encrypted_secret: 'plaintext' } as unknown as DreamTableSchema<User>,
+            { skipHooks: true }
+          )
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.getAttribute('myOtherEncryptedSecret')).toEqual(originalCiphertext)
+        expect(user.otherSecret).toEqual({ token: 'original' })
+      })
+
+      it('rejects a backing column declared on an STI child when the query is rooted at the STI base', async () => {
+        const stiA = await StiA.create({
+          name: 'sti a',
+          secret: 'original',
+          pet: await Pet.create(),
+          taskable: await Chore.create(),
+        })
+        const originalCiphertext = stiA.getAttribute('encryptedSecret')
+
+        await expect(
+          StiBase.where({ id: stiA.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
+        ).rejects.toThrow(CannotSetEncryptedColumnInQueryUpdate)
+
+        await stiA.reload()
+        expect(stiA.getAttribute('encryptedSecret')).toEqual(originalCiphertext)
+        expect(stiA.secret).toEqual('original')
+      })
+
+      it('permits a backing column declared only on an STI sibling, which holds nothing for these rows', async () => {
+        const stiB = await StiB.create({
+          name: 'sti b',
+          pet: await Pet.create(),
+          taskable: await Chore.create(),
+        })
+
+        await StiB.where({ id: stiB.id }).update({ encryptedSecret: 'plaintext' }, { skipHooks: true })
+
+        await stiB.reload()
+        expect(stiB.getAttribute('encryptedSecret')).toEqual('plaintext')
+      })
+
+      it('writes the same values the guard validated when the attributes are getter-backed', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+        let reads = 0
+
+        const attributes = {
+          get encryptedSecret() {
+            return reads++ === 0 ? null : 'plaintext'
+          },
+        }
+
+        await User.where({ id: user.id }).update(attributes as DreamTableSchema<User>, { skipHooks: true })
+
+        expect(reads).toEqual(1)
+        await user.reload()
+        expect(user.getAttribute('encryptedSecret')).toBeNull()
+      })
+
+      it('does not type check the plaintext property, which is not part of the table schema', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+
+        // The virtual property is not a backing column, so the guard must leave it alone.
+        // The call still fails, but the failure belongs to the database — it is handed a
+        // column that does not exist — and the message it raises is adapter-specific, so
+        // only the identity of the error is asserted here.
+        const error = await User.where({ id: user.id })
+          // @ts-expect-error the no-lock skipHooks form is typed as the raw table
+          // schema, which has no virtual columns
+          .update({ secret: 'updated' }, { skipHooks: true })
+          .catch((error: unknown) => error)
+
+        expect(error).toBeInstanceOf(Error)
+        expect(error).not.toBeInstanceOf(CannotSetEncryptedColumnInQueryUpdate)
+
+        await user.reload()
+        expect(user.secret).toEqual('original')
+      })
     })
   })
 
@@ -402,6 +580,20 @@ describe('Query#update', () => {
           await user.reload()
           expect(user.secret).toEqual('updated secret')
           expect(user.getAttribute('encryptedSecret')).not.toEqual('updated secret')
+        })
+
+        it('rejects the backing column with the setter error, not the query-update error', async () => {
+          const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', secret: 'original' })
+
+          await expect(
+            User.where({ id: user.id }).update(
+              { encryptedSecret: 'plaintext' } as unknown as UpdateableProperties<User>,
+              { lock: true, skipHooks: true }
+            )
+          ).rejects.toThrow(DoNotSetEncryptedFieldsDirectly)
+
+          await user.reload()
+          expect(user.secret).toEqual('original')
         })
       })
     })

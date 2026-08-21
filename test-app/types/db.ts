@@ -805,6 +805,7 @@ export interface Shapes {
 
 export interface StiBases {
   createdAt: Timestamp
+  encryptedSecret: string | null
   id: Generated<Int8>
   name: string
   petId: Int8 | null

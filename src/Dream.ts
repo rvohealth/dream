@@ -5,6 +5,7 @@ import { pgErrorType, UNIQUE_VIOLATION } from './db/errors.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
+import { EncryptedAttributeStatement } from './decorators/field/Encrypted.js'
 import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
@@ -384,6 +385,17 @@ export default class Dream {
   /**
    * @internal
    *
+   * Model storage for encrypted attribute metadata, set on the inheriting class when
+   * using the Encrypted decorator (this default assignment simply ensures that it is
+   * always an array rather than undefined,
+   * freezing ensures that we never modify the static array on the inherited Dream class)
+   */
+  private static encryptedAttributes: readonly EncryptedAttributeStatement[] | EncryptedAttributeStatement[] =
+    Object.freeze([])
+
+  /**
+   * @internal
+   *
    * Model storage for sortable metadata, set when using the Sortable decorator
    *  (this default assignment simply ensures that it is always an array rather than undefined,
    * freezing ensures that we never modify the static array on the inherited Dream class)
@@ -487,6 +499,24 @@ export default class Dream {
    */
   private static get isSTIBase() {
     return !!this.extendedBy?.length && !this.isSTIChild
+  }
+
+  /**
+   * @internal
+   *
+   * This class together with every STI class below it, however deeply nested. These
+   * are the classes whose rows a query rooted at this class can reach, since an STI
+   * child's rows are a subset of its base's.
+   *
+   * The classes *above* this one are deliberately excluded, as are its siblings: a
+   * column that only a sibling declares is meaningless for the rows this class
+   * matches, so treating it as this class's business protects nothing and costs a
+   * wider walk on every call.
+   *
+   * @returns An array of Dream classes
+   */
+  private static selfAndStiDescendants(this: typeof Dream): (typeof Dream)[] {
+    return [this, ...(this.extendedBy ?? []).flatMap(dreamClass => dreamClass.selfAndStiDescendants())]
   }
 
   private static stiSiblings(): (typeof Dream)[] {
@@ -887,12 +917,19 @@ export default class Dream {
   private static defaultParamSafeColumns<T extends typeof Dream, I extends InstanceType<T>>(
     this: T
   ): DreamParamSafeColumnNames<I>[] {
+    // `columns()` is table scoped, so it offers this class every column of the shared
+    // STI table, including those an STI child marks unsafe. A column unsafe for a child
+    // is unsafe here, because a query rooted at this class reaches that child's rows.
+    const explicitUnsafeParamColumns = new Set(
+      this.selfAndStiDescendants().flatMap(dreamClass => [...dreamClass.explicitUnsafeParamColumns])
+    )
+
     const columns: DreamParamSafeColumnNames<I>[] = [...this.columns()].filter(column => {
       if (this.prototype._primaryKey === column) return false
       if (this.prototype._createdAtField === column) return false
       if (this.prototype._updatedAtField === column) return false
       if (this.prototype._deletedAtField === column) return false
-      if (this.explicitUnsafeParamColumns.includes(column)) return false
+      if (explicitUnsafeParamColumns.has(column)) return false
       if (this.isBelongsToAssociationForeignKey(column, { includeStiSiblings: true })) return false
       if (this.isBelongsToAssociationPolymorphicTypeField(column, { includeStiSiblings: true })) return false
       if ((this.isSTIChild || this.isSTIBase) && column === 'type') return false
