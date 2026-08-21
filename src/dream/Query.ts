@@ -2876,7 +2876,7 @@ export default class Query<
     // truthiness, since a primary key of 0 is a legitimate cursor value that
     // would otherwise reset the window to the start of the set
     let lastId: any = undefined
-    let attemptedCount = 0
+    let attemptedCount: number
 
     do {
       const batchQuery =

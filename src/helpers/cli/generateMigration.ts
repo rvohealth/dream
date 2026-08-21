@@ -87,7 +87,7 @@ export default async function generateMigration({
   const fileName = `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
 
   const isSTI = !!fullyQualifiedParentName
-  let content: string = ''
+  let content: string
 
   if (isSTI) {
     content = generateStiMigrationContent({
