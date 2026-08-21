@@ -239,9 +239,7 @@ describe('Query#preload with polymorphic associations', () => {
           const compositionAssetAudit = await compositionAsset.createAssociation('compositionAssetAudits')
           const rating = await Rating.create({ user, rateable: composition })
 
-          let reloaded = await Rating.preload('rateable', 'comments', 'post').findOrFail(rating.id)
-
-          reloaded = await Rating.preload(
+          const reloaded = await Rating.preload(
             'rateable',
             'compositionAssets',
             'compositionAssetAudits'
