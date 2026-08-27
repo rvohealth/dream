@@ -51,6 +51,18 @@ export default function Sortable(opts: SortableOpts = {}): any {
         // already declared on the base STI class.
         dreamClass['sortableFields'] = [...dreamClass['sortableFields']]
       }
+
+      // an STI child inherits its base's sortable fields via the copy above, and
+      // the base's field initializers run again while the child is globally
+      // initialized, so without this guard the child registers a second config
+      // for the same position field whenever the base is initialized first
+      // (models are globally initialized in filesystem order). Every duplicate
+      // config repeats the child's position work on each save, so positions
+      // advance by the number of duplicates instead of by 1
+      if (dreamClass['sortableFields'].some(conf => conf.positionField === key)) {
+        return
+      }
+
       // the decorator registers nothing but this metadata: none of a sortable
       // field's runtime work runs as hooks. A save's preparation and position
       // write run as phases in `saveDream` (`prepareSortableFieldsForSave`,
