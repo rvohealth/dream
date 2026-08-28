@@ -168,8 +168,8 @@ function guardAssociationColumns(
       // pass too, and these guards never see the association's foreign key;
       // the InvalidComputedForeignKey / ExplicitForeignKeyRequired errors
       // swallowed here resurface at runtime as the backstop.
-      let foreignKey: string | null = null
-      let foreignKeyTypeColumn: string | null = null
+      let foreignKey: string
+      let foreignKeyTypeColumn: string | null
       try {
         foreignKey = associationMetaData.foreignKey()
         foreignKeyTypeColumn = associationMetaData.polymorphic
