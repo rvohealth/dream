@@ -28,5 +28,11 @@ describe('Dream Scope (default variant)', () => {
       expect(await Mylar.all()).toMatchDreamModels([mylar])
       expect(await Mylar.removeAllDefaultScopes().all()).toMatchDreamModels([mylar, mylar2])
     })
+
+    it('does not find a sibling record when all default scopes are removed', async () => {
+      const latex = await Latex.create({ color: 'green', volume: 1 })
+
+      expect(await Mylar.removeAllDefaultScopes().find(latex.id)).toBeNull()
+    })
   })
 })

@@ -15,6 +15,7 @@ import LocalizedText from '../../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import PostComment from '../../../../test-app/app/models/PostComment.js'
+import Sandbag from '../../../../test-app/app/models/Sandbag.js'
 import User from '../../../../test-app/app/models/User.js'
 import testDb from '../../../helpers/testDb.js'
 
@@ -391,6 +392,13 @@ describe('Dream#associationQuery', () => {
   })
 
   context('BelongsTo', () => {
+    it('keeps the STI scope when all default scopes are removed', async () => {
+      const latex = await Latex.create({ color: 'red' })
+      const sandbag = await Sandbag.create({ balloonId: latex.id, weight: 10 })
+
+      expect(await sandbag.associationQuery('mylar').removeAllDefaultScopes().first()).toBeNull()
+    })
+
     context('withoutDefaultScopes defined on the association', () => {
       it('removes the default scope', async () => {
         const user = await User.create({ email: 'fred@frewd', password: 'password' })
