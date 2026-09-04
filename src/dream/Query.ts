@@ -1549,7 +1549,17 @@ export default class Query<
           ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
           : never,
   >(type: QueryType): ToKyselyReturnType {
+    if (type !== 'select') this.assertMutationPreservesAssociationQuery()
     return this.dbDriverInstance().toKysely(type)
+  }
+
+  /**
+   * @internal
+   *
+   * Prevents mutation paths that discard an association query's ownership constraint.
+   */
+  private assertMutationPreservesAssociationQuery() {
+    if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
   }
 
   /**
@@ -3052,6 +3062,7 @@ export default class Query<
    * @returns The number of records that were removed
    */
   public async delete(): Promise<number> {
+    this.assertMutationPreservesAssociationQuery()
     return await this.dbDriverInstance().delete()
   }
 
@@ -3277,7 +3288,7 @@ export default class Query<
           | Promise<UpdateableProperties<DreamInstance> | undefined>),
     { skipHooks, lock, batchSize }: { skipHooks?: boolean; lock?: boolean; batchSize?: number } = {}
   ): Promise<number> {
-    if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
+    this.assertMutationPreservesAssociationQuery()
     if (Object.keys(this.innerJoinStatements).length) throw new NoUpdateAllOnJoins()
     if (Object.keys(this.leftJoinStatements).length) throw new NoUpdateAllOnJoins()
 

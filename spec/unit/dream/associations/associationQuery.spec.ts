@@ -2,6 +2,7 @@ import { sql } from 'kysely'
 import CannotAssociationQueryOnUnpersistedDream from '../../../../src/errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import NoUpdateOnAssociationQuery from '../../../../src/errors/NoUpdateOnAssociationQuery.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -397,6 +398,56 @@ describe('Dream#associationQuery', () => {
       const sandbag = await Sandbag.create({ balloonId: latex.id, weight: 10 })
 
       expect(await sandbag.associationQuery('mylar').removeAllDefaultScopes().first()).toBeNull()
+    })
+
+    context('when mutating the association query', () => {
+      let associatedMylar: Mylar
+      let unassociatedMylar: Mylar
+      let latex: Latex
+      let sandbag: Sandbag
+
+      beforeEach(async () => {
+        associatedMylar = await Mylar.create({ color: 'red' })
+        unassociatedMylar = await Mylar.create({ color: 'red' })
+        latex = await Latex.create({ color: 'red' })
+        sandbag = await Sandbag.create({ balloonId: associatedMylar.id, weight: 10 })
+      })
+
+      it('rejects an update without changing any rows', async () => {
+        await expect(sandbag.associationQuery('mylar').update({ color: 'blue' })).rejects.toThrow(
+          NoUpdateOnAssociationQuery
+        )
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+        expect([associatedMylar.color, unassociatedMylar.color, latex.color]).toEqual(['red', 'red', 'red'])
+      })
+
+      it('rejects a delete without deleting any rows', async () => {
+        await expect(sandbag.associationQuery('mylar').delete()).rejects.toThrow(NoUpdateOnAssociationQuery)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+      })
+
+      it('rejects a raw Kysely update without changing any rows', async () => {
+        expect(() => sandbag.associationQuery('mylar').toKysely('update').set({ color: 'blue' })).toThrow(
+          NoUpdateOnAssociationQuery
+        )
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+        expect([associatedMylar.color, unassociatedMylar.color, latex.color]).toEqual(['red', 'red', 'red'])
+      })
+
+      it('rejects a raw Kysely delete without deleting any rows', async () => {
+        expect(() => sandbag.associationQuery('mylar').toKysely('delete')).toThrow(NoUpdateOnAssociationQuery)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+      })
+
+      it('continues to allow raw Kysely selects', async () => {
+        const rows = await sandbag.associationQuery('mylar').toKysely('select').execute()
+
+        expect(rows).toHaveLength(1)
+      })
     })
 
     context('withoutDefaultScopes defined on the association', () => {
