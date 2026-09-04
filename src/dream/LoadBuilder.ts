@@ -65,8 +65,9 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   }
 
   /**
-   * Prevents all default scopes from applying when
-   * loading associations
+   * Prevents user-removable default scopes from applying when loading
+   * associations. An associated STI child's reserved type discriminator remains
+   * enforced; loading through its STI base still spans registered children.
    *
    * ```ts
    * const user = await User.firstOrFail()

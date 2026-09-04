@@ -300,7 +300,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param options - Options for destroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade destroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The instance that was destroyed
    */
@@ -330,7 +330,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param options - Options for destroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade destroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The instance that was destroyed
    */
@@ -360,7 +360,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param options - Options for undestroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade undestroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The undestroyed instance
    */
@@ -929,7 +929,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param attributes - The attributes to update on the association
    * @param updateAssociationOptions - Options for updating the association
    * @param updateAssociationOptions.where - Optional where statement to apply to query before updating
-   * @param updateAssociationOptions.bypassAllDefaultScopes - If true, bypasses all default scopes when updating the association. Defaults to false
+   * @param updateAssociationOptions.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when updating the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param updateAssociationOptions.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
    * @param updateAssociationOptions.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
    * @returns The number of updated records
@@ -1054,7 +1054,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param options.andAny - Optional andAny statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when destroying the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array
    * @returns The number of records deleted
    */
@@ -1139,7 +1139,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param options.andAny - Optional andAny statement to apply to query before destroying
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If true, cascades the destroy operation to associations marked with `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when destroying the association. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when destroying the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when destroying the association. Defaults to an empty array
    * @returns The number of records deleted
    */
@@ -1219,7 +1219,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param options.andAny - Optional andAny statement to apply to query before undestroying
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when undestroying the association. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when undestroying the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when undestroying the association. Defaults to an empty array
    * @returns The number of records undestroyed
    */

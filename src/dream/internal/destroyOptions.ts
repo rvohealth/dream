@@ -13,8 +13,9 @@ import {
  */
 export interface DestroyOptions<DreamInstance extends Dream> {
   /**
-   * If true, bypasses all default scopes when destroying the instance.
-   * Defaults to false.
+   * If true, bypasses user-removable default scopes during the destroy operation.
+   * An STI child's reserved discriminator remains enforced, including when
+   * associations are loaded. Defaults to false.
    */
   bypassAllDefaultScopes?: boolean | undefined
 
