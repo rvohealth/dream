@@ -40,7 +40,7 @@ export default async function loadDependentDestroyTree<I extends Dream>(
   }
 
   if (bypassAllDefaultScopes) {
-    loadBuilder = loadBuilder.removeAllDefaultScopes()
+    loadBuilder = loadBuilder['removeAllDefaultScopes']()
   } else {
     for (const scopeName of defaultScopesToBypass) {
       loadBuilder = loadBuilder.removeDefaultScope(scopeName as any)

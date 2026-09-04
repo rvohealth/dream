@@ -12,7 +12,7 @@ export default function applyScopeBypassingSettingsToQuery<DreamInstance extends
     defaultScopesToBypass: AllDefaultScopeNames<DreamInstance>[]
   }
 ) {
-  if (bypassAllDefaultScopes) query = query.removeAllDefaultScopes()
+  if (bypassAllDefaultScopes) query = query['removeAllDefaultScopes']()
 
   defaultScopesToBypass.forEach(defaultScopeToBypass => {
     query = query.removeDefaultScope(defaultScopeToBypass)

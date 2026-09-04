@@ -1093,6 +1093,8 @@ export default class Dream {
   }
 
   /**
+   * @deprecated Use {@link removeDefaultScope} instead. This method will become private in v3.
+   *
    * Returns a query which bypasses user-removable default scopes, including on
    * association loads. An STI child's reserved type discriminator remains
    * enforced; query the STI base model to span its registered children.
@@ -1100,7 +1102,7 @@ export default class Dream {
    * @returns A query which bypasses user-removable default scopes
    */
   public static removeAllDefaultScopes<T extends typeof Dream>(this: T): Query<InstanceType<T>> {
-    return this.query().removeAllDefaultScopes()
+    return this.query()['removeAllDefaultScopes']()
   }
 
   /**
@@ -3883,7 +3885,7 @@ export default class Dream {
    * this will raise an exception.
    *
    * ```ts
-   * const user = await User.removeAllDefaultScopes().last()
+   * const user = await User.removeDefaultScope('dream:SoftDelete').last()
    * await user.undestroy()
    * ```
    *

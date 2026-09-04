@@ -353,7 +353,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * this will raise an exception.
    *
    * ```ts
-   * const user = await User.removeAllDefaultScopes().last()
+   * const user = await User.removeDefaultScope('dream:SoftDelete').last()
    * await user.txn(txn).undestroy()
    * ```
    *

@@ -30,5 +30,15 @@ describe('Dream#removeAllDefaultScopes', () => {
 
       expect(spy).toHaveBeenCalled()
     })
+
+    it('allows removing an association default scope by name', async () => {
+      const spy = vi.spyOn(Query.prototype, 'removeDefaultScope')
+
+      await ApplicationModel.transaction(async txn => {
+        await Pet.txn(txn).removeDefaultScope('hideHiddenCollars').find(petId)
+      })
+
+      expect(spy).toHaveBeenCalledWith('hideHiddenCollars')
+    })
   })
 })

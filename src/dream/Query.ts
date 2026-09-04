@@ -1171,6 +1171,8 @@ export default class Query<
   }
 
   /**
+   * @deprecated Use {@link removeDefaultScope} instead. This method will become private in v3.
+   *
    * Prevents user-removable default scopes from applying when the Query is
    * executed, including when associations are loaded. An STI child's reserved
    * type discriminator remains enforced; query the STI base model to span its

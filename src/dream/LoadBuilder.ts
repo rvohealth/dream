@@ -65,6 +65,8 @@ export default class LoadBuilder<DreamInstance extends Dream> {
   }
 
   /**
+   * @deprecated Use {@link removeDefaultScope} instead. This method will become private in v3.
+   *
    * Prevents user-removable default scopes from applying when loading
    * associations. An associated STI child's reserved type discriminator remains
    * enforced; loading through its STI base still spans registered children.
@@ -73,14 +75,14 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    * const user = await User.firstOrFail()
    * const loaded = await user
    *   .load('posts')
-   *   .removeAllDefaultScopes()
+   *   .removeDefaultScope('dream:SoftDelete')
    *   .execute()
    * ```
    *
    * @returns The LoadBuilder instance for chaining
    */
   public removeAllDefaultScopes<I extends LoadBuilder<DreamInstance>>(this: I) {
-    this.query = this.query.removeAllDefaultScopes() as typeof this.query
+    this.query = this.query['removeAllDefaultScopes']() as typeof this.query
     return this
   }
 
