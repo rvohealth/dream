@@ -1,4 +1,4 @@
-import { Nullable } from 'kysely'
+import { CompiledQuery, Nullable } from 'kysely'
 import Dream from '../Dream.js'
 import Query from '../dream/Query.js'
 import { ModelColumnType } from './dream.js'
@@ -58,6 +58,8 @@ export type DefaultQueryTypeOptions<
   allowLimit: true
   allowOffset: true
   allowPaginate: true
+  outputMode: undefined
+  outputFormat: undefined
 }>
 
 export interface PreloadedDreamsAndWhatTheyPointTo {
@@ -71,6 +73,66 @@ export interface FindEachOpts {
    */
   batchSize?: number
 }
+
+/**
+ * What a Query's `output` method surfaces instead of executing the query:
+ * the compiled sql statement ('sql'), or the database's query plan ('explain').
+ */
+export type QueryOutputMode = 'sql' | 'explain'
+
+/**
+ * The plan format an explain may be requested in. 'text' (the default)
+ * yields the database's plain explain output, one line per entry; 'json'
+ * yields the parsed JSON plan.
+ */
+export type DreamExplainFormat = 'text' | 'json'
+
+export interface DreamExplainOptions<Format extends DreamExplainFormat = DreamExplainFormat> {
+  /**
+   * the format the database should render the plan in. Defaults to 'text',
+   * the database's plain explain output.
+   */
+  format?: Format
+
+  /**
+   * when true, the database actually executes the query to gather real
+   * timing and row counts, and the plan reflects the execution rather
+   * than only the planner's estimates. The query's result rows are still
+   * discarded by the database; only the plan is returned.
+   */
+  analyze?: boolean
+
+  /**
+   * when true, the database includes additional detail in the plan
+   * (e.g., on Postgres, the output column list of each plan node).
+   */
+  verbose?: boolean
+}
+
+/**
+ * What an explain resolves to: the plan lines for the 'text' format, or the
+ * parsed JSON plan for the 'json' format.
+ */
+export type DreamExplainResult<Format extends DreamExplainFormat = DreamExplainFormat> = Format extends 'json'
+  ? object[]
+  : string[]
+
+/**
+ * The return type of a Query execution method, accounting for the Query's
+ * output mode: the compiled sql statement in the 'sql' mode, the query plan
+ * in the 'explain' mode, and the method's ordinary result otherwise.
+ */
+export type QueryResultForOutputMode<
+  QueryTypeOpts extends Readonly<QueryTypeOptions>,
+  DefaultResult,
+> = QueryTypeOpts['outputMode'] extends 'sql'
+  ? CompiledQuery<object>
+  : QueryTypeOpts['outputMode'] extends 'explain'
+    ? DreamExplainResult<
+        QueryTypeOpts['outputFormat'] extends DreamExplainFormat ? QueryTypeOpts['outputFormat'] : 'text'
+      >
+    : DefaultResult
+
 export type JoinTypes = 'inner' | 'left'
 
 export type ExtendQueryType<
@@ -91,6 +153,10 @@ export type ExtendQueryType<
   allowLimit: Opts['allowLimit'] extends false ? false : OriginalOpts['allowLimit']
   allowOffset: Opts['allowOffset'] extends false ? false : OriginalOpts['allowOffset']
   allowPaginate: Opts['allowPaginate'] extends false ? false : OriginalOpts['allowPaginate']
+  outputMode: Opts['outputMode'] extends QueryOutputMode ? Opts['outputMode'] : OriginalOpts['outputMode']
+  outputFormat: Opts['outputFormat'] extends DreamExplainFormat
+    ? Opts['outputFormat']
+    : OriginalOpts['outputFormat']
 }>
 
 export type NamespacedColumnType<

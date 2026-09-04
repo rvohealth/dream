@@ -64,12 +64,16 @@ import {
   CursorPaginatedDreamQueryOptions,
   CursorPaginatedDreamQueryResult,
   DefaultQueryTypeOptions,
+  DreamExplainFormat,
+  DreamExplainOptions,
   ExtendQueryType,
   FindEachOpts,
   LoadForModifierFn,
   NamespacedOrBaseModelColumnTypes,
   PaginatedDreamQueryOptions,
   PaginatedDreamQueryResult,
+  QueryOutputMode,
+  QueryResultForOutputMode,
   QueryToKyselyDBType,
   QueryToKyselyTableNamesType,
 } from '../types/query.js'
@@ -336,6 +340,22 @@ export default class Query<
   /**
    * @internal
    *
+   * When set, single-statement execution methods surface the query instead of
+   * executing it: the compiled sql statement ('sql') or the database's query
+   * plan ('explain'). See {@link Query.output}.
+   */
+  private readonly outputMode: QueryOutputMode | null = null
+
+  /**
+   * @internal
+   *
+   * The explain options ('explain' output mode only): format, analyze, verbose
+   */
+  private readonly outputOptions: DreamExplainOptions = Object.freeze({})
+
+  /**
+   * @internal
+   *
    * The base sql alias to use for the base model
    * of this Query
    */
@@ -408,6 +428,8 @@ export default class Query<
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
+    this.outputMode = opts.outputMode || null
+    this.outputOptions = Object.freeze(opts.outputOptions || {})
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -489,6 +511,9 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
+
+      outputMode: opts.outputMode !== undefined ? opts.outputMode : this.outputMode,
+      outputOptions: opts.outputOptions !== undefined ? opts.outputOptions : this.outputOptions,
     }) as Q
   }
 
@@ -510,8 +535,10 @@ export default class Query<
    * @param primaryKey - The primary key of the record to look up.
    * @returns Either the found record, or else null
    */
-  public async find(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance | null> {
-    if (!primaryKey) return null
+  public async find(
+    primaryKey: PrimaryKeyForFind<DreamInstance>
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance | null>> {
+    if (!primaryKey) return null as QueryResultForOutputMode<QueryTypeOpts, DreamInstance | null>
 
     return await this.where({
       [this.dreamInstance['_primaryKey']]: primaryKey,
@@ -531,10 +558,12 @@ export default class Query<
    * @param primaryKey - The primary key of the record to look up
    * @returns The found record
    */
-  public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
+  public async findOrFail(
+    primaryKey: PrimaryKeyForFind<DreamInstance>
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance>> {
     const record = await this.find(primaryKey)
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
-    return record
+    return record as QueryResultForOutputMode<QueryTypeOpts, DreamInstance>
   }
 
   /**
@@ -550,7 +579,9 @@ export default class Query<
    * @param whereStatement - The where statement used to locate the record
    * @returns Either the first record found matching the attributes, or else null
    */
-  public async findBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance | null> {
+  public async findBy(
+    whereStatement: WhereStatement<DreamInstance>
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance | null>> {
     return await this._where(whereStatement, 'where').first()
   }
 
@@ -567,10 +598,12 @@ export default class Query<
    * @param whereStatement - The where statement used to locate the record
    * @returns The first record found matching the attributes
    */
-  public async findOrFailBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance> {
+  public async findOrFailBy(
+    whereStatement: WhereStatement<DreamInstance>
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance>> {
     const record = await this.findBy(whereStatement)
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
-    return record
+    return record as QueryResultForOutputMode<QueryTypeOpts, DreamInstance>
   }
 
   /**
@@ -627,7 +660,10 @@ export default class Query<
     // batchSize, the offset skipping rows inside every window
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
     let records: any[]
-    const query = this.order(null)
+    // batch iterators ignore output mode (see Query#output): every window must
+    // actually execute, so surfacing sql or a plan for one of them is meaningless
+    const query = this.clone({ outputMode: null })
+      .order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
     // the cursor is compared against a sentinel rather than tested for
@@ -636,11 +672,11 @@ export default class Query<
     let lastId: any = undefined
 
     do {
-      if (lastId === undefined) records = await query.all()
+      if (lastId === undefined) records = (await query.all()) as any[]
       else
-        records = await query
+        records = (await query
           .where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
-          .all()
+          .all()) as any[]
 
       for (const record of records) {
         await cb(record)
@@ -1529,6 +1565,93 @@ export default class Query<
   }
 
   /**
+   * Returns a cloned Query carrying an output mode. In an output mode, the
+   * single-statement execution methods surface the query they would have
+   * executed — rather than executing it and returning records.
+   *
+   * In the 'sql' mode, they return the compiled sql statement without
+   * touching the database at all:
+   *
+   * ```ts
+   * await User.where({ email: 'how@yadoin' }).output('sql').all()
+   * // { sql: 'select "users".* from "users" where ...', parameters: ['how@yadoin'], query: {...} }
+   *
+   * await User.where({ email: 'how@yadoin' }).output('sql').count()
+   * // { sql: 'select count("users"."id") as "tablecount" from "users" where ...', ... }
+   * ```
+   *
+   * In the 'explain' mode, they ask the database to explain the statement and
+   * return the plan: the plan lines when the format is 'text' (the default),
+   * or the parsed JSON plan when the format is 'json':
+   *
+   * ```ts
+   * await User.where({ email: 'how@yadoin' }).output('explain').first()
+   * // ['Limit  (cost=...)', '  ->  Seq Scan on users  (cost=...)', ...]
+   *
+   * await User.where({ email: 'how@yadoin' }).output('explain', { format: 'json' }).all()
+   * // [{ Plan: { 'Node Type': 'Seq Scan', ... } }]
+   * ```
+   *
+   * Unless `analyze` is requested, the database only plans the query and never
+   * executes it. With `analyze: true`, the database executes the query to
+   * gather real timing and row counts, but its result rows are still
+   * discarded; only the plan is returned.
+   *
+   * The methods that respond to an output mode are exactly the ones that
+   * execute a single select statement: `all`, `first`/`firstOrFail`,
+   * `last`/`lastOrFail`, `find`/`findOrFail`, `findBy`/`findOrFailBy`,
+   * `exists`, `pluck`, `count`/`countBy`, and the aggregates (`min`, `max`,
+   * `sum`, `avg` and their `By` variants). One nuance: on a leftJoinPreload
+   * Query, `first`/`last` ordinarily execute a preliminary primary key lookup
+   * to scope the join-load statement; in an output mode that lookup is
+   * skipped rather than executed, so the surfaced join-load statement carries
+   * no primary key filter unless the Query's own where clause provides one.
+   * Methods that execute more than one
+   * statement — the batch iterators (`findEach`, `pluckEach`), pagination
+   * (`paginate`, `cursorPaginate`, `scrollPaginate`), and the mutation methods
+   * (`update`, `delete`, `destroy`, `undestroy`) — ignore the output mode and
+   * execute normally. To inspect a representative batch window, compose it
+   * yourself:
+   *
+   * ```ts
+   * // the first findEach window
+   * await User.order('id').limit(1000).output('explain').all()
+   *
+   * // a steady-state findEach window
+   * await User.where({ id: ops.greaterThan(lastId) }).order('id').limit(1000).output('explain').all()
+   * ```
+   *
+   * A transaction applied to the Query carries through, so the plan is
+   * gathered on the transaction's connection:
+   *
+   * ```ts
+   * await ApplicationModel.transaction(async txn => {
+   *   await User.txn(txn).where({ email: 'how@yadoin' }).output('explain').all()
+   * })
+   * ```
+   *
+   * @param mode - 'sql' to surface the compiled sql statement, or 'explain' to surface the database's query plan
+   * @param options - Explain options (only available in the 'explain' mode)
+   * @param options.format - the plan format: 'text' (the default) for the database's plain explain output, or 'json' for the parsed JSON plan
+   * @param options.analyze - when true, the database executes the query to measure it, and the plan reflects the execution rather than only the planner's estimates
+   * @param options.verbose - when true, the database includes additional detail in the plan
+   * @returns A cloned Query with the provided output mode and options applied
+   */
+  public output<Format extends DreamExplainFormat = 'text'>(
+    mode: 'explain',
+    options?: DreamExplainOptions<Format>
+  ): Query<
+    DreamInstance,
+    ExtendQueryType<QueryTypeOpts, Readonly<{ outputMode: 'explain'; outputFormat: Format }>>
+  >
+  public output(
+    mode: 'sql'
+  ): Query<DreamInstance, ExtendQueryType<QueryTypeOpts, Readonly<{ outputMode: 'sql' }>>>
+  public output(mode: QueryOutputMode, options: DreamExplainOptions = {}): Query<DreamInstance, any> {
+    return this.clone({ outputMode: mode, outputOptions: options })
+  }
+
+  /**
    * Converts the given dream class into a Kysely query, enabling
    * you to build custom queries using the Kysely API
    *
@@ -1594,8 +1717,8 @@ export default class Query<
    *
    * @returns The number of records matching the Query
    */
-  public async count() {
-    return await this.dbDriverInstance().count()
+  public async count(): Promise<QueryResultForOutputMode<QueryTypeOpts, number>> {
+    return (await this.dbDriverInstance().count()) as QueryResultForOutputMode<QueryTypeOpts, number>
   }
 
   /**
@@ -1638,8 +1761,11 @@ export default class Query<
       QueryTypeOpts['rootTableAlias']
     >,
     GroupKey extends NamespacedOrBaseModelColumnTypes<[GroupColumnName], Q, DreamInstance>[0],
-  >(groupColumn: GroupColumnName): Promise<Map<GroupKey, number>> {
-    return await this.dbDriverInstance().countBy(groupColumn)
+  >(groupColumn: GroupColumnName): Promise<QueryResultForOutputMode<QueryTypeOpts, Map<GroupKey, number>>> {
+    return (await this.dbDriverInstance().countBy(groupColumn)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      Map<GroupKey, number>
+    >
   }
 
   /**
@@ -1709,8 +1835,11 @@ export default class Query<
       QueryTypeOpts['rootTableAlias']
     >,
     ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
-  >(columnName: ColumnName): Promise<ReturnType> {
-    return await this.dbDriverInstance().max(columnName)
+  >(columnName: ColumnName): Promise<QueryResultForOutputMode<QueryTypeOpts, ReturnType>> {
+    return (await this.dbDriverInstance().max(columnName)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      ReturnType
+    >
   }
 
   /**
@@ -1756,8 +1885,11 @@ export default class Query<
   >(
     groupColumn: GroupColumnName,
     aggregatedColumn: AggregatedColumnName
-  ): Promise<Map<GroupKey, AggregatedType>> {
-    return await this.dbDriverInstance().maxBy(groupColumn, aggregatedColumn)
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, Map<GroupKey, AggregatedType>>> {
+    return (await this.dbDriverInstance().maxBy(groupColumn, aggregatedColumn)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      Map<GroupKey, AggregatedType>
+    >
   }
 
   /**
@@ -1782,8 +1914,11 @@ export default class Query<
       QueryTypeOpts['rootTableAlias']
     >,
     ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
-  >(columnName: ColumnName): Promise<ReturnType> {
-    return await this.dbDriverInstance().min(columnName)
+  >(columnName: ColumnName): Promise<QueryResultForOutputMode<QueryTypeOpts, ReturnType>> {
+    return (await this.dbDriverInstance().min(columnName)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      ReturnType
+    >
   }
 
   /**
@@ -1829,8 +1964,11 @@ export default class Query<
   >(
     groupColumn: GroupColumnName,
     aggregatedColumn: AggregatedColumnName
-  ): Promise<Map<GroupKey, AggregatedType>> {
-    return await this.dbDriverInstance().minBy(groupColumn, aggregatedColumn)
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, Map<GroupKey, AggregatedType>>> {
+    return (await this.dbDriverInstance().minBy(groupColumn, aggregatedColumn)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      Map<GroupKey, AggregatedType>
+    >
   }
 
   /**
@@ -1855,8 +1993,11 @@ export default class Query<
       QueryTypeOpts['rootTableAlias']
     >,
     ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
-  >(columnName: ColumnName): Promise<ReturnType> {
-    return await this.dbDriverInstance().sum(columnName)
+  >(columnName: ColumnName): Promise<QueryResultForOutputMode<QueryTypeOpts, ReturnType>> {
+    return (await this.dbDriverInstance().sum(columnName)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      ReturnType
+    >
   }
 
   /**
@@ -1902,8 +2043,11 @@ export default class Query<
   >(
     groupColumn: GroupColumnName,
     aggregatedColumn: AggregatedColumnName
-  ): Promise<Map<GroupKey, AggregatedType>> {
-    return await this.dbDriverInstance().sumBy(groupColumn, aggregatedColumn)
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, Map<GroupKey, AggregatedType>>> {
+    return (await this.dbDriverInstance().sumBy(groupColumn, aggregatedColumn)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      Map<GroupKey, AggregatedType>
+    >
   }
 
   /**
@@ -1928,8 +2072,11 @@ export default class Query<
       QueryTypeOpts['rootTableAlias']
     >,
     ReturnType extends NamespacedOrBaseModelColumnTypes<[ColumnName], Q, DreamInstance>[0],
-  >(columnName: ColumnName): Promise<ReturnType> {
-    return await this.dbDriverInstance().avg(columnName)
+  >(columnName: ColumnName): Promise<QueryResultForOutputMode<QueryTypeOpts, ReturnType>> {
+    return (await this.dbDriverInstance().avg(columnName)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      ReturnType
+    >
   }
 
   /**
@@ -1975,8 +2122,11 @@ export default class Query<
   >(
     groupColumn: GroupColumnName,
     aggregatedColumn: AggregatedColumnName
-  ): Promise<Map<GroupKey, AggregatedType>> {
-    return await this.dbDriverInstance().avgBy(groupColumn, aggregatedColumn)
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, Map<GroupKey, AggregatedType>>> {
+    return (await this.dbDriverInstance().avgBy(groupColumn, aggregatedColumn)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      Map<GroupKey, AggregatedType>
+    >
   }
 
   /**
@@ -2010,10 +2160,17 @@ export default class Query<
     ReturnValue extends ColumnNames['length'] extends 1
       ? NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>[0][]
       : NamespacedOrBaseModelColumnTypes<ColumnNames, Q, DreamInstance>[],
-  >(this: Q, ...columnNames: ColumnNames): Promise<ReturnValue> {
+  >(this: Q, ...columnNames: ColumnNames): Promise<QueryResultForOutputMode<QueryTypeOpts, ReturnValue>> {
     const vals = await this.dbDriverInstance().pluck(...(columnNames as any[]))
 
-    return (columnNames.length > 1 ? vals : vals.flat()) as ReturnValue
+    // in an output mode, the driver surfaced the statement or plan rather than
+    // rows, so there are no plucked values to unwrap
+    if (this['outputMode']) return vals as QueryResultForOutputMode<QueryTypeOpts, ReturnValue>
+
+    return (columnNames.length > 1 ? vals : vals.flat()) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      ReturnValue
+    >
   }
 
   /**
@@ -2097,6 +2254,10 @@ export default class Query<
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
 
+    // batch iterators ignore output mode (see Query#output): every window must
+    // actually execute, so surfacing sql or a plan for one of them is meaningless
+    const outputStrippedQuery = this.clone({ outputMode: null })
+
     let offset = 0
     let records: any[]
     do {
@@ -2107,7 +2268,8 @@ export default class Query<
         ? onlyColumns
         : [this.namespacedPrimaryKey, ...onlyColumns]
 
-      const query = this.offset(offset as any)
+      const query = outputStrippedQuery
+        .offset(offset as any)
         .order(null)
         .order(this.namespacedPrimaryKey as any)
         .limit(batchSize as any)
@@ -2155,8 +2317,11 @@ export default class Query<
     options: {
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
-  ) {
-    return await this.dbDriverInstance().takeAll(options)
+  ): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance[]>> {
+    return (await this.dbDriverInstance().takeAll(options)) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      DreamInstance[]
+    >
   }
 
   public static dbDriverClass<T extends Dream>(connectionName: string): typeof QueryDriverBase<T> {
@@ -2229,19 +2394,23 @@ export default class Query<
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
     if (this.joinLoadActivated) throw new CannotPaginateWithLeftJoinPreload()
 
+    // pagination executes two statements (a count and a page read), so it
+    // ignores output mode (see Query#output)
+    const baseQuery = this.clone({ outputMode: null })
+
     const page = computedPaginatePage(options.page)
-    const recordCount = await this.count()
+    const recordCount = (await baseQuery.count()) as number
     const pageSize = this.clampedPaginationPageSize(options.pageSize)
     const pageCount = Math.ceil(recordCount / pageSize)
 
-    const query = this.orderStatements.length
-      ? this
-      : this.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
+    const query = baseQuery.orderStatements.length
+      ? baseQuery
+      : baseQuery.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
 
-    const results = await query
+    const results = (await query
       .limit(pageSize as any)
       .offset(((page - 1) * pageSize) as any)
-      .all()
+      .all()) as DreamInstance[]
 
     return {
       recordCount,
@@ -2361,9 +2530,13 @@ export default class Query<
         orderStatement.column === this.namespacedPrimaryKey
     )
 
+    // pagination executes multiple statements, so it ignores output mode
+    // (see Query#output)
+    const baseQuery = this.clone({ outputMode: null })
+
     let query = orderIncludesPrimaryKey
-      ? this
-      : this.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
+      ? baseQuery
+      : baseQuery.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
 
     if (options.cursor) {
       const orderStatements = query.orderStatements
@@ -2390,13 +2563,13 @@ export default class Query<
         }
       } else {
         const endOfPreviousPageComparisonValues = (
-          await query
+          (await query
             .removeDefaultScopeExceptOnAssociations(SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>)
             .where({ [this.namespacedPrimaryKey]: options.cursor } as any)
 
             .limit(1)
             .order(null)
-            .pluck(...orderStatements.map(orderStatement => orderStatement.column))
+            .pluck(...orderStatements.map(orderStatement => orderStatement.column))) as any[]
         )[0]
 
         if (endOfPreviousPageComparisonValues) {
@@ -2465,7 +2638,7 @@ export default class Query<
       }
     }
 
-    const results = await query.limit(pageSize as any).all()
+    const results = (await query.limit(pageSize as any).all()) as DreamInstance[]
 
     return {
       cursor: (results.length === pageSize && results.at(-1)?.primaryKeyValue().toString()) || null,
@@ -2509,11 +2682,12 @@ export default class Query<
    *
    * @returns boolean - true if any records match the query, false otherwise
    */
-  public async exists(): Promise<boolean> {
+  public async exists(): Promise<QueryResultForOutputMode<QueryTypeOpts, boolean>> {
     // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
     // because it avoids the step of finding the first. Just find any, and return
     // that one.
-    return (await (this as any).limit(1).all()).length > 0
+    const result = await (this as any).limit(1).all()
+    return (this.outputMode ? result : result.length > 0) as QueryResultForOutputMode<QueryTypeOpts, boolean>
   }
 
   /**
@@ -2532,12 +2706,15 @@ export default class Query<
    *
    * @returns First record in the database, or null if no record exists
    */
-  public async first() {
+  public async first(): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance | null>> {
     const query = this.orderStatements.length
       ? this
       : this.order({ [this.namespacedPrimaryKey as any]: 'asc' } as any)
     const dbDriverClass = Query.dbDriverClass<DreamInstance>(this.connectionName)
-    return await new dbDriverClass(query).takeOne()
+    return (await new dbDriverClass(query).takeOne()) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      DreamInstance | null
+    >
   }
 
   /**
@@ -2555,10 +2732,10 @@ export default class Query<
    * @returns First record in the database
    * @throws RecordNotFound if no record exists
    */
-  public async firstOrFail() {
+  public async firstOrFail(): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance>> {
     const record = await this.first()
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
-    return record
+    return record as QueryResultForOutputMode<QueryTypeOpts, DreamInstance>
   }
 
   /**
@@ -2577,13 +2754,16 @@ export default class Query<
    *
    * @returns Last record in the database, or null if no record exists
    */
-  public async last() {
+  public async last(): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance | null>> {
     const query = this.orderStatements.length
       ? this.invertOrder()
       : this.order({ [this.namespacedPrimaryKey]: 'desc' } as any)
 
     const dbDriverClass = Query.dbDriverClass<DreamInstance>(this.connectionName)
-    return await new dbDriverClass(query).takeOne()
+    return (await new dbDriverClass(query).takeOne()) as QueryResultForOutputMode<
+      QueryTypeOpts,
+      DreamInstance | null
+    >
   }
 
   /**
@@ -2601,10 +2781,10 @@ export default class Query<
    * @returns Last record in the database
    * @throws RecordNotFound if no record exists
    */
-  public async lastOrFail() {
+  public async lastOrFail(): Promise<QueryResultForOutputMode<QueryTypeOpts, DreamInstance>> {
     const record = await this.last()
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
-    return record
+    return record as QueryResultForOutputMode<QueryTypeOpts, DreamInstance>
   }
 
   /**
@@ -2881,7 +3061,10 @@ export default class Query<
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
 
     const primaryKey = this.dreamInstance['_primaryKey']
-    const orderedQuery = this.order(null)
+    // locked batches ignore output mode (see Query#output): the candidate
+    // plucks and locked re-reads must actually execute
+    const orderedQuery = this.clone({ outputMode: null })
+      .order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
 
@@ -2899,7 +3082,9 @@ export default class Query<
           : orderedQuery.where({ [primaryKey]: ops.greaterThan(lastId) } as any)
 
       const processBatch = async (txn: DreamTransaction<Dream>) => {
-        const candidateIds: any[] = await batchQuery.txn(txn).pluck(this.namespacedPrimaryKey as any)
+        const candidateIds: any[] = (await batchQuery
+          .txn(txn)
+          .pluck(this.namespacedPrimaryKey as any)) as any[]
         if (!candidateIds.length) return { attempted: 0, processed: 0, lastId }
 
         // On a sortable model, every advisory scope lock this batch will need is
@@ -3494,4 +3679,6 @@ export interface QueryOpts<
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
+  outputMode?: QueryOutputMode | null | undefined
+  outputOptions?: DreamExplainOptions | undefined
 }

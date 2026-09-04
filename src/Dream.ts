@@ -119,10 +119,14 @@ import {
   CursorPaginatedDreamQueryOptions,
   CursorPaginatedDreamQueryResult,
   DefaultQueryTypeOptions,
+  DreamExplainFormat,
+  DreamExplainOptions,
+  ExtendQueryType,
   FindEachOpts,
   LoadForModifierFn,
   PaginatedDreamQueryOptions,
   PaginatedDreamQueryResult,
+  QueryOutputMode,
   QueryWithJoinedAssociationsType,
   QueryWithJoinedAssociationsTypeAndNoPreload,
 } from './types/query.js'
@@ -2460,6 +2464,60 @@ export default class Dream {
    */
   public static sql<T extends typeof Dream>(this: T): CompiledQuery<object> {
     return this.query().sql()
+  }
+
+  /**
+   * Returns a Query scoped to this model carrying an output mode, whose
+   * single-statement execution methods surface the query they would have
+   * executed — rather than executing it and returning records: the compiled
+   * sql statement for the 'sql' mode, or the database's query plan for the
+   * 'explain' mode. See {@link Query.output} for the full semantics,
+   * including which methods respond to an output mode.
+   *
+   * ```ts
+   * await User.output('sql').all()
+   * // { sql: 'select "users".* from "users" where ...', parameters: [], query: {...} }
+   *
+   * await User.output('explain').all()
+   * // ['Seq Scan on users  (cost=0.00..1.14 rows=3 width=76)', ...]
+   * ```
+   *
+   * Unless `analyze` is requested, the 'explain' mode only plans the query and
+   * never executes it. With `analyze: true`, the database executes the query
+   * to gather real timing and row counts, but its result rows are still
+   * discarded; only the plan is returned.
+   *
+   * @param mode - 'sql' to surface the compiled sql statement, or 'explain' to surface the database's query plan
+   * @param options - Explain options (only available in the 'explain' mode)
+   * @param options.format - the plan format: 'text' (the default) for the database's plain explain output, or 'json' for the parsed JSON plan
+   * @param options.analyze - when true, the database executes the query to measure it, and the plan reflects the execution rather than only the planner's estimates
+   * @param options.verbose - when true, the database includes additional detail in the plan
+   * @returns A Query scoped to this model with the provided output mode and options applied
+   */
+  public static output<T extends typeof Dream, Format extends DreamExplainFormat = 'text'>(
+    this: T,
+    mode: 'explain',
+    options?: DreamExplainOptions<Format>
+  ): Query<
+    InstanceType<T>,
+    ExtendQueryType<
+      DefaultQueryTypeOptions<InstanceType<T>>,
+      Readonly<{ outputMode: 'explain'; outputFormat: Format }>
+    >
+  >
+  public static output<T extends typeof Dream>(
+    this: T,
+    mode: 'sql'
+  ): Query<
+    InstanceType<T>,
+    ExtendQueryType<DefaultQueryTypeOptions<InstanceType<T>>, Readonly<{ outputMode: 'sql' }>>
+  >
+  public static output<T extends typeof Dream>(
+    this: T,
+    mode: QueryOutputMode,
+    options: DreamExplainOptions = {}
+  ): Query<InstanceType<T>, any> {
+    return mode === 'sql' ? this.query().output(mode) : this.query().output(mode, options)
   }
 
   /**
