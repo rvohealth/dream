@@ -2423,14 +2423,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   private conditionallyApplyDefaultScopes() {
-    if (this.query['bypassAllDefaultScopes'] || this.query['bypassAllDefaultScopesExceptOnAssociations'])
-      return this.query
+    if (this.query['bypassAllDefaultScopesExceptOnAssociations']) return this.query
 
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamInstance, any> = this.query
     for (const scope of thisScopes) {
       if (
         !shouldBypassDefaultScope(scope.method, {
+          bypassAllDefaultScopes: this.query['bypassAllDefaultScopes'],
           defaultScopesToBypass: [
             ...this.query['defaultScopesToBypass'],
             ...this.query['defaultScopesToBypassExceptOnAssociations'],

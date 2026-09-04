@@ -1,3 +1,5 @@
+import { STI_SCOPE_NAME } from '../../decorators/class/STI.js'
+
 export default function shouldBypassDefaultScope(
   scopeName: string,
   {
@@ -8,8 +10,7 @@ export default function shouldBypassDefaultScope(
     defaultScopesToBypass: string[]
   }
 ) {
-  if (bypassAllDefaultScopes) return true
-  if (!defaultScopesToBypass.length) return false
   if (defaultScopesToBypass.includes(scopeName)) return true
+  if (bypassAllDefaultScopes) return scopeName !== STI_SCOPE_NAME
   return false
 }
