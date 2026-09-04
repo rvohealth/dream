@@ -1,4 +1,5 @@
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
+import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -23,8 +24,15 @@ describe('Dream Scope (default variant)', () => {
       const mylar = await Mylar.create({ user, color: 'red', volume: 1 })
       const mylar2 = await Mylar.create({ user, color: 'blue', volume: 1 })
       await mylar2.destroy()
+      await Latex.create({ user, color: 'green', volume: 1 })
       expect(await Mylar.all()).toMatchDreamModels([mylar])
       expect(await Mylar.removeAllDefaultScopes().all()).toMatchDreamModels([mylar, mylar2])
+    })
+
+    it('does not find a sibling record when all default scopes are removed', async () => {
+      const latex = await Latex.create({ color: 'green', volume: 1 })
+
+      expect(await Mylar.removeAllDefaultScopes().find(latex.id)).toBeNull()
     })
   })
 })

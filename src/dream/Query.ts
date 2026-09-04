@@ -293,14 +293,14 @@ export default class Query<
   /**
    * @internal
    *
-   * Whether or not to bypass all default scopes for this Query
+   * Whether or not to bypass all user-removable default scopes for this Query
    */
   private readonly bypassAllDefaultScopes: boolean = false
 
   /**
    * @internal
    *
-   * Whether or not to bypass all default scopes for this Query, but not associations
+   * Whether or not to bypass all user-removable default scopes for this Query, but not associations
    */
   private readonly bypassAllDefaultScopesExceptOnAssociations: boolean = false
 
@@ -1171,10 +1171,12 @@ export default class Query<
   }
 
   /**
-   * Prevents default scopes from applying when
-   * the Query is executed
+   * Prevents user-removable default scopes from applying when the Query is
+   * executed, including when associations are loaded. An STI child's reserved
+   * type discriminator remains enforced; query the STI base model to span its
+   * registered children.
    *
-   * @returns A new Query which will prevent default scopes from applying
+   * @returns A new Query which bypasses user-removable default scopes
    */
   public removeAllDefaultScopes(): Query<DreamInstance, QueryTypeOpts> {
     return this.clone({
@@ -1547,7 +1549,17 @@ export default class Query<
           ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
           : never,
   >(type: QueryType): ToKyselyReturnType {
+    if (type !== 'select') this.assertMutationPreservesAssociationQuery()
     return this.dbDriverInstance().toKysely(type)
+  }
+
+  /**
+   * @internal
+   *
+   * Prevents mutation paths that discard an association query's ownership constraint.
+   */
+  private assertMutationPreservesAssociationQuery() {
+    if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
   }
 
   /**
@@ -2698,7 +2710,7 @@ export default class Query<
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. Defaults to false
    * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade destroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
@@ -2963,7 +2975,7 @@ export default class Query<
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. See {@link Query.destroy} for the full semantics. Defaults to false
    * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade destroying. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade destroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
@@ -2999,7 +3011,7 @@ export default class Query<
    * @param options - Options for undestroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses all default scopes when cascade undestroying. Defaults to false
+   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade undestroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The number of records that were removed
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
@@ -3050,6 +3062,7 @@ export default class Query<
    * @returns The number of records that were removed
    */
   public async delete(): Promise<number> {
+    this.assertMutationPreservesAssociationQuery()
     return await this.dbDriverInstance().delete()
   }
 
@@ -3275,7 +3288,7 @@ export default class Query<
           | Promise<UpdateableProperties<DreamInstance> | undefined>),
     { skipHooks, lock, batchSize }: { skipHooks?: boolean; lock?: boolean; batchSize?: number } = {}
   ): Promise<number> {
-    if (this.baseSelectQuery) throw new NoUpdateOnAssociationQuery()
+    this.assertMutationPreservesAssociationQuery()
     if (Object.keys(this.innerJoinStatements).length) throw new NoUpdateAllOnJoins()
     if (Object.keys(this.leftJoinStatements).length) throw new NoUpdateAllOnJoins()
 

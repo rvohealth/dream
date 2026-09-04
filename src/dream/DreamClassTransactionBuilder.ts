@@ -851,9 +851,11 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
-   * Returns a query for this model which disregards default scopes
+   * Returns a query which bypasses user-removable default scopes, including on
+   * association loads. An STI child's reserved type discriminator remains
+   * enforced; query the STI base model to span its registered children.
    *
-   * @returns A query for this model which disregards default scopes
+   * @returns A query which bypasses user-removable default scopes
    */
   public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I

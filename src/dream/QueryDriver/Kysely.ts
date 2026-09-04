@@ -459,6 +459,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
           : never,
   >(type: QueryType) {
+    if (type !== 'select') this.assertMutationPreservesAssociationQuery()
+
     switch (type) {
       case 'select':
         return this.buildSelect() as ToKyselyReturnType
@@ -988,6 +990,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * @returns the number of deleted rows
    */
   public override async delete(): Promise<number> {
+    this.assertMutationPreservesAssociationQuery()
     const deletionResult = await executeDatabaseQuery(this.buildDelete(), 'executeTakeFirst')
     return Number(deletionResult?.numDeletedRows || 0)
   }
@@ -997,6 +1000,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * @returns the number of updated rows
    */
   public override async update(attributes: DreamTableSchema<DreamInstance>): Promise<number> {
+    this.assertMutationPreservesAssociationQuery()
     const kyselyQuery = this.buildUpdate(attributes)
     const res = await executeDatabaseQuery(kyselyQuery, 'execute')
     const resultData = Array.from(res.entries())?.[0]?.[1]
@@ -1357,7 +1361,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private columnsWithRequiredLoadColumns(columns: string[]) {
     return uniq(
-      compact([this.dreamClass.primaryKey, this.dreamClass['isSTIBase'] ? 'type' : null, ...columns])
+      compact([
+        this.dreamClass.primaryKey,
+        this.dreamClass['isSTIBase'] || this.dreamClass['isSTIChild'] ? 'type' : null,
+        ...columns,
+      ])
     )
   }
 
@@ -2423,14 +2431,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   }
 
   private conditionallyApplyDefaultScopes() {
-    if (this.query['bypassAllDefaultScopes'] || this.query['bypassAllDefaultScopesExceptOnAssociations'])
-      return this.query
+    if (this.query['bypassAllDefaultScopesExceptOnAssociations']) return this.query
 
     const thisScopes = this.dreamClass['scopes'].default
     let query: Query<DreamInstance, any> = this.query
     for (const scope of thisScopes) {
       if (
         !shouldBypassDefaultScope(scope.method, {
+          bypassAllDefaultScopes: this.query['bypassAllDefaultScopes'],
           defaultScopesToBypass: [
             ...this.query['defaultScopesToBypass'],
             ...this.query['defaultScopesToBypassExceptOnAssociations'],

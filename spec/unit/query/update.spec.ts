@@ -13,6 +13,9 @@ import NoUpdateOnAssociationQuery from '../../../src/errors/NoUpdateOnAssociatio
 import RowLockIncompatibleWithDistinct from '../../../src/errors/RowLockIncompatibleWithDistinct.js'
 import ops from '../../../src/ops/index.js'
 import { DreamTableSchema, UpdateableProperties } from '../../../src/types/dream.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
+import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Chore from '../../../test-app/app/models/Polymorphic/Chore.js'
@@ -89,6 +92,26 @@ describe('Query#update', () => {
       await Pet.query().update({ name: 'change me' }, { skipHooks: true })
       const pet = await Pet.first()
       expect(pet!.name).toEqual('change me')
+    })
+
+    it('updates only STI child records when all default scopes are removed', async () => {
+      const mylar = await Mylar.create({ color: 'red' })
+      const deletedMylar = await Mylar.create({ color: 'red' })
+      await deletedMylar.destroy()
+      const latex = await Latex.create({ color: 'green' })
+
+      const count = await Mylar.removeAllDefaultScopes().update({ color: 'blue' }, { skipHooks: true })
+
+      expect(count).toEqual(2)
+      const updatedMylars = await Mylar.removeAllDefaultScopes()
+        .where({ id: [mylar.id, deletedMylar.id] })
+        .all()
+      expect(updatedMylars).toMatchDreamModels([mylar, deletedMylar])
+      expect(updatedMylars.map(balloon => balloon.color)).toEqual(['blue', 'blue'])
+
+      const reloadedLatex = await Balloon.findOrFail(latex.id)
+      expect(reloadedLatex).toBeInstanceOf(Latex)
+      expect(reloadedLatex.color).toEqual('green')
     })
 
     context('with an @Encrypted backing column', () => {

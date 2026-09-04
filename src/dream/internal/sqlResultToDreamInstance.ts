@@ -1,6 +1,7 @@
 import { Updateable } from 'kysely'
 import Dream from '../../Dream.js'
 import STIChildMissing from '../../errors/sti/STIChildMissing.js'
+import STIChildTypeMismatch from '../../errors/sti/STIChildTypeMismatch.js'
 import { AssociationTableNames } from '../../types/db.js'
 import { UpdateablePropertiesForClass } from '../../types/dream.js'
 import filterRowToKnownColumns from './filterRowToKnownColumns.js'
@@ -13,6 +14,9 @@ export default function sqlResultToDreamInstance<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB = InstanceType<DreamClass>['table'],
   Table extends DB[TableName] = DB[TableName],
 >(dreamClass: DreamClass, sqlResult: any): InstanceType<DreamClass> | Dream {
+  if (dreamClass['isSTIChild'] && sqlResult.type !== dreamClass['sti'].value)
+    throw new STIChildTypeMismatch(dreamClass, sqlResult.type, sqlResult[dreamClass.primaryKey])
+
   // base-model reads select `*`, so under schema/image skew (or with a
   // column declared in ignoredColumns but not yet dropped) the row can
   // contain columns the compiled schema doesn't know about. Passing such
@@ -57,7 +61,7 @@ export function findExtendingDreamClass(dreamClass: typeof Dream, type: string):
   if (!dreamClass['extendedBy']) return undefined
 
   const extendingDreamClass = dreamClass['extendedBy'].find(
-    extendingDreamClass => extendingDreamClass.sanitizedName === type
+    extendingDreamClass => extendingDreamClass['sti'].value === type
   )
 
   if (extendingDreamClass) return extendingDreamClass
