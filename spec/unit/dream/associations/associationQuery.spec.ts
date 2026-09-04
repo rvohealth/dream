@@ -448,6 +448,79 @@ describe('Dream#associationQuery', () => {
 
         expect(rows).toHaveLength(1)
       })
+
+      it('continues to allow association-bounded Query selects', async () => {
+        const records = await sandbag.associationQuery('mylar').removeAllDefaultScopes().all()
+
+        expect(records).toMatchDreamModels([associatedMylar])
+      })
+
+      it('continues to allow association-bounded query-driver selects', async () => {
+        const query = sandbag.associationQuery('mylar').removeAllDefaultScopes()
+
+        expect(await query.dbDriverInstance().takeAll()).toMatchDreamModels([associatedMylar])
+        expect(await query.dbDriverInstance().toKysely('select').execute()).toHaveLength(1)
+      })
+
+      it('rejects a query-driver update without changing any rows', async () => {
+        await expect(
+          sandbag
+            .associationQuery('mylar')
+            .removeAllDefaultScopes()
+            .dbDriverInstance()
+            .update({ color: 'blue' })
+        ).rejects.toThrow(NoUpdateOnAssociationQuery)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+        expect([associatedMylar.color, unassociatedMylar.color, latex.color]).toEqual(['red', 'red', 'red'])
+      })
+
+      it('rejects a query-driver delete without deleting any rows', async () => {
+        await expect(
+          sandbag.associationQuery('mylar').removeAllDefaultScopes().dbDriverInstance().delete()
+        ).rejects.toThrow(NoUpdateOnAssociationQuery)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+      })
+
+      it('rejects a raw query-driver update without changing any rows', async () => {
+        await expect(
+          async () =>
+            await sandbag
+              .associationQuery('mylar')
+              .removeAllDefaultScopes()
+              .dbDriverInstance()
+              .toKysely('update')
+              .set({ color: 'blue' })
+              .execute()
+        ).rejects.toThrow(NoUpdateOnAssociationQuery)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+        expect([associatedMylar.color, unassociatedMylar.color, latex.color]).toEqual(['red', 'red', 'red'])
+      })
+
+      it('rejects a raw query-driver delete without deleting any rows', async () => {
+        await expect(
+          async () =>
+            await sandbag
+              .associationQuery('mylar')
+              .removeAllDefaultScopes()
+              .dbDriverInstance()
+              .toKysely('delete')
+              .execute()
+        ).rejects.toThrow(NoUpdateOnAssociationQuery)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+      })
+
+      it('continues to allow ordinary query-driver mutations', async () => {
+        expect(
+          await Mylar.where({ id: associatedMylar.id }).dbDriverInstance().update({ color: 'blue' })
+        ).toEqual(1)
+
+        await Promise.all([associatedMylar.reload(), unassociatedMylar.reload(), latex.reload()])
+        expect([associatedMylar.color, unassociatedMylar.color, latex.color]).toEqual(['blue', 'red', 'red'])
+      })
     })
 
     context('withoutDefaultScopes defined on the association', () => {

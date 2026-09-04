@@ -33,6 +33,15 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     this.innerJoinDreamClasses = Object.freeze(query['originalOpts'].innerJoinDreamClasses || [])
   }
 
+  /**
+   * @internal
+   *
+   * Prevents mutation paths that discard an association query's ownership constraint.
+   */
+  protected assertMutationPreservesAssociationQuery() {
+    this.query['assertMutationPreservesAssociationQuery']()
+  }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async ensureAllMigrationsHaveBeenRun(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -150,8 +159,8 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
         : QueryType extends 'update'
           ? UpdateQueryBuilder<DbType, TableNames & keyof DbType, TableNames & keyof DbType, unknown>
           : never,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   >(type: QueryType): ToKyselyReturnType {
+    if (type !== 'select') this.assertMutationPreservesAssociationQuery()
     throw new Error('implement toKysely in child class (if it makes sense)')
   }
 
@@ -629,6 +638,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public async delete(): Promise<number> {
+    this.assertMutationPreservesAssociationQuery()
     throw new Error('implement delete in child class')
   }
 
@@ -638,6 +648,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async update(attributes: DreamTableSchema<DreamInstance>): Promise<number> {
+    this.assertMutationPreservesAssociationQuery()
     throw new Error('implement update in child class')
   }
 
