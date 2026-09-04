@@ -120,7 +120,7 @@ import {
 import { DreamConst, primaryKeyTypes } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
-import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
+import executeDatabaseQuery, { QueryOutputRequest } from '../internal/executeDatabaseQuery.js'
 import extractAssignableAssociationAttributes from '../internal/extractAssignableAssociationAttributes.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
@@ -559,32 +559,42 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    */
   public override async takeOne(this: KyselyQueryDriver<DreamInstance>): Promise<DreamInstance | null> {
     if (this.query['joinLoadActivated']) {
-      let query: Query<DreamInstance>
+      let query: Query<DreamInstance> = this.query
+
+      const hasPrimaryKeyInWhereClause = this.query['whereStatements'].find(
+        whereStatement =>
+          (whereStatement as any)[this.dreamClass.primaryKey] ||
+          (whereStatement as any)[this.query['namespacedPrimaryKey']]
+      )
 
       if (
-        this.query['whereStatements'].find(
-          whereStatement =>
-            (whereStatement as any)[this.dreamClass.primaryKey] ||
-            (whereStatement as any)[this.query['namespacedPrimaryKey']]
-        )
+        // we have to short circuit the output here during an explain because moving further would
+        // cause us to execute two queries. We will instead simply bypass the preliminary
+        // query during an explain. Not a perfect solution, but gets us most of the way there.
+        !this.query['outputMode'] &&
+        !hasPrimaryKeyInWhereClause
       ) {
-        // the query already includes a primary key where statement
-        query = this.query
-      } else {
-        // otherwise find the primary key and apply it to the query
+        // find the primary key and apply it to the query
         const primaryKeyValue = (
-          await this.query.limit(1).pluck(this.query['namespacedPrimaryKey'] as any)
+          (await this.query.limit(1).pluck(this.query['namespacedPrimaryKey'] as any)) as any[]
         )[0]
         if (primaryKeyValue === undefined) return null
         query = this.query.where({ [this.query['namespacedPrimaryKey']]: primaryKeyValue } as any)
       }
 
       const driverClass = this.constructor as typeof KyselyQueryDriver
-      return (await new driverClass(query)['executeJoinLoad']())[0] || null
+      const results = await new driverClass(query)['executeJoinLoad']()
+      // in an output mode, executeJoinLoad surfaced the statement rather than
+      // returning records; indexing into it would mangle the output
+      if (this.query['outputMode']) return results as any
+      return results[0] || null
     }
 
     const kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query.limit(1)).buildSelect()
-    const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
+
+    const output = this.queryOutput
+    const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst', output)
+    if (output) return results
 
     if (results) {
       const theFirst = this.dbResultToDreamInstance<typeof Dream, DreamInstance>(results, this.dreamClass)
@@ -636,7 +646,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let kyselyQuery = this.buildSelect(options)
     // row locking is adapter-specific, so it goes through the query driver seam
     if (options.lock) kyselyQuery = this.applyRowLock(kyselyQuery, this.query['baseSqlAlias'])
-    const results = await executeDatabaseQuery(kyselyQuery, 'execute')
+
+    const output = this.queryOutput
+    const results = await executeDatabaseQuery(kyselyQuery, 'execute', output)
+    if (output) return results as any
     const theAll = results.map(r => this.dbResultToDreamInstance(r, this.dreamClass))
     await this.applyPreload(
       this.query['preloadStatements'] as any,
@@ -670,7 +683,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     kyselyQuery = kyselyQuery.select(max(this.namespaceColumn(columnName)) as any)
 
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const output = this.queryOutput
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow', output)
+    if (output) return data
 
     return data.max
   }
@@ -715,7 +730,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     kyselyQuery = kyselyQuery.select(min(this.namespaceColumn(columnName)) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+
+    const output = this.queryOutput
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow', output)
+    if (output) return data
 
     return data.min
   }
@@ -760,7 +778,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     kyselyQuery = kyselyQuery.select(sum(this.namespaceColumn(columnName)) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+
+    const output = this.queryOutput
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow', output)
+    if (output) return data
+
     return data.sum === null ? null : parseFloat(data.sum)
   }
 
@@ -806,7 +828,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     kyselyQuery = kyselyQuery.select(avg(this.namespaceColumn(columnName)) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+
+    const output = this.queryOutput
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow', output)
+    if (output) return data
+
     return data.avg
   }
 
@@ -855,7 +881,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
 
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const output = this.queryOutput
+    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow', output)
+    if (output) return data
 
     return parseInt(data.tablecount.toString())
   }
@@ -916,7 +944,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       .select(aggregateExpression.as('aggregatevalue') as any)
       .groupBy(groupColumnRef as any)
 
-    const rows = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const output = this.queryOutput
+    const rows = await executeDatabaseQuery(kyselyQuery, 'execute', output)
+    if (output) return rows as any
 
     const result = new Map<any, any>()
     for (const row of rows) {
@@ -952,9 +982,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${shortAlias}` as any)
     })
 
-    return (await executeDatabaseQuery(kyselyQuery, 'execute')).map(singleResult =>
-      shortAliases.map(alias => singleResult[alias])
-    )
+    const output = this.queryOutput
+    const results = await executeDatabaseQuery(kyselyQuery, 'execute', output)
+    if (output) return results as any
+
+    return results.map(singleResult => shortAliases.map(alias => singleResult[alias]))
   }
 
   /**
@@ -1130,6 +1162,21 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   public override sql() {
     const kyselyQuery = this.buildSelect()
     return kyselyQuery.compile()
+  }
+
+  /**
+   * @internal
+   *
+   * The Query's output request (see Query#output), or undefined when the
+   * Query carries no output mode. Passed into executeDatabaseQuery, which
+   * responds by surfacing the statement — compiling it ('sql') or explaining
+   * it ('explain') — instead of executing it; a caller that passed a request
+   * returns the result untouched rather than post-processing it.
+   */
+  private get queryOutput(): QueryOutputRequest | undefined {
+    const outputMode = this.query['outputMode']
+    if (!outputMode) return undefined
+    return { mode: outputMode, ...this.query['outputOptions'] }
   }
 
   private buildDelete(this: KyselyQueryDriver<DreamInstance>): DeleteQueryBuilder<any, any, any> {
@@ -1421,7 +1468,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
     })
 
-    const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const output = this.queryOutput
+    const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute', output)
+    if (output) return queryResults as any
 
     const aliasToDreamIdMap = queryResults.reduce(
       (aliasToDreamIdMap: AliasToDreamIdMap, singleSqlResult: any) => {

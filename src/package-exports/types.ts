@@ -56,3 +56,11 @@ export {
   type WhereStatementForDream,
   type WhereStatementForDreamClass,
 } from '../types/associations/shared.js'
+
+export {
+  type DreamExplainFormat,
+  type DreamExplainOptions,
+  type DreamExplainResult,
+  type QueryOutputMode,
+  type QueryResultForOutputMode,
+} from '../types/query.js'

@@ -517,6 +517,10 @@ export type QueryTypeOptions = {
   allowLimit: boolean
   allowOffset: boolean
   allowPaginate: boolean
+  // the canonical unions are QueryOutputMode and DreamExplainFormat in types/query.ts,
+  // inlined here because types/query.ts imports this file
+  outputMode: 'sql' | 'explain' | undefined
+  outputFormat: 'text' | 'json' | undefined
 }
 
 export type JoinedAssociationsTypeFromAssociations<
