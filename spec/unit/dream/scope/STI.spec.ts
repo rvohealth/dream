@@ -193,6 +193,27 @@ describe('Dream STI', () => {
   })
 
   describe('sqlResultToDreamInstance', () => {
+    it('hydrates an STI child through its registered discriminator metadata', () => {
+      class DynamicStiBase extends StiBase {}
+      let sanitizedName = 'RegisteredDiscriminator'
+
+      @STI(DynamicStiBase)
+      class MetadataBackedStiChild extends DynamicStiBase {
+        public static override get sanitizedName() {
+          return sanitizedName
+        }
+      }
+
+      sanitizedName = 'RecomputedDiscriminator'
+      const dream = sqlResultToDreamInstance(DynamicStiBase, {
+        id: '123',
+        type: 'RegisteredDiscriminator',
+      })
+
+      expect(dream).toBeInstanceOf(MetadataBackedStiChild)
+      expect((dream as MetadataBackedStiChild).type).toEqual('RegisteredDiscriminator')
+    })
+
     it('rejects a sibling discriminator before hydrating an STI child', () => {
       const hydrate = () =>
         sqlResultToDreamInstance(Mylar, {
