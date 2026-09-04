@@ -2,8 +2,8 @@ import { SelectArg, SelectExpression } from 'kysely'
 import Dream from '../Dream.js'
 import { PassthroughOnClause, WhereStatement } from '../types/associations/shared.js'
 import {
+  AllDefaultScopeNames,
   CreateOrFindByExtraOpts,
-  DefaultScopeName,
   DreamColumnNames,
   DreamSerializerKey,
   FindablePropertiesForClass,
@@ -851,6 +851,8 @@ export default class DreamClassTransactionBuilder<
   }
 
   /**
+   * @deprecated Use {@link removeDefaultScope} instead. This method will become private in v3.
+   *
    * Returns a query which bypasses user-removable default scopes, including on
    * association loads. An STI child's reserved type discriminator remains
    * enforced; query the STI base model to span its registered children.
@@ -860,7 +862,7 @@ export default class DreamClassTransactionBuilder<
   public removeAllDefaultScopes<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I
   ): Query<DreamInstance> {
-    return this.queryInstance().removeAllDefaultScopes()
+    return this.queryInstance()['removeAllDefaultScopes']()
   }
 
   /**
@@ -871,7 +873,7 @@ export default class DreamClassTransactionBuilder<
    */
   public removeDefaultScope<I extends DreamClassTransactionBuilder<DreamClass, DreamInstance>>(
     this: I,
-    scopeName: DefaultScopeName<DreamInstance>
+    scopeName: AllDefaultScopeNames<DreamInstance>
   ): Query<DreamInstance> {
     return this.queryInstance().removeDefaultScope(scopeName)
   }
