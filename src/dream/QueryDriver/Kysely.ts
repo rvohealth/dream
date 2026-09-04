@@ -1357,7 +1357,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
   private columnsWithRequiredLoadColumns(columns: string[]) {
     return uniq(
-      compact([this.dreamClass.primaryKey, this.dreamClass['isSTIBase'] ? 'type' : null, ...columns])
+      compact([
+        this.dreamClass.primaryKey,
+        this.dreamClass['isSTIBase'] || this.dreamClass['isSTIChild'] ? 'type' : null,
+        ...columns,
+      ])
     )
   }
 

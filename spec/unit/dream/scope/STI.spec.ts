@@ -1,7 +1,11 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
 import STI from '../../../../src/decorators/class/STI.js'
-import { findExtendingDreamClass } from '../../../../src/dream/internal/sqlResultToDreamInstance.js'
+import sqlResultToDreamInstance, {
+  findExtendingDreamClass,
+} from '../../../../src/dream/internal/sqlResultToDreamInstance.js'
 import StiChildCannotDefineNewAssociations from '../../../../src/errors/sti/StiChildCannotDefineNewAssociations.js'
+import STIChildMissing from '../../../../src/errors/sti/STIChildMissing.js'
+import STIChildTypeMismatch from '../../../../src/errors/sti/STIChildTypeMismatch.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -185,6 +189,50 @@ describe('Dream STI', () => {
       expect(() => processDynamicallyDefinedModels(Latex, Balloon)).not.toThrow()
       expect(Object.getOwnPropertyDescriptor(Latex, 'associationMetadataByType')).toBeUndefined()
       expect(Latex['associationMetadataByType']).toBe(Balloon['associationMetadataByType'])
+    })
+  })
+
+  describe('sqlResultToDreamInstance', () => {
+    it('rejects a sibling discriminator before hydrating an STI child', () => {
+      const hydrate = () =>
+        sqlResultToDreamInstance(Mylar, {
+          id: '123',
+          type: 'Latex',
+        })
+
+      expect(hydrate).toThrow(STIChildTypeMismatch)
+      expect(hydrate).toThrow(`
+Cannot hydrate STI child from a row with a different discriminator.
+Expected Dream class: Mylar
+Expected type: Mylar
+Type specified in DB record: Latex
+STI base Dream class: Balloon
+Table: beautiful_balloons
+Primary key value: 123
+    `)
+    })
+
+    it('rejects a missing discriminator before hydrating an STI child', () => {
+      expect(() => sqlResultToDreamInstance(Mylar, { id: '123' })).toThrow(STIChildTypeMismatch)
+    })
+
+    it('hydrates an STI child when its discriminator matches', () => {
+      const dream = sqlResultToDreamInstance(Mylar, {
+        id: '123',
+        type: 'Mylar',
+      })
+
+      expect(dream).toBeInstanceOf(Mylar)
+      expect((dream as Mylar).type).toEqual('Mylar')
+    })
+
+    it('retains the missing registered child diagnostic for STI-base hydration', () => {
+      expect(() =>
+        sqlResultToDreamInstance(Balloon, {
+          id: '123',
+          type: 'MissingChild',
+        })
+      ).toThrow(STIChildMissing)
     })
   })
 
