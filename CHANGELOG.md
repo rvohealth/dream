@@ -1,3 +1,7 @@
+## 2.29.1
+
+- Instance-level `destroy`, `reallyDestroy`, `undestroy`, `update`, `updateAttributes`, and their association and transaction-bound variants now reject the query-only `lock` option at compile time, including when the options object is stored in a variable. Previously, a fresh `{ lock: true }` literal failed TypeScript's excess-property check, but an object containing `lock` alongside a valid instance option could compile and then silently ignore the lock at runtime. Use `Model.where({ id }).destroy({ lock: true })` or `Model.where({ id }).update(attributes, { lock: true })` when the mutation must re-select the row under a lock; query-level locking is unchanged.
+
 ## 2.29.0
 
 - **`removeAllDefaultScopes()` is deprecated and will become private in Dream 3.** This applies to calls on model classes, transaction-bound model classes, queries, and association load builders. Replace it with `removeDefaultScope('scopeName')`, which makes the bypass explicit and preserves every other default scope, including application-defined access-control scopes. Framework operations that must bypass every user-removable default scope continue to do so internally.

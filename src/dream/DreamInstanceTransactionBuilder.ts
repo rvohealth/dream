@@ -43,12 +43,8 @@ import destroyAssociation from './internal/associations/destroyAssociation.js'
 import loadedOrLoadAssociation from './internal/associations/loadedOrLoadAssociation.js'
 import undestroyAssociation from './internal/associations/undestroyAssociation.js'
 import destroyDream from './internal/destroyDream.js'
-import {
-  destroyOptions,
-  DestroyOptions,
-  reallyDestroyOptions,
-  undestroyOptions,
-} from './internal/destroyOptions.js'
+import { destroyOptions, reallyDestroyOptions, undestroyOptions } from './internal/destroyOptions.js'
+import type { InstanceDestroyOptions, InstanceUpdateOptions } from './internal/instanceMutationOptions.js'
 import reload from './internal/reload.js'
 import saveDream from './internal/saveDream.js'
 import {
@@ -306,7 +302,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async destroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    options: DestroyOptions<DreamInstance> = {}
+    options: InstanceDestroyOptions<DreamInstance> = {}
   ): Promise<DreamInstance> {
     return await destroyDream<DreamInstance>(
       this.dreamInstance,
@@ -336,7 +332,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async reallyDestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    options: DestroyOptions<DreamInstance> = {}
+    options: InstanceDestroyOptions<DreamInstance> = {}
   ): Promise<DreamInstance> {
     return await destroyDream<DreamInstance>(
       this.dreamInstance,
@@ -366,7 +362,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    */
   public async undestroy<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
-    options: DestroyOptions<DreamInstance> = {}
+    options: InstanceDestroyOptions<DreamInstance> = {}
   ): Promise<DreamInstance> {
     await undestroyDream(this.dreamInstance, this.dreamTransaction, undestroyOptions<DreamInstance>(options))
     await this.reload()
@@ -399,7 +395,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async update<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     attributes: UpdateableProperties<DreamInstance>,
-    { skipHooks }: { skipHooks?: boolean } = {}
+    { skipHooks }: InstanceUpdateOptions = {}
   ): Promise<void> {
     this.dreamInstance.assignAttributes(attributes)
     await saveDream(this.dreamInstance, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
@@ -432,7 +428,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   public async updateAttributes<I extends DreamInstanceTransactionBuilder<DreamInstance>>(
     this: I,
     attributes: UpdateableProperties<DreamInstance>,
-    { skipHooks }: { skipHooks?: boolean } = {}
+    { skipHooks }: InstanceUpdateOptions = {}
   ): Promise<void> {
     this.dreamInstance.setAttributes(attributes)
     await saveDream(this.dreamInstance, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
@@ -872,17 +868,16 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     attributes: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType>,
-    updateAssociationOptions: {
+    updateAssociationOptions: InstanceUpdateOptions & {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
-      skipHooks?: boolean
     } & JoinAndStatements<
-      AssociationDream,
-      DB,
-      Schema,
-      AssociationTableName,
-      RequiredOnClauseKeysForThisAssociation
-    >
+        AssociationDream,
+        DB,
+        Schema,
+        AssociationTableName,
+        RequiredOnClauseKeysForThisAssociation
+      >
   ): Promise<number>
 
   public async updateAssociation<
@@ -903,10 +898,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     this: I,
     associationName: AssociationName,
     attributes: UpdateableAssociationProperties<DreamInstance, RestrictedAssociationType>,
-    updateAssociationOptions?: {
+    updateAssociationOptions?: InstanceUpdateOptions & {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<DreamInstance>[]
-      skipHooks?: boolean
     } & JoinAndStatements<DreamInstance, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
@@ -1013,7 +1007,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<DreamInstance> &
+    options: InstanceDestroyOptions<DreamInstance> &
       JoinAndStatements<
         AssociationDream,
         DB,
@@ -1033,7 +1027,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> &
+    options?: InstanceDestroyOptions<DreamInstance> &
       JoinAndStatements<DreamInstance, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
@@ -1093,7 +1087,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<DreamInstance> &
+    options: InstanceDestroyOptions<DreamInstance> &
       JoinAndStatements<
         AssociationDream,
         DB,
@@ -1113,7 +1107,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> &
+    options?: InstanceDestroyOptions<DreamInstance> &
       JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
@@ -1178,7 +1172,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<DreamInstance> &
+    options: InstanceDestroyOptions<DreamInstance> &
       JoinAndStatements<
         AssociationDream,
         DB,
@@ -1198,7 +1192,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<DreamInstance> &
+    options?: InstanceDestroyOptions<DreamInstance> &
       JoinAndStatements<AssociationDream, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
