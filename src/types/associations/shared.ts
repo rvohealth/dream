@@ -322,27 +322,49 @@ export type OnStatementForSpecificColumns<
   >,
 > = Pick<OnStatement, Columns[number] & keyof OnStatement>
 
+// Trigram similarity conditions (`ops.similarity`, `ops.wordSimilarity`,
+// `ops.strictWordSimilarity`) are applied by a ranked trigram subquery that
+// the driver builds only from a Query's own where and join conditions. One in
+// an association declaration's `and`, `andNot` or `andAny` never reached that
+// subquery and was silently dropped, so it is a compile error there. Apply a
+// similarity condition at the call site instead, e.g.
+// `user.associationQuery('posts', { and: { body: ops.similarity('hello') } })`.
+type WithoutSimilarityOps<T> = T extends OpsStatement<TrigramOperator, any, any> ? never : T
+type WithoutSimilarityClauses<WhereStatement> = {
+  [K in keyof WhereStatement]: WithoutSimilarityOps<WhereStatement[K]>
+}
+
+// where statement for the `andNot` and `andAny` clauses of an association definition
+export type WhereStatementForAssociationDefinition<
+  I extends Dream,
+  DB,
+  Schema,
+  TableName extends AssociationTableNames<DB, Schema> & keyof DB,
+> = WithoutSimilarityClauses<InternalWhereStatement<I, DB, Schema, TableName>>
+
 // on statement on an association definition
 type OnStatementForAssociationDefinition<
   DB,
   Schema,
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
-> = Partial<
-  MergeUnionOfRecordTypes<
-    // As in `Whereable`, the plain value form targets regular (scalar) columns.
-    // An array column accepts only `null` and `[]` as a plain value here;
-    // every other comparison against it goes through `ops`.
-    | Partial<{
-        [K in keyof Selectable<DB[TableName]>]: TableColumnIsArray<Schema, TableName, K> extends true
-          ? Extract<Selectable<DB[TableName]>[K], null> | readonly []
-          : Selectable<DB[TableName]>[K]
-      }>
-    | Partial<{
-        [ColumnName in keyof DB[TableName]]:
-          | NonKyselySupportedSupplementalWhereClauseValues<DB, Schema, TableName, ColumnName>
-          | typeof DreamConst.passthrough
-          | typeof DreamConst.required
-      }>
+> = WithoutSimilarityClauses<
+  Partial<
+    MergeUnionOfRecordTypes<
+      // As in `Whereable`, the plain value form targets regular (scalar) columns.
+      // An array column accepts only `null` and `[]` as a plain value here;
+      // every other comparison against it goes through `ops`.
+      | Partial<{
+          [K in keyof Selectable<DB[TableName]>]: TableColumnIsArray<Schema, TableName, K> extends true
+            ? Extract<Selectable<DB[TableName]>[K], null> | readonly []
+            : Selectable<DB[TableName]>[K]
+        }>
+      | Partial<{
+          [ColumnName in keyof DB[TableName]]:
+            | NonKyselySupportedSupplementalWhereClauseValues<DB, Schema, TableName, ColumnName>
+            | typeof DreamConst.passthrough
+            | typeof DreamConst.required
+        }>
+    >
   >
 >
 
@@ -432,8 +454,8 @@ export interface HasStatement<
   foreignKeyTypeField: () => keyof DB[ForeignTableName] & string
   globalAssociationNameOrNames: string[]
   and?: OnStatementForAssociationDefinition<DB, Schema, ForeignTableName>
-  andNot?: InternalWhereStatement<BaseInstance, DB, Schema, ForeignTableName>
-  andAny?: InternalWhereStatement<BaseInstance, DB, Schema, ForeignTableName>[]
+  andNot?: WhereStatementForAssociationDefinition<BaseInstance, DB, Schema, ForeignTableName>
+  andAny?: WhereStatementForAssociationDefinition<BaseInstance, DB, Schema, ForeignTableName>[]
   // ATTENTION
   //
   // Using `order` with HasOne is tempting as an elegant API
@@ -504,7 +526,7 @@ interface HasOptionsBase<
    * public notLostCollar: Collar
    * ```
    */
-  andNot?: InternalWhereStatement<
+  andNot?: WhereStatementForAssociationDefinition<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],
@@ -522,7 +544,7 @@ interface HasOptionsBase<
    * public redOrBlueBalloons: Balloon[]
    * ```
    */
-  andAny?: InternalWhereStatement<
+  andAny?: WhereStatementForAssociationDefinition<
     BaseInstance,
     BaseInstance['DB'],
     BaseInstance['schema'],

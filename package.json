@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.41.0",
+  "version": "2.41.1",
   "description": "dream orm",
   "engines": {
     "node": ">=24"
