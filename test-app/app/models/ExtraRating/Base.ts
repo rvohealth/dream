@@ -29,4 +29,11 @@ export default class BaseExtraRating extends ApplicationModel {
   public extraRateable: Composition | Post | Balloon
   public extraRateableId: DreamColumn<BaseExtraRating, 'extraRateableId'>
   public extraRateableType: DreamColumn<BaseExtraRating, 'extraRateableType'>
+
+  @deco.BelongsTo(['Composition', 'Post', 'Balloon'], {
+    on: 'extraRateableId',
+    polymorphic: true,
+    optional: true,
+  })
+  public optionalExtraRateable: Composition | Post | Balloon | null
 }

@@ -610,6 +610,19 @@ describe('Query#where', () => {
         ).rejects.toThrow(AnyRequiresArrayColumn)
       })
     })
+
+    context('within a preload and clause', () => {
+      it('filters the preloaded association', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const greenBalloon = await Mylar.create({ user, multicolor: ['red', 'green'] })
+        await Mylar.create({ user, multicolor: ['blue'] })
+
+        const reloaded = await User.preload('balloons', { and: { multicolor: ops.any('green') } }).findOrFail(
+          user.id
+        )
+        expect(reloaded.balloons).toMatchDreamModels([greenBalloon])
+      })
+    })
   })
 
   context('ops.like', () => {
