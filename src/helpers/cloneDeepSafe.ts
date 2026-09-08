@@ -1,6 +1,7 @@
 import { SelectQueryBuilder } from 'kysely'
 import Dream from '../Dream.js'
 import Query from '../dream/Query.js'
+import CurriedOpsStatement from '../ops/curried-ops-statement.js'
 import OpsStatement from '../ops/ops-statement.js'
 import BaseClockTime from '../utils/datetime/BaseClockTime.js'
 import CalendarDate from '../utils/datetime/CalendarDate.js'
@@ -30,7 +31,8 @@ export default function cloneDeepSafe<T>(original: T, unsupportedTypeCloneFuncti
     original instanceof CalendarDate ||
     original instanceof BaseClockTime ||
     original instanceof Range ||
-    original instanceof OpsStatement
+    original instanceof OpsStatement ||
+    original instanceof CurriedOpsStatement
   ) {
     return original
   }

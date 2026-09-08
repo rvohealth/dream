@@ -38,4 +38,11 @@ export default class Rating extends ApplicationModel {
     withoutDefaultScopes: ['dream:SoftDelete'],
   })
   public rateableEvenIfDeleted: Composition | Post
+
+  @deco.BelongsTo(['Composition', 'Post'], {
+    on: 'rateableId',
+    polymorphic: true,
+    optional: true,
+  })
+  public optionalRateable: Composition | Post | null
 }

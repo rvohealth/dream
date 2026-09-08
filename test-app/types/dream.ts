@@ -1699,6 +1699,15 @@ export const schema = {
         requiredAndClauses: null,
         passthroughAndClauses: null,
       },
+      optionalExtraRateable: {
+        type: 'BelongsTo',
+        foreignKey: 'extraRateableId',
+        foreignKeyTypeColumn: 'extraRateableType',
+        tables: ['beautiful_balloons', 'compositions', 'posts'],
+        optional: true,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
       user: {
         type: 'BelongsTo',
         foreignKey: 'userId',
@@ -6090,6 +6099,15 @@ export const schema = {
     },
     virtualColumns: [],
     associations: {
+      optionalRateable: {
+        type: 'BelongsTo',
+        foreignKey: 'rateableId',
+        foreignKeyTypeColumn: 'rateableType',
+        tables: ['compositions', 'posts'],
+        optional: true,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
       rateable: {
         type: 'BelongsTo',
         foreignKey: 'rateableId',

@@ -3328,12 +3328,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     this: KyselyQueryDriver<DreamInstance>,
     association: BelongsToStatement<any, any, any, string>,
     associatedModels: (typeof Dream)[],
-    dreams: Dream[]
+    dreams: Dream[],
+    onStatement: JoinAndStatements<any, any, any, any, any> = {}
   ) {
     return compact(
       await Promise.all(
         associatedModels.map(associatedModel =>
-          this.preloadPolymorphicAssociationModel(dreams, association, associatedModel)
+          this.preloadPolymorphicAssociationModel(dreams, association, associatedModel, onStatement)
         )
       )
     ).flat()
@@ -3342,7 +3343,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   private async preloadPolymorphicAssociationModel(
     dreams: Dream[],
     association: BelongsToStatement<any, any, any, string>,
-    associatedDreamClass: typeof Dream
+    associatedDreamClass: typeof Dream,
+    onStatement: JoinAndStatements<any, any, any, any, any> = {}
   ) {
     const relevantAssociatedModels = dreams.filter((dream: any) => {
       const field = association.foreignKeyTypeField()
@@ -3355,17 +3357,28 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
 
       // Load all models of type associated that are associated with any of the already loaded Dream models
-      const loadedAssociations = await this.dreamClassQueryWithScopeBypasses(associatedDreamClass, {
+      let associatedQuery = this.dreamClassQueryWithScopeBypasses(associatedDreamClass, {
         // The association may remove specific default scopes that would otherwise preclude
         // certain instances of the associated class from being found.
         defaultScopesToBypassExceptOnAssociations: association.withoutDefaultScopes,
+      }).where({
+        [associatedDreamClass.primaryKey]: relevantAssociatedModels.map(
+          (dream: any) => dream[association.foreignKey()]
+        ),
       })
-        .where({
-          [associatedDreamClass.primaryKey]: relevantAssociatedModels.map(
-            (dream: any) => dream[association.foreignKey()]
-          ),
-        })
-        .all()
+
+      // A polymorphic BelongsTo cannot be joined, so the preload's `and`/`andNot`/`andAny`
+      // conditions cannot ride along on a join the way they do for every other association.
+      // Instead, apply them as where clauses on each target class's query. The conditions
+      // are applied to every target class, so they must reference columns that exist on all
+      // of the polymorphic association's target tables. Every where statement on a Query is
+      // ANDed with the others, so these conditions can only narrow the primary-key constraint
+      // above, never widen or replace it.
+      if (onStatement.and) associatedQuery = associatedQuery.where(onStatement.and as any)
+      if (onStatement.andNot) associatedQuery = associatedQuery.whereNot(onStatement.andNot as any)
+      if (onStatement.andAny?.length) associatedQuery = associatedQuery.whereAny(onStatement.andAny as any)
+
+      const loadedAssociations = await associatedQuery.all()
 
       //////////////////////////////////////////////////////////////////////////////////////////////
       // Associate each loaded association with each dream based on primary key and foreign key type
@@ -3521,7 +3534,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       const preloadedPolymorphicBelongsTos = await this.preloadPolymorphicBelongsTo(
         association as BelongsToStatement<any, any, any, string>,
         dreamClassToHydrate,
-        dreams
+        dreams,
+        (onStatement || {}) as JoinAndStatements<any, any, any, any, any>
       )
 
       return preloadedPolymorphicBelongsTos

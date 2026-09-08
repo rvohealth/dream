@@ -8,6 +8,7 @@ import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import HeartRating from '../../../../test-app/app/models/ExtraRating/HeartRating.js'
 import NonNullRating from '../../../../test-app/app/models/NonNullRating.js'
+import ops from '../../../../src/ops/index.js'
 import Post from '../../../../test-app/app/models/Post.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -158,6 +159,160 @@ describe('Query#preload with polymorphic associations', () => {
   })
 
   context('BelongsTo association', () => {
+    context('with conditions on the preload', () => {
+      let user: User
+      let otherUser: User
+      let post: Post
+      let composition: Composition
+      let postRating: Rating
+      let compositionRating: Rating
+
+      beforeEach(async () => {
+        user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        otherUser = await User.create({ email: 'frewd@fred', password: 'howyadoin' })
+        post = await Post.create({ user })
+        composition = await Composition.create({ user: otherUser })
+        postRating = await Rating.create({ user, rateable: post })
+        compositionRating = await Rating.create({ user, rateable: composition })
+      })
+
+      // constraining a required BelongsTo is a compile-time error by design, so these
+      // specs use the optional polymorphic associations declared on the test-app models
+      it('applies and clauses to every polymorphic target', async () => {
+        const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+          .preload('optionalRateable', { and: { userId: user.id } })
+          .order('id')
+          .all()
+
+        expect(reloaded[0]!.optionalRateable).toMatchDreamModel(post)
+        expect(reloaded[1]!.optionalRateable).toBeNull()
+      })
+
+      it('applies andNot clauses to every polymorphic target', async () => {
+        const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+          .preload('optionalRateable', { andNot: { userId: user.id } })
+          .order('id')
+          .all()
+
+        expect(reloaded[0]!.optionalRateable).toBeNull()
+        expect(reloaded[1]!.optionalRateable).toMatchDreamModel(composition)
+      })
+
+      it('applies andAny clauses to every polymorphic target', async () => {
+        const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+          .preload('optionalRateable', { andAny: [{ userId: user.id }, { userId: otherUser.id }] })
+          .order('id')
+          .all()
+
+        expect(reloaded[0]!.optionalRateable).toMatchDreamModel(post)
+        expect(reloaded[1]!.optionalRateable).toMatchDreamModel(composition)
+
+        const partiallyReloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+          .preload('optionalRateable', { andAny: [{ userId: user.id }, { id: 0 }] })
+          .order('id')
+          .all()
+
+        expect(partiallyReloaded[0]!.optionalRateable).toMatchDreamModel(post)
+        expect(partiallyReloaded[1]!.optionalRateable).toBeNull()
+      })
+
+      context('when the conditions reference the primary key of the polymorphic target', () => {
+        let unrelatedPost: Post
+        let unrelatedComposition: Composition
+
+        beforeEach(async () => {
+          unrelatedPost = await Post.create({ user })
+          unrelatedComposition = await Composition.create({ user })
+        })
+
+        it('cannot widen an and clause beyond the rows the association points to', async () => {
+          const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+            .preload('optionalRateable', { and: { id: unrelatedPost.id } })
+            .order('id')
+            .all()
+
+          expect(reloaded[0]!.optionalRateable).toBeNull()
+          expect(reloaded[1]!.optionalRateable).toBeNull()
+        })
+
+        it('cannot widen an andAny clause beyond the rows the association points to', async () => {
+          const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+            .preload('optionalRateable', {
+              andAny: [{ id: unrelatedPost.id }, { id: unrelatedComposition.id }],
+            })
+            .order('id')
+            .all()
+
+          expect(reloaded[0]!.optionalRateable).toBeNull()
+          expect(reloaded[1]!.optionalRateable).toBeNull()
+        })
+
+        it('still narrows to the associated row when the condition names it', async () => {
+          // `post` and `composition` share the same id (see this file's beforeEach), so the
+          // condition also names the user to single out the post
+          const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+            .preload('optionalRateable', {
+              andAny: [{ id: post.id, userId: user.id }, { id: unrelatedPost.id }],
+            })
+            .order('id')
+            .all()
+
+          expect(reloaded[0]!.optionalRateable).toMatchDreamModel(post)
+          expect(reloaded[1]!.optionalRateable).toBeNull()
+        })
+
+        it('never attaches a row to a Dream whose foreign key type does not match it', async () => {
+          // the compositions and posts id sequences are restarted in this file's
+          // beforeEach, so `post` and `composition` share the same id: a condition
+          // naming that id must still hydrate each Dream with the row of its own type
+          expect(post.id).toEqual(composition.id)
+
+          const reloaded = await Rating.where({ id: [postRating.id, compositionRating.id] })
+            .preload('optionalRateable', { and: { id: post.id } })
+            .order('id')
+            .all()
+
+          expect(reloaded[0]!.optionalRateable).toMatchDreamModel(post)
+          expect(reloaded[1]!.optionalRateable).toMatchDreamModel(composition)
+        })
+      })
+
+      it('supports ops.any in and clauses against an array column on the polymorphic target', async () => {
+        const greenBalloon = await Mylar.create({ user, multicolor: ['green'] })
+        const blueBalloon = await Mylar.create({ user, multicolor: ['blue'] })
+        const greenRating = await HeartRating.create({ user, extraRateable: greenBalloon })
+        const blueRating = await HeartRating.create({ user, extraRateable: blueBalloon })
+
+        const reloaded = await HeartRating.where({ id: [greenRating.id, blueRating.id] })
+          .preload('optionalExtraRateable', { and: { multicolor: ops.any('green') } })
+          .order('id')
+          .all()
+
+        expect(reloaded[0]!.optionalExtraRateable).toMatchDreamModel(greenBalloon)
+        expect(reloaded[1]!.optionalExtraRateable).toBeNull()
+      })
+
+      it('supports ops.any in andAny clauses combined with a null check', async () => {
+        const greenBalloon = await Mylar.create({ user, multicolor: ['green'] })
+        const blueBalloon = await Mylar.create({ user, multicolor: ['blue'] })
+        const uncoloredBalloon = await Mylar.create({ user, multicolor: null })
+        const greenRating = await HeartRating.create({ user, extraRateable: greenBalloon })
+        const blueRating = await HeartRating.create({ user, extraRateable: blueBalloon })
+        const uncoloredRating = await HeartRating.create({ user, extraRateable: uncoloredBalloon })
+
+        const reloaded = await HeartRating.where({ id: [greenRating.id, blueRating.id, uncoloredRating.id] })
+          .preload('optionalExtraRateable', {
+            andAny: [{ multicolor: null }, { multicolor: ops.any('green') }],
+          })
+          .order('id')
+          .all()
+
+        expect(reloaded[0]!.optionalExtraRateable).toMatchDreamModel(greenBalloon)
+        expect(reloaded[1]!.optionalExtraRateable).toBeNull()
+        expect(reloaded[2]!.optionalExtraRateable).toMatchDreamModel(uncoloredBalloon)
+      })
+    })
+
     it('loads', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       await Composition.create({ user })
