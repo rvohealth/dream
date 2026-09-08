@@ -63,6 +63,14 @@ describe('cloneDeepSafe', () => {
     })
   })
 
+  context('a CurriedOpsStatement', () => {
+    it('is the same CurriedOpsStatement (since CurriedOpsStatement are immutable)', () => {
+      const original = ops.any('red')
+      const clone = cloneDeepSafe(original)
+      expect(clone).toBe(original)
+    })
+  })
+
   context('a DateTime', () => {
     it('is the same DateTime (since DateTimes are immutable)', () => {
       const original = DateTime.now()
