@@ -1,3 +1,4 @@
+import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import MissingRequiredAssociationAndClause from '../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import MissingRequiredPassthroughForAssociationAndClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
 import RecordNotFound from '../../../src/errors/RecordNotFound.js'
@@ -138,6 +139,42 @@ describe('Dream#associationOrFail', () => {
           const compositions = await user.associationOrFail('compositions')
           expect(compositions).toEqual([])
         })
+      })
+    })
+  })
+
+  context('with a connection option', () => {
+    it('uses the specified connection when loading the association', async () => {
+      const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+      const composition = await Composition.create({ user, primary: true })
+
+      const spy = vi.spyOn(DreamDbConnection, 'getConnection')
+
+      const loadedComposition = await user.associationOrFail('mainComposition', { connection: 'replica' })
+
+      expect(loadedComposition).toMatchDreamModel(composition)
+      expect(spy).toHaveBeenCalledWith('default', 'replica', expect.anything())
+    })
+
+    it('defaults to primary connection', async () => {
+      const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+      await Composition.create({ user, primary: true })
+
+      const spy = vi.spyOn(DreamDbConnection, 'getConnection')
+
+      await user.associationOrFail('mainComposition')
+
+      expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
+      expect(spy).not.toHaveBeenCalledWith('default', 'replica', expect.anything())
+    })
+
+    context('when there is no associated model', () => {
+      it('throws RecordNotFound', async () => {
+        const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+
+        await expect(user.associationOrFail('mainComposition', { connection: 'replica' })).rejects.toThrow(
+          RecordNotFound
+        )
       })
     })
   })
