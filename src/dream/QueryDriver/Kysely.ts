@@ -2858,6 +2858,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       ? _associatedDreamClass[0]!
       : _associatedDreamClass
     const throughAssociatedClassesForDefaultScopes = [
+      ...(!Array.isArray(_associatedDreamClass) ? [_associatedDreamClass] : []),
       ...(dreamClassThroughAssociationWantsToHydrate ? [dreamClassThroughAssociationWantsToHydrate] : []),
       ...previousThroughAssociations.map(({ association: throughAssociation }) =>
         throughAssociation.modelCB()
