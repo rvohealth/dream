@@ -2857,6 +2857,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const associatedDreamClass = Array.isArray(_associatedDreamClass)
       ? _associatedDreamClass[0]!
       : _associatedDreamClass
+    const finalThroughAssociation = previousThroughAssociations[previousThroughAssociations.length - 1]
+    const throughAssociatedClassForDefaultScopes = finalThroughAssociation?.association.modelCB()
 
     /**
      * Stacked order/distinct clauses are applied in join order: the options of
@@ -2941,7 +2943,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+            throughAssociatedClassOverride:
+              dreamClassThroughAssociationWantsToHydrate ?? throughAssociatedClassForDefaultScopes,
           })
 
           join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
@@ -3001,7 +3004,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+            throughAssociatedClassOverride:
+              dreamClassThroughAssociationWantsToHydrate ?? throughAssociatedClassForDefaultScopes,
           })
 
           join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)

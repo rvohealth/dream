@@ -25,6 +25,27 @@ import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherMode
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#leftJoinPreload through', () => {
+  it('restricts a through association targeting an STI child while retaining sibling-only parents', async () => {
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
+    const mylar = await Mylar.create({ color: 'red', user })
+    const latex = await Latex.create({ color: 'blue', user })
+    await Collar.create({ pet, balloon: mylar })
+    await Collar.create({ pet, balloon: latex })
+
+    const siblingOnlyUser = await User.create({ email: 'lucy@peanuts', password: 'howyadoin' })
+    const siblingOnlyPet = await Pet.create({ name: 'Snoopy', userUuid: siblingOnlyUser.uuid })
+    const siblingOnlyLatex = await Latex.create({ color: 'green', user: siblingOnlyUser })
+    await Collar.create({ pet: siblingOnlyPet, balloon: siblingOnlyLatex })
+
+    const reloaded = await User.where({ id: [user.id, siblingOnlyUser.id] })
+      .leftJoinPreload('mylarsFromUuid')
+      .all()
+    expect(reloaded).toMatchDreamModels([user, siblingOnlyUser])
+    expect(reloaded.find(model => model.id === user.id)!.mylarsFromUuid).toMatchDreamModels([mylar])
+    expect(reloaded.find(model => model.id === siblingOnlyUser.id)!.mylarsFromUuid).toEqual([])
+  })
+
   context('explicit HasMany through a BelongsTo', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       const balloon = await Latex.create()

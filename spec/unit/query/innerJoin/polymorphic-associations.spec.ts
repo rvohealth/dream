@@ -55,6 +55,18 @@ describe('Query#joins with polymorphic associations', () => {
     expect(reloaded).toMatchDreamModels([post])
   })
 
+  it('restricts a direct association targeting an STI child to that child', async () => {
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    await Mylar.create({ color: 'red', user })
+    await Latex.create({ color: 'blue', user })
+
+    const siblingOnlyUser = await User.create({ email: 'lucy@peanuts', password: 'howyadoin' })
+    await Latex.create({ color: 'green', user: siblingOnlyUser })
+
+    expect(await User.innerJoin('mylars').all()).toMatchDreamModels([user])
+    expect(await User.innerJoin('mylars').count()).toEqual(1)
+  })
+
   context('with an association provided as an argument to the and clause', () => {
     it('supports associations as clauses', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
