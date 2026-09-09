@@ -1,3 +1,7 @@
+## 2.30.0
+
+- `Dream#association` and `Dream#associationOrFail` now accept a `connection` option (`'primary'` or `'replica'`), which forces the specified database connection when the association is loaded from the database — the same behavior as `associationQuery('myAssociation').connection('replica').first()`. The option has no effect when the association is already loaded, and is not available on the transaction-bound variants, since queries within a transaction always use the transaction's connection.
+
 ## 2.29.1
 
 - Instance-level `destroy`, `reallyDestroy`, `undestroy`, `update`, `updateAttributes`, and their association and transaction-bound variants now reject the query-only `lock` option at compile time, including when the options object is stored in a variable. Previously, a fresh `{ lock: true }` literal failed TypeScript's excess-property check, but an object containing `lock` alongside a valid instance option could compile and then silently ignore the lock at runtime. Use `Model.where({ id }).destroy({ lock: true })` or `Model.where({ id }).update(attributes, { lock: true })` when the mutation must re-select the row under a lock; query-level locking is unchanged.

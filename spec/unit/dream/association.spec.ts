@@ -1,3 +1,4 @@
+import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import MissingRequiredAssociationAndClause from '../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import MissingRequiredPassthroughForAssociationAndClause from '../../../src/errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -214,6 +215,50 @@ describe('Dream#association', () => {
           const compositions = await user.association('compositions')
           expect(compositions).toEqual([])
         })
+      })
+    })
+  })
+
+  context('with a connection option', () => {
+    it('uses the specified connection when loading the association', async () => {
+      const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+      const composition = await Composition.create({ user, primary: true })
+
+      const spy = vi.spyOn(DreamDbConnection, 'getConnection')
+
+      const compositions = await user.association('compositions', { connection: 'replica' })
+
+      expect(compositions).toMatchDreamModels([composition])
+      expect(spy).toHaveBeenCalledWith('default', 'replica', expect.anything())
+    })
+
+    it('defaults to primary connection', async () => {
+      const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+      await Composition.create({ user, primary: true })
+
+      const spy = vi.spyOn(DreamDbConnection, 'getConnection')
+
+      await user.association('compositions')
+
+      expect(spy).toHaveBeenCalledWith('default', 'primary', expect.anything())
+      expect(spy).not.toHaveBeenCalledWith('default', 'replica', expect.anything())
+    })
+
+    context('combined with a required "and" clause', () => {
+      it('uses the specified connection and applies the required clause', async () => {
+        const user = await User.create({ email: 'charlie@peanuts.com', password: 'howyadoin' })
+        await Pet.create({ user, name: 'Snoopy' })
+        const woodstock = await Pet.create({ user, name: 'Woodstock' })
+
+        const spy = vi.spyOn(DreamDbConnection, 'getConnection')
+
+        const pets = await user.association('petsWithRequiredName', {
+          required: { name: 'Woodstock' },
+          connection: 'replica',
+        })
+
+        expect(pets).toMatchDreamModels([woodstock])
+        expect(spy).toHaveBeenCalledWith('default', 'replica', expect.anything())
       })
     })
   })

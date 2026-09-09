@@ -4525,12 +4525,16 @@ export default class Dream {
    *   passthrough: { name: 'My Composition' },
    *   required: { locale: 'de-DE' }
    * })
+   *
+   * // With a specific database connection
+   * const comments = await post.association('comments', { connection: 'replica' })
    * ```
    *
    * @param associationName - The name of the BelongsTo, HasOne, or HasMany association
-   * @param options - Optional configuration for required and passthrough clauses
+   * @param options - Optional configuration for required and passthrough clauses and the database connection
    * @param options.required - for associations with DreamConst.required `and` clauses
    * @param options.passthrough - for associations with DreamConst.passthrough `and` clauses
+   * @param options.connection - the database connection to use when loading the association ('primary' or 'replica')
    * @returns The associated model instance(s) or null/empty array if not found
    */
   public async association<
@@ -4575,14 +4579,17 @@ export default class Dream {
       ? {
           passthrough: PassthroughOnStatement
           required: RequiredOnStatement
+          connection?: DbConnectionType
         }
       : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I>
         ? {
             passthrough: PassthroughOnStatement
+            connection?: DbConnectionType
           }
         : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>
           ? {
               required: RequiredOnStatement
+              connection?: DbConnectionType
             }
           : never,
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
@@ -4604,7 +4611,11 @@ export default class Dream {
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
       ? AssociationNameToDream<I, AssociationName>[]
       : AssociationNameToDream<I, AssociationName> | null,
-  >(this: I, associationName: AssociationName): Promise<ReturnType>
+  >(
+    this: I,
+    associationName: AssociationName,
+    options?: { connection?: DbConnectionType }
+  ): Promise<ReturnType>
 
   public async association<
     I extends Dream,
@@ -4618,7 +4629,11 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+    options?: {
+      passthrough?: Record<string, string>
+      required?: Record<string, string>
+      connection?: DbConnectionType
+    }
   ): Promise<ReturnType> {
     return await loadedOrLoadAssociation(this, this, associationName, options)
   }
@@ -4673,12 +4688,16 @@ export default class Dream {
    *   passthrough: { name: 'My Composition' },
    *   required: { locale: 'de-DE' }
    * })
+   *
+   * // With a specific database connection
+   * const comments = await post.associationOrFail('comments', { connection: 'replica' })
    * ```
    *
    * @param associationName - The name of the BelongsTo, HasOne, or HasMany association
-   * @param options - Optional configuration for required and passthrough clauses
+   * @param options - Optional configuration for required and passthrough clauses and the database connection
    * @param options.required - for associations with DreamConst.required `and` clauses
    * @param options.passthrough - for associations with DreamConst.passthrough `and` clauses
+   * @param options.connection - the database connection to use when loading the association ('primary' or 'replica')
    * @returns The associated model instance(s) (never null for BelongsTo/HasOne)
    * @throws RecordNotFound if no associated record exists (BelongsTo/HasOne only)
    */
@@ -4724,14 +4743,17 @@ export default class Dream {
       ? {
           passthrough: PassthroughOnStatement
           required: RequiredOnStatement
+          connection?: DbConnectionType
         }
       : AssociationName extends DreamAssociationNamesWithPassthroughOnClauses<I>
         ? {
             passthrough: PassthroughOnStatement
+            connection?: DbConnectionType
           }
         : AssociationName extends DreamAssociationNamesWithRequiredOnClauses<I>
           ? {
               required: RequiredOnStatement
+              connection?: DbConnectionType
             }
           : never,
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
@@ -4753,7 +4775,11 @@ export default class Dream {
     ReturnType extends AssociationName extends DreamHasManyAssociationNames<I>
       ? AssociationNameToDream<I, AssociationName>[]
       : AssociationNameToDream<I, AssociationName>,
-  >(this: I, associationName: AssociationName): Promise<ReturnType>
+  >(
+    this: I,
+    associationName: AssociationName,
+    options?: { connection?: DbConnectionType }
+  ): Promise<ReturnType>
 
   public async associationOrFail<
     I extends Dream,
@@ -4767,7 +4793,11 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+    options?: {
+      passthrough?: Record<string, string>
+      required?: Record<string, string>
+      connection?: DbConnectionType
+    }
   ): Promise<ReturnType> {
     const response = await this.association(associationName as any, options as any)
 

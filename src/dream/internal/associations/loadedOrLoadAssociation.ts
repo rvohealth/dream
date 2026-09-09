@@ -1,4 +1,5 @@
 import Dream from '../../../Dream.js'
+import { DbConnectionType } from '../../../types/db.js'
 import {
   AssociationNameToDream,
   DreamBelongsToAssociationNames,
@@ -22,7 +23,11 @@ export default async function loadedOrLoadAssociation<
   dream: DreamInstance,
   dreamOrTransactionBuilder: DreamInstanceOrInstanceTransactionBuilder,
   associationName: AssociationName,
-  options?: { passthrough?: Record<string, string>; required?: Record<string, string> }
+  options?: {
+    passthrough?: Record<string, string>
+    required?: Record<string, string>
+    connection?: DbConnectionType
+  }
 ) {
   if (!dream.loaded(associationName)) {
     const association = dream['getAssociationMetadata'](associationName)
@@ -33,6 +38,7 @@ export default async function loadedOrLoadAssociation<
     ) as Query<DreamInstance>
 
     if (options?.passthrough) scope = scope.passthrough(options.passthrough)
+    if (options?.connection) scope = scope.connection(options.connection)
 
     if (association?.type === 'HasMany') {
       dream[associationName] = (await scope.all()) as any
