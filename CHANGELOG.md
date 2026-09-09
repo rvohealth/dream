@@ -1,6 +1,7 @@
 ## 2.30.1
 
 - **`@deco.Sortable` now supports changing an STI record's discriminator during a position-changing save.** Sortable now refreshes only the position column it owns through the save's transaction-bound, STI-aware query instead of reloading the whole record. This keeps the updated instance's position current without refreshing unrelated attributes, while still raising `RecordNotFound` if the row itself disappeared. General STI child queries—including `removeAllDefaultScopes()`—remain restricted to that child type.
+- Non-polymorphic through associations targeting an STI child now apply the child's discriminator at the terminal join. Sibling STI rows no longer appear in inner joins or counts, cause child hydration failures during preloads, or populate a left-join preload when the through chain reaches only a sibling; in that last case, the parent remains in the result with an empty child association.
 
 ## 2.30.0
 
