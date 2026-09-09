@@ -265,6 +265,9 @@ export default class User extends ApplicationModel {
   @deco.HasMany('Balloon/Mylar', { through: 'collarsFromUuid', source: 'balloon' })
   public mylarsFromUuid: Mylar[]
 
+  @deco.HasMany('Balloon/Mylar', { through: 'petsFromUuid', source: 'balloonsThroughCollars' })
+  public nestedMylarsFromUuid: Mylar[]
+
   @deco.Scope()
   public static withFunnyName(query: Query<User>) {
     return query.where({ name: 'Chalupas jr' })

@@ -4371,6 +4371,15 @@ export const schema = {
         requiredAndClauses: null,
         passthroughAndClauses: null,
       },
+      balloonsThroughCollars: {
+        type: 'HasMany',
+        foreignKey: null,
+        foreignKeyTypeColumn: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
       collars: {
         type: 'HasMany',
         foreignKey: 'petId',
@@ -7610,6 +7619,15 @@ export const schema = {
         passthroughAndClauses: null,
       },
       mylarsFromUuid: {
+        type: 'HasMany',
+        foreignKey: null,
+        foreignKeyTypeColumn: null,
+        tables: ['beautiful_balloons'],
+        optional: null,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
+      nestedMylarsFromUuid: {
         type: 'HasMany',
         foreignKey: null,
         foreignKeyTypeColumn: null,

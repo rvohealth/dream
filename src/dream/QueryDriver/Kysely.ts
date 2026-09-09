@@ -2857,8 +2857,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const associatedDreamClass = Array.isArray(_associatedDreamClass)
       ? _associatedDreamClass[0]!
       : _associatedDreamClass
-    const finalThroughAssociation = previousThroughAssociations[previousThroughAssociations.length - 1]
-    const throughAssociatedClassForDefaultScopes = finalThroughAssociation?.association.modelCB()
+    const throughAssociatedClassesForDefaultScopes = [
+      ...(dreamClassThroughAssociationWantsToHydrate ? [dreamClassThroughAssociationWantsToHydrate] : []),
+      ...previousThroughAssociations.map(({ association: throughAssociation }) =>
+        throughAssociation.modelCB()
+      ),
+    ].filter(
+      (associationClass, index, associationClasses) => associationClasses.indexOf(associationClass) === index
+    )
 
     /**
      * Stacked order/distinct clauses are applied in join order: the options of
@@ -2943,8 +2949,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride:
-              dreamClassThroughAssociationWantsToHydrate ?? throughAssociatedClassForDefaultScopes,
+            throughAssociatedClassOverrides: throughAssociatedClassesForDefaultScopes,
           })
 
           join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
@@ -3004,8 +3009,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             join,
             tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride:
-              dreamClassThroughAssociationWantsToHydrate ?? throughAssociatedClassForDefaultScopes,
+            throughAssociatedClassOverrides: throughAssociatedClassesForDefaultScopes,
           })
 
           join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
@@ -3240,34 +3244,37 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     join,
     tableNameOrAlias,
     association,
-    throughAssociatedClassOverride,
+    throughAssociatedClassOverrides,
   }: {
     dreamClass: typeof Dream
     join: JoinBuilder<any, any>
     tableNameOrAlias: string
     association: AssociationStatement
-    throughAssociatedClassOverride: typeof Dream | undefined
+    throughAssociatedClassOverrides: (typeof Dream)[]
   }) {
     let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
-    const associationClass = throughAssociatedClassOverride ?? (association.modelCB() as typeof Dream)
-    const associationScopes = associationClass['scopes'].default
+    const associationClasses = throughAssociatedClassOverrides.length
+      ? throughAssociatedClassOverrides
+      : [association.modelCB() as typeof Dream]
 
-    for (const scope of associationScopes) {
-      if (
-        !shouldBypassDefaultScope(scope.method, {
-          bypassAllDefaultScopes: this.query['bypassAllDefaultScopes'],
-          defaultScopesToBypass: [
-            ...this.query['defaultScopesToBypass'],
-            ...(association.withoutDefaultScopes || []),
-          ],
-        })
-      ) {
-        const tempQuery = (associationClass as any)[scope.method](scopesQuery)
-        // The scope method on a Dream model should return a clone of the Query it receives
-        // (e.g. by returning `scope.where(...)`), but in case the function doesn't return,
-        // or returns the wrong thing, we check before overriding `scopesQuery` with what the
-        // method returned.
-        if (tempQuery && tempQuery.constructor === scopesQuery.constructor) scopesQuery = tempQuery
+    for (const associationClass of associationClasses) {
+      for (const scope of associationClass['scopes'].default) {
+        if (
+          !shouldBypassDefaultScope(scope.method, {
+            bypassAllDefaultScopes: this.query['bypassAllDefaultScopes'],
+            defaultScopesToBypass: [
+              ...this.query['defaultScopesToBypass'],
+              ...(association.withoutDefaultScopes || []),
+            ],
+          })
+        ) {
+          const tempQuery = (associationClass as any)[scope.method](scopesQuery)
+          // The scope method on a Dream model should return a clone of the Query it receives
+          // (e.g. by returning `scope.where(...)`), but in case the function doesn't return,
+          // or returns the wrong thing, we check before overriding `scopesQuery` with what the
+          // method returned.
+          if (tempQuery && tempQuery.constructor === scopesQuery.constructor) scopesQuery = tempQuery
+        }
       }
     }
 

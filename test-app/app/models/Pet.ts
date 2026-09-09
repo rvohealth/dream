@@ -92,6 +92,9 @@ export default class Pet extends ApplicationModel {
   @deco.HasMany('Balloon', { through: 'uniqueCollars', source: 'balloon' })
   public uniqueBalloons: Balloon[]
 
+  @deco.HasMany('Balloon', { through: 'collars', source: 'balloon' })
+  public balloonsThroughCollars: Balloon[]
+
   @deco.HasMany('Balloon', { through: 'collars', source: 'balloon', distinct: true })
   public distinctBalloons: Balloon[]
 

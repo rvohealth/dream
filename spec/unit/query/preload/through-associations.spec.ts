@@ -25,6 +25,18 @@ import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherMode
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#preload through', () => {
+  it('restricts an outer STI-child target when its source is itself a base-targeted through association', async () => {
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
+    const mylar = await Mylar.create({ color: 'red', user })
+    const latex = await Latex.create({ color: 'blue', user })
+    await Collar.create({ pet, balloon: mylar, tagName: 'mylar' })
+    await Collar.create({ pet, balloon: latex, tagName: 'latex' })
+
+    const reloaded = await User.where({ id: user.id }).preload('nestedMylarsFromUuid').firstOrFail()
+    expect(reloaded.nestedMylarsFromUuid).toMatchDreamModels([mylar])
+  })
+
   it('restricts a through association targeting an STI child to that child', async () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
     const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
