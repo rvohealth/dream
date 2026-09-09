@@ -23,14 +23,13 @@ import loadedOrLoadAssociation from './dream/internal/associations/loadedOrLoadA
 import undestroyAssociation from './dream/internal/associations/undestroyAssociation.js'
 import associationStringToNameAndAlias from './dream/internal/associationStringToNameAndAlias.js'
 import destroyDream from './dream/internal/destroyDream.js'
-import {
-  DestroyOptions,
-  destroyOptions,
-  reallyDestroyOptions,
-  undestroyOptions,
-} from './dream/internal/destroyOptions.js'
+import { destroyOptions, reallyDestroyOptions, undestroyOptions } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
+import type {
+  InstanceDestroyOptions,
+  InstanceUpdateOptions,
+} from './dream/internal/instanceMutationOptions.js'
 import mergeSerializerAssociationEdges from './dream/internal/mergeSerializerAssociationEdges.js'
 import printSerializerHierarchyLevel from './dream/internal/printSerializerHierarchyLevel.js'
 import reload from './dream/internal/reload.js'
@@ -3847,7 +3846,7 @@ export default class Dream {
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The instance that was destroyed
    */
-  public async destroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+  public async destroy<I extends Dream>(this: I, options: InstanceDestroyOptions<I> = {}): Promise<I> {
     return await destroyDream(this, null, destroyOptions<I>(options))
   }
 
@@ -3873,7 +3872,7 @@ export default class Dream {
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The instance that was destroyed
    */
-  public async reallyDestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+  public async reallyDestroy<I extends Dream>(this: I, options: InstanceDestroyOptions<I> = {}): Promise<I> {
     return await destroyDream(this, null, reallyDestroyOptions<I>(options))
   }
 
@@ -3896,7 +3895,7 @@ export default class Dream {
    * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The undestroyed record
    */
-  public async undestroy<I extends Dream>(this: I, options: DestroyOptions<I> = {}): Promise<I> {
+  public async undestroy<I extends Dream>(this: I, options: InstanceDestroyOptions<I> = {}): Promise<I> {
     const dreamClass = this.constructor as typeof Dream
     if (!dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(dreamClass)
 
@@ -4036,7 +4035,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<I> &
+    options: InstanceDestroyOptions<I> &
       JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
@@ -4050,7 +4049,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
+    options?: InstanceDestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -4107,7 +4106,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<I> &
+    options: InstanceDestroyOptions<I> &
       JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
@@ -4121,7 +4120,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
+    options?: InstanceDestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -4183,7 +4182,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options: DestroyOptions<I> &
+    options: InstanceDestroyOptions<I> &
       JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
@@ -4197,7 +4196,7 @@ export default class Dream {
   >(
     this: I,
     associationName: AssociationName,
-    options?: DestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
+    options?: InstanceDestroyOptions<I> & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
   /**
@@ -4329,10 +4328,9 @@ export default class Dream {
     associationName: AssociationName,
 
     attributes: UpdateableAssociationProperties<I, RestrictedAssociationType>,
-    updateAssociationOptions: {
+    updateAssociationOptions: InstanceUpdateOptions & {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
-      skipHooks?: boolean
     } & JoinAndStatements<I, DB, Schema, AssociationTableName, RequiredOnClauseKeysForThisAssociation>
   ): Promise<number>
 
@@ -4353,10 +4351,9 @@ export default class Dream {
     this: I,
     associationName: AssociationName,
     attributes: UpdateableAssociationProperties<I, RestrictedAssociationType>,
-    updateAssociationOptions?: {
+    updateAssociationOptions?: InstanceUpdateOptions & {
       bypassAllDefaultScopes?: boolean
       defaultScopesToBypass?: AllDefaultScopeNames<I>[]
-      skipHooks?: boolean
     } & JoinAndStatements<I, DB, Schema, AssociationTableName, null>
   ): Promise<number>
 
@@ -5057,7 +5054,7 @@ export default class Dream {
   public async update<I extends Dream>(
     this: I,
     attributes: UpdateableProperties<I>,
-    { skipHooks }: { skipHooks?: boolean } = {}
+    { skipHooks }: InstanceUpdateOptions = {}
   ): Promise<void> {
     // use #assignAttributes to leverage any custom-defined setters
     this.assignAttributes(attributes)
@@ -5090,7 +5087,7 @@ export default class Dream {
   public async updateAttributes<I extends Dream>(
     this: I,
     attributes: UpdateableProperties<I>,
-    { skipHooks }: { skipHooks?: boolean } = {}
+    { skipHooks }: InstanceUpdateOptions = {}
   ): Promise<void> {
     // use #setAttributes to bypass any custom-defined setters
     this.setAttributes(attributes)
