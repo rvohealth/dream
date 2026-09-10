@@ -56,8 +56,7 @@ export default async function setPosition(obj: SortablePositionWrite) {
 }
 
 async function refreshPosition({ dream, positionField, query }: SortablePositionWrite) {
-  const positions = await query
-    .removeAllDefaultScopes()
+  const positions = await query['removeAllDefaultScopes']()
     .where({ [dream['_primaryKey']]: dream.primaryKeyValue() })
     .pluck(positionField as any)
 
