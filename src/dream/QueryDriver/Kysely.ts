@@ -2694,8 +2694,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
 
     /**
-     * When the source is a polymorphic BelongsTo association, use the target of the through
-     * association to determine which class to target.
+     * A polymorphic source can accept several model classes. The outermost
+     * association target selects the one this through chain is following.
      */
     const polymorphicSourceTargetModelClass = Array.isArray(sourceTargetModelClassOrClasses)
       ? outermostTargetModelClass
