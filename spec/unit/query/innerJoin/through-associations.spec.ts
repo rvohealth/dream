@@ -1,3 +1,4 @@
+import IncompatibleThroughAssociationTarget from '../../../../src/errors/associations/IncompatibleThroughAssociationTarget.js'
 import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
 import ops from '../../../../src/ops/index.js'
@@ -23,18 +24,13 @@ import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherMode
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#joins through with simple associations', () => {
-  it('preserves terminal STI-child scope and composes it with pending target scopes', async () => {
-    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-    const mylar = await Mylar.create({ color: 'red', user })
-    const latex = await Latex.create({ color: 'blue', user })
-    await Collar.create({ pet, balloon: mylar, tagName: 'mylar' })
-    await Collar.create({ pet, balloon: latex, tagName: 'latex' })
-
-    expect(await User.innerJoin('balloonsFromMylarTerminal').all()).toMatchDreamModels([user])
-    expect(await User.innerJoin('balloonsFromMylarTerminal').count()).toEqual(1)
-    expect(await User.innerJoin('latexesFromMylarTerminal').all()).toEqual([])
-    expect(await User.innerJoin('latexesFromMylarTerminal').count()).toEqual(0)
+  it('rejects through chains whose outer target cannot be returned by the source association', async () => {
+    await expect(User.innerJoin('balloonsFromMylarTerminal').all()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
+    await expect(User.innerJoin('latexesFromMylarTerminal').all()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
   })
 
   it('restricts an outer STI-child target when its source is itself a base-targeted through association', async () => {

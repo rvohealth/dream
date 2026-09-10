@@ -1,3 +1,4 @@
+import IncompatibleThroughAssociationTarget from '../../../../src/errors/associations/IncompatibleThroughAssociationTarget.js'
 import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
@@ -25,28 +26,20 @@ import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherMode
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#preload through', () => {
-  it('preserves an STI-child scope declared by the terminal source association', async () => {
+  it('rejects an outer base target that would broaden an STI-child source', async () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-    const mylar = await Mylar.create({ color: 'red', user })
-    const latex = await Latex.create({ color: 'blue', user })
-    await Collar.create({ pet, balloon: mylar, tagName: 'mylar' })
-    await Collar.create({ pet, balloon: latex, tagName: 'latex' })
 
-    const reloaded = await User.where({ id: user.id }).preload('balloonsFromMylarTerminal').firstOrFail()
-    expect(reloaded.balloonsFromMylarTerminal).toMatchDreamModels([mylar])
+    await expect(User.where({ id: user.id }).preload('balloonsFromMylarTerminal').first()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
   })
 
-  it('returns no match when pending and terminal STI-child scopes are incompatible', async () => {
+  it('rejects incompatible STI-child targets within a through chain', async () => {
     const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-    const mylar = await Mylar.create({ color: 'red', user })
-    const latex = await Latex.create({ color: 'blue', user })
-    await Collar.create({ pet, balloon: mylar, tagName: 'mylar' })
-    await Collar.create({ pet, balloon: latex, tagName: 'latex' })
 
-    const reloaded = await User.where({ id: user.id }).preload('latexesFromMylarTerminal').firstOrFail()
-    expect(reloaded.latexesFromMylarTerminal).toEqual([])
+    await expect(User.where({ id: user.id }).preload('latexesFromMylarTerminal').first()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
   })
 
   it('restricts an outer STI-child target when its source is itself a base-targeted through association', async () => {

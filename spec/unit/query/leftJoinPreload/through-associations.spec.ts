@@ -1,3 +1,4 @@
+import IncompatibleThroughAssociationTarget from '../../../../src/errors/associations/IncompatibleThroughAssociationTarget.js'
 import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
@@ -25,22 +26,13 @@ import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherMode
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#leftJoinPreload through', () => {
-  it('preserves terminal STI-child scope and yields no match for an incompatible pending child', async () => {
-    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
-    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
-    const mylar = await Mylar.create({ color: 'red', user })
-    const latex = await Latex.create({ color: 'blue', user })
-    await Collar.create({ pet, balloon: mylar, tagName: 'mylar' })
-    await Collar.create({ pet, balloon: latex, tagName: 'latex' })
-
-    const withTerminalChild = await User.where({ id: user.id })
-      .leftJoinPreload('balloonsFromMylarTerminal')
-      .firstOrFail()
-    const withIncompatibleChildren = await User.where({ id: user.id })
-      .leftJoinPreload('latexesFromMylarTerminal')
-      .firstOrFail()
-    expect(withTerminalChild.balloonsFromMylarTerminal).toMatchDreamModels([mylar])
-    expect(withIncompatibleChildren.latexesFromMylarTerminal).toEqual([])
+  it('rejects through chains whose outer target cannot be returned by the source association', async () => {
+    await expect(User.leftJoinPreload('balloonsFromMylarTerminal').first()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
+    await expect(User.leftJoinPreload('latexesFromMylarTerminal').first()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
   })
 
   it('restricts an outer STI-child target through a base-targeted through source while retaining sibling-only parents', async () => {
