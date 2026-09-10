@@ -1,3 +1,7 @@
+## 2.30.1
+
+- **`@deco.Sortable` now supports changing an STI record's discriminator during a position-changing save.** Sortable now refreshes only the position column it owns through the save's transaction-bound, STI-aware query instead of reloading the whole record. This keeps the updated instance's position current without refreshing unrelated attributes, while still raising `RecordNotFound` if the row itself disappeared. General STI child queries—including `removeAllDefaultScopes()`—remain restricted to that child type.
+
 ## 2.30.0
 
 - `Dream#association` and `Dream#associationOrFail` now accept a `connection` option (`'primary'` or `'replica'`), which forces the specified database connection when the association is loaded from the database — the same behavior as `associationQuery('myAssociation').connection('replica').first()`. The option has no effect when the association is already loaded, and is not available on the transaction-bound variants, since queries within a transaction always use the transaction's connection.

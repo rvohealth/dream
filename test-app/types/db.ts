@@ -239,6 +239,13 @@ export type ShapeTypesEnum = 'CatShape' | 'RegularShape'
 
 export const ShapeTypesEnumValues = ['CatShape', 'RegularShape'] as const
 
+export type SortableStiModelTypesEnum = 'SortableStiAlpha' | 'SortableStiBeta'
+
+export const SortableStiModelTypesEnumValues = [
+  'SortableStiAlpha',
+  'SortableStiBeta',
+] as const
+
 export type Species = 'cat' | 'dog' | 'frog' | 'migration_transaction_test'
 
 export const SpeciesValues = [
@@ -803,6 +810,15 @@ export interface Shapes {
   updatedAt: Timestamp
 }
 
+export interface SortableStiModels {
+  createdAt: Timestamp
+  id: Generated<Int8>
+  positionByType: number
+  positionIndependent: number
+  type: SortableStiModelTypesEnum
+  updatedAt: Timestamp
+}
+
 export interface StiBases {
   createdAt: Timestamp
   encryptedSecret: string | null
@@ -956,6 +972,7 @@ export interface DB {
   ratings: Ratings
   sandbags: Sandbags
   shapes: Shapes
+  sortable_sti_models: SortableStiModels
   sti_bases: StiBases
   text_scoped_sortable_models: TextScopedSortableModels
   through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels
@@ -1022,6 +1039,7 @@ export class DBClass {
   ratings: Ratings
   sandbags: Sandbags
   shapes: Shapes
+  sortable_sti_models: SortableStiModels
   sti_bases: StiBases
   text_scoped_sortable_models: TextScopedSortableModels
   through_a_to_other_model_join_models: ThroughAToOtherModelJoinModels
