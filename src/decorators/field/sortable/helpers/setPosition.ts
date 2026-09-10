@@ -2,6 +2,7 @@ import { ExpressionBuilder } from 'kysely'
 import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
+import RecordNotFound from '../../../../errors/RecordNotFound.js'
 import range from '../../../../helpers/range.js'
 import ops from '../../../../ops/index.js'
 import { SortableCache } from './prepareSortableFieldsForSave.js'
@@ -50,10 +51,19 @@ interface SortablePositionWriteWithPosition extends SortablePositionWrite {
 }
 
 export default async function setPosition(obj: SortablePositionWrite) {
-  const { dream, txn } = obj
-
   await applyUpdates(obj)
-  await dream.txn(txn).reload()
+  await refreshPosition(obj)
+}
+
+async function refreshPosition({ dream, positionField, query }: SortablePositionWrite) {
+  const positions = await query
+    .removeAllDefaultScopes()
+    .where({ [dream['_primaryKey']]: dream.primaryKeyValue() })
+    .pluck(positionField as any)
+
+  if (!positions.length) throw new RecordNotFound(dream['sanitizedConstructorName'])
+
+  dream['setPersistedAttribute'](positionField, positions[0])
 }
 
 async function applyUpdates(obj: SortablePositionWrite) {
