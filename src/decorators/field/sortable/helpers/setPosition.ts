@@ -2,6 +2,7 @@ import { ExpressionBuilder } from 'kysely'
 import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
+import installPersistedAttribute from '../../../../dream/internal/installPersistedAttribute.js'
 import RecordNotFound from '../../../../errors/RecordNotFound.js'
 import range from '../../../../helpers/range.js'
 import ops from '../../../../ops/index.js'
@@ -62,7 +63,7 @@ async function refreshPosition({ dream, positionField, query }: SortablePosition
 
   if (!positions.length) throw new RecordNotFound(dream['sanitizedConstructorName'])
 
-  dream['setPersistedAttribute'](positionField, positions[0])
+  installPersistedAttribute(dream, positionField, positions[0])
 }
 
 async function applyUpdates(obj: SortablePositionWrite) {

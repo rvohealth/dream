@@ -3557,18 +3557,6 @@ export default class Dream {
   }
 
   /**
-   * @internal
-   *
-   * Installs one database-sourced scalar as the persisted value without
-   * replacing the saved-change history established by the current save.
-   */
-  private setPersistedAttribute(column: string, val: any): void {
-    this.currentAttributes[column] = val
-    this.frozenAttributes[column] = val
-    this.originalAttributes[column] = val
-  }
-
-  /**
    * Returns the value for a columnName provided,
    * bypassing the getters.
    *
