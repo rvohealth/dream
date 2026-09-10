@@ -1,11 +1,14 @@
+import IncompatibleThroughAssociationTarget from '../../../../src/errors/associations/IncompatibleThroughAssociationTarget.js'
 import MissingThroughAssociation from '../../../../src/errors/associations/MissingThroughAssociation.js'
 import MissingThroughAssociationSource from '../../../../src/errors/associations/MissingThroughAssociationSource.js'
 import ops from '../../../../src/ops/index.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonSpotter from '../../../../test-app/app/models/BalloonSpotter.js'
 import BalloonSpotterBalloon from '../../../../test-app/app/models/BalloonSpotterBalloon.js'
+import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit.js'
@@ -21,6 +24,33 @@ import ThroughOtherModel from '../../../../test-app/app/models/Through/OtherMode
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#joins through with simple associations', () => {
+  it('rejects through chains whose outer target cannot be returned by the source association', async () => {
+    await expect(User.innerJoin('balloonsFromMylarTerminal').all()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
+    await expect(User.innerJoin('latexesFromMylarTerminal').all()).rejects.toThrow(
+      IncompatibleThroughAssociationTarget
+    )
+  })
+
+  it('restricts an outer STI-child target when its source is itself a base-targeted through association', async () => {
+    const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+    const pet = await Pet.create({ name: 'Aster', userUuid: user.uuid })
+    const mylar = await Mylar.create({ color: 'red', user })
+    const latex = await Latex.create({ color: 'blue', user })
+    await Collar.create({ pet, balloon: mylar, tagName: 'mylar' })
+    await Collar.create({ pet, balloon: latex, tagName: 'latex' })
+
+    const siblingOnlyUser = await User.create({ email: 'lucy@peanuts', password: 'howyadoin' })
+    const siblingOnlyPet = await Pet.create({ name: 'Snoopy', userUuid: siblingOnlyUser.uuid })
+    const siblingOnlyLatex = await Latex.create({ color: 'green', user: siblingOnlyUser })
+    await Collar.create({ pet: siblingOnlyPet, balloon: siblingOnlyLatex, tagName: 'latex-only' })
+
+    const query = User.where({ id: [user.id, siblingOnlyUser.id] }).innerJoin('nestedMylarsFromUuid')
+    expect(await query.all()).toMatchDreamModels([user])
+    expect(await query.count()).toEqual(1)
+  })
+
   context('explicit HasMany through', () => {
     it('sets HasMany property on the model and BelongsToProperty on the associated model', async () => {
       await BalloonSpotter.create()

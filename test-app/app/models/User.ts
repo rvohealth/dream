@@ -8,6 +8,8 @@ import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
+import Latex from './Balloon/Latex.js'
+import Mylar from './Balloon/Mylar.js'
 import BalloonLine from './BalloonLine.js'
 import Collar from './Collar.js'
 import Composition from './Composition.js'
@@ -222,6 +224,9 @@ export default class User extends ApplicationModel {
   @deco.HasMany('Balloon')
   public balloons: Balloon[]
 
+  @deco.HasMany('Balloon/Mylar')
+  public mylars: Mylar[]
+
   @deco.HasMany('BalloonLine', { through: 'balloons', source: 'balloonLine' })
   public balloonLines: BalloonLine[]
 
@@ -257,6 +262,18 @@ export default class User extends ApplicationModel {
 
   @deco.HasMany('Balloon', { through: 'collarsFromUuid', source: 'balloon' })
   public balloonsFromUuid: Collar[]
+
+  @deco.HasMany('Balloon/Mylar', { through: 'collarsFromUuid', source: 'balloon' })
+  public mylarsFromUuid: Mylar[]
+
+  @deco.HasMany('Balloon', { through: 'collarsFromUuid', source: 'mylarBalloon' })
+  public balloonsFromMylarTerminal: Balloon[]
+
+  @deco.HasMany('Balloon/Latex', { through: 'collarsFromUuid', source: 'mylarBalloon' })
+  public latexesFromMylarTerminal: Latex[]
+
+  @deco.HasMany('Balloon/Mylar', { through: 'petsFromUuid', source: 'balloonsThroughCollars' })
+  public nestedMylarsFromUuid: Mylar[]
 
   @deco.Scope()
   public static withFunnyName(query: Query<User>) {

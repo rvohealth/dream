@@ -4,6 +4,7 @@ import Query from '../../../src/dream/Query.js'
 import { DreamColumn, DreamSerializers } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import Balloon from './Balloon.js'
+import Mylar from './Balloon/Mylar.js'
 import Pet from './Pet.js'
 
 const deco = new Decorators<typeof Collar>()
@@ -43,6 +44,9 @@ export default class Collar extends ApplicationModel {
 
   @deco.BelongsTo('Balloon', { on: 'balloonId', optional: true })
   public balloon: Balloon
+
+  @deco.BelongsTo('Balloon/Mylar', { on: 'balloonId', optional: true })
+  public mylarBalloon: Mylar
   public balloonId: DreamColumn<Collar, 'balloonId'>
 
   @deco.Scope({ default: true })

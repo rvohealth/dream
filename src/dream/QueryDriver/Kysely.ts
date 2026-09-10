@@ -47,6 +47,7 @@ import DreamApp, { DreamDbConfig } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import ArrayTargetIncompatibleWithThroughAssociation from '../../errors/associations/ArrayTargetIncompatibleWithThroughAssociation.js'
 import CannotJoinPolymorphicBelongsToError from '../../errors/associations/CannotJoinPolymorphicBelongsToError.js'
+import IncompatibleThroughAssociationTarget from '../../errors/associations/IncompatibleThroughAssociationTarget.js'
 import JoinAttemptedOnMissingAssociation from '../../errors/associations/JoinAttemptedOnMissingAssociation.js'
 import MissingRequiredAssociationAndClause from '../../errors/associations/MissingRequiredAssociationAndClause.js'
 import MissingRequiredPassthroughForAssociationAndClause from '../../errors/associations/MissingRequiredPassthroughForAssociationAndClause.js'
@@ -2121,7 +2122,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         joinAndStatement,
         joinType,
         previousThroughAssociations: [],
-        dreamClassThroughAssociationWantsToHydrate: undefined,
+        polymorphicSourceTargetModelClass: undefined,
       })
 
       query = results.query
@@ -2654,7 +2655,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         joinAndStatement: {},
         previousThroughAssociations: [],
         joinType,
-        dreamClassThroughAssociationWantsToHydrate: undefined,
+        polymorphicSourceTargetModelClass: undefined,
       })
     }
 
@@ -2674,12 +2675,30 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         throughClass: associatedDreamClass,
       })
 
+    const outermostThroughAssociation = previousThroughAssociations[0]?.association ?? throughAssociation
+    const outermostTargetModelClass = outermostThroughAssociation.modelCB()
+    const sourceTargetModelClassOrClasses = sourceAssociation.modelCB()
+    const sourceTargetModelClasses = Array.isArray(sourceTargetModelClassOrClasses)
+      ? sourceTargetModelClassOrClasses
+      : [sourceTargetModelClassOrClasses]
+
+    if (
+      !sourceTargetModelClasses.some(sourceTargetModelClass =>
+        outermostTargetModelClass.typeof(sourceTargetModelClass)
+      )
+    )
+      throw new IncompatibleThroughAssociationTarget({
+        outermostAssociation: outermostThroughAssociation,
+        outermostTargetModelClass,
+        sourceAssociation,
+      })
+
     /**
-     * When the source is a polymorphic BelongsTo association, use the target of the through
-     * association to determine which class to target.
+     * A polymorphic source can accept several model classes. The outermost
+     * association target selects the one this through chain is following.
      */
-    const dreamClassThroughAssociationWantsToHydrate = Array.isArray(sourceAssociation.modelCB())
-      ? throughAssociation.modelCB()
+    const polymorphicSourceTargetModelClass = Array.isArray(sourceTargetModelClassOrClasses)
+      ? outermostTargetModelClass
       : undefined
 
     /**
@@ -2715,7 +2734,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         { association: throughAssociation, selfTableAlias: previousTableAlias },
       ],
       joinType,
-      dreamClassThroughAssociationWantsToHydrate,
+      polymorphicSourceTargetModelClass,
     })
   }
 
@@ -2752,7 +2771,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     joinAndStatement = {},
     previousThroughAssociations,
     joinType,
-    dreamClassThroughAssociationWantsToHydrate,
+    polymorphicSourceTargetModelClass,
   }: {
     query: QueryType
     dreamClass: typeof Dream
@@ -2767,7 +2786,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousThroughAssociations: PendingThroughAssociation[]
 
     joinType: JoinTypes
-    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
+    polymorphicSourceTargetModelClass: typeof Dream | undefined
   }): {
     query: QueryType
     association: AssociationStatement
@@ -2795,7 +2814,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       joinAndStatement,
       previousThroughAssociations,
       joinType,
-      dreamClassThroughAssociationWantsToHydrate,
+      polymorphicSourceTargetModelClass,
     })
   }
 
@@ -2832,7 +2851,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     joinAndStatement,
     previousThroughAssociations,
     joinType,
-    dreamClassThroughAssociationWantsToHydrate,
+    polymorphicSourceTargetModelClass,
   }: {
     query: QueryType
     dreamClass: typeof Dream
@@ -2847,16 +2866,44 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     previousThroughAssociations: PendingThroughAssociation[]
 
     joinType: JoinTypes
-    dreamClassThroughAssociationWantsToHydrate: typeof Dream | undefined
+    polymorphicSourceTargetModelClass: typeof Dream | undefined
   }): {
     query: QueryType
     association: AssociationStatement
   } {
     const currentTableAlias = explicitAlias ?? association.as
-    const _associatedDreamClass = association.modelCB()
-    const associatedDreamClass = Array.isArray(_associatedDreamClass)
-      ? _associatedDreamClass[0]!
-      : _associatedDreamClass
+    const associationModelClassOrPolymorphicModelClasses = association.modelCB()
+    const modelClassUsedForJoinConditions = Array.isArray(associationModelClassOrPolymorphicModelClasses)
+      ? associationModelClassOrPolymorphicModelClasses[0]!
+      : associationModelClassOrPolymorphicModelClasses
+
+    /**
+     * The outermost through association defines what callers expect this join to
+     * return, so its target is the single owner of the target table's default
+     * scopes. Inner associations describe how to reach that table; the
+     * compatibility check in `joinsBridgeThroughAssociations` ensures they can
+     * actually return the outer target.
+     *
+     * For example, BearBnB already defines `Host.places` and `Place.rooms`. It
+     * could expose only bedrooms from a host without adding `Place.bedrooms`:
+     *
+     *   // Place.ts
+     *   @deco.HasMany('Room')
+     *   public rooms: Room[]
+     *
+     *   // Host.ts
+     *   @deco.HasMany('Room/Bedroom', { through: 'places', source: 'rooms' })
+     *   public bedrooms: Bedroom[]
+     *
+     * `Host.bedrooms` is the outermost association, so Bedroom's `dream:STI`
+     * scope is applied once to the final rooms join. Bedroom is a subclass of
+     * Room, so `Place.rooms` is a compatible path. Reversing those targets, or
+     * mixing sibling STI children, raises instead of silently changing meaning.
+     */
+    const modelClassWhoseDefaultScopesApplyToJoin =
+      previousThroughAssociations[0]?.association.modelCB() ??
+      polymorphicSourceTargetModelClass ??
+      modelClassUsedForJoinConditions
 
     /**
      * Stacked order/distinct clauses are applied in join order: the options of
@@ -2887,7 +2934,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
 
     if (association.type === 'BelongsTo') {
-      if (!dreamClassThroughAssociationWantsToHydrate && Array.isArray(association.modelCB()))
+      if (!polymorphicSourceTargetModelClass && Array.isArray(association.modelCB()))
         throw new CannotJoinPolymorphicBelongsToError({
           dreamClass,
           association,
@@ -2895,7 +2942,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           leftJoinStatements: this.query['leftJoinStatements'],
         })
 
-      const to = (dreamClassThroughAssociationWantsToHydrate ?? (association.modelCB() as typeof Dream)).table
+      const to = (polymorphicSourceTargetModelClass ?? (association.modelCB() as typeof Dream)).table
       const joinTableExpression = this.aliasedJoinTableExpression(to, currentTableAlias)
 
       query = (query as any)[(joinType === 'inner' ? 'innerJoin' : 'leftJoin') as 'innerJoin'](
@@ -2906,21 +2953,20 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             '=',
             this.namespaceColumn(
               association.primaryKey(undefined, {
-                associatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+                associatedClassOverride: polymorphicSourceTargetModelClass,
               }),
               currentTableAlias
             )
           )
 
-          if (dreamClassThroughAssociationWantsToHydrate) {
+          if (polymorphicSourceTargetModelClass) {
             join = join.on((eb: ExpressionBuilder<any, any>) =>
               this.whereStatementToExpressionWrapper(
                 dreamClass,
                 eb,
                 this.aliasWhereStatement(
                   {
-                    [association.foreignKeyTypeField()]:
-                      dreamClassThroughAssociationWantsToHydrate.sanitizedName,
+                    [association.foreignKeyTypeField()]: polymorphicSourceTargetModelClass.sanitizedName,
                   } as InternalWhereStatement<any, any, any, any>,
                   previousTableAlias
                 )
@@ -2936,15 +2982,20 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             joinAndStatement,
           })
 
-          join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+          join = this.applyAssociationDefaultScopesToJoin({
             dreamClass,
             join,
             tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+            modelClassWhoseDefaultScopesApply: modelClassWhoseDefaultScopesApplyToJoin,
           })
 
-          join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
+          join = this.applyJoinAndStatement(
+            modelClassUsedForJoinConditions,
+            join,
+            joinAndStatement,
+            currentTableAlias
+          )
 
           return join
         }
@@ -2969,8 +3020,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
                 eb,
                 this.aliasWhereStatement(
                   {
-                    [association.foreignKeyTypeField()]: dreamClassThroughAssociationWantsToHydrate
-                      ? dreamClassThroughAssociationWantsToHydrate.referenceTypeString
+                    [association.foreignKeyTypeField()]: polymorphicSourceTargetModelClass
+                      ? polymorphicSourceTargetModelClass.referenceTypeString
                       : dreamClass.referenceTypeString,
                   } as any,
                   currentTableAlias
@@ -2996,15 +3047,20 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             joinAndStatement,
           })
 
-          join = this.conditionallyApplyDefaultScopesDependentOnAssociation({
+          join = this.applyAssociationDefaultScopesToJoin({
             dreamClass,
             join,
             tableNameOrAlias: currentTableAlias,
             association,
-            throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
+            modelClassWhoseDefaultScopesApply: modelClassWhoseDefaultScopesApplyToJoin,
           })
 
-          join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
+          join = this.applyJoinAndStatement(
+            modelClassUsedForJoinConditions,
+            join,
+            joinAndStatement,
+            currentTableAlias
+          )
 
           return join
         }
@@ -3231,24 +3287,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       throw new MissingRequiredAssociationAndClause(association, missingRequiredWhereStatements[0])
   }
 
-  private conditionallyApplyDefaultScopesDependentOnAssociation({
+  private applyAssociationDefaultScopesToJoin({
     dreamClass,
     join,
     tableNameOrAlias,
     association,
-    throughAssociatedClassOverride,
+    modelClassWhoseDefaultScopesApply,
   }: {
     dreamClass: typeof Dream
     join: JoinBuilder<any, any>
     tableNameOrAlias: string
     association: AssociationStatement
-    throughAssociatedClassOverride: typeof Dream | undefined
+    modelClassWhoseDefaultScopesApply: typeof Dream
   }) {
     let scopesQuery = new Query<DreamInstance>(this.dreamInstance)
-    const associationClass = throughAssociatedClassOverride ?? (association.modelCB() as typeof Dream)
-    const associationScopes = associationClass['scopes'].default
 
-    for (const scope of associationScopes) {
+    for (const scope of modelClassWhoseDefaultScopesApply['scopes'].default) {
       if (
         !shouldBypassDefaultScope(scope.method, {
           bypassAllDefaultScopes: this.query['bypassAllDefaultScopes'],
@@ -3258,7 +3312,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           ],
         })
       ) {
-        const tempQuery = (associationClass as any)[scope.method](scopesQuery)
+        const tempQuery = (modelClassWhoseDefaultScopesApply as any)[scope.method](scopesQuery)
         // The scope method on a Dream model should return a clone of the Query it receives
         // (e.g. by returning `scope.where(...)`), but in case the function doesn't return,
         // or returns the wrong thing, we check before overriding `scopesQuery` with what the
