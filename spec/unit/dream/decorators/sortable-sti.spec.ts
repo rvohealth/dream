@@ -7,6 +7,8 @@ import SortableStiModel from '../../../../test-app/app/models/SortableStiModel.j
 import SortableStiAlpha from '../../../../test-app/app/models/SortableStiModel/Alpha.js'
 import SortableStiBeta from '../../../../test-app/app/models/SortableStiModel/Beta.js'
 import User from '../../../../test-app/app/models/User.js'
+import { STI_SCOPE_NAME } from '../../../../src/decorators/class/STI.js'
+import Query from '../../../../src/dream/Query.js'
 import RecordNotFound from '../../../../src/errors/RecordNotFound.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 
@@ -148,6 +150,33 @@ describe('@Sortable when an STI discriminator changes', () => {
         txn.kyselyTransaction
       )
       await sql`DROP FUNCTION sortable_sti_touch_unrelated_column()`.execute(txn.kyselyTransaction)
+    })
+  })
+
+  it('refreshes only the position through the supplied STI-aware transaction query', async () => {
+    const alpha = await SortableStiAlpha.create()
+    await SortableStiBeta.create()
+    const pluckSpy = vi.spyOn(Query.prototype, 'pluck')
+
+    await ApplicationModel.transaction(async txn => {
+      await alpha.txn(txn).update({ type: 'SortableStiBeta' })
+
+      const refreshCallIndexes = pluckSpy.mock.contexts.reduce<number[]>((indexes, query, index) => {
+        const typedQuery = query as Query<SortableStiModel>
+        if (
+          typedQuery['bypassAllDefaultScopes'] &&
+          (typedQuery['defaultScopesToBypass'] as readonly string[]).includes(STI_SCOPE_NAME)
+        ) {
+          indexes.push(index)
+        }
+        return indexes
+      }, [])
+
+      expect(refreshCallIndexes).toHaveLength(1)
+      const refreshCallIndex = refreshCallIndexes[0]!
+      const refreshQuery = pluckSpy.mock.contexts[refreshCallIndex] as Query<SortableStiModel>
+      expect(pluckSpy.mock.calls[refreshCallIndex]).toEqual(['positionByType'])
+      expect(refreshQuery['dreamTransaction']).toBe(txn)
     })
   })
 
