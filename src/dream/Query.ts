@@ -2707,13 +2707,16 @@ export default class Query<
    *   {@link Query.delete | delete} (a single statement, no hooks or cascade)
    *   are the right tools for bulk removal.
    *
+   * Default scopes removed from the Query with `removeDefaultScope` or
+   * `removeAllDefaultScopes` carry through to the cascade destroy; they are
+   * Query state, not options to this method. An STI child's reserved type
+   * discriminator remains enforced.
+   *
    * @param options - Options for destroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. Defaults to false
    * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
-   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade destroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
@@ -2952,8 +2955,18 @@ export default class Query<
 
   /**
    * Destroys all records matching the Query,
-   * ignoring the SoftDelete decorator and
-   * permanently removing records from the database.
+   * permanently removing each matched record from
+   * the database instead of soft deleting it.
+   *
+   * The SoftDelete decorator is bypassed when
+   * deleting each matched record, not when
+   * matching: the Query selects under its default
+   * scopes, `dream:SoftDelete` among them, so on a
+   * SoftDelete model it matches only records that
+   * have not already been soft deleted. Reaching
+   * soft deleted records takes
+   * `removeDefaultScope('dream:SoftDelete')` on
+   * the Query.
    *
    * Calls model hooks and applies cascade destroy
    * to associations with `dependent: 'destroy'`,
@@ -2968,17 +2981,27 @@ export default class Query<
    * // 12
    * ```
    *
+   * ```ts
+   * await User.removeDefaultScope('dream:SoftDelete')
+   *   .where({ email: ops.ilike('%burpcollaborator%') })
+   *   .reallyDestroy()
+   * // 12
+   * ```
+   *
    * A `limit` or `offset` on the Query is incompatible with `reallyDestroy`,
    * exactly as it is with {@link Query.destroy}: a limit- or offset-carrying
    * Query throws at runtime.
+   *
+   * Default scopes removed from the Query with `removeDefaultScope` or
+   * `removeAllDefaultScopes` carry through to the cascade destroy; they are
+   * Query state, not options to this method. An STI child's reserved type
+   * discriminator remains enforced.
    *
    * @param options - Options for destroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
    * @param options.cascade - If false, skips destroying associations marked `dependent: 'destroy'`. Defaults to true
    * @param options.lock - If true, each batch is re-selected with an exclusive row lock inside its own transaction before being destroyed, making the destroy a compare-and-set. See {@link Query.destroy} for the full semantics. Defaults to false
    * @param options.batchSize - The number of records to process per batch. Must be a positive integer. Defaults to 10 when `lock` is true, and to 1000 otherwise
-   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade destroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade destroying. Defaults to an empty array
    * @returns The number of records that were removed
    * @throws InvalidBatchSize if `batchSize` is not a positive integer
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
@@ -3010,11 +3033,14 @@ export default class Query<
    * re-applied to every window — so a limit- or offset-carrying Query throws
    * at runtime.
    *
+   * Default scopes removed from the Query with `removeDefaultScope` or
+   * `removeAllDefaultScopes` carry through to the cascade undestroy (soft
+   * delete is always bypassed); they are Query state, not options to this
+   * method. An STI child's reserved type discriminator remains enforced.
+   *
    * @param options - Options for undestroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
    * @param options.cascade - If false, skips undestroying associations marked `dependent: 'destroy'`. Defaults to true
-   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when cascade undestroying; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when cascade undestroying (soft delete is always bypassed). Defaults to an empty array
    * @returns The number of records that were removed
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    */
