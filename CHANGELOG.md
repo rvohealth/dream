@@ -1,3 +1,7 @@
+## 2.30.2
+
+- **Corrected the documentation on `Query#destroy`, `Query#reallyDestroy`, and `Query#undestroy`.** Each documented `bypassAllDefaultScopes` and `defaultScopesToBypass` as options, but none of the three accepts them — on a Query these are query state, set by chaining `removeDefaultScope('scopeName')` or `removeAllDefaultScopes()` before the destroy, and they carry through to the cascade from there. The instance-level and transaction-bound methods, which really do take both as options, are unchanged. `Query#reallyDestroy` also described itself as ignoring the SoftDelete decorator, which overstated what it matches: the decorator is bypassed when deleting each matched record, not when matching, so on a SoftDelete model the Query still selects under `dream:SoftDelete` and matches only records that have not already been soft deleted. Reaching soft deleted records takes `removeDefaultScope('dream:SoftDelete')` on the Query. Documentation only — no behavior changed.
+
 ## 2.30.1
 
 - **`@deco.Sortable` now supports changing an STI record's discriminator during a position-changing save.** Sortable now refreshes only the position column it owns through the save's transaction-bound, STI-aware query instead of reloading the whole record. This keeps the updated instance's position current without refreshing unrelated attributes, while still raising `RecordNotFound` if the row itself disappeared. General STI child queries—including `removeAllDefaultScopes()`—remain restricted to that child type.
