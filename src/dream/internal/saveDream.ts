@@ -158,6 +158,14 @@ async function writeDream<DreamInstance extends Dream>(
   if (!(dream.dirtyAttributes() as any).updatedAt && dream.columns().has('updatedAt'))
     (dream as any).updatedAt = now
 
+  // The scope-lock read above positively found the row gone, so there is
+  // nothing to update. Raised here rather than after the write because the
+  // write below would not reach the database at all on a position-only save,
+  // whose attributes Sortable has already cleared; a save that does carry data
+  // raises the equivalent diagnostic from the driver, which sees the update
+  // match no row.
+  if (alreadyPersisted && !rowFoundBeforeWrite) throw new CannotSaveMissingDream(dream)
+
   const hasUnsavedData = !!Object.keys(sqlAttributes(dream)).length
 
   // BeforeSave/Update actions may clear all the data that we intended to save, leaving us with
@@ -172,8 +180,6 @@ async function writeDream<DreamInstance extends Dream>(
     // schema doesn't know about; those must never reach setAttributes
     dream.setAttributes(filterRowToKnownColumns(data, dream.columns() as Set<string>) as any)
   }
-
-  if (alreadyPersisted && !rowFoundBeforeWrite) throw new CannotSaveMissingDream(dream)
 
   // set frozen attributes to what has already been saved
   dream['freezeAttributes']()
