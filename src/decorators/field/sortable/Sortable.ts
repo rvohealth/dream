@@ -3,37 +3,10 @@ import { DecoratorContext } from '../../DecoratorContextType.js'
 import scopeArray from './helpers/scopeArray.js'
 
 /**
- * Marks an integer column as a sortable position: Dream keeps the positions of
- * every record in a sort scope contiguous, starting at 1, as records are
- * created, moved, destroyed and undestroyed.
- *
- * ```ts
- * class Post extends ApplicationModel {
- *   @deco.Sortable({ scope: 'user' })
- *   public position: number
- * }
- *
- * await post.update({ position: 2 }) // the records at 2 and above shift up
- * ```
- *
- * A position past the end of the scope is clamped to the end, and a position
- * below 1 — or none at all — lands the record at the end.
- *
- * **A save that changes the sort scope ignores a position given alongside it.**
- * The record lands at the end of the scope it moves into, whatever position the
- * same `update` supplied:
- *
- * ```ts
- * await post.update({ user: otherUser, position: 1 })
- * // post is now the last record in otherUser's scope, not the first
- * ```
- *
- * Move it in two saves to place it: `await post.update({ user: otherUser })`,
- * then `await post.update({ position: 1 })`.
- *
- * Sortable requires a query driver that supports advisory transaction locks —
- * the `PostgresQueryDriver` does — since every position write serializes the
- * writers of its sort scope on one.
+ * The implementation behind `@deco.Sortable`. The decorator's semantics —
+ * position clamping, what a scope-changing save does with a position given
+ * alongside it, and the advisory-lock concurrency protocol — are documented on
+ * `Decorators#Sortable`, which is where a consumer reads them.
  */
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (_: undefined, context: DecoratorContext) {

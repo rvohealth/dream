@@ -280,17 +280,92 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   }
 
   /**
-   * The Sortable decorator automatically adjusts the value of the columns
-   * corresponding to the decorated field.
-   *
-   * NOTE: the Sortable decorator may not be used in STI child models (it may be used in the STI base class)
+   * Marks an integer column as a sortable position: Dream keeps the positions of
+   * every record in a sort scope contiguous, starting at 1, as records are
+   * created, moved, destroyed and undestroyed.
    *
    * ```ts
-   * class Balloon {
+   * class Post extends ApplicationModel {
    *   @deco.Sortable({ scope: 'user' })
-   *   public position: DreamColumn<Balloon, 'position'>
+   *   public position: number
+   * }
+   *
+   * await post.update({ position: 2 }) // the records at 2 and above shift up
+   * ```
+   *
+   * A position past the end of the scope is clamped to the end, and a position
+   * below 1 — or none at all — lands the record at the end.
+   *
+   * **A save that changes the sort scope ignores a position given alongside it.**
+   * The record lands at the end of the scope it moves into, whatever position the
+   * same `update` supplied:
+   *
+   * ```ts
+   * await post.update({ user: otherUser, position: 1 })
+   * // post is now the last record in otherUser's scope, not the first
+   * ```
+   *
+   * Move it in two saves to place it: `await post.update({ user: otherUser })`,
+   * then `await post.update({ position: 1 })`.
+   *
+   * Sortable requires a query driver that supports advisory transaction locks —
+   * the `PostgresQueryDriver` does — since every position write serializes the
+   * writers of its sort scope on one. This concurrency guarantee first shipped
+   * in Dream 2.28.0 and begins only after every writer is running a lock-aware
+   * release. During the first rolling deployment, older processes take no
+   * advisory locks and can still race the upgraded processes.
+   *
+   * All participating Dream writers of one hot scope serialize. Ordinary saves
+   * and destroys with `skipHooks`, direct query writes, raw SQL, and older
+   * pre-lock Dream processes bypass Sortable maintenance and do not participate
+   * in its locking protocol. Undestroy still performs stabilized Sortable
+   * maintenance and acquires scope locks with `skipHooks: true`; locked query
+   * batches likewise acquire their scope locks during preflight, before any
+   * per-record callbacks, even when those callbacks skip hooks. A waiter that
+   * enters the protocol holds a pooled connection until the holder finishes or
+   * `sortableScopeLockTimeout` expires; sustained contention can therefore
+   * produce latency waves, timeouts, and pool starvation. Keep database work
+   * inside the lock window short, and avoid cross-region database latency for
+   * hot scopes.
+   *
+   * `SortableScopeDidNotStabilize` and `SortableScopeLockWaitTimedOut` are the
+   * expected Dream errors an application may choose to retry. Database deadlocks
+   * remain native adapter errors (for example PostgreSQL code `40P01` or MySQL
+   * errno `1213`) so their driver fields and stacks remain intact. A database
+   * deadlock aborts the whole transaction: retry by starting the transaction
+   * again from the beginning, never by continuing it or retrying only the failed
+   * statement. Recurrent deadlocks call for shorter transactions or a consistent
+   * multi-resource acquisition order; they do not by themselves prove Sortable
+   * caused the cycle.
+   *
+   * ```ts
+   * import {
+   *   SortableScopeDidNotStabilize,
+   *   SortableScopeLockWaitTimedOut,
+   * } from '@rvoh/dream/errors'
+   *
+   * const runTransaction = async () =>
+   *   await ApplicationModel.transaction(async txn => {
+   *     // bind every operation in the attempt to txn
+   *   })
+   *
+   * try {
+   *   await runTransaction()
+   * } catch (error) {
+   *   const adapterDeadlock =
+   *     (error as { code?: string }).code === '40P01' ||
+   *     (error as { errno?: number }).errno === 1213
+   *   const retryable =
+   *     error instanceof SortableScopeDidNotStabilize ||
+   *     error instanceof SortableScopeLockWaitTimedOut ||
+   *     adapterDeadlock
+   *   if (!retryable) throw error
+   *
+   *   await runTransaction() // one whole-transaction retry
    * }
    * ```
+   *
+   * NOTE: the Sortable decorator may not be used in STI child models (it may be used in the STI base class)
    *
    * @param opts - Configuration options for the sortable decorator
    * @param opts.scope - The column, association, or combination thereof which you would like to restrict the incrementing logic to. Can be a single column name, a single belongs-to association name, or an array of column/association names

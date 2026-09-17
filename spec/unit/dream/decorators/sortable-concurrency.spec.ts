@@ -469,6 +469,16 @@ describe('@Sortable concurrency', () => {
       expect(undestroyOrder).toEqual(sortedKeys)
     })
 
+    it('still acquires scope locks when undestroy skips hooks', async () => {
+      const balloon = await Latex.create({ user })
+      await balloon.destroy()
+      const acquireScopeLocks = vi.spyOn(PostgresQueryDriver, 'acquireAdvisoryTransactionLocks')
+
+      await balloon.undestroy({ skipHooks: true })
+
+      expect(acquireScopeLocks).toHaveBeenCalled()
+    })
+
     it('issues one snapshot SELECT covering every sortable field on destroy, not one per field', async () => {
       const balloon = await Latex.create({ user })
       await Latex.create({ user })
