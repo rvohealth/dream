@@ -9,6 +9,7 @@ import Query from '../../../../src/dream/Query.js'
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../../src/dream/QueryDriver/Postgres.js'
 import QueryDriverBase from '../../../../src/dream/QueryDriver/Base.js'
+import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
 import SortableBatchRequiresTooManyScopeLocks from '../../../../src/errors/SortableBatchRequiresTooManyScopeLocks.js'
 import SortableRequiresAdvisoryTransactionLocks from '../../../../src/errors/SortableRequiresAdvisoryTransactionLocks.js'
 import SortableScopeLockWaitTimedOut from '../../../../src/errors/SortableScopeLockWaitTimedOut.js'
@@ -387,7 +388,7 @@ describe('@Sortable concurrency', () => {
         }
       })
 
-      expect(thrown?.name).toEqual('CannotSaveMissingDream')
+      expect(thrown).toBeInstanceOf(CannotSaveMissingDream)
       expect(thrown?.message).toContain('Post')
       expect(thrown?.message).toContain(String(second.id))
       expect((await Post.findOrFail(first.id)).position).toEqual(1)

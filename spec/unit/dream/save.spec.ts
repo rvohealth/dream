@@ -1,4 +1,5 @@
 import { sql } from 'kysely'
+import CannotSaveMissingDream from '../../../src/errors/CannotSaveMissingDream.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import * as dreamExports from '../../../src/package-exports/index.js'
 import * as errorExports from '../../../src/package-exports/errors.js'
@@ -114,9 +115,8 @@ describe('Dream#save', () => {
           thrown = error
         }
 
-        expect(thrown).toBeInstanceOf(Error)
+        expect(thrown).toBeInstanceOf(CannotSaveMissingDream)
         const error = thrown as Error
-        expect(error.name).toEqual('CannotSaveMissingDream')
         expect(error.message).toContain('User')
         expect(error.message).toContain(String(user.id))
         expect('CannotSaveMissingDream' in dreamExports).toBe(false)

@@ -1,4 +1,5 @@
 import { sql } from 'kysely'
+import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
 import MysqlQueryDriver from '../../../../test-app/app/conf/mysql/MysqlQueryDriver.js'
 import MysqlUser from '../../../../test-app/app/models/MysqlUser.js'
 
@@ -45,9 +46,8 @@ describe('leveraging alternate db engines', () => {
         thrown = error
       }
 
-      expect(thrown).toBeInstanceOf(Error)
+      expect(thrown).toBeInstanceOf(CannotSaveMissingDream)
       const error = thrown as Error
-      expect(error.name).toEqual('CannotSaveMissingDream')
       expect(error.message).toContain('MysqlUser')
       expect(error.message).toContain(String(user.id))
     })

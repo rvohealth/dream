@@ -5,6 +5,5 @@ export default class CannotSaveMissingDream extends Error {
     super(
       `Cannot save ${dream.sanitizedConstructorName} with primary key ${String(dream.primaryKeyValue())} because its persisted database row no longer exists.`
     )
-    this.name = 'CannotSaveMissingDream'
   }
 }
