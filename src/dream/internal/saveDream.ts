@@ -5,6 +5,7 @@ import prepareSortableFieldsForSave from '../../decorators/field/sortable/helper
 import { cacheSortableSnapshots } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import Dream from '../../Dream.js'
+import CannotSaveMissingDream from '../../errors/CannotSaveMissingDream.js'
 import ValidationError from '../../errors/ValidationError.js'
 import sqlAttributes from '../../helpers/sqlAttributes.js'
 import { DateTime } from '../../utils/datetime/DateTime.js'
@@ -171,6 +172,8 @@ async function writeDream<DreamInstance extends Dream>(
     // schema doesn't know about; those must never reach setAttributes
     dream.setAttributes(filterRowToKnownColumns(data, dream.columns() as Set<string>) as any)
   }
+
+  if (alreadyPersisted && !rowFoundBeforeWrite) throw new CannotSaveMissingDream(dream)
 
   // set frozen attributes to what has already been saved
   dream['freezeAttributes']()

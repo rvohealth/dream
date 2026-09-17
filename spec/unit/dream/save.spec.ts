@@ -1,8 +1,12 @@
+import { sql } from 'kysely'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
+import * as dreamExports from '../../../src/package-exports/index.js'
+import * as errorExports from '../../../src/package-exports/errors.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
+import testDb from '../../helpers/testDb.js'
 
 describe('Dream#save', () => {
   context('a new record', () => {
@@ -96,6 +100,35 @@ describe('Dream#save', () => {
     it('saves', async () => {
       const reloadedUser = await User.find(user.id)
       expect(reloadedUser!.name).toEqual('cheese')
+    })
+
+    context('when its database row no longer exists', () => {
+      it('throws a clear model-and-primary-key diagnostic without exporting its constructor', async () => {
+        await sql`delete from users where id = ${user.id}`.execute(testDb('default', 'primary'))
+        user.name = 'stale update'
+
+        let thrown: unknown
+        try {
+          await user.save()
+        } catch (error) {
+          thrown = error
+        }
+
+        expect(thrown).toBeInstanceOf(Error)
+        const error = thrown as Error
+        expect(error.name).toEqual('CannotSaveMissingDream')
+        expect(error.message).toContain('User')
+        expect(error.message).toContain(String(user.id))
+        expect('CannotSaveMissingDream' in dreamExports).toBe(false)
+        expect('CannotSaveMissingDream' in errorExports).toBe(false)
+      })
+
+      it('preserves a clean save as a no-op', async () => {
+        await sql`delete from users where id = ${user.id}`.execute(testDb('default', 'primary'))
+
+        await expect(user.save()).resolves.toBeUndefined()
+        expect(user.isPersisted).toBe(true)
+      })
     })
 
     it('sets createdAt', async () => {
