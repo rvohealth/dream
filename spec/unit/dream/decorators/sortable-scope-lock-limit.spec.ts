@@ -112,6 +112,33 @@ describe('the transaction-wide Sortable scope-lock ceiling', () => {
       expect(acquisitions).toHaveBeenCalledTimes(1)
     })
 
+    it('does not double-count a promoted in-flight key before cleanup', async () => {
+      DreamApp.getOrFail().set('sortableMaxScopeLocksPerTransaction', 2)
+      const firstAcquisition = deferred()
+      const acquisitions = vi
+        .spyOn(PostgresQueryDriver, 'acquireAdvisoryTransactionLocks')
+        .mockReturnValueOnce(firstAcquisition.promise)
+        .mockResolvedValueOnce()
+      const dream = UnscopedSortableModel.new()
+
+      await ApplicationModel.transaction(async txn => {
+        const first = acquireSortableScopeLocks(dream, txn, [1n])
+        await vi.waitFor(() => expect(acquisitions).toHaveBeenCalledTimes(1))
+
+        const second = firstAcquisition.promise.then(
+          async () => await acquireSortableScopeLocks(dream, txn, [2n])
+        )
+        firstAcquisition.resolve()
+
+        await expect(second).resolves.toBeUndefined()
+        await first
+      })
+
+      expect(acquisitions).toHaveBeenNthCalledWith(1, expect.any(DreamTransaction), [1n])
+      expect(acquisitions).toHaveBeenNthCalledWith(2, expect.any(DreamTransaction), [2n])
+      expect(acquisitions).toHaveBeenCalledTimes(2)
+    })
+
     it('does not retain a failed acquisition as held or in flight', async () => {
       DreamApp.getOrFail().set('sortableMaxScopeLocksPerTransaction', 1)
       const failure = new Error('driver acquisition failed')

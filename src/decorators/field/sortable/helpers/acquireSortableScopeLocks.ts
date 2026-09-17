@@ -58,7 +58,7 @@ export default async function acquireSortableScopeLocks(
     return
   }
 
-  const attemptedLockCount = state.heldKeys.size + state.inFlightKeys.size + keysToAcquire.length
+  const attemptedLockCount = new Set([...state.heldKeys, ...state.inFlightKeys.keys(), ...keysToAcquire]).size
   const configuredLimit = DreamApp.getOrFail().sortableMaxScopeLocksPerTransaction
 
   if (attemptedLockCount > configuredLimit)
