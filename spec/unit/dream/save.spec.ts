@@ -1,7 +1,6 @@
 import { sql } from 'kysely'
 import CannotSaveMissingDream from '../../../src/errors/CannotSaveMissingDream.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
-import * as dreamExports from '../../../src/package-exports/index.js'
 import * as errorExports from '../../../src/package-exports/errors.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
@@ -104,7 +103,7 @@ describe('Dream#save', () => {
     })
 
     context('when its database row no longer exists', () => {
-      it('throws a clear model-and-primary-key diagnostic without exporting its constructor', async () => {
+      it('throws a clear model-and-primary-key diagnostic an application can catch', async () => {
         await sql`delete from users where id = ${user.id}`.execute(testDb('default', 'primary'))
         user.name = 'stale update'
 
@@ -119,8 +118,9 @@ describe('Dream#save', () => {
         const error = thrown as Error
         expect(error.message).toContain('User')
         expect(error.message).toContain(String(user.id))
-        expect('CannotSaveMissingDream' in dreamExports).toBe(false)
-        expect('CannotSaveMissingDream' in errorExports).toBe(false)
+        // exported so an application can answer 404/409 rather than 500 when a
+        // record it is updating has been deleted out from under it
+        expect(errorExports.CannotSaveMissingDream).toBe(CannotSaveMissingDream)
       })
 
       it('preserves a clean save as a no-op', async () => {

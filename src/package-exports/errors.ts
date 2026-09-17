@@ -1,5 +1,6 @@
 export { pgErrorType } from '../db/errors.js'
 export { default as NonLoadedAssociation } from '../errors/associations/NonLoadedAssociation.js'
+export { default as CannotSaveMissingDream } from '../errors/CannotSaveMissingDream.js'
 export { default as CreateOrFindByFailedToCreateAndFind } from '../errors/CreateOrFindByFailedToCreateAndFind.js'
 export { default as CheckConstraintViolation } from '../errors/db/CheckConstraintViolation.js'
 export { default as ColumnOverflow } from '../errors/db/ColumnOverflow.js'
