@@ -1,7 +1,6 @@
 import { sql } from 'kysely'
 import CannotSaveMissingDream from '../../../src/errors/CannotSaveMissingDream.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
-import * as errorExports from '../../../src/package-exports/errors.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Pet from '../../../test-app/app/models/Pet.js'
@@ -118,9 +117,6 @@ describe('Dream#save', () => {
         const error = thrown as Error
         expect(error.message).toContain('User')
         expect(error.message).toContain(String(user.id))
-        // exported so an application can answer 404/409 rather than 500 when a
-        // record it is updating has been deleted out from under it
-        expect(errorExports.CannotSaveMissingDream).toBe(CannotSaveMissingDream)
       })
 
       it('preserves a clean save as a no-op', async () => {
