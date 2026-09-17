@@ -2708,10 +2708,9 @@ export default class Query<
    *   {@link Query.delete | delete} (a single statement, no hooks or cascade)
    *   are the right tools for bulk removal.
    *
-   * Default scopes removed from the Query with `removeDefaultScope` or
-   * `removeAllDefaultScopes` carry through to the cascade destroy; they are
-   * Query state, not options to this method. An STI child's reserved type
-   * discriminator remains enforced.
+   * To bypass a default scope, chain `removeDefaultScope` onto the Query
+   * before calling this method; it is Query state, not an option, and it
+   * carries through to the cascade.
    *
    * @param options - Options for destroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
@@ -2994,10 +2993,9 @@ export default class Query<
    * exactly as it is with {@link Query.destroy}: a limit- or offset-carrying
    * Query throws at runtime.
    *
-   * Default scopes removed from the Query with `removeDefaultScope` or
-   * `removeAllDefaultScopes` carry through to the cascade destroy; they are
-   * Query state, not options to this method. An STI child's reserved type
-   * discriminator remains enforced.
+   * To bypass a default scope, chain `removeDefaultScope` onto the Query
+   * before calling this method; it is Query state, not an option, and it
+   * carries through to the cascade.
    *
    * @param options - Options for destroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the destroy operation. Defaults to false
@@ -3035,10 +3033,9 @@ export default class Query<
    * re-applied to every window — so a limit- or offset-carrying Query throws
    * at runtime.
    *
-   * Default scopes removed from the Query with `removeDefaultScope` or
-   * `removeAllDefaultScopes` carry through to the cascade undestroy (soft
-   * delete is always bypassed); they are Query state, not options to this
-   * method. An STI child's reserved type discriminator remains enforced.
+   * To bypass a default scope, chain `removeDefaultScope` onto the Query
+   * before calling this method; it is Query state, not an option, and it
+   * carries through to the cascade. The SoftDelete scope is always bypassed.
    *
    * @param options - Options for undestroying the instance
    * @param options.skipHooks - If true, skips applying model hooks during the undestroy operation. Defaults to false
