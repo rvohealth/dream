@@ -68,10 +68,16 @@ export default class MissingRequiredBelongsToAssociation extends Error {
 Attempting to access required BelongsTo association \`${this.associationName}\` on an instance of \`${this.dreamClass.sanitizedName}\`,
 but the loaded association is null.
 
-${this.foreignKeyMessage}
-
-If the associated record was deleted, check whether the inverse HasOne/HasMany association should specify dependent: 'destroy'.
+${this.foreignKeyMessage}${this.populatedForeignKeyDiagnosticMessage}
 `
+  }
+
+  private get populatedForeignKeyDiagnosticMessage() {
+    if (this.foreignKeyValue === null || this.foreignKeyValue === undefined) return ''
+
+    return `
+
+The associated record may have been deleted (including soft-deleted), or it may not match this association’s target—for example, its STI type may differ from the targeted STI child. If the record was deleted unexpectedly, check whether the inverse HasOne/HasMany association should specify \`dependent: 'destroy'\`.`
   }
 
   private get foreignKeyMessage() {
