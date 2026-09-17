@@ -374,15 +374,22 @@ describe('@Sortable concurrency', () => {
         new Set([...second.columns()].filter(column => column !== 'updatedAt'))
       )
 
+      let thrown: Error | undefined
       await ApplicationModel.transaction(async txn => {
-        // the caller's own transaction, so a shift this update makes commits
-        // even though the save's trailing reload of the vanished row throws
-        await second
-          .txn(txn)
-          .update({ position: 1 })
-          .catch(() => undefined)
+        // Catch inside the caller-owned transaction so any position shifts
+        // written before the missing-row diagnostic would still commit and be
+        // observable below.
+        try {
+          await second.txn(txn).update({ position: 1 })
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error)
+          thrown = error as Error
+        }
       })
 
+      expect(thrown?.name).toEqual('CannotSaveMissingDream')
+      expect(thrown?.message).toContain('Post')
+      expect(thrown?.message).toContain(String(second.id))
       expect((await Post.findOrFail(first.id)).position).toEqual(1)
       expect((await Post.findOrFail(third.id)).position).toEqual(3)
     })

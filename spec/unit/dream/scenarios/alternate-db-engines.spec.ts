@@ -33,6 +33,25 @@ describe('leveraging alternate db engines', () => {
       expect(reloaded.email).toEqual('goodbye@world')
     })
 
+    it('uses the same missing-row save diagnostic as the Postgres driver', async () => {
+      const user = await MysqlUser.create({ email: 'stale@mysql', name: 'stale mysql user' })
+      await mysqlDb().deleteFrom('mysql_users').where('id', '=', user.id).execute()
+      user.name = 'stale update'
+
+      let thrown: unknown
+      try {
+        await user.save()
+      } catch (error) {
+        thrown = error
+      }
+
+      expect(thrown).toBeInstanceOf(Error)
+      const error = thrown as Error
+      expect(error.name).toEqual('CannotSaveMissingDream')
+      expect(error.message).toContain('MysqlUser')
+      expect(error.message).toContain(String(user.id))
+    })
+
     context('a locked read on a driver that has not implemented the row-locking seam', () => {
       it('fails loudly rather than silently performing an unlocked read', async () => {
         // MysqlQueryDriver does not override `applyRowLock`, so the base
