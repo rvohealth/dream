@@ -38,8 +38,13 @@ import scopeArray from './helpers/scopeArray.js'
  * release. During the first rolling deployment, older processes take no
  * advisory locks and can still race the upgraded processes.
  *
- * All participating Dream writers of one hot scope serialize. `skipHooks`, raw
- * SQL, and older pre-lock Dream processes do not participate. A waiter that
+ * All participating Dream writers of one hot scope serialize. Ordinary saves
+ * and destroys with `skipHooks`, direct query writes, raw SQL, and older
+ * pre-lock Dream processes bypass Sortable maintenance and do not participate
+ * in its locking protocol. Undestroy still performs stabilized Sortable
+ * maintenance and acquires scope locks with `skipHooks: true`; locked query
+ * batches likewise acquire their scope locks during preflight, before any
+ * per-record callbacks, even when those callbacks skip hooks. A waiter that
  * enters the protocol holds a pooled connection until the holder finishes or
  * `sortableScopeLockTimeout` expires; sustained contention can therefore
  * produce latency waves, timeouts, and pool starvation. Keep database work
