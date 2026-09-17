@@ -3,15 +3,23 @@ import { ViewModel } from '../../types/dream.js'
 import { SerializerResolutionContext } from '../../types/serializer.js'
 import serializerResolutionContextMessage from './serializerResolutionContextMessage.js'
 
+/**
+ * @internal
+ *
+ * Raised when a Dream or view model reaches serializer resolution without a
+ * `serializers` getter at all.
+ *
+ * Not exported from `@rvoh/dream/errors`. A model with no serializers is a
+ * setup mistake in the application's own code, surfaced the first time
+ * something tries to render it — not a runtime condition to catch.
+ */
 export default class MissingSerializersDefinition extends Error {
   /**
-   * ECMAScript-private (`#`) rather than TypeScript-`private`, unlike the four internal siblings of
-   * this error. A TypeScript `private` parameter property is a real, enumerable own property at
-   * runtime, and this is the one serializer-resolution error the package exports
-   * (`src/package-exports/errors.ts`) — so `Object.keys(err)` and `JSON.stringify(err)` on a
-   * consumer's error-logging path would newly report the diagnostic state threaded in here. `#`
-   * fields are invisible to both, so the exported error's observable runtime shape is unchanged.
-   * `viewModel` keeps its existing form: it predates this and narrowing it is not this change.
+   * ECMAScript-private (`#`) rather than TypeScript-`private`. A TypeScript `private` parameter
+   * property is a real, enumerable own property at runtime, so `Object.keys(err)` and
+   * `JSON.stringify(err)` on an application's error-logging path would report the diagnostic state
+   * threaded in here. `#` fields are invisible to both, keeping what a log records to the message.
+   * `viewModel` keeps its existing form.
    */
   readonly #serializerKey: string | undefined
   readonly #resolutionContext: SerializerResolutionContext | undefined

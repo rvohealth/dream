@@ -2,6 +2,8 @@ import Dream from '../../../src/Dream.js'
 import { clearResolvedSerializerAssociationEdgesCache } from '../../../src/dream/internal/resolveSerializerAssociationEdges.js'
 import { clearSerializerPreloadPathsCache } from '../../../src/dream/Query.js'
 import MissingSerializersDefinition from '../../../src/errors/serializers/MissingSerializersDefinition.js'
+import * as dreamExports from '../../../src/package-exports/index.js'
+import * as errorExports from '../../../src/package-exports/errors.js'
 import MissingSerializersDefinitionForKey from '../../../src/errors/serializers/MissingSerializersDefinitionForKey.js'
 import DreamSerializer from '../../../src/serializer/DreamSerializer.js'
 import inferSerializerFromDreamOrViewModel from '../../../src/serializer/helpers/inferSerializerFromDreamOrViewModel.js'
@@ -181,11 +183,9 @@ describe('serializer resolution errors name how resolution reached the failing c
     })
   })
 
-  // MissingSerializersDefinition is the only one of the five resolution errors the package exports
-  // (src/package-exports/errors.ts), and this change widened its constructor. The single production
-  // call site passes all three arguments, so without these two examples nothing in the repo
-  // exercises the narrower call and the compatibility promise has no guard.
-  context('the exported MissingSerializersDefinition constructor', () => {
+  // The single production call site passes all three arguments, so without these two examples
+  // nothing in the repo exercises the narrower call.
+  context('the MissingSerializersDefinition constructor', () => {
     it('still accepts the single argument it took before, and renders no context block for it', () => {
       // Load-bearing at compile time as well as at runtime: `spec/**/*` is inside
       // tsconfig.esm.build.test-app.json's `include`, so making either new parameter required breaks
@@ -205,6 +205,13 @@ describe('serializer resolution errors name how resolution reached the failing c
 
   serializer key:  summary
   reached through: rendersMany \`compositionAssets\``)
+    })
+
+    it('is not exposed for an application to catch', () => {
+      // a model with no serializers is a setup mistake in the application's own
+      // code, not a runtime condition to recover from
+      expect('MissingSerializersDefinition' in errorExports).toBe(false)
+      expect('MissingSerializersDefinition' in dreamExports).toBe(false)
     })
   })
 })
