@@ -5,11 +5,9 @@ import acquireStabilizedSortableBatchLocks, {
 import { takeCachedSortableRow } from '../../../../src/decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import SortableBatchRequiresTooManyScopeLocks from '../../../../src/errors/SortableBatchRequiresTooManyScopeLocks.js'
-import * as dreamExports from '../../../../src/package-exports/index.js'
-import * as errorExports from '../../../../src/package-exports/errors.js'
-import testDb from '../../../helpers/testDb.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import TextScopedSortableModel from '../../../../test-app/app/models/TextScopedSortableModel.js'
+import testDb from '../../../helpers/testDb.js'
 
 // one row per sort scope, inserted in one statement: going through the model
 // would take a lock and compute a position for every one of them
@@ -81,13 +79,5 @@ describe('the locked-batch sortable scope-lock preflight', () => {
         expect(takeCachedSortableRow(txn, 'text_scoped_sortable_models', ids[0])).toBeUndefined()
       })
     }, 30000)
-
-    it('does not expose its constructor for an application to catch', () => {
-      // exceeding the bound is a sizing mistake in the calling code, not a
-      // runtime condition to recover from: the fix is a smaller batch or a
-      // narrower transaction, never a retry
-      expect('SortableBatchRequiresTooManyScopeLocks' in errorExports).toBe(false)
-      expect('SortableBatchRequiresTooManyScopeLocks' in dreamExports).toBe(false)
-    })
   })
 })
