@@ -2850,11 +2850,12 @@ export default class Query<
    *   transaction ends, so every batch's scope keys are still held when the
    *   next one preflights. That accumulation is bounded — the preflight counts
    *   the keys the transaction already holds along with the ones the batch
-   *   would add, and refuses with `SortableBatchRequiresTooManyScopeLocks`
-   *   rather than letting a long run over a high-cardinality sort scope exhaust
-   *   `max_locks_per_transaction` for the whole cluster — so a run long enough
-   *   raises instead of completing. Letting Dream open a transaction per batch
-   *   releases the keys as it goes and gives each batch the whole budget.
+   *   would add, and raises rather than letting a long run over a
+   *   high-cardinality sort scope exhaust `max_locks_per_transaction` for the
+   *   whole cluster — so a run long enough raises instead of completing. That
+   *   refusal is a sizing failure to fix, not a condition to catch: letting
+   *   Dream open a transaction per batch releases the keys as it goes and gives
+   *   each batch the whole budget, and a smaller `batchSize` takes fewer.
    * - the preflight covers **the claimed rows' own scopes only**. A
    *   `dependent: 'destroy'` cascade under `destroy({ lock: true })` destroys
    *   child records of other tables, and a sortable child takes its own table's

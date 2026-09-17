@@ -12,7 +12,6 @@ export { default as DecryptionParseError } from '../errors/encrypt/DecryptionPar
 export { default as DecryptionRotationError } from '../errors/encrypt/DecryptionRotationError.js'
 export { default as RecordNotFound } from '../errors/RecordNotFound.js'
 export { default as MissingSerializersDefinition } from '../errors/serializers/MissingSerializersDefinition.js'
-export { default as SortableBatchRequiresTooManyScopeLocks } from '../errors/SortableBatchRequiresTooManyScopeLocks.js'
 export { default as SortableScopeDidNotStabilize } from '../errors/SortableScopeDidNotStabilize.js'
 export { default as SortableScopeLockWaitTimedOut } from '../errors/SortableScopeLockWaitTimedOut.js'
 export { default as ValidationError } from '../errors/ValidationError.js'
