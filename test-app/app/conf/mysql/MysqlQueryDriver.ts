@@ -1,4 +1,4 @@
-import { MysqlDialect, OrderByItemBuilder, sql } from 'kysely'
+import { MysqlDialect, NoResultError, OrderByItemBuilder, sql } from 'kysely'
 import { createPool } from 'mysql2'
 import DreamCLI from '../../../../src/cli/index.js'
 import { isPrimitiveDataType } from '../../../../src/db/dataTypes.js'
@@ -9,6 +9,7 @@ import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import executeDatabaseQuery from '../../../../src/dream/internal/executeDatabaseQuery.js'
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
 import type { TestDatabaseLockSession } from '../../../../src/dream/QueryDriver/Base.js'
+import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
 import camelize from '../../../../src/helpers/camelize.js'
 import {
   SchemaBuilderAssociationData,
@@ -292,12 +293,17 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
       // with the postgres driver, but if I were using this
       // IRL i would adapt or remove this block and find
       // a different way to return the data
-      const data = await db
-        .selectFrom(dream.table)
-        .selectAll()
-        .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
-        .executeTakeFirstOrThrow()
-      return data
+      try {
+        const data = await db
+          .selectFrom(dream.table)
+          .selectAll()
+          .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
+          .executeTakeFirstOrThrow()
+        return data
+      } catch (error) {
+        if (error instanceof NoResultError) throw new CannotSaveMissingDream(dream)
+        throw error
+      }
     } else {
       const query = db
         .insertInto(dream.table)

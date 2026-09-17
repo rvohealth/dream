@@ -5,6 +5,7 @@ import prepareSortableFieldsForSave from '../../decorators/field/sortable/helper
 import { cacheSortableSnapshots } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import Dream from '../../Dream.js'
+import CannotSaveMissingDream from '../../errors/CannotSaveMissingDream.js'
 import ValidationError from '../../errors/ValidationError.js'
 import sqlAttributes from '../../helpers/sqlAttributes.js'
 import { DateTime } from '../../utils/datetime/DateTime.js'
@@ -156,6 +157,14 @@ async function writeDream<DreamInstance extends Dream>(
     (dream as any).createdAt = now
   if (!(dream.dirtyAttributes() as any).updatedAt && dream.columns().has('updatedAt'))
     (dream as any).updatedAt = now
+
+  // The scope-lock read above positively found the row gone, so there is
+  // nothing to update. Raised here rather than after the write because the
+  // write below would not reach the database at all on a position-only save,
+  // whose attributes Sortable has already cleared; a save that does carry data
+  // raises the equivalent diagnostic from the driver, which sees the update
+  // match no row.
+  if (alreadyPersisted && !rowFoundBeforeWrite) throw new CannotSaveMissingDream(dream)
 
   const hasUnsavedData = !!Object.keys(sqlAttributes(dream)).length
 

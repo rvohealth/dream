@@ -1,4 +1,5 @@
 import { sql } from 'kysely'
+import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
 import MysqlQueryDriver from '../../../../test-app/app/conf/mysql/MysqlQueryDriver.js'
 import MysqlUser from '../../../../test-app/app/models/MysqlUser.js'
 
@@ -31,6 +32,24 @@ describe('leveraging alternate db engines', () => {
       await user.update({ email: 'goodbye@world' })
       const reloaded = await MysqlUser.findOrFail(user.id)
       expect(reloaded.email).toEqual('goodbye@world')
+    })
+
+    it('uses the same missing-row save diagnostic as the Postgres driver', async () => {
+      const user = await MysqlUser.create({ email: 'stale@mysql', name: 'stale mysql user' })
+      await mysqlDb().deleteFrom('mysql_users').where('id', '=', user.id).execute()
+      user.name = 'stale update'
+
+      let thrown: unknown
+      try {
+        await user.save()
+      } catch (error) {
+        thrown = error
+      }
+
+      expect(thrown).toBeInstanceOf(CannotSaveMissingDream)
+      const error = thrown as Error
+      expect(error.message).toContain('MysqlUser')
+      expect(error.message).toContain(String(user.id))
     })
 
     context('a locked read on a driver that has not implemented the row-locking seam', () => {

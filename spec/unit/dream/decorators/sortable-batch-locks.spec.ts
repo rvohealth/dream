@@ -5,9 +5,9 @@ import acquireStabilizedSortableBatchLocks, {
 import { takeCachedSortableRow } from '../../../../src/decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import SortableBatchRequiresTooManyScopeLocks from '../../../../src/errors/SortableBatchRequiresTooManyScopeLocks.js'
-import testDb from '../../../helpers/testDb.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import TextScopedSortableModel from '../../../../test-app/app/models/TextScopedSortableModel.js'
+import testDb from '../../../helpers/testDb.js'
 
 // one row per sort scope, inserted in one statement: going through the model
 // would take a lock and compute a position for every one of them

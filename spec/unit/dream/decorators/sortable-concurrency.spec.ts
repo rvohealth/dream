@@ -9,6 +9,7 @@ import Query from '../../../../src/dream/Query.js'
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../../src/dream/QueryDriver/Postgres.js'
 import QueryDriverBase from '../../../../src/dream/QueryDriver/Base.js'
+import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
 import SortableBatchRequiresTooManyScopeLocks from '../../../../src/errors/SortableBatchRequiresTooManyScopeLocks.js'
 import SortableRequiresAdvisoryTransactionLocks from '../../../../src/errors/SortableRequiresAdvisoryTransactionLocks.js'
 import SortableScopeLockWaitTimedOut from '../../../../src/errors/SortableScopeLockWaitTimedOut.js'
@@ -374,15 +375,22 @@ describe('@Sortable concurrency', () => {
         new Set([...second.columns()].filter(column => column !== 'updatedAt'))
       )
 
+      let thrown: Error | undefined
       await ApplicationModel.transaction(async txn => {
-        // the caller's own transaction, so a shift this update makes commits
-        // even though the save's trailing reload of the vanished row throws
-        await second
-          .txn(txn)
-          .update({ position: 1 })
-          .catch(() => undefined)
+        // Catch inside the caller-owned transaction so any position shifts
+        // written before the missing-row diagnostic would still commit and be
+        // observable below.
+        try {
+          await second.txn(txn).update({ position: 1 })
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error)
+          thrown = error as Error
+        }
       })
 
+      expect(thrown).toBeInstanceOf(CannotSaveMissingDream)
+      expect(thrown?.message).toContain('Post')
+      expect(thrown?.message).toContain(String(second.id))
       expect((await Post.findOrFail(first.id)).position).toEqual(1)
       expect((await Post.findOrFail(third.id)).position).toEqual(3)
     })
@@ -460,6 +468,16 @@ describe('@Sortable concurrency', () => {
       expect(updateOrder).toEqual(sortedKeys)
       expect(destroyOrder).toEqual(sortedKeys)
       expect(undestroyOrder).toEqual(sortedKeys)
+    })
+
+    it('still acquires scope locks when undestroy skips hooks', async () => {
+      const balloon = await Latex.create({ user })
+      await balloon.destroy()
+      const acquireScopeLocks = vi.spyOn(PostgresQueryDriver, 'acquireAdvisoryTransactionLocks')
+
+      await balloon.undestroy({ skipHooks: true })
+
+      expect(acquireScopeLocks).toHaveBeenCalled()
     })
 
     it('issues one snapshot SELECT covering every sortable field on destroy, not one per field', async () => {

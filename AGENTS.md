@@ -55,14 +55,21 @@ Rules:
 Every **user-facing** change needs a version bump and a corresponding
 `CHANGELOG.md` entry. A change is user-facing if a consumer of the published
 package can observe it: runtime behavior, public/exported API or types,
-generated output, error messages, deprecations, or peer-dependency
-requirements.
+generated output, error messages, deprecations, peer-dependency requirements,
+or the documentation on a public API.
 
 The changelog is written for consumers of the package, so it must **not**
 document fully internal changes — refactors, renames of unexported symbols,
-internal type-annotation cleanups, comment/doc edits, test-only changes, and
-anything else with no observable effect on a consumer. These still ship, but
-they get neither a changelog entry nor (on their own) a version bump.
+internal type-annotation cleanups, internal comment edits, test-only changes,
+and anything else with no observable effect on a consumer. These still ship,
+but they get neither a changelog entry nor (on their own) a version bump.
+
+**Documentation on a public API is user-facing.** TSDoc on an exported symbol
+or a `public` member ships in the emitted `.d.ts` and is what a consumer reads
+at the call site, so correcting it — a documented option the method does not
+accept, a described behavior the method does not have — needs a changelog
+entry and a version bump, exactly like any other consumer-observable fix. Only
+comments a consumer never sees fall under the exclusion above.
 
 When in doubt, ask: "could someone who only installs the npm package tell this
 happened?" If no, keep it out of the changelog.

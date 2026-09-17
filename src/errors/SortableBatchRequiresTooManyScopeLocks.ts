@@ -1,4 +1,6 @@
 /**
+ * @internal
+ *
  * Raised when a batch of a locked `Query#destroy` or `Query#update` on a
  * sortable model would carry its transaction past the number of advisory
  * sort-scope locks Dream is willing to hold at once.
@@ -27,6 +29,11 @@
  * — a long multi-batch run inside a transaction you opened — either let Dream
  * open a transaction per batch (do not pass a transaction of your own) or
  * commit between runs, which is what releases the locks as it goes.
+ *
+ * Not exported from `@rvoh/dream/errors`. Exceeding the bound is a sizing
+ * mistake in the calling code, not a runtime condition an application can
+ * recover from, so there is nothing for a consumer to catch: the fix is a
+ * smaller batch or a narrower transaction, never a retry.
  */
 export default class SortableBatchRequiresTooManyScopeLocks extends Error {
   constructor(

@@ -17,6 +17,7 @@ import {
   ExpressionWrapper,
   JoinBuilder,
   Kysely,
+  NoResultError,
   ComparisonOperatorExpression as KyselyComparisonOperatorExpression,
   Transaction as KyselyTransaction,
   OrderByItemBuilder,
@@ -56,6 +57,7 @@ import MissingThroughAssociationSource from '../../errors/associations/MissingTh
 import CannotNegateSimilarityClause from '../../errors/CannotNegateSimilarityClause.js'
 import CannotNamespaceAssociationFilterToAnotherTable from '../../errors/CannotNamespaceAssociationFilterToAnotherTable.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import CannotSaveMissingDream from '../../errors/CannotSaveMissingDream.js'
 import ArrayEqualityRequiresArrayColumn from '../../errors/ops/ArrayEqualityRequiresArrayColumn.js'
 import RowLockIncompatibleWithDistinct from '../../errors/RowLockIncompatibleWithDistinct.js'
 import RowLockIncompatibleWithJoinLoad from '../../errors/RowLockIncompatibleWithJoinLoad.js'
@@ -1055,6 +1057,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         return await executeDatabaseQuery(query, 'executeTakeFirstOrThrow')
       }
     } catch (error) {
+      if (dream.isPersisted && error instanceof NoResultError) throw new CannotSaveMissingDream(dream)
+
       switch (pgErrorType(error)) {
         case COLUMN_OVERFLOW:
           throw new ColumnOverflow(error instanceof Error ? error : new Error('database column overflow'))
