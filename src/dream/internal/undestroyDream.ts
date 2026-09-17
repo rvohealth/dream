@@ -1,6 +1,7 @@
 import { SelectQueryBuilder, UpdateQueryBuilder, UpdateResult } from 'kysely'
 import acquireStabilizedSortableScopeLocks from '../../decorators/field/sortable/helpers/acquireStabilizedSortableScopeLocks.js'
 import filterQueryToScopeValues from '../../decorators/field/sortable/helpers/filterQueryToScopeValues.js'
+import { setSortableTransactionOrigin } from '../../decorators/field/sortable/helpers/heldSortableScopeLockKeys.js'
 import { snapshotScopeValue } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import Dream from '../../Dream.js'
@@ -29,9 +30,10 @@ export default async function undestroyDream<I extends Dream>(
     return await undestroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
-    return await dreamClass.transaction(
-      async txn => await undestroyDreamWithTransaction<I>(dream, txn, options)
-    )
+    return await dreamClass.transaction(async txn => {
+      setSortableTransactionOrigin(txn, { type: 'operation', operation: 'undestroy' })
+      return await undestroyDreamWithTransaction<I>(dream, txn, options)
+    })
   }
 }
 

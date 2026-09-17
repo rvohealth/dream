@@ -2,6 +2,7 @@ import performSortableDestroyWork from '../../decorators/field/sortable/helpers/
 import prepareSortableFieldsForDestroy, {
   clearSortableFieldsForDestroy,
 } from '../../decorators/field/sortable/helpers/prepareSortableFieldsForDestroy.js'
+import { setSortableTransactionOrigin } from '../../decorators/field/sortable/helpers/heldSortableScopeLockKeys.js'
 import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
@@ -33,9 +34,10 @@ export default async function destroyDream<I extends Dream>(
     return await destroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
-    return await dreamClass.transaction(
-      async txn => await destroyDreamWithTransaction<I>(dream, txn, options)
-    )
+    return await dreamClass.transaction(async txn => {
+      setSortableTransactionOrigin(txn, { type: 'operation', operation: 'destroy' })
+      return await destroyDreamWithTransaction<I>(dream, txn, options)
+    })
   }
 }
 

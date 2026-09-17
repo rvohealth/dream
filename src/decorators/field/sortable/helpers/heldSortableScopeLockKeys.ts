@@ -1,11 +1,22 @@
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 
-const heldKeysByTransaction = new WeakMap<DreamTransaction<any>, Set<bigint>>()
+export type SortableTransactionOrigin =
+  | { type: 'locked-batch' }
+  | { type: 'operation'; operation: 'create' | 'save' | 'destroy' | 'undestroy' | 'resort' }
+
+export interface SortableTransactionLockState {
+  heldKeys: Set<bigint>
+  inFlightKeys: Map<bigint, Promise<void>>
+  origin?: SortableTransactionOrigin
+}
+
+const lockStateByTransaction = new WeakMap<DreamTransaction<any>, SortableTransactionLockState>()
 
 /**
  * @internal
  *
- * The sortable scope-lock keys this transaction already holds.
+ * The transaction-local ledger for Sortable scope locks it already holds,
+ * acquisitions currently in flight, and Dream-opened operation context.
  *
  * Advisory transaction locks are released only when the transaction ends, so a
  * key taken once is held for the rest of it: every later acquisition of that
@@ -15,23 +26,36 @@ const heldKeysByTransaction = new WeakMap<DreamTransaction<any>, Set<bigint>>()
  * every per-record acquisition inside a locked batch whose preflight already
  * took the batch's whole key set.
  *
- * Being the transaction's whole ledger is also what lets the locked-batch
- * preflight count its bound cumulatively rather than per batch: how many scope
- * locks one more batch would leave the transaction holding is this set's size
- * plus whatever of the batch's keys is not already in it.
+ * In-flight keys are reserved synchronously before their driver acquisition is
+ * awaited. A concurrent operation therefore counts those reservations rather
+ * than passing against a stale held-key count, and a request for the same key
+ * awaits the existing acquisition. A failed acquisition removes only its own
+ * reservations and never promotes them to held keys.
  *
  * Keyed by the transaction object rather than by the connection, which is what
  * makes it correct rather than merely fast: a nested transaction gets its own
- * `DreamTransaction` and therefore its own set, so keys taken inside a
+ * `DreamTransaction` and therefore its own ledger, so keys taken inside a
  * subtransaction that rolls back — releasing its locks with it — are never
- * remembered as held by the transaction that outlives it. The entry is
+ * remembered by the transaction that outlives it. The entry is
  * discarded with the transaction object.
  */
 export default function heldSortableScopeLockKeys(txn: DreamTransaction<any>): Set<bigint> {
-  const held = heldKeysByTransaction.get(txn)
-  if (held) return held
+  return sortableTransactionLockState(txn).heldKeys
+}
 
-  const newHeld = new Set<bigint>()
-  heldKeysByTransaction.set(txn, newHeld)
-  return newHeld
+export function sortableTransactionLockState(txn: DreamTransaction<any>): SortableTransactionLockState {
+  const state = lockStateByTransaction.get(txn)
+  if (state) return state
+
+  const newState: SortableTransactionLockState = {
+    heldKeys: new Set<bigint>(),
+    inFlightKeys: new Map<bigint, Promise<void>>(),
+  }
+  lockStateByTransaction.set(txn, newState)
+  return newState
+}
+
+/** @internal */
+export function setSortableTransactionOrigin(txn: DreamTransaction<any>, origin: SortableTransactionOrigin) {
+  sortableTransactionLockState(txn).origin = origin
 }

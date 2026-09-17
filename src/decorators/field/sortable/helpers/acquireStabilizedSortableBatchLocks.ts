@@ -1,48 +1,10 @@
 import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
-import SortableBatchRequiresTooManyScopeLocks from '../../../../errors/SortableBatchRequiresTooManyScopeLocks.js'
 import { SortableFieldConfig } from '../Sortable.js'
-import heldSortableScopeLockKeys from './heldSortableScopeLockKeys.js'
 import sortableScopeLockKey from './sortableScopeLockKey.js'
 import { cacheSortableRowsReadUnderLock } from './sortableRowCache.js'
 import { sortableScopeColumnPairs } from './sortableScopeColumns.js'
 import stabilizeSortableScopeLocks from './stabilizeSortableScopeLocks.js'
-
-/**
- * The most advisory sort-scope locks a batch preflight will let one transaction
- * hold.
- *
- * Advisory locks are entries in a cluster-wide shared lock table sized at
- * startup (`max_locks_per_transaction` × `max_connections`, 6400 entries under
- * the stock settings), and a transaction holds every key it takes until it
- * ends. `batchSize` is the caller's to choose and nothing bounds the number of
- * distinct sort scopes a batch's records span, so without a limit a wide enough
- * batch over a high-cardinality scope can starve every other connection in the
- * cluster of a resource they all draw on — a failure that lands on unrelated
- * transactions rather than on the one that caused it.
- *
- * The count is **cumulative over the transaction**: each preflight round counts
- * the keys the transaction already holds together with the keys that round
- * would add. So the bound holds across the rounds of one stabilization loop
- * (each of which can discover a different set of scopes), and across the
- * batches of a multi-batch run inside a caller-owned transaction, where
- * advisory locks are released only when the caller commits.
- *
- * The headroom this leaves: the locked-batch defaults are ten records per batch
- * (`Query.BATCH_SIZES.LOCKED_DESTROY` / `LOCKED_UPDATE`), so reaching the bound
- * takes a caller who raises `batchSize` by two orders of magnitude and whose
- * records each occupy a sort scope of their own — or a long run of such batches
- * inside one transaction. Two shapes consume the budget faster than one key per
- * record: a model declaring more than one sortable field needs one key per
- * field, and the attribute form of `update` needs up to two per record per
- * field, since the record's current scope and its destination scope are
- * different keys.
- *
- * Only the batch preflight enforces this. A per-record save, destroy or
- * undestroy takes its keys without counting them, so what they take is counted
- * by the next preflight in the same transaction but cannot itself raise.
- */
-export const MAX_SORTABLE_BATCH_SCOPE_LOCKS = 1000
 
 /**
  * @internal
@@ -71,12 +33,9 @@ export const MAX_SORTABLE_BATCH_SCOPE_LOCKS = 1000
  * A model with no sortable fields never reaches the driver seam, so this is
  * inert — and free — for every other model.
  *
- * How many keys the transaction may hold is bounded — see
- * {@link MAX_SORTABLE_BATCH_SCOPE_LOCKS} — and a batch that would carry it past
- * the bound is refused before it claims any row. The first round refuses before
- * anything at all is locked; a later round refuses after that loop's earlier
- * rounds took their keys, which stay held until the transaction ends like every
- * advisory lock this branch takes.
+ * How many keys the transaction may hold is bounded centrally by
+ * `sortableMaxScopeLocksPerTransaction`; the same cumulative ceiling covers
+ * every per-record and resort path as well as this preflight.
  *
  * What the preflight can and cannot see: `incomingScopeValue` recognizes an
  * attribute that names a scope column directly or the BelongsTo association
@@ -124,12 +83,6 @@ export default async function acquireStabilizedSortableBatchLocks(
     scopeColumnsByPositionField.set(positionField, scopeColumns)
   }
 
-  // the live set of keys this transaction holds, which every acquisition adds
-  // to: what the bound is counted against, so that neither a later round of
-  // this loop nor a later batch of a caller-owned transaction can pass the
-  // check a bound's worth at a time
-  const heldKeys = heldSortableScopeLockKeys(txn)
-
   // the read of the pass that converged — taken under every lock this preflight
   // holds — published to the row cache once the loop is through
   let rowsReadUnderEveryLock: Record<string, unknown>[] = []
@@ -171,19 +124,6 @@ export default async function acquireStabilizedSortableBatchLocks(
         }
       }
     }
-
-    // counted before this round acquires anything, and counted over everything
-    // the transaction would hold once it had: the keys it already holds plus
-    // the ones this round adds to them
-    let keyCount = heldKeys.size
-    for (const key of keys) if (!heldKeys.has(key)) keyCount++
-
-    if (keyCount > MAX_SORTABLE_BATCH_SCOPE_LOCKS)
-      throw new SortableBatchRequiresTooManyScopeLocks(
-        dreamInstance['sanitizedConstructorName'],
-        keyCount,
-        MAX_SORTABLE_BATCH_SCOPE_LOCKS
-      )
 
     rowsReadUnderEveryLock = rows
 

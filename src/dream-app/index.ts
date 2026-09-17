@@ -297,6 +297,28 @@ export default class DreamApp {
     return this._sortableScopeLockTimeout
   }
 
+  /**
+   * The greatest number of distinct Sortable scope locks one transaction may
+   * acquire. Defaults to 40.
+   *
+   * This is a framework safety policy, not a PostgreSQL capacity threshold:
+   * PostgreSQL advisory and regular locks share a cluster-wide pool whose
+   * usable capacity depends on server provisioning, current occupancy and
+   * concurrency. The default exactly accommodates an otherwise-empty locked
+   * update of ten records across two Sortable fields when every record moves
+   * between distinct old and new scopes; it intentionally provides no extra
+   * headroom for earlier work in the same transaction.
+   *
+   * Prefer smaller transactions and locked-query `batchSize` values. Raise
+   * this only after evaluating database provisioning and concurrent workload.
+   * Set it with
+   * `dreamApp.set('sortableMaxScopeLocksPerTransaction', lockCount)`.
+   */
+  private _sortableMaxScopeLocksPerTransaction: number = 40
+  public get sortableMaxScopeLocksPerTransaction() {
+    return this._sortableMaxScopeLocksPerTransaction
+  }
+
   private _primaryKeyType: LegacyCompatiblePrimaryKeyType = 'bigint'
   public get primaryKeyType() {
     return this._primaryKeyType
@@ -588,7 +610,9 @@ export default class DreamApp {
                                 ? number
                                 : ApplyOpt extends 'sortableScopeLockTimeout'
                                   ? number
-                                  : never,
+                                  : ApplyOpt extends 'sortableMaxScopeLocksPerTransaction'
+                                    ? number
+                                    : never,
     secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
@@ -668,6 +692,16 @@ export default class DreamApp {
         this._sortableScopeLockTimeout = options as number
         break
 
+      case 'sortableMaxScopeLocksPerTransaction': {
+        const value = options as number
+        if (!Number.isFinite(value) || !Number.isInteger(value) || value < 1)
+          throw new Error(
+            `sortableMaxScopeLocksPerTransaction must be a finite positive integer; received ${String(value)}`
+          )
+        this._sortableMaxScopeLocksPerTransaction = value
+        break
+      }
+
       default: {
         // protection so that if a new ApplyOpt is ever added, this will throw a type error at build time
         const _never: never = applyOption
@@ -746,6 +780,7 @@ export type DreamAppSetOption =
   | 'paginationPageSize'
   | 'paginationMaxPageSize'
   | 'sortableScopeLockTimeout'
+  | 'sortableMaxScopeLocksPerTransaction'
   | 'packageManager'
 
 export interface DreamDirectoryPaths {

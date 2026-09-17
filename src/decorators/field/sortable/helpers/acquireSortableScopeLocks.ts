@@ -1,8 +1,10 @@
 import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import Query from '../../../../dream/Query.js'
+import DreamApp from '../../../../dream-app/index.js'
 import SortableRequiresAdvisoryTransactionLocks from '../../../../errors/SortableRequiresAdvisoryTransactionLocks.js'
-import heldSortableScopeLockKeys from './heldSortableScopeLockKeys.js'
+import SortableScopeLockLimitExceeded from '../../../../errors/SortableScopeLockLimitExceeded.js'
+import { sortableTransactionLockState } from './heldSortableScopeLockKeys.js'
 
 /**
  * @internal
@@ -38,10 +40,49 @@ export default async function acquireSortableScopeLocks(
   if (!queryDriverClass.supportsAdvisoryTransactionLocks)
     throw new SortableRequiresAdvisoryTransactionLocks(queryDriverClass.name)
 
-  const heldKeys = heldSortableScopeLockKeys(txn)
-  const keysToAcquire = keys.filter(key => !heldKeys.has(key))
-  if (!keysToAcquire.length) return
+  const state = sortableTransactionLockState(txn)
+  const requestedKeys = [...new Set(keys)]
+  const acquisitionsAlreadyInFlight = new Set<Promise<void>>()
+  const keysToAcquire: bigint[] = []
 
-  await queryDriverClass.acquireAdvisoryTransactionLocks(txn, keysToAcquire)
-  keysToAcquire.forEach(key => heldKeys.add(key))
+  for (const key of requestedKeys) {
+    if (state.heldKeys.has(key)) continue
+
+    const inFlight = state.inFlightKeys.get(key)
+    if (inFlight) acquisitionsAlreadyInFlight.add(inFlight)
+    else keysToAcquire.push(key)
+  }
+
+  if (!keysToAcquire.length) {
+    await Promise.all(acquisitionsAlreadyInFlight)
+    return
+  }
+
+  const attemptedLockCount = state.heldKeys.size + state.inFlightKeys.size + keysToAcquire.length
+  const configuredLimit = DreamApp.getOrFail().sortableMaxScopeLocksPerTransaction
+
+  if (attemptedLockCount > configuredLimit)
+    throw new SortableScopeLockLimitExceeded(
+      dream['sanitizedConstructorName'],
+      attemptedLockCount,
+      configuredLimit,
+      keysToAcquire.length,
+      state.origin
+    )
+
+  const acquisition = queryDriverClass
+    .acquireAdvisoryTransactionLocks(txn, keysToAcquire)
+    .then(() => {
+      keysToAcquire.forEach(key => state.heldKeys.add(key))
+    })
+    .finally(() => {
+      keysToAcquire.forEach(key => {
+        if (state.inFlightKeys.get(key) === acquisition) state.inFlightKeys.delete(key)
+      })
+    })
+
+  keysToAcquire.forEach(key => state.inFlightKeys.set(key, acquisition))
+  acquisitionsAlreadyInFlight.add(acquisition)
+
+  await Promise.all(acquisitionsAlreadyInFlight)
 }

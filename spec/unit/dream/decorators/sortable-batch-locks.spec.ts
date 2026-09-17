@@ -1,10 +1,8 @@
 import { sql } from 'kysely'
-import acquireStabilizedSortableBatchLocks, {
-  MAX_SORTABLE_BATCH_SCOPE_LOCKS,
-} from '../../../../src/decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
+import acquireStabilizedSortableBatchLocks from '../../../../src/decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
 import { takeCachedSortableRow } from '../../../../src/decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
-import SortableBatchRequiresTooManyScopeLocks from '../../../../src/errors/SortableBatchRequiresTooManyScopeLocks.js'
+import DreamApp from '../../../../src/dream-app/index.js'
 import testDb from '../../../helpers/testDb.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import TextScopedSortableModel from '../../../../test-app/app/models/TextScopedSortableModel.js'
@@ -30,31 +28,39 @@ function preflight(txn: DreamTransaction<any>, primaryKeyValues: unknown[]) {
 }
 
 describe('the locked-batch sortable scope-lock preflight', () => {
+  let priorLimit: number
+
+  beforeEach(() => {
+    priorLimit = DreamApp.getOrFail().sortableMaxScopeLocksPerTransaction
+    DreamApp.getOrFail().set('sortableMaxScopeLocksPerTransaction', 3)
+  })
+
+  afterEach(() => {
+    DreamApp.getOrFail().set('sortableMaxScopeLocksPerTransaction', priorLimit)
+  })
+
   context('the bound on how many scope locks it will take', () => {
     it('counts the keys the transaction already holds, so the batches of a caller-owned transaction cannot walk past it one batch at a time', async () => {
-      const ids = await insertOnePerScope(MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1)
+      const ids = await insertOnePerScope(4)
 
       await ApplicationModel.transaction(async txn => {
-        // 600 keys: comfortably inside the bound on its own
-        await preflight(txn, ids.slice(0, 600))
+        await preflight(txn, ids.slice(0, 2))
 
-        // 401 more, and the 600 taken above are still held — advisory locks
-        // live until the transaction ends
-        await expect(preflight(txn, ids.slice(600))).rejects.toThrow(SortableBatchRequiresTooManyScopeLocks)
-      })
-    }, 30000)
-
-    it('reports the number of keys the transaction would have been left holding', async () => {
-      const ids = await insertOnePerScope(MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1)
-
-      await ApplicationModel.transaction(async txn => {
-        await preflight(txn, ids.slice(0, 600))
-
-        await expect(preflight(txn, ids.slice(600))).rejects.toThrow(
-          new RegExp(`holding ${MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1} sort scope locks`)
+        await expect(preflight(txn, ids.slice(2))).rejects.toThrow(
+          'would make this transaction hold 4 distinct Sortable scope locks'
         )
       })
-    }, 30000)
+    })
+
+    it('reports the number of keys the transaction would have been left holding', async () => {
+      const ids = await insertOnePerScope(4)
+
+      await ApplicationModel.transaction(async txn => {
+        await preflight(txn, ids.slice(0, 2))
+
+        await expect(preflight(txn, ids.slice(2))).rejects.toThrow('configured limit is 3')
+      })
+    })
   })
 
   context('the rows it stashes for the per-record work that follows', () => {
@@ -71,13 +77,15 @@ describe('the locked-batch sortable scope-lock preflight', () => {
     })
 
     it('stashes nothing when it refuses the batch, so a caller that catches the refusal finds no unprotected row', async () => {
-      const ids = await insertOnePerScope(MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1)
+      const ids = await insertOnePerScope(4)
 
       await ApplicationModel.transaction(async txn => {
-        await expect(preflight(txn, ids)).rejects.toThrow(SortableBatchRequiresTooManyScopeLocks)
+        await expect(preflight(txn, ids)).rejects.toThrow(
+          'would make this transaction hold 4 distinct Sortable scope locks'
+        )
 
         expect(takeCachedSortableRow(txn, 'text_scoped_sortable_models', ids[0])).toBeUndefined()
       })
-    }, 30000)
+    })
   })
 })

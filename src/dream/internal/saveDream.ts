@@ -2,6 +2,7 @@ import acquireStabilizedSortableScopeLocks from '../../decorators/field/sortable
 import { clearSortableSaveState } from '../../decorators/field/sortable/helpers/clearCachedSortableValues.js'
 import performSortablePositionWork from '../../decorators/field/sortable/helpers/performSortablePositionWork.js'
 import prepareSortableFieldsForSave from '../../decorators/field/sortable/helpers/prepareSortableFieldsForSave.js'
+import { setSortableTransactionOrigin } from '../../decorators/field/sortable/helpers/heldSortableScopeLockKeys.js'
 import { cacheSortableSnapshots } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import Dream from '../../Dream.js'
@@ -68,9 +69,13 @@ export default async function saveDream<DreamInstance extends Dream>(
     // that throws cannot roll back the committed row and a slow hook blocks
     // no other writer of the scope.
     try {
-      await (dream.constructor as typeof Dream).transaction(
-        async sortableTxn => await writeDream(dream, sortableTxn, { alreadyPersisted, sortableFieldConfigs })
-      )
+      await (dream.constructor as typeof Dream).transaction(async sortableTxn => {
+        setSortableTransactionOrigin(sortableTxn, {
+          type: 'operation',
+          operation: alreadyPersisted ? 'save' : 'create',
+        })
+        return await writeDream(dream, sortableTxn, { alreadyPersisted, sortableFieldConfigs })
+      })
     } catch (error) {
       restorePersistenceState(dream, preSaveState!)
       clearSortableSaveState(dream, sortableFieldConfigs)

@@ -33,7 +33,62 @@ import scopeArray from './helpers/scopeArray.js'
  *
  * Sortable requires a query driver that supports advisory transaction locks —
  * the `PostgresQueryDriver` does — since every position write serializes the
- * writers of its sort scope on one.
+ * writers of its sort scope on one. This concurrency guarantee first shipped
+ * in Dream 2.28.0 and begins only after every writer is running a lock-aware
+ * release. During the first rolling deployment, older processes take no
+ * advisory locks and can still race the upgraded processes.
+ *
+ * All participating Dream writers of one hot scope serialize. `skipHooks`, raw
+ * SQL, and older pre-lock Dream processes do not participate. A waiter that
+ * enters the protocol holds a pooled connection until the holder finishes or
+ * `sortableScopeLockTimeout` expires; sustained contention can therefore
+ * produce latency waves, timeouts, and pool starvation. Keep database work
+ * inside the lock window short, and avoid cross-region database latency for
+ * hot scopes.
+ *
+ * PostgreSQL advisory locks share the cluster-wide lock pool with regular
+ * locks. Dream limits each transaction to 40 distinct Sortable scope locks by
+ * default through `sortableMaxScopeLocksPerTransaction`. This is a framework
+ * safety policy, not a mathematically safe PostgreSQL threshold. Reduce
+ * transaction breadth or a locked query's `batchSize` before cautiously
+ * raising it based on database provisioning and concurrent workload.
+ *
+ * `SortableScopeDidNotStabilize` and `SortableScopeLockWaitTimedOut` are the
+ * expected Dream errors an application may choose to retry. Database deadlocks
+ * remain native adapter errors (for example PostgreSQL code `40P01` or MySQL
+ * errno `1213`) so their driver fields and stacks remain intact. A database
+ * deadlock aborts the whole transaction: retry by starting the transaction
+ * again from the beginning, never by continuing it or retrying only the failed
+ * statement. Recurrent deadlocks call for shorter transactions or a consistent
+ * multi-resource acquisition order; they do not by themselves prove Sortable
+ * caused the cycle.
+ *
+ * ```ts
+ * import {
+ *   SortableScopeDidNotStabilize,
+ *   SortableScopeLockWaitTimedOut,
+ * } from '@rvoh/dream/errors'
+ *
+ * const runTransaction = async () =>
+ *   await ApplicationModel.transaction(async txn => {
+ *     // bind every operation in the attempt to txn
+ *   })
+ *
+ * try {
+ *   await runTransaction()
+ * } catch (error) {
+ *   const adapterDeadlock =
+ *     (error as { code?: string }).code === '40P01' ||
+ *     (error as { errno?: number }).errno === 1213
+ *   const retryable =
+ *     error instanceof SortableScopeDidNotStabilize ||
+ *     error instanceof SortableScopeLockWaitTimedOut ||
+ *     adapterDeadlock
+ *   if (!retryable) throw error
+ *
+ *   await runTransaction() // one whole-transaction retry
+ * }
+ * ```
  */
 export default function Sortable(opts: SortableOpts = {}): any {
   return function (_: undefined, context: DecoratorContext) {

@@ -7,6 +7,7 @@ import { STI_SCOPE_NAME } from '../../../class/STI.js'
 import acquireSortableScopeLocks from './acquireSortableScopeLocks.js'
 import canonicalScopeValue from './canonicalScopeValue.js'
 import filterQueryToScopeValues from './filterQueryToScopeValues.js'
+import { setSortableTransactionOrigin } from './heldSortableScopeLockKeys.js'
 import sortableScopeColumns from './sortableScopeColumns.js'
 import sortableScopeLockKey from './sortableScopeLockKey.js'
 
@@ -80,6 +81,7 @@ export default async function resortAllRecords(
 
   for (const scopeValues of await discoverSortScopes(dreamClass, derivationRecord, scope)) {
     await dreamClass.transaction(async txn => {
+      setSortableTransactionOrigin(txn, { type: 'operation', operation: 'resort' })
       await acquireSortableScopeLocks(derivationRecord, txn, [
         sortableScopeLockKey(derivationRecord, positionField, scopeValues),
       ])

@@ -2,14 +2,12 @@ import { sql } from 'kysely'
 import pg from 'pg'
 import Dream from '../../../../src/Dream.js'
 import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
-import { MAX_SORTABLE_BATCH_SCOPE_LOCKS } from '../../../../src/decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
 import { sortableScopeLockKeyForCurrentScope } from '../../../../src/decorators/field/sortable/helpers/sortableScopeLockKeys.js'
 import DreamApp from '../../../../src/dream-app/index.js'
 import Query from '../../../../src/dream/Query.js'
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../../src/dream/QueryDriver/Postgres.js'
 import QueryDriverBase from '../../../../src/dream/QueryDriver/Base.js'
-import SortableBatchRequiresTooManyScopeLocks from '../../../../src/errors/SortableBatchRequiresTooManyScopeLocks.js'
 import SortableRequiresAdvisoryTransactionLocks from '../../../../src/errors/SortableRequiresAdvisoryTransactionLocks.js'
 import SortableScopeLockWaitTimedOut from '../../../../src/errors/SortableScopeLockWaitTimedOut.js'
 import testDb from '../../../helpers/testDb.js'
@@ -19,7 +17,6 @@ import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import CommitHookSortableModel from '../../../../test-app/app/models/CommitHookSortableModel.js'
 import Post from '../../../../test-app/app/models/Post.js'
-import TextScopedSortableModel from '../../../../test-app/app/models/TextScopedSortableModel.js'
 import UnscopedSortableModel from '../../../../test-app/app/models/UnscopedSortableModel.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -934,45 +931,5 @@ describe('@Sortable concurrency', () => {
       expect(boundsApplied.length).toBeGreaterThan(0)
       boundsApplied.forEach(parameters => expect(parameters).toContain('5000'))
     })
-  })
-
-  context('the number of scope locks one batch may take', () => {
-    it('refuses a locked batch spanning more sort scopes than the bound, before it locks or claims anything', async () => {
-      // one row per sort scope, inserted in one statement: going through the
-      // model would take a lock and compute a position for every one of them
-      await sql`
-        insert into text_scoped_sortable_models (scope_a, scope_b, position, created_at, updated_at)
-        select 'scope-' || i, 'b', 1, now(), now()
-        from generate_series(1, ${MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1}::int) as i
-      `.execute(testDb('default', 'primary'))
-
-      const acquisitions = vi.spyOn(PostgresQueryDriver, 'acquireAdvisoryTransactionLocks')
-
-      await expect(
-        TextScopedSortableModel.query().destroy({
-          lock: true,
-          batchSize: MAX_SORTABLE_BATCH_SCOPE_LOCKS + 100,
-        })
-      ).rejects.toThrow(SortableBatchRequiresTooManyScopeLocks)
-
-      expect(acquisitions).not.toHaveBeenCalled()
-      expect(await TextScopedSortableModel.count()).toEqual(MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1)
-    }, 20000)
-
-    it('allows a batch narrow enough to stay inside it', async () => {
-      await sql`
-        insert into text_scoped_sortable_models (scope_a, scope_b, position, created_at, updated_at)
-        select 'scope-' || i, 'b', 1, now(), now()
-        from generate_series(1, ${MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1}::int) as i
-      `.execute(testDb('default', 'primary'))
-
-      const destroyed = await TextScopedSortableModel.query().destroy({
-        lock: true,
-        batchSize: MAX_SORTABLE_BATCH_SCOPE_LOCKS,
-      })
-
-      expect(destroyed).toEqual(MAX_SORTABLE_BATCH_SCOPE_LOCKS + 1)
-      expect(await TextScopedSortableModel.count()).toEqual(0)
-    }, 60000)
   })
 })

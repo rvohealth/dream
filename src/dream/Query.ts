@@ -1,6 +1,7 @@
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
+import { setSortableTransactionOrigin } from '../decorators/field/sortable/helpers/heldSortableScopeLockKeys.js'
 import { invalidateSortableRowCache } from '../decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamApp from '../dream-app/index.js'
 import assertNoEncryptedColumnWrites from '../encrypt/assertNoEncryptedColumnWrites.js'
@@ -2849,13 +2850,11 @@ export default class Query<
    *   transaction keeps batch N-1's row locks while batch N preflights. The
    *   same shape accumulates *advisory* locks: they are released only when the
    *   transaction ends, so every batch's scope keys are still held when the
-   *   next one preflights. That accumulation is bounded — the preflight counts
-   *   the keys the transaction already holds along with the ones the batch
-   *   would add, and refuses with `SortableBatchRequiresTooManyScopeLocks`
-   *   rather than letting a long run over a high-cardinality sort scope exhaust
-   *   `max_locks_per_transaction` for the whole cluster — so a run long enough
-   *   raises instead of completing. Letting Dream open a transaction per batch
-   *   releases the keys as it goes and gives each batch the whole budget.
+   *   next one preflights. The transaction-wide
+   *   `sortableMaxScopeLocksPerTransaction` ceiling includes those earlier
+   *   keys, so a run broad enough raises instead of consuming an unbounded
+   *   share of the database's lock pool. Letting Dream open a transaction per
+   *   batch releases the keys as it goes and gives each batch a fresh budget.
    * - the preflight covers **the claimed rows' own scopes only**. A
    *   `dependent: 'destroy'` cascade under `destroy({ lock: true })` destroys
    *   child records of other tables, and a sortable child takes its own table's
@@ -2943,7 +2942,10 @@ export default class Query<
 
       const results = this.dreamTransaction
         ? await processBatch(this.dreamTransaction)
-        : await this.dreamClass.transaction(async txn => await processBatch(txn))
+        : await this.dreamClass.transaction(async txn => {
+            setSortableTransactionOrigin(txn, { type: 'locked-batch' })
+            return await processBatch(txn)
+          })
 
       counter += results.processed
       attemptedCount = results.attempted
