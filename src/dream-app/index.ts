@@ -315,6 +315,24 @@ export default class DreamApp {
    * `dreamApp.set('sortableMaxScopeLocksPerTransaction', lockCount)`.
    */
   private _sortableMaxScopeLocksPerTransaction: number = 40
+
+  /**
+   * The greatest number of distinct Sortable scope locks one transaction may
+   * acquire. Defaults to 40.
+   *
+   * This is a framework safety policy, not a PostgreSQL capacity threshold:
+   * PostgreSQL advisory and regular locks share a cluster-wide pool whose
+   * usable capacity depends on server provisioning, current occupancy and
+   * concurrency. The default exactly accommodates an otherwise-empty locked
+   * update of ten records across two Sortable fields when every record moves
+   * between distinct old and new scopes; it intentionally provides no extra
+   * headroom for earlier work in the same transaction.
+   *
+   * Prefer smaller transactions and locked-query `batchSize` values. Raise
+   * this only after evaluating database provisioning and concurrent workload.
+   * Set it with
+   * `dreamApp.set('sortableMaxScopeLocksPerTransaction', lockCount)`.
+   */
   public get sortableMaxScopeLocksPerTransaction() {
     return this._sortableMaxScopeLocksPerTransaction
   }
