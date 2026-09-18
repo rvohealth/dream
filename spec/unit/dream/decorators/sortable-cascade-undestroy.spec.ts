@@ -7,6 +7,7 @@ import PostgresQueryDriver from '../../../../src/dream/QueryDriver/Postgres.js'
 import Dream from '../../../../src/Dream.js'
 import SortableRequiresAdvisoryTransactionLocks from '../../../../src/errors/SortableRequiresAdvisoryTransactionLocks.js'
 import SortableRequiresDeferrableConstraints from '../../../../src/errors/SortableRequiresDeferrableConstraints.js'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import SortableCascadeChild from '../../../../test-app/app/models/SortableCascadeChild.js'
 import SortableCascadeOwner from '../../../../test-app/app/models/SortableCascadeOwner.js'
 
@@ -247,6 +248,74 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
 
       await child.reload()
       expect(child.positionAcrossOwners).toEqual(2)
+    })
+  })
+
+  context('scopes enqueued after the cascade root has already renumbered', () => {
+    async function liveChildren() {
+      return await SortableCascadeChild.order('id').all()
+    }
+
+    it("renumbers the scopes an afterUpdate hook's own cascaded undestroy restored", async () => {
+      // the hook's cascade: its own owner, its own sort scopes, restored in a
+      // frame that is not the cascade root and therefore never renumbers
+      const hookOwner = await SortableCascadeOwner.create()
+      await SortableCascadeChild.create({ owner: hookOwner, label: 'b' })
+      await SortableCascadeChild.create({ owner: hookOwner, label: 'b' })
+      await hookOwner.destroy()
+
+      await SortableCascadeChild.create({ owner, label: 'a' })
+      await owner.destroy()
+
+      SortableCascadeOwner.undestroyDuringAfterUpdate = hookOwner
+      try {
+        // the root renumbers what it collected, then runs its own `afterUpdate`
+        // hooks, which restore `hookOwner`'s children into two more scopes
+        await owner.undestroy()
+      } finally {
+        SortableCascadeOwner.undestroyDuringAfterUpdate = null
+      }
+
+      // read back after COMMIT: this is the whole point of the finding — the
+      // transient NULL a cascade accepts ends at COMMIT, and a row that commits
+      // without a position is never given one afterwards
+      const children = await liveChildren()
+      expect(children.length).toEqual(3)
+      for (const child of children) {
+        expect(child.position).not.toBeNull()
+        expect(child.positionWithinLabel).not.toBeNull()
+      }
+
+      expect(await positionsByLabel('a')).toEqual([1])
+      expect(await positionsByLabel('b')).toEqual([1, 2])
+      expect(await positionsWithinLabel('b')).toEqual([1, 2])
+    })
+
+    it('renumbers both cascades when two share one caller-supplied transaction', async () => {
+      const otherOwner = await SortableCascadeOwner.create()
+      await SortableCascadeChild.create({ owner, label: 'a' })
+      await SortableCascadeChild.create({ owner, label: 'a' })
+      await SortableCascadeChild.create({ owner: otherOwner, label: 'b' })
+      await SortableCascadeChild.create({ owner: otherOwner, label: 'b' })
+      await owner.destroy()
+      await otherOwner.destroy()
+
+      // one transaction, two cascades: the first to enter owns the flush, and
+      // the other's frames are open across it, so whichever finishes last is the
+      // only one that can renumber the remainder
+      await ApplicationModel.transaction(async txn => {
+        await Promise.all([owner.txn(txn).undestroy(), otherOwner.txn(txn).undestroy()])
+      })
+
+      const children = await liveChildren()
+      expect(children.length).toEqual(4)
+      for (const child of children) {
+        expect(child.position).not.toBeNull()
+        expect(child.positionWithinLabel).not.toBeNull()
+      }
+
+      expect(await positionsByLabel('a')).toEqual([1, 2])
+      expect(await positionsByLabel('b')).toEqual([1, 2])
     })
   })
 

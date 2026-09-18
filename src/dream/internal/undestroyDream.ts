@@ -10,6 +10,7 @@ import {
   enterSortableScopeRestoreCascade,
   exitSortableScopeRestoreCascade,
   flushSortableScopeRestores,
+  isLastOpenSortableScopeRestoreFrame,
 } from '../../decorators/field/sortable/helpers/sortableScopeRestoreQueue.js'
 import { snapshotScopeValue } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
@@ -129,6 +130,20 @@ async function undestroyDreamInsideCascadeFrame<I extends Dream>(
     await runHooksFor('afterUpdate', dream, true, null, txn)
     await runHooksFor('afterUpdateCommit', dream, true, null, txn)
   }
+
+  // The flush above renumbers what the cascade collected before this record's
+  // own hooks ran, which is what lets those hooks read final positions. It is
+  // not the last word: an `afterUpdate` hook is handed this transaction, so a
+  // hook that starts a cascaded undestroy of its own enqueues scopes after it —
+  // in a frame that is not the root and so never flushes — and two cascades
+  // sharing one caller-supplied transaction interleave the same way. Whichever
+  // frame is the last one still open renumbers the remainder here, before
+  // returning to the caller and before the reload below, so no frame can leave
+  // the transaction with a restored row still holding a NULL position.
+  //
+  // Deliberately on the success path and not in the `finally`: a cascade that
+  // threw must discard what it collected rather than write it.
+  if (isLastOpenSortableScopeRestoreFrame(txn)) await flushSortableScopeRestores(txn)
 
   await dream.txn(txn).reload()
   return dream

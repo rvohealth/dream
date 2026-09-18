@@ -283,10 +283,10 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * Marks an integer column as a sortable position: Dream keeps the positions of
    * every record in a sort scope contiguous, starting at 1, as records are
    * created, moved, destroyed and undestroyed. That is true of every
-   * uncontended write and of every write that takes the scope lock. The one way
-   * a scope can be left with a gap is a race against a cascaded destroy, under
-   * **Cascaded destroy and undestroy** below; `Model.resort('position')` closes
-   * it.
+   * uncontended write and of every write that takes the scope lock. A scope can
+   * be left with a gap only by a concurrent write racing a cascaded destroy or
+   * undestroy, under **Cascaded destroy and undestroy** below;
+   * `Model.resort('position')` closes it.
    *
    * ```ts
    * class Post extends ApplicationModel {
@@ -368,21 +368,40 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * condition leaves some of them behind.
    *
    * **What an optimistic cascade can cost.** Nothing silently corrupts an
-   * ordering, and nothing leaves a live row without a position.
+   * ordering, and no cascade that finishes leaves a live row without a
+   * position. A cascaded undestroy that throws part-way is the one exception:
+   * its position writes are deferred to the end of the cascade, so a caller
+   * that catches the failure and commits the transaction anyway is left with a
+   * partially restored tree whose restored rows hold no position. Letting the
+   * failure roll the transaction back avoids it, and `Model.resort('position')`
+   * fills a position committed that way.
    *
    * - A cascaded destroy writes no position at all, so nothing on that path can
-   *   fail a uniqueness constraint. Its one residual is a gap: a row that a
-   *   concurrent writer moved *into* another scope is still deleted by primary
-   *   key, leaving that other scope with a hole. `Model.resort('position')`
-   *   closes it.
+   *   fail a uniqueness constraint. Its residuals are both gaps, and
+   *   `Model.resort('position')` closes either. One: a row that a concurrent
+   *   writer moved *into* another scope is still deleted by primary key,
+   *   leaving that other scope with a hole. Two: the cascade destroys the set
+   *   of records it loaded when it walked the `dependent: 'destroy'` tree, so a
+   *   row committed into the scope after that snapshot is not in the set. It
+   *   survives a cascade that removes everything under it and keeps the
+   *   position it was given, with a hole beneath it.
    * - A cascaded undestroy renumbers the whole sort scope 1..n in one
    *   statement, preserving relative order. A row committed into that scope
    *   just before the statement runs is absorbed by it, so a record someone
    *   created a moment earlier may come back holding a different position than
-   *   they were given — surprising, but correctly ordered. A position write
-   *   that commits between that statement and the transaction's COMMIT instead
-   *   aborts the whole undestroy at commit: nothing is half-restored, no commit
-   *   hooks have run, and retrying the transaction succeeds.
+   *   they were given — surprising, but correctly ordered. That statement
+   *   writes only the rows whose position actually changes, so rows already
+   *   holding the right position are left unlocked, and the undestroy holds no
+   *   scope lock to keep anyone out: a concurrent position write can still land
+   *   between the renumbering and the transaction's COMMIT, and a *direct*
+   *   destroy — which does take the scope lock — is as able to as a cascaded
+   *   one. What that write costs depends on whether it leaves two live rows of
+   *   the scope sharing a position. If it does, the deferrable unique
+   *   constraint aborts the whole undestroy at commit: nothing is
+   *   half-restored, no commit hooks have run, and retrying the transaction
+   *   succeeds. If it does not — a direct destroy nulls the position it frees
+   *   and compacts the rows the renumbering never wrote — the undestroy commits
+   *   and the scope can be left with a gap, closed by `Model.resort` as above.
    *
    * **A cascaded undestroy leaves a NULL position until the cascade finishes.**
    * The scope is renumbered once, at the end of the cascade, so a restored

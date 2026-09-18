@@ -1,5 +1,6 @@
 import SoftDelete from '../../../src/decorators/class/SoftDelete.js'
 import Decorators from '../../../src/decorators/Decorators.js'
+import DreamTransaction from '../../../src/dream/DreamTransaction.js'
 import { DreamColumn } from '../../../src/types/dream.js'
 import ApplicationModel from './ApplicationModel.js'
 import SortableCascadeChild from './SortableCascadeChild.js'
@@ -46,4 +47,27 @@ export default class SortableCascadeOwner extends ApplicationModel {
    */
   @deco.HasOne('SortableCascadeChild', { on: 'ownerId' })
   public oneChild: SortableCascadeChild
+
+  /**
+   * Another owner this one's `afterUpdate` hook undestroys, on the very
+   * transaction the hook is handed, or null for the ordinary case.
+   *
+   * A hook that starts a cascaded undestroy of its own is the plainest way a
+   * consumer reaches the seat *after* a cascade root has renumbered what it
+   * collected, and the nested cascade is not the root, so it collects scopes
+   * nobody else is going to renumber. Specs that use it set it immediately
+   * before the undestroy they are driving and clear it afterwards.
+   */
+  public static undestroyDuringAfterUpdate: SortableCascadeOwner | null = null
+
+  @deco.AfterUpdate()
+  public async undestroysAnotherOwner(txn?: DreamTransaction<any> | null): Promise<void> {
+    const target = SortableCascadeOwner.undestroyDuringAfterUpdate
+    if (!txn || target === null || target.id === this.id) return
+
+    // cleared before the nested undestroy so the hook the nested cascade runs
+    // does not re-enter this one
+    SortableCascadeOwner.undestroyDuringAfterUpdate = null
+    await target.txn(txn).undestroy()
+  }
 }

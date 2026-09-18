@@ -32,13 +32,19 @@ const RESTORE_POSITION = 'dream_restore_position'
  * `coalesce(max(position), 0) + 1` this replaces produces, without the lock
  * that expression needs to be safe.
  *
- * Two properties follow from the statement being whole-scope rather than
- * single-row. A write that committed into the scope *before* it runs is
- * absorbed — ranked along with everything else, so it cannot collide. A write
- * that commits inside the window between it and COMMIT violates the scope's
- * deferrable unique constraint, which aborts the whole undestroy cleanly at
- * commit, with nothing half-restored and no commit hooks run; the retry then
- * absorbs that write like any other.
+ * A write that committed into the scope *before* it runs is absorbed — ranked
+ * along with everything else, so it cannot collide. A write that commits inside
+ * the window between it and COMMIT is not excluded at all: no scope lock is
+ * held, and the `is distinct from` guard below leaves every already-correct row
+ * unwritten and so unlocked, so any writer — a direct destroy as readily as a
+ * cascaded one — can land in that window. What the write costs depends on
+ * whether it leaves two live rows of the scope sharing a position. If it does,
+ * the scope's deferrable unique constraint aborts the whole undestroy at
+ * commit, with nothing half-restored and no commit hooks run, and the retry
+ * absorbs that write like any other. If it does not — a direct destroy nulls
+ * the position it frees and compacts only rows this statement never wrote — the
+ * undestroy commits and the scope can be left with a gap, which
+ * `Model.resort` closes.
  *
  * Because it runs once at the end of the cascade rather than once per restored
  * record, a restored row holds a NULL position for the remainder of the

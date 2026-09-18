@@ -65,14 +65,16 @@ export default function planSortableUndestroyWork(dream: Dream): SortableUndestr
  * Whether any column of the field's sort scope can hold NULL, in which case the
  * restore declines and keeps today's locking.
  *
- * The optimistic restore's whole safety argument ends at the deferrable unique
- * constraint: an intruding position write that commits inside the restore's
- * window is meant to abort the undestroy at commit. A plain UNIQUE constraint
- * is NULLS DISTINCT, so two rows sharing a NULL scope member and the same
- * position do not violate it — while Dream matches a NULL scope value with
- * `is null` and treats those rows as one scope. For that shape the collision
- * would commit silently instead of aborting, so the guarantee this path relies
- * on would simply be false.
+ * The optimistic restore holds no scope lock, so what keeps a *collision* out
+ * of the committed data is the deferrable unique constraint alone: an intruding
+ * write that leaves two live rows of the scope sharing a position is meant to
+ * abort the undestroy at commit. (An intruding write that produces no duplicate
+ * is not excluded and does not abort; it can leave a gap, which `Model.resort`
+ * closes.) A plain UNIQUE constraint is NULLS DISTINCT, so two rows sharing a
+ * NULL scope member and the same position do not violate it — while Dream
+ * matches a NULL scope value with `is null` and treats those rows as one scope.
+ * For that shape the collision would commit silently instead of aborting, so
+ * the one guarantee this path does rely on would simply be false.
  *
  * A column the schema does not describe is treated as nullable, so an unknown
  * shape declines rather than assuming the safe one.
