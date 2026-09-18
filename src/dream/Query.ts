@@ -1,6 +1,10 @@
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
+import {
+  markSortableCascadeEdge,
+  SortableCascadeEdge,
+} from '../decorators/field/sortable/helpers/sortableCascadeEdge.js'
 import { invalidateSortableRowCache } from '../decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamApp from '../dream-app/index.js'
 import assertNoEncryptedColumnWrites from '../encrypt/assertNoEncryptedColumnWrites.js'
@@ -329,6 +333,21 @@ export default class Query<
   /**
    * @internal
    *
+   * The `dependent: 'destroy'` association a cascade is restoring through, when
+   * this Query is the one that cascade walks. `undestroy` stamps it onto every
+   * record it reaches, which is how a restored record's own sortable work tells
+   * a cascaded undestroy from a direct one — the destroy side's `CASCADE_LOADED`
+   * marker cannot serve, since the undestroy cascade re-enters through a Query
+   * rather than through an already-hydrated association.
+   *
+   * Null on every Query a consumer builds, so `Query#undestroy` on its own is
+   * never treated as a cascade.
+   */
+  private readonly sortableCascadeEdge: SortableCascadeEdge | null = null
+
+  /**
+   * @internal
+   *
    * The distinct column to apply to the Query
    */
   private readonly distinctColumn: DreamColumnNames<DreamInstance> | null = null
@@ -408,6 +427,7 @@ export default class Query<
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
+    this.sortableCascadeEdge = opts.sortableCascadeEdge ?? null
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -489,6 +509,8 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
+      sortableCascadeEdge:
+        opts.sortableCascadeEdge !== undefined ? opts.sortableCascadeEdge : this.sortableCascadeEdge,
     }) as Q
   }
 
@@ -3058,6 +3080,10 @@ export default class Query<
           ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
           : result
 
+        // Stamped on the record itself, before its own undestroy runs, exactly
+        // as the destroy cascade stamps each record it is about to destroy.
+        if (this.sortableCascadeEdge) markSortableCascadeEdge(result, this.sortableCascadeEdge)
+
         await subquery.undestroy({
           bypassAllDefaultScopes: this.bypassAllDefaultScopes,
           defaultScopesToBypass: this.defaultScopesToBypass,
@@ -3518,4 +3544,5 @@ export interface QueryOpts<
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
+  sortableCascadeEdge?: SortableCascadeEdge | null | undefined
 }

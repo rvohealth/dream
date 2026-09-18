@@ -1,6 +1,5 @@
-import planSortableDestroyWork, {
-  cascadeDestroysWholeSortScope,
-} from '../../../../src/decorators/field/sortable/helpers/planSortableDestroyWork.js'
+import cascadeCoversWholeSortScope from '../../../../src/decorators/field/sortable/helpers/cascadeCoversWholeSortScope.js'
+import planSortableDestroyWork from '../../../../src/decorators/field/sortable/helpers/planSortableDestroyWork.js'
 import { markSortableCascadeEdge } from '../../../../src/decorators/field/sortable/helpers/sortableCascadeEdge.js'
 import { sortableScopeLockKeyForCurrentScope } from '../../../../src/decorators/field/sortable/helpers/sortableScopeLockKeys.js'
 import { SortableFieldConfig } from '../../../../src/decorators/field/sortable/Sortable.js'
@@ -84,6 +83,9 @@ describe('@Sortable under a dependent-destroy cascade', () => {
       for (const child of [child1, child2]) {
         expect(acquiredKeys()).not.toContain(scopeLockKey(child, 'position', 'owner'))
         expect(acquiredKeys()).not.toContain(scopeLockKey(child, 'positionWithinLabel', ['owner', 'label']))
+        expect(acquiredKeys()).not.toContain(
+          scopeLockKey(child, 'positionWithinGroup', ['owner', 'groupName'])
+        )
       }
     })
 
@@ -127,6 +129,7 @@ describe('@Sortable under a dependent-destroy cascade', () => {
           scopeLockKey(child1, 'position', 'owner'),
           scopeLockKey(child1, 'positionWithinLabel', ['owner', 'label']),
           scopeLockKey(child1, 'positionAcrossOwners', 'label'),
+          scopeLockKey(child1, 'positionWithinGroup', ['owner', 'groupName']),
         ].sort()
       )
 
@@ -135,6 +138,7 @@ describe('@Sortable under a dependent-destroy cascade', () => {
       expect([child2.position, child3.position]).toEqual([1, 2])
       expect([child2.positionWithinLabel, child3.positionWithinLabel]).toEqual([1, 2])
       expect([child2.positionAcrossOwners, child3.positionAcrossOwners]).toEqual([1, 2])
+      expect([child2.positionWithinGroup, child3.positionWithinGroup]).toEqual([1, 2])
     })
 
     it('plans every sortable field as locked, since no cascade edge reached the record', async () => {
@@ -142,7 +146,12 @@ describe('@Sortable under a dependent-destroy cascade', () => {
 
       const plan = planSortableDestroyWork(child)
 
-      expect(positionFields(plan.locked)).toEqual(['position', 'positionWithinLabel', 'positionAcrossOwners'])
+      expect(positionFields(plan.locked)).toEqual([
+        'position',
+        'positionWithinLabel',
+        'positionAcrossOwners',
+        'positionWithinGroup',
+      ])
       expect(positionFields(plan.skipped)).toEqual([])
     })
   })
@@ -176,46 +185,46 @@ describe('@Sortable under a dependent-destroy cascade', () => {
     })
 
     it('qualifies a field whose scope is the edge foreign key', () => {
-      expect(cascadeDestroysWholeSortScope(child, config('position'), childrenEdge())).toBe(true)
+      expect(cascadeCoversWholeSortScope(child, config('position'), childrenEdge())).toBe(true)
     })
 
     it('qualifies a field whose scope adds a plain column, which only narrows the same destroy set', () => {
-      expect(cascadeDestroysWholeSortScope(child, config('positionWithinLabel'), childrenEdge())).toBe(true)
+      expect(cascadeCoversWholeSortScope(child, config('positionWithinLabel'), childrenEdge())).toBe(true)
     })
 
     it('declines a field whose scope is a plain column that is not the edge foreign key', () => {
-      expect(cascadeDestroysWholeSortScope(child, config('positionAcrossOwners'), childrenEdge())).toBe(false)
+      expect(cascadeCoversWholeSortScope(child, config('positionAcrossOwners'), childrenEdge())).toBe(false)
     })
 
     it('declines a direct destroy, which reaches the record through no edge', () => {
-      expect(cascadeDestroysWholeSortScope(child, config('position'), null)).toBe(false)
+      expect(cascadeCoversWholeSortScope(child, config('position'), null)).toBe(false)
     })
 
     it('declines a HasOne edge, which reaches one row of a scope that may hold others', () => {
       const oneChildEdge = (SortableCascadeOwner['associationMetadataMap']() as any)['oneChild']
-      expect(cascadeDestroysWholeSortScope(child, config('position'), oneChildEdge)).toBe(false)
+      expect(cascadeCoversWholeSortScope(child, config('position'), oneChildEdge)).toBe(false)
     })
 
     it('declines a conditioned edge, which destroys a subset of the foreign key rows', () => {
       const conditionedEdge = (SortableCascadeOwner['associationMetadataMap']() as any)['childrenLabeledA']
-      expect(cascadeDestroysWholeSortScope(child, config('position'), conditionedEdge)).toBe(false)
+      expect(cascadeCoversWholeSortScope(child, config('position'), conditionedEdge)).toBe(false)
     })
 
     for (const condition of ['andNot', 'andAny', 'selfAnd', 'selfAndNot'] as const) {
       it(`declines an edge carrying ${condition}`, () => {
         const edge = { ...childrenEdge(), [condition]: { label: 'a' } }
-        expect(cascadeDestroysWholeSortScope(child, config('position'), edge)).toBe(false)
+        expect(cascadeCoversWholeSortScope(child, config('position'), edge)).toBe(false)
       })
     }
 
     it('declines a polymorphic edge, whose foreign key identifies a row only with its type column', () => {
       const edge = { ...childrenEdge(), polymorphic: true }
-      expect(cascadeDestroysWholeSortScope(child, config('position'), edge)).toBe(false)
+      expect(cascadeCoversWholeSortScope(child, config('position'), edge)).toBe(false)
     })
 
     it('declines a through edge', () => {
       const edge = { ...childrenEdge(), through: 'somethingElse' }
-      expect(cascadeDestroysWholeSortScope(child, config('position'), edge)).toBe(false)
+      expect(cascadeCoversWholeSortScope(child, config('position'), edge)).toBe(false)
     })
 
     it('declines an STI child target, whose sort scope holds every subclass of rows', async () => {
@@ -225,7 +234,7 @@ describe('@Sortable under a dependent-destroy cascade', () => {
       )!
       const edge = { ...childrenEdge(), foreignKey: () => 'type' }
 
-      expect(cascadeDestroysWholeSortScope(stiRecord, stiConfig, edge)).toBe(false)
+      expect(cascadeCoversWholeSortScope(stiRecord, stiConfig, edge)).toBe(false)
     })
 
     it('declines a target carrying a default scope other than SoftDelete', async () => {
@@ -236,7 +245,7 @@ describe('@Sortable under a dependent-destroy cascade', () => {
         (conf: SortableFieldConfig) => conf.positionField === 'position'
       )!
 
-      expect(cascadeDestroysWholeSortScope(collar, collarConfig, collarsEdge)).toBe(false)
+      expect(cascadeCoversWholeSortScope(collar, collarConfig, collarsEdge)).toBe(false)
     })
   })
 
@@ -314,6 +323,7 @@ describe('@Sortable under a dependent-destroy cascade', () => {
       expect(positionFields(planSortableDestroyWork(child).skipped)).toEqual([
         'position',
         'positionWithinLabel',
+        'positionWithinGroup',
       ])
       expect(positionFields(planSortableDestroyWork(child).skipped)).toEqual([])
     })

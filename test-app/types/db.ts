@@ -813,11 +813,13 @@ export interface Shapes {
 export interface SortableCascadeChildren {
   createdAt: Timestamp
   deletedAt: Timestamp | null
+  groupName: string | null
   id: Generated<Int8>
   label: string
   ownerId: Int8
   position: number | null
   positionAcrossOwners: number | null
+  positionWithinGroup: number | null
   positionWithinLabel: number | null
   updatedAt: Timestamp
 }
