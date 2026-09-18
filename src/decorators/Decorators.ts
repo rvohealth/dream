@@ -282,7 +282,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   /**
    * Marks an integer column as a sortable position: Dream keeps the positions of
    * every record in a sort scope contiguous, starting at 1, as records are
-   * created, moved, destroyed and undestroyed.
+   * created, moved, destroyed and undestroyed. That is true of every
+   * uncontended write and of every write that takes the scope lock. A scope can
+   * be left with a gap only by a concurrent write racing a cascaded destroy or
+   * undestroy, under **Cascaded destroy and undestroy** below;
+   * `Model.resort('position')` closes it.
    *
    * ```ts
    * class Post extends ApplicationModel {
@@ -309,17 +313,21 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * then `await post.update({ position: 1 })`.
    *
    * Sortable requires a query driver that supports advisory transaction locks —
-   * the `PostgresQueryDriver` does — since every position write serializes the
-   * writers of its sort scope on one. This concurrency guarantee first shipped
-   * in Dream 2.28.0 and begins only after every writer is running a lock-aware
-   * release. During the first rolling deployment, older processes take no
-   * advisory locks and can still race the upgraded processes.
+   * the `PostgresQueryDriver` does — since a position write serializes the
+   * writers of its sort scope on one, the qualifying cascades described below
+   * being the exception. This concurrency guarantee first shipped in Dream
+   * 2.28.0 and begins only after every writer is running a lock-aware release.
+   * During the first rolling deployment, older processes take no advisory locks
+   * and can still race the upgraded processes.
    *
-   * All participating Dream writers of one hot scope serialize. Ordinary saves
-   * and destroys with `skipHooks`, direct query writes, raw SQL, and older
-   * pre-lock Dream processes bypass Sortable maintenance and do not participate
-   * in its locking protocol. Undestroy still performs stabilized Sortable
-   * maintenance and acquires scope locks with `skipHooks: true`; locked query
+   * All participating Dream writers of one hot scope serialize, apart from the
+   * qualifying cascades described below. Ordinary saves and destroys with
+   * `skipHooks`, direct query writes, raw SQL, and older pre-lock Dream
+   * processes bypass Sortable maintenance and do not participate in its locking
+   * protocol; a qualifying cascaded destroy performs no position maintenance
+   * either, and takes no scope lock. A direct undestroy, and a cascaded
+   * undestroy that does not qualify below, still perform stabilized Sortable
+   * maintenance and acquire scope locks with `skipHooks: true`; locked query
    * batches likewise acquire their scope locks during preflight, before any
    * per-record callbacks, even when those callbacks skip hooks. A waiter that
    * enters the protocol holds a pooled connection until the holder finishes or
@@ -327,6 +335,87 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * produce latency waves, timeouts, and pool starvation. Keep database work
    * inside the lock window short, and avoid cross-region database latency for
    * hot scopes.
+   *
+   * **Cascaded destroy and undestroy.** A destroy or undestroy that a record
+   * only undergoes because its owner was destroyed or undestroyed — reaching it
+   * through a `dependent: 'destroy'` association, or through the undestroy that
+   * restores one — takes **no** scope lock, when that cascade provably covers
+   * the record's whole sort scope. This is what keeps a large cascade from
+   * accumulating one advisory lock per sort scope and holding every one of them
+   * until the outermost transaction commits. Calling `destroy()` or
+   * `undestroy()` on a record yourself is completely unchanged: it takes the
+   * lock and compacts or appends exactly as it always has.
+   *
+   * A cascade edge qualifies per sortable field, and only when all of the
+   * following hold. Anything else — including any shape not listed — keeps
+   * today's locking:
+   *
+   * - the association is a `HasMany` (a `HasOne` reaches one row of a scope
+   *   that may hold others, so it can leave survivors behind);
+   * - its foreign key is one of that field's sort scope columns, so every row
+   *   of the scope is in the cascade's own set. Extra scope members only
+   *   partition that set further and still qualify;
+   * - the association carries no `and`, `andNot`, `andAny`, `selfAnd` or
+   *   `selfAndNot`, and is not a `through` association;
+   * - it is not polymorphic;
+   * - the target model is not an STI child;
+   * - the target declares no default scope other than `@deco.SoftDelete`;
+   * - and, for undestroy only, no column of the sort scope is nullable.
+   *
+   * A conditioned `dependent: 'destroy'` therefore never becomes optimistic —
+   * and it was never correct usage in the first place, since `dependent`
+   * belongs on the association that sees every child, not on one whose
+   * condition leaves some of them behind.
+   *
+   * **What an optimistic cascade can cost.** Nothing silently corrupts an
+   * ordering, and no cascade that finishes leaves a live row without a
+   * position. A cascaded undestroy that throws part-way is the one exception:
+   * its position writes are deferred to the end of the cascade, so a caller
+   * that catches the failure and commits the transaction anyway is left with a
+   * partially restored tree whose restored rows hold no position. Letting the
+   * failure roll the transaction back avoids it, and `Model.resort('position')`
+   * fills a position committed that way.
+   *
+   * - A cascaded destroy writes no position at all, so nothing on that path can
+   *   fail a uniqueness constraint. Its residuals are both gaps, and
+   *   `Model.resort('position')` closes either. One: a row that a concurrent
+   *   writer moved *into* another scope is still deleted by primary key,
+   *   leaving that other scope with a hole. Two: the cascade destroys the set
+   *   of records it loaded when it walked the `dependent: 'destroy'` tree, so a
+   *   row committed into the scope after that snapshot is not in the set. It
+   *   survives a cascade that removes everything under it and keeps the
+   *   position it was given, with a hole beneath it.
+   * - A cascaded undestroy renumbers the whole sort scope 1..n in one
+   *   statement, preserving relative order. A row committed into that scope
+   *   just before the statement runs is absorbed by it, so a record someone
+   *   created a moment earlier may come back holding a different position than
+   *   they were given — surprising, but correctly ordered. That statement
+   *   writes only the rows whose position actually changes, so rows already
+   *   holding the right position are left unlocked, and the undestroy holds no
+   *   scope lock to keep anyone out: a concurrent position write can still land
+   *   between the renumbering and the transaction's COMMIT, and a *direct*
+   *   destroy — which does take the scope lock — is as able to as a cascaded
+   *   one. What that write costs depends on whether it leaves two live rows of
+   *   the scope sharing a position. If it does, the deferrable unique
+   *   constraint aborts the whole undestroy at commit: nothing is
+   *   half-restored, no commit hooks have run, and retrying the transaction
+   *   succeeds. If it does not — a direct destroy nulls the position it frees
+   *   and compacts the rows the renumbering never wrote — the undestroy commits
+   *   and the scope can be left with a gap, closed by `Model.resort` as above.
+   *
+   * **A cascaded undestroy leaves a NULL position until the cascade finishes.**
+   * The scope is renumbered once, at the end of the cascade, so a restored
+   * record's own `afterUpdate` hook and its own reload observe `null` where the
+   * position will be. An `afterUpdate` hook on a sortable model that reads the
+   * position — or forwards it to something outside the database — gets nothing
+   * during a cascaded restore. That window is entirely inside the transaction:
+   * `afterUpdateCommit` hooks, and every reader outside the transaction, see
+   * final positions.
+   *
+   * **Anything that needs to know its position after a cascaded undestroy must
+   * reload.** An instance you were already holding carries the final position
+   * if this cascade restored it, and is otherwise exactly as stale as it was
+   * before this behavior existed.
    *
    * `SortableScopeDidNotStabilize` and `SortableScopeLockWaitTimedOut` are the
    * expected Dream errors an application may choose to retry. Database deadlocks

@@ -1,4 +1,5 @@
 import performSortableDestroyWork from '../../decorators/field/sortable/helpers/performSortableDestroyWork.js'
+import planSortableDestroyWork from '../../decorators/field/sortable/helpers/planSortableDestroyWork.js'
 import prepareSortableFieldsForDestroy, {
   clearSortableFieldsForDestroy,
 } from '../../decorators/field/sortable/helpers/prepareSortableFieldsForDestroy.js'
@@ -53,6 +54,13 @@ async function destroyDreamWithTransaction<I extends Dream>(
 ): Promise<I> {
   const { cascade, reallyDestroy, skipHooks } = options
 
+  // Read first, and before anything can re-enter this function for the same
+  // record: the plan consumes the marker a cascade left on this instance, and
+  // it decides which sortable fields both phases below operate on, so both must
+  // be looking at one answer. A direct destroy carries no marker and plans
+  // every field as locked.
+  const sortablePlan = planSortableDestroyWork(dream)
+
   if (!skipHooks) await runHooksFor('beforeDestroy', dream, true, null, txn)
 
   // `preventDeletion` is fail-closed: a veto returns before the
@@ -84,10 +92,16 @@ async function destroyDreamWithTransaction<I extends Dream>(
   // claimed. A destroy that skips hooks performs no compaction, and one a
   // cascaded descendant's hook has vetoed will not delete, so neither needs
   // locks or a snapshot.
+  //
+  // Nor does a field whose whole sort scope this cascade is destroying:
+  // `planSortableDestroyWork` withholds those fields from both phases, so the
+  // cascade neither takes their scopes' locks — which it would hold to the root
+  // transaction's commit, one per distinct scope — nor compacts a scope it is
+  // leaving empty.
   let rowFoundBeforeDelete = true
 
   if (!skipHooks && !dream['_preventDeletion']) {
-    rowFoundBeforeDelete = await prepareSortableFieldsForDestroy(dream, txn)
+    rowFoundBeforeDelete = await prepareSortableFieldsForDestroy(dream, txn, sortablePlan.locked)
   }
 
   const rowsRemoved = await maybeDestroyDream(dream, txn, reallyDestroy)
@@ -123,7 +137,7 @@ async function destroyDreamWithTransaction<I extends Dream>(
     // among them, so every user afterDestroy hook observes the compacted scope
     // regardless of where it was declared — the destroy-side counterpart of
     // performSortablePositionWork running before the after-save hooks.
-    await performSortableDestroyWork(dream, txn)
+    await performSortableDestroyWork(dream, txn, sortablePlan.locked)
     await runHooksFor('afterDestroy', dream, true, null, txn)
     await runHooksFor('afterDestroyCommit', dream, true, null, txn)
   }

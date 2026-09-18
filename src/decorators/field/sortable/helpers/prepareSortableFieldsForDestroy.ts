@@ -26,6 +26,12 @@ import { cacheSortableSnapshots, clearSortableSnapshot } from './sortableSnapsho
  * The per-field compactions (`performSortableDestroyWork`) consume the cached
  * snapshots.
  *
+ * The caller passes the fields this destroy locks rather than the model's whole
+ * set: a cascaded destroy of a sort scope's owner leaves that scope no
+ * survivors, so `planSortableDestroyWork` withholds those fields and they are
+ * neither locked nor read here.
+ *
+ * @param sortableFields - the sortable fields this destroy locks and snapshots
  * @returns false when the snapshot read found no row — this destroy has nothing
  *   to vacate, and compacting from the instance's remembered position would
  *   shift a scope some other writer has already closed. The delete's own
@@ -34,9 +40,9 @@ import { cacheSortableSnapshots, clearSortableSnapshot } from './sortableSnapsho
  */
 export default async function prepareSortableFieldsForDestroy(
   dream: Dream,
-  txn: DreamTransaction<any>
+  txn: DreamTransaction<any>,
+  sortableFields: SortableFieldConfig[]
 ): Promise<boolean> {
-  const sortableFields = (dream.constructor as typeof Dream)['sortableFields'] as SortableFieldConfig[]
   if (!sortableFields.length) return true
 
   const { rowExists, snapshots } = await acquireStabilizedSortableScopeLocks(dream, txn, sortableFields)

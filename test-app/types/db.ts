@@ -810,6 +810,35 @@ export interface Shapes {
   updatedAt: Timestamp
 }
 
+export interface SortableCascadeChildren {
+  createdAt: Timestamp
+  deletedAt: Timestamp | null
+  groupName: string | null
+  id: Generated<Int8>
+  label: string
+  ownerId: Int8
+  position: number | null
+  positionAcrossOwners: number | null
+  positionWithinGroup: number | null
+  positionWithinLabel: number | null
+  updatedAt: Timestamp
+}
+
+export interface SortableCascadeLeaves {
+  createdAt: Timestamp
+  id: Generated<Int8>
+  ownerId: Int8
+  position: number | null
+  updatedAt: Timestamp
+}
+
+export interface SortableCascadeOwners {
+  createdAt: Timestamp
+  deletedAt: Timestamp | null
+  id: Generated<Int8>
+  updatedAt: Timestamp
+}
+
 export interface SortableStiModels {
   createdAt: Timestamp
   id: Generated<Int8>
@@ -972,6 +1001,9 @@ export interface DB {
   ratings: Ratings
   sandbags: Sandbags
   shapes: Shapes
+  sortable_cascade_children: SortableCascadeChildren
+  sortable_cascade_leaves: SortableCascadeLeaves
+  sortable_cascade_owners: SortableCascadeOwners
   sortable_sti_models: SortableStiModels
   sti_bases: StiBases
   text_scoped_sortable_models: TextScopedSortableModels
@@ -1039,6 +1071,9 @@ export class DBClass {
   ratings: Ratings
   sandbags: Sandbags
   shapes: Shapes
+  sortable_cascade_children: SortableCascadeChildren
+  sortable_cascade_leaves: SortableCascadeLeaves
+  sortable_cascade_owners: SortableCascadeOwners
   sortable_sti_models: SortableStiModels
   sti_bases: StiBases
   text_scoped_sortable_models: TextScopedSortableModels

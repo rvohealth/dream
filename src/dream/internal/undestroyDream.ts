@@ -1,11 +1,23 @@
 import { SelectQueryBuilder, UpdateQueryBuilder, UpdateResult } from 'kysely'
 import acquireStabilizedSortableScopeLocks from '../../decorators/field/sortable/helpers/acquireStabilizedSortableScopeLocks.js'
 import filterQueryToScopeValues from '../../decorators/field/sortable/helpers/filterQueryToScopeValues.js'
+import planSortableUndestroyWork, {
+  SortableUndestroyPlan,
+} from '../../decorators/field/sortable/helpers/planSortableUndestroyWork.js'
+import { SortableCascadeEdge } from '../../decorators/field/sortable/helpers/sortableCascadeEdge.js'
+import {
+  enqueueSortableScopeRestores,
+  enterSortableScopeRestoreCascade,
+  exitSortableScopeRestoreCascade,
+  flushSortableScopeRestores,
+  isLastOpenSortableScopeRestoreFrame,
+} from '../../decorators/field/sortable/helpers/sortableScopeRestoreQueue.js'
 import { snapshotScopeValue } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
-import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
+import undestroyAssociation from './associations/undestroyAssociation.js'
+import { DestroyOptions as OptionalDestroyOptions, undestroyOptions } from './destroyOptions.js'
 import runHooksFor from './runHooksFor.js'
 
 type UndestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
@@ -47,6 +59,34 @@ async function undestroyDreamWithTransaction<I extends Dream>(
   txn: DreamTransaction<I>,
   options: UndestroyOptions<I>
 ): Promise<I> {
+  // Read before anything else can re-enter this function for the same record:
+  // the plan consumes the marker the cascade left on this instance, and decides
+  // which sortable fields are positioned under their scope lock and which are
+  // restored optimistically. A direct `undestroy` carries no marker and plans
+  // every field as locked.
+  const sortablePlan = planSortableUndestroyWork(dream)
+
+  // Opens this undestroy's frame on the transaction. The outermost frame — a
+  // direct `undestroy`, or the root of a cascade — is the one that renumbers
+  // every sort scope the cascade restored into, once each, after every
+  // descendant has been restored. Closed in the `finally` below, so a cascade
+  // that threw leaves nothing collected behind.
+  const isCascadeRoot = enterSortableScopeRestoreCascade(txn)
+
+  try {
+    return await undestroyDreamInsideCascadeFrame(dream, txn, options, sortablePlan, isCascadeRoot)
+  } finally {
+    exitSortableScopeRestoreCascade(txn)
+  }
+}
+
+async function undestroyDreamInsideCascadeFrame<I extends Dream>(
+  dream: I,
+  txn: DreamTransaction<I>,
+  options: UndestroyOptions<I>,
+  sortablePlan: SortableUndestroyPlan,
+  isCascadeRoot: boolean
+): Promise<I> {
   const { cascade, skipHooks } = options
 
   if (!skipHooks) {
@@ -65,7 +105,22 @@ async function undestroyDreamWithTransaction<I extends Dream>(
     await undestroyAssociatedRecords(dream, txn, options)
   }
 
-  const restoredRowCount = await doUndestroyDream(dream, txn)
+  const restoredRowCount = await doUndestroyDream(dream, txn, sortablePlan.locked)
+
+  // The optimistic fields' positions are not written here. The scopes this row
+  // was restored into are collected, deduplicated across the whole cascade, and
+  // renumbered by the root frame below — one statement per scope rather than
+  // one per restored record. Until then this row is live with a NULL position,
+  // which its own `afterUpdate` hook and its own reload below can see. That
+  // window never leaves the transaction: no other transaction can read an
+  // uncommitted row, and the flush refreshes these instances before any
+  // `afterUpdateCommit` hook runs, since those run after COMMIT.
+  if (restoredRowCount > 0) await enqueueSortableScopeRestores(dream, txn, sortablePlan.optimistic)
+
+  // Every descendant has been restored and every scope collected, so the
+  // cascade's scopes are renumbered here — before this record's own after-update
+  // hooks and reload, and before control returns to the caller.
+  if (isCascadeRoot) await flushSortableScopeRestores(txn)
 
   // A restore of a row that is not deleted — a second `undestroy()`, a job
   // retry, or a record that was never destroyed, which `Query#undestroy` reaches
@@ -75,6 +130,20 @@ async function undestroyDreamWithTransaction<I extends Dream>(
     await runHooksFor('afterUpdate', dream, true, null, txn)
     await runHooksFor('afterUpdateCommit', dream, true, null, txn)
   }
+
+  // The flush above renumbers what the cascade collected before this record's
+  // own hooks ran, which is what lets those hooks read final positions. It is
+  // not the last word: an `afterUpdate` hook is handed this transaction, so a
+  // hook that starts a cascaded undestroy of its own enqueues scopes after it —
+  // in a frame that is not the root and so never flushes — and two cascades
+  // sharing one caller-supplied transaction interleave the same way. Whichever
+  // frame is the last one still open renumbers the remainder here, before
+  // returning to the caller and before the reload below, so no frame can leave
+  // the transaction with a restored row still holding a NULL position.
+  //
+  // Deliberately on the success path and not in the `finally`: a cascade that
+  // threw must discard what it collected rather than write it.
+  if (isLastOpenSortableScopeRestoreFrame(txn)) await flushSortableScopeRestores(txn)
 
   await dream.txn(txn).reload()
   return dream
@@ -92,9 +161,21 @@ async function undestroyDreamWithTransaction<I extends Dream>(
  * is computed from, and would move one past itself on every repeat — a
  * permanent gap in the scope.
  *
+ * The caller passes the sortable fields this restore positions inline rather
+ * than the model's whole set. A field whose sort scope the cascade restoring
+ * this record covers whole is positioned by `restoreSortableScopePositions`
+ * instead, once for the whole scope at the end of the cascade and without a
+ * scope lock; its row's `deletedAt` is still cleared here, so between the two
+ * the row is live with a NULL position — a state confined to this transaction.
+ *
+ * @param sortableFields - the sortable fields this restore locks and positions
  * @returns the number of rows restored: 1, or 0 when the row was not deleted
  */
-async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction<I>): Promise<number> {
+async function doUndestroyDream<I extends Dream>(
+  dream: I,
+  txn: DreamTransaction<I>,
+  sortableFields: SortableFieldConfig[]
+): Promise<number> {
   const updateStatement = txn.kyselyTransaction.updateTable(dream.table as any) as UpdateQueryBuilder<
     any,
     any,
@@ -106,9 +187,6 @@ async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction
     .where(dream['_primaryKey'], '=', dream.primaryKeyValue())
     .where(dream['_deletedAtField'], 'is not', null)
     .set({ [dream['_deletedAtField']]: null } as any)
-
-  const dreamClass = dream.constructor as typeof Dream
-  const sortableFields = (dreamClass['sortableFields'] ?? []) as SortableFieldConfig[]
 
   // Undestroy has no sortable hook of its own — the position is recomputed
   // inline, below, before `afterUpdate` ever runs — so the scope lock is taken
@@ -166,6 +244,13 @@ async function doUndestroyDream<I extends Dream>(dream: I, txn: DreamTransaction
  *
  * Destroys all HasOne/HasMany associations on this
  * dream that are marked as `dependent: 'destroy'`
+ *
+ * The internal `undestroyAssociation` is called directly rather than through
+ * `dream.txn(txn).undestroyAssociation(...)`, with the same arguments that
+ * public method builds, so the cascade can hand it the edge it is restoring
+ * through. That edge is what tells each restored record's own undestroy that it
+ * was reached by a cascade; a consumer calling `undestroyAssociation` on their
+ * own is not a cascade and hands over no edge, so it keeps today's locking.
  */
 async function undestroyAssociatedRecords<I extends Dream>(
   dream: I,
@@ -182,7 +267,16 @@ async function undestroyAssociatedRecords<I extends Dream>(
       // raise?
     } else {
       if (associatedClass?.['softDelete']) {
-        await dream.txn(txn).undestroyAssociation(associationName as any, options)
+        await undestroyAssociation(
+          dream,
+          txn as DreamTransaction<Dream>,
+          associationName as any,
+          {
+            ...undestroyOptions<I>(options),
+            joinAndStatements: { and: undefined, andNot: undefined, andAny: undefined },
+          } as any,
+          (associationMetadata as SortableCascadeEdge) ?? null
+        )
       }
     }
   }
