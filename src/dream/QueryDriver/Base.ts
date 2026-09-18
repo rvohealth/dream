@@ -274,6 +274,24 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   /**
    * @internal
    *
+   * Whether this driver's database defers a unique constraint to commit time
+   * (`DEFERRABLE INITIALLY DEFERRED`, which
+   * `DreamMigrationHelpers.addDeferrableUniqueConstraint` declares).
+   *
+   * Sortable's position writes depend on it: a scope's rows pass through
+   * transiently duplicated positions while a range is shifted, and only a
+   * commit-time check tolerates that. The optimistic cascade paths depend on it
+   * a second time, as the thing that turns a concurrent intruder into a clean
+   * abort of the whole cascade rather than a committed duplicate.
+   *
+   * It defaults to `false` so that an adapter without deferred constraint
+   * checking fails loud rather than committing a duplicate position.
+   */
+  public static supportsDeferrableConstraints = false
+
+  /**
+   * @internal
+   *
    * Acquire exclusive, transaction-scoped locks on arbitrary keys, waiting
    * until any other transaction holding one of them finishes. The locks are
    * released when the enclosing transaction commits or rolls back — never by an

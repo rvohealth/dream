@@ -307,6 +307,16 @@ export default class PostgresQueryDriver<
   /**
    * @internal
    *
+   * Postgres checks a `DEFERRABLE INITIALLY DEFERRED` unique constraint at
+   * commit rather than per statement, which is what
+   * `DreamMigrationHelpers.addDeferrableUniqueConstraint` declares and what
+   * every Sortable position write relies on.
+   */
+  public static override supportsDeferrableConstraints = true
+
+  /**
+   * @internal
+   *
    * Postgres implementation of the transaction-scoped advisory lock seam.
    *
    * Uses the single-`bigint` form `pg_advisory_xact_lock(bigint)`, whose lock

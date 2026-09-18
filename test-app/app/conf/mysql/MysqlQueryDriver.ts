@@ -208,6 +208,17 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
   /**
    * @internal
    *
+   * MySQL checks a unique constraint per statement and has no
+   * `DEFERRABLE INITIALLY DEFERRED` form, so a Sortable position write that
+   * passes through a transiently duplicated position would be rejected mid
+   * transaction rather than at commit. Declared explicitly rather than
+   * inherited so that the seam's two engines read as a matched pair.
+   */
+  public static override supportsDeferrableConstraints = false
+
+  /**
+   * @internal
+   *
    * MySQL implementation of the per-worker test-database claim seam (see
    * {@link TestDatabaseLockSession} and `src/db/testDatabasePool.ts`). MySQL
    * named locks (`GET_LOCK`) are server-wide and owned by the connection that
