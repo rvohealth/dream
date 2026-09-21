@@ -46,6 +46,50 @@ describe('@Sortable under a dependent-destroy cascade', () => {
     return sortableScopeLockKeyForCurrentScope(dream, positionField, scope)
   }
 
+  /**
+   * Every sortable field of `SortableCascadeChild`, with the scope it is
+   * declared on — enough to name any advisory key one of those records can ask
+   * for.
+   */
+  const childSortableFields: [string, string | string[]][] = [
+    ['position', 'owner'],
+    ['positionWithinLabel', ['owner', 'label']],
+    ['positionAcrossOwners', 'label'],
+    ['positionWithinGroup', ['owner', 'groupName']],
+  ]
+
+  /**
+   * The acquired keys as `<record>.<field>` names rather than the bigints they
+   * are, so an assertion about which scopes an operation serialized on fails by
+   * naming the field that was locked or skipped wrongly. Comparing the keys
+   * themselves reports only that two opaque numbers differ, which says nothing
+   * about which field leaked. A key no record in `children` accounts for is
+   * kept verbatim rather than dropped, so an unexpected acquisition can never
+   * pass unnoticed.
+   */
+  function namedScopeLockKeys(keys: bigint[], children: Record<string, SortableCascadeChild>) {
+    const holders = new Map<bigint, { holders: string[]; positionField: string }>()
+
+    for (const [name, child] of Object.entries(children)) {
+      for (const [positionField, scope] of childSortableFields) {
+        const key = scopeLockKey(child, positionField, scope)
+        // Records sharing a scope share its key — two children of one owner
+        // have one `position` lock between them — so every holder is recorded
+        // rather than the last one overwriting the rest.
+        const entry = holders.get(key) ?? { holders: [], positionField }
+        entry.holders.push(name)
+        holders.set(key, entry)
+      }
+    }
+
+    return keys
+      .map(key => {
+        const entry = holders.get(key)
+        return entry ? `${entry.holders.join('+')}.${entry.positionField}` : `unnamed:${key}`
+      })
+      .sort()
+  }
+
   function positionFields(configs: SortableFieldConfig[]) {
     return configs.map(({ positionField }) => positionField)
   }
@@ -71,22 +115,13 @@ describe('@Sortable under a dependent-destroy cascade', () => {
       await owner.destroy()
 
       // `positionAcrossOwners` is scoped on `label` alone, so its scopes span
-      // owners and survive this cascade: those keys are still taken. The two
-      // fields whose scope includes `ownerId` are not.
-      expect(acquiredKeys().sort()).toEqual(
-        [
-          scopeLockKey(child1, 'positionAcrossOwners', 'label'),
-          scopeLockKey(child2, 'positionAcrossOwners', 'label'),
-        ].sort()
-      )
-
-      for (const child of [child1, child2]) {
-        expect(acquiredKeys()).not.toContain(scopeLockKey(child, 'position', 'owner'))
-        expect(acquiredKeys()).not.toContain(scopeLockKey(child, 'positionWithinLabel', ['owner', 'label']))
-        expect(acquiredKeys()).not.toContain(
-          scopeLockKey(child, 'positionWithinGroup', ['owner', 'groupName'])
-        )
-      }
+      // owners and survive this cascade: those keys are still taken. The three
+      // fields whose scope includes `ownerId` are not, and their absence from
+      // this exact list is what says so.
+      expect(namedScopeLockKeys(acquiredKeys(), { child1, child2 })).toEqual([
+        'child1.positionAcrossOwners',
+        'child2.positionAcrossOwners',
+      ])
     })
 
     it('still compacts the surviving scope of the field that did not qualify', async () => {
@@ -124,14 +159,12 @@ describe('@Sortable under a dependent-destroy cascade', () => {
       const acquiredKeys = watchAcquiredScopeLockKeys()
       await child1.destroy()
 
-      expect(acquiredKeys().sort()).toEqual(
-        [
-          scopeLockKey(child1, 'position', 'owner'),
-          scopeLockKey(child1, 'positionWithinLabel', ['owner', 'label']),
-          scopeLockKey(child1, 'positionAcrossOwners', 'label'),
-          scopeLockKey(child1, 'positionWithinGroup', ['owner', 'groupName']),
-        ].sort()
-      )
+      expect(namedScopeLockKeys(acquiredKeys(), { child1 })).toEqual([
+        'child1.position',
+        'child1.positionAcrossOwners',
+        'child1.positionWithinGroup',
+        'child1.positionWithinLabel',
+      ])
 
       for (const child of [child2, child3]) await child.reload()
 
