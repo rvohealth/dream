@@ -2,12 +2,15 @@ import performSortableDestroyWork from '../../decorators/field/sortable/helpers/
 import prepareSortableFieldsForDestroy, {
   clearSortableFieldsForDestroy,
 } from '../../decorators/field/sortable/helpers/prepareSortableFieldsForDestroy.js'
+import { consumeSortableCascadeEdge } from '../../decorators/field/sortable/helpers/sortableCascadeEdge.js'
+import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import DreamApp from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import destroyAssociatedRecords from './destroyAssociatedRecords.js'
 import { DestroyOptions as OptionalDestroyOptions } from './destroyOptions.js'
 import runHooksFor from './runHooksFor.js'
+import withConcurrentWriterRetry from './withConcurrentWriterRetry.js'
 
 type DestroyOptions<DreamInstance extends Dream> = Required<OptionalDestroyOptions<DreamInstance>>
 export interface ReallyDestroyOptions<DreamInstance extends Dream> extends DestroyOptions<DreamInstance> {
@@ -19,7 +22,9 @@ export interface ReallyDestroyOptions<DreamInstance extends Dream> extends Destr
  *
  * Destroys the Dream and any `dependent: 'destroy'` associations
  * within a transaction. If a transaction is passed, it will be used.
- * Otherwise, a new transaction will be created automatically.
+ * Otherwise, a new transaction will be created automatically, and the
+ * whole destroy is run again if that transaction is undone by a concurrent
+ * writer (see `withConcurrentWriterRetry`).
  * If any of the nested associations fails to destroy, then this
  * record will also fail to destroy. If skipHooks is true, model hooks
  * will be bypassed.
@@ -33,7 +38,8 @@ export default async function destroyDream<I extends Dream>(
     return await destroyDreamWithTransaction(dream, txn, options)
   } else {
     const dreamClass = dream.constructor as typeof Dream
-    return await dreamClass.transaction(
+    return await withConcurrentWriterRetry(
+      dreamClass,
       async txn => await destroyDreamWithTransaction<I>(dream, txn, options)
     )
   }
@@ -52,6 +58,11 @@ async function destroyDreamWithTransaction<I extends Dream>(
   options: ReallyDestroyOptions<I>
 ): Promise<I> {
   const { cascade, reallyDestroy, skipHooks } = options
+
+  // The association a `dependent: 'destroy'` cascade reached this record
+  // through, or null on a direct destroy. Consumed first, before a hook or the
+  // cascade below can re-enter this function for the same instance.
+  const cascadeEdge = consumeSortableCascadeEdge(dream)
 
   if (!skipHooks) await runHooksFor('beforeDestroy', dream, true, null, txn)
 
@@ -74,20 +85,23 @@ async function destroyDreamWithTransaction<I extends Dream>(
   }
 
   // Sortable preparation runs as a phase after every user beforeDestroy hook,
-  // never as a hook among them: the destroy's whole advisory key set — every
-  // sortable field — is acquired in one sorted pass, and the row's real
-  // position and scope values are read in one snapshot SELECT while the row
-  // still exists. It sits after the cascade so this destroy does not hold the
-  // scope lock across every descendant's destroy — true of the destroy itself,
-  // not of the transaction it runs in: under `Query#destroy({ lock: true })`
-  // the batch's whole key set is already held, taken before any row was
-  // claimed. A destroy that skips hooks performs no compaction, and one a
-  // cascaded descendant's hook has vetoed will not delete, so neither needs
-  // locks or a snapshot.
+  // never as a hook among them: the row's real position and scope values are
+  // read in one snapshot SELECT while the row still exists, under the
+  // destroy's whole advisory key set on a direct destroy and under no scope
+  // lock on a cascaded one. It sits after the cascade so a direct destroy does
+  // not hold its scope locks across every descendant's destroy — true of the
+  // destroy itself, not of the transaction it runs in: under
+  // `Query#destroy({ lock: true })` the batch's whole key set is already held,
+  // taken before any row was claimed. A destroy that skips hooks performs no
+  // compaction, and one a cascaded descendant's hook has vetoed will not
+  // delete, so neither needs locks or a snapshot.
   let rowFoundBeforeDelete = true
+  let compactedSortableFields: SortableFieldConfig[] = []
 
   if (!skipHooks && !dream['_preventDeletion']) {
-    rowFoundBeforeDelete = await prepareSortableFieldsForDestroy(dream, txn)
+    const preparation = await prepareSortableFieldsForDestroy(dream, txn, cascadeEdge)
+    rowFoundBeforeDelete = preparation.rowExists
+    compactedSortableFields = preparation.sortableFields
   }
 
   const rowsRemoved = await maybeDestroyDream(dream, txn, reallyDestroy)
@@ -123,7 +137,7 @@ async function destroyDreamWithTransaction<I extends Dream>(
     // among them, so every user afterDestroy hook observes the compacted scope
     // regardless of where it was declared — the destroy-side counterpart of
     // performSortablePositionWork running before the after-save hooks.
-    await performSortableDestroyWork(dream, txn)
+    await performSortableDestroyWork(dream, txn, compactedSortableFields)
     await runHooksFor('afterDestroy', dream, true, null, txn)
     await runHooksFor('afterDestroyCommit', dream, true, null, txn)
   }

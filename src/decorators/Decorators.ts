@@ -282,7 +282,10 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   /**
    * Marks an integer column as a sortable position: Dream keeps the positions of
    * every record in a sort scope contiguous, starting at 1, as records are
-   * created, moved, destroyed and undestroyed.
+   * created, moved, destroyed and undestroyed. A concurrent write racing a
+   * cascaded destroy or undestroy, under **Cascaded destroy and undestroy**
+   * below, is the one thing that can leave a scope with a gap;
+   * `Model.resort('position')` closes it.
    *
    * ```ts
    * class Post extends ApplicationModel {
@@ -309,8 +312,9 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * then `await post.update({ position: 1 })`.
    *
    * Sortable requires a query driver that supports advisory transaction locks —
-   * the `PostgresQueryDriver` does — since every position write serializes the
-   * writers of its sort scope on one. This concurrency guarantee first shipped
+   * the `PostgresQueryDriver` does — since a position write serializes the
+   * writers of its sort scope on one, apart from the cascades described below.
+   * This concurrency guarantee first shipped
    * in Dream 2.28.0 and begins only after every writer is running a lock-aware
    * release. During the first rolling deployment, older processes take no
    * advisory locks and can still race the upgraded processes.
@@ -318,8 +322,10 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * All participating Dream writers of one hot scope serialize. Ordinary saves
    * and destroys with `skipHooks`, direct query writes, raw SQL, and older
    * pre-lock Dream processes bypass Sortable maintenance and do not participate
-   * in its locking protocol. Undestroy still performs stabilized Sortable
-   * maintenance and acquires scope locks with `skipHooks: true`; locked query
+   * in its locking protocol; a cascaded destroy or undestroy performs its
+   * maintenance but does not participate either. A direct undestroy still
+   * performs stabilized Sortable maintenance and acquires scope locks with
+   * `skipHooks: true`; locked query
    * batches likewise acquire their scope locks during preflight, before any
    * per-record callbacks, even when those callbacks skip hooks. A waiter that
    * enters the protocol holds a pooled connection until the holder finishes or
@@ -327,6 +333,40 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * produce latency waves, timeouts, and pool starvation. Keep database work
    * inside the lock window short, and avoid cross-region database latency for
    * hot scopes.
+   *
+   * **Cascaded destroy and undestroy take no scope lock.** A record destroyed or
+   * undestroyed because its owner was — reached through a `dependent: 'destroy'`
+   * association, or through the undestroy that restores one — does its position
+   * work without the advisory lock, so a cascade holds no lock per sort scope it
+   * touches, however many scopes that is. Calling `destroy()` or `undestroy()`
+   * on a record yourself is unchanged. Where the cascade is destroying the owner
+   * of a sort scope — a `HasMany` whose foreign key is one of the field's scope
+   * columns, with no condition and not `through`, not polymorphic, whose target
+   * is not an STI child and declares no default scope other than
+   * `@deco.SoftDelete` — every row of that scope goes with it, and the cascade
+   * neither reads nor compacts it. Any other cascaded destroy compacts the
+   * scope it vacates, and every cascaded undestroy appends at the end of its
+   * scope, exactly as the direct operations do, only without the lock.
+   *
+   * Without the lock, a writer of the same sort scope during the cascade — a
+   * create, a move, a destroy, a `resort` — is not kept out, which costs one of
+   * two things. A gap: positions stay unique and correctly ordered, and
+   * `Model.resort('position')` closes it. Or two live rows sharing a position,
+   * which the deferrable unique constraint refuses when the later of the two
+   * transactions reaches COMMIT — as a unique violation, or as a deadlock when
+   * both reach it together — so nothing half-done commits and no commit hook
+   * runs. A `destroy()` or `undestroy()` whose transaction Dream opened runs the
+   * whole operation again on such a refusal, up to three times, before letting
+   * the adapter's error escape. Inside a transaction you opened, that error is
+   * your COMMIT failing: retry the transaction from the beginning, as for a
+   * deadlock. The other writer can lose the same race and fail at its own
+   * COMMIT instead, an ordinary `create` or `update` included, and Dream does
+   * not run those again: a bounded, occasional failed request in one contended
+   * scope is the deliberate price of cascades that hold no locks, where the
+   * lock count would otherwise be set by the data. A sort scope with a
+   * nullable column has no such backstop unless its constraint is declared
+   * `NULLS NOT DISTINCT`, since a plain unique constraint never sees two NULLs
+   * as equal.
    *
    * `SortableScopeDidNotStabilize` and `SortableScopeLockWaitTimedOut` are the
    * expected Dream errors an application may choose to retry. Database deadlocks
