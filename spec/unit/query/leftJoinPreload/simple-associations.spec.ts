@@ -1,7 +1,9 @@
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
+import ops from '../../../../src/ops/index.js'
 import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
@@ -120,6 +122,55 @@ describe('Query#leftJoinPreload with simple associations', () => {
         .leftJoinPreload('compositions', { and: { content: 'Goodbye' } })
         .firstOrFail()
       expect(reloadedUser.compositions).toMatchDreamModels([composition2])
+    })
+
+    context('with a curried ops statement (e.g. ops.any) in the and-clause', () => {
+      // ops.any returns a CurriedOpsStatement that is only resolved to an OpsStatement once
+      // bound to the joined model and column, so it has to survive being carried in the
+      // deep-cloned join and-statements all the way into the join ON expression
+      it('filters the left-join-preloaded association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const greenBalloon = await Mylar.create({ user, multicolor: ['red', 'green'] })
+        await Mylar.create({ user, multicolor: ['blue'] })
+
+        const reloadedUser = await User.leftJoinPreload('balloons', {
+          and: { multicolor: ops.any('green') },
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toMatchDreamModels([greenBalloon])
+      })
+
+      it('supports ops.any in andNot clauses', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Mylar.create({ user, multicolor: ['red', 'green'] })
+        const blueBalloon = await Mylar.create({ user, multicolor: ['blue'] })
+
+        const reloadedUser = await User.leftJoinPreload('balloons', {
+          andNot: { multicolor: ops.any('green') },
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toMatchDreamModels([blueBalloon])
+      })
+
+      it('supports ops.any in andAny clauses', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const greenBalloon = await Mylar.create({ user, multicolor: ['red', 'green'] })
+        const blueBalloon = await Mylar.create({ user, multicolor: ['blue'] })
+        await Mylar.create({ user, multicolor: ['red'] })
+
+        const reloadedUser = await User.leftJoinPreload('balloons', {
+          andAny: [{ multicolor: ops.any('green') }, { multicolor: ops.any('blue') }],
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toMatchDreamModels([greenBalloon, blueBalloon])
+      })
+
+      it('still returns the parent when nothing matches the and-clause', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Mylar.create({ user, multicolor: ['blue'] })
+
+        const reloadedUser = await User.leftJoinPreload('balloons', {
+          and: { multicolor: ops.any('green') },
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toEqual([])
+      })
     })
 
     context('when no association exists', () => {

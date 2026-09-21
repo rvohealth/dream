@@ -286,6 +286,46 @@ describe('Query#joins with simple associations', () => {
       })
     })
 
+    context('with a curried ops statement (e.g. ops.any) in the and-clause', () => {
+      // ops.any returns a CurriedOpsStatement that is only resolved to an OpsStatement once
+      // bound to the joined model and column, so it has to survive being carried in the
+      // deep-cloned join and-statements all the way into the join ON expression
+      it('only returns parents with an associated row matching the array condition', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        await User.create({ email: 'how@frewd', password: 'howyadoin' })
+        await Mylar.create({ user: user1, multicolor: ['red', 'green'] })
+        await Mylar.create({ user: user2, multicolor: ['blue'] })
+
+        const users = await User.innerJoin('balloons', { and: { multicolor: ops.any('green') } }).all()
+        expect(users).toMatchDreamModels([user1])
+      })
+
+      it('supports ops.any in andNot clauses', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        await Mylar.create({ user: user1, multicolor: ['red', 'green'] })
+        await Mylar.create({ user: user2, multicolor: ['blue'] })
+
+        const users = await User.innerJoin('balloons', { andNot: { multicolor: ops.any('green') } }).all()
+        expect(users).toMatchDreamModels([user2])
+      })
+
+      it('supports ops.any in andAny clauses', async () => {
+        const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const user3 = await User.create({ email: 'how@frewd', password: 'howyadoin' })
+        await Mylar.create({ user: user1, multicolor: ['red', 'green'] })
+        await Mylar.create({ user: user2, multicolor: ['blue'] })
+        await Mylar.create({ user: user3, multicolor: ['red'] })
+
+        const users = await User.innerJoin('balloons', {
+          andAny: [{ multicolor: ops.any('green') }, { multicolor: ops.any('blue') }],
+        }).all()
+        expect(users).toMatchDreamModels([user1, user2])
+      })
+    })
+
     it('joins a HasMany association', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const user = await User.create({ email: 'fred@fishman', password: 'howyadoin' })

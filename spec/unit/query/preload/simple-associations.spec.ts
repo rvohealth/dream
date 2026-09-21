@@ -1,8 +1,10 @@
 import { sql } from 'kysely'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
+import ops from '../../../../src/ops/index.js'
 import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
@@ -196,6 +198,45 @@ describe('Query#preload with simple associations', () => {
         .preload('compositions', { and: { content: 'Goodbye' } })
         .first()
       expect(reloadedUser!.compositions).toMatchDreamModels([composition2])
+    })
+
+    context('with a curried ops statement (e.g. ops.any) in the and-clause', () => {
+      // ops.any returns a CurriedOpsStatement, which is only resolved to an OpsStatement once
+      // bound to the associated model and column. Preload statements are deep-cloned before
+      // being applied, so this guards against the clone breaking the curried statement.
+      it('filters the preloaded association', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const greenBalloon = await Mylar.create({ user, multicolor: ['red', 'green'] })
+        await Mylar.create({ user, multicolor: ['blue'] })
+
+        const reloadedUser = await User.preload('balloons', {
+          and: { multicolor: ops.any('green') },
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toMatchDreamModels([greenBalloon])
+      })
+
+      it('supports ops.any in andNot clauses', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        await Mylar.create({ user, multicolor: ['red', 'green'] })
+        const blueBalloon = await Mylar.create({ user, multicolor: ['blue'] })
+
+        const reloadedUser = await User.preload('balloons', {
+          andNot: { multicolor: ops.any('green') },
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toMatchDreamModels([blueBalloon])
+      })
+
+      it('supports ops.any in andAny clauses', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const greenBalloon = await Mylar.create({ user, multicolor: ['red', 'green'] })
+        const blueBalloon = await Mylar.create({ user, multicolor: ['blue'] })
+        await Mylar.create({ user, multicolor: ['red'] })
+
+        const reloadedUser = await User.preload('balloons', {
+          andAny: [{ multicolor: ops.any('green') }, { multicolor: ops.any('blue') }],
+        }).findOrFail(user.id)
+        expect(reloadedUser.balloons).toMatchDreamModels([greenBalloon, blueBalloon])
+      })
     })
 
     context('when no association exists', () => {
