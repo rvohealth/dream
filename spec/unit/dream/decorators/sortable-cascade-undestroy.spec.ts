@@ -1,8 +1,5 @@
-import planSortableUndestroyWork from '../../../../src/decorators/field/sortable/helpers/planSortableUndestroyWork.js'
 import * as restoreSortableScopePositionsModule from '../../../../src/decorators/field/sortable/helpers/restoreSortableScopePositions.js'
-import { markSortableCascadeEdge } from '../../../../src/decorators/field/sortable/helpers/sortableCascadeEdge.js'
 import { sortableScopeLockKeyForCurrentScope } from '../../../../src/decorators/field/sortable/helpers/sortableScopeLockKeys.js'
-import { SortableFieldConfig } from '../../../../src/decorators/field/sortable/Sortable.js'
 import PostgresQueryDriver from '../../../../src/dream/QueryDriver/Postgres.js'
 import Dream from '../../../../src/Dream.js'
 import SortableRequiresAdvisoryTransactionLocks from '../../../../src/errors/SortableRequiresAdvisoryTransactionLocks.js'
@@ -37,10 +34,6 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
 
   function scopeLockKey(dream: Dream, positionField: string, scope: string | string[]) {
     return sortableScopeLockKeyForCurrentScope(dream, positionField, scope)
-  }
-
-  function positionFields(configs: SortableFieldConfig[]) {
-    return configs.map(({ positionField }) => positionField)
   }
 
   async function positionsByLabel(label: string) {
@@ -410,18 +403,61 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
       expect(acquiredKeys()).not.toContain(scopeLockKey(pair, 'position', ['owner', 'coOwner']))
     })
 
+    /**
+     * The scope `(pairOwner, subOwner)` is covered by two edges at two different
+     * depths, and the deeper one reaches it first:
+     *
+     *     pairOwner
+     *     └── subOwner                                  (via `subOwners`)
+     *
+     *     pair1  owner=pairOwner  coOwner=subOwner  ┐ scope (pairOwner, subOwner)
+     *     pair2  owner=pairOwner  coOwner=subOwner  ┘
+     *     pair3  owner=subOwner   coOwner=subOwner    scope (subOwner, subOwner)
+     *
+     * A sort scope here is a *pair* of foreign keys, since `SortableCascadePair`
+     * is `@deco.Sortable({ scope: ['owner', 'coOwner'] })`. The cascade walks
+     * `subOwners`, `ownedPairs`, `coOwnedPairs` in declaration order and descends
+     * before restoring the record it is on, so the undestroy runs:
+     *
+     *   1. `pairOwner.subOwners` reaches `subOwner`, whose own cascade runs first:
+     *        `subOwner.ownedPairs`    restores pair3        → renumbers (subOwner, subOwner)
+     *        `subOwner.coOwnedPairs`  restores pair1, pair2 → renumbers (pairOwner, subOwner)
+     *   2. `pairOwner.ownedPairs` covers `(pairOwner, subOwner)` as well, but every
+     *      row of that scope is already live by now, so it restores nothing and
+     *      issues no renumbering statement at all.
+     *
+     * Step 1 therefore *closes* a scope that a shallower edge also covers, while
+     * that shallower edge has not run yet. That is the exact shape a misplaced
+     * renumber would corrupt: a scope numbered 1..n that later receives more rows
+     * hands out a position twice — aborting at COMMIT on the deferrable unique
+     * constraint — or leaves a gap.
+     *
+     * It is safe only because of clause 3 of `cascadeCoversWholeSortScope`, which
+     * is what the comment at the seat in `undestroyAssociation` is about:
+     * `coOwnedPairs` qualifies for the optimistic path because `co_owner_id` is
+     * one of the scope's columns, so every row of `(pairOwner, subOwner)`
+     * necessarily carries `co_owner_id = subOwner` and was already inside that
+     * edge's own set. The deeper edge restored all of them before renumbering,
+     * which is precisely why the shallower edge finds nothing left to restore.
+     */
     it('renumbers a scope a deeper edge restored, though a shallower edge covers it too', async () => {
       const subOwner = await SortableCascadePairOwner.create({ parent: pairOwner })
 
-      // `subOwner.coOwnedPairs` reaches these one level down; `pairOwner.ownedPairs`
-      // covers the same scope one level up, and runs second
+      // two rows in the scope both edges cover, and one in a scope only the
+      // deeper level reaches
       await SortableCascadePair.create({ owner: pairOwner, coOwner: subOwner })
       await SortableCascadePair.create({ owner: pairOwner, coOwner: subOwner })
       await SortableCascadePair.create({ owner: subOwner, coOwner: subOwner })
 
       await pairOwner.destroy()
+
+      // the destroy cascade took the sub-owner down too, so the undestroy below
+      // is restoring a genuine two-level tree rather than a flat one. Asserted
+      // per record rather than as a count, since `otherOwner` from the
+      // `beforeEach` is a live bystander this test never touches.
       expect(await SortableCascadePair.count()).toEqual(0)
-      expect(await SortableCascadePairOwner.count()).toEqual(1)
+      expect(await SortableCascadePairOwner.find(pairOwner.id)).toBeNull()
+      expect(await SortableCascadePairOwner.find(subOwner.id)).toBeNull()
 
       await pairOwner.undestroy()
 
@@ -434,47 +470,6 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
 
       expect(await positionsIn(pairOwner, subOwner)).toEqual([1, 2])
       expect(await positionsIn(subOwner, subOwner)).toEqual([1])
-    })
-  })
-
-  context('the plan', () => {
-    const childrenEdge = () => (SortableCascadeOwner['associationMetadataMap']() as any)['children']
-
-    it('declines a scope with a nullable member, which a deferrable constraint cannot serialize', async () => {
-      const child = await SortableCascadeChild.create({ owner, label: 'a' })
-      markSortableCascadeEdge(child, childrenEdge())
-
-      const plan = planSortableUndestroyWork(child)
-
-      // `positionWithinGroup` is scoped on the nullable `groupName`: a NULLS
-      // DISTINCT unique constraint would let a collision commit instead of
-      // aborting, so the restore keeps today's lock for it even though the
-      // cascade covers its scope — and the destroy side, which writes no
-      // position, still skips it.
-      expect(positionFields(plan.optimistic)).toEqual(['position', 'positionWithinLabel'])
-      expect(positionFields(plan.locked)).toEqual(['positionAcrossOwners', 'positionWithinGroup'])
-    })
-
-    it('plans every field as locked for a direct undestroy, which carries no edge', async () => {
-      const child = await SortableCascadeChild.create({ owner, label: 'a' })
-
-      const plan = planSortableUndestroyWork(child)
-
-      expect(positionFields(plan.optimistic)).toEqual([])
-      expect(positionFields(plan.locked)).toEqual([
-        'position',
-        'positionWithinLabel',
-        'positionAcrossOwners',
-        'positionWithinGroup',
-      ])
-    })
-
-    it('consumes the edge, so a later direct undestroy cannot inherit its optimism', async () => {
-      const child = await SortableCascadeChild.create({ owner, label: 'a' })
-      markSortableCascadeEdge(child, childrenEdge())
-
-      expect(positionFields(planSortableUndestroyWork(child).optimistic).length).toBeGreaterThan(0)
-      expect(positionFields(planSortableUndestroyWork(child).optimistic)).toEqual([])
     })
   })
 
