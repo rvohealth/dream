@@ -1,4 +1,4 @@
-import cascadeWillDestroyEveryRowInSortScope from '../../../../../src/decorators/field/sortable/helpers/cascadeWillDestroyEveryRowInSortScope.js'
+import cascadeReachesEveryRowInSortScope from '../../../../../src/decorators/field/sortable/helpers/cascadeReachesEveryRowInSortScope.js'
 import { SortableCascadeEdge } from '../../../../../src/decorators/field/sortable/helpers/sortableCascadeEdge.js'
 import { SortableFieldConfig } from '../../../../../src/decorators/field/sortable/Sortable.js'
 import Dream from '../../../../../src/Dream.js'
@@ -9,12 +9,10 @@ import SortableCascadeOwner from '../../../../../test-app/app/models/SortableCas
 import SortableStiAlpha from '../../../../../test-app/app/models/SortableStiModel/Alpha.js'
 
 /**
- * The predicate is only ever asked about an association the cascade destroyed
- * through, so `dependent: 'destroy'` is the caller's precondition rather than
- * a clause: `childrenLabeledA` and `oneChild` below carry no `dependent` and
- * are declined for their shape alone.
+ * Every association below is a `dependent: 'destroy'` edge, the only kind the
+ * predicate is ever asked about; it is declined or accepted for its shape.
  */
-describe('cascadeWillDestroyEveryRowInSortScope', () => {
+describe('cascadeReachesEveryRowInSortScope', () => {
   function edge(dreamClass: typeof Dream, associationName: string): SortableCascadeEdge {
     return dreamClass['associationMetadataMap']()[associationName] as SortableCascadeEdge
   }
@@ -35,13 +33,13 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
 
   it('is true when the sort scope is the edge’s foreign key', () => {
     expect(
-      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), children)
+      cascadeReachesEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), children)
     ).toBe(true)
   })
 
   it('is true when the sort scope adds a plain column to the edge’s foreign key', () => {
     expect(
-      cascadeWillDestroyEveryRowInSortScope(
+      cascadeReachesEveryRowInSortScope(
         child,
         sortableField(SortableCascadeChild, 'positionWithinLabel'),
         children
@@ -51,7 +49,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
 
   it('is false when the sort scope does not include the edge’s foreign key', () => {
     expect(
-      cascadeWillDestroyEveryRowInSortScope(
+      cascadeReachesEveryRowInSortScope(
         child,
         sortableField(SortableCascadeChild, 'positionAcrossOwners'),
         children
@@ -62,7 +60,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
   it('is false for a HasOne', () => {
     const oneChild = edge(SortableCascadeOwner, 'oneChild')
     expect(
-      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), oneChild)
+      cascadeReachesEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), oneChild)
     ).toBe(false)
   })
 
@@ -71,7 +69,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
     // owner, holding positions in a scope the cascade did not empty
     const childrenLabeledA = edge(SortableCascadeOwner, 'childrenLabeledA')
     expect(
-      cascadeWillDestroyEveryRowInSortScope(
+      cascadeReachesEveryRowInSortScope(
         child,
         sortableField(SortableCascadeChild, 'position'),
         childrenLabeledA
@@ -82,7 +80,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
   for (const condition of ['andNot', 'andAny', 'selfAnd', 'selfAndNot'] as const) {
     it(`is false for a HasMany with an \`${condition}\` condition`, () => {
       expect(
-        cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
+        cascadeReachesEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
           ...children,
           [condition]: { label: 'a' },
         })
@@ -92,7 +90,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
 
   it('is false for a polymorphic HasMany, whose foreign key identifies a row only with its type column', () => {
     expect(
-      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
+      cascadeReachesEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
         ...children,
         polymorphic: true,
       })
@@ -101,7 +99,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
 
   it('is false for a through association', () => {
     expect(
-      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
+      cascadeReachesEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
         ...children,
         through: 'somethingElse',
       })
@@ -111,7 +109,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
   it('is false when the target is an STI child', () => {
     const stiEdge = { ...children, foreignKey: () => 'type' }
     expect(
-      cascadeWillDestroyEveryRowInSortScope(
+      cascadeReachesEveryRowInSortScope(
         SortableStiAlpha.new(),
         sortableField(SortableStiAlpha, 'positionByType'),
         stiEdge
@@ -123,11 +121,7 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
     // Collar declares `hideHiddenCollars` beside `@SoftDelete`, so a hidden
     // collar is not in the cascade’s load and outlives its pet
     expect(
-      cascadeWillDestroyEveryRowInSortScope(
-        Collar.new(),
-        sortableField(Collar, 'position'),
-        edge(Pet, 'collars')
-      )
+      cascadeReachesEveryRowInSortScope(Collar.new(), sortableField(Collar, 'position'), edge(Pet, 'collars'))
     ).toBe(false)
   })
 })

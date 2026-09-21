@@ -26,15 +26,17 @@ export default class SortableCascadeOwner extends ApplicationModel {
   public children: SortableCascadeChild[]
 
   /**
-   * The same children through an edge that reaches only some of them. Nothing
-   * cascades through it; it exists for specs of the whole-scope predicate.
+   * The same children through a dependent edge that reaches only some of them,
+   * so a cascade through it alone leaves the rest live. `children` above
+   * cascades first and takes every child with it, so this edge finds nothing
+   * left to destroy or restore; it exists for the whole-scope predicate's specs.
    */
-  @deco.HasMany('SortableCascadeChild', { on: 'ownerId', and: { label: 'a' } })
+  @deco.HasMany('SortableCascadeChild', { on: 'ownerId', and: { label: 'a' }, dependent: 'destroy' })
   public childrenLabeledA: SortableCascadeChild[]
 
   /**
-   * One child through a `HasOne`, for the same reason.
+   * One child through a dependent `HasOne`, for the same reason.
    */
-  @deco.HasOne('SortableCascadeChild', { on: 'ownerId' })
+  @deco.HasOne('SortableCascadeChild', { on: 'ownerId', dependent: 'destroy' })
   public oneChild: SortableCascadeChild
 }

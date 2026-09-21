@@ -7,15 +7,18 @@ import sortableScopeColumns from './sortableScopeColumns.js'
 /**
  * @internal
  *
- * Whether a cascade reaching this record through `edge` destroys every live row
- * of the sortable field's sort scope. Such a scope is left with no survivor, so
+ * Whether a cascade reaching this record through `edge` reaches, and so
+ * destroys, every live row of the sortable field's sort scope. Such a scope is
+ * left with no survivor, so
  * the compaction a destroy performs would close a vacancy nothing can observe,
  * and the cascade skips it along with the snapshot read it needs. Every clause
  * fails closed: a shape not positively recognized here compacts as a direct
  * destroy does, unlocked, which costs statements and never a lock.
  *
- * The edge is one the cascade destroyed through — the caller only ever passes
- * a `dependent: 'destroy'` association — so `dependent` is not checked here.
+ * The edge is the `dependent: 'destroy'` association the cascade destroyed
+ * through, the only kind the caller passes, and the answer is about that edge
+ * alone: another dependent edge of the same owner may reach the rows this one
+ * does not, and this fails closed rather than look for it.
  *
  * 1. The edge is a `HasMany`. A `HasOne` reaches one row of a scope that may
  *    hold others.
@@ -36,7 +39,7 @@ import sortableScopeColumns from './sortableScopeColumns.js'
  *    scope that includes that column. Further scope members only partition that
  *    same set.
  */
-export default function cascadeWillDestroyEveryRowInSortScope(
+export default function cascadeReachesEveryRowInSortScope(
   dream: Dream,
   config: SortableFieldConfig,
   edge: SortableCascadeEdge
