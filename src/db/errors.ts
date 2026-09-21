@@ -9,6 +9,7 @@
 import pg from 'pg'
 
 export const CHECK_VIOLATION = 'CHECK_VIOLATION'
+export const DEADLOCK_DETECTED = 'DEADLOCK_DETECTED'
 export const FOREIGN_KEY_VIOLATION = 'FOREIGN_KEY_VIOLATION'
 export const INTEGRITY_CONSTRAINT_VIOLATION = 'INTEGRITY_CONSTRAINT_VIOLATION'
 export const INVALID_INPUT_SYNTAX = 'INVALID_INPUT_SYNTAX'
@@ -37,6 +38,8 @@ export const PG_ERRORS = {
   // a statement Postgres cancelled because its `lock_timeout` elapsed while it
   // waited for a lock — the bound Dream puts on the sortable scope-lock wait
   '55P03': LOCK_NOT_AVAILABLE,
+
+  '40P01': DEADLOCK_DETECTED,
 } as const
 
 type PgErrorType = (typeof PG_ERRORS)[keyof typeof PG_ERRORS]

@@ -3,6 +3,7 @@ import pg from 'pg'
 import {
   CHECK_VIOLATION,
   COLUMN_OVERFLOW,
+  DEADLOCK_DETECTED,
   FOREIGN_KEY_VIOLATION,
   INTEGRITY_CONSTRAINT_VIOLATION,
   INVALID_INPUT_SYNTAX,
@@ -36,6 +37,7 @@ describe('pgErrorType', () => {
         new Set([
           CHECK_VIOLATION,
           COLUMN_OVERFLOW,
+          DEADLOCK_DETECTED,
           FOREIGN_KEY_VIOLATION,
           INTEGRITY_CONSTRAINT_VIOLATION,
           INVALID_INPUT_SYNTAX,
@@ -198,6 +200,37 @@ describe('pgErrorType', () => {
         })
 
         expect(pgErrorType(error)).toEqual(LOCK_NOT_AVAILABLE)
+      })
+    })
+
+    context('a transaction aborted to break a deadlock', () => {
+      it('is a DEADLOCK_DETECTED', async () => {
+        await sql`INSERT INTO ${sql.ref(PARENT_TABLE)} (name) VALUES ('xyz')`.execute(_db)
+
+        // each transaction locks one row, then asks for the other's
+        let firstHoldsAbc: () => void
+        let secondHoldsXyz: () => void
+        const firstHoldsAbcPromise = new Promise<void>(resolve => (firstHoldsAbc = resolve))
+        const secondHoldsXyzPromise = new Promise<void>(resolve => (secondHoldsXyz = resolve))
+
+        const outcomes = await Promise.allSettled([
+          _db.transaction().execute(async first => {
+            await sql`SELECT id FROM ${sql.ref(PARENT_TABLE)} WHERE name = 'abc' FOR UPDATE`.execute(first)
+            firstHoldsAbc()
+            await secondHoldsXyzPromise
+            await sql`SELECT id FROM ${sql.ref(PARENT_TABLE)} WHERE name = 'xyz' FOR UPDATE`.execute(first)
+          }),
+          _db.transaction().execute(async second => {
+            await sql`SELECT id FROM ${sql.ref(PARENT_TABLE)} WHERE name = 'xyz' FOR UPDATE`.execute(second)
+            secondHoldsXyz()
+            await firstHoldsAbcPromise
+            await sql`SELECT id FROM ${sql.ref(PARENT_TABLE)} WHERE name = 'abc' FOR UPDATE`.execute(second)
+          }),
+        ])
+
+        const aborted = outcomes.find(outcome => outcome.status === 'rejected')
+        expect(aborted).toBeDefined()
+        expect(pgErrorType((aborted as PromiseRejectedResult).reason)).toEqual(DEADLOCK_DETECTED)
       })
     })
 

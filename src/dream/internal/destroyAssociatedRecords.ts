@@ -1,3 +1,7 @@
+import {
+  markSortableCascadeEdge,
+  SortableCascadeEdge,
+} from '../../decorators/field/sortable/helpers/sortableCascadeEdge.js'
 import Dream from '../../Dream.js'
 import DreamTransaction from '../DreamTransaction.js'
 import { ReallyDestroyOptions } from './destroyDream.js'
@@ -62,6 +66,11 @@ export default async function destroyAssociatedRecords<I extends Dream>(
   let dreamWithAssociations: I = dream
   let alreadyLoadedTree = false
 
+  const associationMetadataMap = dreamClass['associationMetadataMap']() as Record<
+    string,
+    SortableCascadeEdge | undefined
+  >
+
   for (const associationName of dreamClass['dependentDestroyAssociationNames']()) {
     if (!alreadyLoadedTree && !cascadeLoaded(dreamWithAssociations, associationName)) {
       dreamWithAssociations = await loadDependentDestroyTree(dreamWithAssociations, txn, {
@@ -75,8 +84,14 @@ export default async function destroyAssociatedRecords<I extends Dream>(
     const loaded = (dreamWithAssociations as any)[associationName]
     const records: Dream[] = Array.isArray(loaded) ? loaded : loaded ? [loaded] : []
 
+    const association = associationMetadataMap[associationName]
+
     for (const record of records) {
       markCascadeLoaded(record)
+
+      // a cascaded destroy does its sortable work without the scope lock, and
+      // which edge reached the record decides what it compacts
+      if (association) markSortableCascadeEdge(record, association)
 
       if (reallyDestroy) {
         await (record as any).txn(txn).reallyDestroy(options)

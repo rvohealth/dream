@@ -14,13 +14,17 @@ import afterSortableDestroy from '../hooks/afterSortableDestroy.js'
  * `afterDestroy` hook — never registered as a hook among them — so every
  * after-destroy hook observes the compacted scope regardless of where it was
  * declared, exactly as every after-save hook observes the computed position.
+ *
+ * @param sortableFields - the fields the preparation phase read a snapshot for,
+ *   which on a cascaded destroy excludes every field whose whole sort scope the
+ *   cascade is destroying
  */
 export default async function performSortableDestroyWork(
   dream: Dream,
-  txn: DreamTransaction<any>
+  txn: DreamTransaction<any>,
+  sortableFields: SortableFieldConfig[]
 ): Promise<void> {
   const dreamClass = dream.constructor as typeof Dream
-  const sortableFields = dreamClass['sortableFields'] as SortableFieldConfig[]
 
   for (const { positionField, scope } of sortableFields) {
     const query = dreamClass.query().removeDefaultScope(STI_SCOPE_NAME).txn(txn)

@@ -11,7 +11,7 @@ import pg from 'pg'
 import { sql, type SelectQueryBuilder } from 'kysely'
 import DreamCLI from '../../cli/index.js'
 import { isPrimitiveDataType } from '../../db/dataTypes.js'
-import { LOCK_NOT_AVAILABLE, pgErrorType } from '../../db/errors.js'
+import { DEADLOCK_DETECTED, LOCK_NOT_AVAILABLE, pgErrorType, UNIQUE_VIOLATION } from '../../db/errors.js'
 import DreamApp from '../../dream-app/index.js'
 import SortableScopeLockWaitTimedOut from '../../errors/SortableScopeLockWaitTimedOut.js'
 import Dream from '../../Dream.js'
@@ -303,6 +303,14 @@ export default class PostgresQueryDriver<
   }
 
   public static override supportsAdvisoryTransactionLocks = true
+
+  public static override isUniqueConstraintViolation(error: unknown): boolean {
+    return pgErrorType(error) === UNIQUE_VIOLATION
+  }
+
+  public static override isDeadlock(error: unknown): boolean {
+    return pgErrorType(error) === DEADLOCK_DETECTED
+  }
 
   /**
    * @internal

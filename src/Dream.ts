@@ -2353,16 +2353,20 @@ export default class Dream {
    * with no gaps, accounting for the scopes specified in the
    * corresponding Sortable decorator.
    *
-   * Each sort scope is renumbered in its own transaction, under the same
-   * advisory lock every other position-mutating path takes on that scope, from
-   * a read of the scope taken inside that lock — so a concurrent create or
-   * destroy cannot make the renumbering land on positions it never read.
+   * Each sort scope is renumbered in its own transaction, under the advisory
+   * lock every direct position-mutating path takes on that scope, from a read
+   * of the scope taken inside that lock — so a concurrent create or direct
+   * destroy cannot make the renumbering land on positions it never read. A
+   * cascaded destroy or undestroy takes no scope lock (see `@deco.Sortable`),
+   * so one running at the same moment can still change a scope under `resort`;
+   * a later `resort` repairs whatever that leaves.
    *
    * **Do not call `resort` from inside a transaction you own.** It opens those
    * transactions itself, on connections of its own, so it can neither join
    * yours nor roll back with it: its writes commit on their own. Worse, if your
    * transaction already holds the scope lock for a scope being renumbered — any
-   * position-mutating write to that scope earlier in the transaction takes it —
+   * direct position-mutating write to that scope earlier in the transaction
+   * takes it; a cascaded destroy or undestroy takes none —
    * `resort` waits on that lock from the outside, where no deadlock detector
    * can see the cycle, until the wait bound expires and it throws
    * `SortableScopeLockWaitTimedOut`.

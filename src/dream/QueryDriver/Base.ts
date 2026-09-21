@@ -274,6 +274,34 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   /**
    * @internal
    *
+   * Whether `error` is the database refusing a write for violating a unique
+   * constraint. `withConcurrentWriterRetry` asks this of an error raised at
+   * COMMIT, which is where a `DEFERRABLE INITIALLY DEFERRED` constraint — the
+   * one `DreamMigrationHelpers.addDeferrableUniqueConstraint` declares — reports
+   * a collision. A driver that does not recognize one reports false, and nothing
+   * is retried.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static isUniqueConstraintViolation(error: unknown): boolean {
+    return false
+  }
+
+  /**
+   * @internal
+   *
+   * Whether `error` is the database aborting a transaction to break a deadlock
+   * with another. `withConcurrentWriterRetry` reruns a transaction of Dream's
+   * own that was aborted this way. A driver that does not recognize one reports
+   * false, and nothing is retried.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static isDeadlock(error: unknown): boolean {
+    return false
+  }
+
+  /**
+   * @internal
+   *
    * Acquire exclusive, transaction-scoped locks on arbitrary keys, waiting
    * until any other transaction holding one of them finishes. The locks are
    * released when the enclosing transaction commits or rolls back — never by an

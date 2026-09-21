@@ -2,46 +2,74 @@ import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import { SortableFieldConfig } from '../Sortable.js'
 import acquireStabilizedSortableScopeLocks from './acquireStabilizedSortableScopeLocks.js'
+import cascadeEmptiesSortScope from './cascadeEmptiesSortScope.js'
 import clearCachedSortableValues from './clearCachedSortableValues.js'
-import { cacheSortableSnapshots, clearSortableSnapshot } from './sortableSnapshot.js'
+import { SortableCascadeEdge } from './sortableCascadeEdge.js'
+import { cacheSortableSnapshots, clearSortableSnapshot, readSortableSnapshots } from './sortableSnapshot.js'
+
+export interface SortableDestroyPreparation {
+  /**
+   * False when the snapshot read found no row: this destroy has nothing to
+   * vacate, and compacting from the instance's remembered position would shift
+   * a scope some other writer has already closed. The delete's own affected-row
+   * count is the stronger signal (a writer outside the sortable path can remove
+   * the row after this read), so the caller checks both.
+   */
+  rowExists: boolean
+
+  /**
+   * The sortable fields whose scope this destroy compacts, for
+   * `performSortableDestroyWork`.
+   */
+  sortableFields: SortableFieldConfig[]
+}
 
 /**
  * @internal
  *
  * The sortable preparation phase of a destroy. Called from `destroyDream` after
  * every user `beforeDestroy` hook has run and before the delete — a phase, not
- * a hook among them — so the operation's whole advisory key set, across every
- * sortable field, is taken in one sorted stabilized acquisition, with one
- * snapshot SELECT covering all fields. Per-field acquisition would take
- * multi-field keys in declaration order, which deadlocks against the paths
- * that acquire sorted.
+ * a hook among them — so the row's real position and scope values are read in
+ * one snapshot SELECT covering every field while the row still exists.
+ * Pre-delete is the only seat for that read: on a hard destroy the row is gone
+ * afterwards, and a soft destroy nulls the position columns in the same UPDATE
+ * as `deletedAt`. The per-field compactions (`performSortableDestroyWork`)
+ * consume the cached snapshots.
  *
- * Pre-delete is the only seat available for the snapshot read: on a hard
- * destroy the row is gone afterwards, and a soft destroy nulls the position
- * columns in the same UPDATE as `deletedAt`. The lock is taken around the read
- * so the snapshot cannot be invalidated between the read and the compaction;
- * it is transaction-scoped, and `destroyDream` opens a transaction that spans
- * the delete and the after-destroy hooks, so one acquisition covers both.
+ * A direct destroy takes the operation's whole advisory key set — every
+ * sortable field — in one sorted stabilized acquisition around that read, so
+ * the snapshot cannot be invalidated before the compaction; per-field
+ * acquisition would take multi-field keys in declaration order and deadlock
+ * against the paths that acquire sorted. The lock is transaction-scoped, and
+ * `destroyDream` opens a transaction spanning the delete and the after-destroy
+ * hooks, so one acquisition covers both.
  *
- * The per-field compactions (`performSortableDestroyWork`) consume the cached
- * snapshots.
- *
- * @returns false when the snapshot read found no row — this destroy has nothing
- *   to vacate, and compacting from the instance's remembered position would
- *   shift a scope some other writer has already closed. The delete's own
- *   affected-row count is the stronger signal (a writer outside the sortable
- *   path can remove the row after this read), so the caller checks both.
+ * A cascaded destroy — one reached through a `dependent: 'destroy'` association,
+ * which passes the edge it arrived by — takes no scope lock: a cascade would
+ * otherwise hold one per distinct sort scope it touches until the root
+ * transaction commits. It reads the same snapshot unlocked and compacts from
+ * it, and skips both for a field whose whole sort scope the cascade is
+ * destroying, since nothing survives there to observe a compaction.
  */
 export default async function prepareSortableFieldsForDestroy(
   dream: Dream,
-  txn: DreamTransaction<any>
-): Promise<boolean> {
-  const sortableFields = (dream.constructor as typeof Dream)['sortableFields'] as SortableFieldConfig[]
-  if (!sortableFields.length) return true
+  txn: DreamTransaction<any>,
+  cascadeEdge: SortableCascadeEdge | null
+): Promise<SortableDestroyPreparation> {
+  const allSortableFields = (dream.constructor as typeof Dream)['sortableFields'] as SortableFieldConfig[]
 
-  const { rowExists, snapshots } = await acquireStabilizedSortableScopeLocks(dream, txn, sortableFields)
+  const sortableFields = cascadeEdge
+    ? allSortableFields.filter(config => !cascadeEmptiesSortScope(dream, config, cascadeEdge))
+    : allSortableFields
+
+  if (!sortableFields.length) return { rowExists: true, sortableFields }
+
+  const { rowExists, snapshots } = cascadeEdge
+    ? await readSortableSnapshots(dream, txn, sortableFields)
+    : await acquireStabilizedSortableScopeLocks(dream, txn, sortableFields)
+
   cacheSortableSnapshots(dream, snapshots)
-  return rowExists
+  return { rowExists, sortableFields }
 }
 
 /**
