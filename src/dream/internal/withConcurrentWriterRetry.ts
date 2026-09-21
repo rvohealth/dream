@@ -35,6 +35,17 @@ export const MAX_CONCURRENT_WRITER_ATTEMPTS = 3
  *
  * Only a transaction Dream opens is retried. Inside a caller's transaction the
  * failure is the caller's, and the caller retries the whole transaction.
+ *
+ * Saves are deliberately not run through this. When a direct save and a
+ * cascade collide, the loser is whichever transaction waits first at COMMIT,
+ * and that is usually the save, which is short and reaches COMMIT while the
+ * cascade is still working: it fails with the adapter's deadlock error after
+ * `deadlock_timeout`. That bounded, occasional failure is the accepted price of
+ * cascades holding no scope locks, and the save path's state restore
+ * (`saveDream`) already makes calling `save` again correct. The collision needs
+ * a position write into the same sort scope inside the cascade's window that
+ * picks the same position, which a cascade destroying a scope's owner never
+ * exposes since it writes no position at all.
  */
 export default async function withConcurrentWriterRetry<R>(
   dreamClass: typeof Dream,

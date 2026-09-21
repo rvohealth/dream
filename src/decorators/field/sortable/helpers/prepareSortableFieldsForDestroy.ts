@@ -64,6 +64,14 @@ export default async function prepareSortableFieldsForDestroy(
 
   if (!sortableFields.length) return { rowExists: true, sortableFields }
 
+  // A field the predicate does not exempt is compacted *unlocked* on a cascade,
+  // by design: the predicate decides only what work is skipped, never whether a
+  // lock is taken. Falling back to the lock for such a field would reintroduce
+  // a lock count set by the data — one per distinct surviving scope, held to
+  // the root COMMIT, drawn from the cluster-wide lock table — with no way for
+  // the application to avoid it. The concurrent-writer races the missing lock
+  // exposes are accepted and documented on `@deco.Sortable`, and are what
+  // `withConcurrentWriterRetry` exists for.
   const { rowExists, snapshots } = cascadeEdge
     ? await readSortableSnapshots(dream, txn, sortableFields)
     : await acquireStabilizedSortableScopeLocks(dream, txn, sortableFields)

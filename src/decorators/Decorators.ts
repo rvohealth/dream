@@ -361,9 +361,12 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * your COMMIT failing: retry the transaction from the beginning, as for a
    * deadlock. The other writer can lose the same race and fail at its own
    * COMMIT instead, an ordinary `create` or `update` included, and Dream does
-   * not run those again. A sort scope with a nullable column has no such
-   * backstop unless its constraint is declared `NULLS NOT DISTINCT`, since a
-   * plain unique constraint never sees two NULLs as equal.
+   * not run those again: a bounded, occasional failed request in one contended
+   * scope is the deliberate price of cascades that hold no locks, where the
+   * lock count would otherwise be set by the data. A sort scope with a
+   * nullable column has no such backstop unless its constraint is declared
+   * `NULLS NOT DISTINCT`, since a plain unique constraint never sees two NULLs
+   * as equal.
    *
    * `SortableScopeDidNotStabilize` and `SortableScopeLockWaitTimedOut` are the
    * expected Dream errors an application may choose to retry. Database deadlocks
