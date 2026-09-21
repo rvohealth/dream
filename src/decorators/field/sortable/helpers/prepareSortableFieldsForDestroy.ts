@@ -2,7 +2,7 @@ import Dream from '../../../../Dream.js'
 import DreamTransaction from '../../../../dream/DreamTransaction.js'
 import { SortableFieldConfig } from '../Sortable.js'
 import acquireStabilizedSortableScopeLocks from './acquireStabilizedSortableScopeLocks.js'
-import cascadeEmptiesSortScope from './cascadeEmptiesSortScope.js'
+import cascadeWillDestroyEveryRowInSortScope from './cascadeWillDestroyEveryRowInSortScope.js'
 import clearCachedSortableValues from './clearCachedSortableValues.js'
 import { SortableCascadeEdge } from './sortableCascadeEdge.js'
 import { cacheSortableSnapshots, clearSortableSnapshot, readSortableSnapshots } from './sortableSnapshot.js'
@@ -59,7 +59,7 @@ export default async function prepareSortableFieldsForDestroy(
   const allSortableFields = (dream.constructor as typeof Dream)['sortableFields'] as SortableFieldConfig[]
 
   const sortableFields = cascadeEdge
-    ? allSortableFields.filter(config => !cascadeEmptiesSortScope(dream, config, cascadeEdge))
+    ? allSortableFields.filter(config => !cascadeWillDestroyEveryRowInSortScope(dream, config, cascadeEdge))
     : allSortableFields
 
   if (!sortableFields.length) return { rowExists: true, sortableFields }

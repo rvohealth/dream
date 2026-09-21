@@ -29,7 +29,7 @@ import sortableScopeColumns from './sortableScopeColumns.js'
  *    scope that includes that column. Further scope members only partition that
  *    same set.
  */
-export default function cascadeEmptiesSortScope(
+export default function cascadeWillDestroyEveryRowInSortScope(
   dream: Dream,
   config: SortableFieldConfig,
   edge: SortableCascadeEdge

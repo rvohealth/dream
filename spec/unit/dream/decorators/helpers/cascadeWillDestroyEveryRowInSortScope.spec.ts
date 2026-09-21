@@ -1,4 +1,4 @@
-import cascadeEmptiesSortScope from '../../../../../src/decorators/field/sortable/helpers/cascadeEmptiesSortScope.js'
+import cascadeWillDestroyEveryRowInSortScope from '../../../../../src/decorators/field/sortable/helpers/cascadeWillDestroyEveryRowInSortScope.js'
 import { SortableCascadeEdge } from '../../../../../src/decorators/field/sortable/helpers/sortableCascadeEdge.js'
 import { SortableFieldConfig } from '../../../../../src/decorators/field/sortable/Sortable.js'
 import Dream from '../../../../../src/Dream.js'
@@ -8,7 +8,7 @@ import SortableCascadeChild from '../../../../../test-app/app/models/SortableCas
 import SortableCascadeOwner from '../../../../../test-app/app/models/SortableCascadeOwner.js'
 import SortableStiAlpha from '../../../../../test-app/app/models/SortableStiModel/Alpha.js'
 
-describe('cascadeEmptiesSortScope', () => {
+describe('cascadeWillDestroyEveryRowInSortScope', () => {
   function edge(dreamClass: typeof Dream, associationName: string): SortableCascadeEdge {
     return dreamClass['associationMetadataMap']()[associationName] as SortableCascadeEdge
   }
@@ -28,39 +28,51 @@ describe('cascadeEmptiesSortScope', () => {
   })
 
   it('is true when the sort scope is the edge’s foreign key', () => {
-    expect(cascadeEmptiesSortScope(child, sortableField(SortableCascadeChild, 'position'), children)).toBe(
-      true
-    )
+    expect(
+      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), children)
+    ).toBe(true)
   })
 
   it('is true when the sort scope adds a plain column to the edge’s foreign key', () => {
     expect(
-      cascadeEmptiesSortScope(child, sortableField(SortableCascadeChild, 'positionWithinLabel'), children)
+      cascadeWillDestroyEveryRowInSortScope(
+        child,
+        sortableField(SortableCascadeChild, 'positionWithinLabel'),
+        children
+      )
     ).toBe(true)
   })
 
   it('is false when the sort scope does not include the edge’s foreign key', () => {
     expect(
-      cascadeEmptiesSortScope(child, sortableField(SortableCascadeChild, 'positionAcrossOwners'), children)
+      cascadeWillDestroyEveryRowInSortScope(
+        child,
+        sortableField(SortableCascadeChild, 'positionAcrossOwners'),
+        children
+      )
     ).toBe(false)
   })
 
   it('is false for a HasOne', () => {
     const oneChild = edge(SortableCascadeOwner, 'oneChild')
-    expect(cascadeEmptiesSortScope(child, sortableField(SortableCascadeChild, 'position'), oneChild)).toBe(
-      false
-    )
+    expect(
+      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), oneChild)
+    ).toBe(false)
   })
 
   it('is false for an edge with a condition', () => {
     const childrenLabeledA = edge(SortableCascadeOwner, 'childrenLabeledA')
     expect(
-      cascadeEmptiesSortScope(child, sortableField(SortableCascadeChild, 'position'), childrenLabeledA)
+      cascadeWillDestroyEveryRowInSortScope(
+        child,
+        sortableField(SortableCascadeChild, 'position'),
+        childrenLabeledA
+      )
     ).toBe(false)
 
     for (const condition of ['andNot', 'andAny', 'selfAnd', 'selfAndNot', 'polymorphic', 'through']) {
       expect(
-        cascadeEmptiesSortScope(child, sortableField(SortableCascadeChild, 'position'), {
+        cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
           ...children,
           [condition]: {},
         })
@@ -71,7 +83,7 @@ describe('cascadeEmptiesSortScope', () => {
   it('is false when the target is an STI child', () => {
     const stiEdge = { ...children, foreignKey: () => 'type' }
     expect(
-      cascadeEmptiesSortScope(
+      cascadeWillDestroyEveryRowInSortScope(
         SortableStiAlpha.new(),
         sortableField(SortableStiAlpha, 'positionByType'),
         stiEdge
@@ -83,7 +95,11 @@ describe('cascadeEmptiesSortScope', () => {
     // Collar declares `hideHiddenCollars` beside `@SoftDelete`, so a hidden
     // collar is not in the cascade’s load and outlives its pet
     expect(
-      cascadeEmptiesSortScope(Collar.new(), sortableField(Collar, 'position'), edge(Pet, 'collars'))
+      cascadeWillDestroyEveryRowInSortScope(
+        Collar.new(),
+        sortableField(Collar, 'position'),
+        edge(Pet, 'collars')
+      )
     ).toBe(false)
   })
 })
