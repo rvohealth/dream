@@ -8,6 +8,12 @@ import SortableCascadeChild from '../../../../../test-app/app/models/SortableCas
 import SortableCascadeOwner from '../../../../../test-app/app/models/SortableCascadeOwner.js'
 import SortableStiAlpha from '../../../../../test-app/app/models/SortableStiModel/Alpha.js'
 
+/**
+ * The predicate is only ever asked about an association the cascade destroyed
+ * through, so `dependent: 'destroy'` is the caller's precondition rather than
+ * a clause: `childrenLabeledA` and `oneChild` below carry no `dependent` and
+ * are declined for their shape alone.
+ */
 describe('cascadeWillDestroyEveryRowInSortScope', () => {
   function edge(dreamClass: typeof Dream, associationName: string): SortableCascadeEdge {
     return dreamClass['associationMetadataMap']()[associationName] as SortableCascadeEdge
@@ -60,7 +66,9 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
     ).toBe(false)
   })
 
-  it('is false for an edge with a condition', () => {
+  it('is false for a HasMany with an `and` condition', () => {
+    // the children the condition does not match stay live under a soft-deleted
+    // owner, holding positions in a scope the cascade did not empty
     const childrenLabeledA = edge(SortableCascadeOwner, 'childrenLabeledA')
     expect(
       cascadeWillDestroyEveryRowInSortScope(
@@ -69,15 +77,35 @@ describe('cascadeWillDestroyEveryRowInSortScope', () => {
         childrenLabeledA
       )
     ).toBe(false)
+  })
 
-    for (const condition of ['andNot', 'andAny', 'selfAnd', 'selfAndNot', 'polymorphic', 'through']) {
+  for (const condition of ['andNot', 'andAny', 'selfAnd', 'selfAndNot'] as const) {
+    it(`is false for a HasMany with an \`${condition}\` condition`, () => {
       expect(
         cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
           ...children,
-          [condition]: {},
+          [condition]: { label: 'a' },
         })
       ).toBe(false)
-    }
+    })
+  }
+
+  it('is false for a polymorphic HasMany, whose foreign key identifies a row only with its type column', () => {
+    expect(
+      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
+        ...children,
+        polymorphic: true,
+      })
+    ).toBe(false)
+  })
+
+  it('is false for a through association', () => {
+    expect(
+      cascadeWillDestroyEveryRowInSortScope(child, sortableField(SortableCascadeChild, 'position'), {
+        ...children,
+        through: 'somethingElse',
+      })
+    ).toBe(false)
   })
 
   it('is false when the target is an STI child', () => {

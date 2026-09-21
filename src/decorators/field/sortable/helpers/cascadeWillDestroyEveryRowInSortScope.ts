@@ -12,13 +12,20 @@ import sortableScopeColumns from './sortableScopeColumns.js'
  * the compaction a destroy performs would close a vacancy nothing can observe,
  * and the cascade skips it along with the snapshot read it needs. Every clause
  * fails closed: a shape not positively recognized here compacts as a direct
- * destroy does.
+ * destroy does, unlocked, which costs statements and never a lock.
+ *
+ * The edge is one the cascade destroyed through — the caller only ever passes
+ * a `dependent: 'destroy'` association — so `dependent` is not checked here.
  *
  * 1. The edge is a `HasMany`. A `HasOne` reaches one row of a scope that may
  *    hold others.
  * 2. The edge is not polymorphic, is not a `through` association, and carries
  *    no `and`, `andNot`, `andAny`, `selfAnd` or `selfAndNot`. Each of those
- *    reaches a subset of the rows sharing the foreign key.
+ *    reaches a subset of the rows sharing the foreign key, and the rest can
+ *    stay live: a soft-deleted owner's row remains, so no foreign key forces
+ *    them out, and they keep their positions in a scope the cascade did not
+ *    empty. (A hard destroy under a database foreign key would have refused to
+ *    leave them, and compacting there is the harmless direction to be wrong in.)
  * 3. The target is not an STI child, whose rows share a sort scope with its
  *    siblings' rows.
  * 4. The target declares no default scope other than SoftDelete, since any
