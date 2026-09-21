@@ -370,11 +370,13 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * **What an optimistic cascade can cost.** Nothing silently corrupts an
    * ordering, and no cascade that finishes leaves a live row without a
    * position. A cascaded undestroy that throws part-way is the one exception:
-   * its position writes are deferred to the end of the cascade, so a caller
-   * that catches the failure and commits the transaction anyway is left with a
-   * partially restored tree whose restored rows hold no position. Letting the
-   * failure roll the transaction back avoids it, and `Model.resort('position')`
-   * fills a position committed that way.
+   * each association's restored rows are positioned only once that association
+   * has restored all of them, so a caller that catches the failure and commits
+   * the transaction anyway is left with the rows of the association that was
+   * in flight — and any already-restored ancestor still waiting on its own
+   * parent — holding no position. Letting the failure roll the transaction back
+   * avoids it, and `Model.resort('position')` fills a position committed that
+   * way.
    *
    * - A cascaded destroy writes no position at all, so nothing on that path can
    *   fail a uniqueness constraint. Its residuals are both gaps, and
@@ -403,14 +405,17 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *   and compacts the rows the renumbering never wrote — the undestroy commits
    *   and the scope can be left with a gap, closed by `Model.resort` as above.
    *
-   * **A cascaded undestroy leaves a NULL position until the cascade finishes.**
-   * The scope is renumbered once, at the end of the cascade, so a restored
-   * record's own `afterUpdate` hook and its own reload observe `null` where the
-   * position will be. An `afterUpdate` hook on a sortable model that reads the
-   * position — or forwards it to something outside the database — gets nothing
-   * during a cascaded restore. That window is entirely inside the transaction:
-   * `afterUpdateCommit` hooks, and every reader outside the transaction, see
-   * final positions.
+   * **A cascaded undestroy leaves a NULL position until the whole scope has
+   * been restored.** The scope is renumbered once, when the association that
+   * restored its rows has restored all of them, so a restored record's own
+   * `afterUpdate` hook and its own reload observe `null` where the position
+   * will be. An `afterUpdate` hook on a sortable model that reads the position —
+   * or forwards it to something outside the database — gets nothing during a
+   * cascaded restore. A hook on the record's *owner* is past that point and does
+   * see the final positions, since a record is restored only after its own
+   * `dependent: 'destroy'` associations have been. That window is entirely
+   * inside the transaction: `afterUpdateCommit` hooks, and every reader outside
+   * the transaction, see final positions.
    *
    * **Anything that needs to know its position after a cascaded undestroy must
    * reload.** An instance you were already holding carries the final position

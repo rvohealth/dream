@@ -839,6 +839,24 @@ export interface SortableCascadeOwners {
   updatedAt: Timestamp
 }
 
+export interface SortableCascadePairOwners {
+  createdAt: Timestamp
+  deletedAt: Timestamp | null
+  id: Generated<Int8>
+  parentId: Int8 | null
+  updatedAt: Timestamp
+}
+
+export interface SortableCascadePairs {
+  coOwnerId: Int8
+  createdAt: Timestamp
+  deletedAt: Timestamp | null
+  id: Generated<Int8>
+  ownerId: Int8
+  position: number | null
+  updatedAt: Timestamp
+}
+
 export interface SortableStiModels {
   createdAt: Timestamp
   id: Generated<Int8>
@@ -1004,6 +1022,8 @@ export interface DB {
   sortable_cascade_children: SortableCascadeChildren
   sortable_cascade_leaves: SortableCascadeLeaves
   sortable_cascade_owners: SortableCascadeOwners
+  sortable_cascade_pair_owners: SortableCascadePairOwners
+  sortable_cascade_pairs: SortableCascadePairs
   sortable_sti_models: SortableStiModels
   sti_bases: StiBases
   text_scoped_sortable_models: TextScopedSortableModels
@@ -1074,6 +1094,8 @@ export class DBClass {
   sortable_cascade_children: SortableCascadeChildren
   sortable_cascade_leaves: SortableCascadeLeaves
   sortable_cascade_owners: SortableCascadeOwners
+  sortable_cascade_pair_owners: SortableCascadePairOwners
+  sortable_cascade_pairs: SortableCascadePairs
   sortable_sti_models: SortableStiModels
   sti_bases: StiBases
   text_scoped_sortable_models: TextScopedSortableModels

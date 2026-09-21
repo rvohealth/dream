@@ -1,4 +1,5 @@
 import { SortableCascadeEdge } from '../../../decorators/field/sortable/helpers/sortableCascadeEdge.js'
+import SortableScopeRestoreBatch from '../../../decorators/field/sortable/helpers/sortableScopeRestoreBatch.js'
 import Dream from '../../../Dream.js'
 import { AssociationNameToDream, DreamAssociationNames, JoinAndStatements } from '../../../types/dream.js'
 import DreamTransaction from '../../DreamTransaction.js'
@@ -43,5 +44,38 @@ export default async function undestroyAssociation<
     defaultScopesToBypass,
   })
 
-  return await query.clone({ sortableCascadeEdge }).undestroy({ skipHooks, cascade })
+  const restoreBatch =
+    sortableCascadeEdge && txn ? new SortableScopeRestoreBatch(sortableCascadeEdge, txn) : null
+
+  const restoredCount = await query
+    .clone({ sortableRestoreBatch: restoreBatch })
+    .undestroy({ skipHooks, cascade })
+
+  // Every row the restore above put into a sort scope it positions optimistically
+  // is live with a NULL position until here, where each of those scopes is
+  // renumbered by one idempotent whole-scope statement — one per scope, however
+  // many rows landed in it, which is the cost this path exists to avoid paying
+  // per record.
+  //
+  // **This placement is only safe because of clause 3 of
+  // `cascadeCoversWholeSortScope`**: a sortable field is restored optimistically
+  // only when this edge's foreign key is one of that field's sort scope columns,
+  // which makes this association's children *exactly* the rows of the scopes they
+  // occupy. Nothing restored later — a sibling association, a shallower level of
+  // the cascade, the cascade root itself — can add a row to a scope renumbered
+  // here, because any such row would have carried this foreign key and so would
+  // already have been in the set above. Relax that clause to admit a `HasOne`, a
+  // polymorphic edge, an STI child, or a scope sharing no column with the edge,
+  // and this line renumbers a scope before all of its rows have arrived: a
+  // duplicate position aborting at COMMIT, or a gap.
+  //
+  // After the whole `undestroy` above and never inside it. `Query#undestroy`
+  // walks primary-key-ascending batches and awaits each record's own undestroy,
+  // which cascades to that record's own descendants before restoring the record
+  // itself, so by the time it returns every row this call reached — at any depth
+  // — has been restored and collected. A flush per record would instead renumber
+  // a half-restored scope once per row.
+  await restoreBatch?.flush()
+
+  return restoredCount
 }

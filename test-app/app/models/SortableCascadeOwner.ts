@@ -53,10 +53,10 @@ export default class SortableCascadeOwner extends ApplicationModel {
    * transaction the hook is handed, or null for the ordinary case.
    *
    * A hook that starts a cascaded undestroy of its own is the plainest way a
-   * consumer reaches the seat *after* a cascade root has renumbered what it
-   * collected, and the nested cascade is not the root, so it collects scopes
-   * nobody else is going to renumber. Specs that use it set it immediately
-   * before the undestroy they are driving and clear it afterwards.
+   * consumer interleaves two cascades on one transaction, and it runs after
+   * this owner's own children have already been renumbered. Specs that use it
+   * set it immediately before the undestroy they are driving and clear it
+   * afterwards.
    */
   public static undestroyDuringAfterUpdate: SortableCascadeOwner | null = null
 

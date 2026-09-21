@@ -1,10 +1,10 @@
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
-import {
-  markSortableCascadeEdge,
-  SortableCascadeEdge,
-} from '../decorators/field/sortable/helpers/sortableCascadeEdge.js'
+import { markSortableCascadeEdge } from '../decorators/field/sortable/helpers/sortableCascadeEdge.js'
+import SortableScopeRestoreBatch, {
+  markSortableScopeRestoreBatch,
+} from '../decorators/field/sortable/helpers/sortableScopeRestoreBatch.js'
 import { invalidateSortableRowCache } from '../decorators/field/sortable/helpers/sortableRowCache.js'
 import DreamApp from '../dream-app/index.js'
 import assertNoEncryptedColumnWrites from '../encrypt/assertNoEncryptedColumnWrites.js'
@@ -333,17 +333,19 @@ export default class Query<
   /**
    * @internal
    *
-   * The `dependent: 'destroy'` association a cascade is restoring through, when
-   * this Query is the one that cascade walks. `undestroy` stamps it onto every
-   * record it reaches, which is how a restored record's own sortable work tells
-   * a cascaded undestroy from a direct one — the destroy side's `CASCADE_LOADED`
-   * marker cannot serve, since the undestroy cascade re-enters through a Query
-   * rather than through an already-hydrated association.
+   * The sort scopes the `dependent: 'destroy'` association this Query is being
+   * walked for restores rows into, together with the edge it is being restored
+   * through. `undestroy` stamps both onto every record it reaches: the edge is
+   * how a restored record's own sortable work tells a cascaded undestroy from a
+   * direct one — the destroy side's `CASCADE_LOADED` marker cannot serve, since
+   * the undestroy cascade re-enters through a Query rather than through an
+   * already-hydrated association — and the batch is where the scopes it lands in
+   * are collected for `undestroyAssociation` to renumber.
    *
    * Null on every Query a consumer builds, so `Query#undestroy` on its own is
    * never treated as a cascade.
    */
-  private readonly sortableCascadeEdge: SortableCascadeEdge | null = null
+  private readonly sortableRestoreBatch: SortableScopeRestoreBatch | null = null
 
   /**
    * @internal
@@ -427,7 +429,7 @@ export default class Query<
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
-    this.sortableCascadeEdge = opts.sortableCascadeEdge ?? null
+    this.sortableRestoreBatch = opts.sortableRestoreBatch ?? null
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -509,8 +511,8 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
-      sortableCascadeEdge:
-        opts.sortableCascadeEdge !== undefined ? opts.sortableCascadeEdge : this.sortableCascadeEdge,
+      sortableRestoreBatch:
+        opts.sortableRestoreBatch !== undefined ? opts.sortableRestoreBatch : this.sortableRestoreBatch,
     }) as Q
   }
 
@@ -3081,8 +3083,14 @@ export default class Query<
           : result
 
         // Stamped on the record itself, before its own undestroy runs, exactly
-        // as the destroy cascade stamps each record it is about to destroy.
-        if (this.sortableCascadeEdge) markSortableCascadeEdge(result, this.sortableCascadeEdge)
+        // as the destroy cascade stamps each record it is about to destroy. Both
+        // markers or neither: the edge is what can plan one of this record's
+        // sortable fields optimistic, and the batch is the only thing that will
+        // ever position such a field, so they must not be separable.
+        if (this.sortableRestoreBatch) {
+          markSortableCascadeEdge(result, this.sortableRestoreBatch.cascadeEdge)
+          markSortableScopeRestoreBatch(result, this.sortableRestoreBatch)
+        }
 
         await subquery.undestroy({
           bypassAllDefaultScopes: this.bypassAllDefaultScopes,
@@ -3544,5 +3552,5 @@ export interface QueryOpts<
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
-  sortableCascadeEdge?: SortableCascadeEdge | null | undefined
+  sortableRestoreBatch?: SortableScopeRestoreBatch | null | undefined
 }

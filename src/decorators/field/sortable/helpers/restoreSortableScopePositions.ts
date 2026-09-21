@@ -19,9 +19,9 @@ const RESTORE_POSITION = 'dream_restore_position'
  * Positions every row an undestroy cascade restored into one sort scope —
  * without taking that scope's advisory lock.
  *
- * **One idempotent statement per scope, run once at the end of the cascade**,
- * however many rows the cascade restored into that scope. It ranks the scope's
- * live rows by `row_number() over (order by position asc NULLS LAST, primary
+ * **One idempotent statement per scope, run once the association that restored
+ * the scope's rows has finished restoring them**, however many rows that was.
+ * It ranks the scope's live rows by `row_number() over (order by position asc NULLS LAST, primary
  * key asc)`. **Nulls last is what makes this order-preserving**, and it is the
  * one difference from the `renumberScope` statement `resort` runs, which ranks
  * nulls *first* on purpose: there a null position is a defect to pull to the
@@ -46,15 +46,15 @@ const RESTORE_POSITION = 'dream_restore_position'
  * undestroy commits and the scope can be left with a gap, which
  * `Model.resort` closes.
  *
- * Because it runs once at the end of the cascade rather than once per restored
- * record, a restored row holds a NULL position for the remainder of the
- * cascade: its own `afterUpdate` hook and its own reload both observe that
+ * Because it runs once for the whole scope rather than once per restored
+ * record, a restored row holds a NULL position until its siblings have been
+ * restored too: its own `afterUpdate` hook and its own reload both observe that
  * NULL. No other transaction can see it — the row is uncommitted — and
- * `sortableScopeRestoreQueue` refreshes the instances the cascade itself
- * restored once this statement has run, so every `afterUpdateCommit` hook,
- * which runs after COMMIT, holds the final position. An instance the caller
- * obtained by another route is a different object the cascade never reaches,
- * and anything needing a restored record's position reloads it.
+ * `SortableScopeRestoreBatch` refreshes the instances it restored once this
+ * statement has run, so every `afterUpdateCommit` hook, which runs after
+ * COMMIT, holds the final position. An instance the caller obtained by another
+ * route is a different object the cascade never reaches, and anything needing a
+ * restored record's position reloads it.
  *
  * The scope renumbered is the one the restored rows *physically* occupy, read
  * by primary key through `readSortableSnapshots` rather than taken from the

@@ -1,17 +1,9 @@
 import { SelectQueryBuilder, UpdateQueryBuilder, UpdateResult } from 'kysely'
 import acquireStabilizedSortableScopeLocks from '../../decorators/field/sortable/helpers/acquireStabilizedSortableScopeLocks.js'
 import filterQueryToScopeValues from '../../decorators/field/sortable/helpers/filterQueryToScopeValues.js'
-import planSortableUndestroyWork, {
-  SortableUndestroyPlan,
-} from '../../decorators/field/sortable/helpers/planSortableUndestroyWork.js'
+import planSortableUndestroyWork from '../../decorators/field/sortable/helpers/planSortableUndestroyWork.js'
 import { SortableCascadeEdge } from '../../decorators/field/sortable/helpers/sortableCascadeEdge.js'
-import {
-  enqueueSortableScopeRestores,
-  enterSortableScopeRestoreCascade,
-  exitSortableScopeRestoreCascade,
-  flushSortableScopeRestores,
-  isLastOpenSortableScopeRestoreFrame,
-} from '../../decorators/field/sortable/helpers/sortableScopeRestoreQueue.js'
+import { consumeSortableScopeRestoreBatch } from '../../decorators/field/sortable/helpers/sortableScopeRestoreBatch.js'
 import { snapshotScopeValue } from '../../decorators/field/sortable/helpers/sortableSnapshot.js'
 import { SortableFieldConfig } from '../../decorators/field/sortable/Sortable.js'
 import Dream from '../../Dream.js'
@@ -59,35 +51,17 @@ async function undestroyDreamWithTransaction<I extends Dream>(
   txn: DreamTransaction<I>,
   options: UndestroyOptions<I>
 ): Promise<I> {
-  // Read before anything else can re-enter this function for the same record:
-  // the plan consumes the marker the cascade left on this instance, and decides
-  // which sortable fields are positioned under their scope lock and which are
-  // restored optimistically. A direct `undestroy` carries no marker and plans
-  // every field as locked.
-  const sortablePlan = planSortableUndestroyWork(dream)
-
-  // Opens this undestroy's frame on the transaction. The outermost frame — a
-  // direct `undestroy`, or the root of a cascade — is the one that renumbers
-  // every sort scope the cascade restored into, once each, after every
-  // descendant has been restored. Closed in the `finally` below, so a cascade
-  // that threw leaves nothing collected behind.
-  const isCascadeRoot = enterSortableScopeRestoreCascade(txn)
-
-  try {
-    return await undestroyDreamInsideCascadeFrame(dream, txn, options, sortablePlan, isCascadeRoot)
-  } finally {
-    exitSortableScopeRestoreCascade(txn)
-  }
-}
-
-async function undestroyDreamInsideCascadeFrame<I extends Dream>(
-  dream: I,
-  txn: DreamTransaction<I>,
-  options: UndestroyOptions<I>,
-  sortablePlan: SortableUndestroyPlan,
-  isCascadeRoot: boolean
-): Promise<I> {
   const { cascade, skipHooks } = options
+
+  // Both read before anything else can re-enter this function for the same
+  // record, and both consume the marker the cascade left on this instance. The
+  // plan decides which sortable fields are positioned under their scope lock and
+  // which are restored optimistically; the batch is where the optimistic ones'
+  // scopes are collected, for the `undestroyAssociation` that reached this
+  // record to renumber once its whole restore is done. A direct `undestroy`
+  // carries neither marker, plans every field as locked, and collects nothing.
+  const sortablePlan = planSortableUndestroyWork(dream)
+  const restoreBatch = consumeSortableScopeRestoreBatch(dream)
 
   if (!skipHooks) {
     await runHooksFor('beforeUpdate', dream, true, null, txn)
@@ -108,19 +82,15 @@ async function undestroyDreamInsideCascadeFrame<I extends Dream>(
   const restoredRowCount = await doUndestroyDream(dream, txn, sortablePlan.locked)
 
   // The optimistic fields' positions are not written here. The scopes this row
-  // was restored into are collected, deduplicated across the whole cascade, and
-  // renumbered by the root frame below — one statement per scope rather than
-  // one per restored record. Until then this row is live with a NULL position,
-  // which its own `afterUpdate` hook and its own reload below can see. That
-  // window never leaves the transaction: no other transaction can read an
-  // uncommitted row, and the flush refreshes these instances before any
-  // `afterUpdateCommit` hook runs, since those run after COMMIT.
-  if (restoredRowCount > 0) await enqueueSortableScopeRestores(dream, txn, sortablePlan.optimistic)
-
-  // Every descendant has been restored and every scope collected, so the
-  // cascade's scopes are renumbered here — before this record's own after-update
-  // hooks and reload, and before control returns to the caller.
-  if (isCascadeRoot) await flushSortableScopeRestores(txn)
+  // was restored into are collected, deduplicated against every sibling this
+  // association restored, and renumbered once that association's restore
+  // finishes — one statement per scope rather than one per restored record.
+  // Until then this row is live with a NULL position, which its own
+  // `afterUpdate` hook and its own reload below can see. That window never
+  // leaves the transaction: no other transaction can read an uncommitted row,
+  // and the renumber refreshes these instances before any `afterUpdateCommit`
+  // hook runs, since those run after COMMIT.
+  if (restoredRowCount > 0) await restoreBatch?.add(dream, sortablePlan.optimistic)
 
   // A restore of a row that is not deleted — a second `undestroy()`, a job
   // retry, or a record that was never destroyed, which `Query#undestroy` reaches
@@ -130,20 +100,6 @@ async function undestroyDreamInsideCascadeFrame<I extends Dream>(
     await runHooksFor('afterUpdate', dream, true, null, txn)
     await runHooksFor('afterUpdateCommit', dream, true, null, txn)
   }
-
-  // The flush above renumbers what the cascade collected before this record's
-  // own hooks ran, which is what lets those hooks read final positions. It is
-  // not the last word: an `afterUpdate` hook is handed this transaction, so a
-  // hook that starts a cascaded undestroy of its own enqueues scopes after it —
-  // in a frame that is not the root and so never flushes — and two cascades
-  // sharing one caller-supplied transaction interleave the same way. Whichever
-  // frame is the last one still open renumbers the remainder here, before
-  // returning to the caller and before the reload below, so no frame can leave
-  // the transaction with a restored row still holding a NULL position.
-  //
-  // Deliberately on the success path and not in the `finally`: a cascade that
-  // threw must discard what it collected rather than write it.
-  if (isLastOpenSortableScopeRestoreFrame(txn)) await flushSortableScopeRestores(txn)
 
   await dream.txn(txn).reload()
   return dream
@@ -164,9 +120,10 @@ async function undestroyDreamInsideCascadeFrame<I extends Dream>(
  * The caller passes the sortable fields this restore positions inline rather
  * than the model's whole set. A field whose sort scope the cascade restoring
  * this record covers whole is positioned by `restoreSortableScopePositions`
- * instead, once for the whole scope at the end of the cascade and without a
- * scope lock; its row's `deletedAt` is still cleared here, so between the two
- * the row is live with a NULL position — a state confined to this transaction.
+ * instead, once for the whole scope and without a scope lock, when the
+ * association that reached this record finishes restoring; its row's
+ * `deletedAt` is still cleared here, so between the two the row is live with a
+ * NULL position — a state confined to this transaction.
  *
  * @param sortableFields - the sortable fields this restore locks and positions
  * @returns the number of rows restored: 1, or 0 when the row was not deleted

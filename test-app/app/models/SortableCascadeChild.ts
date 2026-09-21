@@ -59,11 +59,12 @@ export default class SortableCascadeChild extends ApplicationModel {
    * the database rather than off the in-memory instance. One entry per
    * invocation.
    *
-   * A cascaded undestroy renumbers each restored sort scope once, at the end of
-   * the cascade, so an `afterUpdate` hook on a restored record runs while that
-   * record's optimistic positions are still NULL. This is what pins that
-   * transient — it is a documented consequence of the restore, not an accident.
-   * Specs that read it reset it first.
+   * A cascaded undestroy renumbers each restored sort scope once, after the
+   * association that restored its rows has restored all of them, so an
+   * `afterUpdate` hook on a restored record runs while that record's optimistic
+   * positions are still NULL. This is what pins that transient — it is a
+   * documented consequence of the restore, not an accident. Specs that read it
+   * reset it first.
    */
   public static observedPositionsInAfterUpdate: (number | null)[][] = []
 

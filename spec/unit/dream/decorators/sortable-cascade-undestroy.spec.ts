@@ -10,6 +10,8 @@ import SortableRequiresDeferrableConstraints from '../../../../src/errors/Sortab
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import SortableCascadeChild from '../../../../test-app/app/models/SortableCascadeChild.js'
 import SortableCascadeOwner from '../../../../test-app/app/models/SortableCascadeOwner.js'
+import SortableCascadePair from '../../../../test-app/app/models/SortableCascadePair.js'
+import SortableCascadePairOwner from '../../../../test-app/app/models/SortableCascadePairOwner.js'
 
 /**
  * The undestroy side of the same rule. An undestroy cascade re-enters the same
@@ -128,7 +130,7 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
       expect(restored.position).toEqual(2)
     })
 
-    it('renumbers each scope once for the whole cascade, however many rows it restored', async () => {
+    it('renumbers each scope once for the association that restored it, however many rows that was', async () => {
       const renumberSpy = vi.spyOn(restoreSortableScopePositionsModule, 'default')
 
       try {
@@ -138,11 +140,12 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
         renumberSpy.mockClear()
         await owner.undestroy()
 
-        // One statement per optimistic sort scope, not per restored record:
-        // `position` scoped on the owner, and `positionWithinLabel` scoped on
-        // the owner and the single label these five share. Five restored rows,
-        // two statements. `positionAcrossOwners` and `positionWithinGroup` are
-        // planned locked and positioned inline, so they are not here.
+        // One statement per optimistic sort scope the association restored
+        // into, not per restored record: `position` scoped on the owner, and
+        // `positionWithinLabel` scoped on the owner and the single label these
+        // five share. Five restored rows, two statements.
+        // `positionAcrossOwners` and `positionWithinGroup` are planned locked
+        // and positioned inline, so they are not here.
         expect(renumberSpy.mock.calls.length).toEqual(2)
         expect(await positionsByLabel('a')).toEqual([1, 2, 3, 4, 5])
       } finally {
@@ -150,7 +153,7 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
       }
     })
 
-    it('renumbers each distinct scope the cascade reached, not just the first', async () => {
+    it('renumbers each distinct scope the association reached, not just the first', async () => {
       const renumberSpy = vi.spyOn(restoreSortableScopePositionsModule, 'default')
 
       try {
@@ -163,7 +166,7 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
         await owner.undestroy()
 
         // `position` has one scope (the owner); `positionWithinLabel` has two,
-        // one per label. Three scopes, three statements.
+        // one per label. One association call, three scopes, three statements.
         expect(renumberSpy.mock.calls.length).toEqual(3)
         expect(await positionsByLabel('a')).toEqual([1, 2])
         expect(await positionsByLabel('b')).toEqual([3])
@@ -183,8 +186,9 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
       await owner.undestroy()
 
       // The transient this route accepts, pinned rather than left implicit: the
-      // scope is renumbered once at the end of the cascade, so a hook running
-      // per record sees the optimistic fields still NULL. The locked fields
+      // scope is renumbered once the association restoring it has restored
+      // every one of its rows, so a hook running per record sees the optimistic
+      // fields still NULL. The locked fields
       // (`positionAcrossOwners`, `positionWithinGroup`) are positioned inline
       // by the same statement that cleared `deletedAt`, so they are never NULL.
       expect(SortableCascadeChild.observedPositionsInAfterUpdate.length).toEqual(2)
@@ -251,14 +255,14 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
     })
   })
 
-  context('scopes enqueued after the cascade root has already renumbered', () => {
+  context('a second cascade interleaved with the first', () => {
     async function liveChildren() {
       return await SortableCascadeChild.order('id').all()
     }
 
     it("renumbers the scopes an afterUpdate hook's own cascaded undestroy restored", async () => {
-      // the hook's cascade: its own owner, its own sort scopes, restored in a
-      // frame that is not the cascade root and therefore never renumbers
+      // the hook's cascade runs on the same transaction, after the first
+      // cascade has already renumbered its own children's scopes
       const hookOwner = await SortableCascadeOwner.create()
       await SortableCascadeChild.create({ owner: hookOwner, label: 'b' })
       await SortableCascadeChild.create({ owner: hookOwner, label: 'b' })
@@ -269,8 +273,9 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
 
       SortableCascadeOwner.undestroyDuringAfterUpdate = hookOwner
       try {
-        // the root renumbers what it collected, then runs its own `afterUpdate`
-        // hooks, which restore `hookOwner`'s children into two more scopes
+        // this owner's `children` association renumbers what it restored, and
+        // then this owner's own `afterUpdate` hooks restore `hookOwner`'s
+        // children into two more scopes
         await owner.undestroy()
       } finally {
         SortableCascadeOwner.undestroyDuringAfterUpdate = null
@@ -300,9 +305,9 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
       await owner.destroy()
       await otherOwner.destroy()
 
-      // one transaction, two cascades: the first to enter owns the flush, and
-      // the other's frames are open across it, so whichever finishes last is the
-      // only one that can renumber the remainder
+      // one transaction, two cascades, interleaved: each association call
+      // renumbers what it itself restored, so the two share no state to get
+      // wrong about which of them owes the other a position
       await ApplicationModel.transaction(async txn => {
         await Promise.all([owner.txn(txn).undestroy(), otherOwner.txn(txn).undestroy()])
       })
@@ -316,6 +321,119 @@ describe('@Sortable under a dependent-destroy undestroy cascade', () => {
 
       expect(await positionsByLabel('a')).toEqual([1, 2])
       expect(await positionsByLabel('b')).toEqual([1, 2])
+    })
+  })
+
+  /**
+   * The shape the rest of this file cannot reach: `SortableCascadePair`'s sort
+   * scope is `['owner', 'coOwner']`, and both of those foreign keys carry a
+   * `dependent: 'destroy'` edge from `SortableCascadePairOwner`, so one cascade
+   * restores the same table through two qualifying edges — and, through
+   * `subOwners`, through an edge one level deeper as well.
+   *
+   * What each spec here pins is that renumbering a scope when the association
+   * that restored its rows finishes is enough, because that association's
+   * children *are* the scope: whichever edge gets there first has restored every
+   * row of the scopes it renumbers, and the other edge finds nothing left to
+   * restore into them.
+   */
+  context('two dependent associations feeding one sort scope', () => {
+    let pairOwner: SortableCascadePairOwner
+    let otherOwner: SortableCascadePairOwner
+
+    beforeEach(async () => {
+      pairOwner = await SortableCascadePairOwner.create()
+      otherOwner = await SortableCascadePairOwner.create()
+    })
+
+    async function positionsIn(owner: SortableCascadePairOwner, coOwner: SortableCascadePairOwner) {
+      const pairs = await SortableCascadePair.order('id').all()
+      return pairs
+        .filter(
+          pair => String(pair.ownerId) === String(owner.id) && String(pair.coOwnerId) === String(coOwner.id)
+        )
+        .map(pair => pair.position)
+    }
+
+    it('restores every scope to 1..n, whichever of the two edges reached it', async () => {
+      // reached by both of this owner's edges
+      await SortableCascadePair.create({ owner: pairOwner, coOwner: pairOwner })
+      await SortableCascadePair.create({ owner: pairOwner, coOwner: pairOwner })
+      // reached by `ownedPairs` alone
+      await SortableCascadePair.create({ owner: pairOwner, coOwner: otherOwner })
+      // reached by `coOwnedPairs` alone
+      await SortableCascadePair.create({ owner: otherOwner, coOwner: pairOwner })
+
+      await pairOwner.destroy()
+      expect(await SortableCascadePair.count()).toEqual(0)
+
+      await pairOwner.undestroy()
+
+      expect(await positionsIn(pairOwner, pairOwner)).toEqual([1, 2])
+      expect(await positionsIn(pairOwner, otherOwner)).toEqual([1])
+      expect(await positionsIn(otherOwner, pairOwner)).toEqual([1])
+    })
+
+    it('renumbers a scope both edges cover exactly once: the second edge restores nothing into it', async () => {
+      const renumberSpy = vi.spyOn(restoreSortableScopePositionsModule, 'default')
+
+      try {
+        await SortableCascadePair.create({ owner: pairOwner, coOwner: pairOwner })
+        await SortableCascadePair.create({ owner: pairOwner, coOwner: pairOwner })
+        await SortableCascadePair.create({ owner: pairOwner, coOwner: otherOwner })
+        await SortableCascadePair.create({ owner: otherOwner, coOwner: pairOwner })
+        await pairOwner.destroy()
+
+        renumberSpy.mockClear()
+        await pairOwner.undestroy()
+
+        // `ownedPairs` runs first and restores three rows into two scopes — two
+        // statements. `coOwnedPairs` then matches the two rows `ownedPairs`
+        // already brought back, restores neither, and collects only the one row
+        // nothing else reached — a third statement, for a third scope. The
+        // scope both edges cover is renumbered once, by the edge that restored
+        // it.
+        expect(renumberSpy.mock.calls.length).toEqual(3)
+      } finally {
+        renumberSpy.mockRestore()
+      }
+    })
+
+    it('takes no scope lock for the pairs, through either edge', async () => {
+      const pair = await SortableCascadePair.create({ owner: pairOwner, coOwner: pairOwner })
+      await SortableCascadePair.create({ owner: otherOwner, coOwner: pairOwner })
+      await pairOwner.destroy()
+
+      const acquiredKeys = watchAcquiredScopeLockKeys()
+      await pairOwner.undestroy()
+
+      expect(acquiredKeys()).not.toContain(scopeLockKey(pair, 'position', ['owner', 'coOwner']))
+    })
+
+    it('renumbers a scope a deeper edge restored, though a shallower edge covers it too', async () => {
+      const subOwner = await SortableCascadePairOwner.create({ parent: pairOwner })
+
+      // `subOwner.coOwnedPairs` reaches these one level down; `pairOwner.ownedPairs`
+      // covers the same scope one level up, and runs second
+      await SortableCascadePair.create({ owner: pairOwner, coOwner: subOwner })
+      await SortableCascadePair.create({ owner: pairOwner, coOwner: subOwner })
+      await SortableCascadePair.create({ owner: subOwner, coOwner: subOwner })
+
+      await pairOwner.destroy()
+      expect(await SortableCascadePair.count()).toEqual(0)
+      expect(await SortableCascadePairOwner.count()).toEqual(1)
+
+      await pairOwner.undestroy()
+
+      // read back after COMMIT: a row the deeper edge renumbered before the
+      // shallower one ran must still hold that position, and nothing may commit
+      // without one
+      const pairs = await SortableCascadePair.all()
+      expect(pairs.length).toEqual(3)
+      for (const pair of pairs) expect(pair.position).not.toBeNull()
+
+      expect(await positionsIn(pairOwner, subOwner)).toEqual([1, 2])
+      expect(await positionsIn(subOwner, subOwner)).toEqual([1])
     })
   })
 
