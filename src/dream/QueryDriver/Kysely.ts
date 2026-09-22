@@ -125,6 +125,7 @@ import extractAssignableAssociationAttributes from '../internal/extractAssignabl
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
 import SimilarityBuilder from '../internal/similarity/SimilarityBuilder.js'
+import similarityWhereSql from '../internal/similarity/similarityWhereSql.js'
 import softDeleteDream from '../internal/softDeleteDream.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
@@ -1537,11 +1538,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     dreamClass: typeof Dream,
     join: JoinBuilder<any, any>,
     joinAndStatement: JoinAndStatements<any, any, any, any, any> | null,
-    rootTableOrAssociationAlias: TableOrAssociationName<Schema>
+    rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
+    joinType: JoinTypes
   ) {
     if (!joinAndStatement) return join
 
-    join = this._applyJoinAndStatements(dreamClass, join, joinAndStatement.and, rootTableOrAssociationAlias)
+    join = this._applyJoinAndStatements(dreamClass, join, joinAndStatement.and, rootTableOrAssociationAlias, {
+      joinType,
+    })
     join = this._applyJoinAndStatements(
       dreamClass,
       join,
@@ -1549,6 +1553,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       rootTableOrAssociationAlias,
       {
         negate: true,
+        joinType,
       }
     )
     join = this._applyJoinAndAnyStatements(
@@ -1568,9 +1573,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     rootTableOrAssociationAlias: TableOrAssociationName<Schema>,
     {
       negate = false,
+      joinType,
     }: {
       negate?: boolean
-    } = {}
+      joinType: JoinTypes
+    }
   ) {
     if (!joinAndStatement) return join
 
@@ -1583,6 +1590,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         {
           negate,
           disallowSimilarityOperator: negate,
+          // An inner join's similarity conditions are applied by the SimilarityBuilder, which
+          // inner joins a ranked trigram subquery on the joined table's primary key (see
+          // `conditionallyAttachSimilarityColumnsToSelect`). That subquery join would drop every
+          // parent row whose left-joined row is null, turning the left join into an inner join,
+          // so for left joins the trigram condition is emitted directly in the join's ON clause.
+          inlineSimilarityOperator: joinType === 'left',
         }
       )
     )
@@ -1619,9 +1632,11 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     {
       negate = false,
       disallowSimilarityOperator = true,
+      inlineSimilarityOperator = false,
     }: {
       negate?: boolean
       disallowSimilarityOperator?: boolean
+      inlineSimilarityOperator?: boolean
     } = {}
   ) {
     return this.whereStatementToExpressionWrapper(
@@ -1636,6 +1651,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       {
         negate,
         disallowSimilarityOperator,
+        inlineSimilarityOperator,
         expectedAlias: rootTableOrAssociationAlias,
       }
     )
@@ -1732,10 +1748,17 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     {
       negate = false,
       disallowSimilarityOperator = true,
+      inlineSimilarityOperator = false,
       expectedAlias,
     }: {
       negate?: boolean
       disallowSimilarityOperator?: boolean
+      /**
+       * Emit trigram (similarity) conditions directly as SQL in this expression, instead of
+       * leaving them for the SimilarityBuilder. Used for left join ON clauses, where the
+       * SimilarityBuilder's inner-joined trigram subquery would discard unmatched parent rows.
+       */
+      inlineSimilarityOperator?: boolean
       expectedAlias?: string
     } = {}
   ): ExpressionWrapper<any, any, SqlBool> {
@@ -1752,6 +1775,19 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             (val as OpsStatement<any, any>).shouldBypassWhereStatement
           ) {
             if (disallowSimilarityOperator) throw new Error('Similarity operator may not be used in whereAny')
+
+            if (inlineSimilarityOperator) {
+              const columnName = maybeNamespacedColumnNameToColumnName(attr)
+              const tableAlias = attr.includes('.') ? attr.split('.')[0] : undefined
+              return similarityWhereSql({
+                eb,
+                tableName: dreamClass.table,
+                columnName,
+                opsStatement: val as OpsStatement<any, any>,
+                schema: dreamClass.prototype.schema,
+                tableAlias,
+              })
+            }
 
             // some ops statements are handled specifically in the select portion of the query,
             // and should be ommited from the where clause directly
@@ -2944,7 +2980,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
           })
 
-          join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
+          join = this.applyJoinAndStatement(
+            associatedDreamClass,
+            join,
+            joinAndStatement,
+            currentTableAlias,
+            joinType
+          )
 
           return join
         }
@@ -3004,7 +3046,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
             throughAssociatedClassOverride: dreamClassThroughAssociationWantsToHydrate,
           })
 
-          join = this.applyJoinAndStatement(associatedDreamClass, join, joinAndStatement, currentTableAlias)
+          join = this.applyJoinAndStatement(
+            associatedDreamClass,
+            join,
+            joinAndStatement,
+            currentTableAlias,
+            joinType
+          )
 
           return join
         }

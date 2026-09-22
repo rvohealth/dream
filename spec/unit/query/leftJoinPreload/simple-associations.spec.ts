@@ -124,6 +124,24 @@ describe('Query#leftJoinPreload with simple associations', () => {
       expect(reloadedUser.compositions).toMatchDreamModels([composition2])
     })
 
+    context('with a similarity operator in the and-clause', () => {
+      it('only preloads the associated rows matching the similarity text, keeping the parent', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const helloComposition = await Composition.create({ user, content: 'hello world' })
+        await Composition.create({ user, content: 'goodbye' })
+        const lonelyUser = await User.create({ email: 'fred@fishman', password: 'howyadoin' })
+
+        const reloadedUsers = await User.leftJoinPreload('compositions', {
+          and: { content: ops.similarity('hello') },
+        })
+          .order('id')
+          .all()
+        expect(reloadedUsers).toMatchDreamModels([user, lonelyUser])
+        expect(reloadedUsers[0]!.compositions).toMatchDreamModels([helloComposition])
+        expect(reloadedUsers[1]!.compositions).toEqual([])
+      })
+    })
+
     context('with a curried ops statement (e.g. ops.any) in the and-clause', () => {
       // ops.any returns a CurriedOpsStatement that is only resolved to an OpsStatement once
       // bound to the joined model and column, so it has to survive being carried in the
