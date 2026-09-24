@@ -17,8 +17,9 @@ export type SpawnOptions = Omit<NodeSpawnOptions, 'shell'> & {
    * Argv elements passed to the child as separate arguments. Defaults to `[]`.
    * Each entry is passed literally — shell meta-characters (`$`, backticks,
    * `&&`, spaces, etc.) inside any element are not interpreted by a shell.
-   * This is the right shape for any caller that interpolates a path or
-   * credential.
+   * This is the right shape for paths and other non-secret values. Pass
+   * credentials through the child's environment so they do not appear in
+   * the process command line or a refused-spawn error.
    */
   args?: string[]
 }
@@ -760,10 +761,10 @@ ${INDENT}Examples: User, Place, Room/Bedroom, Settings/CommunicationPreferences`
    * (package.json scripts, CLI argv, scaffold templates) — never from
    * runtime request input or any other untrusted external source.
    *
-   * Argv-form is the safe choice for any caller that interpolates a
-   * config value, path, or credential: a database password containing
-   * `$` or backticks is passed literally to the child rather than
-   * interpreted by a shell.
+   * Argv-form passes config values and paths literally to the child,
+   * without interpreting shell metacharacters. Credentials belong in
+   * the child's environment, since argv is visible in process listings
+   * and in the refused-spawn error.
    *
    * ## Layered defense
    *

@@ -1,7 +1,7 @@
 ## 2.33.0
 
 - **PostgreSQL connections now accept a password provider.** Set a PostgreSQL connection's `password` field to a zero-argument function returning a string or a promise of one. PostgreSQL calls it when the server requests password authentication for each new physical connection, so newly opened pooled or direct clients can use a refreshed credential. Existing pooled clients are not reauthenticated. Provider failures reject the connection attempt; Dream does not cache credentials or retry. Fixed-string passwords remain supported. MySQL continues to require a fixed string and rejects providers for pool connections, direct clients, and database type generation.
-- **Database type generation now preserves reserved characters in credentials.** PostgreSQL resolves a password provider once per type-generation invocation. Usernames and passwords, including existing fixed-string passwords, are encoded in the codegen connection URL so characters such as `:`, `/`, `#`, `?`, and `%` round-trip correctly.
+- **Database type generation now preserves reserved characters in credentials.** PostgreSQL resolves a password provider once per type-generation invocation. Usernames and passwords, including existing fixed-string passwords, are encoded in the codegen connection URL so characters such as `:`, `/`, `#`, `?`, and `%` round-trip correctly. The URL is passed to codegen in its child environment instead of its process arguments, so credentials do not appear in the codegen command line or a refused-spawn error.
 
 ## 2.32.0
 

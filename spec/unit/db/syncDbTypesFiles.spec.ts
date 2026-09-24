@@ -33,7 +33,7 @@ describe('syncDbTypesFiles credentials', () => {
     }
   }
 
-  it('resolves a PostgreSQL provider once and passes encoded userinfo in codegen argv', async () => {
+  it('resolves a PostgreSQL provider once without putting the credential in codegen argv', async () => {
     const provider = vi.fn(() => Promise.resolve('token:@/ #?%'))
     await withPassword('default', provider, async () => {
       await syncDbTypesFiles('default')
@@ -43,8 +43,10 @@ describe('syncDbTypesFiles credentials', () => {
     const spawn = spawnSpy
     expect(spawn).toHaveBeenCalledOnce()
     expect(spawn.mock.calls[0]![0]).toBe('kysely-codegen')
-    const urlArg = spawn.mock.calls[0]![1]!.args!.find((arg: string) => arg.startsWith('--url='))!
-    const url = new URL(urlArg.slice('--url='.length))
+    const spawnOpts = spawn.mock.calls[0]![1]!
+    expect(spawnOpts.args).toContain('--url=env(DATABASE_URL)')
+    expect(spawnOpts.args!.join(' ')).not.toContain('token')
+    const url = new URL(spawnOpts.env!.DATABASE_URL)
     expect(decodeURIComponent(url.username)).toBe('user:@/ #?')
     expect(decodeURIComponent(url.password)).toBe('token:@/ #?%')
   })
@@ -54,8 +56,10 @@ describe('syncDbTypesFiles credentials', () => {
       await syncDbTypesFiles('default')
     })
 
-    const urlArg = spawnSpy.mock.calls[0]![1]!.args!.find((arg: string) => arg.startsWith('--url='))!
-    expect(decodeURIComponent(new URL(urlArg.slice('--url='.length)).password)).toBe('fixed:@/ #?%')
+    const spawnOpts = spawnSpy.mock.calls[0]![1]!
+    expect(spawnOpts.args).toContain('--url=env(DATABASE_URL)')
+    expect(spawnOpts.args!.join(' ')).not.toContain('fixed')
+    expect(decodeURIComponent(new URL(spawnOpts.env!.DATABASE_URL).password)).toBe('fixed:@/ #?%')
   })
 
   it('propagates PostgreSQL provider failure without spawning or enhancing', async () => {
@@ -89,7 +93,34 @@ describe('syncDbTypesFiles credentials', () => {
     expect(spawnSpy).toHaveBeenCalledOnce()
     const args = spawnSpy.mock.calls[0]![1]!.args!
     expect(args).toContain('--dialect=mysql')
-    const urlArg = args.find((arg: string) => arg.startsWith('--url='))!
-    expect(decodeURIComponent(new URL(urlArg.slice('--url='.length)).password)).toBe('fixed:@/ #?%')
+    expect(args).toContain('--url=env(DATABASE_URL)')
+    expect(args.join(' ')).not.toContain('fixed')
+    expect(decodeURIComponent(new URL(spawnSpy.mock.calls[0]![1]!.env!.DATABASE_URL).password)).toBe(
+      'fixed:@/ #?%'
+    )
+  })
+
+  it('does not include a provider credential in a refused-spawn error', async () => {
+    spawnSpy.mockRestore()
+    const originalNodeEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    try {
+      await withPassword(
+        'default',
+        () => 'private-rotating-token',
+        async () => {
+          let error: Error | undefined
+          try {
+            await syncDbTypesFiles('default')
+          } catch (caught) {
+            error = caught as Error
+          }
+          expect(error?.message).toMatch(/DreamCLI\.spawn refused to run outside development or test/)
+          expect(error?.message).not.toContain('private-rotating-token')
+        }
+      )
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv
+    }
   })
 })
