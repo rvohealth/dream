@@ -19,8 +19,15 @@ function pgClientParameters(client: pg.Client): { password: unknown; database: s
 // Drive node-postgres through its real authentication handlers without relying
 // on the local server's pg_hba.conf. Only the wire connection is controlled.
 class PasswordAuthenticationConnection extends EventEmitter {
+  public static instances: PasswordAuthenticationConnection[] = []
   public sentPasswords: string[] = []
+  public stream = { destroy: vi.fn() }
   public _connecting = false
+
+  constructor() {
+    super()
+    PasswordAuthenticationConnection.instances.push(this)
+  }
 
   connect() {
     this._connecting = true
@@ -41,22 +48,27 @@ class PasswordAuthenticationConnection extends EventEmitter {
   }
 }
 
-class PasswordAuthenticationClient extends pg.Client {
-  public readonly authenticationConnection: PasswordAuthenticationConnection
-
-  constructor(config: pg.ClientConfig) {
-    const connection = new PasswordAuthenticationConnection()
-    // pg-pool hides password as a non-enumerable option; retain it explicitly.
-    super({ ...config, password: config.password, connection } as pg.ClientConfig)
-    this.authenticationConnection = connection
-  }
+type AuthenticatedPoolClient = pg.PoolClient & {
+  authenticationConnection: PasswordAuthenticationConnection
 }
 
 function controlledPool(password: DreamDbConfig['password']) {
   const on = vi.spyOn(pg.Pool.prototype, 'on')
   KyselyQueryDriver.dialectProvider('default', 'primary')(credentials(password))
   const pool = on.mock.instances.at(-1) as pg.Pool
-  ;(pool as pg.Pool & { Client: typeof PasswordAuthenticationClient }).Client = PasswordAuthenticationClient
+  const controlledPoolClient = pool as pg.Pool & { Client: typeof pg.Client }
+  const PoolClient = controlledPoolClient.Client
+  class PasswordAuthenticationClient extends PoolClient {
+    public readonly authenticationConnection: PasswordAuthenticationConnection
+
+    constructor(config: pg.ClientConfig) {
+      const connection = new PasswordAuthenticationConnection()
+      // pg-pool hides password as a non-enumerable option; retain it explicitly.
+      super({ ...config, password: config.password, connection } as pg.ClientConfig)
+      this.authenticationConnection = connection
+    }
+  }
+  controlledPoolClient.Client = PasswordAuthenticationClient
   return pool
 }
 
@@ -64,7 +76,7 @@ describe('database password providers', () => {
   it('uses a fixed password when PostgreSQL requests authentication', async () => {
     const pool = controlledPool('fixed-password')
     try {
-      const client = (await pool.connect()) as pg.PoolClient & PasswordAuthenticationClient
+      const client = (await pool.connect()) as AuthenticatedPoolClient
       expect(client.authenticationConnection.sentPasswords).toEqual(['fixed-password'])
       client.release(true)
     } finally {
@@ -80,11 +92,11 @@ describe('database password providers', () => {
     const pool = controlledPool(provider)
 
     try {
-      const first = (await pool.connect()) as pg.PoolClient & PasswordAuthenticationClient
+      const first = (await pool.connect()) as AuthenticatedPoolClient
       expect(first.authenticationConnection.sentPasswords).toEqual(['first-token'])
       first.release(true)
 
-      const second = (await pool.connect()) as pg.PoolClient & PasswordAuthenticationClient
+      const second = (await pool.connect()) as AuthenticatedPoolClient
       expect(second).not.toBe(first)
       expect(second.authenticationConnection.sentPasswords).toEqual(['second-token'])
       expect(provider).toHaveBeenCalledTimes(2)
@@ -102,6 +114,7 @@ describe('database password providers', () => {
     try {
       await expect(pool.connect()).rejects.toBe(failure)
       expect(provider).toHaveBeenCalledOnce()
+      expect(PasswordAuthenticationConnection.instances.at(-1)?.stream.destroy).toHaveBeenCalledOnce()
     } finally {
       await pool.end()
     }
@@ -141,6 +154,22 @@ describe('database password providers', () => {
     }
   })
 
+  it('closes a direct PostgreSQL client after its password provider rejects', async () => {
+    const failure = new Error('credential service unavailable')
+    const app = DreamApp.getOrFail()
+    const original = app.dbCredentialsFor('default')!
+    vi.spyOn(pg.Client.prototype, 'connect').mockRejectedValue(failure)
+    const end = vi.spyOn(pg.Client.prototype, 'end').mockResolvedValue()
+    app.set('db', { ...original, primary: { ...original.primary, password: () => Promise.reject(failure) } })
+
+    try {
+      await expect(loadPgClient({ connectionName: 'default' })).rejects.toBe(failure)
+      expect(end).toHaveBeenCalledOnce()
+    } finally {
+      app.set('db', original)
+    }
+  })
+
   it('passes an unresolved provider to the test-database lock client', async () => {
     const provider = vi.fn(() => 'new-token')
     const app = DreamApp.getOrFail()
@@ -156,6 +185,22 @@ describe('database password providers', () => {
       expect(pgClientParameters(client).database).toBe('postgres')
       expect(provider).not.toHaveBeenCalled()
       await session.release()
+    } finally {
+      app.set('db', original)
+    }
+  })
+
+  it('closes a test-database lock client after its password provider rejects', async () => {
+    const failure = new Error('credential service unavailable')
+    const app = DreamApp.getOrFail()
+    const original = app.dbCredentialsFor('default')!
+    vi.spyOn(pg.Client.prototype, 'connect').mockRejectedValue(failure)
+    const end = vi.spyOn(pg.Client.prototype, 'end').mockResolvedValue()
+    app.set('db', { ...original, primary: { ...original.primary, password: () => Promise.reject(failure) } })
+
+    try {
+      await expect(PostgresQueryDriver.openTestDatabaseLockSession('default')).rejects.toBe(failure)
+      expect(end).toHaveBeenCalledOnce()
     } finally {
       app.set('db', original)
     }

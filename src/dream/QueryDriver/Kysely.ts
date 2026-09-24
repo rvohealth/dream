@@ -8,7 +8,6 @@
 // @ts-ignore
 import pg from 'pg'
 import type { ConnectionOptions as TlsConnectionOptions } from 'node:tls'
-
 import {
   AliasableExpression,
   AliasedExpression,
@@ -132,6 +131,7 @@ import softDeleteDream from '../internal/softDeleteDream.js'
 import sqlResultToDreamInstance from '../internal/sqlResultToDreamInstance.js'
 import Query from '../Query.js'
 import QueryDriverBase from './Base.js'
+import { PasswordProviderPoolClient } from './helpers/pg/loadPgClient.js'
 import checkForNeedToBeRunMigrations from './helpers/kysely/checkForNeedToBeRunMigrations.js'
 import foreignKeyTypeFromPrimaryKey from './helpers/kysely/foreignKeyTypeFromPrimaryKey.js'
 import runMigration from './helpers/kysely/runMigration.js'
@@ -203,6 +203,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         // Spread pg passthrough first; Dream's resolved fields follow and
         // always win (per-connection database name, TLS directive).
         ...(connectionConf.pg ?? {}),
+        Client: typeof connectionConf.password === 'function' ? PasswordProviderPoolClient : undefined,
         user: connectionConf.user || '',
         // pg accepts a callback here and resolves it for each new client when
         // the server requests password authentication.
