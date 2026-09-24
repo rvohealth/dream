@@ -791,8 +791,13 @@ type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'
 export interface DreamDbConfig {
   user: string
   /**
-   * Fixed password or a provider called by PostgreSQL when authenticating a
-   * new physical connection. MySQL supports fixed passwords only.
+   * A fixed password, or a provider that PostgreSQL calls when the server
+   * requests password authentication for a new physical connection. The
+   * provider may return a string or a promise of one. Each such connection
+   * gets a fresh result; existing pooled connections keep their credential.
+   * A rejected provider fails that connection attempt and reaches its caller;
+   * Dream does not cache credentials or retry. MySQL supports fixed strings
+   * only and rejects providers at its connection and type-generation boundaries.
    */
   password: string | (() => string | Promise<string>)
   host: string
