@@ -204,6 +204,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         // always win (per-connection database name, TLS directive).
         ...(connectionConf.pg ?? {}),
         user: connectionConf.user || '',
+        // pg accepts a callback here and resolves it for each new client when
+        // the server requests password authentication.
         password: connectionConf.password || '',
         database: DreamApp.getOrFail().dbName(connectionName, dbConnectionType),
         host: connectionConf.host || 'localhost',

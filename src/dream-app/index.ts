@@ -790,7 +790,11 @@ type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'
 
 export interface DreamDbConfig {
   user: string
-  password: string
+  /**
+   * Fixed password or a provider called by PostgreSQL when authenticating a
+   * new physical connection. MySQL supports fixed passwords only.
+   */
+  password: string | (() => string | Promise<string>)
   host: string
   name: string
   port: number

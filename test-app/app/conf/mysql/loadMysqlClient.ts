@@ -12,6 +12,9 @@ export default function loadMysqlClient({
   const dreamconf = DreamApp.getOrFail()
   const creds = dreamconf.dbCredentialsFor(connectionName)?.primary
   if (!creds) throw new Error(`failed to load db credentials for connection: ${connectionName}`)
+  if (typeof creds.password === 'function') {
+    throw new Error('MySQL does not support a password provider; configure a fixed password')
+  }
 
   const connection = mysql.createConnection({
     host: creds.host || 'localhost',
