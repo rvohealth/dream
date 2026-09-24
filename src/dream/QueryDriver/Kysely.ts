@@ -369,6 +369,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return 'postgres'
   }
 
+  public static override async codegenPassword(password: DreamDbConfig['password']): Promise<string> {
+    return typeof password === 'function' ? await password() : password
+  }
+
   /**
    * @internal
    *

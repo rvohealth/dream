@@ -17,6 +17,7 @@ export default async function syncDbTypesFiles(connectionName: string) {
   const dbSyncFilePath = path.join(dreamPath('types'), dbFilename)
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
+  const password = await driverClass.codegenPassword(dbConf.password)
   await CliFileWriter.cache(absoluteDbSyncPath)
 
   const lowLevelDbOpts = dreamApp.dbCredentialsFor(connectionName)
@@ -26,7 +27,7 @@ export default async function syncDbTypesFiles(connectionName: string) {
   // DreamCLI.spawn always uses shell:false, so each arg is passed literally to
   // the child rather than parsed by a shell — credentials are preserved and any
   // future mutable source can't open a command-injection surface.
-  const userinfo = `${dbConf.user}${dbConf.password ? `:${dbConf.password}` : ''}`
+  const userinfo = `${encodeURIComponent(dbConf.user)}${password ? `:${encodeURIComponent(password)}` : ''}`
   const url = `${driverClass.syncDialect}://${userinfo}@${dbConf.host}:${dbConf.port}/${dbConf.name}`
   const args = [`--dialect=${driverClass.syncDialect}`, `--url=${url}`]
   if (lowLevelDbOpts?.tableIncludePattern) {

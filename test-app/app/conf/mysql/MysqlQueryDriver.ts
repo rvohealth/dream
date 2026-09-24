@@ -208,6 +208,13 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
     return 'mysql'
   }
 
+  public static override codegenPassword(password: DreamDbConfig['password']): Promise<string> {
+    if (typeof password === 'function') {
+      throw new Error('MySQL does not support a password provider; configure a fixed password')
+    }
+    return Promise.resolve(password)
+  }
+
   public static override supportsParallelTestDatabases = true
 
   /**

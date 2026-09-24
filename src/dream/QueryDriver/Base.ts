@@ -1,4 +1,5 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
+import type { DreamDbConfig } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
 import { AssociationStatement } from '../../types/associations/shared.js'
@@ -717,6 +718,14 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
 
   public static get syncDialect(): string {
     return 'postgres'
+  }
+
+  /** @internal Resolve the credential used by the database type generator. */
+  public static codegenPassword(password: DreamDbConfig['password']): Promise<string> {
+    if (typeof password === 'function') {
+      throw new Error('This database adapter does not support a password provider for type generation')
+    }
+    return Promise.resolve(password)
   }
   /**
    * Returns the sql that would be executed by this Query
