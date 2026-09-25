@@ -10,6 +10,29 @@ import pg from 'pg'
 
 import DreamApp from '../../../../dream-app/index.js'
 
+export class PasswordProviderPoolClient extends pg.Client {
+  public override connect(): Promise<void>
+  public override connect(callback: (err: Error) => void): void
+  public override connect(callback?: (err: Error) => void): Promise<void> | void {
+    if (callback) {
+      super.connect(err => {
+        if (err) this.destroyConnectionStream()
+        callback(err)
+      })
+    } else {
+      return super.connect().catch(err => {
+        this.destroyConnectionStream()
+        throw err
+      })
+    }
+  }
+
+  private destroyConnectionStream() {
+    // pg reports a rejected password provider without closing its socket.
+    ;(this as pg.Client & { connection?: pg.Connection }).connection?.stream.destroy()
+  }
+}
+
 export default async function loadPgClient({
   connectionName,
   useSystemDb,
@@ -28,6 +51,11 @@ export default async function loadPgClient({
     user: creds.user,
     password: creds.password,
   })
-  await client.connect()
+  try {
+    await client.connect()
+  } catch (err) {
+    await client.end().catch(() => undefined)
+    throw err
+  }
   return client
 }

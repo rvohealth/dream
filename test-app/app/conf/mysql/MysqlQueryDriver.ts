@@ -29,8 +29,12 @@ import loadMysqlClient from './loadMysqlClient.js'
 
 export default class MysqlQueryDriver<DreamInstance extends Dream> extends KyselyQueryDriver<DreamInstance> {
   public static override dialectProvider(connectionName: string, dbConnectionType: DbConnectionType) {
-    return (connectionConf: DreamDbConfig) =>
-      new MysqlDialect({
+    return (connectionConf: DreamDbConfig) => {
+      if (typeof connectionConf.password === 'function') {
+        throw new Error('MySQL does not support a password provider; configure a fixed password')
+      }
+
+      return new MysqlDialect({
         pool: createPool({
           user: connectionConf.user || '',
           password: connectionConf.password || '',
@@ -53,6 +57,7 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
           },
         }),
       })
+    }
   }
 
   /**
@@ -201,6 +206,13 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
 
   public static override get syncDialect(): string {
     return 'mysql'
+  }
+
+  public static override codegenPassword(password: DreamDbConfig['password']): Promise<string> {
+    if (typeof password === 'function') {
+      throw new Error('MySQL does not support a password provider; configure a fixed password')
+    }
+    return Promise.resolve(password)
   }
 
   public static override supportsParallelTestDatabases = true

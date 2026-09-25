@@ -790,7 +790,17 @@ type UnicodeNormalizationForm = 'NFC' | 'NFD' | 'none'
 
 export interface DreamDbConfig {
   user: string
-  password: string
+  /**
+   * A fixed password, or a provider for Dream's built-in PostgreSQL driver.
+   * PostgreSQL calls the provider when the server requests password
+   * authentication for a new physical connection. The provider may return a
+   * string or a promise of one. Each such connection gets a fresh result;
+   * existing pooled connections keep their credential. A rejected provider
+   * fails that connection attempt and reaches its caller; Dream does not cache
+   * credentials or retry. Custom query drivers receive the configured value
+   * and must handle or reject a provider themselves.
+   */
+  password: string | (() => string | Promise<string>)
   host: string
   name: string
   port: number

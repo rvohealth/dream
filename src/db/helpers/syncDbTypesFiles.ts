@@ -17,18 +17,16 @@ export default async function syncDbTypesFiles(connectionName: string) {
   const dbSyncFilePath = path.join(dreamPath('types'), dbFilename)
   const absoluteDbSyncPath = path.join(dreamApp.projectRoot, dbSyncFilePath)
 
+  const password = await driverClass.codegenPassword(dbConf.password)
   await CliFileWriter.cache(absoluteDbSyncPath)
 
   const lowLevelDbOpts = dreamApp.dbCredentialsFor(connectionName)
 
-  // Argv form (R-015): the connection URL embeds the DB password, and passwords
-  // may legitimately contain shell meta-characters (`$`, backticks, spaces, etc.).
-  // DreamCLI.spawn always uses shell:false, so each arg is passed literally to
-  // the child rather than parsed by a shell — credentials are preserved and any
-  // future mutable source can't open a command-injection surface.
-  const userinfo = `${dbConf.user}${dbConf.password ? `:${dbConf.password}` : ''}`
+  // Pass the URL only in the child's environment. A URL in argv exposes the
+  // password in the process command line and DreamCLI's refused-spawn error.
+  const userinfo = `${encodeURIComponent(dbConf.user)}${password ? `:${encodeURIComponent(password)}` : ''}`
   const url = `${driverClass.syncDialect}://${userinfo}@${dbConf.host}:${dbConf.port}/${dbConf.name}`
-  const args = [`--dialect=${driverClass.syncDialect}`, `--url=${url}`]
+  const args = [`--dialect=${driverClass.syncDialect}`, '--url=env(DATABASE_URL)']
   if (lowLevelDbOpts?.tableIncludePattern) {
     args.push(`--include-pattern=${lowLevelDbOpts.tableIncludePattern}`)
   }
@@ -39,6 +37,7 @@ export default async function syncDbTypesFiles(connectionName: string) {
 
   await DreamCLI.spawn('kysely-codegen', {
     args,
+    env: { ...process.env, DATABASE_URL: url },
     onStdout: message => {
       DreamCLI.logger.logContinueProgress(colorize(`[db]`, { color: 'greenBright' }) + ' ' + message, {
         logPrefixColor: 'greenBright',

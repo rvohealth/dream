@@ -429,7 +429,12 @@ export default class PostgresQueryDriver<
       keepAlive: true,
       keepAliveInitialDelayMillis: LOCK_CONNECTION_KEEPALIVE_INITIAL_DELAY_MS,
     })
-    await client.connect()
+    try {
+      await client.connect()
+    } catch (err) {
+      await client.end().catch(() => undefined)
+      throw err
+    }
 
     return {
       async tryAcquire(namespace: string, index: number): Promise<boolean> {
