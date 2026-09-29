@@ -1,5 +1,12 @@
 # AGENTS.md - AI Agent Instructions
 
+## Node.js support
+
+Dream supports Node.js 24 and newer. Use Node.js 26 as the primary development,
+CI, build, and release runtime. Keep runtime compatibility checks on Node.js 24;
+the development `@types/node` version does not set the minimum supported
+runtime.
+
 This file provides instructions for AI agents working on this project.
 
 ## Starting New Work

@@ -1,3 +1,7 @@
+## 2.33.1
+
+- **Dream supports Node.js 24 and newer, with Node.js 26 as the primary runtime.** Compatibility tests continue to run on Node.js 24 while lint, build, and release workflows use Node.js 26. The development `@types/node` version is 26 and does not raise the runtime minimum.
+
 ## 2.33.0
 
 - **Dream's built-in PostgreSQL driver now accepts a password provider.** Set the connection's `password` field to a zero-argument function returning a string or a promise of one. PostgreSQL calls it when the server requests password authentication for each new physical connection, so newly opened pooled or direct clients can use a refreshed credential. Existing pooled clients are not reauthenticated. Provider failures reject the connection attempt and close the failed connection; Dream does not cache credentials or retry. Fixed-string passwords remain supported. Custom query drivers receive the configured value and must handle or reject a provider themselves.
