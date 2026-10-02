@@ -7,15 +7,14 @@ const deco = new Decorators<typeof CommitHookSortableModel>()
 
 /**
  * A sortable model with a hook in every after-hook and commit-hook family,
- * each recording the transaction argument it received, for specs to interpose
- * on. Exists to pin that on a self-opened sortable save the scope lock is
- * released at COMMIT — before any user after-hook runs — that the `*Commit`
- * families receive no transaction, and that a throwing after-hook leaves the
- * committed row in place. The afterDestroy hook records the scope's surviving
- * positions, pinning that the compaction runs before every user afterDestroy
- * hook — the hooks here are method decorators, which register ahead of any
- * field decorator's work, so a compaction seated among the hooks would run
- * after this one.
+ * each recording that it ran, for specs to interpose on. Exists to pin that on
+ * a self-opened sortable save the scope lock is released at COMMIT — before
+ * any user after-hook runs — that the `*Commit` families are called with no
+ * argument, and that a throwing after-hook leaves the committed row in place.
+ * The afterDestroy hook records the scope's surviving positions, pinning that
+ * the compaction runs before every user afterDestroy hook — the hooks here are
+ * method decorators, which register ahead of any field decorator's work, so a
+ * compaction seated among the hooks would run after this one.
  */
 export default class CommitHookSortableModel extends ApplicationModel {
   public override get table() {
@@ -30,13 +29,10 @@ export default class CommitHookSortableModel extends ApplicationModel {
   public position: DreamColumn<CommitHookSortableModel, 'position'>
 
   /**
-   * The transaction argument each hook invocation received, in invocation
-   * order. Specs that read it reset it first.
+   * The family of each hook invocation, in invocation order. Specs that read
+   * it reset it first.
    */
-  public static receivedHookCalls: {
-    hook: string
-    txn: DreamTransaction<any> | null | undefined
-  }[] = []
+  public static invokedHooks: string[] = []
 
   /**
    * The scope's positions as the afterDestroy hook below observed them, one
@@ -52,32 +48,32 @@ export default class CommitHookSortableModel extends ApplicationModel {
   }
 
   @deco.AfterSave()
-  public runsAfterSave(txn?: DreamTransaction<any> | null): Promise<void> | void {
-    CommitHookSortableModel.receivedHookCalls.push({ hook: 'afterSave', txn })
+  public runsAfterSave(): Promise<void> | void {
+    CommitHookSortableModel.invokedHooks.push('afterSave')
   }
 
   @deco.AfterCreate()
-  public runsAfterCreate(txn?: DreamTransaction<any> | null): Promise<void> | void {
-    CommitHookSortableModel.receivedHookCalls.push({ hook: 'afterCreate', txn })
+  public runsAfterCreate(): Promise<void> | void {
+    CommitHookSortableModel.invokedHooks.push('afterCreate')
   }
 
   @deco.AfterUpdate()
-  public runsAfterUpdate(txn?: DreamTransaction<any> | null): Promise<void> | void {
-    CommitHookSortableModel.receivedHookCalls.push({ hook: 'afterUpdate', txn })
+  public runsAfterUpdate(): Promise<void> | void {
+    CommitHookSortableModel.invokedHooks.push('afterUpdate')
   }
 
   @deco.AfterCreateCommit()
-  public runsAfterCreateCommit(txn?: DreamTransaction<any> | null): Promise<void> | void {
-    CommitHookSortableModel.receivedHookCalls.push({ hook: 'afterCreateCommit', txn })
+  public runsAfterCreateCommit(): Promise<void> | void {
+    CommitHookSortableModel.invokedHooks.push('afterCreateCommit')
   }
 
   @deco.AfterUpdateCommit()
-  public runsAfterUpdateCommit(txn?: DreamTransaction<any> | null): Promise<void> | void {
-    CommitHookSortableModel.receivedHookCalls.push({ hook: 'afterUpdateCommit', txn })
+  public runsAfterUpdateCommit(): Promise<void> | void {
+    CommitHookSortableModel.invokedHooks.push('afterUpdateCommit')
   }
 
   @deco.AfterSaveCommit()
-  public runsAfterSaveCommit(txn?: DreamTransaction<any> | null): Promise<void> | void {
-    CommitHookSortableModel.receivedHookCalls.push({ hook: 'afterSaveCommit', txn })
+  public runsAfterSaveCommit(): Promise<void> | void {
+    CommitHookSortableModel.invokedHooks.push('afterSaveCommit')
   }
 }

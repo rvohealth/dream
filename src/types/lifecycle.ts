@@ -18,6 +18,50 @@ export type CommitHookType =
   | 'afterUpdateCommit'
   | 'afterDestroyCommit'
 
+/**
+ * The decorator returned by `deco.AfterCreateCommit()`,
+ * `deco.AfterSaveCommit()`, `deco.AfterUpdateCommit()` and
+ * `deco.AfterDestroyCommit()`.
+ *
+ * Dream calls every commit hook with no argument: by the time it runs, the
+ * transaction has already committed, so there is no transaction to hand it.
+ * Decorating an instance method that declares a parameter — required,
+ * optional, defaulted or rest — is therefore a compile error.
+ *
+ * Other placements of the decorator (an arrow-function field, an `accessor`
+ * field, a getter, a static method) are not checked.
+ *
+ * A subclass that overrides a decorated commit hook without decorating the
+ * override is not checked either, so `override hook(txn?: ...)` compiles; at
+ * runtime the override is still called with no argument.
+ */
+export interface CommitHookDecorator {
+  <This, Method extends (...args: any[]) => unknown>(
+    value: This extends abstract new (...args: any[]) => unknown ? Method : CommitHookMethod<Method>,
+    context: ClassMethodDecoratorContext<This, Method>
+  ): void
+  (
+    value: any,
+    context:
+      | ClassFieldDecoratorContext<any, any>
+      | ClassGetterDecoratorContext<any, any>
+      | ClassSetterDecoratorContext<any, any>
+      | ClassAccessorDecoratorContext<any, any>
+      | ClassDecoratorContext<any>
+  ): void
+}
+
+/**
+ * A method a commit-hook decorator accepts: one that declares no parameter.
+ * Any other method resolves to a message naming the problem, which the
+ * decorated method is not assignable to.
+ */
+export type CommitHookMethod<Method> = Method extends (...args: infer Params) => unknown
+  ? Params extends []
+    ? Method
+    : 'a commit hook is called with no argument: remove its parameters'
+  : never
+
 export interface HookStatement {
   type: HookType
   className: string

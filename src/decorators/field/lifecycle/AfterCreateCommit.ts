@@ -1,5 +1,5 @@
 import Dream from '../../../Dream.js'
-import { AfterHookOpts, HookStatement } from '../../../types/lifecycle.js'
+import { AfterHookOpts, CommitHookDecorator, HookStatement } from '../../../types/lifecycle.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import { blankHooksFactory } from './shared.js'
 
@@ -11,6 +11,10 @@ import { blankHooksFactory } from './shared.js'
  * a transaction, the method will be run after the save
  * is complete.
  *
+ * The method is called with no argument: the transaction has already
+ * committed, so there is none to hand it. Decorating a method that
+ * declares a parameter is a compile error (see {@link CommitHookDecorator}).
+ *
  * class User extends ApplicationModel {
  *   @deco.AfterCreateCommit()
  *   public doSomething() {
@@ -21,12 +25,12 @@ import { blankHooksFactory } from './shared.js'
  * @param opts.ifChanged - Optional. A list of columns which should must change in order for this function to be called.
  */
 
-export default function AfterCreateCommit<T extends Dream>(opts: AfterHookOpts<T> = {}): any {
+export default function AfterCreateCommit<T extends Dream>(opts: AfterHookOpts<T> = {}): CommitHookDecorator {
   return function (_: any, context: DecoratorContext) {
     context.addInitializer(function (this: T) {
       afterCreateCommitImplementation(this, context.name, opts)
     })
-  }
+  } as CommitHookDecorator
 }
 
 export function afterCreateCommitImplementation<T extends Dream>(

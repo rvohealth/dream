@@ -1,7 +1,7 @@
 import { Transaction } from 'kysely'
 import Dream from '../Dream.js'
 import { HookStatement } from '../types/lifecycle.js'
-import { runHook } from './internal/runHooksFor.js'
+import { runCommitHook } from './internal/runHooksFor.js'
 
 export interface TransactionCommitHookStatement {
   hookStatement: HookStatement
@@ -28,9 +28,15 @@ export default class DreamTransaction<T extends Dream, DB extends T['DB'] = T['D
     this.commitHooks.push({ dreamInstance, hookStatement })
   }
 
-  public async runAfterCommitHooks(txn: DreamTransaction<any>) {
+  /**
+   * Runs the commit hooks queued during the transaction, in the order they
+   * were queued. A query driver calls this once the transaction has
+   * committed. Each hook is called with no argument, since the transaction
+   * it would otherwise receive can no longer run queries.
+   */
+  public async runAfterCommitHooks() {
     for (const hook of this.commitHooks) {
-      await runHook(hook.hookStatement, hook.dreamInstance, txn)
+      await runCommitHook(hook.hookStatement, hook.dreamInstance)
     }
   }
 }

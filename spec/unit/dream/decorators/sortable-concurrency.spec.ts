@@ -595,23 +595,25 @@ describe('@Sortable concurrency', () => {
       expect(competingCreateSettled).toBe(true)
     }, 15000)
 
-    it('invokes the *Commit hook families with no transaction — never a committed one', async () => {
-      CommitHookSortableModel.receivedHookCalls = []
+    it('invokes the *Commit hook families with no argument', async () => {
+      CommitHookSortableModel.invokedHooks = []
+      const createCommitSpy = vi.spyOn(CommitHookSortableModel.prototype, 'runsAfterCreateCommit')
+      const updateCommitSpy = vi.spyOn(CommitHookSortableModel.prototype, 'runsAfterUpdateCommit')
+      const saveCommitSpy = vi.spyOn(CommitHookSortableModel.prototype, 'runsAfterSaveCommit')
 
       const model = await CommitHookSortableModel.create()
       await UnscopedSortableModel.create()
       await model.update({ position: 2 })
 
-      const commitHookCalls = CommitHookSortableModel.receivedHookCalls.filter(call =>
-        /Commit$/.test(call.hook)
-      )
-      expect(commitHookCalls.map(call => call.hook)).toEqual([
+      expect(CommitHookSortableModel.invokedHooks.filter(hook => /Commit$/.test(hook))).toEqual([
         'afterCreateCommit',
         'afterSaveCommit',
         'afterUpdateCommit',
         'afterSaveCommit',
       ])
-      commitHookCalls.forEach(call => expect(call.txn ?? null).toBeNull())
+      expect(createCommitSpy.mock.calls).toStrictEqual([[]])
+      expect(updateCommitSpy.mock.calls).toStrictEqual([[]])
+      expect(saveCommitSpy.mock.calls).toStrictEqual([[], []])
     })
 
     it('leaves the created row committed when an afterCreate hook throws', async () => {

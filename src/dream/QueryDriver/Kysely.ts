@@ -522,7 +522,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         )) as RetType
       })
 
-    await dreamTransaction.runAfterCommitHooks(dreamTransaction)
+    await dreamTransaction.runAfterCommitHooks()
 
     return callbackResponse
   }
