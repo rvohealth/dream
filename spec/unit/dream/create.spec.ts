@@ -458,9 +458,26 @@ context.skip('type tests', () => {
         )
       })
 
-      it('hydrates the database-computed value onto the instance after save', async () => {
-        const model = await ModelWithParamSafeAndUnsafeColumns.create({ column1: 'hello' })
+      it('reports a database-computed value as a saved change, not an unsaved change', async () => {
+        const model = ModelWithParamSafeAndUnsafeColumns.new({ column1: 'hello' })
+
+        expect(model.column2).toBeUndefined()
+        expect(model.willSaveChangeToAttribute('column2')).toBe(false)
+        expect(model.dirtyAttributes()).not.toHaveProperty('column2')
+        expect(model.changedAttributes()).not.toHaveProperty('column2')
+        expect(model.changes()).not.toHaveProperty('column2')
+        expect(model.savedChangeToAttribute('column2')).toBe(false)
+
+        await model.save()
+
         expect(model.column2).toEqual('db-computed')
+        expect(model.previousValueForAttribute('column2')).toBeUndefined()
+        expect(model.changes()).toHaveProperty('column2', { was: undefined, now: 'db-computed' })
+        expect(model.savedChangeToAttribute('column2')).toBe(true)
+        expect(model.willSaveChangeToAttribute('column2')).toBe(false)
+        expect(model.dirtyAttributes()).not.toHaveProperty('column2')
+        expect(model.changedAttributes()).not.toHaveProperty('column2')
+        expect(model.isDirty).toBe(false)
       })
     })
   })
