@@ -3601,7 +3601,7 @@ export default class Dream {
    *
    * On a record that has not been persisted, every
    * column counts as changed: the object has a key
-   * for every column, each with the value `undefined`.
+   * for every column.
    *
    * ```ts
    *  const user = User.new({ email: 'original@email', password: 'howyadoin' })
