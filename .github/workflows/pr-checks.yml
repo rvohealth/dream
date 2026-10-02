@@ -26,7 +26,7 @@ jobs:
     name: Cooldown exclude allowlist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: minimumReleaseAgeExclude must be @rvoh/* only
         run: |
           # SECURITY: the minimumReleaseAge cooldown bypass list must stay @rvoh/*
@@ -127,7 +127,7 @@ jobs:
       COLUMN_ENCRYPTION_KEY: ${{ vars.APP_ENCRYPTION_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
@@ -149,7 +149,7 @@ jobs:
     env:
       NODE_ENV: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: "26"
@@ -170,7 +170,7 @@ jobs:
     env:
       NODE_ENV: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: "26"
@@ -258,7 +258,7 @@ jobs:
       COLUMN_ENCRYPTION_KEY: ${{ vars.APP_ENCRYPTION_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
