@@ -54,10 +54,12 @@ export interface CommitHookDecorator {
 /**
  * A method a commit-hook decorator accepts: one that declares no parameter.
  * Any other method resolves to a message naming the problem, which the
- * decorated method is not assignable to.
+ * decorated method is not assignable to. The parameter tuple is compared
+ * whole, so a rest parameter typed as a union such as `[] | [X]` is rejected
+ * too.
  */
 export type CommitHookMethod<Method> = Method extends (...args: infer Params) => unknown
-  ? Params extends []
+  ? [Params] extends [[]]
     ? Method
     : 'a commit hook is called with no argument: remove its parameters'
   : never

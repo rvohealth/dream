@@ -155,6 +155,12 @@ context.skip('type tests', () => {
       public restParameter(...args: unknown[]) {
         void args
       }
+
+      // @ts-expect-error a commit hook is called with no argument, so it cannot declare a parameter
+      @deco.AfterDestroyCommit()
+      public unionRestParameter(...args: [] | [DreamTransaction<any>]) {
+        void args
+      }
     }
     void CompositionAssetWithParameterizedHooks
   })
