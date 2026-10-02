@@ -26,7 +26,8 @@ export const MAX_CONCURRENT_WRITER_ATTEMPTS = 3
  * rows mid-statement as well. Either way the database has undone the whole
  * transaction, nothing has committed and no commit hook has run, so running
  * the operation again reads the rows as the other writer left them. The last
- * attempt's error is the adapter's own.
+ * attempt's error is the adapter's own. An error raised after COMMIT, such as a
+ * commit hook's, is never retried.
  *
  * A unique violation raised by a statement inside the callback is not a
  * collision but a write that violates a constraint outright, and is not
@@ -56,15 +57,19 @@ export default async function withConcurrentWriterRetry<R>(
   )
 
   for (let attempt = 1; ; attempt++) {
+    let attemptTransaction = null as DreamTransaction<any> | null
     let callbackResolved = false
 
     try {
       return await dreamClass.transaction(async txn => {
+        attemptTransaction = txn
         const result = await callback(txn)
         callbackResolved = true
         return result
       })
     } catch (error) {
+      if (attemptTransaction?.['committed']) throw error
+
       const undoneByConcurrentWriter =
         queryDriverClass.isDeadlock(error) ||
         (callbackResolved && queryDriverClass.isUniqueConstraintViolation(error))

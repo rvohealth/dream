@@ -16,6 +16,11 @@ export default class DreamTransaction<T extends Dream, DB extends T['DB'] = T['D
   private _kyselyTransaction: Transaction<DB>
   private commitHooks: TransactionCommitHookStatement[] = []
 
+  // Set when the query driver starts the commit hooks, which it does only once
+  // the transaction has committed. `withConcurrentWriterRetry` reads it to
+  // never run a committed operation again.
+  private committed = false
+
   public get kyselyTransaction() {
     return this._kyselyTransaction
   }
@@ -35,6 +40,8 @@ export default class DreamTransaction<T extends Dream, DB extends T['DB'] = T['D
    * it would otherwise receive can no longer run queries.
    */
   public async runAfterCommitHooks() {
+    this.committed = true
+
     for (const hook of this.commitHooks) {
       await runCommitHook(hook.hookStatement, hook.dreamInstance)
     }

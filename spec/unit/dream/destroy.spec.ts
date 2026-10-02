@@ -10,6 +10,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import CircularReferenceModel from '../../../test-app/app/models/CircularReferenceModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
 import Pet from '../../../test-app/app/models/Pet.js'
@@ -485,6 +486,25 @@ describe('Dream#destroy', () => {
 
       expect(beforeFailureCount).toEqual(0)
       expect(await User.count()).toEqual(1)
+    })
+  })
+
+  context('an after-destroy-commit hook fails with a unique violation', () => {
+    it('rejects with the hook’s error and does not run the committed destroy again', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user })
+      const compositionAsset = await CompositionAsset.create({ composition })
+      const beforeDestroySpy = vi.spyOn(CompositionAsset.prototype, 'updateCompositionContentBeforeDestroy')
+      vi.spyOn(CompositionAsset.prototype, 'updateCompositionContentAfterDestroyCommit').mockImplementation(
+        async () => {
+          await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        }
+      )
+
+      await expect(compositionAsset.destroy()).rejects.toThrow(/duplicate key value/)
+
+      expect(beforeDestroySpy).toHaveBeenCalledOnce()
+      expect(await CompositionAsset.find(compositionAsset.id)).toBeNull()
     })
   })
 })

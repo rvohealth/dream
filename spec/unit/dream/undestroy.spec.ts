@@ -1,3 +1,4 @@
+import pg from 'pg'
 import CannotCallUndestroyOnANonSoftDeleteModel from '../../../src/errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Collar from '../../../test-app/app/models/Collar.js'
@@ -194,6 +195,25 @@ describe('Dream#undestroy', () => {
 
       expect(await PostComment.count()).toEqual(0)
       expect(await PostComment.removeAllDefaultScopes().count()).toEqual(1)
+    })
+  })
+
+  context('an after-update-commit hook fails with a deadlock', () => {
+    it('rejects with the hook’s error and does not run the committed undestroy again', async () => {
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      const post = await Post.create({ user, body: 'hello world' })
+      const comment = await PostComment.create({ post })
+      await comment.destroy()
+
+      const deadlock = new pg.DatabaseError('deadlock detected', 0, 'error')
+      deadlock.code = '40P01'
+      const beforeUpdateSpy = vi.spyOn(PostComment.prototype, 'beforeUpdateHook')
+      vi.spyOn(PostComment.prototype, 'afterUpdateCommitHook').mockRejectedValue(deadlock)
+
+      await expect(comment.undestroy()).rejects.toBe(deadlock)
+
+      expect(beforeUpdateSpy).toHaveBeenCalledOnce()
+      expect(await PostComment.find(comment.id)).toMatchDreamModel(comment)
     })
   })
 

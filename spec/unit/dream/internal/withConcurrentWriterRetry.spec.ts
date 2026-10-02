@@ -5,6 +5,7 @@ import withConcurrentWriterRetry, {
 import PostgresQueryDriver from '../../../../src/dream/QueryDriver/Postgres.js'
 import SortableCascadeChild from '../../../../test-app/app/models/SortableCascadeChild.js'
 import SortableCascadeOwner from '../../../../test-app/app/models/SortableCascadeOwner.js'
+import User from '../../../../test-app/app/models/User.js'
 
 describe('withConcurrentWriterRetry', () => {
   let ownerId: SortableCascadeOwner['id']
@@ -63,6 +64,21 @@ describe('withConcurrentWriterRetry', () => {
     ).rejects.toThrow('raised by the callback')
 
     expect(attempts).toEqual(1)
+  })
+
+  it('does not run the callback again when a statement inside it raises a unique violation', async () => {
+    let attempts = 0
+
+    await expect(
+      withConcurrentWriterRetry(SortableCascadeChild, async txn => {
+        attempts++
+        await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+        await User.txn(txn).create({ email: 'fred@frewd', password: 'howyadoin' })
+      })
+    ).rejects.toThrow(/duplicate key value/)
+
+    expect(attempts).toEqual(1)
+    expect(await User.count()).toEqual(0)
   })
 
   it('lets the refusal escape once every attempt has failed', async () => {
