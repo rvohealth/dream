@@ -2885,8 +2885,8 @@ export default class Dream {
   /**
    * Returns true if any of the attributes on the instance
    * have changed since it was last pulled from the database.
-   * It will also return true if the instance is not yet
-   * persisted.
+   * On an unpersisted instance, it returns true when at least
+   * one column has a value other than `undefined`.
    *
    * ```ts
    * const post = Post.new({ body: 'howyadoin' })
@@ -3599,9 +3599,8 @@ export default class Dream {
    * being persisted to the database, with the values
    * that were last persisted to the database.
    *
-   * On a record that has not been persisted, every
-   * column counts as changed: the object has a key
-   * for every column.
+   * On a record that has not been persisted, only columns
+   * with values other than `undefined` count as changed.
    *
    * ```ts
    *  const user = User.new({ email: 'original@email', password: 'howyadoin' })
@@ -3762,9 +3761,9 @@ export default class Dream {
    * Returns true if the columnName provided has
    * changes that have not yet been persisted.
    *
-   * On a record that has not been persisted, every
-   * column counts as changed, so this returns true
-   * for every column, whether or not it was assigned.
+   * On a record that has not been persisted, this returns
+   * true only for a column with a value other than `undefined`.
+   * An explicit `null` counts as a change.
    *
    * @param attribute - the column name to check
    * @returns A boolean
@@ -3792,15 +3791,14 @@ export default class Dream {
    * of columns that have changed since last persist,
    * and their current values.
    *
-   * On a record that has not been persisted, every
-   * column counts as changed: the object has a key
-   * for every column, including those never assigned,
-   * whose value is `undefined`.
+   * On a record that has not been persisted, the object
+   * contains only columns with values other than `undefined`.
+   * An explicit `null` is included.
    *
    * ```ts
    *  const user = User.new({ email: 'hello@world' })
    *  user.dirtyAttributes()
-   *  // { id: undefined, email: 'hello@world', name: undefined, ...every other column: undefined }
+   *  // { email: 'hello@world' }
    *
    *  await user.save()
    *
@@ -3842,7 +3840,7 @@ export default class Dream {
    * @returns A boolean
    */
   private attributeIsDirty<I extends Dream>(this: I, attribute: DreamColumnNames<I>): boolean {
-    if (this.isNewRecord) return true
+    if (this.isNewRecord) return this.getAttribute(attribute) !== undefined
     return !areEqual((this.frozenAttributes as any)[attribute], this.getAttribute(attribute))
   }
 

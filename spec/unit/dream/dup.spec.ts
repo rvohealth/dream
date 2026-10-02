@@ -28,6 +28,17 @@ describe('Dream#dup', () => {
     }).toEqual(user2.getAttributes())
   })
 
+  it('inserts copied values when a duplicate is saved', async () => {
+    const user = User.new({ email: 'original@example.com', name: 'Copied name', password: 'howyadoin' })
+    const copy = user.dup()
+
+    await copy.save()
+
+    const savedCopy = await User.findOrFail(copy.id)
+    expect(savedCopy.email).toEqual('original@example.com')
+    expect(savedCopy.name).toEqual('Copied name')
+  })
+
   context('miscellaneous attributes', () => {
     it('copies miscellaneous deeply nested objects to the copy', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
