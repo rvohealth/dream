@@ -1,3 +1,5 @@
+import Decorators from '../../../../src/decorators/Decorators.js'
+import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../../test-app/app/models/Balloon/Mylar.js'
@@ -18,6 +20,14 @@ describe('Dream AfterSaveCommit decorator', () => {
       expect(composition.content).toEqual('changed after save commit')
     })
 
+    it('calls the hook with no argument', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const spy = vi.spyOn(Composition.prototype, 'conditionallyChangeContentOnSaveCommit')
+      await Composition.create({ user })
+
+      expect(spy).toHaveBeenCalledExactlyOnceWith()
+    })
+
     context('the entire statement is wrapped in a transaction', () => {
       it('runs commit hooks after transaction commits', async () => {
         let composition: Composition | null = null
@@ -30,6 +40,14 @@ describe('Dream AfterSaveCommit decorator', () => {
           })
         })
         expect(composition!.content).toEqual('changed after save commit')
+      })
+
+      it('calls the hook with no argument', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const spy = vi.spyOn(Composition.prototype, 'conditionallyChangeContentOnSaveCommit')
+        await ApplicationModel.transaction(async txn => await Composition.txn(txn).create({ user }))
+
+        expect(spy).toHaveBeenCalledExactlyOnceWith()
       })
     })
   })
@@ -47,6 +65,15 @@ describe('Dream AfterSaveCommit decorator', () => {
       expect(composition.content).toEqual('changed after save commit')
     })
 
+    it('calls the hook with no argument', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ user })
+      const spy = vi.spyOn(Composition.prototype, 'conditionallyChangeContentOnSaveCommit')
+      await composition.update({ content: 'updated' })
+
+      expect(spy).toHaveBeenCalledExactlyOnceWith()
+    })
+
     context('the entire statement is wrapped in a transaction', () => {
       it('runs commit hooks after transaction commits', async () => {
         let composition: Composition | null = null
@@ -59,6 +86,17 @@ describe('Dream AfterSaveCommit decorator', () => {
           })
         })
         expect(composition!.content).toEqual('changed after save commit')
+      })
+
+      it('calls the hook with no argument', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await Composition.create({ user })
+        const spy = vi.spyOn(Composition.prototype, 'conditionallyChangeContentOnSaveCommit')
+        await ApplicationModel.transaction(
+          async txn => await composition.txn(txn).update({ content: 'updated' })
+        )
+
+        expect(spy).toHaveBeenCalledExactlyOnceWith()
       })
     })
   })
@@ -73,19 +111,19 @@ describe('Dream AfterSaveCommit decorator', () => {
     })
 
     context('one of the attributes specified in the "ifChanged" clause is changing', () => {
-      it('calls hook', async () => {
+      it('calls the hook with no argument', async () => {
         const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
         await sandbag.update({ weight: 11 })
 
-        expect(spy).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalledExactlyOnceWith()
       })
 
       context('in a transaction', () => {
-        it('calls hook', async () => {
+        it('calls the hook with no argument', async () => {
           const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveCommitHook')
           await ApplicationModel.transaction(async txn => await sandbag.txn(txn).update({ weight: 11 }))
 
-          expect(spy).toHaveBeenCalled()
+          expect(spy).toHaveBeenCalledExactlyOnceWith()
         })
       })
     })
@@ -132,5 +170,104 @@ describe('Dream AfterSaveCommit decorator', () => {
         })
       }
     )
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('rejects an AfterSaveCommit method that declares a parameter', () => {
+    const deco = new Decorators<typeof CompositionWithParameterizedHooks>()
+    class CompositionWithParameterizedHooks extends Composition {
+      // @ts-expect-error a commit hook is called with no argument, so it cannot declare a parameter
+      @deco.AfterSaveCommit()
+      public requiredParameter(txn: DreamTransaction<any>) {
+        void txn
+      }
+
+      // @ts-expect-error a commit hook is called with no argument, so it cannot declare a parameter
+      @deco.AfterSaveCommit()
+      public optionalParameter(txn?: DreamTransaction<any>) {
+        void txn
+      }
+
+      // @ts-expect-error a commit hook is called with no argument, so it cannot declare a parameter
+      @deco.AfterSaveCommit()
+      public defaultedParameter(txn: DreamTransaction<any> | null = null) {
+        void txn
+      }
+
+      // @ts-expect-error a commit hook is called with no argument, so it cannot declare a parameter
+      @deco.AfterSaveCommit()
+      public restParameter(...args: unknown[]) {
+        void args
+      }
+
+      // @ts-expect-error a commit hook is called with no argument, so it cannot declare a parameter
+      @deco.AfterSaveCommit()
+      public unionRestParameter(...args: [] | [DreamTransaction<any>]) {
+        void args
+      }
+    }
+    void CompositionWithParameterizedHooks
+  })
+
+  it('rejects an ifChanged that names a non-column', () => {
+    const deco = new Decorators<typeof CompositionWithBadIfChanged>()
+    class CompositionWithBadIfChanged extends Composition {
+      // @ts-expect-error ifChanged accepts only the model's columns
+      @deco.AfterSaveCommit({ ifChanged: ['notAColumn'] })
+      public hook() {}
+    }
+    void CompositionWithBadIfChanged
+  })
+
+  it('accepts an AfterSaveCommit method that declares no parameter', () => {
+    const deco = new Decorators<typeof CompositionWithCommitHooks>()
+    class CompositionWithCommitHooks extends Composition {
+      @deco.AfterSaveCommit()
+      public noParameter() {}
+
+      @deco.AfterSaveCommit()
+      public async asyncHook() {
+        await Promise.resolve()
+      }
+
+      @deco.AfterSaveCommit()
+      public thisTyped(this: CompositionWithCommitHooks) {
+        void this.content
+      }
+
+      @deco.AfterSaveCommit({ ifChanged: ['content'] })
+      public withIfChanged() {}
+    }
+    void CompositionWithCommitHooks
+  })
+
+  it('leaves AfterSaveCommit on a placement other than an instance method unchecked', () => {
+    const deco = new Decorators<typeof CompositionWithOtherPlacements>()
+    class CompositionWithOtherPlacements extends Composition {
+      @deco.AfterSaveCommit()
+      public arrowField = (txn?: DreamTransaction<any>) => {
+        void txn
+      }
+
+      @deco.AfterSaveCommit()
+      public accessor accessorField = (txn?: DreamTransaction<any>) => {
+        void txn
+      }
+
+      @deco.AfterSaveCommit()
+      public get getter() {
+        return (txn: DreamTransaction<any>) => {
+          void txn
+        }
+      }
+
+      @deco.AfterSaveCommit()
+      public static staticMethod(txn: DreamTransaction<any>) {
+        void txn
+      }
+    }
+    void CompositionWithOtherPlacements
   })
 })

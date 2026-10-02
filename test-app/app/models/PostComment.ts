@@ -24,4 +24,18 @@ export default class PostComment extends ApplicationModel {
 
   @deco.BelongsTo('Post', { on: 'postId', withoutDefaultScopes: ['dream:SoftDelete'] })
   public postEvenIfDeleted: Post
+
+  /**
+   * Hooks that do nothing, for specs to spy on: destroying a comment fires
+   * the after-destroy-commit hook, and undestroying one fires the
+   * before-update and after-update-commit hooks.
+   */
+  @deco.AfterDestroyCommit()
+  public afterDestroyCommitHook() {}
+
+  @deco.BeforeUpdate()
+  public beforeUpdateHook() {}
+
+  @deco.AfterUpdateCommit()
+  public afterUpdateCommitHook() {}
 }

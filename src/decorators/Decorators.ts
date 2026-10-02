@@ -652,6 +652,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
+   * The decorated method is called with no argument, once the
+   * transaction has committed, so declaring a parameter on it is a
+   * compile error. A subclass override of the method that is not itself
+   * decorated is not checked; it is still called with no argument.
+   *
    * @returns The AfterCreateCommit decorator
    */
   public AfterCreateCommit(this: Decorators<TD>, opts?: AfterHookOpts<T>) {
@@ -688,6 +693,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *   }
    * }
    * ```
+   *
+   * The decorated method is called with no argument, once the
+   * transaction has committed, so declaring a parameter on it is a
+   * compile error. A subclass override of the method that is not itself
+   * decorated is not checked; it is still called with no argument.
    *
    * @returns The AfterSaveCommit decorator
    *
@@ -727,6 +737,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
+   * The decorated method is called with no argument, once the
+   * transaction has committed, so declaring a parameter on it is a
+   * compile error. A subclass override of the method that is not itself
+   * decorated is not checked; it is still called with no argument.
+   *
    * @returns The AfterUpdateCommit decorator
    *
    */
@@ -764,6 +779,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *   }
    * }
    * ```
+   *
+   * The decorated method is called with no argument, once the
+   * transaction has committed, so declaring a parameter on it is a
+   * compile error. A subclass override of the method that is not itself
+   * decorated is not checked; it is still called with no argument.
    *
    * @returns The AfterDestroyCommit decorator
    *

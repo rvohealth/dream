@@ -49,7 +49,7 @@ export default async function runHooksFor<T extends Dream>(
         case 'afterCreateCommit':
           if (shouldRunAfterCreateHook(dream, hook, beforeSaveChanges)) {
             if (txn) txn.addCommitHook(hook, dream)
-            else await runHook(hook, dream, null)
+            else await runCommitHook(hook, dream)
           }
           break
 
@@ -68,7 +68,7 @@ export default async function runHooksFor<T extends Dream>(
             (!alreadyPersisted && shouldRunAfterCreateHook(dream, hook, beforeSaveChanges))
           ) {
             if (txn) txn.addCommitHook(hook, dream)
-            else await runHook(hook, dream, null)
+            else await runCommitHook(hook, dream)
           }
           break
 
@@ -81,7 +81,7 @@ export default async function runHooksFor<T extends Dream>(
         case 'afterUpdateCommit':
           if (shouldRunAfterUpdateHook(dream, hook)) {
             if (txn) txn.addCommitHook(hook, dream)
-            else await runHook(hook, dream, null)
+            else await runCommitHook(hook, dream)
           }
 
           break
@@ -96,7 +96,7 @@ export default async function runHooksFor<T extends Dream>(
         case 'afterUpdateCommit':
         case 'afterDestroyCommit':
           if (txn) txn.addCommitHook(hook, dream)
-          else await runHook(hook, dream, null)
+          else await runCommitHook(hook, dream)
           break
 
         default:
@@ -111,6 +111,20 @@ export async function runHook<T extends Dream>(
   dream: T,
   txn: DreamTransaction<any> | null
 ) {
+  assertHookMethodExists(statement, dream)
+  await (dream as any)[statement.method](txn)
+}
+
+/**
+ * Commit hooks run after the transaction has committed, so they are called
+ * with no argument.
+ */
+export async function runCommitHook<T extends Dream>(statement: HookStatement, dream: T) {
+  assertHookMethodExists(statement, dream)
+  await (dream as any)[statement.method]()
+}
+
+function assertHookMethodExists(statement: HookStatement, dream: Dream) {
   if (typeof (dream as any)[statement.method] !== 'function') {
     throw new Error(
       `
@@ -121,7 +135,6 @@ Please make sure "${statement.method}" is defined on ${dream['sanitizedConstruct
 `
     )
   }
-  await (dream as any)[statement.method](txn)
 }
 
 function shouldRunBeforeCreateHook(dream: Dream, statement: HookStatement): boolean {

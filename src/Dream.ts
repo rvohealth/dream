@@ -3599,6 +3599,10 @@ export default class Dream {
    * being persisted to the database, with the values
    * that were last persisted to the database.
    *
+   * On a record that has not been persisted, every
+   * column counts as changed: the object has a key
+   * for every column.
+   *
    * ```ts
    *  const user = User.new({ email: 'original@email', password: 'howyadoin' })
    *  await user.save()
@@ -3758,6 +3762,10 @@ export default class Dream {
    * Returns true if the columnName provided has
    * changes that have not yet been persisted.
    *
+   * On a record that has not been persisted, every
+   * column counts as changed, so this returns true
+   * for every column, whether or not it was assigned.
+   *
    * @param attribute - the column name to check
    * @returns A boolean
    */
@@ -3784,10 +3792,15 @@ export default class Dream {
    * of columns that have changed since last persist,
    * and their current values.
    *
+   * On a record that has not been persisted, every
+   * column counts as changed: the object has a key
+   * for every column, including those never assigned,
+   * whose value is `undefined`.
+   *
    * ```ts
    *  const user = User.new({ email: 'hello@world' })
    *  user.dirtyAttributes()
-   *  // { email: 'hello@world' }
+   *  // { id: undefined, email: 'hello@world', name: undefined, ...every other column: undefined }
    *
    *  await user.save()
    *
