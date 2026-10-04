@@ -17,12 +17,13 @@ describe('Dream#changedAttributes', () => {
     }
   )
 
-  it('lists every column on a record that has not been persisted, whether built with new or dup', () => {
-    const user = User.new({ email: 'ham@', password: 'howyadoin' })
+  it('lists only assigned columns on a new record and preserves copied columns on dup', () => {
+    const user = User.new({ email: 'ham@' })
     const copy = user.dup()
 
-    expect(Object.keys(user.changedAttributes()).sort()).toEqual([...User.columns()].sort())
-    expect(Object.keys(copy.changedAttributes()).sort()).toEqual([...User.columns()].sort())
+    expect(user.changedAttributes()).toEqual({ email: undefined })
+    expect(Object.keys(copy.changedAttributes())).toEqual(['email'])
+    expect(User.new().changedAttributes()).toEqual({})
   })
 
   it('uses marshaled versions of database values for comparison', async () => {

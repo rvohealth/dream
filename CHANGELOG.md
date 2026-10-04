@@ -1,3 +1,7 @@
+## 2.35.0
+
+- **New records report only assigned columns as dirty.** `willSaveChangeToAttribute()`, `dirtyAttributes()`, and `changedAttributes()` now omit columns whose value is `undefined`; an explicit `null` still counts as a change. A new record with no assigned columns now has `isDirty === false`. Duplicated records still count their copied values as dirty so those values are included on insert. This also corrects the public documentation for these methods.
+
 ## 2.34.0
 
 - **Dream supports Node.js 24 and newer, with Node.js 26 as the primary runtime.** Compatibility tests continue to run on Node.js 24 while lint, build, and release workflows use Node.js 26. The development `@types/node` version is 26 and does not raise the runtime minimum.

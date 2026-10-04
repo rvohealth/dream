@@ -127,8 +127,11 @@ describe('Dream#isDirty', () => {
   })
 
   context('with a blank record', () => {
-    it('considers record to be dirty, even though no new attributes are being set explicitly', () => {
+    it('considers a record clean until an attribute is assigned', () => {
       const user = User.new()
+      expect(user.isDirty).toEqual(false)
+
+      user.name = null
       expect(user.isDirty).toEqual(true)
     })
   })
