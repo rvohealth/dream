@@ -1,5 +1,5 @@
 export { type DecoratorContext } from '../decorators/DecoratorContextType.js'
-export { type EncryptAlgorithm, type EncryptOptions } from '../encrypt/index.js'
+export { type DecryptCallbacks, type EncryptAlgorithm, type EncryptOptions } from '../encrypt/index.js'
 export { type RoundingPrecision } from '../helpers/round.js'
 export { type Camelized, type Hyphenized, type Pascalized, type Snakeified } from '../helpers/stringCasing.js'
 export { type SerializerRendererOpts } from '../serializer/SerializerRenderer.js'
@@ -50,6 +50,7 @@ export {
   type DreamLogger,
   type DreamLogLevel,
   type DreamDbConfig,
+  type EncryptionLegacyKeyUsedEvent,
 } from '../dream-app/index.js'
 
 export {

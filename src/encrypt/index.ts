@@ -43,6 +43,22 @@ export default class Encrypt {
    *
    * `MissingEncryptionKey` propagates from either form when a key is missing.
    *
+   * **`onLegacyKeyUsed`** (optional fourth argument): during a key rotation,
+   * tells you which values still need the legacy key. It is called with no
+   * arguments, synchronously, before a three-arg call returns a value that
+   * the legacy key opened. It is not called when the current key opens the
+   * value, when decryption throws, or in the two-arg form. An error it
+   * throws propagates from `decrypt` as is.
+   *
+   * ```ts
+   * const value = Encrypt.decrypt<string>(
+   *   encrypted,
+   *   { algorithm: 'aes-256-gcm', key: newKey },
+   *   { algorithm: 'aes-256-gcm', key: oldKey },
+   *   { onLegacyKeyUsed: () => console.warn('this value is still encrypted with the old key') }
+   * )
+   * ```
+   *
    * @throws MissingEncryptionKey
    * @throws DecryptionError
    * @throws DecryptionParseError
@@ -51,9 +67,11 @@ export default class Encrypt {
   public static decrypt<RetType>(
     encrypted: string,
     { algorithm, key }: DecryptOptions,
-    legacyOpts?: DecryptOptions
+    legacyOpts?: DecryptOptions,
+    { onLegacyKeyUsed }: DecryptCallbacks = {}
   ): RetType | null {
-    if (legacyOpts) return this.attemptDecryptionWithLegacyKeys(encrypted, { algorithm, key }, legacyOpts)
+    if (legacyOpts)
+      return this.attemptDecryptionWithLegacyKeys(encrypted, { algorithm, key }, legacyOpts, onLegacyKeyUsed)
 
     if (!key) throw new MissingEncryptionKey()
     if ([null, undefined].includes(encrypted as unknown as null)) return null
@@ -75,7 +93,8 @@ export default class Encrypt {
   private static attemptDecryptionWithLegacyKeys<RetType>(
     encrypted: string,
     currentOpts: DecryptOptions,
-    legacyOpts: DecryptOptions
+    legacyOpts: DecryptOptions,
+    onLegacyKeyUsed: (() => void) | undefined
   ): RetType | null {
     let currentKeyError: DecryptionError
     try {
@@ -85,12 +104,18 @@ export default class Encrypt {
       currentKeyError = err
     }
 
+    let decrypted: RetType | null
     try {
-      return this.decrypt<RetType>(encrypted, legacyOpts)
+      decrypted = this.decrypt<RetType>(encrypted, legacyOpts)
     } catch (err) {
       if (!(err instanceof DecryptionError)) throw err
       throw new DecryptionRotationError(currentKeyError, err)
     }
+
+    // called outside the try above, so an error the callback throws is never
+    // mistaken for the legacy key failing
+    onLegacyKeyUsed?.()
+    return decrypted
   }
 
   /**
@@ -109,10 +134,23 @@ export default class Encrypt {
    *    to decrypt via `legacy` fallback.
    * 4. For cookies, wait at least the cookie `maxAge` so all in-flight
    *    cookies have either expired or been re-issued under the new key. For
-   *    `@Encrypted` columns, re-encrypt every existing row under the new
-   *    key (read each row and write it back; the setter re-encrypts with
-   *    `current`).
+   *    `@Encrypted` columns, re-encrypt every existing row under the new key
+   *    with a migration that calls `DreamMigrationHelpers.reencryptColumn`
+   *    for each encrypted column. Run it only once every server runs with the
+   *    new `current`: a server still on the old `current` keeps writing
+   *    old-key values that the helper's single pass over the table can miss.
+   *    Writing old-key ciphertext straight into a backing column
+   *    (`setAttribute`, `setAttributes` or `updateAttributes` given the
+   *    backing column) after the helper has run also puts an old-key value
+   *    back.
    * 5. Drop `legacy` from config and deploy again.
+   *
+   * To see which values still need the old key while `legacy` is
+   * configured, register `dreamApp.on('encryption:legacy-key-used', ...)`,
+   * which fires each time reading an `@Encrypted` property needed `legacy`
+   * to open the value, or pass `onLegacyKeyUsed` to {@link Encrypt.decrypt}
+   * for values you decrypt yourself. A value nobody reads never fires
+   * either, so silence alone does not show that `legacy` is safe to drop.
    *
    * ## When to rotate
    *
@@ -172,6 +210,16 @@ export interface EncryptOptions extends BaseOptions {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DecryptOptions extends BaseOptions {}
+
+export interface DecryptCallbacks {
+  /**
+   * Called with no arguments, synchronously, before a three-arg
+   * {@link Encrypt.decrypt} returns a value that the legacy key opened.
+   * Never called when the current key opens the value, when decryption
+   * throws, or in the two-arg form.
+   */
+  onLegacyKeyUsed?: () => void
+}
 
 interface BaseOptions {
   algorithm: EncryptAlgorithm

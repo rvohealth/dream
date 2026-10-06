@@ -1,4 +1,6 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
+import DreamApp from '../../../../src/dream-app/index.js'
+import Encrypt from '../../../../src/encrypt/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
@@ -47,6 +49,74 @@ describe('@Encrypted', () => {
         { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
       ])
     )
+  })
+
+  context('reading a value that only the legacy column key opens', () => {
+    it('fires encryption:legacy-key-used with the record, the property and its backing column', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn()
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(listener).not.toHaveBeenCalled()
+
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+      expect(listener).toHaveBeenCalledWith({
+        dream: reloadedUser,
+        property: 'secret',
+        encryptedColumnName: 'encryptedSecret',
+      })
+    })
+
+    it('fires again on every later read of the property', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn()
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(user.secret).toEqual('Howdy world')
+      expect(user.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  context('reading a value that the current column key opens', () => {
+    it('does not fire encryption:legacy-key-used', async () => {
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+          legacy: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+        },
+      })
+      const listener = vi.fn()
+      dreamApp.on('encryption:legacy-key-used', listener)
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).not.toHaveBeenCalled()
+    })
   })
 
   context('with no arguments', () => {

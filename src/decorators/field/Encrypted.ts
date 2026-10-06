@@ -1,4 +1,5 @@
 import Dream from '../../Dream.js'
+import DreamApp from '../../dream-app/index.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
 import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
@@ -67,7 +68,13 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
 
       Object.defineProperty(dreamPrototype, key, {
         get() {
-          return InternalEncrypt.decryptColumn(this.getAttribute(encryptedKey))
+          return InternalEncrypt.decryptColumn(this.getAttribute(encryptedKey), {
+            onLegacyKeyUsed: () => {
+              DreamApp.getOrFail().specialHooks.encryptionLegacyKeyUsed.forEach(fn => {
+                fn({ dream: this as Dream, property: key, encryptedColumnName: encryptedKey })
+              })
+            },
+          })
         },
 
         set(val: any) {

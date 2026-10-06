@@ -281,6 +281,76 @@ describe('Encrypt', () => {
             Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A }, { algorithm: ALG, key: KEY_B })
           ).toThrow(DecryptionParseError)
         })
+
+        context('with an onLegacyKeyUsed callback', () => {
+          it('calls it once, before returning, when the legacy key opens the value', () => {
+            const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+            const onLegacyKeyUsed = vi.fn()
+            const decrypted = Encrypt.decrypt(
+              encrypted,
+              { algorithm: ALG, key: KEY_B },
+              { algorithm: ALG, key: KEY_A },
+              { onLegacyKeyUsed }
+            )
+            expect(decrypted).toEqual('howyadoin')
+            expect(onLegacyKeyUsed).toHaveBeenCalledTimes(1)
+          })
+
+          it('does not call it when the current key opens the value', () => {
+            const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+            const onLegacyKeyUsed = vi.fn()
+            Encrypt.decrypt(
+              encrypted,
+              { algorithm: ALG, key: KEY_A },
+              { algorithm: ALG, key: KEY_B },
+              { onLegacyKeyUsed }
+            )
+            expect(onLegacyKeyUsed).not.toHaveBeenCalled()
+          })
+
+          it('does not call it when neither key opens the value', () => {
+            const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+            const onLegacyKeyUsed = vi.fn()
+            expect(() =>
+              Encrypt.decrypt(
+                encrypted,
+                { algorithm: ALG, key: KEY_B },
+                { algorithm: ALG, key: KEY_C },
+                { onLegacyKeyUsed }
+              )
+            ).toThrow(DecryptionRotationError)
+            expect(onLegacyKeyUsed).not.toHaveBeenCalled()
+          })
+
+          it('rethrows an error the callback throws, unwrapped', () => {
+            const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+            const callbackError = new DecryptionError()
+            expect(() =>
+              Encrypt.decrypt(
+                encrypted,
+                { algorithm: ALG, key: KEY_B },
+                { algorithm: ALG, key: KEY_A },
+                {
+                  onLegacyKeyUsed: () => {
+                    throw callbackError
+                  },
+                }
+              )
+            ).toThrow(callbackError)
+          })
+        })
+      })
+
+      describe('two-arg form with an onLegacyKeyUsed callback', () => {
+        it('never calls it', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          const onLegacyKeyUsed = vi.fn()
+          const decrypted = Encrypt.decrypt(encrypted, { algorithm: ALG, key: KEY_A }, undefined, {
+            onLegacyKeyUsed,
+          })
+          expect(decrypted).toEqual('howyadoin')
+          expect(onLegacyKeyUsed).not.toHaveBeenCalled()
+        })
       })
     })
   })
