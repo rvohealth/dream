@@ -85,7 +85,9 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
            *
            */
           if (this.columnSetterGuardActivated) return
-          this.setAttribute(encryptedKey, InternalEncrypt.encryptColumn(val))
+          // the value was just encrypted, so it bypasses setAttribute's check
+          // that a backing column receives only decryptable ciphertext
+          this.setAttributeUnchecked(encryptedKey, InternalEncrypt.encryptColumn(val))
         },
 
         configurable: false,

@@ -378,6 +378,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
    *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
+   *
    * NOTE:
    * To bypass custom-defined setters, use {@link Dream.updateAttributes | updateAttributes} instead.
    *
@@ -409,6 +415,18 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
+   *
+   * An encrypted property (e.g. `secret`) is still encrypted. Its
+   * `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * ciphertext that decrypts with this app's column encryption keys, or
+   * `null`; anything else throws before anything is saved (see
+   * {@link Dream.setAttribute | setAttribute}).
+   *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
    *
    * NOTE:
    * To update the values without bypassing any custom-defined
@@ -465,6 +483,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * Upon updating an instance, the update timestamp (if defined)
    * will be updated on the model.
+   *
+   * A column whose value is `undefined` is skipped, not written: a new
+   * record gets the column's database default, and a persisted record
+   * keeps the value stored for it. Set a column to `null` to clear it.
    *
    * ```ts
    * const user = User.new({ email: 'how@yadoin' })

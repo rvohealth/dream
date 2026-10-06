@@ -45,6 +45,7 @@ import updateOrCreateBy from './dream/internal/updateOrCreateBy.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
 import LoadBuilder from './dream/LoadBuilder.js'
 import Query from './dream/Query.js'
+import InternalEncrypt from './encrypt/InternalEncrypt.js'
 import CannotAssociationQueryOnUnpersistedDream from './errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
 import CannotCreateAssociationOnUnpersistedDream from './errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
 import CannotDestroyAssociationOnUnpersistedDream from './errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
@@ -55,6 +56,7 @@ import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestr
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
 import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
+import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
@@ -3188,6 +3190,15 @@ export default class Dream {
    * const user = User.new({ email: 'how@yadoin' })
    * ```
    *
+   * @param opts - the attributes to set on the new instance
+   * @param additionalOpts - optional parameters
+   * @param additionalOpts.bypassUserDefinedSetters - if true, sets the attributes
+   * as {@link Dream.setAttributes | setAttributes} does, bypassing any
+   * custom-defined setters. An encrypted property (e.g. `secret`) is still
+   * encrypted, and an `@Encrypted` backing column (e.g. `encryptedSecret`)
+   * accepts only ciphertext that decrypts with this app's column encryption
+   * keys, or `null`; anything else throws (see
+   * {@link Dream.setAttribute | setAttribute}). Defaults to false
    * @returns A new (unpersisted) instance of the provided dream class
    */
   public static new<T extends typeof Dream>(
@@ -3226,6 +3237,7 @@ export default class Dream {
     opts: any,
     additionalOpts: {
       bypassUserDefinedSetters?: boolean
+      fromDatabase?: boolean
       isPersisted?: boolean
       _internalUseOnly: true
     }
@@ -3278,7 +3290,7 @@ export default class Dream {
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
-    { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
+    { bypassUserDefinedSetters = false, fromDatabase = false }: SetAttributesOptions = {}
   ): WhereStatement<InstanceType<T>> {
     const returnValues: any = {}
 
@@ -3292,8 +3304,11 @@ export default class Dream {
         //
       } else if (bypassUserDefinedSetters && !isJsonColumn(this, attr)) {
         // bypass user defined setters, and this field is not json, so set
-        // the attribute directly and return the attribute
-        dreamInstance.setAttribute(attr, value)
+        // the attribute directly and return the attribute. A row read from
+        // the database already holds the ciphertext Dream stored, so it skips
+        // setAttribute's check of @Encrypted backing columns
+        if (fromDatabase) dreamInstance['setAttributeUnchecked'](attr, value)
+        else dreamInstance.setAttribute(attr, value)
         return dreamInstance.getAttribute(attr)
       } else {
         // don't bypass user defined setters, or this field is json, so set
@@ -3547,6 +3562,17 @@ export default class Dream {
    * bypassing any custom-defined setters. If you would like to set attributes
    * without bypassing custom-defined setters, use #assignAttribute instead
    *
+   * An `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * a string of ciphertext that decrypts with this app's column encryption
+   * keys (current or legacy), or `null`, which clears it. Anything else,
+   * including plaintext, `undefined`, a non-string value, and ciphertext
+   * made with a key this app does not hold, throws and leaves the column
+   * unchanged. To store a new value, set the encrypted property (e.g.
+   * `secret`) instead, which encrypts it. The check covers the backing
+   * columns of this model's class, including those it inherits from an
+   * STI parent; a backing column declared only by another class in the
+   * same STI hierarchy is not checked.
+   *
    * ```ts
    *  const user = new User()
    *  user.setAttribute('email', 'sally@gmail.com')
@@ -3557,7 +3583,31 @@ export default class Dream {
     column: Key & string,
     val: any
   ): void {
-    ;(this as any).currentAttributes[column] = val
+    const dreamClass = this.constructor as typeof Dream
+    const encryptedAttribute = dreamClass.encryptedAttributes.find(
+      ({ encryptedColumnName }) => encryptedColumnName === column
+    )
+
+    if (
+      encryptedAttribute &&
+      val !== null &&
+      !(typeof val === 'string' && InternalEncrypt.isDecryptableColumnCiphertext(val))
+    )
+      throw new DoNotSetEncryptedFieldsDirectly(dreamClass, column, encryptedAttribute.property)
+
+    this.setAttributeUnchecked(column, val)
+  }
+
+  /**
+   * @internal
+   *
+   * Writes the value into the current attributes as given, with none of
+   * setAttribute's checks. Only for values Dream already trusts: a row read
+   * from the database, and the ciphertext the @Encrypted property setter
+   * has just produced. Every caller-supplied value goes through setAttribute.
+   */
+  private setAttributeUnchecked(column: string, val: any): void {
+    this.currentAttributes[column] = val
   }
 
   /**
@@ -4991,6 +5041,13 @@ export default class Dream {
    * Takes the attributes passed in and sets their values internally,
    * bypassing any custom setters defined for these attributes.
    *
+   * An encrypted property (e.g. `secret`) is still encrypted. Its
+   * `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * ciphertext that decrypts with this app's column encryption keys, or
+   * `null`; anything else throws (see {@link Dream.setAttribute | setAttribute}).
+   * Attributes are set in order, so those before the rejected one have
+   * already been set when it throws.
+   *
    * NOTE:
    * To leverage custom-defined setters, use `#assignAttributes` instead.
    *
@@ -5006,7 +5063,7 @@ export default class Dream {
   private _setAttributes<I extends Dream>(
     this: I,
     attributes: UpdateableProperties<I>,
-    additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
+    additionalOpts: SetAttributesOptions = {}
   ) {
     const dreamClass = this.constructor as typeof Dream
     const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(
@@ -5030,6 +5087,10 @@ export default class Dream {
    *
    * Upon updating an instance, the update timestamp (if defined)
    * will be updated on the model.
+   *
+   * A column whose value is `undefined` is skipped, not written: a new
+   * record gets the column's database default, and a persisted record
+   * keeps the value stored for it. Set a column to `null` to clear it.
    *
    * ```ts
    * const user = User.new({ email: 'how@yadoin' })
@@ -5083,6 +5144,12 @@ export default class Dream {
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
    *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
+   *
    * NOTE:
    * To bypass custom-defined setters, use {@link Dream.updateAttributes | updateAttributes} instead.
    *
@@ -5114,6 +5181,18 @@ export default class Dream {
    *
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
+   *
+   * An encrypted property (e.g. `secret`) is still encrypted. Its
+   * `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * ciphertext that decrypts with this app's column encryption keys, or
+   * `null`; anything else throws before anything is saved (see
+   * {@link Dream.setAttribute | setAttribute}).
+   *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
    *
    * NOTE:
    * To update the values without bypassing any custom-defined
@@ -5203,4 +5282,13 @@ export default class Dream {
     return this
   }
   private _preventDeletion: boolean = false
+}
+
+interface SetAttributesOptions {
+  bypassUserDefinedSetters?: boolean
+  /**
+   * The attributes are a row read from the database, whose @Encrypted backing
+   * columns already hold the ciphertext Dream stored
+   */
+  fromDatabase?: boolean
 }
