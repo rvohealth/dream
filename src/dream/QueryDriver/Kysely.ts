@@ -2047,25 +2047,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       b = val.operator as KyselyComparisonOperatorExpression
       c = val.value
     } else if (val instanceof Range) {
-      const rangeStart = val.begin
-      const rangeEnd = val.end
-      const excludeEnd = val.excludeEnd
+      // a bound is present unless it is null or undefined, matching the Range
+      // constructor, so falsy bounds such as 0, 0n and '' still constrain the query
+      const boundConditions: { operator: KyselyComparisonOperatorExpression; value: unknown }[] = []
+      if (val.begin != null) boundConditions.push({ operator: '>=', value: val.begin })
+      if (val.end != null) boundConditions.push({ operator: val.excludeEnd ? '<' : '<=', value: val.end })
 
-      if (rangeStart && rangeEnd) {
-        a = attr
-        b = '>='
-        c = rangeStart
+      // the Range constructor rejects a range with neither bound, so firstBound is always set
+      const [firstBound, secondBound] = boundConditions
+      a = attr
+      b = firstBound!.operator
+      c = firstBound!.value
+
+      if (secondBound) {
         a2 = attr
-        b2 = excludeEnd ? '<' : '<='
-        c2 = rangeEnd
-      } else if (rangeStart) {
-        a = attr
-        b = '>='
-        c = rangeStart
-      } else {
-        a = attr
-        b = excludeEnd ? '<' : '<='
-        c = rangeEnd
+        b2 = secondBound.operator
+        c2 = secondBound.value
       }
     } else {
       a = attr
