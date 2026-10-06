@@ -163,8 +163,15 @@ export default class Encrypt {
    * - For cookies: at least the cookie `maxAge`, so in-flight sessions are
    *   not forced to re-authenticate.
    * - For `@Encrypted` columns: until every existing row has been
-   *   re-encrypted under the new key. Dropping `legacy` early will cause
-   *   `DecryptionRotationError` on any not-yet-rewritten row.
+   *   re-encrypted under the new key. Once `legacy` is dropped, reading the
+   *   `@Encrypted` property of a row that is still under the old key throws
+   *   `DecryptionError`, the same error a tampered or corrupted value
+   *   throws, so the error class alone cannot show that `legacy` was
+   *   dropped too early. `DecryptionRotationError` is thrown only while
+   *   `legacy` is configured and neither key opens the value. Neither class
+   *   extends the other, so code that catches `DecryptionRotationError`
+   *   during a rotation must also catch `DecryptionError` to handle such a
+   *   read once `legacy` is dropped.
    */
   public static generateKey(algorithm: EncryptAlgorithm) {
     switch (algorithm) {
