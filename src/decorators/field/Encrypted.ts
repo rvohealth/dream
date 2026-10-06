@@ -3,13 +3,17 @@ import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
 import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
 import pascalize from '../../helpers/pascalize.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
 
-export default function Encrypted(encryptedColumnName?: string): any {
+export default function Encrypted(columnOrOptions?: string | EncryptedOptions): any {
+  const { column, openapi }: EncryptedOptions =
+    typeof columnOrOptions === 'string' ? { column: columnOrOptions } : (columnOrOptions ?? {})
+
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
-    const encryptedKey = encryptedColumnName || `encrypted${pascalize(key)}`
+    const encryptedKey = column || `encrypted${pascalize(key)}`
 
     context.addInitializer(function (this: Dream) {
       const dreamClass: typeof Dream = this.constructor as typeof Dream
@@ -35,7 +39,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
       }
       ;(dreamClass['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
-        type: columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string',
+        type: openapi ?? (columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string'),
       } satisfies VirtualAttributeStatement)
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'explicitUnsafeParamColumns')) {
@@ -101,6 +105,11 @@ export default function Encrypted(encryptedColumnName?: string): any {
       })
     })
   }
+}
+
+export interface EncryptedOptions<ColumnName extends string = string> {
+  column?: ColumnName
+  openapi?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
 }
 
 export interface EncryptedAttributeStatement {

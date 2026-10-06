@@ -1,3 +1,7 @@
+## 2.36.0
+
+- **`@deco.Encrypted` accepts an OpenAPI shape for the decorated property.** An encrypted property can hold any JSON-serializable value, but Dream always registered it as a string (`['string', 'null']` when the backing column allows null). Psychic reads that registration to cast the property in params and to render it in request body and serializer OpenAPI, so an object-valued encrypted property was rejected in params and documented as a string. `@deco.Encrypted` now also takes an options object, `@deco.Encrypted({ column, openapi })`, where `openapi` accepts any shape `@deco.Virtual` accepts and `column` is the optional backing column name. The declared shape is registered exactly as given and replaces the nullability inferred from the backing column, so a nullable column's shape includes `'null'` itself, e.g. `{ type: ['object', 'null'], properties: { token: 'string' } }`. `@deco.Encrypted()` and `@deco.Encrypted('myEncryptedColumn')` are unchanged and still register a string. The decorator's documentation describes the option and corrects an unterminated string in its example.
+
 ## 2.35.0
 
 - **New records report only assigned columns as dirty.** `willSaveChangeToAttribute()`, `dirtyAttributes()`, and `changedAttributes()` now omit columns whose value is `undefined`; an explicit `null` still counts as a change. A new record with no assigned columns now has `isDirty === false`. Duplicated records still count their copied values as dirty so those values are included on insert. This also corrects the public documentation for these methods.
