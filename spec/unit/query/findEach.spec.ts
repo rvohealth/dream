@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import DreamApp from '../../../src/dream-app/index.js'
 import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
@@ -9,6 +10,7 @@ import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import User from '../../../test-app/app/models/User.js'
+import testDb from '../../helpers/testDb.js'
 
 describe('Query#findEach', () => {
   it('visits every record in ascending primary key order', async () => {
@@ -176,6 +178,25 @@ describe('Query#findEach', () => {
       )
       expect(records.map(r => r.id)).toEqual([newestA.id, newestB.id, newestC.id])
     })
+
+    it('visits every record when a batch holds more of them than one statement can bind parameters for', async () => {
+      const pet = await Pet.create()
+      // one more record than Postgres binds parameters in one statement
+      await sql`
+        insert into collars (pet_id, tag_name, hidden, created_at, updated_at)
+        select ${pet.id}, 'tag-' || i, false, now(), now()
+        from generate_series(1, 65536) as i
+      `.execute(testDb('default', 'primary'))
+
+      let visited = 0
+      await pet.associationQuery('newestCollarPerTagName').findEach(
+        () => {
+          visited++
+        },
+        { batchSize: 100_000 }
+      )
+      expect(visited).toEqual(65_536)
+    }, 30_000)
   })
 
   context('when the Query joins an association with distinct and an order led by it', () => {

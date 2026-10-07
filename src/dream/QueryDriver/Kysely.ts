@@ -157,6 +157,14 @@ interface PendingThroughAssociation {
   selfTableAlias: string
 }
 
+/**
+ * The most primary keys a batch window of `findEach` binds in one read of the
+ * records of its keys (see `takeBatchWindowRowsFromKeys`), well under the
+ * 65,535 parameters Postgres and MySQL bind in one statement, so that a batch
+ * larger than that is read in several statements.
+ */
+const BATCH_WINDOW_KEYS_PER_READ = 10_000
+
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   /**
    * @internal
@@ -1337,7 +1345,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * the next of those keys that still match. A key whose record no longer
    * matches is passed over, and the window takes further keys until it holds
    * a full batch or none are left, so that a short window still means the
-   * walk is done.
+   * walk is done. It reads at most `BATCH_WINDOW_KEYS_PER_READ` keys at a
+   * time.
    *
    * Each window reads its keys through the walk's first window, which carries
    * no cursor, rather than through itself: its cursor would narrow the select
@@ -1365,7 +1374,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const rows: any[] = []
 
     while (rows.length < batchSize && keys.length) {
-      const windowKeys = keys.splice(0, batchSize - rows.length)
+      const windowKeys = keys.splice(0, Math.min(batchSize - rows.length, BATCH_WINDOW_KEYS_PER_READ))
       rows.push(
         ...(await executeDatabaseQuery(
           firstWindowDriver.buildSelect({ ...options, batchWindowKeys: windowKeys }),
