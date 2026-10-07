@@ -3241,12 +3241,32 @@ export default class Query<
    *   record (`reload`, `associationQuery`, ...) likewise run on a separate
    *   connection and snapshot. Derive the attributes and return them; Dream
    *   performs the write inside the batch's transaction.
-   * - **`lock: false` can throw mid-run when racing a deleter.** On the
-   *   unlocked paths, a matched record that a concurrent transaction destroys
-   *   between a batch's read and that record's write aborts the run with an
-   *   error: earlier batches stay committed, and no count is returned. Use
-   *   `lock: true` when deleters may race the update — claimed rows are held
-   *   under their locks until written.
+   * - **Without `lock: true`, a record is not re-checked before it is
+   *   written.** The unlocked per-record paths — an attributes object without
+   *   `lock: true` or `skipHooks: true`, and a callback under `lock: false` —
+   *   read a batch, then write each record by its primary key alone, with no
+   *   compare-and-set. What a concurrent delete between that read and a
+   *   record's write does depends on what the delete leaves behind. A soft
+   *   delete (`destroy()` on a `@SoftDelete` model, which generated models are
+   *   by default) leaves the row in place, so the write lands on the
+   *   soft-deleted record: its update hooks run, it is counted, and its
+   *   `deletedAt` stays set. A hard delete (`reallyDestroy()`, a Query's
+   *   `delete()`, or `destroy()` on a model without `@SoftDelete`) removes the
+   *   row, so that record's write throws `CannotSaveMissingDream` — after its
+   *   `beforeUpdate` and `beforeSave` hooks have run — and the run rejects
+   *   without returning a count. Every record written before it, in its own
+   *   batch as well as earlier ones, stays committed, unless the Query carries
+   *   `.txn(txn)`, which puts those writes in the caller's transaction. (A
+   *   record whose write turns out to be a no-op emits no SQL, so it does not
+   *   throw even if its row is gone, and it is counted.) The single-statement
+   *   `skipHooks` attributes form is one `UPDATE ... WHERE` that carries the
+   *   Query's default scopes, so it never writes a soft-deleted record and
+   *   cannot fail part-way through. Use `lock: true` when deleters may race
+   *   the update: its locked re-read re-applies the Query's conditions and
+   *   default scopes, so a soft- or hard-deleted record drops out of the run,
+   *   neither written nor counted. (A Query that removes the
+   *   `dream:SoftDelete` default scope reads and writes soft-deleted records
+   *   on every path.)
    * - **A `limit` or `offset` on the Query is incompatible with `update` on
    *   every path.** The batched paths re-apply the Query's conditions to each
    *   batch window, where a limit or offset would skip or truncate rows
@@ -3294,6 +3314,7 @@ export default class Query<
    * @throws MissingRequiredLockOptionForUpdateCallback if a callback is passed without an options object carrying a boolean `lock`
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    * @throws CannotSetEncryptedColumnInQueryUpdate if the single-statement `skipHooks` form's attributes name an `@Encrypted` backing column with anything other than `null`
+   * @throws CannotSaveMissingDream if, on an unlocked per-record path, a record's row is hard-deleted between its batch's read and a write that is not a no-op
    */
   public async update(
     cb: (

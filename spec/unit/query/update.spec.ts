@@ -4,6 +4,7 @@ import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import KyselyQueryDriver from '../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
+import CannotSaveMissingDream from '../../../src/errors/CannotSaveMissingDream.js'
 import DoNotSetEncryptedFieldsDirectly from '../../../src/errors/DoNotSetEncryptedFieldsDirectly.js'
 import CannotSetEncryptedColumnInQueryUpdate from '../../../src/errors/encrypt/CannotSetEncryptedColumnInQueryUpdate.js'
 import InvalidBatchSize from '../../../src/errors/InvalidBatchSize.js'
@@ -500,6 +501,38 @@ describe('Query#update', () => {
           expect((await Pet.findOrFail(second.id)).name).toEqual('winner')
           expect((await Pet.findOrFail(third.id)).name).toEqual('winner')
         })
+      })
+    })
+
+    context('when another transaction destroys a record first', () => {
+      it('does not update or count a record that was soft-deleted', async () => {
+        const aster = await Pet.create({ name: 'aster' })
+        const asterling = await Pet.create({ name: 'aster' })
+
+        interposeBetweenCandidateAndLockedReads(async () => {
+          await aster.destroy()
+        })
+
+        expect(await Pet.where({ name: 'aster' }).update({ name: 'winner' }, { lock: true })).toEqual(1)
+
+        const reloadedAster = await Pet.removeDefaultScope('dream:SoftDelete').findOrFail(aster.id)
+        expect(reloadedAster.name).toEqual('aster')
+        expect(reloadedAster.deletedAt).not.toBeNull()
+        expect((await Pet.findOrFail(asterling.id)).name).toEqual('winner')
+      })
+
+      it('does not update or count a record that was hard-deleted, and does not throw', async () => {
+        const fred = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const otherFred = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'fred' })
+
+        interposeBetweenCandidateAndLockedReads(async () => {
+          await fred.destroy()
+        })
+
+        expect(await User.where({ name: 'fred' }).update({ name: 'winner' }, { lock: true })).toEqual(1)
+
+        expect(await User.removeAllDefaultScopes().where({ id: fred.id }).exists()).toBe(false)
+        expect((await User.findOrFail(otherFred.id)).name).toEqual('winner')
       })
     })
 
@@ -1086,6 +1119,67 @@ describe('Query#update', () => {
 
           expect(await Pet.where({ name: 'aster' }).count()).toEqual(3)
           expect(await Pet.where({ name: 'winner' }).count()).toEqual(0)
+        })
+      })
+
+      context('when another transaction destroys a record after its batch is read', () => {
+        it('still writes and counts a record that was soft-deleted, running its update hooks and leaving it soft-deleted', async () => {
+          const aster = await Pet.create({ name: 'aster' })
+          const violet = await Pet.create({ name: 'violet' })
+
+          // aster's callback runs after the batch read and before violet's write
+          const visitedIds: Pet['id'][] = []
+          const count = await Pet.query().update(
+            async pet => {
+              visitedIds.push(pet.id)
+              if (pet.id === aster.id) await violet.destroy()
+              return { name: 'change me' }
+            },
+            { lock: false }
+          )
+
+          expect(visitedIds).toEqual([aster.id, violet.id])
+          expect(count).toEqual(2)
+          const reloadedViolet = await Pet.removeDefaultScope('dream:SoftDelete').findOrFail(violet.id)
+          // the BeforeUpdate hook rewrites 'change me'
+          expect(reloadedViolet.name).toEqual('changed by update hook')
+          expect(reloadedViolet.deletedAt).not.toBeNull()
+        })
+
+        it('rejects with CannotSaveMissingDream on a record that was hard-deleted, leaving the records written before it committed', async () => {
+          const fred = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const calvin = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+          await expect(
+            User.query().update(
+              async user => {
+                if (user.id === fred.id) await calvin.destroy()
+                return { name: 'written' }
+              },
+              { lock: false }
+            )
+          ).rejects.toThrow(CannotSaveMissingDream)
+
+          expect((await User.findOrFail(fred.id)).name).toEqual('written')
+        })
+
+        it('counts a record that was hard-deleted, without throwing, when its write is a no-op', async () => {
+          const fred = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const calvin = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+          const visitedIds: User['id'][] = []
+          const count = await User.query().update(
+            async user => {
+              visitedIds.push(user.id)
+              if (user.id === fred.id) await calvin.destroy()
+              return {}
+            },
+            { lock: false }
+          )
+
+          expect(visitedIds).toEqual([fred.id, calvin.id])
+          expect(count).toEqual(2)
+          expect(await User.removeAllDefaultScopes().where({ id: calvin.id }).exists()).toBe(false)
         })
       })
     })
