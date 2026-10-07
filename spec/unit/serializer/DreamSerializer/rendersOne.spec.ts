@@ -40,7 +40,7 @@ describe('DreamSerializer#rendersOne', () => {
   })
 
   context('when optional', () => {
-    it('the association is anyOf the ref or null', () => {
+    it('renders a present association unchanged (optional is an OpenAPI-only marker)', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const user = User.new({ id: '7', name: 'Charlie', birthdate })
       const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -156,7 +156,7 @@ describe('DreamSerializer#rendersOne', () => {
   })
 
   context('flatten', () => {
-    it('renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
+    it('spreads the rendered association attributes into the parent output', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const user = User.new({ id: '7', name: 'Charlie', birthdate })
       const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -176,7 +176,7 @@ describe('DreamSerializer#rendersOne', () => {
     })
 
     context('when optional and flatten', () => {
-      it('the other association is wrapped in anyOf with null', () => {
+      it('spreads a present association unchanged (optional is an OpenAPI-only marker)', () => {
         const birthdate = CalendarDate.fromISO('1950-10-02')
         const user = User.new({ id: '7', name: 'Charlie', birthdate })
         const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })

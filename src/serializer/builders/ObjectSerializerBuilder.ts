@@ -122,9 +122,10 @@ export default class ObjectSerializerBuilder<
    *     (e.g., delegating `'profile', 'avatarUrl'` with `as: 'avatar'` outputs the value
    *     under `avatar`)
    *   - `default` - Value to use when the target object or its attribute is null/undefined
-   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema
-   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). OpenAPI-only — the
-   *     key is still rendered (as `null`)
+   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema:
+   *     Psychic adds `null` to the rendered schema (e.g., `type: 'string'` becomes
+   *     `type: ['string', 'null']`, and a `$ref` becomes `anyOf: [{ $ref }, { type: 'null' }]`).
+   *     OpenAPI-only — the key is still rendered (as `null`)
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
    *     during rendering; does not affect the OpenAPI shape
    *   - `required` - Set to `false` to omit the key from the rendered output when the

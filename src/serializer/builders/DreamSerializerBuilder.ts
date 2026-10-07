@@ -163,11 +163,12 @@ export default class DreamSerializerBuilder<
    *     indistinguishable from "association present with that type," which is misleading)
    *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
    *     columns, optional for standard Dream columns (where types are inferred)
-   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema
-   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). OpenAPI-only — the
-   *     key is still rendered (as `null`). For Dream models, this is auto-inferred
-   *     from optional BelongsTo associations. Use this when delegating through a
-   *     HasOne or other nullable association.
+   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema:
+   *     Psychic adds `null` to the rendered schema (e.g., `type: 'string'` becomes
+   *     `type: ['string', 'null']`, and a `$ref` becomes `anyOf: [{ $ref }, { type: 'null' }]`).
+   *     OpenAPI-only — the key is still rendered (as `null`). For Dream models, this is
+   *     auto-inferred from optional BelongsTo associations. Use this when delegating
+   *     through a HasOne or other nullable association.
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
    *     during rendering; does not affect the OpenAPI shape (not available when delegating
    *     to a `'type'` STI discriminator column, which is always a string enum)
