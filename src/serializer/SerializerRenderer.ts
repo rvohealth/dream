@@ -19,7 +19,7 @@ import { DateTime } from '../utils/datetime/DateTime.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { serializerForAssociatedClass } from './helpers/serializerForAssociatedClass.js'
+import { serializersForAssociatedClass } from './helpers/serializersForAssociatedClass.js'
 
 export interface SerializerRendererOpts {
   casing?: SerializerCasing
@@ -161,7 +161,7 @@ export default class SerializerRenderer {
             return {
               ...accumulator,
               ...this.nullFlattenedAttributes(
-                serializerForAssociatedClass(
+                serializersForAssociatedClass(
                   data instanceof Dream ? (data.constructor as typeof Dream) : null,
                   attribute.name,
                   attribute.options
@@ -272,64 +272,68 @@ export default class SerializerRenderer {
 
   /**
    * The keys a flattened `rendersOne` adds to the parent's payload when its associated object is
-   * null: each key `serializer` declares, set to `null`.
+   * null: each key any of `serializers` declares, set to `null`. There are several serializers when
+   * the association is a polymorphic BelongsTo, one for each target class, and their keys are
+   * unioned.
    *
-   * The serializer is built over an empty object to read its declarations, so a serializer that
+   * Each serializer is built over an empty object to read its declarations, so a serializer that
    * reads a property of its data while being built still builds, and nothing is rendered: no
    * attribute callback runs and no association of the missing object is read. A flattened
-   * `rendersOne` it declares adds its own serializer's keys the same way. A flattened
+   * `rendersOne` it declares adds its own serializers' keys the same way. A flattened
    * `customAttribute` adds none, since only its callback knows its keys.
    */
   private nullFlattenedAttributes(
-    serializer: DreamModelSerializerType | SimpleObjectSerializerType | null,
+    serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
     passthroughData: object,
     serializersBeingFlattened: Set<DreamModelSerializerType | SimpleObjectSerializerType> = new Set()
   ): Record<string, null> {
-    // a serializer reached again, e.g. one that flattens itself directly or through others, adds no
-    // keys the first walk through it did not
-    if (!serializer || serializersBeingFlattened.has(serializer)) return {}
-    serializersBeingFlattened.add(serializer)
+    return serializers.reduce<Record<string, null>>((flattenedKeys, serializer) => {
+      // a serializer reached again, e.g. one that flattens itself directly or through others, or
+      // one that two polymorphic targets both flatten, adds no keys the first walk through it did not
+      if (serializersBeingFlattened.has(serializer)) return flattenedKeys
+      serializersBeingFlattened.add(serializer)
 
-    const serializerBuilder = serializer({}, passthroughData) as DreamSerializerBuilder<any, any>
-    const dreamClass =
-      serializerBuilder instanceof DreamSerializerBuilder
-        ? (serializerBuilder['$typeForOpenapi'] as typeof Dream)
-        : null
+      const serializerBuilder = serializer({}, passthroughData) as DreamSerializerBuilder<any, any>
+      const dreamClass =
+        serializerBuilder instanceof DreamSerializerBuilder
+          ? (serializerBuilder['$typeForOpenapi'] as typeof Dream)
+          : null
 
-    return serializerBuilder['attributes'].reduce<Record<string, null>>((keys, attribute) => {
-      const attributeType = attribute.type
-      switch (attributeType) {
-        case 'attribute':
-        case 'delegatedAttribute':
-        case 'rendersMany':
-          keys[this.setCase(attribute.options?.as ?? attribute.name)] = null
-          return keys
-
-        case 'customAttribute':
-          if (!attribute.options.flatten) keys[this.setCase(attribute.name)] = null
-          return keys
-
-        case 'rendersOne':
-          if (!attribute.options.flatten) {
-            keys[this.setCase(attribute.options.as ?? attribute.name)] = null
+      return serializerBuilder['attributes'].reduce<Record<string, null>>((keys, attribute) => {
+        const attributeType = attribute.type
+        switch (attributeType) {
+          case 'attribute':
+          case 'delegatedAttribute':
+          case 'rendersMany':
+            keys[this.setCase(attribute.options?.as ?? attribute.name)] = null
             return keys
-          }
 
-          return {
-            ...keys,
-            ...this.nullFlattenedAttributes(
-              serializerForAssociatedClass(dreamClass, attribute.name, attribute.options),
-              passthroughData,
-              serializersBeingFlattened
-            ),
-          }
+          case 'customAttribute':
+            if (!attribute.options.flatten) keys[this.setCase(attribute.name)] = null
+            return keys
 
-        default: {
-          // protection so that if a new ValidationType is ever added, this will throw a type error at build time
-          const _never: never = attributeType
-          throw new Error(`Unhandled serializer attribute type: ${_never as string}`)
+          case 'rendersOne':
+            if (!attribute.options.flatten) {
+              keys[this.setCase(attribute.options.as ?? attribute.name)] = null
+              return keys
+            }
+
+            return {
+              ...keys,
+              ...this.nullFlattenedAttributes(
+                serializersForAssociatedClass(dreamClass, attribute.name, attribute.options),
+                passthroughData,
+                serializersBeingFlattened
+              ),
+            }
+
+          default: {
+            // protection so that if a new ValidationType is ever added, this will throw a type error at build time
+            const _never: never = attributeType
+            throw new Error(`Unhandled serializer attribute type: ${_never as string}`)
+          }
         }
-      }
+      }, flattenedKeys)
     }, {})
   }
 

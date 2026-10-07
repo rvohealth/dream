@@ -1,7 +1,9 @@
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import PolymorphicTask from '../../../../test-app/app/models/Polymorphic/Task.js'
 import { default as DreamUser } from '../../../../test-app/app/models/User.js'
+import { PolymorphicTaskSerializer } from '../../../../test-app/app/serializers/Polymorphic/TaskSerializer.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import { Species, SpeciesValues } from '../../../../test-app/types/db.js'
 
@@ -282,6 +284,25 @@ describe('ObjectSerializer#rendersOne', () => {
             favoriteWord: null,
             name: null,
             birthdate: null,
+          })
+        })
+
+        it('renders null for every key the serializer of any polymorphic belongs-to target declares, when the serializer flattens that association', () => {
+          interface TaskHolder {
+            id: number
+            task: PolymorphicTask | null
+          }
+
+          const MySerializer = (data: TaskHolder) =>
+            ObjectSerializer(data)
+              .attribute('id', { openapi: 'integer' })
+              .rendersOne('task', { flatten: true, serializer: PolymorphicTaskSerializer })
+
+          expect(MySerializer({ id: 5, task: null }).render()).toEqual({
+            id: 5,
+            name: null,
+            cleaningSupplies: null,
+            workoutType: null,
           })
         })
       })

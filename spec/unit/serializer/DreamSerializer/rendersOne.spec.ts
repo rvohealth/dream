@@ -1,6 +1,8 @@
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
+import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserViewModel from '../../../../test-app/app/view-models/UserViewModel.js'
@@ -387,6 +389,20 @@ describe('DreamSerializer#rendersOne', () => {
           metadata: null,
           compositionAssets: null,
           passthroughCurrentLocalizedText: null,
+        })
+      })
+
+      it('renders null for every key the serializer of a polymorphic belongs-to target declares', () => {
+        const balloon = Latex.new({ color: 'red', shapable: null })
+
+        const MySerializer = (data: Balloon) =>
+          DreamSerializer(Balloon, data).attribute('color').rendersOne('shapable', { flatten: true })
+
+        expect(MySerializer(balloon).render()).toEqual({
+          color: 'red',
+          id: null,
+          name: null,
+          type: null,
         })
       })
     })
