@@ -1195,7 +1195,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   ): SelectQueryBuilder<any, any, any> {
     const selectCore = this.buildSelectCore({ bypassOrder })
     let kyselyQuery = selectCore.kyselyQuery
-    const batchWindow = this.query['batchWindow']
 
     if (this.batchWindowReadsKeys(kyselyQuery)) {
       // DISTINCT ON keeps the first row of each group in the select's own
@@ -1220,16 +1219,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           .distinctOn(namespacedPrimaryKey)
           .where(namespacedPrimaryKey, 'in', batchWindowKeys)
       }
-    } else {
+    } else if (this.query['bypassImplicitOrder']) {
       // a keyset cursor compares only the Query's order statements, so the
       // orderings emitted above (a similarity rank, an association's declared
       // `order`, including those of an association query's base select) are
       // cleared rather than left to sort ahead of them
-      if (this.query['bypassImplicitOrder']) kyselyQuery = kyselyQuery.clearOrderBy()
-
-      if (batchWindow && batchWindow.after !== undefined) {
-        kyselyQuery = kyselyQuery.where(this.query['namespacedPrimaryKey'], '>', batchWindow.after)
-      }
+      kyselyQuery = kyselyQuery.clearOrderBy()
     }
 
     if (this.query['orderStatements'].length && !bypassOrder) {
@@ -1343,22 +1338,29 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * matches is passed over, and the window takes further keys until it holds
    * a full batch or none are left, so that a short window still means the
    * walk is done.
+   *
+   * Each window reads its keys through the walk's first window, which carries
+   * no cursor, rather than through itself: its cursor would narrow the select
+   * before DISTINCT ON chooses each group's row, and so keep a record that the
+   * select no longer returns.
    */
   private async takeBatchWindowRowsFromKeys(
     this: KyselyQueryDriver<DreamInstance>,
-    walk: { keys?: unknown[] },
+    walk: { keys?: unknown[]; firstWindow?: Query<any, any> },
     options: { columns?: DreamColumnNames<DreamInstance>[] }
   ): Promise<any[]> {
-    if (walk.keys === undefined) {
+    if (walk.keys === undefined || walk.firstWindow === undefined) {
       const keySelect = new (this.constructor as typeof KyselyQueryDriver)(this.query.clone({ limit: null }))
         .buildSelect({ bypassSelectAll: true })
         .select(`${this.query['namespacedPrimaryKey']} as key` as any)
       const sortedKeys: unknown[] = (await executeDatabaseQuery(keySelect, 'execute')).map(row => row.key)
       // a join can return a record in more than one group; its key is kept once
       walk.keys = sortedKeys.filter((key, index) => index === 0 || key !== sortedKeys[index - 1])
+      walk.firstWindow = this.query
     }
 
     const keys = walk.keys
+    const firstWindowDriver = new (this.constructor as typeof KyselyQueryDriver)(walk.firstWindow)
     const batchSize = this.query['limitStatement'] || keys.length
     const rows: any[] = []
 
@@ -1366,7 +1368,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       const windowKeys = keys.splice(0, batchSize - rows.length)
       rows.push(
         ...(await executeDatabaseQuery(
-          this.buildSelect({ ...options, batchWindowKeys: windowKeys }),
+          firstWindowDriver.buildSelect({ ...options, batchWindowKeys: windowKeys }),
           'execute'
         ))
       )

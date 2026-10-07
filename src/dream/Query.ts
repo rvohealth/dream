@@ -352,18 +352,22 @@ export default class Query<
   /**
    * @internal
    *
-   * Set on each batch window of `findEach`. `after` is the primary key of the
-   * last record of the previous window, or undefined for the first window,
-   * and the driver compares it as `primary key > after`. `walk` is the same
+   * Set on each batch window of `findEach`, whose windows after the first
+   * carry their cursor as a where clause, `primary key > <the previous
+   * window's last primary key>`, so that a driver that reads only the Query's
+   * conditions, order and limit pages through the walk. `walk` is the same
    * object on every window of one walk. A driver whose select cannot be
-   * windowed by that comparison keeps the primary keys of the records the
-   * walk has yet to visit in `walk.keys`, read on the first window, and reads
-   * each window from them instead: a select that carries DISTINCT ON with an
-   * ORDER BY of its own (an association's declared `distinct` and `order`)
-   * keeps one row of each group, and returns another row of a group once the
-   * walk's callback destroys or changes the one it kept.
+   * windowed by that clause keeps, in `walk`, the primary keys of the records
+   * the walk has yet to visit and the first window, which carries no cursor,
+   * both taken on the first window, and reads each window from them instead:
+   * a select that carries DISTINCT ON with an ORDER BY of its own (an
+   * association's declared `distinct` and `order`) keeps one row of each
+   * group, and returns another row of a group once the walk's callback
+   * destroys or changes the one it kept.
    */
-  private readonly batchWindow: { after: unknown; walk: { keys?: unknown[] } } | null = null
+  private readonly batchWindow: {
+    walk: { keys?: unknown[]; firstWindow?: Query<any, any> }
+  } | null = null
 
   /**
    * @internal
@@ -687,12 +691,17 @@ export default class Query<
     // truthiness, since a primary key of 0 is a legitimate cursor value that
     // would otherwise reset the window to the start of the set
     let lastId: any = undefined
-    const walk: { keys?: unknown[] } = {}
+    const walk: { keys?: unknown[]; firstWindow?: Query<any, any> } = {}
 
     do {
-      // the driver applies the cursor, or, over a select it cannot window by
-      // the cursor, reads the window from the keys it keeps in `walk`
-      records = await query.clone({ batchWindow: { after: lastId, walk } }).all()
+      // the cursor is a where clause, which every driver applies; a driver
+      // that cannot window its select by it reads the window from what it
+      // keeps in `walk` instead
+      const windowQuery =
+        lastId === undefined
+          ? query
+          : query.where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
+      records = await windowQuery.clone({ batchWindow: { walk } }).all()
 
       for (const record of records) {
         await cb(record)
@@ -3735,7 +3744,7 @@ export interface QueryOpts<
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
   bypassImplicitOrder?: boolean | undefined
-  batchWindow?: { after: unknown; walk: { keys?: unknown[] } } | null | undefined
+  batchWindow?: { walk: { keys?: unknown[]; firstWindow?: Query<any, any> } } | null | undefined
 }
 
 /**
