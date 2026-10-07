@@ -205,6 +205,37 @@ describe('Query#scrollPaginate', () => {
         })
       })
     })
+
+    context('when the field holds NULL', () => {
+      it('pages the NULL records last, reaching every record exactly once', async () => {
+        const unnamed1 = await Pet.create({ name: null })
+        const unnamed2 = await Pet.create({ name: null })
+
+        const page1 = await Pet.query()
+          .order({ name: 'desc' })
+          .scrollPaginate({ pageSize: 2, cursor: undefined })
+        expect(page1).toEqual({
+          cursor: snoopy.id,
+          results: [expect.toMatchDreamModel(woodstock), expect.toMatchDreamModel(snoopy)],
+        })
+
+        const page2 = await Pet.query()
+          .order({ name: 'desc' })
+          .scrollPaginate({ pageSize: 2, cursor: page1.cursor })
+        expect(page2).toEqual({
+          cursor: unnamed1.id,
+          results: [expect.toMatchDreamModel(aster), expect.toMatchDreamModel(unnamed1)],
+        })
+
+        const page3 = await Pet.query()
+          .order({ name: 'desc' })
+          .scrollPaginate({ pageSize: 2, cursor: page2.cursor })
+        expect(page3).toEqual({
+          cursor: null,
+          results: [expect.toMatchDreamModel(unnamed2)],
+        })
+      })
+    })
   })
 
   context('paginating an association with an order defined on the association', () => {
@@ -246,6 +277,43 @@ describe('Query#scrollPaginate', () => {
       expect(page2).toEqual({
         cursor: composition4.id,
         results: [expect.toMatchDreamModel(composition2), expect.toMatchDreamModel(composition4)],
+      })
+    })
+
+    context('when the ordered column holds NULL', () => {
+      it('pages the NULL records first, then the rest, reaching every record exactly once', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const composition1 = await Composition.create({ user })
+        const composition2 = await Composition.create({ user })
+        const composition3 = await Composition.create({ user })
+        // creating a Composition fills in blank content, so clear it on the three created so far
+        await Composition.where({ user }).update({ content: null })
+        const composition4 = await Composition.create({ user, content: 'a' })
+        const composition5 = await Composition.create({ user, content: 'b' })
+
+        const page1 = await user
+          .associationQuery('sortedCompositions')
+          .scrollPaginate({ pageSize: 2, cursor: undefined })
+        expect(page1).toEqual({
+          cursor: composition2.id,
+          results: [expect.toMatchDreamModel(composition3), expect.toMatchDreamModel(composition2)],
+        })
+
+        const page2 = await user
+          .associationQuery('sortedCompositions')
+          .scrollPaginate({ pageSize: 2, cursor: page1.cursor })
+        expect(page2).toEqual({
+          cursor: composition4.id,
+          results: [expect.toMatchDreamModel(composition1), expect.toMatchDreamModel(composition4)],
+        })
+
+        const page3 = await user
+          .associationQuery('sortedCompositions')
+          .scrollPaginate({ pageSize: 2, cursor: page2.cursor })
+        expect(page3).toEqual({
+          cursor: null,
+          results: [expect.toMatchDreamModel(composition5)],
+        })
       })
     })
   })

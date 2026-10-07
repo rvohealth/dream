@@ -2536,26 +2536,40 @@ export default class Query<
              * 	"user"."id" ASC nulls FIRST,
              * 	"pets"."id" DESC nulls LAST
              * LIMIT $7
+             *
+             * NULL sorts first under `asc` and last under `desc` (Postgres through
+             * the explicit NULLS FIRST/LAST above, MySQL by default), and neither
+             * `>` nor `<` ever matches NULL, so the condition on the column being
+             * compared follows where NULL sorts:
+             *  - asc after NULL: `IS NOT NULL` (the remaining NULLs are reached
+             *    through the equality prefix, which compiles a NULL to `IS NULL`)
+             *  - asc after a value: `> value` (every NULL sorted before it)
+             *  - desc after a value: `< value`, or `IS NULL`, as a separate branch
+             *  - desc after NULL: nothing (only the equality prefix continues)
              */
-            const whereAnyMaybeEqual: any = {}
-            whereAnyMaybeEqualArray.push(whereAnyMaybeEqual)
+            const equalityPrefix: Record<string, unknown> = {}
+            for (let nestedIndex = 0; nestedIndex < index; nestedIndex++) {
+              equalityPrefix[orderStatements[nestedIndex]!.column] =
+                endOfPreviousPageComparisonValues[nestedIndex]
+            }
 
-            for (let nestedIndex = 0; nestedIndex <= index; nestedIndex++) {
-              const valueToCompare = endOfPreviousPageComparisonValues[nestedIndex]
-              const orderStatement = orderStatements[nestedIndex]!
+            const valueToCompare = endOfPreviousPageComparisonValues[index]
+            const orderStatement = orderStatements[index]!
+            const comparisonsSortingAfter: unknown[] = []
 
-              if (nestedIndex < index) {
-                whereAnyMaybeEqual[orderStatement.column] = valueToCompare
-              } else if (nestedIndex === index) {
-                switch (orderStatement.direction) {
-                  case 'asc':
-                    whereAnyMaybeEqual[orderStatement.column] = ops.greaterThan(valueToCompare)
-                    break
-                  case 'desc':
-                    whereAnyMaybeEqual[orderStatement.column] = ops.lessThan(valueToCompare)
-                    break
-                }
-              }
+            switch (orderStatement.direction) {
+              case 'asc':
+                comparisonsSortingAfter.push(
+                  valueToCompare === null ? ops.not.equal(null) : ops.greaterThan(valueToCompare)
+                )
+                break
+              case 'desc':
+                if (valueToCompare !== null) comparisonsSortingAfter.push(ops.lessThan(valueToCompare), null)
+                break
+            }
+
+            for (const comparison of comparisonsSortingAfter) {
+              whereAnyMaybeEqualArray.push({ ...equalityPrefix, [orderStatement.column]: comparison })
             }
           }
 
