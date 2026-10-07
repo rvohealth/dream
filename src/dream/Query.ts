@@ -27,10 +27,6 @@ import namespaceColumn from '../helpers/namespaceColumn.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { toSafeObject } from '../helpers/toSafeObject.js'
 import uniq from '../helpers/uniq.js'
-import CalendarDate from '../utils/datetime/CalendarDate.js'
-import ClockTime from '../utils/datetime/ClockTime.js'
-import ClockTimeTz from '../utils/datetime/ClockTimeTz.js'
-import { DateTime } from '../utils/datetime/DateTime.js'
 import ops from '../ops/index.js'
 import { HasManyStatement } from '../types/associations/hasMany.js'
 import { HasOneStatement } from '../types/associations/hasOne.js'
@@ -2342,11 +2338,14 @@ export default class Query<
    * through) returns a record once for each row the join matches, as
    * {@link Query.all} does, and the pages return each of those rows once,
    * sorting the rows of one record by the joined rows' primary keys after the
-   * primary key. The cursor of such a Query is an opaque string that carries
-   * the values its last row sorts by (readable by whoever holds it; it is not
-   * encrypted); any other Query's cursor is its last record's primary key. A
-   * record's primary key is always accepted as a cursor: the next page starts
-   * after that record's first row.
+   * primary key. The cursor of such a Query is an opaque string that names
+   * its last row by primary keys, the record's and the joined rows' (readable
+   * by whoever holds it; it is not encrypted), and the next page starts after
+   * that row, or, if the row is gone, after the record's first row. Any other
+   * Query's cursor is its last record's primary key. A record's primary key
+   * is always accepted as a cursor: the next page starts after that record's
+   * first row. A cursor carries no other value its row sorts by: those are
+   * read from the database when the next page is.
    *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
@@ -2417,11 +2416,14 @@ export default class Query<
    * through) returns a record once for each row the join matches, as
    * {@link Query.all} does, and the pages return each of those rows once,
    * sorting the rows of one record by the joined rows' primary keys after the
-   * primary key. The cursor of such a Query is an opaque string that carries
-   * the values its last row sorts by (readable by whoever holds it; it is not
-   * encrypted); any other Query's cursor is its last record's primary key. A
-   * record's primary key is always accepted as a cursor: the next page starts
-   * after that record's first row.
+   * primary key. The cursor of such a Query is an opaque string that names
+   * its last row by primary keys, the record's and the joined rows' (readable
+   * by whoever holds it; it is not encrypted), and the next page starts after
+   * that row, or, if the row is gone, after the record's first row. Any other
+   * Query's cursor is its last record's primary key. A record's primary key
+   * is always accepted as a cursor: the next page starts after that record's
+   * first row. A cursor carries no other value its row sorts by: those are
+   * read from the database when the next page is.
    *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
@@ -2513,7 +2515,7 @@ export default class Query<
         orderStatements.findIndex(orderStatement => this.namespaceColumn(orderStatement.column) === column)
       ),
     ]
-    const orderSignature = cursorOrderSignature(this.tableName, orderStatements)
+    const rowKeyColumns = rowKeyIndexes.map(index => orderStatements[index]!.column)
 
     const orderedQuery = this.clone({ order: null, bypassImplicitOrder: true }).clone({
       order: orderStatements,
@@ -2524,7 +2526,8 @@ export default class Query<
       const boundaryValues = await this.cursorBoundaryValues(orderedQuery, {
         cursor: options.cursor,
         orderStatements,
-        orderSignature,
+        rowKeyIndexes,
+        rowKeyColumns,
       })
 
       if (boundaryValues) {
@@ -2545,33 +2548,28 @@ export default class Query<
       }
     }
 
-    // A record can be returned for several rows, so the cursor carries the
-    // values the last row sorts by. They are read with the keys of the page's
-    // rows, and the records are then read by those keys, so the records
-    // returned are the rows the cursor was taken from.
+    // A record can be returned for several rows, so the cursor names the last
+    // row by its keys: the record's primary key and the joined rows' primary
+    // keys. The page's rows are read first, and the records then by the keys of
+    // those rows, so the records returned are the rows the cursor names.
     const pageRows = (await query
       .limit(pageSize as any)
       .pluck(...(orderStatements.map(orderStatement => orderStatement.column) as any[]))) as unknown[][]
     if (!pageRows.length) return { cursor: null, results: [] }
 
+    const pageRowKeys = pageRows.map(row => rowKeyIndexes.map(index => row[index]))
     const results = await orderedQuery
       .whereAny(
-        pageRows.map(row =>
-          Object.fromEntries(rowKeyIndexes.map(index => [orderStatements[index]!.column, row[index]]))
+        pageRowKeys.map(rowKeys =>
+          Object.fromEntries(rowKeyColumns.map((column, index) => [column, rowKeys[index]]))
         ) as any
       )
       .all()
 
-    const lastRow = pageRows.at(-1)!
-
     return {
       cursor:
         pageRows.length === pageSize
-          ? encodeOrderValuesCursor({
-              orderSignature,
-              primaryKey: lastRow[primaryKeyIndex],
-              values: lastRow,
-            })
+          ? encodeRowKeysCursor({ tableName: this.tableName, rowKeyColumns, rowKeys: pageRowKeys.at(-1)! })
           : null,
       results,
     }
@@ -2580,46 +2578,56 @@ export default class Query<
   /**
    * @internal
    *
-   * The values a cursor's row sorts by, in the order of `orderStatements`, or
-   * undefined when no such row is found.
+   * The values the row a cursor names sorts by now, in the order of
+   * `orderStatements`, or undefined when no such row is found.
    *
-   * A cursor issued for these order statements carries the values. Otherwise
-   * the cursor is a primary key (as every cursor issued before 2.36.0 is), or
-   * carries one, and the values are read from that record's first row, a
-   * soft-deleted record included, so that a page can follow a record removed
-   * since the cursor was issued.
+   * Unless the primary key is the only order statement, the values are read
+   * from the database, a soft-deleted record included, so that a page can
+   * follow a record removed since the cursor was issued. A cursor that names its row by keys this Query's rows carry is
+   * resumed from that row. Any other cursor (a primary key, as every cursor
+   * issued before 2.36.0 is, or a cursor from a Query that joins other
+   * associations), and a cursor whose row is gone, is resumed from the first
+   * row of the record whose primary key it is or carries.
    */
   private async cursorBoundaryValues(
     orderedQuery: Query<DreamInstance, QueryTypeOpts>,
     {
       cursor,
       orderStatements,
-      orderSignature,
+      rowKeyIndexes,
+      rowKeyColumns,
     }: {
       cursor: string
       orderStatements: OrderQueryStatement<string>[]
-      orderSignature: string
+      rowKeyIndexes: number[]
+      rowKeyColumns: string[]
     }
   ): Promise<unknown[] | undefined> {
-    const decodedCursor = decodeOrderValuesCursor(cursor)
-    if (
-      decodedCursor &&
-      decodedCursor.orderSignature === orderSignature &&
-      decodedCursor.values.length === orderStatements.length
-    )
-      return decodedCursor.values
-
-    const primaryKeyValue = decodedCursor ? decodedCursor.primaryKey : cursor
+    const { primaryKey, rowKeys } = decodeCursorRowKeys(cursor, {
+      tableName: this.tableName,
+      orderStatements,
+      rowKeyIndexes,
+      rowKeyColumns,
+    })
     // the only order statement is the primary key, so the cursor is the value
-    if (orderStatements.length === 1) return [primaryKeyValue]
+    if (orderStatements.length === 1) return [primaryKey]
 
-    const boundaryRows = (await orderedQuery
+    const boundaryQuery = orderedQuery
       .removeDefaultScopeExceptOnAssociations(SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>)
-      .where({ [this.namespacedPrimaryKey]: primaryKeyValue } as any)
       .limit(1 as any)
-      .pluck(...(orderStatements.map(orderStatement => orderStatement.column) as any[]))) as unknown[][]
+    const orderColumns = orderStatements.map(orderStatement => orderStatement.column) as any[]
 
-    return boundaryRows[0]
+    if (rowKeys) {
+      const [boundaryRow] = (await boundaryQuery
+        .where(Object.fromEntries(rowKeyColumns.map((column, index) => [column, rowKeys[index]])) as any)
+        .pluck(...orderColumns)) as unknown[][]
+      if (boundaryRow) return boundaryRow
+    }
+
+    const [firstRowOfRecord] = (await boundaryQuery
+      .where({ [this.namespacedPrimaryKey]: primaryKey } as any)
+      .pluck(...orderColumns)) as unknown[][]
+    return firstRowOfRecord
   }
 
   /**
@@ -3782,109 +3790,124 @@ function whereRowsSortingAfter(
 }
 
 /**
- * Prefix of a cursor that carries the values its row sorts by. A primary key
- * (an integer or a UUID) never contains a `.`, so a cursor that is a primary
- * key is never read as one of these.
+ * Prefix of a cursor that names its row by keys: the record's primary key,
+ * then the primary key of each row a HasOne or HasMany join matched to it. A
+ * primary key (an integer or a UUID) never contains a `.`, so a cursor that is
+ * a primary key is never read as one of these.
+ */
+const ROW_KEYS_CURSOR_PREFIX = 'v2.'
+
+/**
+ * Prefix of a cursor that carries every value its row sorts by, its row's keys
+ * among them, along with its record's primary key. Only the keys are read from
+ * it: the values its row sorts by are read from the database, as they are for
+ * every cursor.
  */
 const ORDER_VALUES_CURSOR_PREFIX = 'v1.'
 
 /**
- * A short digest of the table and order statements a cursor's values were read
- * under, so that a cursor passed to a Query that sorts by different columns
- * resumes from its primary key rather than comparing its values against the
- * wrong columns.
+ * A short digest of the table and columns a cursor's keys or values were read
+ * from, so that a cursor passed to a Query that reads other columns resumes
+ * from its primary key rather than matching its keys against the wrong
+ * columns.
  */
-function cursorOrderSignature(tableName: string, orderStatements: OrderQueryStatement<string>[]): string {
-  return crypto
-    .createHash('sha256')
-    .update(JSON.stringify([tableName, orderStatements.map(({ column, direction }) => [column, direction])]))
-    .digest('base64url')
-    .slice(0, 12)
+function cursorSignature(tableAndColumns: unknown): string {
+  return crypto.createHash('sha256').update(JSON.stringify(tableAndColumns)).digest('base64url').slice(0, 12)
 }
 
-function encodeOrderValuesCursor({
-  orderSignature,
-  primaryKey,
-  values,
+function encodeRowKeysCursor({
+  tableName,
+  rowKeyColumns,
+  rowKeys,
 }: {
-  orderSignature: string
-  primaryKey: unknown
-  values: unknown[]
+  tableName: string
+  rowKeyColumns: string[]
+  rowKeys: unknown[]
 }): string {
-  const payload = JSON.stringify({ s: orderSignature, k: primaryKey, v: values.map(cursorValueToJson) })
-  return ORDER_VALUES_CURSOR_PREFIX + Buffer.from(payload, 'utf8').toString('base64url')
+  const payload = JSON.stringify({ s: cursorSignature([tableName, rowKeyColumns]), k: rowKeys })
+  return ROW_KEYS_CURSOR_PREFIX + Buffer.from(payload, 'utf8').toString('base64url')
 }
 
 /**
- * The parts of a cursor made by `encodeOrderValuesCursor`, or null when the
- * cursor is not one (a primary key, or a string that cannot be read as one).
+ * The primary key a cursor is or carries, and the keys of the row it names
+ * when it names one of the Query's rows by `rowKeyColumns` (otherwise null).
+ * `rowKeyIndexes` are the positions of those columns in `orderStatements`. A
+ * cursor that cannot be read as one Dream issues is taken to be a primary key.
  */
-function decodeOrderValuesCursor(
-  cursor: string
-): { orderSignature: string; primaryKey: unknown; values: unknown[] } | null {
-  if (!cursor.startsWith(ORDER_VALUES_CURSOR_PREFIX)) return null
+function decodeCursorRowKeys(
+  cursor: string,
+  {
+    tableName,
+    orderStatements,
+    rowKeyIndexes,
+    rowKeyColumns,
+  }: {
+    tableName: string
+    orderStatements: OrderQueryStatement<string>[]
+    rowKeyIndexes: number[]
+    rowKeyColumns: string[]
+  }
+): { primaryKey: unknown; rowKeys: unknown[] | null } {
+  const rowKeysPayload = cursorPayload(cursor, ROW_KEYS_CURSOR_PREFIX)
+  const keys = rowKeysPayload?.k
+  if (rowKeysPayload && Array.isArray(keys) && isCursorPrimaryKey(keys[0])) {
+    const namesQueryRow =
+      rowKeysPayload.s === cursorSignature([tableName, rowKeyColumns]) &&
+      keys.length === rowKeyColumns.length &&
+      keys.every(isCursorRowKey)
+
+    return { primaryKey: keys[0], rowKeys: namesQueryRow ? keys : null }
+  }
+
+  const orderValuesPayload = cursorPayload(cursor, ORDER_VALUES_CURSOR_PREFIX)
+  const primaryKey = orderValuesPayload?.k
+  const values = orderValuesPayload?.v
+  if (orderValuesPayload && isCursorPrimaryKey(primaryKey)) {
+    const orderSignature = cursorSignature([
+      tableName,
+      orderStatements.map(({ column, direction }) => [column, direction]),
+    ])
+    // each value is a [type, value] pair, and a key's type is 'json'
+    const rowKeys =
+      orderValuesPayload.s === orderSignature &&
+      Array.isArray(values) &&
+      values.length === orderStatements.length
+        ? rowKeyIndexes.map(index => {
+            const taggedValue: unknown = values[index]
+            return Array.isArray(taggedValue) && taggedValue[0] === 'json' ? taggedValue[1] : undefined
+          })
+        : null
+
+    return { primaryKey, rowKeys: rowKeys?.every(isCursorRowKey) ? rowKeys : null }
+  }
+
+  return { primaryKey: cursor, rowKeys: null }
+}
+
+/**
+ * The object a cursor that starts with `prefix` encodes, or null when the
+ * cursor does not start with it or cannot be read.
+ */
+function cursorPayload(cursor: string, prefix: string): Record<string, unknown> | null {
+  if (!cursor.startsWith(prefix)) return null
 
   try {
     const payload: unknown = JSON.parse(
-      Buffer.from(cursor.slice(ORDER_VALUES_CURSOR_PREFIX.length), 'base64url').toString('utf8')
+      Buffer.from(cursor.slice(prefix.length), 'base64url').toString('utf8')
     )
-    if (!isObject(payload)) return null
-
-    const { s, k, v } = payload as { s?: unknown; k?: unknown; v?: unknown }
-    if (typeof s !== 'string' || (typeof k !== 'string' && typeof k !== 'number') || !Array.isArray(v))
-      return null
-
-    return { orderSignature: s, primaryKey: k, values: v.map(cursorValueFromJson) }
+    return isObject(payload) ? (payload as Record<string, unknown>) : null
   } catch {
     return null
   }
 }
 
-/**
- * A plucked value as JSON, tagged with its type so that it is read back as the
- * same type and compares in a where clause exactly as the plucked value does.
- */
-function cursorValueToJson(value: unknown): [string, unknown] {
-  if (value instanceof DateTime) return ['DateTime', value.toISO()]
-  if (value instanceof CalendarDate) return ['CalendarDate', value.toISO()]
-  if (value instanceof ClockTimeTz) return ['ClockTimeTz', value.toISO()]
-  if (value instanceof ClockTime) return ['ClockTime', value.toSQL()]
-  if (value instanceof Date) return ['Date', value.toISOString()]
-  if (typeof value === 'bigint') return ['bigint', value.toString()]
-  return ['json', value]
+function isCursorPrimaryKey(value: unknown): value is string | number {
+  return typeof value === 'string' || typeof value === 'number'
 }
 
 /**
- * The value `cursorValueToJson` encoded. Only a string, number, boolean or
- * null is read back untagged: an array or object (from an array or json
- * column) would not compare as the column's value in a where clause, so a
- * cursor holding one is not read as carrying values, and resumes from its
- * primary key instead.
+ * A joined row's key is NULL in a row a LEFT JOIN matched to no row.
  */
-function cursorValueFromJson(encoded: unknown): unknown {
-  if (!Array.isArray(encoded) || encoded.length !== 2) throw new Error('unreadable cursor value')
-  const [type, value] = encoded as [unknown, unknown]
-
-  if (type === 'json') {
-    if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) return value
-    throw new Error('unreadable cursor value')
-  }
-  if (typeof value !== 'string') throw new Error('unreadable cursor value')
-
-  switch (type) {
-    case 'DateTime':
-      return DateTime.fromISO(value)
-    case 'CalendarDate':
-      return CalendarDate.fromISO(value)
-    case 'ClockTimeTz':
-      return ClockTimeTz.fromISO(value)
-    case 'ClockTime':
-      return ClockTime.fromSQL(value)
-    case 'Date':
-      return new Date(value)
-    case 'bigint':
-      return BigInt(value)
-    default:
-      throw new Error('unreadable cursor value')
-  }
+function isCursorRowKey(value: unknown): boolean {
+  return value === null || isCursorPrimaryKey(value)
 }

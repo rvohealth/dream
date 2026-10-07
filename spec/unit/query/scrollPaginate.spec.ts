@@ -4,6 +4,7 @@ import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPagin
 import ops from '../../../src/ops/index.js'
 import { CursorPaginatedDreamQueryResult } from '../../../src/types/query.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import User from '../../../test-app/app/models/User.js'
@@ -344,6 +345,61 @@ describe('Query#scrollPaginate', () => {
       expect(cursor).toBeNull()
       // positions 1, 1, 2, 2, 3, ties broken by ascending user primary key
       expect(results).toMatchDreamModels([user1, user2, user1, user2, user2])
+    })
+  })
+
+  context('a query joining a HasMany association and ordered by a column of the joined records', () => {
+    it('returns cursors that carry none of the joined records’ sort values, reaching every row once', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      await Post.create({ user, body: 'secret draft 1' })
+      await Post.create({ user, body: 'secret draft 2' })
+
+      const results: User[] = []
+      const cursors: string[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<User> = await User.innerJoin('posts')
+          .order({ 'posts.body': 'asc' })
+          .scrollPaginate({ pageSize: 1, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+        if (cursor) cursors.push(cursor)
+      }
+
+      expect(cursor).toBeNull()
+      expect(results).toMatchDreamModels([user, user])
+      // the cursor is opaque but not encrypted, so whoever holds it can decode it
+      const decodedCursors = cursors.map(cursor =>
+        Buffer.from(cursor.slice(cursor.indexOf('.') + 1), 'base64url').toString('utf8')
+      )
+      expect(decodedCursors).toHaveLength(2)
+      expect(decodedCursors.join()).not.toContain('secret draft')
+    })
+  })
+
+  context('a query joining a HasMany association and ordered by a jsonb column', () => {
+    it('reaches every row across pages, ending with a null cursor', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user, metadata: { a: 1 } })
+      const composition2 = await Composition.create({ user, metadata: { a: 2 } })
+      await CompositionAsset.create({ composition: composition1 })
+      await CompositionAsset.create({ composition: composition1 })
+      await CompositionAsset.create({ composition: composition2 })
+
+      const results: Composition[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<Composition> = await Composition.innerJoin(
+          'compositionAssets'
+        )
+          .order('metadata')
+          .scrollPaginate({ pageSize: 1, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      expect(results).toMatchDreamModels([composition1, composition1, composition2])
     })
   })
 
