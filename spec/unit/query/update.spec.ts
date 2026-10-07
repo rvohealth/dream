@@ -370,6 +370,29 @@ describe('Query#update', () => {
       expect(user1.name).toEqual('cool')
       expect(user2.name).toEqual('calvin')
     })
+
+    it('reaches every match across batches, visiting them in ascending primary key order', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      const user3 = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      const user4 = await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      const visitedIds: User['id'][] = []
+      const count = await User.where({ name: ops.similarity('chalupa') }).update(
+        user => {
+          visitedIds.push(user.id)
+          return { favoriteWord: 'cool' }
+        },
+        { lock: false, batchSize: 2 }
+      )
+
+      expect(count).toEqual(4)
+      expect(visitedIds).toEqual([user1.id, user2.id, user3.id, user4.id])
+      expect(await User.where({ favoriteWord: 'cool' }).count()).toEqual(4)
+    })
   })
 
   context('lock=true (guarded, compare-and-set update)', () => {
@@ -450,6 +473,47 @@ describe('Query#update', () => {
       await user2.reload()
       expect(user1.name).toEqual('cool')
       expect(user2.name).toEqual('calvin')
+    })
+
+    it('claims every similarity match across batches', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      const otherUser = await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      expect(
+        await User.where({ name: ops.similarity('chalupa') }).update(
+          { favoriteWord: 'cool' },
+          { lock: true, batchSize: 2 }
+        )
+      ).toEqual(4)
+
+      expect(await User.where({ favoriteWord: 'cool' }).count()).toEqual(4)
+      await otherUser.reload()
+      expect(otherUser.favoriteWord).toBeNull()
+    })
+
+    it('claims similarity matches in ascending primary key order, batch by batch', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      const user3 = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      const user4 = await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+
+      const claimedIds: User['id'][] = []
+      await User.where({ name: ops.similarity('chalupa') }).update(
+        user => {
+          claimedIds.push(user.id)
+          return { favoriteWord: 'cool' }
+        },
+        { lock: true, batchSize: 2 }
+      )
+
+      expect(claimedIds).toEqual([user1.id, user2.id, user3.id, user4.id])
     })
 
     context('when another transaction moves a record out of the Query first', () => {

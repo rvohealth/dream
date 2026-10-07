@@ -2,7 +2,7 @@ import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuild
 import type { DreamDbConfig } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
-import { AssociationStatement } from '../../types/associations/shared.js'
+import { AssociationStatement, OrderQueryStatement } from '../../types/associations/shared.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
 import {
@@ -637,6 +637,20 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async pluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
     throw new Error('implement pluck in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * The order statements that the declared `order` of the associations the
+   * Query is built on or joins contributes to its ORDER BY, in the order they
+   * sort, each column namespaced by the alias it is read from. Cursor
+   * pagination folds these into its cursor.
+   *
+   * @returns An array of namespaced order statements
+   */
+  public associationOrderStatements(): OrderQueryStatement<string>[] {
+    throw new Error('implement associationOrderStatements in child class')
   }
 
   /**

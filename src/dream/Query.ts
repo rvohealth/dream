@@ -25,6 +25,7 @@ import isObject from '../helpers/isObject.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { toSafeObject } from '../helpers/toSafeObject.js'
+import uniq from '../helpers/uniq.js'
 import ops from '../ops/index.js'
 import { HasManyStatement } from '../types/associations/hasMany.js'
 import { HasOneStatement } from '../types/associations/hasOne.js'
@@ -339,6 +340,17 @@ export default class Query<
   /**
    * @internal
    *
+   * Whether the Query is ordered by its own order statements alone. The
+   * driver otherwise sorts by a similarity condition's rank, and by the
+   * declared `order` of the associations the Query is built on or joins,
+   * ahead of those statements. The keyset walks and cursor pagination set
+   * this, since their cursors compare only the Query's order statements.
+   */
+  private readonly bypassImplicitOrder: boolean = false
+
+  /**
+   * @internal
+   *
    * The base sql alias to use for the base model
    * of this Query
    */
@@ -411,6 +423,7 @@ export default class Query<
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
+    this.bypassImplicitOrder = opts.bypassImplicitOrder || false
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -492,6 +505,8 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
+      bypassImplicitOrder:
+        opts.bypassImplicitOrder !== undefined ? opts.bypassImplicitOrder : this.bypassImplicitOrder,
     }) as Q
   }
 
@@ -593,7 +608,11 @@ export default class Query<
    *
    * IMPORTANT: `findEach` always iterates in ascending primary key order.
    * Any `order` applied to the Query is discarded; passing one has no effect
-   * on the order records are visited in.
+   * on the order records are visited in. The same goes for the `order` an
+   * association declares, when the Query is an `associationQuery` or joins
+   * that association, and for the relevance ranking of a similarity condition
+   * (`ops.similarity`, `ops.wordSimilarity`, `ops.strictWordSimilarity`),
+   * which still decides which records are visited, but not in what order.
    *
    * This is not a limitation that can be lifted. `findEach` guarantees that
    * every matching record is visited exactly once, and it delivers that by
@@ -630,7 +649,10 @@ export default class Query<
     // batchSize, the offset skipping rows inside every window
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
     let records: any[]
-    const query = this.order(null)
+    // ordered by primary key alone, so that each window holds the next
+    // batchSize records after the cursor
+    const query = this.clone({ bypassImplicitOrder: true })
+      .order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
     // the cursor is compared against a sentinel rather than tested for
@@ -2218,6 +2240,13 @@ export default class Query<
    * // 2
    * ```
    *
+   * Under a similarity condition (`ops.similarity`, `ops.wordSimilarity`,
+   * `ops.strictWordSimilarity`), pages come best match first: records are
+   * ordered by relevance ahead of the Query's `order` (or, without one, the
+   * descending primary key). For best-match-first pages, use `paginate`
+   * rather than {@link Query.cursorPaginate}, which does not order by
+   * relevance.
+   *
    * @param opts - Pagination options
    * @param opts.page - the page number that you want to fetch results for
    * @param opts.pageSize - the number of results per page (optional)
@@ -2270,9 +2299,18 @@ export default class Query<
    * provides better performance for large datasets by using cursor-based
    * pagination instead of offset-based pagination.
    *
-   * Default order is ascending primary key. If an order has already been
-   * set on the query, and it includes the primary key (e.g.: `id: 'asc'`),
-   * then the implicit primary key ordering will be omitted.
+   * Pages follow the Query's `order`, preceded by the `order` declared on any
+   * association the Query is built on or joins (so an `associationQuery` of
+   * an ordered association pages in that association's order), with
+   * ascending primary key as the final tiebreaker; with neither, pages run in
+   * ascending primary key order. If those orders already include the primary
+   * key (e.g.: `id: 'asc'`), the implicit primary key ordering is omitted.
+   *
+   * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
+   * `ops.strictWordSimilarity`) still decides which records match, but its
+   * relevance ranking does not order the pages: a cursor can only resume from
+   * values it compares, and the rank is not one of them. For best-match-first
+   * pages, use {@link Query.paginate}.
    *
    * ```ts
    * // First page (using undefined to start from beginning)
@@ -2324,9 +2362,19 @@ export default class Query<
    * provides better performance for large datasets by using cursor-based
    * pagination instead of offset-based pagination.
    *
-   * Default order is descending primary key. If an order has already been
-   * set on the query, and it includes the primary key (e.g.: `id: 'asc'`),
-   * then the implicit primary key ordering will be omitted.
+   * Pages follow the Query's `order`, preceded by the `order` declared on any
+   * association the Query is built on or joins (so an `associationQuery` of
+   * an ordered association pages in that association's order), with
+   * descending primary key as the final tiebreaker; with neither, pages run
+   * in descending primary key order. If those orders already include the
+   * primary key (e.g.: `id: 'asc'`), the implicit primary key ordering is
+   * omitted.
+   *
+   * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
+   * `ops.strictWordSimilarity`) still decides which records match, but its
+   * relevance ranking does not order the pages: a cursor can only resume from
+   * values it compares, and the rank is not one of them. For best-match-first
+   * pages, use {@link Query.paginate}.
    *
    * ```ts
    * // First page (using undefined to start from beginning)
@@ -2366,15 +2414,29 @@ export default class Query<
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
     if (this.joinLoadActivated) throw new CannotPaginateWithLeftJoinPreload()
 
-    const orderIncludesPrimaryKey = this.orderStatements.some(
+    // An association's declared `order` sorts ahead of the Query's own order
+    // statements, so the cursor takes both, in that order, as the statements it
+    // pages by. The query then orders by those statements alone: anything else
+    // the driver would sort by (a similarity condition's rank) is not something
+    // the cursor compares, and would strand records between pages. A column
+    // listed twice sorts only by its first appearance, so only that one is
+    // kept; a later duplicate would contradict it in the cursor's comparison.
+    const cursorOrderStatements = uniq(
+      [...this.dbDriverInstance().associationOrderStatements(), ...this.orderStatements],
+      orderStatement => this.namespaceColumn(orderStatement.column)
+    )
+
+    const orderIncludesPrimaryKey = cursorOrderStatements.some(
       orderStatement =>
         orderStatement.column === this.dreamClass.primaryKey ||
         orderStatement.column === this.namespacedPrimaryKey
     )
 
-    let query = orderIncludesPrimaryKey
-      ? this
-      : this.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
+    let query = this.clone({ order: null, bypassImplicitOrder: true }).clone({
+      order: orderIncludesPrimaryKey
+        ? cursorOrderStatements
+        : [...cursorOrderStatements, { column: this.namespacedPrimaryKey, direction: 'desc' }],
+    } as any)
 
     if (options.cursor) {
       const orderStatements = query.orderStatements
@@ -2895,7 +2957,10 @@ export default class Query<
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
 
     const primaryKey = this.dreamInstance['_primaryKey']
-    const orderedQuery = this.order(null)
+    // ordered by primary key alone, so that each window holds the next
+    // batchSize records after the cursor
+    const orderedQuery = this.clone({ bypassImplicitOrder: true })
+      .order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
 
@@ -3550,4 +3615,5 @@ export interface QueryOpts<
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
+  bypassImplicitOrder?: boolean | undefined
 }

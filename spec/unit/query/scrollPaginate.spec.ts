@@ -1,6 +1,7 @@
 import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
+import ops from '../../../src/ops/index.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -222,6 +223,60 @@ describe('Query#scrollPaginate', () => {
       expect(results[1]).toMatchDreamModel(composition1)
       expect(results[2]).toMatchDreamModel(composition2)
       expect(results[3]).toMatchDreamModel(composition4)
+    })
+
+    it('follows that order onto later pages, reaching every record exactly once', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user, content: 'a' })
+      const composition3 = await Composition.create({ user, content: 'a' })
+      const composition4 = await Composition.create({ user, content: 'b' })
+      const composition2 = await Composition.create({ user, content: 'b' })
+
+      const page1 = await user
+        .associationQuery('sortedCompositions')
+        .scrollPaginate({ pageSize: 2, cursor: undefined })
+      expect(page1).toEqual({
+        cursor: composition1.id,
+        results: [expect.toMatchDreamModel(composition3), expect.toMatchDreamModel(composition1)],
+      })
+
+      const page2 = await user
+        .associationQuery('sortedCompositions')
+        .scrollPaginate({ pageSize: 2, cursor: page1.cursor })
+      expect(page2).toEqual({
+        cursor: composition4.id,
+        results: [expect.toMatchDreamModel(composition2), expect.toMatchDreamModel(composition4)],
+      })
+    })
+  })
+
+  context('with a similarity condition', () => {
+    it('pages in ascending primary key order rather than by rank, reaching every match exactly once', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      const user3 = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      const user4 = await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      const page1 = await User.where({ name: ops.similarity('chalupa') }).scrollPaginate({
+        pageSize: 2,
+        cursor: undefined,
+      })
+      expect(page1).toEqual({
+        cursor: user2.id,
+        results: [expect.toMatchDreamModel(user1), expect.toMatchDreamModel(user2)],
+      })
+
+      const page2 = await User.where({ name: ops.similarity('chalupa') }).scrollPaginate({
+        pageSize: 2,
+        cursor: page1.cursor,
+      })
+      expect(page2).toEqual({
+        cursor: user4.id,
+        results: [expect.toMatchDreamModel(user3), expect.toMatchDreamModel(user4)],
+      })
     })
   })
 

@@ -92,6 +92,7 @@ import { HasOneStatement } from '../../types/associations/hasOne.js'
 import {
   AssociationStatement,
   InternalWhereStatement,
+  OrderQueryStatement,
   SelfOnStatement,
 } from '../../types/associations/shared.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
@@ -157,6 +158,14 @@ interface PendingThroughAssociation {
 }
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
+  /**
+   * @internal
+   *
+   * While `associationOrderStatements` builds a select, the order statements
+   * that association joins add to it, in the order they are added.
+   */
+  private associationOrderCollector: OrderQueryStatement<string>[] | null = null
+
   // ATTENTION FRED
   // stop trying to make this async. You never learn...
   //
@@ -1173,7 +1182,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       const query = connectionOverride
         ? this.query['baseSelectQuery'].connection(connectionOverride)
         : this.query['baseSelectQuery']
-      kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(query).buildSelect({
+      const baseSelectDriver = new (this.constructor as typeof KyselyQueryDriver)(query)
+      baseSelectDriver.associationOrderCollector = this.associationOrderCollector
+      kyselyQuery = baseSelectDriver.buildSelect({
         bypassSelectAll: true,
       })
     } else {
@@ -1194,6 +1205,12 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, {
       bypassOrder: bypassOrder || !!this.query['distinctColumn'],
     }) as typeof kyselyQuery
+
+    // a keyset cursor compares only the Query's order statements, so the
+    // orderings emitted above (a similarity rank, an association's declared
+    // `order`, including those of an association query's base select) are
+    // cleared rather than left to sort ahead of them
+    if (this.query['bypassImplicitOrder']) kyselyQuery = kyselyQuery.clearOrderBy()
 
     if (this.query['orderStatements'].length && !bypassOrder) {
       this.query['orderStatements'].forEach(orderStatement => {
@@ -1222,6 +1239,29 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     if (bypassOrder) kyselyQuery = kyselyQuery.clearOrderBy()
 
     return kyselyQuery
+  }
+
+  /**
+   * @internal
+   *
+   * The order statements that the declared `order` of the associations the
+   * Query is built on or joins contributes to its ORDER BY, in the order they
+   * sort, each column namespaced by the alias it is read from. They are read
+   * off the same join code that emits them, by building the select.
+   *
+   * @returns An array of namespaced order statements
+   */
+  public override associationOrderStatements(): OrderQueryStatement<string>[] {
+    const collected: OrderQueryStatement<string>[] = []
+    this.associationOrderCollector = collected
+
+    try {
+      this.buildSelect()
+    } finally {
+      this.associationOrderCollector = null
+    }
+
+    return collected
   }
 
   public orderByDirection(direction: OrderDir | null): (obj: OrderByItemBuilder) => OrderByItemBuilder {
@@ -3119,14 +3159,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let selectQuery = query as SelectQueryBuilder<any, any, any>
     const orderStatement = association.order
 
-    if (typeof orderStatement === 'string') {
-      selectQuery = selectQuery.orderBy(this.namespaceColumn(orderStatement, tableNameOrAlias), 'asc')
-    } else {
-      Object.keys(orderStatement as Record<string, OrderDir>).forEach(column => {
-        const direction = (orderStatement as any)[column] as OrderDir
-        selectQuery = selectQuery.orderBy(this.namespaceColumn(column, tableNameOrAlias), direction)
-      })
-    }
+    const orderQueryStatements: OrderQueryStatement<string>[] =
+      typeof orderStatement === 'string'
+        ? [{ column: this.namespaceColumn(orderStatement, tableNameOrAlias), direction: 'asc' }]
+        : Object.keys(orderStatement as Record<string, OrderDir>).map(column => ({
+            column: this.namespaceColumn(column, tableNameOrAlias),
+            direction: (orderStatement as any)[column] as OrderDir,
+          }))
+
+    orderQueryStatements.forEach(({ column, direction }) => {
+      selectQuery = selectQuery.orderBy(column, direction)
+    })
+    this.associationOrderCollector?.push(...orderQueryStatements)
 
     return selectQuery as QueryType
   }

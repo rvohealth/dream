@@ -11,6 +11,7 @@ import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import InvalidBatchSize from '../../../src/errors/InvalidBatchSize.js'
 import RowLockIncompatibleWithDistinct from '../../../src/errors/RowLockIncompatibleWithDistinct.js'
+import ops from '../../../src/ops/index.js'
 import { HookStatement } from '../../../src/types/lifecycle.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -643,6 +644,144 @@ describe('Query#destroy', () => {
 
         expect(applyRowLockSpy).not.toHaveBeenCalled()
       })
+    })
+  })
+
+  context('with a similarity condition', () => {
+    // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+    // an exact "chalupa", so the lowest primary keys rank last
+
+    it('destroys every match across batches', async () => {
+      await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      const otherUser = await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      expect(await User.where({ name: ops.similarity('chalupa') }).destroy({ batchSize: 2 })).toEqual(4)
+
+      expect(await User.all()).toMatchDreamModels([otherUser])
+    })
+
+    it('destroys every match across batches with lock: true', async () => {
+      await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      const otherUser = await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      expect(
+        await User.where({ name: ops.similarity('chalupa') }).destroy({ lock: true, batchSize: 2 })
+      ).toEqual(4)
+
+      expect(await User.all()).toMatchDreamModels([otherUser])
+    })
+
+    context('on an innerJoin', () => {
+      it('destroys every match across batches', async () => {
+        const lowRankUser = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+        const highRankUser = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupa' })
+        const otherUser = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'calvin' })
+        await Composition.create({ user: lowRankUser })
+        await Composition.create({ user: lowRankUser })
+        await Composition.create({ user: highRankUser })
+        await Composition.create({ user: highRankUser })
+        const otherComposition = await Composition.create({ user: otherUser })
+
+        expect(
+          await Composition.innerJoin('user', { and: { name: ops.similarity('chalupa') } }).destroy({
+            batchSize: 2,
+          })
+        ).toEqual(4)
+
+        expect(await Composition.all()).toMatchDreamModels([otherComposition])
+      })
+
+      it('destroys every match across batches with lock: true', async () => {
+        const lowRankUser = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+        const highRankUser = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupa' })
+        const otherUser = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'calvin' })
+        await Composition.create({ user: lowRankUser })
+        await Composition.create({ user: lowRankUser })
+        await Composition.create({ user: highRankUser })
+        await Composition.create({ user: highRankUser })
+        const otherComposition = await Composition.create({ user: otherUser })
+
+        expect(
+          await Composition.innerJoin('user', { and: { name: ops.similarity('chalupa') } }).destroy({
+            lock: true,
+            batchSize: 2,
+          })
+        ).toEqual(4)
+
+        expect(await Composition.all()).toMatchDreamModels([otherComposition])
+      })
+    })
+
+    context('on an associationQuery', () => {
+      it('destroys every match across batches', async () => {
+        const user = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+        await Post.create({ user, body: 'chalupazz' })
+        await Post.create({ user, body: 'chalupazz' })
+        await Post.create({ user, body: 'chalupa' })
+        await Post.create({ user, body: 'chalupa' })
+        const otherPost = await Post.create({ user, body: 'calvin' })
+
+        expect(
+          await user
+            .associationQuery('posts', { and: { body: ops.similarity('chalupa') } })
+            .destroy({ batchSize: 2 })
+        ).toEqual(4)
+
+        expect(await Post.all()).toMatchDreamModels([otherPost])
+      })
+
+      it('destroys every match across batches with lock: true', async () => {
+        const user = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+        await Post.create({ user, body: 'chalupazz' })
+        await Post.create({ user, body: 'chalupazz' })
+        await Post.create({ user, body: 'chalupa' })
+        await Post.create({ user, body: 'chalupa' })
+        const otherPost = await Post.create({ user, body: 'calvin' })
+
+        expect(
+          await user
+            .associationQuery('posts', { and: { body: ops.similarity('chalupa') } })
+            .destroy({ lock: true, batchSize: 2 })
+        ).toEqual(4)
+
+        expect(await Post.all()).toMatchDreamModels([otherPost])
+      })
+    })
+  })
+
+  context('on an associationQuery whose association declares an order', () => {
+    it('destroys every record across batches', async () => {
+      const user = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      const post1 = await Post.create({ user })
+      await Post.create({ user })
+      await Post.create({ user })
+      await Post.create({ user })
+      // orderedPosts orders by position, which now puts the lowest primary key last
+      await post1.update({ position: 4 })
+
+      expect(await user.associationQuery('orderedPosts').destroy({ batchSize: 2 })).toEqual(4)
+
+      expect(await Post.all()).toEqual([])
+    })
+
+    it('destroys every record across batches with lock: true', async () => {
+      const user = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      const post1 = await Post.create({ user })
+      await Post.create({ user })
+      await Post.create({ user })
+      await Post.create({ user })
+      // orderedPosts orders by position, which now puts the lowest primary key last
+      await post1.update({ position: 4 })
+
+      expect(await user.associationQuery('orderedPosts').destroy({ lock: true, batchSize: 2 })).toEqual(4)
+
+      expect(await Post.all()).toEqual([])
     })
   })
 

@@ -1,8 +1,13 @@
 import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
+import ops from '../../../src/ops/index.js'
 import Composition from '../../../test-app/app/models/Composition.js'
+import Edge from '../../../test-app/app/models/Graph/Edge.js'
+import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode.js'
+import Node from '../../../test-app/app/models/Graph/Node.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import Post from '../../../test-app/app/models/Post.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#cursorPaginate', () => {
@@ -247,6 +252,131 @@ describe('Query#cursorPaginate', () => {
       expect(results[1]).toMatchDreamModel(composition1)
       expect(results[2]).toMatchDreamModel(composition2)
       expect(results[3]).toMatchDreamModel(composition4)
+    })
+
+    it('follows that order onto later pages, reaching every record exactly once', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const composition1 = await Composition.create({ user, content: 'a' })
+      const composition3 = await Composition.create({ user, content: 'a' })
+      const composition4 = await Composition.create({ user, content: 'b' })
+      const composition2 = await Composition.create({ user, content: 'b' })
+
+      const page1 = await user
+        .associationQuery('sortedCompositions')
+        .cursorPaginate({ pageSize: 2, cursor: undefined })
+      expect(page1).toEqual({
+        cursor: composition1.id,
+        results: [expect.toMatchDreamModel(composition3), expect.toMatchDreamModel(composition1)],
+      })
+
+      const page2 = await user
+        .associationQuery('sortedCompositions')
+        .cursorPaginate({ pageSize: 2, cursor: page1.cursor })
+      expect(page2).toEqual({
+        cursor: composition4.id,
+        results: [expect.toMatchDreamModel(composition2), expect.toMatchDreamModel(composition4)],
+      })
+
+      const page3 = await user
+        .associationQuery('sortedCompositions')
+        .cursorPaginate({ pageSize: 2, cursor: page2.cursor })
+      expect(page3).toEqual({ cursor: null, results: [] })
+    })
+
+    context('when the Query also carries an explicit order', () => {
+      it('orders by the declared association order first, reaching every record exactly once across pages', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const post1 = await Post.create({ user, body: 'd' })
+        const post2 = await Post.create({ user, body: 'c' })
+        const post3 = await Post.create({ user, body: 'b' })
+        const post4 = await Post.create({ user, body: 'a' })
+        // orderedPosts orders by position, which now runs post2, post3, post4, post1
+        await post1.update({ position: 4 })
+
+        const page1 = await user
+          .associationQuery('orderedPosts')
+          .order('body')
+          .cursorPaginate({ pageSize: 2, cursor: undefined })
+        expect(page1).toEqual({
+          cursor: post3.id,
+          results: [expect.toMatchDreamModel(post2), expect.toMatchDreamModel(post3)],
+        })
+
+        const page2 = await user
+          .associationQuery('orderedPosts')
+          .order('body')
+          .cursorPaginate({ pageSize: 2, cursor: page1.cursor })
+        expect(page2).toEqual({
+          cursor: post1.id,
+          results: [expect.toMatchDreamModel(post4), expect.toMatchDreamModel(post1)],
+        })
+      })
+    })
+  })
+
+  context(
+    'paginating a through association whose order is declared on the association it goes through',
+    () => {
+      it('follows that order onto later pages, reaching every record exactly once', async () => {
+        const node = await Node.create({ name: 'world' })
+        const edge1 = await Edge.create({ name: 'a' })
+        const edge2 = await Edge.create({ name: 'b' })
+        const edge3 = await Edge.create({ name: 'c' })
+        const edge4 = await Edge.create({ name: 'd' })
+        const edgeNode1 = await EdgeNode.create({ node, edge: edge1 })
+        await EdgeNode.create({ node, edge: edge2 })
+        await EdgeNode.create({ node, edge: edge3 })
+        await EdgeNode.create({ node, edge: edge4 })
+        // edgesOrderedByPosition goes through orderedEdgeNodes, ordered by position,
+        // which now runs edge2, edge3, edge4, edge1
+        await edgeNode1.update({ position: 4 })
+
+        const page1 = await node
+          .associationQuery('edgesOrderedByPosition')
+          .cursorPaginate({ pageSize: 2, cursor: undefined })
+        expect(page1).toEqual({
+          cursor: edge3.id,
+          results: [expect.toMatchDreamModel(edge2), expect.toMatchDreamModel(edge3)],
+        })
+
+        const page2 = await node
+          .associationQuery('edgesOrderedByPosition')
+          .cursorPaginate({ pageSize: 2, cursor: page1.cursor })
+        expect(page2).toEqual({
+          cursor: edge1.id,
+          results: [expect.toMatchDreamModel(edge4), expect.toMatchDreamModel(edge1)],
+        })
+      })
+    }
+  )
+
+  context('with a similarity condition', () => {
+    it('pages in descending primary key order rather than by rank, reaching every match exactly once', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank best
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupa' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupa' })
+      const user3 = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupazz' })
+      const user4 = await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      const page1 = await User.where({ name: ops.similarity('chalupa') }).cursorPaginate({
+        pageSize: 2,
+        cursor: undefined,
+      })
+      expect(page1).toEqual({
+        cursor: user3.id,
+        results: [expect.toMatchDreamModel(user4), expect.toMatchDreamModel(user3)],
+      })
+
+      const page2 = await User.where({ name: ops.similarity('chalupa') }).cursorPaginate({
+        pageSize: 2,
+        cursor: page1.cursor,
+      })
+      expect(page2).toEqual({
+        cursor: user1.id,
+        results: [expect.toMatchDreamModel(user2), expect.toMatchDreamModel(user1)],
+      })
     })
   })
 
