@@ -85,24 +85,31 @@ function buildColumnsWithTypesDescription(belongsToDescription: string): string 
 ${belongsToDescription}`
 }
 
-const columnsWithTypesDescription = buildColumnsWithTypesDescription(`
+/**
+ * The `[columnsWithTypes...]` argument description for `g:model`. Exported so
+ * that spec/unit/cli/generateMigrationContent.spec.ts can run each
+ * `:belongs_to` example in this text through the migration generator and check
+ * the FK column the example's comment names: an example that drifts from what
+ * the generator actually produces then fails the suite instead of shipping.
+ */
+export const columnsWithTypesDescription = buildColumnsWithTypesDescription(`
 ${INDENT}
 ${INDENT}    - belongs_to:
 ${INDENT}        ALWAYS use this instead of adding a raw uuid column for foreign keys. It creates the FK column, adds a database index,
 ${INDENT}        AND generates the @deco.BelongsTo association and typed property on the model. A raw uuid column does none of this.
 ${INDENT}
-${INDENT}        use the fully qualified model name (matching its path under src/app/models/):
+${INDENT}        use the fully qualified model name (matching its path under src/app/models/). The last segment of that
+${INDENT}        path names the FK column, the typed FK property and the association:
 ${INDENT}          User:belongs_to                  # creates user_id column + BelongsTo association
-${INDENT}          Health/Coach:belongs_to           # creates health_coach_id column + BelongsTo association
+${INDENT}          Health/Coach:belongs_to           # creates coach_id column, coachId property, coach association
 ${INDENT}          User:belongs_to:optional          # nullable foreign key (for optional associations)
 ${INDENT}
-${INDENT}        rename the association with Model@alias — the snake_case alias drives the FK column name AND the
-${INDENT}        @deco.BelongsTo association + typed FK property on the generated model:
+${INDENT}        rename the association with Model@alias — the snake_case alias takes the last segment's place, naming the
+${INDENT}        FK column <alias>_id AND the @deco.BelongsTo association + typed FK property on the generated model:
 ${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column, canceledById property, canceledBy association,
 ${INDENT}                                                             #   @deco.BelongsTo('InternalUser', { on: 'canceledById', optional: true })
-${INDENT}          Messaging/Template@template:belongs_to             # template_id column, templateId property, template association
-${INDENT}                                                             #   (strips the namespace from the property/association names while keeping
-${INDENT}                                                             #   the namespaced model reference intact)
+${INDENT}          Health/Coach@health_coach:belongs_to               # health_coach_id column, healthCoachId property, healthCoach association,
+${INDENT}                                                             #   @deco.BelongsTo('Health/Coach', { on: 'healthCoachId' })
 ${INDENT}        Aliasing also lets you declare multiple FKs to the same model in one generator call without column collisions.`)
 
 export const columnsWithTypesDescriptionForStiChild = buildColumnsWithTypesDescription(`
@@ -111,20 +118,25 @@ ${INDENT}    - belongs_to:
 ${INDENT}        NOT supported for STI children. STI children cannot declare associations; declare all BelongsTo,
 ${INDENT}        HasOne, and HasMany associations on the STI parent model instead.`)
 
-const columnsWithTypesDescriptionForMigration = buildColumnsWithTypesDescription(`
+/**
+ * The `[columnsWithTypes...]` argument description for `g:migration`. Exported
+ * for the same `:belongs_to` example check as `columnsWithTypesDescription`.
+ */
+export const columnsWithTypesDescriptionForMigration = buildColumnsWithTypesDescription(`
 ${INDENT}
 ${INDENT}    - belongs_to:
 ${INDENT}        ALWAYS use this instead of adding a raw uuid column for foreign keys. It creates the FK column with an index.
 ${INDENT}        Unlike in g:model/g:resource, this does NOT add a BelongsTo association (no model is generated).
 ${INDENT}
-${INDENT}        use the fully qualified model name (matching its path under src/app/models/):
+${INDENT}        use the fully qualified model name (matching its path under src/app/models/). The last segment of that
+${INDENT}        path names the FK column:
 ${INDENT}          User:belongs_to                  # creates user_id column with index
-${INDENT}          Health/Coach:belongs_to           # creates health_coach_id column with index
+${INDENT}          Health/Coach:belongs_to           # creates coach_id column with index
 ${INDENT}          User:belongs_to:optional          # nullable foreign key
 ${INDENT}
-${INDENT}        rename the FK column with Model@alias (snake_case alias becomes the column name):
+${INDENT}        rename the FK column with Model@alias (the column is <alias>_id, with the alias snake_cased):
 ${INDENT}          InternalUser@canceled_by:belongs_to:optional       # canceled_by_id column with index
-${INDENT}          Messaging/Template@template:belongs_to             # template_id column (strips the namespace from the column name)`)
+${INDENT}          Health/Coach@health_coach:belongs_to               # health_coach_id column with index`)
 
 /**
  * The `<migrationName>` argument description for `g:migration`. Exported so

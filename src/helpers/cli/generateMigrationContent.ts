@@ -640,7 +640,7 @@ function generateBelongsToStr(
   const dataType = dbDriverClass.foreignKeyTypeFromPrimaryKey(primaryKeyType)
   const references = lookupReferencesTable(associationName, originalAssociationName)
   // When the user passed `Model@alias:belongs_to`, the column name comes from
-  // the alias; otherwise it's the model's last segment (existing behavior).
+  // the alias; otherwise it's the model's last segment.
   const columnNameSource = aliasName ? snakeify(aliasName) : associationName.split('/').pop()!
   return `.addColumn('${associationNameToForeignKey(columnNameSource)}', '${dataType}', col => col.references('${references}.id').onDelete('restrict')${optional ? '' : '.notNull()'})`
 }
