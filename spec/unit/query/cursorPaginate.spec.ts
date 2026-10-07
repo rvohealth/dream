@@ -3,6 +3,8 @@ import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPagina
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
 import ops from '../../../src/ops/index.js'
 import { CursorPaginatedDreamQueryResult } from '../../../src/types/query.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import Edge from '../../../test-app/app/models/Graph/Edge.js'
@@ -655,6 +657,80 @@ describe('Query#cursorPaginate', () => {
 
       expect(cursor).toBeNull()
       expect(results).toMatchDreamModels([composition1, composition1, composition2])
+    })
+  })
+
+  context('a query joining a HasMany association that also calls distinct', () => {
+    it('returns each record once across pages, ending with a null cursor', async () => {
+      const user1 = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred@fred2', password: 'howyadoin' })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user2 })
+      await Post.create({ user: user2 })
+
+      const results: User[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<User> = await User.innerJoin('posts')
+          .distinct()
+          .cursorPaginate({ pageSize: 1, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      expect(results).toMatchDreamModels([user2, user1])
+    })
+  })
+
+  context('paginating an association with distinct and an order led by the distinct column', () => {
+    it('returns only the records the association returns, ending with a null cursor', async () => {
+      const pet = await Pet.create()
+      const now = DateTime.now()
+      const newestA = await pet.createAssociation('collars', { tagName: 'a', createdAt: now })
+      await pet.createAssociation('collars', { tagName: 'a', createdAt: now.minus({ day: 1 }) })
+      const newestB = await pet.createAssociation('collars', { tagName: 'b', createdAt: now })
+
+      const results: Collar[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<Collar> = await pet
+          .associationQuery('newestCollarPerTagName')
+          .cursorPaginate({ pageSize: 1, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      expect(results).toMatchDreamModels([newestA, newestB])
+    })
+  })
+
+  context('a query joining an association with distinct and an order led by the distinct column', () => {
+    it('returns only the rows the join returns, ending with a null cursor', async () => {
+      const now = DateTime.now()
+      const pet1 = await Pet.create()
+      // its collar is not the newest with its tag name, so the join does not return it
+      const pet2 = await Pet.create()
+      await pet1.createAssociation('collars', { tagName: 'a', createdAt: now })
+      await pet1.createAssociation('collars', { tagName: 'b', createdAt: now })
+      await pet2.createAssociation('collars', { tagName: 'a', createdAt: now.minus({ day: 1 }) })
+
+      const results: Pet[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<Pet> = await Pet.innerJoin(
+          'newestCollarPerTagName'
+        ).cursorPaginate({ pageSize: 1, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      // one row for each tag name, in tag name order
+      expect(results).toMatchDreamModels([pet1, pet1])
     })
   })
 

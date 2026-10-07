@@ -2347,6 +2347,14 @@ export default class Query<
    * first row. A cursor carries no other value its row sorts by: those are
    * read from the database when the next page is.
    *
+   * A Query that calls `distinct` returns one row for each value of its
+   * distinct column, as {@link Query.all} does, and so do its pages, whose
+   * cursor is the last record's primary key. Over an association that declares
+   * `distinct` and an `order` led by its distinct column (an `associationQuery`
+   * of it, or a Query that joins it), the pages return the rows
+   * {@link Query.all} returns: the row the association's `order` keeps for each
+   * value of its distinct column.
+   *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
    * relevance ranking does not order the pages: a cursor can only resume from
@@ -2425,6 +2433,14 @@ export default class Query<
    * first row. A cursor carries no other value its row sorts by: those are
    * read from the database when the next page is.
    *
+   * A Query that calls `distinct` returns one row for each value of its
+   * distinct column, as {@link Query.all} does, and so do its pages, whose
+   * cursor is the last record's primary key. Over an association that declares
+   * `distinct` and an `order` led by its distinct column (an `associationQuery`
+   * of it, or a Query that joins it), the pages return the rows
+   * {@link Query.all} returns: the row the association's `order` keeps for each
+   * value of its distinct column.
+   *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
    * relevance ranking does not order the pages: a cursor can only resume from
@@ -2491,10 +2507,15 @@ export default class Query<
     // and the primary keys of the joined rows, with the Query's own, tell those
     // rows apart. Those not already ordered by follow the Query's own primary
     // key as the last statements the cursor pages by, so that the rows a record
-    // is returned for sort the same way on every page.
-    const joinedRowKeyColumns = uniq(this.dbDriverInstance().joinedRowKeyColumns()).filter(
-      column => column !== this.namespacedPrimaryKey
-    )
+    // is returned for sort the same way on every page. A Query that calls
+    // `distinct` returns one row for each value of its distinct column rather
+    // than one for each row the join matches, so it pages by its order and
+    // primary key alone.
+    const joinedRowKeyColumns = this.distinctColumn
+      ? []
+      : uniq(this.dbDriverInstance().joinedRowKeyColumns()).filter(
+          column => column !== this.namespacedPrimaryKey
+        )
     const orderedColumns = new Set(
       [...cursorOrderStatements, primaryKeyStatement].map(orderStatement =>
         this.namespaceColumn(orderStatement.column)
@@ -2520,7 +2541,8 @@ export default class Query<
     const orderedQuery = this.clone({ order: null, bypassImplicitOrder: true }).clone({
       order: orderStatements,
     } as any)
-    let query = orderedQuery
+    const pageQuery = orderedQuery.limit(pageSize as any)
+    let rowsSortingAfter: Record<string, unknown>[] | null = null
 
     if (options.cursor) {
       const boundaryValues = await this.cursorBoundaryValues(orderedQuery, {
@@ -2531,16 +2553,23 @@ export default class Query<
       })
 
       if (boundaryValues) {
-        query = orderedQuery.whereAny(
-          whereRowsSortingAfter(orderStatements, boundaryValues, primaryKeyIndex) as any
-        ) as typeof query
+        rowsSortingAfter = whereRowsSortingAfter(orderStatements, boundaryValues, primaryKeyIndex)
       }
     }
 
-    // Without a HasOne or HasMany join, a record is returned once, so its
-    // primary key identifies the row the next page starts after.
-    if (!joinedRowKeyColumns.length) {
-      const results = await query.limit(pageSize as any).all()
+    // A select that keeps one row of each group (as an association that
+    // declares `distinct` and an `order` produces) chooses that row from the
+    // rows it reads, so it is not narrowed to the rows sorting after the
+    // cursor, which would let it choose a row it does not return: the driver
+    // reads its page, choosing each group's row before narrowing. Any other
+    // select is narrowed by its own conditions.
+    const distinctOnPageRows = await pageQuery.dbDriverInstance().pluckDistinctOnPage(rowsSortingAfter)
+    const query = rowsSortingAfter ? pageQuery.whereAny(rowsSortingAfter as any) : pageQuery
+
+    // Otherwise, without a HasOne or HasMany join, a record is returned once,
+    // so its primary key identifies the row the next page starts after.
+    if (!distinctOnPageRows && !joinedRowKeyColumns.length) {
+      const results = await query.all()
 
       return {
         cursor: (results.length === pageSize && results.at(-1)?.primaryKeyValue().toString()) || null,
@@ -2548,13 +2577,17 @@ export default class Query<
       }
     }
 
-    // A record can be returned for several rows, so the cursor names the last
-    // row by its keys: the record's primary key and the joined rows' primary
-    // keys. The page's rows are read first, and the records then by the keys of
-    // those rows, so the records returned are the rows the cursor names.
-    const pageRows = (await query
-      .limit(pageSize as any)
-      .pluck(...(orderStatements.map(orderStatement => orderStatement.column) as any[]))) as unknown[][]
+    // The page's rows are read first, and the records then by the keys of
+    // those rows, so the records returned are the rows the page holds. A HasOne
+    // or HasMany join can return a record for several rows, so the cursor of
+    // such a Query names the last row by its keys: the record's primary key and
+    // the joined rows' primary keys. Any other Query's cursor is the last row's
+    // primary key.
+    const pageRows =
+      distinctOnPageRows ??
+      ((await query.pluck(
+        ...(orderStatements.map(orderStatement => orderStatement.column) as any[])
+      )) as unknown[][])
     if (!pageRows.length) return { cursor: null, results: [] }
 
     const pageRowKeys = pageRows.map(row => rowKeyIndexes.map(index => row[index]))
@@ -2566,13 +2599,15 @@ export default class Query<
       )
       .all()
 
-    return {
-      cursor:
-        pageRows.length === pageSize
-          ? encodeRowKeysCursor({ tableName: this.tableName, rowKeyColumns, rowKeys: pageRowKeys.at(-1)! })
-          : null,
-      results,
+    const lastRowKeys = pageRowKeys.at(-1)!
+    let cursor: string | null = null
+    if (pageRows.length === pageSize) {
+      cursor = joinedRowKeyColumns.length
+        ? encodeRowKeysCursor({ tableName: this.tableName, rowKeyColumns, rowKeys: lastRowKeys })
+        : String(lastRowKeys[0])
     }
+
+    return { cursor, results }
   }
 
   /**

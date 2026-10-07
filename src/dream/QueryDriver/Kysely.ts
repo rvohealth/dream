@@ -1422,6 +1422,92 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return collected
   }
 
+  /**
+   * @internal
+   *
+   * A page of a select that carries DISTINCT ON with an ORDER BY of its own
+   * (as an association that declares `distinct` and `order` produces), or null
+   * for any other select.
+   *
+   * Such a select keeps the row of each group that sorts first in that ORDER
+   * BY, so narrowing it to the rows after a cursor would let it keep a row it
+   * does not return (a group's later row, once the cursor has passed the
+   * group's first). It is read as a derived table instead, and narrowed to
+   * `rowsAfter`, sorted and limited outside it. The Query's order statements
+   * follow its ORDER BY, so that the select keeps the same row of each group
+   * every time it runs, and each of their columns is read out of it under a
+   * short alias (as `pluck` reads them), since a joined table's column cannot
+   * be named outside it.
+   *
+   * @param rowsAfter - where statements, any of which a row of the page matches
+   * @returns The page's rows, each an array of its order statement columns' values, or null
+   */
+  public override async pluckDistinctOnPage(
+    rowsAfter: Record<string, unknown>[] | null
+  ): Promise<unknown[][] | null> {
+    const { kyselyQuery: selectCore, selectDb } = this.buildSelectCore()
+    const selectNode = selectCore.toOperationNode()
+    if (!selectNode.distinctOn?.length || !selectNode.orderBy?.items.length) return null
+
+    const baseSqlAlias = this.query['baseSqlAlias']
+    const orderStatements = this.query['orderStatements']
+    const pageColumns = orderStatements.map((orderStatement, index) => {
+      this.validatePlainColumn(this.dreamClass, orderStatement.column)
+      return { column: this.namespaceColumn(orderStatement.column), alias: `pluck${index}` }
+    })
+
+    let distinctSelect = selectCore
+    orderStatements.forEach(orderStatement => {
+      distinctSelect = distinctSelect.orderBy(
+        this.namespaceColumn(orderStatement.column),
+        this.orderByDirection(orderStatement.direction)
+      )
+    })
+    distinctSelect = distinctSelect.select(
+      pageColumns.map(({ column, alias }) => `${column} as ${alias}` as any)
+    )
+
+    let pageSelect: SelectQueryBuilder<any, any, any> = selectDb.selectFrom(
+      distinctSelect.as(baseSqlAlias) as any
+    )
+    pageSelect = pageSelect.select(pageColumns.map(({ alias }) => `${baseSqlAlias}.${alias}` as any))
+
+    if (rowsAfter) {
+      const derivedColumns = new Map(
+        pageColumns.map(({ column, alias }) => [column, `${baseSqlAlias}.${alias}`])
+      )
+      pageSelect = pageSelect.where((eb: ExpressionBuilder<any, any>) =>
+        eb.or(
+          rowsAfter.map(whereStatement =>
+            this.whereStatementToExpressionWrapper(
+              this.dreamClass,
+              eb,
+              Object.fromEntries(
+                Object.entries(whereStatement).map(([column, value]) => [
+                  derivedColumns.get(this.namespaceColumn(column))!,
+                  value,
+                ])
+              )
+            )
+          )
+        )
+      )
+    }
+
+    pageColumns.forEach(({ alias }, index) => {
+      pageSelect = pageSelect.orderBy(
+        `${baseSqlAlias}.${alias}`,
+        this.orderByDirection(orderStatements[index]!.direction)
+      )
+    })
+
+    if (this.query['limitStatement']) pageSelect = pageSelect.limit(this.query['limitStatement'])
+
+    return (await executeDatabaseQuery(pageSelect, 'execute')).map(row =>
+      pageColumns.map(({ alias }) => row[alias] as unknown)
+    )
+  }
+
   public orderByDirection(direction: OrderDir | null): (obj: OrderByItemBuilder) => OrderByItemBuilder {
     return orderByDirection(direction)
   }

@@ -671,6 +671,30 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * @internal
+   *
+   * A page of a select that keeps one row of each group (DISTINCT ON with an
+   * ORDER BY of its own, as an association that declares `distinct` and
+   * `order` produces), or null for any other select, whose pages cursor
+   * pagination reads as it reads any select's.
+   *
+   * The page is the values of the Query's order statement columns for each
+   * row the select returns that matches any of `rowsAfter` (every row when it
+   * is null), sorted by the Query's order statements and limited by its
+   * limit. The select chooses each group's row before `rowsAfter` narrows the
+   * rows, so that the page holds only rows the select returns.
+   *
+   * A driver whose selects never keep one row of each group returns null.
+   *
+   * @param rowsAfter - where statements, any of which a row of the page matches
+   * @returns The page's rows, each an array of its order statement columns' values, or null
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async pluckDistinctOnPage(rowsAfter: Record<string, unknown>[] | null): Promise<unknown[][] | null> {
+    return null
+  }
+
+  /**
    * Returns a new Kysely SelectQueryBuilder instance to be used
    * in a sub Query
    *
