@@ -27,6 +27,8 @@
   .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Room).sanitizedName] } })
   ```
 
+- **Corrected what `g:sti-child --help` says the generator writes.** It said a child with no additional columns generates only the model file, while its first paragraph listed a migration and check constraints in every case. The generator always writes the model, a factory and a spec, writes the child serializers unless `--no-serializer` is passed, and writes a migration only when columns are given. The help now says so, says the migration goes in the migrations folder of the parent model's connection, and says it adds a check constraint only for each column that is not `:optional`, an array or a boolean, so the help's own `enum[]` example gets none. Psychic prints the same text for `psy g:sti-child --help`. Behavior is unchanged.
+
 ## 2.35.0
 
 - **New records report only assigned columns as dirty.** `willSaveChangeToAttribute()`, `dirtyAttributes()`, and `changedAttributes()` now omit columns whose value is `undefined`; an explicit `null` still counts as a change. A new record with no assigned columns now has `isDirty === false`. Duplicated records still count their copied values as dirty so those values are included on insert. This also corrects the public documentation for these methods.

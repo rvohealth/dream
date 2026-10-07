@@ -272,13 +272,12 @@ export default function generateMigrationContent({
   // time rather than generation time. Fail loudly here instead.
   //
   // This guard is scoped to the standalone `g:migration` `-to-`/`-from-` flow
-  // only (`stiChildClassName` is unset there). `g:sti-child` legitimately
-  // calls this function in alter mode with zero `columnsWithTypes` — a
-  // zero-attribute STI child is a documented use case (see `g:sti-child`'s
-  // help example in src/cli/index.ts), and `generateStiMigrationContent`
-  // handles the type-column/check-constraint machinery separately from the
-  // `columnDefs` this check inspects, so an empty `columnDefs` there is
-  // expected, not a sign of a mistyped/unparseable column list.
+  // only (`stiChildClassName` is unset there); STI child migrations skip it.
+  // `g:sti-child` writes no migration for a child declared with no columns
+  // (see `generateDream`), so an STI child migration reaches this point with
+  // an empty `columnDefs` only when none of its declarations produced a
+  // column (e.g. only `has_one`/`has_many` ones), and it then emits the bare
+  // `.alterTable(...).execute()` described above.
   if (
     altering &&
     columnDefs.length === 0 &&
