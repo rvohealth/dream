@@ -166,6 +166,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    */
   private associationOrderCollector: OrderQueryStatement<string>[] | null = null
 
+  /**
+   * @internal
+   *
+   * While `joinedRowKeyColumns` builds a select, the namespaced primary keys of
+   * the tables that HasOne and HasMany joins add to it, in the order they are
+   * added.
+   */
+  private joinedRowKeyCollector: string[] | null = null
+
   // ATTENTION FRED
   // stop trying to make this async. You never learn...
   //
@@ -1277,6 +1286,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         : this.query['baseSelectQuery']
       const baseSelectDriver = new (this.constructor as typeof KyselyQueryDriver)(query)
       baseSelectDriver.associationOrderCollector = this.associationOrderCollector
+      baseSelectDriver.joinedRowKeyCollector = this.joinedRowKeyCollector
       selectDb = baseSelectDriver.dbFor('select')
       kyselyQuery = baseSelectDriver.buildSelect({
         bypassSelectAll: true,
@@ -1383,6 +1393,30 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       this.buildSelect()
     } finally {
       this.associationOrderCollector = null
+    }
+
+    return collected
+  }
+
+  /**
+   * @internal
+   *
+   * The primary key of each table the Query reaches through a HasOne or
+   * HasMany association (one it joins, one an association it joins goes
+   * through, or one its association query is built on), namespaced by the
+   * alias it is read from, in join order. They are read off the same join code
+   * that emits the joins, by building the select.
+   *
+   * @returns An array of namespaced primary key columns
+   */
+  public override joinedRowKeyColumns(): string[] {
+    const collected: string[] = []
+    this.joinedRowKeyCollector = collected
+
+    try {
+      this.buildSelect()
+    } finally {
+      this.joinedRowKeyCollector = null
     }
 
     return collected
@@ -3236,6 +3270,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
           return join
         }
+      )
+
+      this.joinedRowKeyCollector?.push(
+        this.namespaceColumn(association.modelCB().primaryKey, currentTableAlias)
       )
 
       if (association.type === 'HasMany') {

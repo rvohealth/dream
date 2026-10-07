@@ -654,6 +654,23 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * @internal
+   *
+   * The primary key of each table the Query reaches through a HasOne or
+   * HasMany association (one it joins, one an association it joins goes
+   * through, or one its association query is built on), namespaced by the
+   * alias it is read from, in join order. Such a join can return a row of the
+   * Query's table once for each row it matches, and these keys, with the
+   * Query's own primary key, tell those rows apart. Cursor pagination pages by
+   * them after the Query's own primary key.
+   *
+   * @returns An array of namespaced primary key columns
+   */
+  public joinedRowKeyColumns(): string[] {
+    throw new Error('implement joinedRowKeyColumns in child class')
+  }
+
+  /**
    * Returns a new Kysely SelectQueryBuilder instance to be used
    * in a sub Query
    *

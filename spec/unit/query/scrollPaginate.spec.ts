@@ -2,8 +2,10 @@ import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/Ca
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
 import ops from '../../../src/ops/index.js'
+import { CursorPaginatedDreamQueryResult } from '../../../src/types/query.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
+import Post from '../../../test-app/app/models/Post.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#scrollPaginate', () => {
@@ -315,6 +317,33 @@ describe('Query#scrollPaginate', () => {
           results: [expect.toMatchDreamModel(composition5)],
         })
       })
+    })
+  })
+
+  context('a query joining an ordered HasMany association that matches several records to one record', () => {
+    it('returns the record once for each record it joins, in the association’s order, ending with a null cursor', async () => {
+      const user1 = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred@fred2', password: 'howyadoin' })
+      // orderedPosts orders by position, which numbers each user's posts from 1
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user2 })
+      await Post.create({ user: user2 })
+      await Post.create({ user: user2 })
+
+      const results: User[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<User> = await User.innerJoin(
+          'orderedPosts'
+        ).scrollPaginate({ pageSize: 2, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      // positions 1, 1, 2, 2, 3, ties broken by ascending user primary key
+      expect(results).toMatchDreamModels([user1, user2, user1, user2, user2])
     })
   })
 

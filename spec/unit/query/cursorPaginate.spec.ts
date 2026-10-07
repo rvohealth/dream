@@ -2,6 +2,7 @@ import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/Ca
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
 import ops from '../../../src/ops/index.js'
+import { CursorPaginatedDreamQueryResult } from '../../../src/types/query.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Edge from '../../../test-app/app/models/Graph/Edge.js'
 import EdgeNode from '../../../test-app/app/models/Graph/EdgeNode.js'
@@ -403,7 +404,7 @@ describe('Query#cursorPaginate', () => {
           .associationQuery('edgesOrderedByPosition')
           .cursorPaginate({ pageSize: 2, cursor: undefined })
         expect(page1).toEqual({
-          cursor: edge3.id,
+          cursor: expect.any(String),
           results: [expect.toMatchDreamModel(edge2), expect.toMatchDreamModel(edge3)],
         })
 
@@ -411,12 +412,142 @@ describe('Query#cursorPaginate', () => {
           .associationQuery('edgesOrderedByPosition')
           .cursorPaginate({ pageSize: 2, cursor: page1.cursor })
         expect(page2).toEqual({
-          cursor: edge1.id,
+          cursor: expect.any(String),
           results: [expect.toMatchDreamModel(edge4), expect.toMatchDreamModel(edge1)],
+        })
+      })
+
+      it('resumes after the record whose primary key is passed as the cursor', async () => {
+        const node = await Node.create({ name: 'world' })
+        const edge1 = await Edge.create({ name: 'a' })
+        const edge2 = await Edge.create({ name: 'b' })
+        const edge3 = await Edge.create({ name: 'c' })
+        const edge4 = await Edge.create({ name: 'd' })
+        await EdgeNode.create({ node, edge: edge1 })
+        await EdgeNode.create({ node, edge: edge2 })
+        await EdgeNode.create({ node, edge: edge3 })
+        await EdgeNode.create({ node, edge: edge4 })
+
+        const page = await node
+          .associationQuery('edgesOrderedByPosition')
+          .cursorPaginate({ pageSize: 3, cursor: edge2.id })
+        expect(page).toEqual({
+          cursor: null,
+          results: [expect.toMatchDreamModel(edge3), expect.toMatchDreamModel(edge4)],
+        })
+      })
+
+      it('resumes after the cursor’s record when the cursor came from a query with a different order', async () => {
+        const node = await Node.create({ name: 'world' })
+        const edgeA = await Edge.create({ name: 'a' })
+        const edgeB = await Edge.create({ name: 'b' })
+        const edgeC = await Edge.create({ name: 'c' })
+        const edgeD = await Edge.create({ name: 'd' })
+        // positions run 1 through 4 in creation order, so by position the edges run c, a, d, b
+        await EdgeNode.create({ node, edge: edgeC })
+        await EdgeNode.create({ node, edge: edgeA })
+        await EdgeNode.create({ node, edge: edgeD })
+        await EdgeNode.create({ node, edge: edgeB })
+
+        const byPosition = await node
+          .associationQuery('edgesOrderedByPosition')
+          .cursorPaginate({ pageSize: 2, cursor: undefined })
+        expect(byPosition.results).toMatchDreamModels([edgeC, edgeA])
+
+        const byName = await node
+          .associationQuery('edgesOrderedByName')
+          .cursorPaginate({ pageSize: 4, cursor: byPosition.cursor })
+        expect(byName).toEqual({
+          cursor: null,
+          results: [
+            expect.toMatchDreamModel(edgeB),
+            expect.toMatchDreamModel(edgeC),
+            expect.toMatchDreamModel(edgeD),
+          ],
+        })
+      })
+
+      context('when the association it goes through reaches a record more than once', () => {
+        it('returns the record once each time it is reached, in that order, ending with a null cursor', async () => {
+          const node = await Node.create({ name: 'world' })
+          const edgeA = await Edge.create({ name: 'a' })
+          const edgeB = await Edge.create({ name: 'b' })
+          const edgeC = await Edge.create({ name: 'c' })
+          // positions run 1 through 4 in creation order
+          await EdgeNode.create({ node, edge: edgeA })
+          await EdgeNode.create({ node, edge: edgeB })
+          await EdgeNode.create({ node, edge: edgeA })
+          await EdgeNode.create({ node, edge: edgeC })
+
+          const results: Edge[] = []
+          let cursor: string | null | undefined = undefined
+          for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+            const page: CursorPaginatedDreamQueryResult<Edge> = await node
+              .associationQuery('edgesOrderedByPosition')
+              .cursorPaginate({ pageSize: 1, cursor })
+            results.push(...page.results)
+            cursor = page.cursor
+          }
+
+          expect(cursor).toBeNull()
+          expect(results).toMatchDreamModels([edgeA, edgeB, edgeA, edgeC])
         })
       })
     }
   )
+
+  context('a query joining an ordered HasMany association that matches several records to one record', () => {
+    it('returns the record once for each record it joins, in the association’s order, ending with a null cursor', async () => {
+      const user1 = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred@fred2', password: 'howyadoin' })
+      // orderedPosts orders by position, which numbers each user's posts from 1
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user2 })
+      await Post.create({ user: user2 })
+      await Post.create({ user: user2 })
+
+      const results: User[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<User> = await User.innerJoin(
+          'orderedPosts'
+        ).cursorPaginate({ pageSize: 2, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      // positions 1, 1, 2, 2, 3, ties broken by descending user primary key
+      expect(results).toMatchDreamModels([user2, user1, user2, user1, user2])
+    })
+
+    context('when the Query also orders by the joined records’ primary key', () => {
+      it('returns the record once for each record it joins, in that order, ending with a null cursor', async () => {
+        const user1 = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred@fred2', password: 'howyadoin' })
+        // orderedPosts orders by position, which numbers each user's posts from 1
+        await Post.create({ user: user2 })
+        await Post.create({ user: user1 })
+        await Post.create({ user: user2 })
+        await Post.create({ user: user1 })
+
+        const results: User[] = []
+        let cursor: string | null | undefined = undefined
+        for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+          const page: CursorPaginatedDreamQueryResult<User> = await User.innerJoin('orderedPosts')
+            .order({ 'orderedPosts.id': 'asc' })
+            .cursorPaginate({ pageSize: 1, cursor })
+          results.push(...page.results)
+          cursor = page.cursor
+        }
+
+        expect(cursor).toBeNull()
+        // positions 1, 1, 2, 2, ties broken by ascending post primary key
+        expect(results).toMatchDreamModels([user2, user1, user2, user1])
+      })
+    })
+  })
 
   context('with a similarity condition', () => {
     it('pages in descending primary key order rather than by rank, reaching every match exactly once', async () => {
