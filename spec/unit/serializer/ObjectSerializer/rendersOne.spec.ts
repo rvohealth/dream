@@ -47,6 +47,56 @@ describe('ObjectSerializer#rendersOne', () => {
         },
       })
     })
+
+    context('flatten, when the associated object is null', () => {
+      it('renders null for every key the serializer declares, without running the serializer callbacks', () => {
+        interface Toy {
+          name: string
+        }
+
+        interface Owner {
+          id: string
+          name: string
+          settings: { theme: string }
+          favoriteToy: Toy
+          bestToy: Toy
+          toys: Toy[]
+        }
+
+        interface PetWithOwner {
+          id: string
+          owner: Owner | null
+        }
+
+        const ToySerializer = (toy: Toy) =>
+          ObjectSerializer(toy).attribute('name', { as: 'toyName', openapi: 'string' })
+
+        const OwnerSerializer = (owner: Owner) =>
+          ObjectSerializer(owner)
+            .attribute('id', { openapi: 'string' })
+            .attribute('name', { default: 'unknown', openapi: 'string' })
+            .customAttribute('nameLength', () => owner.name.length, { openapi: 'integer' })
+            .delegatedAttribute('settings', 'theme', { openapi: 'string' })
+            .rendersOne('favoriteToy', { serializer: ToySerializer })
+            .rendersMany('toys', { serializer: ToySerializer })
+            .rendersOne('bestToy', { serializer: ToySerializer, flatten: true })
+
+        const MySerializer = (data: PetWithOwner) =>
+          ObjectSerializer(data)
+            .attribute('id', { openapi: 'string' })
+            .rendersOne('owner', { serializer: OwnerSerializer, flatten: true })
+
+        expect(MySerializer({ id: '3', owner: null }).render()).toEqual({
+          id: null,
+          name: null,
+          nameLength: null,
+          theme: null,
+          favoriteToy: null,
+          toys: null,
+          toyName: null,
+        })
+      })
+    })
   })
 
   context('Dream model', () => {
@@ -213,6 +263,25 @@ describe('ObjectSerializer#rendersOne', () => {
             favoriteWord: 'howdy',
             name: 'Charlie',
             birthdate: birthdate.toISO(),
+          })
+        })
+      })
+
+      context('when the associated object is null', () => {
+        it('renders null for every key the dreamClass serializer declares', () => {
+          const pet: PetWithDreamUser = { id: '3', name: 'Snoopy', species: 'dog' }
+
+          const MySerializer = (data: PetWithDreamUser) =>
+            ObjectSerializer(data)
+              .attribute('species', { openapi: { type: ['string', 'null'], enum: SpeciesValues } })
+              .rendersOne('user', { dreamClass: DreamUser, flatten: true })
+
+          expect(MySerializer(pet).render()).toEqual({
+            species: 'dog',
+            id: null,
+            favoriteWord: null,
+            name: null,
+            birthdate: null,
           })
         })
       })

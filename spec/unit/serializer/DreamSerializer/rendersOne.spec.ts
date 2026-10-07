@@ -3,6 +3,7 @@ import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserViewModel from '../../../../test-app/app/view-models/UserViewModel.js'
 
 describe('DreamSerializer#rendersOne', () => {
   it('renders the Dream model’s default serializer and includes the referenced serializer in the returned referencedSerializers array', () => {
@@ -237,6 +238,38 @@ describe('DreamSerializer#rendersOne', () => {
       })
     })
 
+    context('when the parent declares a key the association also renders', () => {
+      it('renders the association value when the parent declares the key earlier', () => {
+        const user = User.new({ id: '7', name: 'Charlie' })
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).attribute('id').attribute('name').rendersOne('user', { flatten: true })
+
+        expect(MySerializer(pet).render()).toEqual({
+          id: '7',
+          name: 'Charlie',
+          favoriteWord: null,
+          birthdate: null,
+        })
+      })
+
+      it('renders the parent value when the parent declares the key later', () => {
+        const user = User.new({ id: '7', name: 'Charlie' })
+        const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).rendersOne('user', { flatten: true }).attribute('id').attribute('name')
+
+        expect(MySerializer(pet).render()).toEqual({
+          id: '3',
+          name: 'Snoopy',
+          favoriteWord: null,
+          birthdate: null,
+        })
+      })
+    })
+
     context('when the associated model is null', () => {
       it('renders the flattened attributes as null', () => {
         const user = null
@@ -253,6 +286,107 @@ describe('DreamSerializer#rendersOne', () => {
           name: null,
           favoriteWord: null,
           birthdate: null,
+        })
+      })
+
+      it('renders null for a key the parent declares earlier', () => {
+        const pet = Pet.new({ id: '3', user: null, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).attribute('id').rendersOne('user', { flatten: true })
+
+        expect(MySerializer(pet).render()).toEqual({
+          id: null,
+          name: null,
+          favoriteWord: null,
+          birthdate: null,
+        })
+      })
+
+      it('renders the parent value for a key the parent declares later', () => {
+        const pet = Pet.new({ id: '3', user: null, name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data).rendersOne('user', { flatten: true }).attribute('id')
+
+        expect(MySerializer(pet).render()).toEqual({
+          id: '3',
+          name: null,
+          favoriteWord: null,
+          birthdate: null,
+        })
+      })
+
+      it('renders null for every key the viewModelClass serializer declares for a property that is not an association', () => {
+        interface PetWithOwner {
+          owner: UserViewModel | null
+        }
+
+        const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data)
+            .attribute('species')
+            .rendersOne<PetWithOwner>('owner', { viewModelClass: UserViewModel, flatten: true })
+
+        expect(MySerializer(pet).render()).toEqual({
+          species: 'dog',
+          id: null,
+          favoriteWord: null,
+          name: null,
+          birthdate: null,
+        })
+      })
+
+      it('renders null for every key of a serializer that reads its data while being built', () => {
+        const pet = Pet.new({ id: '3', user: null, name: 'Snoopy', species: 'dog' })
+
+        const OwnerSerializer = (user: User) => {
+          const serializer = DreamSerializer(User, user).attribute('id')
+          return user.email ? serializer.attribute('email') : serializer.attribute('name')
+        }
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data)
+            .attribute('species')
+            .rendersOne('user', { flatten: true, serializer: OwnerSerializer })
+
+        expect(MySerializer(pet).render()).toEqual({ species: 'dog', id: null, name: null })
+      })
+
+      it('renders null for every key its serializer declares, without running the serializer callbacks', () => {
+        const pet = Pet.new({ id: '3', user: null, name: 'Snoopy', species: 'dog' })
+
+        const OwnerSerializer = (user: User) =>
+          DreamSerializer(User, user)
+            .attribute('id')
+            .attribute('favoriteWord', { default: 'none' })
+            .customAttribute('nameLength', () => user.name!.length, { openapi: 'integer' })
+            .customAttribute('nameParts', () => ({ firstName: user.name!.split(' ')[0] }), {
+              flatten: true,
+              openapi: { type: 'object', properties: { firstName: { type: 'string' } } },
+            })
+            .delegatedAttribute('userSettings', 'likesChalupas', { openapi: 'boolean' })
+            .rendersOne('featuredPost')
+            .rendersMany('posts')
+            .rendersOne('mainComposition', { flatten: true })
+
+        const MySerializer = (data: Pet) =>
+          DreamSerializer(Pet, data)
+            .attribute('species')
+            .rendersOne('user', { flatten: true, serializer: OwnerSerializer })
+
+        expect(MySerializer(pet).render()).toEqual({
+          species: 'dog',
+          id: null,
+          favoriteWord: null,
+          nameLength: null,
+          likesChalupas: null,
+          featuredPost: null,
+          posts: null,
+          metadata: null,
+          compositionAssets: null,
+          passthroughCurrentLocalizedText: null,
         })
       })
     })

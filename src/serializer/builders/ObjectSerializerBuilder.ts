@@ -209,7 +209,10 @@ export default class ObjectSerializerBuilder<
    *     to the parent's schema as an `allOf` branch: either an object schema with full
    *     property bodies (`type: 'object'`, `properties`, and `required` listing the keys that
    *     are always present), or `{ $serializer: SomeSerializer }` when the callback returns
-   *     what that serializer renders. A `null` or `undefined` return adds no keys
+   *     what that serializer renders. A `null` or `undefined` return adds no keys. Attributes
+   *     render in declaration order, so a key the returned object shares with another
+   *     attribute takes the value of whichever is declared later; under the `allOf`, that
+   *     value must match both schemas
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
    *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
@@ -261,9 +264,16 @@ export default class ObjectSerializerBuilder<
    * @param options - Configuration options:
    *   - `as` - Rename the association key in the serialized output
    *   - `flatten` - When `true`, spreads the rendered association's attributes directly into
-   *     the parent serialized output instead of nesting them under `name`. Be aware of
-   *     attribute shadowing: if the parent and flattened association share attribute names
-   *     (e.g., `id`), the flattened association's values overwrite the parent's
+   *     the parent serialized output instead of nesting them under `name`. Attributes render in
+   *     declaration order, so when the parent and the association share a key (e.g., `id`),
+   *     whichever is declared later wins: the association's value replaces an attribute declared
+   *     before the `rendersOne`, and an attribute declared after it replaces the association's.
+   *     When the association is `null`, every key its serializer declares renders as `null`,
+   *     in the same order (so an `id` declared before the `rendersOne` becomes `null`); nothing
+   *     in that serializer is rendered, so its custom attribute callbacks do not run, and a
+   *     flattened `customAttribute` in it adds no keys. Psychic adds the association's OpenAPI
+   *     schema to the parent's as an `allOf` branch, so a shared key's value must match both
+   *     schemas, whichever declaration wins
    *   - `optional` - When `true`, allows the association to be null/missing without causing
    *     an `OpenapiResponseValidationFailure` during Psychic controller unit specs. By default,
    *     `rendersOne` expects the association to be present (mirroring the `optional` option on
@@ -347,7 +357,10 @@ export default class ObjectSerializerBuilder<
 
       /**
        * If `true`, the rendered association's attributes are merged directly into
-       * the parent object instead of being nested under the association key.
+       * the parent object instead of being nested under the association key. A key
+       * the parent shares with the association takes the value of whichever is
+       * declared later, and when the association is `null`, every key its serializer
+       * declares renders as `null`. See the `flatten` option of `rendersOne`.
        */
       flatten?: boolean
 
