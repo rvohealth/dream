@@ -17,6 +17,28 @@ context.skip('type tests', () => {
     })
   })
 
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .innerJoin('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .innerJoin('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .innerJoin('posts', { an: { body: 'hello' } })
+
+    // allowed: and, andNot and andAny together, at the end of the chain and mid-chain
+    User.query().innerJoin('posts', {
+      and: { body: 'hello' },
+      andNot: { body: 'goodbye' },
+      andAny: [{ body: 'hi' }],
+    })
+    User.query().innerJoin('posts', { and: { body: 'hello' }, andNot: { body: 'goodbye' } }, 'comments')
+  })
+
   it('forbids joining a polymorphic BelongsTo association, which raises at runtime', () => {
     Rating.query()
       // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
@@ -74,6 +96,16 @@ context.skip('type tests', () => {
               invalidArg: 123,
             },
           })
+
+        User.query()
+          .txn(txn)
+          // @ts-expect-error a condition accepts only and, andNot and andAny
+          .innerJoin('posts', { and: { body: 'hello' }, body: 'hello' })
+
+        User.query()
+          .txn(txn)
+          // @ts-expect-error a condition accepts only and, andNot and andAny
+          .innerJoin('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
       })
     })
   })

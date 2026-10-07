@@ -1,3 +1,4 @@
+import UnrecognizedAssociationConditionKeys from '../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import BalloonLine from '../../../test-app/app/models/BalloonLine.js'
@@ -16,6 +17,13 @@ describe('Dream.innerJoin', () => {
     expect(reloadedUsers).toMatchDreamModels([user])
   })
 
+  it('throws on a condition key other than and, andNot and andAny', () => {
+    const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+    expect(() => User.innerJoin('posts', condition)).toThrow(UnrecognizedAssociationConditionKeys)
+    expect(() => User.innerJoin('posts', condition, 'comments')).toThrow(UnrecognizedAssociationConditionKeys)
+  })
+
   context('when encased in a transaction', () => {
     it('joins a HasOne association, omitting models that don’t have an associated model', async () => {
       await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -26,6 +34,16 @@ describe('Dream.innerJoin', () => {
       await ApplicationModel.transaction(async txn => {
         reloadedUsers = await User.txn(txn).innerJoin('mainComposition').all()
         expect(reloadedUsers).toMatchDreamModels([user])
+      })
+    })
+
+    it('throws on a condition key other than and, andNot and andAny', async () => {
+      const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+      await ApplicationModel.transaction(txn => {
+        expect(() => User.txn(txn).innerJoin('posts', condition, 'comments')).toThrow(
+          UnrecognizedAssociationConditionKeys
+        )
       })
     })
   })
@@ -43,6 +61,14 @@ describe('Dream#innerJoin', () => {
     expect(await post.innerJoin('comments').pluck('comments.body')).toEqual(['hello world'])
   })
 
+  it('throws on a condition key other than and, andNot and andAny', async () => {
+    const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+    const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+    expect(() => user.innerJoin('posts', condition)).toThrow(UnrecognizedAssociationConditionKeys)
+    expect(() => user.innerJoin('posts', condition, 'comments')).toThrow(UnrecognizedAssociationConditionKeys)
+  })
+
   context('when encased in a transaction', () => {
     it('does not apply a default scope to the (already loaded) model we are starting from', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
@@ -53,6 +79,17 @@ describe('Dream#innerJoin', () => {
 
       await ApplicationModel.transaction(async txn => {
         expect(await post.txn(txn).innerJoin('comments').pluck('comments.body')).toEqual(['hello world'])
+      })
+    })
+
+    it('throws on a condition key other than and, andNot and andAny', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+      await ApplicationModel.transaction(txn => {
+        expect(() => user.txn(txn).innerJoin('posts', condition, 'comments')).toThrow(
+          UnrecognizedAssociationConditionKeys
+        )
       })
     })
   })
@@ -81,6 +118,49 @@ describe('Dream#innerJoin', () => {
             .pluck('balloons.color')
           expect(colors[0]).toEqual('red')
         })
+      })
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    const user = User.new()
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.innerJoin('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.innerJoin('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    user.innerJoin('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    user.innerJoin('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+
+    // allowed: and, andNot and andAny together, at the end of the chain and mid-chain
+    User.innerJoin('posts', { and: { body: 'hello' }, andNot: { body: 'goodbye' }, andAny: [{ body: 'hi' }] })
+    User.innerJoin('posts', { and: { body: 'hello' }, andNot: { body: 'goodbye' } }, 'comments')
+  })
+
+  context('in a transaction', () => {
+    it('forbids a condition key other than and, andNot and andAny', async () => {
+      await ApplicationModel.transaction(txn => {
+        const user = User.new()
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        User.txn(txn).innerJoin('posts', { and: { body: 'hello' }, body: 'hello' })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        User.txn(txn).innerJoin('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        user.txn(txn).innerJoin('posts', { and: { body: 'hello' }, body: 'hello' })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        user.txn(txn).innerJoin('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
       })
     })
   })

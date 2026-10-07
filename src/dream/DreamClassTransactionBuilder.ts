@@ -649,12 +649,12 @@ export default class DreamClassTransactionBuilder<
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.preload(...).findEach(...)` avoids instantiating massive amounts of data at once
    *
    * ```ts
-   * const user = await User.txn(txn).leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.txn(txn).leftJoinPreload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies)
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A query for this model with the include statement applied
    */
   public leftJoinPreload<
@@ -663,7 +663,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -691,13 +691,13 @@ export default class DreamClassTransactionBuilder<
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   const user = await User.txn(txn).preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   *   const user = await User.txn(txn).preload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    *   console.log(user.posts[0].comments[0].replies)
    *   // [Reply{id: 1}, Reply{id: 2}]
    * })
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A query for this model with the preload statement applied
    */
   public preload<
@@ -781,7 +781,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -816,7 +816,7 @@ export default class DreamClassTransactionBuilder<
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,

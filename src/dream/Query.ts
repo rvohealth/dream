@@ -83,6 +83,9 @@ import {
   VariadicLoadArgs,
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
+import assertRecognizedAssociationConditionKeys, {
+  ASSOCIATION_CONDITION_KEYS,
+} from './internal/associations/assertRecognizedAssociationConditionKeys.js'
 import buildSerializerPreloadPaths from './internal/buildSerializerPreloadPaths.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
@@ -675,7 +678,7 @@ export default class Query<
    *
    *
    * ```ts
-   * const posts = await user.associationQuery('posts').leftJoinPreload('comments', { visibilty: 'public' }, 'replies').all()
+   * const posts = await user.associationQuery('posts').leftJoinPreload('comments', { and: { visibility: 'public' } }, 'replies').all()
    * console.log(posts[0].comments[0].replies[0])
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
@@ -689,7 +692,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowLeftJoinPreload: false }> ? true : false,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
@@ -737,7 +740,7 @@ export default class Query<
    * See {@link Query.leftJoinPreload} for preloading in a single query.
    *
    * ```ts
-   * const user = await User.query().preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.query().preload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies[0])
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
@@ -888,7 +891,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -943,7 +946,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1045,6 +1048,14 @@ export default class Query<
       })
       //
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
+      // the node this copies into also holds nested association containers, so an
+      // unrecognized key must be rejected here, while it is still distinguishable
+      assertRecognizedAssociationConditionKeys(
+        nextAssociationStatement,
+        ASSOCIATION_CONDITION_KEYS,
+        previousAssociationName
+      )
+
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
       const keys = Object.keys(clonedNextAssociationStatement)

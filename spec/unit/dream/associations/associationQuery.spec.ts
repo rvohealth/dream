@@ -1,5 +1,6 @@
 import { sql } from 'kysely'
 import CannotAssociationQueryOnUnpersistedDream from '../../../../src/errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
+import UnrecognizedAssociationConditionKeys from '../../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import NoUpdateOnAssociationQuery from '../../../../src/errors/NoUpdateOnAssociationQuery.js'
@@ -687,6 +688,30 @@ describe('Dream#associationQuery', () => {
     })
   })
 
+  context('with a condition key other than and, andNot and andAny', () => {
+    it('throws, including when the condition carries none of those keys', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const strayOnly: Record<string, unknown> = { body: 'hello' }
+      const mixed: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+      expect(() => user.associationQuery('posts', strayOnly)).toThrow(UnrecognizedAssociationConditionKeys)
+      expect(() => user.associationQuery('posts', mixed)).toThrow(UnrecognizedAssociationConditionKeys)
+    })
+
+    context('in a transaction', () => {
+      it('throws, including when the condition carries none of those keys', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const strayOnly: Record<string, unknown> = { body: 'hello' }
+
+        await ApplicationModel.transaction(txn => {
+          expect(() => user.txn(txn).associationQuery('posts', strayOnly)).toThrow(
+            UnrecognizedAssociationConditionKeys
+          )
+        })
+      })
+    })
+  })
+
   context('performing associationQuery on an unpersisted model ', () => {
     it('throws CannotAssociationQueryOnUnpersistedDream', () => {
       const user = User.new()
@@ -713,12 +738,23 @@ context.skip('type tests', () => {
     User.new().associationQuery('notARealAssociation')
   })
 
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.new().associationQuery('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.new().associationQuery('posts', { body: 'hello' })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(txn => {
         const user = User.new()
         // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         user.txn(txn).associationQuery('notARealAssociation')
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        user.txn(txn).associationQuery('posts', { and: { body: 'hello' }, body: 'hello' })
       })
     })
   })

@@ -15,6 +15,10 @@ import { RECURSIVE_SERIALIZATION_MAX_REPEATS } from './dream/constants.js'
 import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
 import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
 import DreamTransaction from './dream/DreamTransaction.js'
+import assertRecognizedAssociationConditionKeys, {
+  DESTROY_ASSOCIATION_OPTION_KEYS,
+  UPDATE_ASSOCIATION_OPTION_KEYS,
+} from './dream/internal/associations/assertRecognizedAssociationConditionKeys.js'
 import associationQuery from './dream/internal/associations/associationQuery.js'
 import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js'
 import createAssociation from './dream/internal/associations/createAssociation.js'
@@ -1912,12 +1916,12 @@ export default class Dream {
    * planned drop safe.
    *
    * ```ts
-   * const user = await User.leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.leftJoinPreload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies)
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A query for this model with the include statement applied
    */
   public static leftJoinPreload<
@@ -1927,7 +1931,7 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1954,12 +1958,12 @@ export default class Dream {
    * Preload is useful for avoiding the N+1 query problem
    *
    * ```ts
-   * const user = await User.preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.preload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies)
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A query for this model with the preload statement applied
    */
   public static preload<
@@ -2042,7 +2046,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2075,7 +2079,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2109,7 +2113,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2142,7 +2146,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -4122,7 +4126,7 @@ export default class Dream {
    * deleting their corresponding records within the database.
    *
    * ```ts
-   * await user.destroyAssociation('posts', { body: 'hello world' })
+   * await user.destroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to destroy
@@ -4141,6 +4145,12 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'destroyAssociation'
+    )
     if (this.isNewRecord) throw new CannotDestroyAssociationOnUnpersistedDream(this, associationName)
 
     return await destroyAssociation(this, null, associationName, {
@@ -4198,7 +4208,7 @@ export default class Dream {
    * causing those records to be deleted from the database.
    *
    * ```ts
-   * await user.reallyDestroyAssociation('posts', { body: 'hello world' })
+   * await user.reallyDestroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to destroy
@@ -4217,6 +4227,12 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'reallyDestroyAssociation'
+    )
     if (this.isNewRecord) throw new CannotDestroyAssociationOnUnpersistedDream(this, associationName)
 
     return await destroyAssociation(this, null, associationName, {
@@ -4271,7 +4287,7 @@ export default class Dream {
    * will also be undeleted.
    *
    * ```ts
-   * await user.undestroyAssociation('posts', { body: 'hello world' })
+   * await user.undestroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to undestroy
@@ -4290,6 +4306,13 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'undestroyAssociation'
+    )
+
     return await undestroyAssociation(this, null, associationName, {
       ...undestroyOptions<I>(options as any),
       joinAndStatements: {
@@ -4450,6 +4473,12 @@ export default class Dream {
     attributes: unknown,
     updateAssociationOptions?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      updateAssociationOptions,
+      UPDATE_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'updateAssociation'
+    )
     if (this.isNewRecord) throw new CannotUpdateAssociationOnUnpersistedDream(this, associationName)
 
     return associationUpdateQuery(this, null, associationName, {
@@ -4524,19 +4553,19 @@ export default class Dream {
    * if the association is not already loaded.
    *
    * ```ts
-   * const user = await user
-   *  .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   * const loadedUser = await user
+   *  .load('posts', { and: { body: ops.ilike('%hello world%') } }, 'comments', 'replies')
    *  .load('images')
    *  .execute()
    *
-   * user.posts[0].comments[0].replies[0]
+   * loadedUser.posts[0].comments[0].replies[0]
    * // Reply{}
    *
-   * user.images[0]
+   * loadedUser.images[0]
    * // Image{}
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A chainable LoadBuilder instance. Call `.execute()` to get the cloned model with associations loaded.
    */
   public load<
@@ -4943,19 +4972,19 @@ export default class Dream {
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
    *
    * ```ts
-   * const user = await user
-   *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   * const loadedUser = await user
+   *  .leftJoinLoad('posts', { and: { body: ops.ilike('%hello world%') } }, 'comments', 'replies')
    *  .leftJoinLoad('images')
    *  .execute()
    *
-   * user.posts[0].comments[0].replies[0]
+   * loadedUser.posts[0].comments[0].replies[0]
    * // Reply{}
    *
-   * user.images[0]
+   * loadedUser.images[0]
    * // Image{}
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A chainable LeftJoinLoadBuilder instance. Call `.execute()` to get the cloned model with associations loaded.
    */
   public leftJoinLoad<
