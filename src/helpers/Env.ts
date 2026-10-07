@@ -68,6 +68,22 @@ export default class Env<
     return (parsedVal.toString() === val ? parsedVal : undefined) as ReturnType
   }
 
+  /**
+   * Reads a boolean environment variable. Only the exact string `"1"` is
+   * true. Every other value is false, including `"true"`, `"TRUE"`, `"yes"`
+   * and `""`, and so is an unset variable.
+   *
+   * ```ts
+   * // FEATURE_FLAG=1
+   * AppEnv.boolean('FEATURE_FLAG') // true
+   *
+   * // FEATURE_FLAG=true
+   * AppEnv.boolean('FEATURE_FLAG') // false
+   * ```
+   *
+   * @param env - the name of the environment variable
+   * @returns `true` when the variable is exactly `"1"`, otherwise `false`
+   */
   public boolean(env: BooleanEnvs): boolean {
     return this.optional(env) === '1'
   }
@@ -90,10 +106,22 @@ export default class Env<
     delete process.env[env]
   }
 
+  /**
+   * Sets a boolean environment variable to `"1"`, the only value
+   * {@link Env.boolean} reads as true.
+   *
+   * @param env - the name of the environment variable
+   */
   public setBoolean(env: BooleanEnvs) {
     process.env[env] = '1'
   }
 
+  /**
+   * Deletes a boolean environment variable. {@link Env.boolean} reads an
+   * unset variable as false, since only the exact string `"1"` is true.
+   *
+   * @param env - the name of the environment variable
+   */
   public unsetBoolean(env: BooleanEnvs) {
     delete process.env[env]
   }
