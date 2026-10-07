@@ -52,4 +52,22 @@ describe('Dream AfterUpdate decorator', () => {
       })
     })
   })
+
+  context('an earlier after-hook assigns a column named in "ifChanged" without saving it', () => {
+    it('does not call the hook, because the save did not change that column', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const mylar = await Mylar.create({ user, color: 'red' })
+      const sandbag = await mylar.createAssociation('sandbags', { weight: 10 })
+
+      // the AfterSave hook watching `weight` runs before the AfterUpdate hook watching `weightTons`
+      vi.spyOn(Sandbag.prototype, 'conditionalAfterSaveHook').mockImplementation(function (this: Sandbag) {
+        this.weightTons = 5
+      })
+      const spy = vi.spyOn(Sandbag.prototype, 'conditionalAfterUpdateHook')
+      await sandbag.update({ weight: 11 })
+
+      expect(sandbag.weightTons).toEqual(5)
+      expect(spy).not.toHaveBeenCalled()
+    })
+  })
 })

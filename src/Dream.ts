@@ -3692,43 +3692,55 @@ export default class Dream {
    * changed since last persisting, along with their current
    * and previously persisted values.
    *
+   * For a column with an unsaved change, `was` is its value
+   * as of the most recent save. For every other column, `was`
+   * is its value from before that save, so the changes the
+   * save made keep appearing, beside any later unsaved change,
+   * until the next save.
+   *
+   * On a create, that earlier value is `undefined` for every
+   * column of an instance from `new` or `create`, assigned or
+   * not, and the copied value for an instance from
+   * {@link Dream.dup | dup}. So after a create from `new` or
+   * `create`, every column the insert returned counts as
+   * changed: the primary key, timestamps, database defaults,
+   * and `null` for each nullable column nobody assigned. After
+   * a create from `dup`, the columns `dup` cleared (the primary
+   * key, timestamps and sortable positions) count, and a copied
+   * column counts only if the insert returned a different value.
+   *
    * ```ts
    * const pet = Pet.new({ species: 'dog' })
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: undefined,
-   * //     now: 'dog',
-   * //   }
+   * //   species: { was: undefined, now: 'dog' },
    * // }
    *
    * await pet.save()
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: undefined,
-   * //     now: 'dog',
-   * //   }
+   * //   id: { was: undefined, now: 1 },
+   * //   species: { was: undefined, now: 'dog' },
+   * //   name: { was: undefined, now: null },
+   * //   ...every other column the insert returned
    * // }
    *
    * pet.species = 'cat'
    * pet.species = 'frog'
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: 'dog',
-   * //     now: 'frog',
-   * //   }
+   * //   id: { was: undefined, now: 1 },
+   * //   species: { was: 'dog', now: 'frog' },
+   * //   name: { was: undefined, now: null },
+   * //   ...every other change the create made
    * // }
    *
    * await pet.save()
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: 'dog',
-   * //     now: 'frog',
-   * //   }
+   * //   species: { was: 'dog', now: 'frog' },
    * // }
+   * // (and `updatedAt`, on a model with that column)
    * ```
    *
    * @returns An object containing changed attributes
@@ -3756,8 +3768,22 @@ export default class Dream {
   }
 
   /**
-   * Returns the value most recently persisted
-   * to the database.
+   * Returns the value the column held before the most
+   * recent save. For a column with an unsaved change, it
+   * returns the column's value as of that save instead.
+   *
+   * On a create, the value before the save is `undefined`
+   * for every column of an instance from `new` or `create`,
+   * assigned or not, and the copied value for an instance
+   * from {@link Dream.dup | dup} (`undefined` for the
+   * columns `dup` cleared). So after a create from `new` or
+   * `create`, this returns `undefined` for every column
+   * without an unsaved change, not the value the insert
+   * wrote. After an update, it returns the column's value
+   * from before that update, which for a column the update
+   * did not change is its current value. On a record loaded
+   * from the database and not saved since, it returns the
+   * loaded value.
    *
    * ```ts
    * const pet = Pet.new({ species: 'cat' })
@@ -3799,16 +3825,48 @@ export default class Dream {
   /**
    * Returns true if the columnName provided has
    * changes that were persisted during the most
-   * recent save.
+   * recent save. An unsaved change does not count,
+   * and an unsaved edit made after that save does
+   * not undo a change the save made. On a record
+   * that has not been persisted, this returns false.
+   *
+   * A create compares the value the insert returned
+   * with `undefined` for every column of an instance
+   * from `new` or `create`, assigned or not, and with
+   * the copied value for an instance from
+   * {@link Dream.dup | dup}. So after a create from
+   * `new` or `create`, this returns true for every
+   * column the insert returned: the primary key,
+   * timestamps, database defaults, and a nullable
+   * column nobody assigned, which comes back `null`.
+   * To react only to the columns a create assigned,
+   * use the `ifChanged` option of an after hook.
+   *
+   * ```ts
+   * const pet = await Pet.create({ species: 'cat' })
+   * pet.savedChangeToAttribute('species')
+   * // true
+   * pet.savedChangeToAttribute('name')
+   * // true (unassigned, so the insert returned null)
+   *
+   * await pet.update({ name: 'Snoopy' })
+   * pet.savedChangeToAttribute('species')
+   * // false
+   *
+   * pet.species = 'dog'
+   * pet.savedChangeToAttribute('species')
+   * // false (not saved yet)
+   * ```
    *
    * @param columnName - the column name to check
    * @returns A boolean
    */
   public savedChangeToAttribute<I extends Dream>(this: I, columnName: DreamColumnNames<I>): boolean {
-    const changes = this.changes()
-    const was = (changes as any)?.[columnName]?.was
-    const now = (changes as any)?.[columnName]?.now
-    return this.isPersisted && notEqual(now, was)
+    if (!this.isPersisted) return false
+    return notEqual(
+      (this.attributesFromBeforeLastSave as any)[columnName],
+      (this.frozenAttributes as any)[columnName]
+    )
   }
 
   /**
