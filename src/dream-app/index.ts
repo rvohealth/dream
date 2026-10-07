@@ -696,7 +696,10 @@ export default class DreamApp {
    *   `DreamMigrationHelpers.reencryptColumn` rewrites every row instead. The
    *   migration helpers do not fire the event. The callback runs
    *   synchronously inside the property read, and an error it throws
-   *   propagates from that read.
+   *   propagates from that read. Reading the same property of the same
+   *   record inside the callback returns its value without firing the event
+   *   again, so a callback can read the property and assign the value back,
+   *   which re-encrypts it under `current` for the record's next save.
    *
    * ```ts
    * dreamApp.on('encryption:legacy-key-used', ({ dream, property }) => {

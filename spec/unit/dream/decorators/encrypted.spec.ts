@@ -1,5 +1,5 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
-import DreamApp from '../../../../src/dream-app/index.js'
+import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -95,6 +95,79 @@ describe('@Encrypted', () => {
       dreamApp.on('encryption:legacy-key-used', listener)
 
       expect(user.secret).toEqual('Howdy world')
+      expect(user.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(2)
+    })
+
+    it('returns the value to a listener that reassigns the property, without firing again, and the reassignment re-encrypts it under the current key', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn(({ dream, property }: EncryptionLegacyKeyUsedEvent) => {
+        const record = dream as unknown as Record<string, unknown>
+        const value = record[property]
+        record[property] = value
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+    })
+
+    it('fires for another record whose property a listener reads', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      const otherUser = await User.create({ secret: 'Howdy moon', email: 'c@d.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const readValues: unknown[] = []
+      const listener = vi.fn(({ dream }: EncryptionLegacyKeyUsedEvent) => {
+        if (dream === user) readValues.push(otherUser.secret)
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(user.secret).toEqual('Howdy world')
+      expect(readValues).toEqual(['Howdy moon'])
+      expect(listener.mock.calls.map(([event]) => event.dream)).toEqual([user, otherUser])
+    })
+
+    it('fires again on a later read after a listener throws', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn().mockImplementationOnce(() => {
+        throw new Error('legacy key used')
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(() => user.secret).toThrow('legacy key used')
       expect(user.secret).toEqual('Howdy world')
       expect(listener).toHaveBeenCalledTimes(2)
     })

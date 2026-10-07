@@ -15,6 +15,11 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
     const encryptedKey = column || `encrypted${pascalize(key)}`
+    // records whose legacy-key listeners for this property are running; a
+    // read of the property on one of them returns its value without
+    // dispatching the event again, so a listener that reads the property
+    // does not recurse
+    const recordsDispatchingLegacyKeyUsed = new WeakSet<Dream>()
 
     context.addInitializer(function (this: Dream) {
       const dreamClass: typeof Dream = this.constructor as typeof Dream
@@ -68,11 +73,18 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
 
       Object.defineProperty(dreamPrototype, key, {
         get() {
+          const dream = this as Dream
           return InternalEncrypt.decryptColumn(this.getAttribute(encryptedKey), {
             onLegacyKeyUsed: () => {
-              DreamApp.getOrFail().specialHooks.encryptionLegacyKeyUsed.forEach(fn => {
-                fn({ dream: this as Dream, property: key, encryptedColumnName: encryptedKey })
-              })
+              if (recordsDispatchingLegacyKeyUsed.has(dream)) return
+              recordsDispatchingLegacyKeyUsed.add(dream)
+              try {
+                DreamApp.getOrFail().specialHooks.encryptionLegacyKeyUsed.forEach(fn => {
+                  fn({ dream, property: key, encryptedColumnName: encryptedKey })
+                })
+              } finally {
+                recordsDispatchingLegacyKeyUsed.delete(dream)
+              }
             },
           })
         },
