@@ -2356,13 +2356,22 @@ export default class Query<
    * first row. A cursor carries no other value its row sorts by: those are
    * read from the database when the next page is.
    *
-   * A Query that calls `distinct` returns one row for each value of its
-   * distinct column, as {@link Query.all} does, and so do its pages, whose
-   * cursor is the last record's primary key. Over an association that declares
-   * `distinct` and an `order` led by its distinct column (an `associationQuery`
-   * of it, or a Query that joins it), the pages return the rows
-   * {@link Query.all} returns: the row the association's `order` keeps for each
-   * value of its distinct column.
+   * A Query that calls `distinct` on its primary key (as `distinct()` does,
+   * e.g.: `User.innerJoin('posts').distinct()`) returns each record once, as
+   * {@link Query.all} does, and so do its pages, whose cursor is the last
+   * record's primary key. A Query that calls `distinct` on another column has
+   * to be ordered by that column first (e.g.:
+   * `Post.distinct('category').order({ category: 'asc', createdAt: 'desc' })`),
+   * or the database rejects its pages. Its cursor is also the last record's
+   * primary key, but its pages can return records {@link Query.all} does not:
+   * each page after the first keeps one record for each value of that column
+   * out of the records sorting after the previous page's last record, so it
+   * can begin with another record of that record's value (an older post of
+   * the same category). Over an association that declares `distinct` and an
+   * `order` led by its distinct column (an `associationQuery` of it, or a
+   * Query that joins it), the pages return the rows {@link Query.all} returns:
+   * the row the association's `order` keeps for each value of its distinct
+   * column.
    *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
@@ -2442,13 +2451,22 @@ export default class Query<
    * first row. A cursor carries no other value its row sorts by: those are
    * read from the database when the next page is.
    *
-   * A Query that calls `distinct` returns one row for each value of its
-   * distinct column, as {@link Query.all} does, and so do its pages, whose
-   * cursor is the last record's primary key. Over an association that declares
-   * `distinct` and an `order` led by its distinct column (an `associationQuery`
-   * of it, or a Query that joins it), the pages return the rows
-   * {@link Query.all} returns: the row the association's `order` keeps for each
-   * value of its distinct column.
+   * A Query that calls `distinct` on its primary key (as `distinct()` does,
+   * e.g.: `User.innerJoin('posts').distinct()`) returns each record once, as
+   * {@link Query.all} does, and so do its pages, whose cursor is the last
+   * record's primary key. A Query that calls `distinct` on another column has
+   * to be ordered by that column first (e.g.:
+   * `Post.distinct('category').order({ category: 'asc', createdAt: 'desc' })`),
+   * or the database rejects its pages. Its cursor is also the last record's
+   * primary key, but its pages can return records {@link Query.all} does not:
+   * each page after the first keeps one record for each value of that column
+   * out of the records sorting after the previous page's last record, so it
+   * can begin with another record of that record's value (an older post of
+   * the same category). Over an association that declares `distinct` and an
+   * `order` led by its distinct column (an `associationQuery` of it, or a
+   * Query that joins it), the pages return the rows {@link Query.all} returns:
+   * the row the association's `order` keeps for each value of its distinct
+   * column.
    *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its

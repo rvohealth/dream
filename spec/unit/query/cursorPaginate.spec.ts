@@ -685,6 +685,25 @@ describe('Query#cursorPaginate', () => {
     })
   })
 
+  context('a query calling distinct on a column other than the primary key', () => {
+    it('can begin a page with another record of the value the previous page ended on, which all() does not return', async () => {
+      const olderSnoopy = await Pet.create({ name: 'Snoopy', createdAt: snoopy.createdAt.minus({ day: 1 }) })
+      const query = Pet.distinct('name').order({ name: 'asc', createdAt: 'desc' })
+
+      const results: Pet[] = []
+      let cursor: string | null | undefined = undefined
+      for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+        const page: CursorPaginatedDreamQueryResult<Pet> = await query.cursorPaginate({ pageSize: 1, cursor })
+        results.push(...page.results)
+        cursor = page.cursor
+      }
+
+      expect(cursor).toBeNull()
+      expect(await query.all()).toMatchDreamModels([aster, snoopy, woodstock])
+      expect(results).toMatchDreamModels([aster, snoopy, olderSnoopy, woodstock])
+    })
+  })
+
   context('paginating an association with distinct and an order led by the distinct column', () => {
     it('returns only the records the association returns, ending with a null cursor', async () => {
       const pet = await Pet.create()
