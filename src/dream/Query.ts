@@ -351,6 +351,22 @@ export default class Query<
   /**
    * @internal
    *
+   * Set on each batch window of `findEach`. `after` is the primary key of the
+   * last record of the previous window, or undefined for the first window,
+   * and the driver compares it as `primary key > after`. `walk` is the same
+   * object on every window of one walk. A driver whose select cannot be
+   * windowed by that comparison keeps the primary keys of the records the
+   * walk has yet to visit in `walk.keys`, read on the first window, and reads
+   * each window from them instead: a select that carries DISTINCT ON with an
+   * ORDER BY of its own (an association's declared `distinct` and `order`)
+   * keeps one row of each group, and returns another row of a group once the
+   * walk's callback destroys or changes the one it kept.
+   */
+  private readonly batchWindow: { after: unknown; walk: { keys?: unknown[] } } | null = null
+
+  /**
+   * @internal
+   *
    * The base sql alias to use for the base model
    * of this Query
    */
@@ -424,6 +440,7 @@ export default class Query<
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
     this.bypassImplicitOrder = opts.bypassImplicitOrder || false
+    this.batchWindow = opts.batchWindow || null
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -507,6 +524,7 @@ export default class Query<
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
       bypassImplicitOrder:
         opts.bypassImplicitOrder !== undefined ? opts.bypassImplicitOrder : this.bypassImplicitOrder,
+      batchWindow: opts.batchWindow !== undefined ? opts.batchWindow : this.batchWindow,
     }) as Q
   }
 
@@ -613,6 +631,15 @@ export default class Query<
    * that association, and for the relevance ranking of a similarity condition
    * (`ops.similarity`, `ops.wordSimilarity`, `ops.strictWordSimilarity`),
    * which still decides which records are visited, but not in what order.
+   * An association that declares `distinct` and an `order` led by the
+   * distinct column still uses that `order` to choose which record of each
+   * group is visited, so `findEach` visits the records the association
+   * returns, breaking ties within a group by the lowest primary key. Over
+   * such an association, `findEach` reads the primary keys of all of those
+   * records before visiting the first, and visits only those that still
+   * match when their batch is read, so a record the association returns only
+   * because the callback destroyed or changed another record of its group
+   * (as `destroy` does) is not visited.
    *
    * This is not a limitation that can be lifted. `findEach` guarantees that
    * every matching record is visited exactly once, and it delivers that by
@@ -659,13 +686,12 @@ export default class Query<
     // truthiness, since a primary key of 0 is a legitimate cursor value that
     // would otherwise reset the window to the start of the set
     let lastId: any = undefined
+    const walk: { keys?: unknown[] } = {}
 
     do {
-      if (lastId === undefined) records = await query.all()
-      else
-        records = await query
-          .where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
-          .all()
+      // the driver applies the cursor, or, over a select it cannot window by
+      // the cursor, reads the window from the keys it keeps in `walk`
+      records = await query.clone({ batchWindow: { after: lastId, walk } }).all()
 
       for (const record of records) {
         await cb(record)
@@ -3616,4 +3642,5 @@ export interface QueryOpts<
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
   bypassImplicitOrder?: boolean | undefined
+  batchWindow?: { after: unknown; walk: { keys?: unknown[] } } | null | undefined
 }

@@ -4443,6 +4443,15 @@ export const schema = {
         requiredAndClauses: null,
         passthroughAndClauses: null,
       },
+      newestCollarPerTagName: {
+        type: 'HasMany',
+        foreignKey: 'petId',
+        foreignKeyTypeColumn: null,
+        tables: ['collars'],
+        optional: null,
+        requiredAndClauses: null,
+        passthroughAndClauses: null,
+      },
       notLostCollar: {
         type: 'HasOne',
         foreignKey: 'petId',

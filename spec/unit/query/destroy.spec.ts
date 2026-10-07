@@ -13,9 +13,11 @@ import InvalidBatchSize from '../../../src/errors/InvalidBatchSize.js'
 import RowLockIncompatibleWithDistinct from '../../../src/errors/RowLockIncompatibleWithDistinct.js'
 import ops from '../../../src/ops/index.js'
 import { HookStatement } from '../../../src/types/lifecycle.js'
+import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
@@ -782,6 +784,30 @@ describe('Query#destroy', () => {
       expect(await user.associationQuery('orderedPosts').destroy({ lock: true, batchSize: 2 })).toEqual(4)
 
       expect(await Post.all()).toEqual([])
+    })
+  })
+
+  context('on an associationQuery of an association with distinct and an order led by it', () => {
+    it('destroys across batches the records the association returned when it began, and none that take their place', async () => {
+      const pet = await Pet.create()
+      const now = DateTime.now()
+      const olderA = await pet.createAssociation('collars', {
+        tagName: 'a',
+        createdAt: now.minus({ day: 1 }),
+      })
+      await pet.createAssociation('collars', { tagName: 'a', createdAt: now })
+      await pet.createAssociation('collars', { tagName: 'b', createdAt: now })
+      // once the newest 'b' collar is destroyed, the association returns this
+      // one, whose primary key is past the end of the first batch
+      const olderB = await pet.createAssociation('collars', {
+        tagName: 'b',
+        createdAt: now.minus({ day: 1 }),
+      })
+      await pet.createAssociation('collars', { tagName: 'c', createdAt: now })
+
+      expect(await pet.associationQuery('newestCollarPerTagName').destroy({ batchSize: 2 })).toEqual(3)
+
+      expect(await Collar.all()).toMatchDreamModels([olderA, olderB])
     })
   })
 
