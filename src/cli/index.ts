@@ -317,7 +317,7 @@ ${INDENT}  pnpm psy g:model --sti-base-serializer Room Place:belongs_to type:enu
       )
       .option(
         '--sti-base-serializer',
-        `Creates generically typed base serializers (default and summary) that accept a \`StiChildClass\` parameter and include the \`type\` attribute with a per-child enum constraint. This allows consuming applications to determine the response shape based on the STI type discriminator.
+        `Creates generically typed base serializers (summary and default, plus each Admin and Internal pair requested with --admin-serializers or --internal-serializers) that accept a \`StiChildClass\` parameter. When a \`type\` column is given, each summary serializer renders \`type\` right after \`id\`, with an OpenAPI enum of just the STI child's class name, and the default serializer inherits it from the summary. This allows consuming applications to determine the response shape based on the STI type discriminator.
 ${INDENT}
 ${INDENT}Use this when generating the parent model of an STI hierarchy. After generating the parent, use g:sti-child for each child type.
 ${INDENT}

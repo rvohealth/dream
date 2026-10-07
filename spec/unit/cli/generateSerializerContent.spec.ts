@@ -68,7 +68,7 @@ export const ArticleAdminSerializer = (article: Article) =>
     })
 
     context('when stiBaseSerializer: true (STI parent)', () => {
-      it('alters the serializer to include a generic', () => {
+      it('makes both serializers generic over the STI child class, and renders the per-child type in the summary right after id, so the default inherits it', () => {
         const res = generateSerializerContent({
           fullyQualifiedModelName: 'Balloon',
           modelClassName: modelClassNameFrom('Balloon'),
@@ -85,13 +85,87 @@ import Balloon from '@models/Balloon.js'
 export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
   DreamSerializer(StiChildClass ?? Balloon, balloon)
     .attribute('id')
+    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Balloon).sanitizedName] } })
 
 export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
   BalloonSummarySerializer(StiChildClass, balloon)
     .attribute('hello')
-    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Balloon).sanitizedName] } })
 `
         )
+      })
+
+      context('with admin and internal serializers', () => {
+        it('renders the per-child type in the summary of every variant pair', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'Balloon',
+            modelClassName: modelClassNameFrom('Balloon'),
+            columnsWithTypes: ['hello', 'type:enum:balloon_types:Mylar,Latex'],
+            stiBaseSerializer: true,
+            includeAdminSerializers: true,
+            includeInternalSerializers: true,
+          })
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer } from '@rvoh/dream'
+import Balloon from '@models/Balloon.js'
+
+export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  DreamSerializer(StiChildClass ?? Balloon, balloon)
+    .attribute('id')
+    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Balloon).sanitizedName] } })
+
+export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  BalloonSummarySerializer(StiChildClass, balloon)
+    .attribute('hello')
+
+export const BalloonAdminSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  DreamSerializer(StiChildClass ?? Balloon, balloon)
+    .attribute('id')
+    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Balloon).sanitizedName] } })
+
+export const BalloonAdminSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  BalloonAdminSummarySerializer(StiChildClass, balloon)
+    .attribute('hello')
+
+export const BalloonInternalSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  DreamSerializer(StiChildClass ?? Balloon, balloon)
+    .attribute('id')
+    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? Balloon).sanitizedName] } })
+
+export const BalloonInternalSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  BalloonInternalSummarySerializer(StiChildClass, balloon)
+    .attribute('hello')
+`
+          )
+        })
+      })
+
+      context('without a type column', () => {
+        it('renders no type attribute', () => {
+          const res = generateSerializerContent({
+            fullyQualifiedModelName: 'Balloon',
+            modelClassName: modelClassNameFrom('Balloon'),
+            columnsWithTypes: ['hello'],
+            stiBaseSerializer: true,
+            includeAdminSerializers: false,
+          })
+
+          expect(res).toEqual(
+            `\
+import { DreamSerializer } from '@rvoh/dream'
+import Balloon from '@models/Balloon.js'
+
+export const BalloonSummarySerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  DreamSerializer(StiChildClass ?? Balloon, balloon)
+    .attribute('id')
+
+export const BalloonSerializer = <T extends Balloon>(StiChildClass: typeof Balloon, balloon: T) =>
+  BalloonSummarySerializer(StiChildClass, balloon)
+    .attribute('hello')
+`
+          )
+        })
       })
     })
 
