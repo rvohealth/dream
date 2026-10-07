@@ -15,6 +15,24 @@ describe('Dream#setAttribute', () => {
     expect(pet.nickname).toEqual('Jasper')
   })
 
+  context('with an @Encrypted property name', () => {
+    it('neither encrypts the value nor stores it on save', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'stored secret' })
+      const storedCiphertext = user.getAttribute('encryptedSecret')
+
+      user.setAttribute('secret', 'new secret')
+
+      expect(user.getAttribute('secret')).toEqual('new secret')
+      expect(user.getAttribute('encryptedSecret')).toEqual(storedCiphertext)
+      expect(user.secret).toEqual('stored secret')
+      expect(user.isDirty).toBe(false)
+
+      await user.save()
+
+      expect((await User.findOrFail(user.id)).secret).toEqual('stored secret')
+    })
+  })
+
   context('with an @Encrypted backing column', () => {
     it('accepts ciphertext the app can decrypt', () => {
       const ciphertext = User.new({ secret: 'copied secret' }).getAttribute('encryptedSecret')

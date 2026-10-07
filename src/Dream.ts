@@ -3571,11 +3571,18 @@ export default class Dream {
    * keys (current or legacy), or `null`, which clears it. Anything else,
    * including plaintext, `undefined`, a non-string value, and ciphertext
    * made with a key this app does not hold, throws and leaves the column
-   * unchanged. To store a new value, set the encrypted property (e.g.
-   * `secret`) instead, which encrypts it. The check covers the backing
-   * columns of this model's class, including those it inherits from an
-   * STI parent; a backing column declared only by another class in the
-   * same STI hierarchy is not checked.
+   * unchanged. The check covers the backing columns of this model's class,
+   * including those it inherits from an STI parent; a backing column
+   * declared only by another class in the same STI hierarchy is not
+   * checked.
+   *
+   * Given the name of an encrypted property (e.g. `secret`), setAttribute
+   * neither encrypts the value nor stores it: it keeps the value,
+   * unencrypted, under that name in this instance's attributes, which a
+   * save does not write, while the backing column and the property keep
+   * the value they had. To store a new value, assign the property
+   * (`user.secret = 'new secret'`) or pass it to
+   * {@link Dream.setAttributes | setAttributes}, each of which encrypts it.
    *
    * ```ts
    *  const user = new User()
