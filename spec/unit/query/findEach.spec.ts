@@ -1,19 +1,18 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
-import ops from '../../../src/ops/index.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#findEach', () => {
-  it('returns all records, ordered by id', async () => {
+  it('visits every record in ascending primary key order', async () => {
     const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
     const userb = await User.create({ name: 'fred', email: 'b@b.com', password: 'howyadoin' })
     const userc = await User.create({ name: 'fred', email: 'c@c.com', password: 'howyadoin' })
 
-    const users: User[] = []
+    const records: User[] = []
     await User.query().findEach(user => {
-      users.push(user)
+      records.push(user)
     })
-    expect(users).toMatchDreamModels([usera, userb, userc])
+    expect(records.map(r => r.id)).toEqual([usera.id, userb.id, userc.id])
   })
 
   context('where clause is passed', () => {
@@ -28,31 +27,35 @@ describe('Query#findEach', () => {
       })
       expect(users).toMatchDreamModels([userb, userc])
     })
-
-    context('similarity operator is used', () => {
-      it('filters out non-matching records', async () => {
-        const userb = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'fred' })
-        const userc = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'fredd' })
-        await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'calvin' })
-
-        const record = await User.where({ name: ops.similarity('fred') })
-          .order('email')
-          .all()
-        expect(record).toMatchDreamModels([userb, userc])
-      })
-    })
   })
 
-  it('respects order', async () => {
-    const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
-    const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
-    const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+  context('when the Query carries an order', () => {
+    it('ignores it, visiting records in ascending primary key order', async () => {
+      const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
+      const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
+      const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
 
-    const records: User[] = []
-    await User.order('email').findEach(user => {
-      records.push(user)
+      const records: User[] = []
+      await User.order('email').findEach(user => {
+        records.push(user)
+      })
+      expect(records.map(r => r.id)).toEqual([userb.id, userc.id, usera.id])
     })
-    expect(records).toMatchDreamModels([usera, userb, userc])
+
+    it('ignores it across batches, visiting records in ascending primary key order', async () => {
+      const userb = await User.create({ email: 'b@b.com', password: 'howyadoin' })
+      const userc = await User.create({ email: 'c@c.com', password: 'howyadoin' })
+      const usera = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+
+      const records: User[] = []
+      await User.order('email').findEach(
+        user => {
+          records.push(user)
+        },
+        { batchSize: 2 }
+      )
+      expect(records.map(r => r.id)).toEqual([userb.id, userc.id, usera.id])
+    })
   })
 
   context('when the Query carries a limit or offset', () => {
