@@ -415,11 +415,6 @@ ${INDENT}  pnpm psy g:sti-child --model-name=Kitchen Room/Kitchen extends Room`
         'skip serializer generation. Useful if the child uses the parent serializer directly or serialization is handled elsewhere'
       )
       .option(
-        '--connection-name',
-        'the name of the database connection to use for the model. Only needed for multi-database setups; defaults to "default"',
-        'default'
-      )
-      .option(
         '--model-name <modelName>',
         `Explicit model class name to use instead of the one auto-derived from the model path. Useful when the path segments don't match the desired class name.
 ${INDENT}
@@ -464,7 +459,6 @@ ${INDENT}  Health/Coach        # extends src/app/models/Health/Coach.ts`
           columnsWithTypes: string[],
           options: {
             serializer: boolean
-            connectionName: string
             modelName?: string
             adminSerializers?: boolean
             internalSerializers?: boolean
