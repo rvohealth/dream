@@ -95,5 +95,61 @@ describe('ObjectSerializer#customAttribute', () => {
         expect(serializer.render()).toEqual({})
       })
     })
+
+    context('with a default', () => {
+      it('are rendered as null', () => {
+        const MySerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('email', () => user.email, {
+            default: 'fallback@peanuts.com',
+            openapi: 'string',
+          })
+
+        const serializer = MySerializer({ email: undefined as unknown as string, password: '123' })
+
+        expect(serializer.render()).toEqual({
+          email: null,
+        })
+      })
+    })
+  })
+
+  context('flatten', () => {
+    it('spreads the keys of a returned plain object into the parent output', () => {
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('coordinates', () => ({ lat: 40.7, lng: -74.0 }), {
+            flatten: true,
+            openapi: {
+              type: 'object',
+              required: ['lat', 'lng'],
+              properties: {
+                lat: { type: 'number' },
+                lng: { type: 'number' },
+              },
+            },
+          })
+
+      expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({
+        email: 'abc',
+        lat: 40.7,
+        lng: -74.0,
+      })
+    })
+
+    it('adds no keys for a callback that returns null or undefined', () => {
+      const openapi = {
+        type: 'object',
+        properties: { lat: { type: 'number' }, lng: { type: 'number' } },
+      } as const
+
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('nullCoordinates', () => null, { flatten: true, openapi })
+          .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
+
+      expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({ email: 'abc' })
+    })
   })
 })

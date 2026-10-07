@@ -19,6 +19,21 @@ describe('DreamSerializer#customAttribute', () => {
     })
   })
 
+  it('renders the callback value without applying as, default or precision', () => {
+    const MySerializer = (user: User) =>
+      DreamSerializer(User, user)
+        .customAttribute('renamed', () => 'value', { openapi: 'string', as: 'other' })
+        .customAttribute('defaulted', () => undefined, { openapi: 'string', default: 'fallback' })
+        .customAttribute('rating', () => 3.14159, { openapi: 'decimal', precision: 2 })
+
+    const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
+    expect(serializer.render()).toEqual({
+      renamed: 'value',
+      defaulted: null,
+      rating: 3.14159,
+    })
+  })
+
   context('returning a serializer', () => {
     it('automatically renders the serializer', async () => {
       const OtherSerializer = (data: ModelForOpenapiTypeSpecs) =>
@@ -192,6 +207,43 @@ describe('DreamSerializer#customAttribute', () => {
         favoriteWord: null,
         birthdate: birthdate.toISO(),
       })
+    })
+
+    it('spreads the keys of a returned plain object into the parent output', () => {
+      const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute('coordinates', () => ({ lat: 40.7, lng: -74.0 }), {
+            flatten: true,
+            openapi: {
+              type: 'object',
+              required: ['lat', 'lng'],
+              properties: {
+                lat: { type: 'number' },
+                lng: { type: 'number' },
+              },
+            },
+          })
+
+      expect(MySerializer(pet).render()).toEqual({ species: 'dog', lat: 40.7, lng: -74.0 })
+    })
+
+    it('adds no keys for a callback that returns null or undefined', () => {
+      const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+      const openapi = {
+        type: 'object',
+        properties: { lat: { type: 'number' }, lng: { type: 'number' } },
+      } as const
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute('nullCoordinates', () => null, { flatten: true, openapi })
+          .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
+
+      expect(MySerializer(pet).render()).toEqual({ species: 'dog' })
     })
 
     context('when optional and flatten', () => {

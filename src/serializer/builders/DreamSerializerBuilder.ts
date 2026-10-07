@@ -261,17 +261,20 @@ export default class DreamSerializerBuilder<
    * Executes a callback function to generate a custom attribute value.
    * The `openapi` option is always required since the return type cannot be inferred.
    *
+   * `as`, `default` and `precision` are accepted by the options type but have no effect here:
+   * the attribute is named by `name`, and any fallback or rounding belongs in the callback.
+   *
    * @param name - The attribute name for the computed value
    * @param fn - Callback function that returns the computed value
    * @param options - Configuration options:
    *   - `openapi` - (required) OpenAPI schema definition for the computed value
-   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
-   *   - `default` - Value to use when the callback returns undefined
    *   - `flatten` - When `true`, spreads the returned object's properties directly into the
-   *     parent serialized output instead of nesting them under `name`; the `openapi` option
-   *     should then define each flattened property individually
-   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
-   *     during rendering; does not affect the OpenAPI shape
+   *     parent serialized output instead of nesting them under `name`. The `openapi` option
+   *     then describes the whole returned object, not each property, because Psychic adds it
+   *     to the parent's schema as an `allOf` branch: either an object schema with full
+   *     property bodies (`type: 'object'`, `properties`, and `required` listing the keys that
+   *     are always present), or `{ $serializer: SomeSerializer }` when the callback returns
+   *     what that serializer renders. A `null` or `undefined` return adds no keys
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
    *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
@@ -284,19 +287,17 @@ export default class DreamSerializerBuilder<
    *   { openapi: { type: 'string' } }
    * )
    *
-   * // Flattened object properties
+   * // Flattened object properties: `openapi` describes the whole returned object
    * .customAttribute('coordinates', () => ({ lat: 40.7, lng: -74.0 }), {
    *   flatten: true,
    *   openapi: {
-   *     lat: { type: 'number' },
-   *     lng: { type: 'number' }
+   *     type: 'object',
+   *     required: ['lat', 'lng'],
+   *     properties: {
+   *       lat: { type: 'number' },
+   *       lng: { type: 'number' }
+   *     }
    *   }
-   * })
-   *
-   * // With decimal precision
-   * .customAttribute('averageRating', () => calculateAverage(ratings), {
-   *   openapi: 'decimal',
-   *   precision: 2
    * })
    * ```
    */
