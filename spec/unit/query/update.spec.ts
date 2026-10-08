@@ -4,6 +4,7 @@ import ReplicaSafe from '../../../src/decorators/class/ReplicaSafe.js'
 import KyselyQueryDriver from '../../../src/dream/QueryDriver/Kysely.js'
 import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
+import CannotSaveMissingDream from '../../../src/errors/CannotSaveMissingDream.js'
 import DoNotSetEncryptedFieldsDirectly from '../../../src/errors/DoNotSetEncryptedFieldsDirectly.js'
 import CannotSetEncryptedColumnInQueryUpdate from '../../../src/errors/encrypt/CannotSetEncryptedColumnInQueryUpdate.js'
 import InvalidBatchSize from '../../../src/errors/InvalidBatchSize.js'
@@ -369,6 +370,29 @@ describe('Query#update', () => {
       expect(user1.name).toEqual('cool')
       expect(user2.name).toEqual('calvin')
     })
+
+    it('reaches every match across batches, visiting them in ascending primary key order', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      const user3 = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      const user4 = await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      const visitedIds: User['id'][] = []
+      const count = await User.where({ name: ops.similarity('chalupa') }).update(
+        user => {
+          visitedIds.push(user.id)
+          return { favoriteWord: 'cool' }
+        },
+        { lock: false, batchSize: 2 }
+      )
+
+      expect(count).toEqual(4)
+      expect(visitedIds).toEqual([user1.id, user2.id, user3.id, user4.id])
+      expect(await User.where({ favoriteWord: 'cool' }).count()).toEqual(4)
+    })
   })
 
   context('lock=true (guarded, compare-and-set update)', () => {
@@ -451,6 +475,47 @@ describe('Query#update', () => {
       expect(user2.name).toEqual('calvin')
     })
 
+    it('claims every similarity match across batches', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+      const otherUser = await User.create({ email: 'e@e.com', password: 'howyadoin', name: 'calvin' })
+
+      expect(
+        await User.where({ name: ops.similarity('chalupa') }).update(
+          { favoriteWord: 'cool' },
+          { lock: true, batchSize: 2 }
+        )
+      ).toEqual(4)
+
+      expect(await User.where({ favoriteWord: 'cool' }).count()).toEqual(4)
+      await otherUser.reload()
+      expect(otherUser.favoriteWord).toBeNull()
+    })
+
+    it('claims similarity matches in ascending primary key order, batch by batch', async () => {
+      // "chalupazz" passes the similarity threshold for "chalupa" but ranks below
+      // an exact "chalupa", so the lowest primary keys rank last
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin', name: 'chalupazz' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'chalupazz' })
+      const user3 = await User.create({ email: 'c@c.com', password: 'howyadoin', name: 'chalupa' })
+      const user4 = await User.create({ email: 'd@d.com', password: 'howyadoin', name: 'chalupa' })
+
+      const claimedIds: User['id'][] = []
+      await User.where({ name: ops.similarity('chalupa') }).update(
+        user => {
+          claimedIds.push(user.id)
+          return { favoriteWord: 'cool' }
+        },
+        { lock: true, batchSize: 2 }
+      )
+
+      expect(claimedIds).toEqual([user1.id, user2.id, user3.id, user4.id])
+    })
+
     context('when another transaction moves a record out of the Query first', () => {
       it('does not update that record, and does not count it', async () => {
         const aster = await Pet.create({ name: 'aster' })
@@ -500,6 +565,38 @@ describe('Query#update', () => {
           expect((await Pet.findOrFail(second.id)).name).toEqual('winner')
           expect((await Pet.findOrFail(third.id)).name).toEqual('winner')
         })
+      })
+    })
+
+    context('when another transaction destroys a record first', () => {
+      it('does not update or count a record that was soft-deleted', async () => {
+        const aster = await Pet.create({ name: 'aster' })
+        const asterling = await Pet.create({ name: 'aster' })
+
+        interposeBetweenCandidateAndLockedReads(async () => {
+          await aster.destroy()
+        })
+
+        expect(await Pet.where({ name: 'aster' }).update({ name: 'winner' }, { lock: true })).toEqual(1)
+
+        const reloadedAster = await Pet.removeDefaultScope('dream:SoftDelete').findOrFail(aster.id)
+        expect(reloadedAster.name).toEqual('aster')
+        expect(reloadedAster.deletedAt).not.toBeNull()
+        expect((await Pet.findOrFail(asterling.id)).name).toEqual('winner')
+      })
+
+      it('does not update or count a record that was hard-deleted, and does not throw', async () => {
+        const fred = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        const otherFred = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'fred' })
+
+        interposeBetweenCandidateAndLockedReads(async () => {
+          await fred.destroy()
+        })
+
+        expect(await User.where({ name: 'fred' }).update({ name: 'winner' }, { lock: true })).toEqual(1)
+
+        expect(await User.removeAllDefaultScopes().where({ id: fred.id }).exists()).toBe(false)
+        expect((await User.findOrFail(otherFred.id)).name).toEqual('winner')
       })
     })
 
@@ -1086,6 +1183,67 @@ describe('Query#update', () => {
 
           expect(await Pet.where({ name: 'aster' }).count()).toEqual(3)
           expect(await Pet.where({ name: 'winner' }).count()).toEqual(0)
+        })
+      })
+
+      context('when another transaction destroys a record after its batch is read', () => {
+        it('still writes and counts a record that was soft-deleted, running its update hooks and leaving it soft-deleted', async () => {
+          const aster = await Pet.create({ name: 'aster' })
+          const violet = await Pet.create({ name: 'violet' })
+
+          // aster's callback runs after the batch read and before violet's write
+          const visitedIds: Pet['id'][] = []
+          const count = await Pet.query().update(
+            async pet => {
+              visitedIds.push(pet.id)
+              if (pet.id === aster.id) await violet.destroy()
+              return { name: 'change me' }
+            },
+            { lock: false }
+          )
+
+          expect(visitedIds).toEqual([aster.id, violet.id])
+          expect(count).toEqual(2)
+          const reloadedViolet = await Pet.removeDefaultScope('dream:SoftDelete').findOrFail(violet.id)
+          // the BeforeUpdate hook rewrites 'change me'
+          expect(reloadedViolet.name).toEqual('changed by update hook')
+          expect(reloadedViolet.deletedAt).not.toBeNull()
+        })
+
+        it('rejects with CannotSaveMissingDream on a record that was hard-deleted, leaving the records written before it committed', async () => {
+          const fred = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const calvin = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+          await expect(
+            User.query().update(
+              async user => {
+                if (user.id === fred.id) await calvin.destroy()
+                return { name: 'written' }
+              },
+              { lock: false }
+            )
+          ).rejects.toThrow(CannotSaveMissingDream)
+
+          expect((await User.findOrFail(fred.id)).name).toEqual('written')
+        })
+
+        it('counts a record that was hard-deleted, without throwing, when its write is a no-op', async () => {
+          const fred = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+          const calvin = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+
+          const visitedIds: User['id'][] = []
+          const count = await User.query().update(
+            async user => {
+              visitedIds.push(user.id)
+              if (user.id === fred.id) await calvin.destroy()
+              return {}
+            },
+            { lock: false }
+          )
+
+          expect(visitedIds).toEqual([fred.id, calvin.id])
+          expect(count).toEqual(2)
+          expect(await User.removeAllDefaultScopes().where({ id: calvin.id }).exists()).toBe(false)
         })
       })
     })

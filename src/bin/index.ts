@@ -4,6 +4,7 @@ import Query from '../dream/Query.js'
 import DBClassDeprecation from '../helpers/cli/DBClassDeprecation.js'
 import generateDream from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
+import standardizeFullyQualifiedModelName from '../helpers/standardizeFullyQualifiedModelName.js'
 
 export default class DreamBin {
   public static async sync(onSync: () => Promise<void> | void, options?: { schemaOnly?: boolean }) {
@@ -88,12 +89,21 @@ export default class DreamBin {
     columnsWithTypes: string[],
     options: {
       serializer: boolean
-      connectionName: string
+      /**
+       * The connection whose migrations folder receives the child's
+       * migration. Defaults to the parent model's connection, which is the
+       * connection the child uses; the parent must then be one of the app's
+       * models, or this throws before any file is written.
+       */
+      connectionName?: string
       adminSerializers?: boolean
       internalSerializers?: boolean
       modelName?: string
     }
   ) {
+    const connectionName =
+      options.connectionName ?? stiParentConnectionName(fullyQualifiedModelName, fullyQualifiedParentName)
+
     await generateDream({
       fullyQualifiedModelName,
       columnsWithTypes,
@@ -101,6 +111,7 @@ export default class DreamBin {
         includeAdminSerializers: options.adminSerializers ?? false,
         includeInternalSerializers: options.internalSerializers ?? false,
         ...options,
+        connectionName,
         stiBaseSerializer: false,
         // `@SoftDelete()` is incompatible with STI children — never auto-apply.
         softDelete: false,
@@ -140,4 +151,19 @@ export default class DreamBin {
     })
     DreamCLI.logger.logEndProgress()
   }
+}
+
+/**
+ * An STI child shares its parent's table, so its migration belongs to the
+ * parent model's connection.
+ */
+function stiParentConnectionName(fullyQualifiedModelName: string, fullyQualifiedParentName: string) {
+  const parentModel =
+    DreamApp.getOrFail().models[standardizeFullyQualifiedModelName(fullyQualifiedParentName)]
+  if (!parentModel)
+    throw new Error(
+      `Cannot generate the STI child ${fullyQualifiedModelName}: its parent, ${fullyQualifiedParentName}, is not one of the app models. The parent must already exist, and its name must match its path under the models directory (e.g. Health/Coach for Health/Coach.ts).`
+    )
+
+  return parentModel.prototype.connectionName
 }

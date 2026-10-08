@@ -36,6 +36,10 @@ import {
   VariadicLoadArgs,
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
+import assertRecognizedAssociationConditionKeys, {
+  DESTROY_ASSOCIATION_OPTION_KEYS,
+  UPDATE_ASSOCIATION_OPTION_KEYS,
+} from './internal/associations/assertRecognizedAssociationConditionKeys.js'
 import associationQuery from './internal/associations/associationQuery.js'
 import associationUpdateQuery from './internal/associations/associationUpdateQuery.js'
 import createAssociation from './internal/associations/createAssociation.js'
@@ -72,26 +76,29 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
   /**
    * Loads the requested associations upon execution
    *
+   * **IMPORTANT:** `load().execute()` returns a **new clone** of the model with the
+   * associations loaded. It does NOT modify the original instance.
+   *
    * NOTE: {@link Dream#preload} is often a preferrable way of achieving the
    * same goal.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
-   *   await user
+   *   const loadedUser = await user
    *    .txn(txn)
-   *    .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   *    .load('posts', { and: { body: ops.ilike('%hello world%') } }, 'comments', 'replies')
    *    .load('images')
    *    .execute()
    *
-   *   user.posts[0].comments[0].replies[0]
+   *   loadedUser.posts[0].comments[0].replies[0]
    *   // Reply{}
    *
-   *   user.images[0]
+   *   loadedUser.images[0]
    *   // Image{}
    * })
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A chainable LoadBuilder instance
    */
   public load<
@@ -168,32 +175,34 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * Load each specified association using a single SQL query.
    * See {@link #load} for loading in separate queries.
    *
-   * Note: since leftJoinPreload loads via single query, it has
-   * some downsides and that may be avoided using {@link #load}:
+   * **IMPORTANT:** Like `load()`, `leftJoinLoad().execute()` returns a **new clone** of the
+   * model with associations loaded. It does NOT modify the original instance.
+   *
+   * Note: since leftJoinLoad loads via single query, it has
+   * some downsides that may be avoided using {@link #load}:
    * 1. `limit` and `offset` will be automatically removed
    * 2. `through` associations will bring additional namespaces into the query that can conflict with through associations from other associations, creating an invalid query
-   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinPreload('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
+   * 3. each nested association will result in an additional record which duplicates data from the outer record. E.g., given `.leftJoinLoad('a', 'b', 'c')`, if each `a` has 10 `b` and each `b` has 10 `c`, then for one `a`, 100 records will be returned, each of which has all of the columns of `a`. `.load('a', 'b', 'c')` would perform three separate SQL queries, but the data for a single `a` would only be returned once.
    * 4. the individual query becomes more complex the more associations are included
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
-   * Loads the requested associations upon execution
-   *
-   * NOTE: {@link Dream#leftJoinPreload} is often a preferrable way of achieving the
-   * same goal.
    *
    * ```ts
-   * await user.txn(txn)
-   *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
-   *  .leftJoinLoad('images')
-   *  .execute()
+   * await ApplicationModel.transaction(async txn => {
+   *   const loadedUser = await user
+   *    .txn(txn)
+   *    .leftJoinLoad('posts', { and: { body: ops.ilike('%hello world%') } }, 'comments', 'replies')
+   *    .leftJoinLoad('images')
+   *    .execute()
    *
-   * user.posts[0].comments[0].replies[0]
-   * // Reply{}
+   *   loadedUser.posts[0].comments[0].replies[0]
+   *   // Reply{}
    *
-   * user.images[0]
-   * // Image{}
+   *   loadedUser.images[0]
+   *   // Image{}
+   * })
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A chainable LeftJoinLoadBuilder instance
    */
   public leftJoinLoad<
@@ -230,7 +239,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -265,7 +274,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -378,6 +387,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
    *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
+   *
    * NOTE:
    * To bypass custom-defined setters, use {@link Dream.updateAttributes | updateAttributes} instead.
    *
@@ -409,6 +424,18 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
+   *
+   * An encrypted property (e.g. `secret`) is still encrypted. Its
+   * `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * ciphertext that decrypts with this app's column encryption keys, or
+   * `null`; anything else throws before anything is saved (see
+   * {@link Dream.setAttribute | setAttribute}).
+   *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
    *
    * NOTE:
    * To update the values without bypassing any custom-defined
@@ -465,6 +492,10 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    *
    * Upon updating an instance, the update timestamp (if defined)
    * will be updated on the model.
+   *
+   * A column whose value is `undefined` is skipped, not written: a new
+   * record gets the column's database default, and a persisted record
+   * keeps the value stored for it. Set a column to `null` to clear it.
    *
    * ```ts
    * const user = User.new({ email: 'how@yadoin' })
@@ -906,8 +937,8 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
 
   /**
    * Updates all records matching the association with
-   * the provided attributes. If a where statement is passed,
-   * The where statement will be applied to the query
+   * the provided attributes. If an and, andNot or andAny
+   * statement is passed, it will be applied to the query
    * before updating.
    *
    * ```ts
@@ -922,7 +953,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * @param associationName - The name of the association to update
    * @param attributes - The attributes to update on the association
    * @param updateAssociationOptions - Options for updating the association
-   * @param updateAssociationOptions.where - Optional where statement to apply to query before updating
+   * @param updateAssociationOptions.and - Optional and statement to apply to query before updating
+   * @param updateAssociationOptions.andNot - Optional andNot statement to apply to query before updating
+   * @param updateAssociationOptions.andAny - Optional andAny statement to apply to query before updating
    * @param updateAssociationOptions.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when updating the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
    * @param updateAssociationOptions.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
    * @param updateAssociationOptions.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
@@ -937,6 +970,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     attributes: unknown,
     updateAssociationOptions: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      updateAssociationOptions,
+      UPDATE_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'updateAssociation'
+    )
     if (this.dreamInstance.isNewRecord)
       throw new CannotUpdateAssociationOnUnpersistedDream(this.dreamInstance, associationName)
 
@@ -1056,6 +1095,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'destroyAssociation'
+    )
     if (this.dreamInstance.isNewRecord)
       throw new CannotDestroyAssociationOnUnpersistedDream(this.dreamInstance, associationName)
 
@@ -1141,6 +1186,12 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'reallyDestroyAssociation'
+    )
     if (this.dreamInstance.isNewRecord)
       throw new CannotDestroyAssociationOnUnpersistedDream(this.dreamInstance, associationName)
 
@@ -1203,7 +1254,9 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * will also be undeleted.
    *
    * ```ts
-   * await user.undestroyAssociation('posts', { and: { body: 'hello world' } })
+   * await ApplicationModel.transaction(async txn => {
+   *   await user.txn(txn).undestroyAssociation('posts', { and: { body: 'hello world' } })
+   * })
    * ```
    *
    * @param associationName - The name of the association to undestroy
@@ -1221,6 +1274,13 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
     I extends DreamInstanceTransactionBuilder<DreamInstance>,
     AssociationName extends DreamAssociationNames<DreamInstance>,
   >(this: I, associationName: AssociationName, options?: unknown): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'undestroyAssociation'
+    )
+
     return await undestroyAssociation(this.dreamInstance, this.dreamTransaction, associationName, {
       ...undestroyOptions<DreamInstance>(options as any),
       joinAndStatements: {

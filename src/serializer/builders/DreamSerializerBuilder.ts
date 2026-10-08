@@ -9,6 +9,8 @@ import {
 import {
   AutomaticSerializerAttributeOptions,
   AutomaticSerializerAttributeOptionsForType,
+  CustomAttributeOptions,
+  DelegatedAttributeOptionsArgs,
   InternalAnyTypedSerializerAttribute,
   InternalAnyTypedSerializerCustomAttribute,
   InternalAnyTypedSerializerDelegatedAttribute,
@@ -100,12 +102,12 @@ export default class DreamSerializerBuilder<
 
   // attribute is not a non-json dream column name
   public attribute<
-    // `keyof DataType` includes columns listed as properties, so, in order to exclude
-    // non-json columns, we include NonJsonDreamColumnNames and then set those properties as `never`
-    MaybeAttributeName extends NonJsonDreamColumnNames<DataType> | (keyof DataType & string),
-    AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
-      ? never
-      : Exclude<keyof DataType, DreamPropertiesToExclude> & string,
+    // `keyof DataType` includes columns listed as properties, so non-json columns are excluded
+    // here, leaving them to the overload below, which accepts only an OpenAPI description
+    AttributeName extends Exclude<
+      keyof DataType & string,
+      NonJsonDreamColumnNames<DataType> | DreamPropertiesToExclude
+    >,
   >(
     name: AttributeName,
     options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
@@ -136,9 +138,10 @@ export default class DreamSerializerBuilder<
    *   2. `required: false` → omits the key entirely from the rendered output
    *   3. otherwise → renders `null`
    *
-   * When the target is a Dream model, OpenAPI types may be automatically inferred
-   * for standard database columns. For json/jsonb columns or non-Dream targets,
-   * the `openapi` option is required.
+   * When the target is a Dream model, a non-json column's OpenAPI shape is inferred
+   * from the column, so its `openapi` option takes only a `description`. json/jsonb
+   * columns and non-Dream targets have no shape to infer, so they require a full
+   * `openapi` shape.
    *
    * `optional` and `required` are not aliases — they encode different things and can
    * be used together:
@@ -162,12 +165,14 @@ export default class DreamSerializerBuilder<
    *     a discriminator string when the association is actually missing produces a response
    *     indistinguishable from "association present with that type," which is misleading)
    *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
-   *     columns, optional for standard Dream columns (where types are inferred)
-   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema
-   *     (wraps the type in `anyOf: [schema, { type: 'null' }]`). OpenAPI-only — the
-   *     key is still rendered (as `null`). For Dream models, this is auto-inferred
-   *     from optional BelongsTo associations. Use this when delegating through a
-   *     HasOne or other nullable association.
+   *     columns. On a non-json Dream column, whose shape is inferred, it takes only a
+   *     `description` (and, on the STI `type` column, a `type: 'string'` and `enum`)
+   *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema:
+   *     Psychic adds `null` to the rendered schema (e.g., `type: 'string'` becomes
+   *     `type: ['string', 'null']`, and a `$ref` becomes `anyOf: [{ $ref }, { type: 'null' }]`).
+   *     OpenAPI-only — the key is still rendered (as `null`). For Dream models, this is
+   *     auto-inferred from optional BelongsTo associations. Use this when delegating
+   *     through a HasOne or other nullable association.
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
    *     during rendering; does not affect the OpenAPI shape (not available when delegating
    *     to a `'type'` STI discriminator column, which is always a string enum)
@@ -179,18 +184,17 @@ export default class DreamSerializerBuilder<
    * @example
    * ```typescript
    * // Delegate to a Dream association's column (type inferred)
-   * .delegatedAttribute('currentLocalizedText', 'title', { openapi: 'string' })
+   * .delegatedAttribute('currentLocalizedText', 'title')
    *
    * // With default value for null target or attribute
-   * .delegatedAttribute('user', 'displayName', {
-   *   openapi: { type: 'string' },
-   *   default: 'Unknown User'
-   * })
+   * .delegatedAttribute('user', 'displayName', { default: 'Unknown User' })
    *
    * // Rename the output key
-   * .delegatedAttribute('profile', 'avatarUrl', {
-   *   openapi: 'string',
-   *   as: 'avatar'
+   * .delegatedAttribute('profile', 'avatarUrl', { as: 'avatar' })
+   *
+   * // A json/jsonb column has no shape to infer, so it declares one
+   * .delegatedAttribute('user', 'preferences', {
+   *   openapi: { type: 'object', properties: { theme: 'string' } }
    * })
    * ```
    */
@@ -222,34 +226,13 @@ export default class DreamSerializerBuilder<
   >(
     targetName: TargetName,
     name: TargetAttributeName,
-    options?: AssociatedModelType extends Dream
-      ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
-          keyof AssociatedModelType &
-          'type'
-        ? AutomaticSerializerAttributeOptionsForType & {
-            optional?: boolean
-            required?: false
-          }
-        : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
-          ? SerializerAttributeOptionsForVirtualColumn & { optional?: boolean }
-          : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
-                keyof AssociatedModelType &
-                string
-            ?
-                | (AutomaticSerializerAttributeOptions & { optional?: boolean })
-                | (NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-                    optional?: boolean
-                  })
-            : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-                optional?: boolean
-              }
-      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
+    ...options: DelegatedAttributeOptionsArgs<AssociatedModelType, TargetAttributeName>
   ) {
     this.attributes.push({
       type: 'delegatedAttribute',
       targetName: targetName as any,
       name: name as any,
-      options: (options as any) ?? {},
+      options: (options[0] as any) ?? {},
     })
 
     return this
@@ -261,17 +244,24 @@ export default class DreamSerializerBuilder<
    * Executes a callback function to generate a custom attribute value.
    * The `openapi` option is always required since the return type cannot be inferred.
    *
+   * `as`, `default` and `precision` are accepted by the options type but have no effect here:
+   * the attribute is named by `name`, and any fallback or rounding belongs in the callback.
+   *
    * @param name - The attribute name for the computed value
    * @param fn - Callback function that returns the computed value
    * @param options - Configuration options:
    *   - `openapi` - (required) OpenAPI schema definition for the computed value
-   *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
-   *   - `default` - Value to use when the callback returns undefined
    *   - `flatten` - When `true`, spreads the returned object's properties directly into the
-   *     parent serialized output instead of nesting them under `name`; the `openapi` option
-   *     should then define each flattened property individually
-   *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
-   *     during rendering; does not affect the OpenAPI shape
+   *     parent serialized output instead of nesting them under `name`. The `openapi` option
+   *     then describes the whole returned object, not each property, because Psychic adds it
+   *     to the parent's schema as an `allOf` branch: either an object schema with full
+   *     property bodies (`type: 'object'`, `properties`, and `required` listing the keys that
+   *     are always present), or `{ $serializer: SomeSerializer }` when the callback returns
+   *     what that serializer renders. A serializer ref with `many: true` does not type-check
+   *     here, since a list has no properties to spread. A `null` or `undefined` return adds no
+   *     keys. Attributes render in declaration order, so a key the returned object shares with
+   *     another attribute takes the value of whichever is declared later; under the `allOf`,
+   *     that value must match both schemas
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
    *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
@@ -284,19 +274,17 @@ export default class DreamSerializerBuilder<
    *   { openapi: { type: 'string' } }
    * )
    *
-   * // Flattened object properties
+   * // Flattened object properties: `openapi` describes the whole returned object
    * .customAttribute('coordinates', () => ({ lat: 40.7, lng: -74.0 }), {
    *   flatten: true,
    *   openapi: {
-   *     lat: { type: 'number' },
-   *     lng: { type: 'number' }
+   *     type: 'object',
+   *     required: ['lat', 'lng'],
+   *     properties: {
+   *       lat: { type: 'number' },
+   *       lng: { type: 'number' }
+   *     }
    *   }
-   * })
-   *
-   * // With decimal precision
-   * .customAttribute('averageRating', () => calculateAverage(ratings), {
-   *   openapi: 'decimal',
-   *   precision: 2
    * })
    * ```
    */
@@ -304,9 +292,7 @@ export default class DreamSerializerBuilder<
   public customAttribute(
     name: string,
     fn: () => unknown,
-    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-      flatten?: boolean
-    }
+    options: CustomAttributeOptions<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
   ) {
     this.attributes.push({
       type: 'customAttribute',
@@ -328,9 +314,17 @@ export default class DreamSerializerBuilder<
    * @param options - Configuration options:
    *   - `as` - Rename the association key in the serialized output
    *   - `flatten` - When `true`, spreads the rendered association's attributes directly into
-   *     the parent serialized output instead of nesting them under `name`. Be aware of
-   *     attribute shadowing: if the parent and flattened association share attribute names
-   *     (e.g., `id`), the flattened association's values overwrite the parent's
+   *     the parent serialized output instead of nesting them under `name`. Attributes render in
+   *     declaration order, so when the parent and the association share a key (e.g., `id`),
+   *     whichever is declared later wins: the association's value replaces an attribute declared
+   *     before the `rendersOne`, and an attribute declared after it replaces the association's.
+   *     When the association is `null`, every key its serializer declares renders as `null`
+   *     (for a polymorphic `BelongsTo`, every key the serializer of any of its target classes
+   *     declares), in the same order (so an `id` declared before the `rendersOne` becomes
+   *     `null`); nothing in that serializer is rendered, so its custom attribute callbacks do
+   *     not run, and a flattened `customAttribute` in it adds no keys. Psychic adds the association's OpenAPI
+   *     schema to the parent's as an `allOf` branch, so a shared key's value must match both
+   *     schemas, whichever declaration wins
    *   - `optional` - When `true`, allows the association to be null/missing without causing
    *     an `OpenapiResponseValidationFailure` during Psychic controller unit specs. By default,
    *     `rendersOne` expects the association to be present (mirroring the `optional` option on
@@ -414,7 +408,10 @@ export default class DreamSerializerBuilder<
 
       /**
        * If `true`, the rendered association's attributes are merged directly into
-       * the parent object instead of being nested under the association key.
+       * the parent object instead of being nested under the association key. A key
+       * the parent shares with the association takes the value of whichever is
+       * declared later, and when the association is `null`, every key its serializer
+       * declares renders as `null`. See the `flatten` option of `rendersOne`.
        */
       flatten?: boolean
 

@@ -1,4 +1,9 @@
+import Decorators from '../../../../src/decorators/Decorators.js'
+import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
+import Encrypt from '../../../../src/encrypt/index.js'
+import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
+import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 
 describe('@Encrypted', () => {
   it('adds the decorated property to the defaultParamSafeColumns', () => {
@@ -22,9 +27,17 @@ describe('@Encrypted', () => {
 
   it("adds the encrypted columns to the Dream class's virtualAttributes with nullability based on the backing column", () => {
     expect(User['virtualAttributes']).toEqual(
+      expect.arrayContaining([{ property: 'secret', type: ['string', 'null'] }])
+    )
+  })
+
+  it("adds a declared openapi shape to the Dream class's virtualAttributes in place of the string default", () => {
+    expect(User['virtualAttributes']).toEqual(
       expect.arrayContaining([
-        { property: 'secret', type: ['string', 'null'] },
-        { property: 'otherSecret', type: ['string', 'null'] },
+        {
+          property: 'otherSecret',
+          type: { type: ['object', 'null'], properties: { token: 'string' }, required: ['token'] },
+        },
       ])
     )
   })
@@ -38,6 +51,147 @@ describe('@Encrypted', () => {
     )
   })
 
+  context('reading a value that only the legacy column key opens', () => {
+    it('fires encryption:legacy-key-used with the record, the property and its backing column', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn()
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(listener).not.toHaveBeenCalled()
+
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+      expect(listener).toHaveBeenCalledWith({
+        dream: reloadedUser,
+        property: 'secret',
+        encryptedColumnName: 'encryptedSecret',
+      })
+    })
+
+    it('fires again on every later read of the property', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn()
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(user.secret).toEqual('Howdy world')
+      expect(user.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(2)
+    })
+
+    it('returns the value to a listener that reassigns the property, without firing again, and the reassignment re-encrypts it under the current key', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn(({ dream, property }: EncryptionLegacyKeyUsedEvent) => {
+        const record = dream as unknown as Record<string, unknown>
+        const value = record[property]
+        record[property] = value
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+    })
+
+    it('fires for another record whose property a listener reads', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      const otherUser = await User.create({ secret: 'Howdy moon', email: 'c@d.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const readValues: unknown[] = []
+      const listener = vi.fn(({ dream }: EncryptionLegacyKeyUsedEvent) => {
+        if (dream === user) readValues.push(otherUser.secret)
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(user.secret).toEqual('Howdy world')
+      expect(readValues).toEqual(['Howdy moon'])
+      expect(listener.mock.calls.map(([event]) => event.dream)).toEqual([user, otherUser])
+    })
+
+    it('fires again on a later read after a listener throws', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      const listener = vi.fn().mockImplementationOnce(() => {
+        throw new Error('legacy key used')
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(() => user.secret).toThrow('legacy key used')
+      expect(user.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  context('reading a value that the current column key opens', () => {
+    it('does not fire encryption:legacy-key-used', async () => {
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+          legacy: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') },
+        },
+      })
+      const listener = vi.fn()
+      dreamApp.on('encryption:legacy-key-used', listener)
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(listener).not.toHaveBeenCalled()
+    })
+  })
+
   context('with no arguments', () => {
     it('uses the word "encrypted" in front of the pascalized method name', () => {
       const user = User.new()
@@ -48,13 +202,61 @@ describe('@Encrypted', () => {
     })
   })
 
-  context('with a field provided', () => {
-    it('uses the provided field as the encryptedColumnName', () => {
+  context('with a column provided in the options', () => {
+    it('uses the provided column as the encryptedColumnName', () => {
       const user = User.new()
       user.otherSecret = { token: 'SHH!' }
       expect(user.otherSecret).toEqual({ token: 'SHH!' })
       expect(user.getAttribute('myOtherEncryptedSecret')).not.toEqual({ token: 'SHH!' })
       expect(typeof user.getAttribute('myOtherEncryptedSecret')).toEqual('string')
+    })
+  })
+
+  context('with a column name string', () => {
+    it('uses the provided column as the encryptedColumnName and registers the property as a string', () => {
+      const deco = new Decorators<typeof UserWithColumnNameString>()
+      class UserWithColumnNameString extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted('myOtherEncryptedSecret')
+        public otherSecret: string
+      }
+      processDynamicallyDefinedModels(UserWithColumnNameString)
+
+      expect(UserWithColumnNameString['encryptedAttributes']).toEqual([
+        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
+      ])
+      expect(UserWithColumnNameString['virtualAttributes']).toEqual([
+        { property: 'otherSecret', type: ['string', 'null'] },
+      ])
+
+      const user = UserWithColumnNameString.new()
+      user.otherSecret = 'shh!'
+      expect(user.otherSecret).toEqual('shh!')
+      expect(user.getAttribute('myOtherEncryptedSecret')).not.toEqual('shh!')
+      expect(typeof user.getAttribute('myOtherEncryptedSecret')).toEqual('string')
+    })
+  })
+
+  context('with an openapi shape and no column', () => {
+    it('uses the word "encrypted" in front of the pascalized method name and registers the shape without adding null from the backing column', () => {
+      const deco = new Decorators<typeof UserWithJsonSecret>()
+      class UserWithJsonSecret extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: 'json' })
+        public secret: unknown
+      }
+      processDynamicallyDefinedModels(UserWithJsonSecret)
+
+      expect(UserWithJsonSecret['encryptedAttributes']).toEqual([
+        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+      ])
+      expect(UserWithJsonSecret['virtualAttributes']).toEqual([{ property: 'secret', type: 'json' }])
     })
   })
 })

@@ -33,6 +33,7 @@ export default function sqlResultToDreamInstance<
       filterRowToKnownColumns(sqlResult, extendingDreamClass.columns()) as Updateable<Table>,
       {
         bypassUserDefinedSetters: true,
+        fromDatabase: true,
         isPersisted: true,
         _internalUseOnly: true,
       }
@@ -46,6 +47,7 @@ export default function sqlResultToDreamInstance<
       filterRowToKnownColumns(sqlResult, dreamClass.columns()) as UpdateablePropertiesForClass<Table>,
       {
         bypassUserDefinedSetters: true,
+        fromDatabase: true,
         isPersisted: true,
         _internalUseOnly: true,
       }

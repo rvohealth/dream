@@ -1,4 +1,5 @@
 import CannotUpdateAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotUpdateAssociationOnUnpersistedDream.js'
+import UnrecognizedAssociationConditionKeys from '../../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
@@ -326,6 +327,44 @@ describe('Dream#updateAssociation', () => {
     })
   })
 
+  context('with an option other than and, andNot, andAny and the documented options', () => {
+    it('rejects the call without updating any associated record', async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const aster = await Pet.create({ user, name: 'Aster', species: 'cat' })
+      const violet = await Pet.create({ user, name: 'Violet', species: 'frog' })
+      const options: Record<string, unknown> = { bypassAllDefaultScopes: false, id: violet.id }
+
+      await expect(user.updateAssociation('pets', { species: 'dog' }, options)).rejects.toThrow(
+        UnrecognizedAssociationConditionKeys
+      )
+
+      await aster.reload()
+      await violet.reload()
+      expect(aster.species).toEqual('cat')
+      expect(violet.species).toEqual('frog')
+    })
+
+    context('in a transaction', () => {
+      it('rejects the call without updating any associated record', async () => {
+        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const aster = await Pet.create({ user, name: 'Aster', species: 'cat' })
+        const violet = await Pet.create({ user, name: 'Violet', species: 'frog' })
+        const options: Record<string, unknown> = { bypassAllDefaultScopes: false, id: violet.id }
+
+        await expect(
+          ApplicationModel.transaction(
+            async txn => await user.txn(txn).updateAssociation('pets', { species: 'dog' }, options)
+          )
+        ).rejects.toThrow(UnrecognizedAssociationConditionKeys)
+
+        await aster.reload()
+        await violet.reload()
+        expect(aster.species).toEqual('cat')
+        expect(violet.species).toEqual('frog')
+      })
+    })
+  })
+
   context('performing updateAssociation on an unpersisted model ', () => {
     it('throws CannotUpdateAssociationOnUnpersistedDream', async () => {
       const user = User.new()
@@ -401,12 +440,25 @@ context.skip('type tests', () => {
     await User.new().updateAssociation('notARealAssociation')
   })
 
+  it('forbids an option other than and, andNot, andAny and the documented options', async () => {
+    const user = User.new()
+
+    // @ts-expect-error only the condition keys and the documented options are accepted
+    await user.updateAssociation('pets', { species: 'dog' }, { and: { name: 'Aster' }, name: 'Aster' })
+
+    // @ts-expect-error only the condition keys and the documented options are accepted
+    await user.updateAssociation('pets', { species: 'dog' }, { skipHooks: true, name: 'Aster' })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
         const user = User.new()
         // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         await user.txn(txn).updateAssociation('notARealAssociation')
+
+        // @ts-expect-error only the condition keys and the documented options are accepted
+        await user.txn(txn).updateAssociation('pets', { species: 'dog' }, { skipHooks: true, name: 'Aster' })
       })
     })
   })

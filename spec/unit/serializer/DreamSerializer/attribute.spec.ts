@@ -3,6 +3,7 @@ import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
@@ -425,6 +426,18 @@ describe('DreamSerializer#attribute', () => {
           requiredNicknames: ['Chuck'],
         })
       })
+    })
+  })
+
+  // type tests are all intentionally skipped. Instead, add @ts-expect-error
+  // comments, which will become invalid if the type errors stop raising
+  context('type tests', () => {
+    it.skip('a non-json column accepts only a description as its OpenAPI override', () => {
+      const pet = Pet.new()
+      DreamSerializer(Pet, pet).attribute('species', { openapi: { description: 'the species' } })
+
+      // @ts-expect-error a non-json column's OpenAPI shape comes from the column itself
+      DreamSerializer(Pet, pet).attribute('species', { openapi: { type: ['string', 'null'], enum: ['cat'] } })
     })
   })
 })

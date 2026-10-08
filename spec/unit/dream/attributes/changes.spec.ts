@@ -43,6 +43,27 @@ describe('Dream#changes', () => {
         })
       )
     })
+
+    it('reports a nullable column the create left unassigned as changed from undefined to null', async () => {
+      const pet = await Pet.create({ species: 'dog' })
+      expect(pet.changes()).toHaveProperty('name', { was: undefined, now: null })
+    })
+
+    it("keeps reporting the create's changes beside a later unsaved edit, until the next save", async () => {
+      const pet = await Pet.create({ species: 'dog' })
+
+      pet.species = 'frog'
+      expect(pet.changes()).toEqual(
+        expect.objectContaining({
+          id: { was: undefined, now: pet.id },
+          name: { was: undefined, now: null },
+          species: { was: 'dog', now: 'frog' },
+        })
+      )
+
+      await pet.save()
+      expect(pet.changes()).toEqual({ species: { was: 'dog', now: 'frog' } })
+    })
   })
 
   context('with an existing record', () => {

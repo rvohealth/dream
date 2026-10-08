@@ -46,13 +46,13 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
   }
 
   /**
-   * Attaches a load statement to the load builder
+   * Attaches a leftJoinLoad statement to the load builder
    *
    * ```ts
    * const user = await User.firstOrFail()
    * await user
-   *   .load('settings')
-   *   .load('posts', 'comments', 'replies', ['image', 'localizedText'])
+   *   .leftJoinLoad('settings')
+   *   .leftJoinLoad('posts', 'comments', 'replies', ['image', 'localizedText'])
    *   .execute()
    * ```
    */
@@ -62,7 +62,7 @@ export default class LeftJoinLoadBuilder<DreamInstance extends Dream> {
     TableName extends DreamInstance['table'],
     Schema extends DreamInstance['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
   >(this: I, ...args: [...Arr, LastArg]) {
     this.query = this.query.leftJoinPreload(...(args as any))
 

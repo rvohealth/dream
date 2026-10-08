@@ -2,6 +2,10 @@ import { createRequire } from 'node:module'
 import * as path from 'node:path'
 import * as prettier from 'prettier'
 import tseslint from 'typescript-eslint'
+import {
+  columnsWithTypesDescription,
+  columnsWithTypesDescriptionForMigration,
+} from '../../../src/cli/index.js'
 import InvalidDecimalFieldPassedToGenerator from '../../../src/errors/InvalidDecimalFieldPassedToGenerator.js'
 import generateMigrationContent from '../../../src/helpers/cli/generateMigrationContent.js'
 
@@ -52,6 +56,36 @@ function emptyMigration() {
     primaryKeyType: 'bigserial',
     createOrAlter: 'alter',
   })
+}
+
+/**
+ * Reads the `:belongs_to` examples out of a `[columnsWithTypes...]` help
+ * description: an example line starts with the column declaration, and the
+ * first `<name>_id` in its trailing `#` comment is the FK column the help says
+ * the declaration creates. An example whose comment names no column, such as
+ * `User:belongs_to:optional  # nullable foreign key`, is skipped. Throws when
+ * the text holds no example naming a column, so a help block this parse no
+ * longer recognizes fails the suite instead of passing with nothing checked.
+ */
+function helpBelongsToExamples(description: string): { declaration: string; column: string }[] {
+  const examples = description.split('\n').flatMap(line => {
+    const commentStart = line.indexOf('#')
+    if (commentStart === -1) return []
+
+    const declaration = line.slice(0, commentStart).trim()
+    if (!/^\S+:belongs_to(:optional)?$/.test(declaration)) return []
+
+    const column = /\b(\w+_id)\b/.exec(line.slice(commentStart))?.[1]
+    return column ? [{ declaration, column }] : []
+  })
+
+  if (!examples.length)
+    throw new Error(
+      'no belongs_to example naming its FK column in this --help text; ' +
+        'update this spec together with src/cli/index.ts'
+    )
+
+  return examples
 }
 
 describe('generateMigrationContent', () => {
@@ -1668,6 +1702,32 @@ export async function down(db: Kysely<any>): Promise<void> {
           const referencesCount = (res.match(/references\('messaging_messages\.id'\)/g) || []).length
           expect(referencesCount).toEqual(3)
         })
+      })
+
+      context('the belongs_to examples in the g:model and g:migration --help text', () => {
+        // The declarations run through the generator here are read out of the
+        // help text itself, so an example whose comment names a column the
+        // generator does not create fails here rather than shipping.
+        for (const [command, description] of [
+          ['g:model', columnsWithTypesDescription],
+          ['g:migration', columnsWithTypesDescriptionForMigration],
+        ] as const) {
+          context(command, () => {
+            for (const { declaration, column } of helpBelongsToExamples(description)) {
+              it(`${declaration} creates and indexes the ${column} column its comment names`, () => {
+                const res = generateMigrationContent({
+                  table: 'sessions',
+                  columnsWithTypes: [declaration],
+                  primaryKeyType: 'bigserial',
+                })
+
+                const addedColumns = [...res.matchAll(/\.addColumn\('(\w+)'/g)].map(match => match[1])
+                expect(addedColumns).toContain(column)
+                expect(res).toContain(`.createIndex('sessions_${column}')`)
+              })
+            }
+          })
+        }
       })
 
       context('when optional is included', () => {

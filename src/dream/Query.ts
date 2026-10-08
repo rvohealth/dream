@@ -1,3 +1,4 @@
+import * as crypto from 'crypto'
 import { DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import { SOFT_DELETE_SCOPE_NAME } from '../decorators/class/SoftDelete.js'
 import acquireStabilizedSortableBatchLocks from '../decorators/field/sortable/helpers/acquireStabilizedSortableBatchLocks.js'
@@ -25,6 +26,7 @@ import isObject from '../helpers/isObject.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { toSafeObject } from '../helpers/toSafeObject.js'
+import uniq from '../helpers/uniq.js'
 import ops from '../ops/index.js'
 import { HasManyStatement } from '../types/associations/hasMany.js'
 import { HasOneStatement } from '../types/associations/hasOne.js'
@@ -83,6 +85,9 @@ import {
   VariadicLoadArgs,
 } from '../types/variadic.js'
 import DreamTransaction from './DreamTransaction.js'
+import assertRecognizedAssociationConditionKeys, {
+  ASSOCIATION_CONDITION_KEYS,
+} from './internal/associations/assertRecognizedAssociationConditionKeys.js'
 import buildSerializerPreloadPaths from './internal/buildSerializerPreloadPaths.js'
 import computedPaginatePage from './internal/computedPaginatePage.js'
 import convertDreamClassAndAssociationNameTupleArrayToPreloadArgs from './internal/convertDreamClassAndAssociationNameTupleArrayToPreloadArgs.js'
@@ -336,6 +341,37 @@ export default class Query<
   /**
    * @internal
    *
+   * Whether the Query is ordered by its own order statements alone. The
+   * driver otherwise sorts by a similarity condition's rank, and by the
+   * declared `order` of the associations the Query is built on or joins,
+   * ahead of those statements. The keyset walks and cursor pagination set
+   * this, since their cursors compare only the Query's order statements.
+   */
+  private readonly bypassImplicitOrder: boolean = false
+
+  /**
+   * @internal
+   *
+   * Set on each batch window of `findEach`, whose windows after the first
+   * carry their cursor as a where clause, `primary key > <the previous
+   * window's last primary key>`, so that a driver that reads only the Query's
+   * conditions, order and limit pages through the walk. `walk` is the same
+   * object on every window of one walk. A driver whose select cannot be
+   * windowed by that clause keeps, in `walk`, the primary keys of the records
+   * the walk has yet to visit and the first window, which carries no cursor,
+   * both taken on the first window, and reads each window from them instead:
+   * a select that carries DISTINCT ON with an ORDER BY of its own (an
+   * association's declared `distinct` and `order`) keeps one row of each
+   * group, and returns another row of a group once the walk's callback
+   * destroys or changes the one it kept.
+   */
+  private readonly batchWindow: {
+    walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean }
+  } | null = null
+
+  /**
+   * @internal
+   *
    * The base sql alias to use for the base model
    * of this Query
    */
@@ -408,6 +444,8 @@ export default class Query<
     this.distinctColumn = opts.distinctColumn || null
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
+    this.bypassImplicitOrder = opts.bypassImplicitOrder || false
+    this.batchWindow = opts.batchWindow || null
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -489,6 +527,9 @@ export default class Query<
       connection: opts.connection || this.connectionOverride,
       shouldReallyDestroy:
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
+      bypassImplicitOrder:
+        opts.bypassImplicitOrder !== undefined ? opts.bypassImplicitOrder : this.bypassImplicitOrder,
+      batchWindow: opts.batchWindow !== undefined ? opts.batchWindow : this.batchWindow,
     }) as Q
   }
 
@@ -590,7 +631,20 @@ export default class Query<
    *
    * IMPORTANT: `findEach` always iterates in ascending primary key order.
    * Any `order` applied to the Query is discarded; passing one has no effect
-   * on the order records are visited in.
+   * on the order records are visited in. The same goes for the `order` an
+   * association declares, when the Query is an `associationQuery` or joins
+   * that association, and for the relevance ranking of a similarity condition
+   * (`ops.similarity`, `ops.wordSimilarity`, `ops.strictWordSimilarity`),
+   * which still decides which records are visited, but not in what order.
+   * An association that declares `distinct` and an `order` led by the
+   * distinct column still uses that `order` to choose which record of each
+   * group is visited, so `findEach` visits the records the association
+   * returns, breaking ties within a group by the lowest primary key. Over
+   * such an association, `findEach` reads the primary keys of all of those
+   * records before visiting the first, and visits only those that still
+   * match when their batch is read, so a record the association returns only
+   * because the callback destroyed or changed another record of its group
+   * (as `destroy` does) is not visited.
    *
    * This is not a limitation that can be lifted. `findEach` guarantees that
    * every matching record is visited exactly once, and it delivers that by
@@ -627,20 +681,27 @@ export default class Query<
     // batchSize, the offset skipping rows inside every window
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
     let records: any[]
-    const query = this.order(null)
+    // ordered by primary key alone, so that each window holds the next
+    // batchSize records after the cursor
+    const query = this.clone({ bypassImplicitOrder: true })
+      .order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
     // the cursor is compared against a sentinel rather than tested for
     // truthiness, since a primary key of 0 is a legitimate cursor value that
     // would otherwise reset the window to the start of the set
     let lastId: any = undefined
+    const walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean } = {}
 
     do {
-      if (lastId === undefined) records = await query.all()
-      else
-        records = await query
-          .where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
-          .all()
+      // the cursor is a where clause, which every driver applies; a driver
+      // that cannot window its select by it reads the window from what it
+      // keeps in `walk` instead
+      const windowQuery =
+        lastId === undefined
+          ? query
+          : query.where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
+      records = await windowQuery.clone({ batchWindow: { walk } }).all()
 
       for (const record of records) {
         await cb(record)
@@ -675,7 +736,7 @@ export default class Query<
    *
    *
    * ```ts
-   * const posts = await user.associationQuery('posts').leftJoinPreload('comments', { visibilty: 'public' }, 'replies').all()
+   * const posts = await user.associationQuery('posts').leftJoinPreload('comments', { and: { visibility: 'public' } }, 'replies').all()
    * console.log(posts[0].comments[0].replies[0])
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
@@ -689,7 +750,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     Incompatible extends Q['queryTypeOpts'] extends Readonly<{ allowLeftJoinPreload: false }> ? true : false,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
@@ -737,7 +798,7 @@ export default class Query<
    * See {@link Query.leftJoinPreload} for preloading in a single query.
    *
    * ```ts
-   * const user = await User.query().preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.query().preload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies[0])
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
@@ -888,7 +949,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -943,7 +1004,7 @@ export default class Query<
     Schema extends DreamInstance['schema'],
     TableName extends DreamInstance['table'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<DreamInstance, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1045,6 +1106,14 @@ export default class Query<
       })
       //
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {
+      // the node this copies into also holds nested association containers, so an
+      // unrecognized key must be rejected here, while it is still distinguishable
+      assertRecognizedAssociationConditionKeys(
+        nextAssociationStatement,
+        ASSOCIATION_CONDITION_KEYS,
+        previousAssociationName
+      )
+
       const clonedNextAssociationStatement = cloneDeepSafe(nextAssociationStatement)
 
       const keys = Object.keys(clonedNextAssociationStatement)
@@ -2207,6 +2276,13 @@ export default class Query<
    * // 2
    * ```
    *
+   * Under a similarity condition (`ops.similarity`, `ops.wordSimilarity`,
+   * `ops.strictWordSimilarity`), pages come best match first: records are
+   * ordered by relevance ahead of the Query's `order` (or, without one, the
+   * descending primary key). For best-match-first pages, use `paginate`
+   * rather than {@link Query.cursorPaginate}, which does not order by
+   * relevance.
+   *
    * @param opts - Pagination options
    * @param opts.page - the page number that you want to fetch results for
    * @param opts.pageSize - the number of results per page (optional)
@@ -2259,9 +2335,49 @@ export default class Query<
    * provides better performance for large datasets by using cursor-based
    * pagination instead of offset-based pagination.
    *
-   * Default order is ascending primary key. If an order has already been
-   * set on the query, and it includes the primary key (e.g.: `id: 'asc'`),
-   * then the implicit primary key ordering will be omitted.
+   * Pages follow the Query's `order`, preceded by the `order` declared on any
+   * association the Query is built on or joins (so an `associationQuery` of
+   * an ordered association pages in that association's order), with
+   * ascending primary key as the final tiebreaker; with neither, pages run in
+   * ascending primary key order. If those orders already include the primary
+   * key (e.g.: `id: 'asc'`), the implicit primary key ordering is omitted.
+   *
+   * A Query that joins a HasOne or HasMany association (directly, through an
+   * association it joins, or as the association an `associationQuery` goes
+   * through) returns a record once for each row the join matches, as
+   * {@link Query.all} does, and the pages return each of those rows once,
+   * sorting the rows of one record by the joined rows' primary keys after the
+   * primary key. The cursor of such a Query is an opaque string that names
+   * its last row by primary keys, the record's and the joined rows' (readable
+   * by whoever holds it; it is not encrypted), and the next page starts after
+   * that row, or, if the row is gone, after the record's first row. Any other
+   * Query's cursor is its last record's primary key. A record's primary key
+   * is always accepted as a cursor: the next page starts after that record's
+   * first row. A cursor carries no other value its row sorts by: those are
+   * read from the database when the next page is.
+   *
+   * A Query that calls `distinct` on its primary key (as `distinct()` does,
+   * e.g.: `User.innerJoin('posts').distinct()`) returns each record once, as
+   * {@link Query.all} does, and so do its pages, whose cursor is the last
+   * record's primary key. A Query that calls `distinct` on another column has
+   * to be ordered by that column first (e.g.:
+   * `Post.distinct('category').order({ category: 'asc', createdAt: 'desc' })`),
+   * or the database rejects its pages. Its cursor is also the last record's
+   * primary key, but its pages can return records {@link Query.all} does not:
+   * each page after the first keeps one record for each value of that column
+   * out of the records sorting after the previous page's last record, so it
+   * can begin with another record of that record's value (an older post of
+   * the same category). Over an association that declares `distinct` and an
+   * `order` led by its distinct column (an `associationQuery` of it, or a
+   * Query that joins it), the pages return the rows {@link Query.all} returns:
+   * the row the association's `order` keeps for each value of its distinct
+   * column.
+   *
+   * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
+   * `ops.strictWordSimilarity`) still decides which records match, but its
+   * relevance ranking does not order the pages: a cursor can only resume from
+   * values it compares, and the rank is not one of them. For best-match-first
+   * pages, use {@link Query.paginate}.
    *
    * ```ts
    * // First page (using undefined to start from beginning)
@@ -2313,9 +2429,50 @@ export default class Query<
    * provides better performance for large datasets by using cursor-based
    * pagination instead of offset-based pagination.
    *
-   * Default order is descending primary key. If an order has already been
-   * set on the query, and it includes the primary key (e.g.: `id: 'asc'`),
-   * then the implicit primary key ordering will be omitted.
+   * Pages follow the Query's `order`, preceded by the `order` declared on any
+   * association the Query is built on or joins (so an `associationQuery` of
+   * an ordered association pages in that association's order), with
+   * descending primary key as the final tiebreaker; with neither, pages run
+   * in descending primary key order. If those orders already include the
+   * primary key (e.g.: `id: 'asc'`), the implicit primary key ordering is
+   * omitted.
+   *
+   * A Query that joins a HasOne or HasMany association (directly, through an
+   * association it joins, or as the association an `associationQuery` goes
+   * through) returns a record once for each row the join matches, as
+   * {@link Query.all} does, and the pages return each of those rows once,
+   * sorting the rows of one record by the joined rows' primary keys after the
+   * primary key. The cursor of such a Query is an opaque string that names
+   * its last row by primary keys, the record's and the joined rows' (readable
+   * by whoever holds it; it is not encrypted), and the next page starts after
+   * that row, or, if the row is gone, after the record's first row. Any other
+   * Query's cursor is its last record's primary key. A record's primary key
+   * is always accepted as a cursor: the next page starts after that record's
+   * first row. A cursor carries no other value its row sorts by: those are
+   * read from the database when the next page is.
+   *
+   * A Query that calls `distinct` on its primary key (as `distinct()` does,
+   * e.g.: `User.innerJoin('posts').distinct()`) returns each record once, as
+   * {@link Query.all} does, and so do its pages, whose cursor is the last
+   * record's primary key. A Query that calls `distinct` on another column has
+   * to be ordered by that column first (e.g.:
+   * `Post.distinct('category').order({ category: 'asc', createdAt: 'desc' })`),
+   * or the database rejects its pages. Its cursor is also the last record's
+   * primary key, but its pages can return records {@link Query.all} does not:
+   * each page after the first keeps one record for each value of that column
+   * out of the records sorting after the previous page's last record, so it
+   * can begin with another record of that record's value (an older post of
+   * the same category). Over an association that declares `distinct` and an
+   * `order` led by its distinct column (an `associationQuery` of it, or a
+   * Query that joins it), the pages return the rows {@link Query.all} returns:
+   * the row the association's `order` keeps for each value of its distinct
+   * column.
+   *
+   * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
+   * `ops.strictWordSimilarity`) still decides which records match, but its
+   * relevance ranking does not order the pages: a cursor can only resume from
+   * values it compares, and the rank is not one of them. For best-match-first
+   * pages, use {@link Query.paginate}.
    *
    * ```ts
    * // First page (using undefined to start from beginning)
@@ -2355,122 +2512,184 @@ export default class Query<
     if (this.offsetStatement) throw new CannotPaginateWithOffset()
     if (this.joinLoadActivated) throw new CannotPaginateWithLeftJoinPreload()
 
-    const orderIncludesPrimaryKey = this.orderStatements.some(
+    // An association's declared `order` sorts ahead of the Query's own order
+    // statements, so the cursor takes both, in that order, as the statements it
+    // pages by. The query then orders by those statements alone: anything else
+    // the driver would sort by (a similarity condition's rank) is not something
+    // the cursor compares, and would strand records between pages. A column
+    // listed twice sorts only by its first appearance, so only that one is
+    // kept; a later duplicate would contradict it in the cursor's comparison.
+    const cursorOrderStatements = uniq(
+      [...this.dbDriverInstance().associationOrderStatements(), ...this.orderStatements],
+      orderStatement => this.namespaceColumn(orderStatement.column)
+    )
+
+    const primaryKeyStatement: OrderQueryStatement<string> = cursorOrderStatements.find(
       orderStatement =>
         orderStatement.column === this.dreamClass.primaryKey ||
         orderStatement.column === this.namespacedPrimaryKey
+    ) ?? { column: this.namespacedPrimaryKey, direction: 'desc' }
+
+    // A HasOne or HasMany join returns a record once for each row it matches,
+    // and the primary keys of the joined rows, with the Query's own, tell those
+    // rows apart. Those not already ordered by follow the Query's own primary
+    // key as the last statements the cursor pages by, so that the rows a record
+    // is returned for sort the same way on every page. A Query that calls
+    // `distinct` returns one row for each value of its distinct column rather
+    // than one for each row the join matches, so it pages by its order and
+    // primary key alone.
+    const joinedRowKeyColumns = this.distinctColumn
+      ? []
+      : uniq(this.dbDriverInstance().joinedRowKeyColumns()).filter(
+          column => column !== this.namespacedPrimaryKey
+        )
+    const orderedColumns = new Set(
+      [...cursorOrderStatements, primaryKeyStatement].map(orderStatement =>
+        this.namespaceColumn(orderStatement.column)
+      )
     )
 
-    let query = orderIncludesPrimaryKey
-      ? this
-      : this.order({ [this.namespacedPrimaryKey as any]: 'desc' } as any)
+    const orderStatements: OrderQueryStatement<string>[] = [
+      ...cursorOrderStatements,
+      ...(cursorOrderStatements.includes(primaryKeyStatement) ? [] : [primaryKeyStatement]),
+      ...joinedRowKeyColumns
+        .filter(column => !orderedColumns.has(column))
+        .map(column => ({ column, direction: primaryKeyStatement.direction })),
+    ]
+    const primaryKeyIndex = orderStatements.indexOf(primaryKeyStatement)
+    const rowKeyIndexes = [
+      primaryKeyIndex,
+      ...joinedRowKeyColumns.map(column =>
+        orderStatements.findIndex(orderStatement => this.namespaceColumn(orderStatement.column) === column)
+      ),
+    ]
+    const rowKeyColumns = rowKeyIndexes.map(index => orderStatements[index]!.column)
+
+    const orderedQuery = this.clone({ order: null, bypassImplicitOrder: true }).clone({
+      order: orderStatements,
+    } as any)
+    const pageQuery = orderedQuery.limit(pageSize as any)
+    let rowsSortingAfter: Record<string, unknown>[] | null = null
 
     if (options.cursor) {
-      const orderStatements = query.orderStatements
+      const boundaryValues = await this.cursorBoundaryValues(orderedQuery, {
+        cursor: options.cursor,
+        orderStatements,
+        rowKeyIndexes,
+        rowKeyColumns,
+      })
 
-      if (orderStatements.length === 1) {
-        /**
-         * Since we add a primary key above if it wasn't already included, we know
-         * that if there is only one order statement, then it must be ordering on
-         * the primary key
-         */
-        const orderStatement = orderStatements[0]!
-
-        switch (orderStatement.direction) {
-          case 'asc':
-            query = query.where({
-              [orderStatement.column]: ops.greaterThan(options.cursor),
-            } as any) as typeof query
-            break
-          case 'desc':
-            query = query.where({
-              [orderStatement.column]: ops.lessThan(options.cursor),
-            } as any) as typeof query
-            break
-        }
-      } else {
-        const endOfPreviousPageComparisonValues = (
-          await query
-            .removeDefaultScopeExceptOnAssociations(SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>)
-            .where({ [this.namespacedPrimaryKey]: options.cursor } as any)
-
-            .limit(1)
-            .order(null)
-            .pluck(...orderStatements.map(orderStatement => orderStatement.column))
-        )[0]
-
-        if (endOfPreviousPageComparisonValues) {
-          const whereAnyMaybeEqualArray: any[] = []
-
-          for (let index = 0; index < endOfPreviousPageComparisonValues.length; index++) {
-            /**
-             * This nested loop enables us to give priority to the left-most order clause,
-             * then the left-most and next left-most, etc., replicating what ordering on
-             * multiple clauses does:
-             *
-             *  const results = await Pet.query()
-             *    .leftJoin('user')
-             *    // The primary key is implicitly added if not explicitly present, so these two
-             *    // order clauses appear in the query with an additional primary key clause.
-             *    // This supports pagination when the earlier order clauses match multiple records.
-             *    .order({ 'pets.name': 'asc', 'user.id': 'asc' })
-             *    .cursorPaginate({ pageSize: 2, cursor: undefined })
-             *
-             * Results in:
-             *
-             * SELECT
-             * 	"pets".*
-             * FROM
-             * 	"pets"
-             * 	LEFT JOIN "users" AS "user" ON "pets"."user_id" = "user"."id"
-             * 		AND "user"."deleted_at" IS NULL
-             * WHERE ("pets"."deleted_at" IS NULL
-             * 	AND (
-             *    "pets"."name" > $1
-             * 		OR (
-             *    "pets"."name" = $2 AND "user"."id" > $3
-             * 		) OR (
-             *    "pets"."name" = $4 AND "user"."id" = $5 AND "pets"."id" < $6
-             *   )))
-             * ORDER BY
-             * 	"pets"."name" ASC nulls FIRST,
-             * 	"user"."id" ASC nulls FIRST,
-             * 	"pets"."id" DESC nulls LAST
-             * LIMIT $7
-             */
-            const whereAnyMaybeEqual: any = {}
-            whereAnyMaybeEqualArray.push(whereAnyMaybeEqual)
-
-            for (let nestedIndex = 0; nestedIndex <= index; nestedIndex++) {
-              const valueToCompare = endOfPreviousPageComparisonValues[nestedIndex]
-              const orderStatement = orderStatements[nestedIndex]!
-
-              if (nestedIndex < index) {
-                whereAnyMaybeEqual[orderStatement.column] = valueToCompare
-              } else if (nestedIndex === index) {
-                switch (orderStatement.direction) {
-                  case 'asc':
-                    whereAnyMaybeEqual[orderStatement.column] = ops.greaterThan(valueToCompare)
-                    break
-                  case 'desc':
-                    whereAnyMaybeEqual[orderStatement.column] = ops.lessThan(valueToCompare)
-                    break
-                }
-              }
-            }
-          }
-
-          query = query.whereAny(whereAnyMaybeEqualArray) as typeof query
-        }
+      if (boundaryValues) {
+        rowsSortingAfter = whereRowsSortingAfter(orderStatements, boundaryValues, primaryKeyIndex)
       }
     }
 
-    const results = await query.limit(pageSize as any).all()
+    // A select that keeps one row of each group (as an association that
+    // declares `distinct` and an `order` produces) chooses that row from the
+    // rows it reads, so it is not narrowed to the rows sorting after the
+    // cursor, which would let it choose a row it does not return: the driver
+    // reads its page, choosing each group's row before narrowing. Any other
+    // select is narrowed by its own conditions.
+    const distinctOnPageRows = await pageQuery.dbDriverInstance().pluckDistinctOnPage(rowsSortingAfter)
+    const query = rowsSortingAfter ? pageQuery.whereAny(rowsSortingAfter as any) : pageQuery
 
-    return {
-      cursor: (results.length === pageSize && results.at(-1)?.primaryKeyValue().toString()) || null,
-      results,
+    // Otherwise, without a HasOne or HasMany join, a record is returned once,
+    // so its primary key identifies the row the next page starts after.
+    if (!distinctOnPageRows && !joinedRowKeyColumns.length) {
+      const results = await query.all()
+
+      return {
+        cursor: (results.length === pageSize && results.at(-1)?.primaryKeyValue().toString()) || null,
+        results,
+      }
     }
+
+    // The page's rows are read first, and the records then by the keys of
+    // those rows, so the records returned are the rows the page holds. A HasOne
+    // or HasMany join can return a record for several rows, so the cursor of
+    // such a Query names the last row by its keys: the record's primary key and
+    // the joined rows' primary keys. Any other Query's cursor is the last row's
+    // primary key.
+    const pageRows =
+      distinctOnPageRows ??
+      ((await query.pluck(
+        ...(orderStatements.map(orderStatement => orderStatement.column) as any[])
+      )) as unknown[][])
+    if (!pageRows.length) return { cursor: null, results: [] }
+
+    const pageRowKeys = pageRows.map(row => rowKeyIndexes.map(index => row[index]))
+    const results = await orderedQuery
+      .whereAny(
+        pageRowKeys.map(rowKeys =>
+          Object.fromEntries(rowKeyColumns.map((column, index) => [column, rowKeys[index]]))
+        ) as any
+      )
+      .all()
+
+    const lastRowKeys = pageRowKeys.at(-1)!
+    let cursor: string | null = null
+    if (pageRows.length === pageSize) {
+      cursor = joinedRowKeyColumns.length
+        ? encodeRowKeysCursor({ tableName: this.tableName, rowKeyColumns, rowKeys: lastRowKeys })
+        : String(lastRowKeys[0])
+    }
+
+    return { cursor, results }
+  }
+
+  /**
+   * @internal
+   *
+   * The values the row a cursor names sorts by now, in the order of
+   * `orderStatements`, or undefined when no such row is found.
+   *
+   * Unless the primary key is the only order statement, the values are read
+   * from the database, a soft-deleted record included, so that a page can
+   * follow a record removed since the cursor was issued. A cursor that names its row by keys this Query's rows carry is
+   * resumed from that row. Any other cursor (a primary key, as every cursor
+   * issued before 2.36.0 is, or a cursor from a Query that joins other
+   * associations), and a cursor whose row is gone, is resumed from the first
+   * row of the record whose primary key it is or carries.
+   */
+  private async cursorBoundaryValues(
+    orderedQuery: Query<DreamInstance, QueryTypeOpts>,
+    {
+      cursor,
+      orderStatements,
+      rowKeyIndexes,
+      rowKeyColumns,
+    }: {
+      cursor: string
+      orderStatements: OrderQueryStatement<string>[]
+      rowKeyIndexes: number[]
+      rowKeyColumns: string[]
+    }
+  ): Promise<unknown[] | undefined> {
+    const { primaryKey, rowKeys } = decodeCursorRowKeys(cursor, {
+      tableName: this.tableName,
+      orderStatements,
+      rowKeyIndexes,
+      rowKeyColumns,
+    })
+    // the only order statement is the primary key, so the cursor is the value
+    if (orderStatements.length === 1) return [primaryKey]
+
+    const boundaryQuery = orderedQuery
+      .removeDefaultScopeExceptOnAssociations(SOFT_DELETE_SCOPE_NAME as DefaultScopeName<DreamInstance>)
+      .limit(1 as any)
+    const orderColumns = orderStatements.map(orderStatement => orderStatement.column) as any[]
+
+    if (rowKeys) {
+      const [boundaryRow] = (await boundaryQuery
+        .where(Object.fromEntries(rowKeyColumns.map((column, index) => [column, rowKeys[index]])) as any)
+        .pluck(...orderColumns)) as unknown[][]
+      if (boundaryRow) return boundaryRow
+    }
+
+    const [firstRowOfRecord] = (await boundaryQuery
+      .where({ [this.namespacedPrimaryKey]: primaryKey } as any)
+      .pluck(...orderColumns)) as unknown[][]
+    return firstRowOfRecord
   }
 
   /**
@@ -2884,7 +3103,10 @@ export default class Query<
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
 
     const primaryKey = this.dreamInstance['_primaryKey']
-    const orderedQuery = this.order(null)
+    // ordered by primary key alone, so that each window holds the next
+    // batchSize records after the cursor
+    const orderedQuery = this.clone({ bypassImplicitOrder: true })
+      .order(null)
       .order(this.namespacedPrimaryKey as any)
       .limit(batchSize as any)
 
@@ -3230,12 +3452,32 @@ export default class Query<
    *   record (`reload`, `associationQuery`, ...) likewise run on a separate
    *   connection and snapshot. Derive the attributes and return them; Dream
    *   performs the write inside the batch's transaction.
-   * - **`lock: false` can throw mid-run when racing a deleter.** On the
-   *   unlocked paths, a matched record that a concurrent transaction destroys
-   *   between a batch's read and that record's write aborts the run with an
-   *   error: earlier batches stay committed, and no count is returned. Use
-   *   `lock: true` when deleters may race the update — claimed rows are held
-   *   under their locks until written.
+   * - **Without `lock: true`, a record is not re-checked before it is
+   *   written.** The unlocked per-record paths — an attributes object without
+   *   `lock: true` or `skipHooks: true`, and a callback under `lock: false` —
+   *   read a batch, then write each record by its primary key alone, with no
+   *   compare-and-set. What a concurrent delete between that read and a
+   *   record's write does depends on what the delete leaves behind. A soft
+   *   delete (`destroy()` on a `@SoftDelete` model, which generated models are
+   *   by default) leaves the row in place, so the write lands on the
+   *   soft-deleted record: its update hooks run, it is counted, and its
+   *   `deletedAt` stays set. A hard delete (`reallyDestroy()`, a Query's
+   *   `delete()`, or `destroy()` on a model without `@SoftDelete`) removes the
+   *   row, so that record's write throws `CannotSaveMissingDream` — after its
+   *   `beforeUpdate` and `beforeSave` hooks have run — and the run rejects
+   *   without returning a count. Every record written before it, in its own
+   *   batch as well as earlier ones, stays committed, unless the Query carries
+   *   `.txn(txn)`, which puts those writes in the caller's transaction. (A
+   *   record whose write turns out to be a no-op emits no SQL, so it does not
+   *   throw even if its row is gone, and it is counted.) The single-statement
+   *   `skipHooks` attributes form is one `UPDATE ... WHERE` that carries the
+   *   Query's default scopes, so it never writes a soft-deleted record and
+   *   cannot fail part-way through. Use `lock: true` when deleters may race
+   *   the update: its locked re-read re-applies the Query's conditions and
+   *   default scopes, so a soft- or hard-deleted record drops out of the run,
+   *   neither written nor counted. (A Query that removes the
+   *   `dream:SoftDelete` default scope reads and writes soft-deleted records
+   *   on every path.)
    * - **A `limit` or `offset` on the Query is incompatible with `update` on
    *   every path.** The batched paths re-apply the Query's conditions to each
    *   batch window, where a limit or offset would skip or truncate rows
@@ -3283,6 +3525,7 @@ export default class Query<
    * @throws MissingRequiredLockOptionForUpdateCallback if a callback is passed without an options object carrying a boolean `lock`
    * @throws BatchingIncompatibleWithLimitOrOffset if the query carries a `limit` or `offset`
    * @throws CannotSetEncryptedColumnInQueryUpdate if the single-statement `skipHooks` form's attributes name an `@Encrypted` backing column with anything other than `null`
+   * @throws CannotSaveMissingDream if, on an unlocked per-record path, a record's row is hard-deleted between its batch's read and a write that is not a no-op
    */
   public async update(
     cb: (
@@ -3518,4 +3761,218 @@ export interface QueryOpts<
   transaction?: DreamTransaction<Dream> | null | undefined
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
+  bypassImplicitOrder?: boolean | undefined
+  batchWindow?:
+    | { walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean } }
+    | null
+    | undefined
+}
+
+/**
+ * The where clauses, any one of which matches a row that sorts after the row
+ * whose values are `boundaryValues` under `orderStatements`.
+ *
+ * Each clause gives priority to the left-most order statement, then the
+ * left-most and next left-most, etc., replicating what ordering on multiple
+ * statements does:
+ *
+ *  const results = await Pet.query()
+ *    .leftJoin('user')
+ *    // The primary key is implicitly added if not explicitly present, so these two
+ *    // order clauses appear in the query with an additional primary key clause.
+ *    // This supports pagination when the earlier order clauses match multiple records.
+ *    .order({ 'pets.name': 'asc', 'user.id': 'asc' })
+ *    .cursorPaginate({ pageSize: 2, cursor: undefined })
+ *
+ * Results in:
+ *
+ * SELECT
+ * 	"pets".*
+ * FROM
+ * 	"pets"
+ * 	LEFT JOIN "users" AS "user" ON "pets"."user_id" = "user"."id"
+ * 		AND "user"."deleted_at" IS NULL
+ * WHERE ("pets"."deleted_at" IS NULL
+ * 	AND (
+ *    "pets"."name" > $1
+ * 		OR (
+ *    "pets"."name" = $2 AND "user"."id" > $3
+ * 		) OR (
+ *    "pets"."name" = $4 AND "user"."id" = $5 AND "pets"."id" < $6
+ *   )))
+ * ORDER BY
+ * 	"pets"."name" ASC nulls FIRST,
+ * 	"user"."id" ASC nulls FIRST,
+ * 	"pets"."id" DESC nulls LAST
+ * LIMIT $7
+ *
+ * NULL sorts first under `asc` and last under `desc` (Postgres through the
+ * explicit NULLS FIRST/LAST above, MySQL by default), and neither `>` nor `<`
+ * ever matches NULL, so the condition on the column being compared follows
+ * where NULL sorts:
+ *  - asc after NULL: `IS NOT NULL` (the remaining NULLs are reached through
+ *    the equality prefix, which compiles a NULL to `IS NULL`)
+ *  - asc after a value: `> value` (every NULL sorted before it)
+ *  - desc after a value: `< value`, or `IS NULL`, as a separate branch (except
+ *    for the Query's own primary key, which is never NULL)
+ *  - desc after NULL: nothing (only the equality prefix continues)
+ */
+function whereRowsSortingAfter(
+  orderStatements: OrderQueryStatement<string>[],
+  boundaryValues: unknown[],
+  primaryKeyIndex: number
+): Record<string, unknown>[] {
+  const whereStatements: Record<string, unknown>[] = []
+
+  for (let index = 0; index < orderStatements.length; index++) {
+    const equalityPrefix: Record<string, unknown> = {}
+    for (let nestedIndex = 0; nestedIndex < index; nestedIndex++) {
+      equalityPrefix[orderStatements[nestedIndex]!.column] = boundaryValues[nestedIndex]
+    }
+
+    const valueToCompare = boundaryValues[index]
+    const orderStatement = orderStatements[index]!
+    const comparisonsSortingAfter: unknown[] = []
+
+    switch (orderStatement.direction) {
+      case 'asc':
+        comparisonsSortingAfter.push(
+          valueToCompare === null ? ops.not.equal(null) : ops.greaterThan(valueToCompare)
+        )
+        break
+      case 'desc':
+        if (valueToCompare !== null) comparisonsSortingAfter.push(ops.lessThan(valueToCompare))
+        if (valueToCompare !== null && index !== primaryKeyIndex) comparisonsSortingAfter.push(null)
+        break
+    }
+
+    for (const comparison of comparisonsSortingAfter) {
+      whereStatements.push({ ...equalityPrefix, [orderStatement.column]: comparison })
+    }
+  }
+
+  return whereStatements
+}
+
+/**
+ * Prefix of a cursor that names its row by keys: the record's primary key,
+ * then the primary key of each row a HasOne or HasMany join matched to it. A
+ * primary key (an integer or a UUID) never contains a `.`, so a cursor that is
+ * a primary key is never read as one of these.
+ */
+const ROW_KEYS_CURSOR_PREFIX = 'v2.'
+
+/**
+ * Prefix of a cursor that carries every value its row sorts by, its row's keys
+ * among them, along with its record's primary key. Only the keys are read from
+ * it: the values its row sorts by are read from the database, as they are for
+ * every cursor.
+ */
+const ORDER_VALUES_CURSOR_PREFIX = 'v1.'
+
+/**
+ * A short digest of the table and columns a cursor's keys or values were read
+ * from, so that a cursor passed to a Query that reads other columns resumes
+ * from its primary key rather than matching its keys against the wrong
+ * columns.
+ */
+function cursorSignature(tableAndColumns: unknown): string {
+  return crypto.createHash('sha256').update(JSON.stringify(tableAndColumns)).digest('base64url').slice(0, 12)
+}
+
+function encodeRowKeysCursor({
+  tableName,
+  rowKeyColumns,
+  rowKeys,
+}: {
+  tableName: string
+  rowKeyColumns: string[]
+  rowKeys: unknown[]
+}): string {
+  const payload = JSON.stringify({ s: cursorSignature([tableName, rowKeyColumns]), k: rowKeys })
+  return ROW_KEYS_CURSOR_PREFIX + Buffer.from(payload, 'utf8').toString('base64url')
+}
+
+/**
+ * The primary key a cursor is or carries, and the keys of the row it names
+ * when it names one of the Query's rows by `rowKeyColumns` (otherwise null).
+ * `rowKeyIndexes` are the positions of those columns in `orderStatements`. A
+ * cursor that cannot be read as one Dream issues is taken to be a primary key.
+ */
+function decodeCursorRowKeys(
+  cursor: string,
+  {
+    tableName,
+    orderStatements,
+    rowKeyIndexes,
+    rowKeyColumns,
+  }: {
+    tableName: string
+    orderStatements: OrderQueryStatement<string>[]
+    rowKeyIndexes: number[]
+    rowKeyColumns: string[]
+  }
+): { primaryKey: unknown; rowKeys: unknown[] | null } {
+  const rowKeysPayload = cursorPayload(cursor, ROW_KEYS_CURSOR_PREFIX)
+  const keys = rowKeysPayload?.k
+  if (rowKeysPayload && Array.isArray(keys) && isCursorPrimaryKey(keys[0])) {
+    const namesQueryRow =
+      rowKeysPayload.s === cursorSignature([tableName, rowKeyColumns]) &&
+      keys.length === rowKeyColumns.length &&
+      keys.every(isCursorRowKey)
+
+    return { primaryKey: keys[0], rowKeys: namesQueryRow ? keys : null }
+  }
+
+  const orderValuesPayload = cursorPayload(cursor, ORDER_VALUES_CURSOR_PREFIX)
+  const primaryKey = orderValuesPayload?.k
+  const values = orderValuesPayload?.v
+  if (orderValuesPayload && isCursorPrimaryKey(primaryKey)) {
+    const orderSignature = cursorSignature([
+      tableName,
+      orderStatements.map(({ column, direction }) => [column, direction]),
+    ])
+    // each value is a [type, value] pair, and a key's type is 'json'
+    const rowKeys =
+      orderValuesPayload.s === orderSignature &&
+      Array.isArray(values) &&
+      values.length === orderStatements.length
+        ? rowKeyIndexes.map(index => {
+            const taggedValue: unknown = values[index]
+            return Array.isArray(taggedValue) && taggedValue[0] === 'json' ? taggedValue[1] : undefined
+          })
+        : null
+
+    return { primaryKey, rowKeys: rowKeys?.every(isCursorRowKey) ? rowKeys : null }
+  }
+
+  return { primaryKey: cursor, rowKeys: null }
+}
+
+/**
+ * The object a cursor that starts with `prefix` encodes, or null when the
+ * cursor does not start with it or cannot be read.
+ */
+function cursorPayload(cursor: string, prefix: string): Record<string, unknown> | null {
+  if (!cursor.startsWith(prefix)) return null
+
+  try {
+    const payload: unknown = JSON.parse(
+      Buffer.from(cursor.slice(prefix.length), 'base64url').toString('utf8')
+    )
+    return isObject(payload) ? (payload as Record<string, unknown>) : null
+  } catch {
+    return null
+  }
+}
+
+function isCursorPrimaryKey(value: unknown): value is string | number {
+  return typeof value === 'string' || typeof value === 'number'
+}
+
+/**
+ * A joined row's key is NULL in a row a LEFT JOIN matched to no row.
+ */
+function isCursorRowKey(value: unknown): boolean {
+  return value === null || isCursorPrimaryKey(value)
 }

@@ -1,15 +1,25 @@
 import Dream from '../../Dream.js'
+import DreamApp from '../../dream-app/index.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
 import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
 import pascalize from '../../helpers/pascalize.js'
+import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
 
-export default function Encrypted(encryptedColumnName?: string): any {
+export default function Encrypted(columnOrOptions?: string | EncryptedOptions): any {
+  const { column, openapi }: EncryptedOptions =
+    typeof columnOrOptions === 'string' ? { column: columnOrOptions } : (columnOrOptions ?? {})
+
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
-    const encryptedKey = encryptedColumnName || `encrypted${pascalize(key)}`
+    const encryptedKey = column || `encrypted${pascalize(key)}`
+    // records whose legacy-key listeners for this property are running; a
+    // read of the property on one of them returns its value without
+    // dispatching the event again, so a listener that reads the property
+    // does not recurse
+    const recordsDispatchingLegacyKeyUsed = new WeakSet<Dream>()
 
     context.addInitializer(function (this: Dream) {
       const dreamClass: typeof Dream = this.constructor as typeof Dream
@@ -35,7 +45,7 @@ export default function Encrypted(encryptedColumnName?: string): any {
       }
       ;(dreamClass['virtualAttributes'] as VirtualAttributeStatement[]).push({
         property: key,
-        type: columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string',
+        type: openapi ?? (columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string'),
       } satisfies VirtualAttributeStatement)
 
       if (!Object.getOwnPropertyDescriptor(dreamClass, 'explicitUnsafeParamColumns')) {
@@ -63,7 +73,20 @@ export default function Encrypted(encryptedColumnName?: string): any {
 
       Object.defineProperty(dreamPrototype, key, {
         get() {
-          return InternalEncrypt.decryptColumn(this.getAttribute(encryptedKey))
+          const dream = this as Dream
+          return InternalEncrypt.decryptColumn(this.getAttribute(encryptedKey), {
+            onLegacyKeyUsed: () => {
+              if (recordsDispatchingLegacyKeyUsed.has(dream)) return
+              recordsDispatchingLegacyKeyUsed.add(dream)
+              try {
+                DreamApp.getOrFail().specialHooks.encryptionLegacyKeyUsed.forEach(fn => {
+                  fn({ dream, property: key, encryptedColumnName: encryptedKey })
+                })
+              } finally {
+                recordsDispatchingLegacyKeyUsed.delete(dream)
+              }
+            },
+          })
         },
 
         set(val: any) {
@@ -81,7 +104,9 @@ export default function Encrypted(encryptedColumnName?: string): any {
            *
            */
           if (this.columnSetterGuardActivated) return
-          this.setAttribute(encryptedKey, InternalEncrypt.encryptColumn(val))
+          // the value was just encrypted, so it bypasses setAttribute's check
+          // that a backing column receives only decryptable ciphertext
+          this.setAttributeUnchecked(encryptedKey, InternalEncrypt.encryptColumn(val))
         },
 
         configurable: false,
@@ -101,6 +126,11 @@ export default function Encrypted(encryptedColumnName?: string): any {
       })
     })
   }
+}
+
+export interface EncryptedOptions<ColumnName extends string = string> {
+  column?: ColumnName
+  openapi?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
 }
 
 export interface EncryptedAttributeStatement {

@@ -1,6 +1,9 @@
 import DreamApp from '../dream-app/index.js'
+import DecryptionError from '../errors/encrypt/DecryptionError.js'
+import DecryptionParseError from '../errors/encrypt/DecryptionParseError.js'
+import DecryptionRotationError from '../errors/encrypt/DecryptionRotationError.js'
 import MissingColumnEncryptionOpts from '../errors/encrypt/MissingColumnEncryptionOpts.js'
-import Encrypt, { DecryptOptions, EncryptOptions } from './index.js'
+import Encrypt, { DecryptCallbacks, DecryptOptions, EncryptOptions } from './index.js'
 
 export default class InternalEncrypt {
   public static encryptColumn(data: any) {
@@ -13,14 +16,44 @@ export default class InternalEncrypt {
     return this.doEncryption(data, encryptOpts.current)
   }
 
-  public static decryptColumn(data: any) {
+  /**
+   * Decrypts `data` with the column keys, current then legacy.
+   * `onLegacyKeyUsed` is passed to `Encrypt.decrypt`, so it is called only
+   * when the legacy key opened the value.
+   */
+  public static decryptColumn(data: any, callbacks: DecryptCallbacks = {}) {
     const dreamApp = DreamApp.getOrFail()
     const encryptOpts = dreamApp.encryption?.columns
     if (!encryptOpts) throw new MissingColumnEncryptionOpts()
 
     if (data === null || data === undefined) return null
 
-    return this.doDecryption(data, encryptOpts.current, encryptOpts.legacy)
+    return this.doDecryption(data, encryptOpts.current, encryptOpts.legacy, callbacks)
+  }
+
+  /**
+   * Whether `data` is ciphertext that the column keys (current, then legacy)
+   * open to a value `decryptColumn` returns. A missing column encryption
+   * config or key still throws, since that is a configuration error rather
+   * than a property of `data`.
+   */
+  public static isDecryptableColumnCiphertext(data: string): boolean {
+    const dreamApp = DreamApp.getOrFail()
+    const encryptOpts = dreamApp.encryption?.columns
+    if (!encryptOpts) throw new MissingColumnEncryptionOpts()
+
+    try {
+      this.doDecryption(data, encryptOpts.current, encryptOpts.legacy)
+      return true
+    } catch (err) {
+      if (
+        err instanceof DecryptionError ||
+        err instanceof DecryptionParseError ||
+        err instanceof DecryptionRotationError
+      )
+        return false
+      throw err
+    }
   }
 
   private static doEncryption(data: any, encryptionOpts: EncryptOptions) {
@@ -30,8 +63,9 @@ export default class InternalEncrypt {
   private static doDecryption(
     data: any,
     encryptionOpts: DecryptOptions,
-    legacyEncryptionOpts?: DecryptOptions
+    legacyEncryptionOpts?: DecryptOptions,
+    callbacks: DecryptCallbacks = {}
   ) {
-    return Encrypt.decrypt(data, encryptionOpts, legacyEncryptionOpts)
+    return Encrypt.decrypt(data, encryptionOpts, legacyEncryptionOpts, callbacks)
   }
 }

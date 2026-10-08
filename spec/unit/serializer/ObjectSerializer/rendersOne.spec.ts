@@ -1,7 +1,9 @@
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import PolymorphicTask from '../../../../test-app/app/models/Polymorphic/Task.js'
 import { default as DreamUser } from '../../../../test-app/app/models/User.js'
+import { PolymorphicTaskSerializer } from '../../../../test-app/app/serializers/Polymorphic/TaskSerializer.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import { Species, SpeciesValues } from '../../../../test-app/types/db.js'
 
@@ -45,6 +47,56 @@ describe('ObjectSerializer#rendersOne', () => {
         user: {
           name: 'Charlie',
         },
+      })
+    })
+
+    context('flatten, when the associated object is null', () => {
+      it('renders null for every key the serializer declares, without running the serializer callbacks', () => {
+        interface Toy {
+          name: string
+        }
+
+        interface Owner {
+          id: string
+          name: string
+          settings: { theme: string }
+          favoriteToy: Toy
+          bestToy: Toy
+          toys: Toy[]
+        }
+
+        interface PetWithOwner {
+          id: string
+          owner: Owner | null
+        }
+
+        const ToySerializer = (toy: Toy) =>
+          ObjectSerializer(toy).attribute('name', { as: 'toyName', openapi: 'string' })
+
+        const OwnerSerializer = (owner: Owner) =>
+          ObjectSerializer(owner)
+            .attribute('id', { openapi: 'string' })
+            .attribute('name', { default: 'unknown', openapi: 'string' })
+            .customAttribute('nameLength', () => owner.name.length, { openapi: 'integer' })
+            .delegatedAttribute('settings', 'theme', { openapi: 'string' })
+            .rendersOne('favoriteToy', { serializer: ToySerializer })
+            .rendersMany('toys', { serializer: ToySerializer })
+            .rendersOne('bestToy', { serializer: ToySerializer, flatten: true })
+
+        const MySerializer = (data: PetWithOwner) =>
+          ObjectSerializer(data)
+            .attribute('id', { openapi: 'string' })
+            .rendersOne('owner', { serializer: OwnerSerializer, flatten: true })
+
+        expect(MySerializer({ id: '3', owner: null }).render()).toEqual({
+          id: null,
+          name: null,
+          nameLength: null,
+          theme: null,
+          favoriteToy: null,
+          toys: null,
+          toyName: null,
+        })
       })
     })
   })
@@ -213,6 +265,44 @@ describe('ObjectSerializer#rendersOne', () => {
             favoriteWord: 'howdy',
             name: 'Charlie',
             birthdate: birthdate.toISO(),
+          })
+        })
+      })
+
+      context('when the associated object is null', () => {
+        it('renders null for every key the dreamClass serializer declares', () => {
+          const pet: PetWithDreamUser = { id: '3', name: 'Snoopy', species: 'dog' }
+
+          const MySerializer = (data: PetWithDreamUser) =>
+            ObjectSerializer(data)
+              .attribute('species', { openapi: { type: ['string', 'null'], enum: SpeciesValues } })
+              .rendersOne('user', { dreamClass: DreamUser, flatten: true })
+
+          expect(MySerializer(pet).render()).toEqual({
+            species: 'dog',
+            id: null,
+            favoriteWord: null,
+            name: null,
+            birthdate: null,
+          })
+        })
+
+        it('renders null for every key the serializer of any polymorphic belongs-to target declares, when the serializer flattens that association', () => {
+          interface TaskHolder {
+            id: number
+            task: PolymorphicTask | null
+          }
+
+          const MySerializer = (data: TaskHolder) =>
+            ObjectSerializer(data)
+              .attribute('id', { openapi: 'integer' })
+              .rendersOne('task', { flatten: true, serializer: PolymorphicTaskSerializer })
+
+          expect(MySerializer({ id: 5, task: null }).render()).toEqual({
+            id: 5,
+            name: null,
+            cleaningSupplies: null,
+            workoutType: null,
           })
         })
       })

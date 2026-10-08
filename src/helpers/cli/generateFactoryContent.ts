@@ -56,7 +56,7 @@ export default function generateFactoryContent({
     switch (safeAttributeType) {
       case 'belongsto': {
         // When `Model@alias:belongs_to`, the factory property uses the alias;
-        // otherwise it uses the model's last namespace segment (legacy form).
+        // otherwise it uses the model's last namespace segment.
         const attributeVariable = aliasName ? camelize(aliasName) : camelize(attributeName.split('/').pop()!)
         const fullyQualifiedAssociatedModelName = standardizeFullyQualifiedModelName(attributeName)
         const associationModelName = globalClassNameFromFullyQualifiedModelName(

@@ -2,6 +2,7 @@ import DreamApp from '../../../src/dream-app/index.js'
 import CannotPaginateWithLeftJoinPreload from '../../../src/errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../../../src/errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../../../src/errors/pagination/CannotPaginateWithOffset.js'
+import ops from '../../../src/ops/index.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Query#paginate', () => {
@@ -52,6 +53,41 @@ describe('Query#paginate', () => {
         currentPage: 1,
         results: [expect.toMatchDreamModel(user1), expect.toMatchDreamModel(user2)],
       })
+    })
+  })
+
+  context('with a similarity condition', () => {
+    it('pages best match first, returning every match exactly once across pages', async () => {
+      // for "chalupa", "chalupa chalupa" ranks highest and "chalupazz" lowest;
+      // matches of equal rank follow in descending primary key order
+      const weakMatch1 = await User.create({ email: 'e@eeee', password: 'howyadoin', name: 'chalupazz' })
+      const strongMatch1 = await User.create({
+        email: 'f@ffff',
+        password: 'howyadoin',
+        name: 'chalupa chalupa',
+      })
+      const match = await User.create({ email: 'g@gggg', password: 'howyadoin', name: 'chalupa' })
+      const weakMatch2 = await User.create({ email: 'h@hhhh', password: 'howyadoin', name: 'chalupazz' })
+      const strongMatch2 = await User.create({
+        email: 'i@iiii',
+        password: 'howyadoin',
+        name: 'chalupa chalupa',
+      })
+
+      const query = User.where({ name: ops.similarity('chalupa') })
+      const page1 = await query.paginate({ pageSize: 2, page: 1 })
+      const page2 = await query.paginate({ pageSize: 2, page: 2 })
+      const page3 = await query.paginate({ pageSize: 2, page: 3 })
+
+      expect(page1.recordCount).toEqual(5)
+      expect(page1.pageCount).toEqual(3)
+      expect([...page1.results, ...page2.results, ...page3.results].map(r => r.id)).toEqual([
+        strongMatch2.id,
+        strongMatch1.id,
+        match.id,
+        weakMatch2.id,
+        weakMatch1.id,
+      ])
     })
   })
 

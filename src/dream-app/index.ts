@@ -238,6 +238,7 @@ export default class DreamApp {
   private _specialHooks: DreamAppSpecialHooks = {
     dbLog: [],
     replStart: [],
+    encryptionLegacyKeyUsed: [],
   }
   public get specialHooks() {
     return this._specialHooks
@@ -676,13 +677,45 @@ export default class DreamApp {
     }
   }
 
+  /**
+   * Registers a callback for an app-level event. Callbacks for the same
+   * event run in the order they were registered.
+   *
+   * - `'db:log'`: called with a {@link KyselyLogEvent} each time a query on a
+   *   Dream database connection completes or fails.
+   * - `'repl:start'`: called, and awaited, with the console's REPL context
+   *   when the Dream console starts.
+   * - `'encryption:legacy-key-used'`: called with an
+   *   {@link EncryptionLegacyKeyUsedEvent} when reading an `@deco.Encrypted`
+   *   property needed the `legacy` column encryption key, not `current`, to
+   *   open the stored value. Use it during a key rotation to find rows still
+   *   encrypted with the old key. The property decrypts on every read, so a
+   *   record whose value is still under the old key fires the event each time
+   *   the property is read. A row nobody reads never fires it, so a quiet
+   *   event does not prove that `legacy` is safe to drop;
+   *   `DreamMigrationHelpers.reencryptColumn` rewrites every row instead. The
+   *   migration helpers do not fire the event. The callback runs
+   *   synchronously inside the property read, and an error it throws
+   *   propagates from that read. Reading the same property of the same
+   *   record inside the callback returns its value without firing the event
+   *   again, so a callback can read the property and assign the value back,
+   *   which re-encrypts it under `current` for the record's next save.
+   *
+   * ```ts
+   * dreamApp.on('encryption:legacy-key-used', ({ dream, property }) => {
+   *   console.warn(`${dream.constructor.name} ${dream.primaryKeyValue()} ${property} still uses the legacy key`)
+   * })
+   * ```
+   */
   public on<T extends DreamHookEventType>(
     hookEventType: T,
     cb: T extends 'db:log'
       ? (event: KyselyLogEvent) => void
       : T extends 'repl:start'
         ? (context: Context) => void | Promise<void>
-        : never
+        : T extends 'encryption:legacy-key-used'
+          ? (event: EncryptionLegacyKeyUsedEvent) => void
+          : never
   ) {
     switch (hookEventType) {
       case 'db:log':
@@ -691,6 +724,10 @@ export default class DreamApp {
 
       case 'repl:start':
         this._specialHooks.replStart.push(cb as (context: Context) => void | Promise<void>)
+        break
+
+      case 'encryption:legacy-key-used':
+        this._specialHooks.encryptionLegacyKeyUsed.push(cb as (event: EncryptionLegacyKeyUsedEvent) => void)
         break
     }
   }
@@ -718,7 +755,7 @@ function loggerArgToString(arg: any) {
   return JSON.stringify(util.inspect(arg, { depth: 6 }))
 }
 
-export type DreamHookEventType = 'db:log' | 'repl:start'
+export type DreamHookEventType = 'db:log' | 'repl:start' | 'encryption:legacy-key-used'
 
 export interface DreamAppOpts {
   projectRoot: string
@@ -894,6 +931,27 @@ interface SegmentedEncryptionOptions {
 export interface DreamAppSpecialHooks {
   dbLog: ((event: KyselyLogEvent) => void)[]
   replStart: ((context: Context) => void | Promise<void>)[]
+  encryptionLegacyKeyUsed: ((event: EncryptionLegacyKeyUsedEvent) => void)[]
+}
+
+/**
+ * Passed to `dreamApp.on('encryption:legacy-key-used', ...)` callbacks.
+ */
+export interface EncryptionLegacyKeyUsedEvent {
+  /**
+   * The record whose `@deco.Encrypted` property was read. Its class and
+   * `primaryKeyValue()` identify the row; a record not yet saved has no
+   * primary key.
+   */
+  dream: Dream
+  /**
+   * The `@deco.Encrypted` property that was read, e.g. `'phone'`.
+   */
+  property: string
+  /**
+   * The column holding the property's ciphertext, e.g. `'encryptedPhone'`.
+   */
+  encryptedColumnName: string
 }
 
 export interface DreamAppInitOptions {

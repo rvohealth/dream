@@ -2,7 +2,7 @@ import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuild
 import type { DreamDbConfig } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
 import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
-import { AssociationStatement } from '../../types/associations/shared.js'
+import { AssociationStatement, OrderQueryStatement } from '../../types/associations/shared.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
 import {
@@ -637,6 +637,61 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async pluck(...fields: DreamColumnNames<DreamInstance>[]): Promise<any[]> {
     throw new Error('implement pluck in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * The order statements that the declared `order` of the associations the
+   * Query is built on or joins contributes to its ORDER BY, in the order they
+   * sort, each column namespaced by the alias it is read from. Cursor
+   * pagination folds these into its cursor.
+   *
+   * @returns An array of namespaced order statements
+   */
+  public associationOrderStatements(): OrderQueryStatement<string>[] {
+    throw new Error('implement associationOrderStatements in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * The primary key of each table the Query reaches through a HasOne or
+   * HasMany association (one it joins, one an association it joins goes
+   * through, or one its association query is built on), namespaced by the
+   * alias it is read from, in join order. Such a join can return a row of the
+   * Query's table once for each row it matches, and these keys, with the
+   * Query's own primary key, tell those rows apart. Cursor pagination pages by
+   * them after the Query's own primary key.
+   *
+   * @returns An array of namespaced primary key columns
+   */
+  public joinedRowKeyColumns(): string[] {
+    throw new Error('implement joinedRowKeyColumns in child class')
+  }
+
+  /**
+   * @internal
+   *
+   * A page of a select that keeps one row of each group (DISTINCT ON with an
+   * ORDER BY of its own, as an association that declares `distinct` and
+   * `order` produces), or null for any other select, whose pages cursor
+   * pagination reads as it reads any select's.
+   *
+   * The page is the values of the Query's order statement columns for each
+   * row the select returns that matches any of `rowsAfter` (every row when it
+   * is null), sorted by the Query's order statements and limited by its
+   * limit. The select chooses each group's row before `rowsAfter` narrows the
+   * rows, so that the page holds only rows the select returns.
+   *
+   * A driver whose selects never keep one row of each group returns null.
+   *
+   * @param rowsAfter - where statements, any of which a row of the page matches
+   * @returns The page's rows, each an array of its order statement columns' values, or null
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async pluckDistinctOnPage(rowsAfter: Record<string, unknown>[] | null): Promise<unknown[][] | null> {
+    return null
   }
 
   /**

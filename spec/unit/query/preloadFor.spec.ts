@@ -5,6 +5,7 @@ import Dream from '../../../src/Dream.js'
 import buildSerializerPreloadPaths from '../../../src/dream/internal/buildSerializerPreloadPaths.js'
 import Query from '../../../src/dream/Query.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
+import UnrecognizedAssociationConditionKeys from '../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import MissingSerializersDefinition from '../../../src/errors/serializers/MissingSerializersDefinition.js'
 import MissingSerializersDefinitionForKey from '../../../src/errors/serializers/MissingSerializersDefinitionForKey.js'
 import NoGlobalSerializerForSpecifiedKey from '../../../src/errors/serializers/NoGlobalSerializerForSpecifiedKey.js'
@@ -72,6 +73,30 @@ describe('Dream.preloadFor(serializerKey)', () => {
         .firstOrFail()
       expect(collar.pet).toMatchDreamModel(pet)
       expect(collar.pet.ratings).toMatchDreamModels([rating2])
+    })
+  })
+
+  context('with a callback function that returns a key other than and, andNot and andAny', () => {
+    it('throws', () => {
+      expect(() =>
+        Collar.query().preloadFor('default', (associationName, dreamClass) => {
+          if (dreamClass.typeof(Pet) && associationName === 'ratings')
+            return { and: { rating: 7 }, rating: 3 }
+        })
+      ).toThrow(UnrecognizedAssociationConditionKeys)
+    })
+
+    context('in a transaction', () => {
+      it('throws', async () => {
+        await ApplicationModel.transaction(txn => {
+          expect(() =>
+            Collar.txn(txn).preloadFor('default', (associationName, dreamClass) => {
+              if (dreamClass.typeof(Pet) && associationName === 'ratings')
+                return { and: { rating: 7 }, rating: 3 }
+            })
+          ).toThrow(UnrecognizedAssociationConditionKeys)
+        })
+      })
     })
   })
 

@@ -15,6 +15,10 @@ import { RECURSIVE_SERIALIZATION_MAX_REPEATS } from './dream/constants.js'
 import DreamClassTransactionBuilder from './dream/DreamClassTransactionBuilder.js'
 import DreamInstanceTransactionBuilder from './dream/DreamInstanceTransactionBuilder.js'
 import DreamTransaction from './dream/DreamTransaction.js'
+import assertRecognizedAssociationConditionKeys, {
+  DESTROY_ASSOCIATION_OPTION_KEYS,
+  UPDATE_ASSOCIATION_OPTION_KEYS,
+} from './dream/internal/associations/assertRecognizedAssociationConditionKeys.js'
 import associationQuery from './dream/internal/associations/associationQuery.js'
 import associationUpdateQuery from './dream/internal/associations/associationUpdateQuery.js'
 import createAssociation from './dream/internal/associations/createAssociation.js'
@@ -45,6 +49,7 @@ import updateOrCreateBy from './dream/internal/updateOrCreateBy.js'
 import LeftJoinLoadBuilder from './dream/LeftJoinLoadBuilder.js'
 import LoadBuilder from './dream/LoadBuilder.js'
 import Query from './dream/Query.js'
+import InternalEncrypt from './encrypt/InternalEncrypt.js'
 import CannotAssociationQueryOnUnpersistedDream from './errors/associations/CannotAssociationQueryOnUnpersistedDream.js'
 import CannotCreateAssociationOnUnpersistedDream from './errors/associations/CannotCreateAssociationOnUnpersistedDream.js'
 import CannotDestroyAssociationOnUnpersistedDream from './errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
@@ -55,6 +60,7 @@ import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestr
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
 import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
 import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
+import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
 import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.js'
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
@@ -1910,12 +1916,12 @@ export default class Dream {
    * planned drop safe.
    *
    * ```ts
-   * const user = await User.leftJoinPreload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.leftJoinPreload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies)
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A query for this model with the include statement applied
    */
   public static leftJoinPreload<
@@ -1925,7 +1931,7 @@ export default class Dream {
     TableName extends InstanceType<T>['table'],
     Schema extends I['schema'],
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicLeftJoinLoadArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicLeftJoinLoadArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -1952,12 +1958,12 @@ export default class Dream {
    * Preload is useful for avoiding the N+1 query problem
    *
    * ```ts
-   * const user = await User.preload('posts', 'comments', { visibilty: 'public' }, 'replies').first()
+   * const user = await User.preload('posts', 'comments', { and: { visibility: 'public' } }, 'replies').first()
    * console.log(user.posts[0].comments[0].replies)
    * // [Reply{id: 1}, Reply{id: 2}]
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A query for this model with the preload statement applied
    */
   public static preload<
@@ -2040,7 +2046,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2073,7 +2079,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2107,7 +2113,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -2140,7 +2146,7 @@ export default class Dream {
     Schema extends I['schema'],
     TableName extends I['table'] & keyof Schema,
     const Arr extends readonly unknown[],
-    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr>,
+    const LastArg extends VariadicJoinsArgs<I, DB, Schema, TableName, Arr, LastArg>,
     const JoinedAssociationsCandidate = JoinedAssociationsTypeFromAssociations<
       DB,
       Schema,
@@ -3188,6 +3194,15 @@ export default class Dream {
    * const user = User.new({ email: 'how@yadoin' })
    * ```
    *
+   * @param opts - the attributes to set on the new instance
+   * @param additionalOpts - optional parameters
+   * @param additionalOpts.bypassUserDefinedSetters - if true, sets the attributes
+   * as {@link Dream.setAttributes | setAttributes} does, bypassing any
+   * custom-defined setters. An encrypted property (e.g. `secret`) is still
+   * encrypted, and an `@Encrypted` backing column (e.g. `encryptedSecret`)
+   * accepts only ciphertext that decrypts with this app's column encryption
+   * keys, or `null`; anything else throws (see
+   * {@link Dream.setAttribute | setAttribute}). Defaults to false
    * @returns A new (unpersisted) instance of the provided dream class
    */
   public static new<T extends typeof Dream>(
@@ -3226,6 +3241,7 @@ export default class Dream {
     opts: any,
     additionalOpts: {
       bypassUserDefinedSetters?: boolean
+      fromDatabase?: boolean
       isPersisted?: boolean
       _internalUseOnly: true
     }
@@ -3278,7 +3294,7 @@ export default class Dream {
     this: T,
     attributes: UpdateablePropertiesForClass<T>,
     dreamInstance?: InstanceType<T>,
-    { bypassUserDefinedSetters = false }: { bypassUserDefinedSetters?: boolean } = {}
+    { bypassUserDefinedSetters = false, fromDatabase = false }: SetAttributesOptions = {}
   ): WhereStatement<InstanceType<T>> {
     const returnValues: any = {}
 
@@ -3292,8 +3308,11 @@ export default class Dream {
         //
       } else if (bypassUserDefinedSetters && !isJsonColumn(this, attr)) {
         // bypass user defined setters, and this field is not json, so set
-        // the attribute directly and return the attribute
-        dreamInstance.setAttribute(attr, value)
+        // the attribute directly and return the attribute. A row read from
+        // the database already holds the ciphertext Dream stored, so it skips
+        // setAttribute's check of @Encrypted backing columns
+        if (fromDatabase) dreamInstance['setAttributeUnchecked'](attr, value)
+        else dreamInstance.setAttribute(attr, value)
         return dreamInstance.getAttribute(attr)
       } else {
         // don't bypass user defined setters, or this field is json, so set
@@ -3547,6 +3566,24 @@ export default class Dream {
    * bypassing any custom-defined setters. If you would like to set attributes
    * without bypassing custom-defined setters, use #assignAttribute instead
    *
+   * An `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * a string of ciphertext that decrypts with this app's column encryption
+   * keys (current or legacy), or `null`, which clears it. Anything else,
+   * including plaintext, `undefined`, a non-string value, and ciphertext
+   * made with a key this app does not hold, throws and leaves the column
+   * unchanged. The check covers the backing columns of this model's class,
+   * including those it inherits from an STI parent; a backing column
+   * declared only by another class in the same STI hierarchy is not
+   * checked.
+   *
+   * Given the name of an encrypted property (e.g. `secret`), setAttribute
+   * neither encrypts the value nor stores it: it keeps the value,
+   * unencrypted, under that name in this instance's attributes, which a
+   * save does not write, while the backing column and the property keep
+   * the value they had. To store a new value, assign the property
+   * (`user.secret = 'new secret'`) or pass it to
+   * {@link Dream.setAttributes | setAttributes}, each of which encrypts it.
+   *
    * ```ts
    *  const user = new User()
    *  user.setAttribute('email', 'sally@gmail.com')
@@ -3557,7 +3594,31 @@ export default class Dream {
     column: Key & string,
     val: any
   ): void {
-    ;(this as any).currentAttributes[column] = val
+    const dreamClass = this.constructor as typeof Dream
+    const encryptedAttribute = dreamClass.encryptedAttributes.find(
+      ({ encryptedColumnName }) => encryptedColumnName === column
+    )
+
+    if (
+      encryptedAttribute &&
+      val !== null &&
+      !(typeof val === 'string' && InternalEncrypt.isDecryptableColumnCiphertext(val))
+    )
+      throw new DoNotSetEncryptedFieldsDirectly(dreamClass, column, encryptedAttribute.property)
+
+    this.setAttributeUnchecked(column, val)
+  }
+
+  /**
+   * @internal
+   *
+   * Writes the value into the current attributes as given, with none of
+   * setAttribute's checks. Only for values Dream already trusts: a row read
+   * from the database, and the ciphertext the @Encrypted property setter
+   * has just produced. Every caller-supplied value goes through setAttribute.
+   */
+  private setAttributeUnchecked(column: string, val: any): void {
+    this.currentAttributes[column] = val
   }
 
   /**
@@ -3638,43 +3699,55 @@ export default class Dream {
    * changed since last persisting, along with their current
    * and previously persisted values.
    *
+   * For a column with an unsaved change, `was` is its value
+   * as of the most recent save. For every other column, `was`
+   * is its value from before that save, so the changes the
+   * save made keep appearing, beside any later unsaved change,
+   * until the next save.
+   *
+   * On a create, that earlier value is `undefined` for every
+   * column of an instance from `new` or `create`, assigned or
+   * not, and the copied value for an instance from
+   * {@link Dream.dup | dup}. So after a create from `new` or
+   * `create`, every column the insert returned counts as
+   * changed: the primary key, timestamps, database defaults,
+   * and `null` for each nullable column nobody assigned. After
+   * a create from `dup`, the columns `dup` cleared (the primary
+   * key, timestamps and sortable positions) count, and a copied
+   * column counts only if the insert returned a different value.
+   *
    * ```ts
    * const pet = Pet.new({ species: 'dog' })
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: undefined,
-   * //     now: 'dog',
-   * //   }
+   * //   species: { was: undefined, now: 'dog' },
    * // }
    *
    * await pet.save()
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: undefined,
-   * //     now: 'dog',
-   * //   }
+   * //   id: { was: undefined, now: 1 },
+   * //   species: { was: undefined, now: 'dog' },
+   * //   name: { was: undefined, now: null },
+   * //   ...every other column the insert returned
    * // }
    *
    * pet.species = 'cat'
    * pet.species = 'frog'
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: 'dog',
-   * //     now: 'frog',
-   * //   }
+   * //   id: { was: undefined, now: 1 },
+   * //   species: { was: 'dog', now: 'frog' },
+   * //   name: { was: undefined, now: null },
+   * //   ...every other change the create made
    * // }
    *
    * await pet.save()
    * pet.changes()
    * // {
-   * //   species: {
-   * //     was: 'dog',
-   * //     now: 'frog',
-   * //   }
+   * //   species: { was: 'dog', now: 'frog' },
    * // }
+   * // (and `updatedAt`, on a model with that column)
    * ```
    *
    * @returns An object containing changed attributes
@@ -3702,8 +3775,22 @@ export default class Dream {
   }
 
   /**
-   * Returns the value most recently persisted
-   * to the database.
+   * Returns the value the column held before the most
+   * recent save. For a column with an unsaved change, it
+   * returns the column's value as of that save instead.
+   *
+   * On a create, the value before the save is `undefined`
+   * for every column of an instance from `new` or `create`,
+   * assigned or not, and the copied value for an instance
+   * from {@link Dream.dup | dup} (`undefined` for the
+   * columns `dup` cleared). So after a create from `new` or
+   * `create`, this returns `undefined` for every column
+   * without an unsaved change, not the value the insert
+   * wrote. After an update, it returns the column's value
+   * from before that update, which for a column the update
+   * did not change is its current value. On a record loaded
+   * from the database and not saved since, it returns the
+   * loaded value.
    *
    * ```ts
    * const pet = Pet.new({ species: 'cat' })
@@ -3745,16 +3832,48 @@ export default class Dream {
   /**
    * Returns true if the columnName provided has
    * changes that were persisted during the most
-   * recent save.
+   * recent save. An unsaved change does not count,
+   * and an unsaved edit made after that save does
+   * not undo a change the save made. On a record
+   * that has not been persisted, this returns false.
+   *
+   * A create compares the value the insert returned
+   * with `undefined` for every column of an instance
+   * from `new` or `create`, assigned or not, and with
+   * the copied value for an instance from
+   * {@link Dream.dup | dup}. So after a create from
+   * `new` or `create`, this returns true for every
+   * column the insert returned: the primary key,
+   * timestamps, database defaults, and a nullable
+   * column nobody assigned, which comes back `null`.
+   * To react only to the columns a create assigned,
+   * use the `ifChanged` option of an after hook.
+   *
+   * ```ts
+   * const pet = await Pet.create({ species: 'cat' })
+   * pet.savedChangeToAttribute('species')
+   * // true
+   * pet.savedChangeToAttribute('name')
+   * // true (unassigned, so the insert returned null)
+   *
+   * await pet.update({ name: 'Snoopy' })
+   * pet.savedChangeToAttribute('species')
+   * // false
+   *
+   * pet.species = 'dog'
+   * pet.savedChangeToAttribute('species')
+   * // false (not saved yet)
+   * ```
    *
    * @param columnName - the column name to check
    * @returns A boolean
    */
   public savedChangeToAttribute<I extends Dream>(this: I, columnName: DreamColumnNames<I>): boolean {
-    const changes = this.changes()
-    const was = (changes as any)?.[columnName]?.was
-    const now = (changes as any)?.[columnName]?.now
-    return this.isPersisted && notEqual(now, was)
+    if (!this.isPersisted) return false
+    return notEqual(
+      (this.attributesFromBeforeLastSave as any)[columnName],
+      (this.frozenAttributes as any)[columnName]
+    )
   }
 
   /**
@@ -4072,7 +4191,7 @@ export default class Dream {
    * deleting their corresponding records within the database.
    *
    * ```ts
-   * await user.destroyAssociation('posts', { body: 'hello world' })
+   * await user.destroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to destroy
@@ -4091,6 +4210,12 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'destroyAssociation'
+    )
     if (this.isNewRecord) throw new CannotDestroyAssociationOnUnpersistedDream(this, associationName)
 
     return await destroyAssociation(this, null, associationName, {
@@ -4148,7 +4273,7 @@ export default class Dream {
    * causing those records to be deleted from the database.
    *
    * ```ts
-   * await user.reallyDestroyAssociation('posts', { body: 'hello world' })
+   * await user.reallyDestroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to destroy
@@ -4167,6 +4292,12 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'reallyDestroyAssociation'
+    )
     if (this.isNewRecord) throw new CannotDestroyAssociationOnUnpersistedDream(this, associationName)
 
     return await destroyAssociation(this, null, associationName, {
@@ -4221,7 +4352,7 @@ export default class Dream {
    * will also be undeleted.
    *
    * ```ts
-   * await user.undestroyAssociation('posts', { body: 'hello world' })
+   * await user.undestroyAssociation('posts', { and: { body: 'hello world' } })
    * ```
    *
    * @param associationName - The name of the association to undestroy
@@ -4240,6 +4371,13 @@ export default class Dream {
     associationName: AssociationName,
     options?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      options,
+      DESTROY_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'undestroyAssociation'
+    )
+
     return await undestroyAssociation(this, null, associationName, {
       ...undestroyOptions<I>(options as any),
       joinAndStatements: {
@@ -4400,6 +4538,12 @@ export default class Dream {
     attributes: unknown,
     updateAssociationOptions?: unknown
   ): Promise<number> {
+    assertRecognizedAssociationConditionKeys(
+      updateAssociationOptions,
+      UPDATE_ASSOCIATION_OPTION_KEYS,
+      associationName,
+      'updateAssociation'
+    )
     if (this.isNewRecord) throw new CannotUpdateAssociationOnUnpersistedDream(this, associationName)
 
     return associationUpdateQuery(this, null, associationName, {
@@ -4474,19 +4618,19 @@ export default class Dream {
    * if the association is not already loaded.
    *
    * ```ts
-   * const user = await user
-   *  .load('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   * const loadedUser = await user
+   *  .load('posts', { and: { body: ops.ilike('%hello world%') } }, 'comments', 'replies')
    *  .load('images')
    *  .execute()
    *
-   * user.posts[0].comments[0].replies[0]
+   * loadedUser.posts[0].comments[0].replies[0]
    * // Reply{}
    *
-   * user.images[0]
+   * loadedUser.images[0]
    * // Image{}
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A chainable LoadBuilder instance. Call `.execute()` to get the cloned model with associations loaded.
    */
   public load<
@@ -4893,19 +5037,19 @@ export default class Dream {
    * 5. associations loading associations loading associations could result in exponential amounts of data; in those cases, `.load(...).findEach(...)` avoids instantiating massive amounts of data at once
    *
    * ```ts
-   * const user = await user
-   *  .leftJoinLoad('posts', { body: ops.ilike('%hello world%') }, 'comments', 'replies')
+   * const loadedUser = await user
+   *  .leftJoinLoad('posts', { and: { body: ops.ilike('%hello world%') } }, 'comments', 'replies')
    *  .leftJoinLoad('images')
    *  .execute()
    *
-   * user.posts[0].comments[0].replies[0]
+   * loadedUser.posts[0].comments[0].replies[0]
    * // Reply{}
    *
-   * user.images[0]
+   * loadedUser.images[0]
    * // Image{}
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A chainable LeftJoinLoadBuilder instance. Call `.execute()` to get the cloned model with associations loaded.
    */
   public leftJoinLoad<
@@ -4991,6 +5135,13 @@ export default class Dream {
    * Takes the attributes passed in and sets their values internally,
    * bypassing any custom setters defined for these attributes.
    *
+   * An encrypted property (e.g. `secret`) is still encrypted. Its
+   * `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * ciphertext that decrypts with this app's column encryption keys, or
+   * `null`; anything else throws (see {@link Dream.setAttribute | setAttribute}).
+   * Attributes are set in order, so those before the rejected one have
+   * already been set when it throws.
+   *
    * NOTE:
    * To leverage custom-defined setters, use `#assignAttributes` instead.
    *
@@ -5006,7 +5157,7 @@ export default class Dream {
   private _setAttributes<I extends Dream>(
     this: I,
     attributes: UpdateableProperties<I>,
-    additionalOpts: { bypassUserDefinedSetters?: boolean } = {}
+    additionalOpts: SetAttributesOptions = {}
   ) {
     const dreamClass = this.constructor as typeof Dream
     const marshalledOpts = dreamClass.extractAttributesFromUpdateableProperties(
@@ -5030,6 +5181,10 @@ export default class Dream {
    *
    * Upon updating an instance, the update timestamp (if defined)
    * will be updated on the model.
+   *
+   * A column whose value is `undefined` is skipped, not written: a new
+   * record gets the column's database default, and a persisted record
+   * keeps the value stored for it. Set a column to `null` to clear it.
    *
    * ```ts
    * const user = User.new({ email: 'how@yadoin' })
@@ -5083,6 +5238,12 @@ export default class Dream {
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
    *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
+   *
    * NOTE:
    * To bypass custom-defined setters, use {@link Dream.updateAttributes | updateAttributes} instead.
    *
@@ -5114,6 +5275,18 @@ export default class Dream {
    *
    * See {@link Dream.save | save} for details on
    * the side effects of saving.
+   *
+   * An encrypted property (e.g. `secret`) is still encrypted. Its
+   * `@Encrypted` backing column (e.g. `encryptedSecret`) accepts only
+   * ciphertext that decrypts with this app's column encryption keys, or
+   * `null`; anything else throws before anything is saved (see
+   * {@link Dream.setAttribute | setAttribute}).
+   *
+   * A column whose value is still `undefined` after setters run is
+   * skipped, not written (see {@link Dream.save | save}), with two
+   * `@Encrypted` exceptions: `undefined` for an encrypted property (e.g.
+   * `secret`) is encrypted to `null`, so it clears the column, and
+   * `undefined` for its backing column (e.g. `encryptedSecret`) throws.
    *
    * NOTE:
    * To update the values without bypassing any custom-defined
@@ -5203,4 +5376,13 @@ export default class Dream {
     return this
   }
   private _preventDeletion: boolean = false
+}
+
+interface SetAttributesOptions {
+  bypassUserDefinedSetters?: boolean
+  /**
+   * The attributes are a row read from the database, whose @Encrypted backing
+   * columns already hold the ciphertext Dream stored
+   */
+  fromDatabase?: boolean
 }

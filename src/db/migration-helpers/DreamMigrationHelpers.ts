@@ -417,12 +417,78 @@ export default class DreamMigrationHelpers {
   }
 
   /**
+   * Re-encrypt an `@Encrypted` backing column under the current column key, so that
+   * the `legacy` key can be dropped for that column after a key rotation.
+   *
+   * Every non-null value is decrypted the way the decorator's getter decrypts it
+   * (`InternalEncrypt.decryptColumn`: the `current` key, then `legacy`) and encrypted
+   * again with `current`. The column keeps its name and type. Reading values here does
+   * not fire `dreamApp.on('encryption:legacy-key-used', ...)`.
+   *
+   * ```ts
+   * // the column encryptColumn created for `phone`: encrypted_phone
+   * await DreamMigrationHelpers.reencryptColumn(db, { table: 'users', column: 'phone' })
+   * ```
+   *
+   * **Run it only after every server encrypts with the new key.** Deploy the rotated
+   * config (the new key as `current`, the old key as `legacy`) everywhere first. The
+   * helper walks the table once, so a row that a server still configured with the old
+   * `current` writes behind it stays encrypted with the old key, and so does a row given
+   * old-key ciphertext directly later (`setAttribute`, `setAttributes` and
+   * `updateAttributes` accept, for a backing column, ciphertext that either key opens).
+   * Once no writer uses the old key and this helper has run, `legacy` is safe to drop for
+   * this column.
+   *
+   * **A row changed while the helper runs keeps the newer value.** Each row is written
+   * only if the column still holds the ciphertext the helper read; a row that an app
+   * wrote in between is skipped rather than overwritten with the stale value. Nothing
+   * reports the skip, and the skipped value is whatever that writer encrypted it with,
+   * which is the new key only once the precondition above holds.
+   *
+   * **Rewrites rows one at a time** (each value needs a fresh random IV computed in Node,
+   * so the rewrite cannot be a single SQL `UPDATE`), reading them in keyset batches of
+   * `batchSize` to bound memory. Where the migration runs inside a transaction (on
+   * Postgres, Dream's migrator runs all pending migrations in one), every row this helper
+   * rewrites stays locked until that transaction commits, so app writes to those rows
+   * wait for the whole migration run. On very large tables do not use this helper — write
+   * your own batched / online migration.
+   *
+   * @param db - The Kysely database object passed into the migration up/down function
+   * @param options - Configuration options
+   * @param options.table - The name of the table
+   * @param options.column - The plaintext column name the encrypted column was derived from, as passed to `encryptColumn`
+   * @param options.encryptedColumnName - The encrypted column to rewrite. Defaults to `encrypted_<column>`, matching the `@Encrypted` decorator's default; pass this when the decorator was given a custom encrypted column name.
+   * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
+   * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
+   */
+  public static async reencryptColumn(
+    db: Kysely<any>,
+    {
+      table,
+      column,
+      encryptedColumnName = `encrypted_${column}`,
+      primaryKey = 'id',
+      batchSize = 1000,
+    }: ReencryptColumnOpts
+  ) {
+    await this.transformColumnInBatches(
+      db,
+      { table, column: encryptedColumnName, primaryKey, batchSize, skipRowsChangedSinceRead: true },
+      value => InternalEncrypt.encryptColumn(InternalEncrypt.decryptColumn(value))
+    )
+  }
+
+  /**
    * Walk every non-null value of `column` in keyset batches of `batchSize`, applying
    * `transform` in Node and writing the result back one row at a time. Keyset pagination
    * on `primaryKey` (`WHERE pk > last ORDER BY pk`) bounds memory to a single batch and
    * guarantees forward progress, so a row is never read — or transformed — twice (which
    * matters because the transform is not idempotent: re-encrypting ciphertext would
    * double-encrypt, and re-decrypting plaintext would throw).
+   *
+   * With `skipRowsChangedSinceRead`, each write also requires the column to still hold
+   * the value that was read, so a row written by someone else between the read and the
+   * write keeps that newer value.
    *
    * Reads alias the selected columns to fixed keys via `sql.ref(...).as(...)` so a
    * `CamelCasePlugin` on the connection cannot rename the result keys.
@@ -434,7 +500,14 @@ export default class DreamMigrationHelpers {
       column,
       primaryKey,
       batchSize,
-    }: { table: string; column: string; primaryKey: string; batchSize: number },
+      skipRowsChangedSinceRead = false,
+    }: {
+      table: string
+      column: string
+      primaryKey: string
+      batchSize: number
+      skipRowsChangedSinceRead?: boolean
+    },
     transform: (value: any) => any
   ) {
     let lastPrimaryKey: any
@@ -452,11 +525,12 @@ export default class DreamMigrationHelpers {
       if (rows.length === 0) break
 
       for (const row of rows) {
-        await db
+        let update = db
           .updateTable(table)
           .set({ [column]: transform(row.val) })
           .where(primaryKey, '=', row.pk)
-          .execute()
+        if (skipRowsChangedSinceRead) update = update.where(column, '=', row.val)
+        await update.execute()
         lastPrimaryKey = row.pk
       }
     }
@@ -712,6 +786,14 @@ interface AddValueToEnumOpts {
 }
 
 interface EncryptColumnOpts {
+  table: string
+  column: string
+  encryptedColumnName?: string
+  primaryKey?: string
+  batchSize?: number
+}
+
+interface ReencryptColumnOpts {
   table: string
   column: string
   encryptedColumnName?: string

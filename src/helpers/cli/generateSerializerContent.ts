@@ -65,6 +65,18 @@ export default function generateSerializerContent({
 
   const additionalImportsStr = uniq(additionalImports).join('')
 
+  // An STI base renders the `type` discriminator in its summary serializers,
+  // so each default serializer, and each STI child serializer, inherits it.
+  const rendersStiType =
+    stiBaseSerializer &&
+    columnsWithTypes.some(attr => {
+      const [name, type] = attr.split(':')
+      return name === 'type' && !isAssociationType(type)
+    })
+  const stiTypeAttribute = rendersStiType
+    ? `\n    .attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? ${modelClassName}).sanitizedName] } })`
+    : ''
+
   const buildSerializerPair = (variantSuffix: string): string => {
     const summaryName = variantSerializerClassName(localSerializerBase, variantSuffix, 'summary')
     const defaultName = variantSerializerClassName(localSerializerBase, variantSuffix, 'default')
@@ -78,15 +90,16 @@ export default function generateSerializerContent({
       : `${summaryName}(${stiBaseSerializer ? 'StiChildClass, ' : ''}${modelSerializerArgs})`
 
     const summary = `export const ${summaryName} = ${modelSerializerSignature} =>
-  ${summaryExtends}${isSTI ? '' : `\n    .attribute('id')`}`
+  ${summaryExtends}${isSTI ? '' : `\n    .attribute('id')`}${stiTypeAttribute}`
 
     const defaultBody = columnsWithTypes
       .map(attr => {
         const [name, type] = attr.split(':')
         if (name === undefined) return ''
-        if (['belongsto', 'hasone', 'hasmany'].includes(camelize(type as any)?.toLowerCase())) return ''
+        if (isAssociationType(type)) return ''
+        if (rendersStiType && name === 'type') return ''
 
-        return `\n    ${attribute(modelClassName, name, type, attr, stiBaseSerializer)}`
+        return `\n    ${attribute(name, type, attr)}`
       })
       .join('')
 
@@ -113,23 +126,19 @@ function variantSerializerClassName(
     : `${serializerBase}${variantSuffix}Serializer`
 }
 
-function attribute(
-  modelClassName: string,
-  name: string,
-  type: string | undefined,
-  attr: string,
-  stiBaseSerializer: boolean
-) {
-  if (name === 'type' && stiBaseSerializer) {
-    return `.attribute('type', { openapi: { type: 'string', enum: [(StiChildClass ?? ${modelClassName}).sanitizedName] } })`
-  }
+function isAssociationType(type: string | undefined) {
+  return ['belongsto', 'hasone', 'hasmany'].includes(camelize(type as any)?.toLowerCase())
+}
 
+function attribute(name: string, type: string | undefined, attr: string) {
   switch (type) {
     case 'json':
     case 'jsonb':
+      return `.attribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
+
     case 'json[]':
     case 'jsonb[]':
-      return `.attribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
+      return `.attribute('${camelize(name)}', { openapi: { type: 'array', items: { type: 'object', properties: { } } } })`
 
     default:
       return `.attribute('${camelize(name)}'${attributeOptionsSpecifier(type, attr)})`

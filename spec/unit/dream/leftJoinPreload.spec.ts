@@ -1,4 +1,5 @@
 import LeftJoinPreloadIncompatibleWithFindEach from '../../../src/errors/LeftJoinPreloadIncompatibleWithFindEach.js'
+import UnrecognizedAssociationConditionKeys from '../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
@@ -21,6 +22,15 @@ describe('Dream.leftJoinPreload', () => {
 
     const reloaded = (await CompositionAssetAudit.leftJoinPreload('compositionAsset').all())[0]!
     expect(reloaded.compositionAsset).toMatchDreamModel(compositionAsset)
+  })
+
+  it('throws on a condition key other than and, andNot and andAny', () => {
+    const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+    expect(() => User.leftJoinPreload('posts', condition)).toThrow(UnrecognizedAssociationConditionKeys)
+    expect(() => User.leftJoinPreload('posts', condition, 'comments')).toThrow(
+      UnrecognizedAssociationConditionKeys
+    )
   })
 
   it('is incompatible with findEach', async () => {
@@ -155,6 +165,16 @@ describe('Dream.leftJoinPreload', () => {
 
       expect(reloadedCompositionAssetAudit!.compositionAsset).toMatchDreamModel(compositionAsset)
     })
+
+    it('throws on a condition key other than and, andNot and andAny', async () => {
+      const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+      await ApplicationModel.transaction(txn => {
+        expect(() => User.txn(txn).leftJoinPreload('posts', condition, 'comments')).toThrow(
+          UnrecognizedAssociationConditionKeys
+        )
+      })
+    })
   })
 
   context('STI associations are loaded', () => {
@@ -181,6 +201,14 @@ context.skip('type tests', () => {
       .leftJoinPreload('allPets', { and: { invalidArg: 123 } })
   })
 
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(txn => {
@@ -198,6 +226,12 @@ context.skip('type tests', () => {
         User.txn(txn)
           // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
           .leftJoinPreload('mainCompositionAsset', 'composition', { and: { user: User.new() } })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        User.txn(txn).leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        User.txn(txn).leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
       })
     })
   })

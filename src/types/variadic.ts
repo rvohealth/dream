@@ -28,6 +28,46 @@ type IS_NOT_ASSOCIATION_NAME = 'not_association_name'
 type RecursionTypes = 'load' | 'leftJoinLoad' | 'join'
 
 /**
+ * The keys of a condition object that a chain argument does not
+ * accept: anything other than `and`, `andNot` and `andAny`. Association
+ * names, arrays and non-objects yield `never`. Index-signature keys
+ * (`string`, `number`) yield `never` too, since they name no key the
+ * checker can reject; the runtime check covers those values.
+ */
+type StrayConditionKeys<T> = T extends string | readonly unknown[]
+  ? never
+  : T extends object
+    ? StrayConditionKey<keyof T>
+    : never
+type StrayConditionKey<K> = K extends 'and' | 'andNot' | 'andAny'
+  ? never
+  : string extends K
+    ? never
+    : number extends K
+      ? never
+      : K
+
+declare const onlyConditionKeys: unique symbol
+
+/**
+ * The join variants infer their final argument as a `const LastArg` type
+ * parameter (it drives the joined-associations return type), so the
+ * argument is checked against its own inferred type and an extra key on
+ * an object literal escapes the excess-property check. Given the inferred
+ * `LastArg`, this narrows the object members of `Allowed` to a shape no
+ * value carries whenever `LastArg` has a key other than `and`, `andNot`
+ * or `andAny`: the inferred type then fails its constraint, TypeScript
+ * falls back to the constraint, and an object literal gets the ordinary
+ * excess-property error at the stray key.
+ */
+type WithoutStrayConditionKeys<LastArg, Allowed> = [StrayConditionKeys<LastArg>] extends [never]
+  ? Allowed
+  :
+      | Exclude<Allowed, object>
+      | Extract<Allowed, readonly unknown[]>
+      | (Exclude<Extract<Allowed, object>, readonly unknown[]> & { [onlyConditionKeys]: never })
+
+/**
  * Given a union of table names and an association name, returns the
  * specific table(s) from the union that have that association defined.
  * Used when traversing through a polymorphic association to a descendant
@@ -82,6 +122,9 @@ export type VariadicLeftJoinLoadArgs<
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
+  // the final argument, when the caller infers it as a type parameter
+  // (see WithoutStrayConditionKeys)
+  LastArg = never,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   // joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
@@ -93,23 +136,26 @@ export type VariadicLeftJoinLoadArgs<
         AliasedSchemaAssociation<Schema, ConcreteTableName>,
         `${PolymorphicBelongsToNames & string} as ${string}`
       >,
-> = VariadicCheckThenRecurse<
-  I,
-  DB,
-  Schema,
-  ConcreteTableName,
-  ConcreteArgs,
-  'leftJoinLoad',
-  // Dream configures Kysely to use camel case in Typescript land and
-  // convert to snake case in SQL; however, Dream reference snake-cased table names.
-  // Without camelizing, the table name of the starting model could conflict with the
-  // snake-cased version of an association name. By camelizing the table that goes
-  // into the UsedNamespaces, we prevent this from happeing at the type level.
-  Camelized<ConcreteTableName>,
-  0,
-  null,
-  never,
-  AllowedNextArgValues | Readonly<AllowedNextArgValues[]>
+> = WithoutStrayConditionKeys<
+  LastArg,
+  VariadicCheckThenRecurse<
+    I,
+    DB,
+    Schema,
+    ConcreteTableName,
+    ConcreteArgs,
+    'leftJoinLoad',
+    // Dream configures Kysely to use camel case in Typescript land and
+    // convert to snake case in SQL; however, Dream reference snake-cased table names.
+    // Without camelizing, the table name of the starting model could conflict with the
+    // snake-cased version of an association name. By camelizing the table that goes
+    // into the UsedNamespaces, we prevent this from happeing at the type level.
+    Camelized<ConcreteTableName>,
+    0,
+    null,
+    never,
+    AllowedNextArgValues | Readonly<AllowedNextArgValues[]>
+  >
 >
 ///////////////////////////////
 // end:VARIADIC LEFT JOIN LOAD
@@ -123,6 +169,9 @@ export type VariadicJoinsArgs<
   Schema,
   ConcreteTableName extends keyof Schema & AssociationTableNames<DB, Schema> & keyof DB,
   ConcreteArgs extends readonly unknown[],
+  // the final argument, when the caller infers it as a type parameter
+  // (see WithoutStrayConditionKeys)
+  LastArg = never,
   //
   SchemaAssociations = Schema[ConcreteTableName]['associations' & keyof Schema[ConcreteTableName]],
   // joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
@@ -134,23 +183,26 @@ export type VariadicJoinsArgs<
         AliasedSchemaAssociation<Schema, ConcreteTableName>,
         `${PolymorphicBelongsToNames & string} as ${string}`
       >,
-> = VariadicCheckThenRecurse<
-  I,
-  DB,
-  Schema,
-  ConcreteTableName,
-  ConcreteArgs,
-  'join',
-  // Dream configures Kysely to use camel case in Typescript land and
-  // convert to snake case in SQL; however, Dream reference snake-cased table names.
-  // Without camelizing, the table name of the starting model could conflict with the
-  // snake-cased version of an association name. By camelizing the table that goes
-  // into the UsedNamespaces, we prevent this from happeing at the type level.
-  Camelized<ConcreteTableName>,
-  0,
-  null,
-  never,
-  AllowedNextArgValues
+> = WithoutStrayConditionKeys<
+  LastArg,
+  VariadicCheckThenRecurse<
+    I,
+    DB,
+    Schema,
+    ConcreteTableName,
+    ConcreteArgs,
+    'join',
+    // Dream configures Kysely to use camel case in Typescript land and
+    // convert to snake case in SQL; however, Dream reference snake-cased table names.
+    // Without camelizing, the table name of the starting model could conflict with the
+    // snake-cased version of an association name. By camelizing the table that goes
+    // into the UsedNamespaces, we prevent this from happeing at the type level.
+    Camelized<ConcreteTableName>,
+    0,
+    null,
+    never,
+    AllowedNextArgValues
+  >
 >
 ///////////////////////////////
 // end: VARIADIC JOINS
@@ -222,15 +274,19 @@ type VariadicCheckThenRecurse<
               ConcreteTableName,
               RequiredOnClauseKeys<Schema, PreviousConcreteTableName, ConcreteAssociationName>
             >
-          ? RecursionType extends 'join'
-            ? VALID
-            : IsNonOptionalBelongsToAssociation<
-                  Schema,
-                  PreviousConcreteTableName,
-                  ConcreteAssociationName
-                > extends true
-              ? INVALID_CONSTRAINT_ON_REQUIRED_BELONGS_TO
-              : VALID
+          ? // `extends` is structural, so it accepts extra keys alongside a
+            // valid one; a condition accepts only and/andNot/andAny
+            [StrayConditionKeys<ConcreteArgs[0]>] extends [never]
+            ? RecursionType extends 'join'
+              ? VALID
+              : IsNonOptionalBelongsToAssociation<
+                    Schema,
+                    PreviousConcreteTableName,
+                    ConcreteAssociationName
+                  > extends true
+                ? INVALID_CONSTRAINT_ON_REQUIRED_BELONGS_TO
+                : VALID
+            : INVALID
           : INVALID,
 > = NthArgument extends INVALID_NON_TERMINAL_ARRAY
   ? `an array of association names is only allowed as the final argument (argument ${Inc<Depth>})`
