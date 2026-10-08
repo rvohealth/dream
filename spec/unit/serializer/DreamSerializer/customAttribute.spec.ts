@@ -329,4 +329,33 @@ describe('DreamSerializer#customAttribute', () => {
       })
     })
   })
+
+  // type tests are all intentionally skipped. Instead, add @ts-expect-error
+  // comments, which will become invalid if the type errors stop raising
+  context('type tests', () => {
+    it.skip('a flattened serializer ref may be nullable but not a list', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('user', () => null, {
+        flatten: true,
+        openapi: { $serializer: UserSerializer, maybeNull: true },
+      })
+
+      DreamSerializer(Pet, pet).customAttribute('users', () => [], {
+        openapi: { $serializer: UserSerializer, many: true },
+      })
+
+      // @ts-expect-error a list has no properties to spread into the parent
+      DreamSerializer(Pet, pet).customAttribute('users', () => [], {
+        flatten: true,
+        openapi: { $serializer: UserSerializer, many: true },
+      })
+
+      // @ts-expect-error a list has no properties to spread into the parent
+      DreamSerializer(Pet, pet).customAttribute('users', () => [], {
+        flatten: true,
+        openapi: { $serializable: User, many: true },
+      })
+    })
+  })
 })

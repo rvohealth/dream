@@ -143,6 +143,21 @@ export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOptio
     precision?: RoundingPrecision
   }
 
+/**
+ * The options of `customAttribute`. With `flatten: true`, `openapi` may be anything but a
+ * serializer ref with `many: true`: flattening spreads one object's properties into the
+ * parent, and a list has none to spread.
+ */
+export type CustomAttributeOptions<Options extends { openapi: unknown }> =
+  | (Options & { flatten?: false })
+  | (Omit<Options, 'openapi'> & { flatten: true; openapi: OpenapiForFlattening<Options['openapi']> })
+
+type OpenapiForFlattening<Openapi> = Openapi extends unknown
+  ? 'many' extends keyof Openapi
+    ? Omit<Openapi, 'many'> & { many?: false }
+    : Openapi
+  : never
+
 export type DreamModelSerializerType = (data: any, passthroughData?: any) => DreamSerializerBuilder<any, any>
 
 export type SimpleObjectSerializerType = (

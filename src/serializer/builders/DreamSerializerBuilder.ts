@@ -9,6 +9,7 @@ import {
 import {
   AutomaticSerializerAttributeOptions,
   AutomaticSerializerAttributeOptionsForType,
+  CustomAttributeOptions,
   InternalAnyTypedSerializerAttribute,
   InternalAnyTypedSerializerCustomAttribute,
   InternalAnyTypedSerializerDelegatedAttribute,
@@ -275,10 +276,11 @@ export default class DreamSerializerBuilder<
    *     to the parent's schema as an `allOf` branch: either an object schema with full
    *     property bodies (`type: 'object'`, `properties`, and `required` listing the keys that
    *     are always present), or `{ $serializer: SomeSerializer }` when the callback returns
-   *     what that serializer renders. A `null` or `undefined` return adds no keys. Attributes
-   *     render in declaration order, so a key the returned object shares with another
-   *     attribute takes the value of whichever is declared later; under the `allOf`, that
-   *     value must match both schemas
+   *     what that serializer renders. A serializer ref with `many: true` does not type-check
+   *     here, since a list has no properties to spread. A `null` or `undefined` return adds no
+   *     keys. Attributes render in declaration order, so a key the returned object shares with
+   *     another attribute takes the value of whichever is declared later; under the `allOf`,
+   *     that value must match both schemas
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
    *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
@@ -309,9 +311,7 @@ export default class DreamSerializerBuilder<
   public customAttribute(
     name: string,
     fn: () => unknown,
-    options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-      flatten?: boolean
-    }
+    options: CustomAttributeOptions<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
   ) {
     this.attributes.push({
       type: 'customAttribute',

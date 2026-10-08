@@ -1,5 +1,7 @@
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
 interface User {
@@ -150,6 +152,35 @@ describe('ObjectSerializer#customAttribute', () => {
           .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
 
       expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({ email: 'abc' })
+    })
+  })
+
+  // type tests are all intentionally skipped. Instead, add @ts-expect-error
+  // comments, which will become invalid if the type errors stop raising
+  context('type tests', () => {
+    it.skip('a flattened serializer ref may be nullable but not a list', () => {
+      const data = { email: 'abc' }
+
+      ObjectSerializer(data).customAttribute('user', () => null, {
+        flatten: true,
+        openapi: { $serializer: UserSerializer, maybeNull: true },
+      })
+
+      ObjectSerializer(data).customAttribute('users', () => [], {
+        openapi: { $serializer: UserSerializer, many: true },
+      })
+
+      // @ts-expect-error a list has no properties to spread into the parent
+      ObjectSerializer(data).customAttribute('users', () => [], {
+        flatten: true,
+        openapi: { $serializer: UserSerializer, many: true },
+      })
+
+      // @ts-expect-error a list has no properties to spread into the parent
+      ObjectSerializer(data).customAttribute('users', () => [], {
+        flatten: true,
+        openapi: { $serializable: Pet, many: true },
+      })
     })
   })
 })
