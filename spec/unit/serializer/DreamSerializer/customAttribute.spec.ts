@@ -333,6 +333,37 @@ describe('DreamSerializer#customAttribute', () => {
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
   // comments, which will become invalid if the type errors stop raising
   context('type tests', () => {
+    it.skip('a nullable schema lists a null branch in its anyOf or oneOf rather than a nullable type beside it', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { description: 'who owns it', anyOf: [{ $serializer: UserSerializer }, { type: 'null' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { oneOf: [{ type: 'object', properties: { name: 'string' } }, { type: 'null' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { type: 'object', allOf: [{ $serializer: UserSerializer }] },
+      })
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error anyOf applies to null too, so a nullable type beside it cannot admit null
+        openapi: { type: ['object', 'null'], anyOf: [{ $serializer: UserSerializer }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error a type beside oneOf is not allowed
+        openapi: { type: 'object', oneOf: [{ $serializer: UserSerializer }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('name', () => null, {
+        // @ts-expect-error a type beside anyOf is not allowed
+        openapi: { type: 'string', anyOf: [{ type: 'string' }, { type: 'null' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error allOf applies to null too, so a nullable type beside it cannot admit null
+        openapi: { type: ['object', 'null'], allOf: [{ $serializer: UserSerializer }] },
+      })
+    })
+
     it.skip('a flattened serializer ref may be nullable but not a list', () => {
       const pet = Pet.new()
 
