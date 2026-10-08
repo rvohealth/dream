@@ -179,6 +179,23 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([newestA.id, newestB.id, newestC.id])
     })
 
+    it('visits the record the association returns for a null distinct value once', async () => {
+      const pet = await Pet.create()
+      const now = DateTime.now()
+      const newestNull = await pet.createAssociation('collars', { tagName: null, createdAt: now })
+      await pet.createAssociation('collars', { tagName: null, createdAt: now.minus({ day: 1 }) })
+      const newestA = await pet.createAssociation('collars', { tagName: 'a', createdAt: now })
+
+      const records: Collar[] = []
+      await pet.associationQuery('newestCollarPerTagName').findEach(
+        collar => {
+          records.push(collar)
+        },
+        { batchSize: 1 }
+      )
+      expect(records.map(r => r.id)).toEqual([newestNull.id, newestA.id])
+    })
+
     it('visits every record when a batch holds more of them than one statement can bind parameters for', async () => {
       const pet = await Pet.create()
       // one more record than Postgres binds parameters in one statement
