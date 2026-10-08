@@ -420,13 +420,25 @@ export const ArticleCommentAdminSerializer = (articleComment: ArticleComment) =>
 
       context('one of those attributes is json', () => {
         it('renders it using attribute with an openapi specification', () => {
-          expectJsonAttributeType('json')
+          expectJsonAttributeType('json', `{ type: 'object', properties: { } }`)
         })
       })
 
       context('one of those attributes is jsonb', () => {
         it('renders it using attribute with an openapi specification', () => {
-          expectJsonAttributeType('jsonb')
+          expectJsonAttributeType('jsonb', `{ type: 'object', properties: { } }`)
+        })
+      })
+
+      context('one of those attributes is json[]', () => {
+        it('renders it using attribute with an array openapi specification', () => {
+          expectJsonAttributeType('json[]', `{ type: 'array', items: { type: 'object', properties: { } } }`)
+        })
+      })
+
+      context('one of those attributes is jsonb[]', () => {
+        it('renders it using attribute with an array openapi specification', () => {
+          expectJsonAttributeType('jsonb[]', `{ type: 'array', items: { type: 'object', properties: { } } }`)
         })
       })
 
@@ -675,7 +687,10 @@ export const UserSerializer = (user: User) =>
   )
 }
 
-function expectJsonAttributeType(startingAttributeType: 'json' | 'jsonb' | 'json[]' | 'jsonb[]') {
+function expectJsonAttributeType(
+  startingAttributeType: 'json' | 'jsonb' | 'json[]' | 'jsonb[]',
+  expectedOpenapi: string
+) {
   const res = generateSerializerContent({
     fullyQualifiedModelName: 'User',
     modelClassName: modelClassNameFrom('User'),
@@ -694,7 +709,7 @@ export const UserSummarySerializer = (user: User) =>
 
 export const UserSerializer = (user: User) =>
   UserSummarySerializer(user)
-    .attribute('howyadoin', { openapi: { type: 'object', properties: { } } })
+    .attribute('howyadoin', { openapi: ${expectedOpenapi} })
 `
   )
 }

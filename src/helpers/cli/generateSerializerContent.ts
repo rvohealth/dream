@@ -134,9 +134,11 @@ function attribute(name: string, type: string | undefined, attr: string) {
   switch (type) {
     case 'json':
     case 'jsonb':
+      return `.attribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
+
     case 'json[]':
     case 'jsonb[]':
-      return `.attribute('${camelize(name)}', { openapi: { type: 'object', properties: { } } })`
+      return `.attribute('${camelize(name)}', { openapi: { type: 'array', items: { type: 'object', properties: { } } } })`
 
     default:
       return `.attribute('${camelize(name)}'${attributeOptionsSpecifier(type, attr)})`
