@@ -10,6 +10,7 @@ import {
   AutomaticSerializerAttributeOptions,
   AutomaticSerializerAttributeOptionsForType,
   CustomAttributeOptions,
+  DelegatedAttributeOptionsArgs,
   InternalAnyTypedSerializerAttribute,
   InternalAnyTypedSerializerCustomAttribute,
   InternalAnyTypedSerializerDelegatedAttribute,
@@ -137,9 +138,10 @@ export default class DreamSerializerBuilder<
    *   2. `required: false` → omits the key entirely from the rendered output
    *   3. otherwise → renders `null`
    *
-   * When the target is a Dream model, OpenAPI types may be automatically inferred
-   * for standard database columns. For json/jsonb columns or non-Dream targets,
-   * the `openapi` option is required.
+   * When the target is a Dream model, a non-json column's OpenAPI shape is inferred
+   * from the column, so its `openapi` option takes only a `description`. json/jsonb
+   * columns and non-Dream targets have no shape to infer, so they require a full
+   * `openapi` shape.
    *
    * `optional` and `required` are not aliases — they encode different things and can
    * be used together:
@@ -163,7 +165,8 @@ export default class DreamSerializerBuilder<
    *     a discriminator string when the association is actually missing produces a response
    *     indistinguishable from "association present with that type," which is misleading)
    *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
-   *     columns, optional for standard Dream columns (where types are inferred)
+   *     columns. On a non-json Dream column, whose shape is inferred, it takes only a
+   *     `description` (and, on the STI `type` column, a `type: 'string'` and `enum`)
    *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema:
    *     Psychic adds `null` to the rendered schema (e.g., `type: 'string'` becomes
    *     `type: ['string', 'null']`, and a `$ref` becomes `anyOf: [{ $ref }, { type: 'null' }]`).
@@ -181,18 +184,17 @@ export default class DreamSerializerBuilder<
    * @example
    * ```typescript
    * // Delegate to a Dream association's column (type inferred)
-   * .delegatedAttribute('currentLocalizedText', 'title', { openapi: 'string' })
+   * .delegatedAttribute('currentLocalizedText', 'title')
    *
    * // With default value for null target or attribute
-   * .delegatedAttribute('user', 'displayName', {
-   *   openapi: { type: 'string' },
-   *   default: 'Unknown User'
-   * })
+   * .delegatedAttribute('user', 'displayName', { default: 'Unknown User' })
    *
    * // Rename the output key
-   * .delegatedAttribute('profile', 'avatarUrl', {
-   *   openapi: 'string',
-   *   as: 'avatar'
+   * .delegatedAttribute('profile', 'avatarUrl', { as: 'avatar' })
+   *
+   * // A json/jsonb column has no shape to infer, so it declares one
+   * .delegatedAttribute('user', 'preferences', {
+   *   openapi: { type: 'object', properties: { theme: 'string' } }
    * })
    * ```
    */
@@ -224,34 +226,13 @@ export default class DreamSerializerBuilder<
   >(
     targetName: TargetName,
     name: TargetAttributeName,
-    options?: AssociatedModelType extends Dream
-      ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
-          keyof AssociatedModelType &
-          'type'
-        ? AutomaticSerializerAttributeOptionsForType & {
-            optional?: boolean
-            required?: false
-          }
-        : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
-          ? SerializerAttributeOptionsForVirtualColumn & { optional?: boolean }
-          : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
-                keyof AssociatedModelType &
-                string
-            ?
-                | (AutomaticSerializerAttributeOptions & { optional?: boolean })
-                | (NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-                    optional?: boolean
-                  })
-            : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-                optional?: boolean
-              }
-      : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
+    ...options: DelegatedAttributeOptionsArgs<AssociatedModelType, TargetAttributeName>
   ) {
     this.attributes.push({
       type: 'delegatedAttribute',
       targetName: targetName as any,
       name: name as any,
-      options: (options as any) ?? {},
+      options: (options[0] as any) ?? {},
     })
 
     return this

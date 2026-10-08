@@ -368,7 +368,7 @@ describe('DreamSerializer#rendersOne', () => {
               flatten: true,
               openapi: { type: 'object', properties: { firstName: { type: 'string' } } },
             })
-            .delegatedAttribute('userSettings', 'likesChalupas', { openapi: 'boolean' })
+            .delegatedAttribute('userSettings', 'likesChalupas')
             .rendersOne('featuredPost')
             .rendersMany('posts')
             .rendersOne('mainComposition', { flatten: true })

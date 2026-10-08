@@ -2,7 +2,13 @@ import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
 import DreamSerializerBuilder from '../serializer/builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from '../serializer/builders/ObjectSerializerBuilder.js'
-import { DreamSerializable, DreamSerializableArray, ViewModelClass } from './dream.js'
+import {
+  DreamSerializable,
+  DreamSerializableArray,
+  DreamVirtualColumns,
+  NonJsonDreamColumnNames,
+  ViewModelClass,
+} from './dream.js'
 import { OpenapiDescription, OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from './openapi.js'
 
 export type SerializerCasing = 'camel' | 'snake'
@@ -142,6 +148,38 @@ export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOptio
     // openapi, which is undesirable)
     precision?: RoundingPrecision
   }
+
+/**
+ * The options argument of `DreamSerializer#delegatedAttribute`. A Dream model's non-json
+ * column infers its OpenAPI shape, so its `openapi` takes only a description and the
+ * argument may be left out. A json/jsonb column or a non-Dream target has no shape to
+ * infer, so the argument is required and its `openapi` takes a full shape.
+ */
+export type DelegatedAttributeOptionsArgs<AssociatedModelType, TargetAttributeName> =
+  DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> extends infer Options
+    ? Partial<Options> extends Options
+      ? [options?: Options]
+      : [options: Options]
+    : never
+
+type DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> = AssociatedModelType extends Dream
+  ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+      keyof AssociatedModelType &
+      'type'
+    ? AutomaticSerializerAttributeOptionsForType & {
+        optional?: boolean
+        required?: false
+      }
+    : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
+      ? SerializerAttributeOptionsForVirtualColumn & { optional?: boolean }
+      : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+            keyof AssociatedModelType &
+            string
+        ? AutomaticSerializerAttributeOptions & { optional?: boolean }
+        : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
+            optional?: boolean
+          }
+  : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
 
 /**
  * The options of `customAttribute`. With `flatten: true`, `openapi` may be anything but a
