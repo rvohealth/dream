@@ -159,30 +159,15 @@ interface PendingThroughAssociation {
 }
 
 /**
- * The most primary keys a batch window of `findEach` reads the records of in
- * one statement (see `takeBatchWindowRowsFromKeys`), so that the keys the
- * statement matches rows against stay small enough for the database to hash
- * in memory.
+ * The groups a batch window of `findEach` narrows its select to (see
+ * `buildSelect`): the values, as text, of the first DISTINCT ON expression
+ * among the records of the window's keys, and whether any of those records is
+ * NULL there.
  */
-const BATCH_WINDOW_KEYS_PER_READ = 10_000
-
-/**
- * The most parameters Postgres binds in one statement.
- */
-const MAX_BOUND_PARAMETERS = 65_535
-
-/**
- * The common table expression that holds the keys a batch window of `findEach`
- * reads the records of (see `buildSelect`).
- */
-const BATCH_WINDOW_KEYS = 'dream_batch_window_keys'
-
-/**
- * The common table expression that holds, for the records of the keys a batch
- * window of `findEach` reads, the value of the first DISTINCT ON expression of
- * each group they belong to (see `buildSelect`).
- */
-const BATCH_WINDOW_GROUPS = 'dream_batch_window_groups'
+interface BatchWindowGroups {
+  values: string[]
+  includesNull: boolean
+}
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
   /**
@@ -1213,11 +1198,13 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       bypassOrder = false,
       columns,
       batchWindowKeys,
+      batchWindowGroups,
     }: {
       bypassSelectAll?: boolean
       bypassOrder?: boolean
       columns?: DreamColumnNames<DreamInstance>[]
       batchWindowKeys?: unknown[]
+      batchWindowGroups?: BatchWindowGroups | null
     } = {}
   ): SelectQueryBuilder<any, any, any> {
     const selectCore = this.buildSelectCore({ bypassOrder })
@@ -1232,64 +1219,34 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       // primary key breaks ties within a group, so that the select keeps the
       // same row of each group every time it runs.
       //
-      // A window that reads the records of some of the walk's keys binds those
-      // keys as one array, and keeps the select's rows of those keys, each once
-      // (a join can return a record in several groups). Before DISTINCT ON
-      // chooses each group's row, it narrows the select to the groups those
-      // records belong to now. Keeping or dropping whole groups leaves the row
-      // each kept group chooses unchanged, and DISTINCT ON then sorts the rows
-      // of those groups rather than every row the select's conditions reach,
-      // which the database still scans. Narrowing repeats the select's
-      // conditions, so it is left out when binding their parameters twice
-      // would pass the most a statement binds.
+      // A window that reads the records of some of the walk's keys keeps the
+      // select's rows of those keys, each once (a join can return a record in
+      // several groups). Given the groups those records belong to now, it first
+      // narrows the select to them, before DISTINCT ON chooses each group's
+      // row: keeping or dropping whole groups leaves the row each kept group
+      // chooses unchanged, and DISTINCT ON then sorts the rows of those groups
+      // rather than every row the select's conditions reach, which the
+      // database still scans. Keys and groups are each bound as one array and
+      // matched by `= any`, which Postgres 14 and later hash whatever the
+      // planner estimates.
       const baseSqlAlias = this.query['baseSqlAlias']
       const namespacedPrimaryKey = this.query['namespacedPrimaryKey']
-      let distinctCore = kyselyQuery
-      let selectDb: any = selectCore.selectDb
-
-      if (batchWindowKeys) {
-        const tablePrimaryKey = `${this.dreamClass.table}.${this.dreamClass.primaryKey}`
-        // materialized, so that the database reads the keys once and matches
-        // rows against them as a set, rather than looking each row up through
-        // the primary key's index with the whole array as its condition, which
-        // it can choose for an inlined CTE
-        selectDb = selectDb.with(
-          (cte: any) => cte(BATCH_WINDOW_KEYS).materialized(),
-          (db: any) =>
-            db
-              .selectFrom(this.dreamClass.table)
-              .select(sql.ref(tablePrimaryKey).as('key'))
-              .where(tablePrimaryKey, '=', sql`any(${sql.val(batchWindowKeys)})`)
-        )
-
-        // the select's conditions twice, the keys twice and the limit
-        if (2 * kyselyQuery.compile().parameters.length + 3 <= MAX_BOUND_PARAMETERS) {
-          // every row of a group shares the value of each DISTINCT ON
-          // expression, so narrowing by the first of them keeps or drops whole
-          // groups. The keys are bound again here, rather than read from
-          // BATCH_WINDOW_KEYS, so that the database can look them up by the
-          // primary key's index.
-          const groupExpression = kyselyQuery.toOperationNode().distinctOn![0]!
-          const groupsSelect = kyselyQuery
-            .clearSelect()
-            .clearOrderBy()
-            .where(namespacedPrimaryKey, '=', sql`any(${sql.val(batchWindowKeys)})`)
-            .select(new ExpressionWrapper(groupExpression).as('group_value'))
-          selectDb = selectDb.with(BATCH_WINDOW_GROUPS, () => groupsSelect)
-          distinctCore = distinctCore.where(batchWindowGroupsCondition(groupExpression))
-        }
-      }
+      const distinctCore = batchWindowGroups
+        ? kyselyQuery.where(
+            batchWindowGroupsCondition(batchWindowGroupExpression(kyselyQuery), batchWindowGroups)
+          )
+        : kyselyQuery
 
       const distinctSelect = distinctCore
         .orderBy(namespacedPrimaryKey)
         .selectAll(baseSqlAlias)
         .as(baseSqlAlias)
-      kyselyQuery = selectDb.selectFrom(distinctSelect as any)
+      kyselyQuery = selectCore.selectDb.selectFrom(distinctSelect as any)
 
       if (batchWindowKeys) {
         kyselyQuery = kyselyQuery
           .distinctOn(namespacedPrimaryKey)
-          .where(batchWindowKeyCondition(namespacedPrimaryKey))
+          .where(namespacedPrimaryKey, '=', sql`any(${sql.val(batchWindowKeys)})`)
       }
     } else if (this.query['bypassImplicitOrder']) {
       // a keyset cursor compares only the Query's order statements, so the
@@ -1409,9 +1366,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * the next of those keys that still match. A key whose record no longer
    * matches is passed over, and the window takes further keys until it holds
    * a full batch or none are left, so that a short window still means the
-   * walk is done. It reads at most `BATCH_WINDOW_KEYS_PER_READ` keys at a
-   * time, and each read narrows its select to the groups of those keys'
-   * records where it can (see `buildSelect`).
+   * walk is done. Each read first reads the groups those keys' records belong
+   * to (see `readBatchWindowGroups`) and narrows its select to them (see
+   * `buildSelect`).
    *
    * Each window reads its keys through the walk's first window, which carries
    * no cursor, rather than through itself: its cursor would narrow the select
@@ -1439,16 +1396,61 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     const rows: any[] = []
 
     while (rows.length < batchSize && keys.length) {
-      const windowKeys = keys.splice(0, Math.min(batchSize - rows.length, BATCH_WINDOW_KEYS_PER_READ))
+      const windowKeys = keys.splice(0, batchSize - rows.length)
+      const groups = await firstWindowDriver.readBatchWindowGroups(windowKeys)
+      // none of the keys' records still matches the select
+      if (groups && !groups.values.length && !groups.includesNull) continue
+
       rows.push(
         ...(await executeDatabaseQuery(
-          firstWindowDriver.buildSelect({ ...options, batchWindowKeys: windowKeys }),
+          firstWindowDriver.buildSelect({
+            ...options,
+            batchWindowKeys: windowKeys,
+            batchWindowGroups: groups,
+          }),
           'execute'
         ))
       )
     }
 
     return rows
+  }
+
+  /**
+   * @internal
+   *
+   * The groups that the records of `keys` belong to in a select that carries
+   * DISTINCT ON (see `takeBatchWindowRowsFromKeys`): the values of its first
+   * DISTINCT ON expression among those records, read as text so that they are
+   * bound back unchanged, and whether any of those records is NULL there.
+   * Returns `null`, so that the window's select is not narrowed, when that
+   * expression is an array, whose values cannot be listed in an array of the
+   * same type.
+   */
+  private async readBatchWindowGroups(
+    this: KyselyQueryDriver<DreamInstance>,
+    keys: unknown[]
+  ): Promise<BatchWindowGroups | null> {
+    const { kyselyQuery } = this.buildSelectCore()
+    const groupExpression = new ExpressionWrapper(batchWindowGroupExpression(kyselyQuery))
+    const groupRows: { value: string | null; type: string }[] = await executeDatabaseQuery(
+      kyselyQuery
+        .clearSelect()
+        .clearOrderBy()
+        .where(this.query['namespacedPrimaryKey'], '=', sql`any(${sql.val(keys)})`)
+        .select([
+          sql`cast(${groupExpression} as text)`.as('value'),
+          sql`pg_typeof(${groupExpression})::text`.as('type'),
+        ]),
+      'execute'
+    )
+
+    if (groupRows.some(row => row.type.endsWith('[]'))) return null
+
+    return {
+      values: groupRows.map(row => row.value).filter((value): value is string => value !== null),
+      includesNull: groupRows.some(row => row.value === null),
+    }
   }
 
   /**
@@ -4035,26 +4037,26 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 }
 
 /**
- * The condition that keeps the rows of a select whose `namespacedPrimaryKey`
- * is one of the keys in `BATCH_WINDOW_KEYS`.
+ * The first DISTINCT ON expression of a select. Every row of a DISTINCT ON
+ * group shares its value, so narrowing the select by it keeps or drops whole
+ * groups.
  */
-function batchWindowKeyCondition(namespacedPrimaryKey: string) {
-  return sql<SqlBool>`${sql.ref(namespacedPrimaryKey)} in (select ${sql.ref(`${BATCH_WINDOW_KEYS}.key`)} from ${sql.table(BATCH_WINDOW_KEYS)})`
+function batchWindowGroupExpression(selectCore: SelectQueryBuilder<any, any, any>): OperationNode {
+  return selectCore.toOperationNode().distinctOn![0]!
 }
 
 /**
- * The condition that keeps the rows of a select whose value of `groupExpression`
- * is one of the values in `BATCH_WINDOW_GROUPS`. DISTINCT ON puts NULLs in one
- * group, but a NULL matches nothing under `IN`, so a NULL is matched on its
- * own. Both read the values through an uncorrelated subquery, which the
- * database can hash rather than compare each row with every value.
+ * The condition that narrows a select to `groups`: the rows whose value of
+ * `groupExpression` is one of `groups.values` or, when `groups.includesNull`,
+ * is NULL, which DISTINCT ON puts in a group of its own. The values are bound
+ * as one array of their text forms, which the database reads as an array of
+ * the expression's own type, so that they compare as DISTINCT ON compares
+ * them.
  */
-function batchWindowGroupsCondition(groupExpression: OperationNode) {
+function batchWindowGroupsCondition(groupExpression: OperationNode, groups: BatchWindowGroups) {
   const value = new ExpressionWrapper(groupExpression)
-  const group = sql.ref(`${BATCH_WINDOW_GROUPS}.group_value`)
-  const groups = sql.table(BATCH_WINDOW_GROUPS)
-
-  return sql<SqlBool>`(${value} in (select ${group} from ${groups} where ${group} is not null) or (${value} is null and exists (select 1 from ${groups} where ${group} is null)))`
+  const matchesValue = sql<SqlBool>`${value} = any(${sql.val(groups.values)})`
+  return groups.includesNull ? sql<SqlBool>`(${matchesValue} or ${value} is null)` : matchesValue
 }
 
 function getSourceAssociation(dream: Dream | typeof Dream | undefined, sourceName: string) {
