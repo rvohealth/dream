@@ -160,9 +160,9 @@ interface PendingThroughAssociation {
 
 /**
  * The most primary keys a batch window of `findEach` reads the records of in
- * one statement (see `takeBatchWindowRowsFromKeys`), so that the keys, and the
- * groups of their records, that the statement matches rows against stay small
- * enough for the database to hash in memory.
+ * one statement (see `takeBatchWindowRowsFromKeys`), so that the keys the
+ * statement matches rows against stay small enough for the database to hash
+ * in memory.
  */
 const BATCH_WINDOW_KEYS_PER_READ = 10_000
 
@@ -1249,8 +1249,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
       if (batchWindowKeys) {
         const tablePrimaryKey = `${this.dreamClass.table}.${this.dreamClass.primaryKey}`
-        // materialized, so that the database hashes the keys rather than
-        // looking each row's key up in the array
+        // materialized, so that the database reads the keys once and matches
+        // rows against them as a set, rather than looking each row up through
+        // the primary key's index with the whole array as its condition, which
+        // it can choose for an inlined CTE
         selectDb = selectDb.with(
           (cte: any) => cte(BATCH_WINDOW_KEYS).materialized(),
           (db: any) =>
@@ -1260,7 +1262,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
               .where(tablePrimaryKey, '=', sql`any(${sql.val(batchWindowKeys)})`)
         )
 
-        if (2 * kyselyQuery.compile().parameters.length + 2 <= MAX_BOUND_PARAMETERS) {
+        // the select's conditions twice, the keys twice and the limit
+        if (2 * kyselyQuery.compile().parameters.length + 3 <= MAX_BOUND_PARAMETERS) {
           // every row of a group shares the value of each DISTINCT ON
           // expression, so narrowing by the first of them keeps or drops whole
           // groups. The keys are bound again here, rather than read from
@@ -1407,8 +1410,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * matches is passed over, and the window takes further keys until it holds
    * a full batch or none are left, so that a short window still means the
    * walk is done. It reads at most `BATCH_WINDOW_KEYS_PER_READ` keys at a
-   * time, and each read sorts only the rows of the groups of those keys'
-   * records (see `buildSelect`).
+   * time, and each read narrows its select to the groups of those keys'
+   * records where it can (see `buildSelect`).
    *
    * Each window reads its keys through the walk's first window, which carries
    * no cursor, rather than through itself: its cursor would narrow the select
