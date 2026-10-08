@@ -257,6 +257,27 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id])
     })
 
+    it('visits each record the join returns when the Query binds more than half the parameters one statement can', async () => {
+      const now = DateTime.now()
+      const pet1 = await Pet.create()
+      const pet2 = await Pet.create()
+      await pet1.createAssociation('collars', { tagName: 'a', createdAt: now })
+      await pet2.createAssociation('collars', { tagName: 'b', createdAt: now })
+      // ids no pet has, so that the condition binds over 33,000 parameters
+      const ids = [pet1.id, pet2.id, ...Array.from({ length: 33_000 }, (_, index) => String(-1 - index))]
+
+      const records: Pet[] = []
+      await Pet.where({ id: ids })
+        .innerJoin('newestCollarPerTagName')
+        .findEach(
+          pet => {
+            records.push(pet)
+          },
+          { batchSize: 1 }
+        )
+      expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id])
+    })
+
     it('does not visit a record the join returns only because the callback destroyed another, across batches', async () => {
       const now = DateTime.now()
       const pet1 = await Pet.create()
