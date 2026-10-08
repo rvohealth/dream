@@ -100,12 +100,12 @@ export default class DreamSerializerBuilder<
 
   // attribute is not a non-json dream column name
   public attribute<
-    // `keyof DataType` includes columns listed as properties, so, in order to exclude
-    // non-json columns, we include NonJsonDreamColumnNames and then set those properties as `never`
-    MaybeAttributeName extends NonJsonDreamColumnNames<DataType> | (keyof DataType & string),
-    AttributeName extends MaybeAttributeName extends NonJsonDreamColumnNames<DataType>
-      ? never
-      : Exclude<keyof DataType, DreamPropertiesToExclude> & string,
+    // `keyof DataType` includes columns listed as properties, so non-json columns are excluded
+    // here, leaving them to the overload below, which accepts only an OpenAPI description
+    AttributeName extends Exclude<
+      keyof DataType & string,
+      NonJsonDreamColumnNames<DataType> | DreamPropertiesToExclude
+    >,
   >(
     name: AttributeName,
     options: NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption
