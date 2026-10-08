@@ -366,7 +366,7 @@ export default class Query<
    * destroys or changes the one it kept.
    */
   private readonly batchWindow: {
-    walk: { keys?: unknown[]; firstWindow?: Query<any, any> }
+    walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean }
   } | null = null
 
   /**
@@ -691,7 +691,7 @@ export default class Query<
     // truthiness, since a primary key of 0 is a legitimate cursor value that
     // would otherwise reset the window to the start of the set
     let lastId: any = undefined
-    const walk: { keys?: unknown[]; firstWindow?: Query<any, any> } = {}
+    const walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean } = {}
 
     do {
       // the cursor is a where clause, which every driver applies; a driver
@@ -3762,7 +3762,10 @@ export interface QueryOpts<
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
   bypassImplicitOrder?: boolean | undefined
-  batchWindow?: { walk: { keys?: unknown[]; firstWindow?: Query<any, any> } } | null | undefined
+  batchWindow?:
+    | { walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean } }
+    | null
+    | undefined
 }
 
 /**

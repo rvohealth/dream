@@ -1367,8 +1367,9 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * matches is passed over, and the window takes further keys until it holds
    * a full batch or none are left, so that a short window still means the
    * walk is done. Each read first reads the groups those keys' records belong
-   * to (see `readBatchWindowGroups`) and narrows its select to them (see
-   * `buildSelect`).
+   * to (see `readBatchWindowGroups`), is skipped when none of those records
+   * still matches the select, and otherwise narrows its select to those groups
+   * where it can (see `buildSelect`).
    *
    * Each window reads its keys through the walk's first window, which carries
    * no cursor, rather than through itself: its cursor would narrow the select
@@ -1377,7 +1378,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    */
   private async takeBatchWindowRowsFromKeys(
     this: KyselyQueryDriver<DreamInstance>,
-    walk: { keys?: unknown[]; firstWindow?: Query<any, any> },
+    walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean },
     options: { columns?: DreamColumnNames<DreamInstance>[] }
   ): Promise<any[]> {
     if (walk.keys === undefined || walk.firstWindow === undefined) {
@@ -1397,7 +1398,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     while (rows.length < batchSize && keys.length) {
       const windowKeys = keys.splice(0, batchSize - rows.length)
-      const groups = await firstWindowDriver.readBatchWindowGroups(windowKeys)
+      const groups = await firstWindowDriver.readBatchWindowGroups(windowKeys, walk)
       // none of the keys' records still matches the select
       if (groups && !groups.values.length && !groups.includesNull) continue
 
@@ -1423,14 +1424,24 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * DISTINCT ON (see `takeBatchWindowRowsFromKeys`): the values of its first
    * DISTINCT ON expression among those records, read as text so that they are
    * bound back unchanged, and whether any of those records is NULL there.
+   *
    * Returns `null`, so that the window's select is not narrowed, when that
-   * expression is an array, whose values cannot be listed in an array of the
-   * same type.
+   * expression's values cannot be bound back through their text forms as an
+   * array of its type: an array or a composite, which `= any` cannot list, or
+   * a float, whose text form drops digits where `extra_float_digits` is below
+   * 1. The walk learns this from the first groups it reads and remembers it.
+   *
+   * The groups are read in a statement of their own, so a record whose group
+   * another connection changes between that statement and the window's read
+   * can be left out of the walk.
    */
   private async readBatchWindowGroups(
     this: KyselyQueryDriver<DreamInstance>,
-    keys: unknown[]
+    keys: unknown[],
+    walk: { groupsNarrowable?: boolean }
   ): Promise<BatchWindowGroups | null> {
+    if (walk.groupsNarrowable === false) return null
+
     const { kyselyQuery } = this.buildSelectCore()
     const groupExpression = new ExpressionWrapper(batchWindowGroupExpression(kyselyQuery))
     const groupRows: { value: string | null; type: string }[] = await executeDatabaseQuery(
@@ -1445,7 +1456,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       'execute'
     )
 
-    if (groupRows.some(row => row.type.endsWith('[]'))) return null
+    if (walk.groupsNarrowable === undefined && groupRows.length) {
+      const [typeRow]: { narrowable: boolean }[] = await executeDatabaseQuery(
+        this.dbFor('select').selectNoFrom(
+          sql<boolean>`(select not (type.typcategory in ('A', 'C') or coalesce(nullif(type.typbasetype, 0), type.oid) in ('real'::regtype, 'double precision'::regtype)) from pg_type as type where type.oid = cast(${groupRows[0]!.type} as regtype))`.as(
+            'narrowable'
+          )
+        ),
+        'execute'
+      )
+      walk.groupsNarrowable = typeRow!.narrowable
+    }
+    if (walk.groupsNarrowable === false) return null
 
     return {
       values: groupRows.map(row => row.value).filter((value): value is string => value !== null),
@@ -4050,7 +4072,8 @@ function batchWindowGroupExpression(selectCore: SelectQueryBuilder<any, any, any
  * `groupExpression` is one of `groups.values` or, when `groups.includesNull`,
  * is NULL, which DISTINCT ON puts in a group of its own. The values are bound
  * as one array of their text forms, which the database reads as an array of
- * the expression's own type, so that they compare as DISTINCT ON compares
+ * the expression's own type (for the types it cannot, see
+ * `readBatchWindowGroups`), so that they compare as DISTINCT ON compares
  * them.
  */
 function batchWindowGroupsCondition(groupExpression: OperationNode, groups: BatchWindowGroups) {
