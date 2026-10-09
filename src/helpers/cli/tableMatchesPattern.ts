@@ -9,7 +9,7 @@ import { matchesGlob } from 'node:path'
  * that contains a `.` is matched against `<schema>.<name>`, and any other
  * against the table's name alone. As with micromatch, a leading `!` (one that
  * does not open an extglob `!(…)`) negates the pattern, and a backslash
- * escapes the character after it.
+ * before a glob character such as `*` or `?` matches that character itself.
  */
 export default function tableMatchesPattern(
   table: { schema: string | null; name: string },
