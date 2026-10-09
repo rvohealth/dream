@@ -15,12 +15,12 @@ import camelize from '../camelize.js'
 import intersection from '../intersection.js'
 import sortBy from '../sortBy.js'
 import uniq from '../uniq.js'
-import pascalize from '../pascalize.js'
 import ASTBuilder, {
   SchemaBuilderAssociationData,
   SchemaBuilderColumnData,
   SchemaData,
 } from './ASTBuilder.js'
+import { dbTypesName, dbTypesReservedNames } from './dbTypesNaming.js'
 import resolveIgnoredColumns from './resolveIgnoredColumns.js'
 import tableMatchesPattern from './tableMatchesPattern.js'
 
@@ -90,23 +90,19 @@ export default class ASTConnectionBuilder extends ASTBuilder {
    * @internal
    *
    * the TypeScript name of each enum the connection's tables use, keyed by
-   * the enum's database name: the name pascalized, with a number added when
-   * it would repeat an earlier enum's name or one of `reservedNames`
+   * the enum's database name (see dbTypesName), with a number added when it
+   * would repeat an earlier enum's name or a name types/db.ts reserves
    */
-  protected async enumTypeNames(reservedNames: string[] = []): Promise<Map<string, string>> {
+  protected async enumTypeNames(): Promise<Map<string, string>> {
     const database = await this.introspectedDatabase()
     const usedEnumNames = new Set(
       database.tables.flatMap(table => table.columns.map(column => column.enumName).filter(name => !!name))
     )
-    const taken = new Set(reservedNames)
+    const takenNames = new Set(dbTypesReservedNames(database.tables))
     const typeNames = new Map<string, string>()
 
     for (const enumName of [...usedEnumNames].sort()) {
-      const baseName: string = pascalize(enumName!)
-      let typeName = baseName
-      for (let suffix = 2; taken.has(typeName); suffix++) typeName = `${baseName}${suffix}`
-      taken.add(typeName)
-      typeNames.set(enumName!, typeName)
+      typeNames.set(enumName!, dbTypesName(enumName!, takenNames))
     }
 
     return typeNames
@@ -154,7 +150,7 @@ export default class ASTConnectionBuilder extends ASTBuilder {
    */
   protected async getSchemaData() {
     const database = await this.introspectedDatabase()
-    const enumTypeNames = await this.enumTypeNames(DB_TYPES_RESERVED_NAMES)
+    const enumTypeNames = await this.enumTypeNames()
 
     const schemaData: SchemaData = {}
     for (const table of database.tables) {
@@ -417,36 +413,3 @@ may need to update the table getter in the corresponding Dream.
       )
   }
 }
-
-/**
- * @internal
- *
- * the names types/db.ts declares for its columns, imports or uses from
- * JavaScript, which no enum or table interface may take
- */
-export const DB_TYPES_RESERVED_NAMES = [
-  'ArrayType',
-  'ArrayTypeImpl',
-  'Buffer',
-  'CalendarDate',
-  'Circle',
-  'ClockTime',
-  'ClockTimeTz',
-  'ColumnType',
-  'DB',
-  'DBClass',
-  'Date',
-  'DateTime',
-  'Generated',
-  'IPostgresInterval',
-  'Int8',
-  'Interval',
-  'Json',
-  'JsonArray',
-  'JsonObject',
-  'JsonPrimitive',
-  'JsonValue',
-  'Numeric',
-  'Point',
-  'Timestamp',
-]
