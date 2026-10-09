@@ -189,8 +189,10 @@ export default class PostgresQueryDriver<
   /**
    * Reads the tables, views, materialized views, and partitioned and foreign
    * tables of every schema the connection's user can use, except Postgres's
-   * own schemas, partitions and Kysely's migration tables. A domain column
-   * reads as its base type.
+   * own schemas, tables that inherit from another (partitions included) and
+   * Kysely's migration tables. A domain column reads as the type at the
+   * bottom of its domains. An enum outside the `public` schema is named
+   * `<schema>.<name>`.
    *
    * @param connectionName - the connection to read
    */
@@ -199,6 +201,20 @@ export default class PostgresQueryDriver<
 
     const columnRows = (
       await sql<PostgresIntrospectedColumnRow>`
+        WITH RECURSIVE domain_chain(oid, base) AS (
+          SELECT typ.oid, typ.typbasetype FROM pg_catalog.pg_type AS typ WHERE typ.typtype = 'd'
+          UNION ALL
+          SELECT chain.oid, typ.typbasetype
+          FROM domain_chain AS chain
+          JOIN pg_catalog.pg_type AS typ ON typ.oid = chain.base
+          WHERE typ.typtype = 'd'
+        ),
+        domain_base(oid, base) AS (
+          SELECT chain.oid, chain.base
+          FROM domain_chain AS chain
+          JOIN pg_catalog.pg_type AS typ ON typ.oid = chain.base
+          WHERE typ.typtype <> 'd'
+        )
         SELECT
           ns.nspname AS schemaname,
           cls.relname AS tablename,
@@ -206,20 +222,23 @@ export default class PostgresQueryDriver<
           format_type(base.oid, NULL) AS dbtype,
           base.typcategory = 'A' AS isarray,
           format_type(coalesce(elem.oid, base.oid), NULL) AS valuedbtype,
-          CASE WHEN coalesce(elem.typtype, base.typtype) = 'e' THEN coalesce(elem.typname, base.typname) END AS enumname,
+          CASE WHEN coalesce(elem.typtype, base.typtype) = 'e' THEN
+            CASE WHEN enumns.nspname = 'public' THEN coalesce(elem.typname, base.typname)
+            ELSE enumns.nspname || '.' || coalesce(elem.typname, base.typname) END
+          END AS enumname,
           NOT att.attnotnull AS nullable,
           (att.atthasdef OR att.attidentity <> '' OR att.attgenerated <> '') AS hasdefault
         FROM pg_catalog.pg_class AS cls
         JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
         JOIN pg_catalog.pg_attribute AS att ON att.attrelid = cls.oid
-        JOIN pg_catalog.pg_type AS typ ON typ.oid = att.atttypid
         JOIN pg_catalog.pg_type AS base
-          ON base.oid = CASE WHEN typ.typtype = 'd' THEN typ.typbasetype ELSE typ.oid END
-        LEFT JOIN pg_catalog.pg_type AS elemraw ON base.typcategory = 'A' AND elemraw.oid = base.typelem
+          ON base.oid = coalesce((SELECT db.base FROM domain_base AS db WHERE db.oid = att.atttypid), att.atttypid)
         LEFT JOIN pg_catalog.pg_type AS elem
-          ON elem.oid = CASE WHEN elemraw.typtype = 'd' THEN elemraw.typbasetype ELSE elemraw.oid END
+          ON base.typcategory = 'A'
+          AND elem.oid = coalesce((SELECT db.base FROM domain_base AS db WHERE db.oid = base.typelem), base.typelem)
+        LEFT JOIN pg_catalog.pg_namespace AS enumns ON enumns.oid = coalesce(elem.typnamespace, base.typnamespace)
         WHERE cls.relkind IN ('r', 'p', 'v', 'm', 'f')
-          AND NOT cls.relispartition
+          AND NOT EXISTS (SELECT 1 FROM pg_catalog.pg_inherits AS inh WHERE inh.inhrelid = cls.oid)
           AND ns.nspname !~ '^pg_'
           AND ns.nspname <> 'information_schema'
           AND has_schema_privilege(ns.oid, 'USAGE')
@@ -232,9 +251,12 @@ export default class PostgresQueryDriver<
 
     const enumRows = (
       await sql<{ enumname: string; label: string }>`
-        SELECT typ.typname AS enumname, enm.enumlabel AS label
+        SELECT
+          CASE WHEN ns.nspname = 'public' THEN typ.typname ELSE ns.nspname || '.' || typ.typname END AS enumname,
+          enm.enumlabel AS label
         FROM pg_catalog.pg_enum AS enm
         JOIN pg_catalog.pg_type AS typ ON typ.oid = enm.enumtypid
+        JOIN pg_catalog.pg_namespace AS ns ON ns.oid = typ.typnamespace
       `.execute(db)
     ).rows
 

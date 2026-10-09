@@ -70,7 +70,7 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
         allDefaultScopeNames = [...allDefaultScopeNames, ...tableData.scopes.default]
 
         return f.createPropertyAssignment(
-          f.createIdentifier(tableName),
+          propertyName(tableName),
           f.createObjectLiteralExpression(
             [
               f.createPropertyAssignment(
@@ -147,7 +147,7 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
                       const coercedType = this.coercedType(columnData, importedTypes)
 
                       return f.createPropertyAssignment(
-                        f.createIdentifier(columnName),
+                        propertyName(columnName),
                         f.createObjectLiteralExpression(
                           [
                             f.createPropertyAssignment(
@@ -512,4 +512,13 @@ ${output}`
         return f.createTypeReferenceNode(columnData.valueType)
     }
   }
+}
+
+/**
+ * A property name for an object literal: the name itself when it is an
+ * identifier, and a string literal otherwise, such as a table outside the
+ * default schema (`inventory.parts`).
+ */
+function propertyName(name: string) {
+  return /^[A-Za-z_$][\w$]*$/.test(name) ? f.createIdentifier(name) : f.createStringLiteral(name)
 }
