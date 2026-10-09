@@ -62,7 +62,8 @@ export interface IntrospectedColumn {
    */
   valueType: IntrospectedValueType
   /**
-   * The database name of the enum the column's values belong to, or `null`.
+   * The name of the enum the column's values belong to, or `null`. An enum
+   * outside the connection's default schema is named `<schema>.<name>`.
    */
   enumName: string | null
   isArray: boolean
@@ -76,7 +77,8 @@ export interface IntrospectedColumn {
 
 export interface IntrospectedEnum {
   /**
-   * The enum type's database name, e.g. `balloon_colors_enum`.
+   * The enum's name, as columns' `enumName` gives it, e.g.
+   * `balloon_colors_enum`.
    */
   name: string
   values: string[]

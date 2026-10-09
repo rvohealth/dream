@@ -59,6 +59,27 @@ const database: IntrospectedDatabase = {
     },
     {
       schema: 'public',
+      name: 'widgets',
+      inDefaultSchema: true,
+      columns: [
+        column({ name: 'shape', dbType: 'point', valueType: 'enum', enumName: 'point' }),
+        column({ name: 'nothing', dbType: 'empty_enum', valueType: 'enum', enumName: 'empty_enum' }),
+        column({
+          name: 'status',
+          dbType: 'inventory.statuses',
+          valueType: 'enum',
+          enumName: 'inventory.statuses',
+        }),
+      ],
+    },
+    {
+      schema: 'public',
+      name: '2fa_codes',
+      inDefaultSchema: true,
+      columns: [column({ name: 'id', dbType: 'bigint', valueType: 'Int8' })],
+    },
+    {
+      schema: 'public',
       name: 'chalupasdujour_menu',
       inDefaultSchema: true,
       columns: [column({ name: 'id', dbType: 'bigint', valueType: 'Int8' })],
@@ -73,6 +94,8 @@ const database: IntrospectedDatabase = {
   enums: [
     { name: 'gadget_colors', values: ['red', "o'clock", 'blue'] },
     { name: 'unused_enum', values: ['x'] },
+    { name: 'point', values: ['round', 'square'] },
+    { name: 'inventory.statuses', values: ['in', 'out'] },
   ],
 }
 
@@ -118,6 +141,29 @@ describe('ASTDbTypesBuilder#build', () => {
     expect(types).not.toContain('export type Json')
   })
 
+  it('names an enum in another schema after its schema, and keeps an enum named like a type no column uses', async () => {
+    const types = await writtenTypes()
+
+    expect(types).toContain(`export type InventoryStatuses = 'in' | 'out'`)
+    expect(types).toContain(`export type Point = 'round' | 'square'`)
+    expect(types).toContain(
+      'export interface Widgets { nothing: EmptyEnum shape: Point status: InventoryStatuses }'
+    )
+  })
+
+  it('writes an enum without values as never', async () => {
+    const types = await writtenTypes()
+
+    expect(types).toContain('export type EmptyEnum = never')
+    expect(types).toContain('export const EmptyEnumValues = [] as const')
+  })
+
+  it('prefixes a table interface name that would start with a digit', async () => {
+    const types = await writtenTypes()
+
+    expect(types).toContain('export interface _2faCodes { id: Int8 }')
+  })
+
   it('gives a table interface whose name an enum already has a numbered name', async () => {
     const types = await writtenTypes()
 
@@ -137,7 +183,7 @@ describe('ASTDbTypesBuilder#build', () => {
     expect(types).not.toContain('chalupasdujour_menu')
     expect(types).not.toContain('inventory.parts')
     expect(types).toContain(
-      'export interface DB { gadget_colors: GadgetColors2 gadgets: Gadgets model_with_ignored_columns: ModelWithIgnoredColumns }'
+      "export interface DB { '2fa_codes': _2faCodes gadget_colors: GadgetColors2 gadgets: Gadgets model_with_ignored_columns: ModelWithIgnoredColumns widgets: Widgets }"
     )
   })
 
