@@ -1,15 +1,3 @@
-import { NonArrayDbTypes } from '../types/db.js'
-
-export default function dataTypes() {
-  // In the future, when we support multiple db drivers,
-  // this will need to be updated
-  return postgresDatatypes
-}
-
-export function isPrimitiveDataType(type: string) {
-  return dataTypes().includes(type.replace(/\[\]$/, '') as NonArrayDbTypes)
-}
-
 export const postgresDatatypes = [
   'bigint',
   'bigserial',

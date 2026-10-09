@@ -39,7 +39,6 @@ import {
   NOT_NULL_VIOLATION,
   pgErrorType,
 } from '../../db/errors.js'
-import syncDbTypesFiles from '../../db/helpers/syncDbTypesFiles.js'
 import { default as _db } from '../../db/index.js'
 import validateColumn from '../../db/validators/validateColumn.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
@@ -66,8 +65,8 @@ import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
 import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
-import { SchemaBuilderInformationSchemaRow } from '../../helpers/cli/ASTBuilder.js'
 import ASTGlobalSchemaBuilder from '../../helpers/cli/ASTGlobalSchemaBuilder.js'
+import ASTDbTypesBuilder from '../../helpers/cli/ASTDbTypesBuilder.js'
 import ASTSchemaBuilder from '../../helpers/cli/ASTSchemaBuilder.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
 import compact from '../../helpers/compact.js'
@@ -79,7 +78,6 @@ import isEmpty from '../../helpers/isEmpty.js'
 import maybeNamespacedColumnNameToColumnName from '../../helpers/maybeNamespacedColumnNameToColumnName.js'
 import namespaceColumn from '../../helpers/namespaceColumn.js'
 import objectPathsToArrays from '../../helpers/objectPathsToArrays.js'
-import pascalize from '../../helpers/pascalize.js'
 import protectAgainstPollutingAssignment from '../../helpers/protectAgainstPollutingAssignment.js'
 import { Range } from '../../helpers/range.js'
 import snakeify from '../../helpers/snakeify.js'
@@ -339,8 +337,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         await DreamCLI.logger.logProgress(
           `introspecting db for connection: ${connectionName}...`,
           async () => {
-            // this calls kysely-codegen under the hood
-            await syncDbTypesFiles(connectionName)
+            await new ASTDbTypesBuilder(connectionName).build()
           }
         )
       }
@@ -394,14 +391,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       // with stale generated types
       throw error
     }
-  }
-
-  public static override get syncDialect(): string {
-    return 'postgres'
-  }
-
-  public static override async codegenPassword(password: DreamDbConfig['password']): Promise<string> {
-    return typeof password === 'function' ? await password() : password
   }
 
   /**
@@ -555,16 +544,6 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     await dreamTransaction.runAfterCommitHooks()
 
     return callbackResponse
-  }
-
-  /**
-   * @internal
-   *
-   * this is used by getColumnData to serialize enums
-   */
-  public static enumType(row: SchemaBuilderInformationSchemaRow) {
-    const enumName = pascalize(row.udtName.replace(/\[\]$/, ''))
-    return enumName
   }
 
   /**

@@ -2,6 +2,7 @@ import * as path from 'node:path'
 import ts from 'typescript'
 import DreamApp from '../../dream-app/index.js'
 import { DreamConst } from '../../dream/constants.js'
+import { IntrospectedValueType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
 
 const f = ts.factory
@@ -10,7 +11,7 @@ const f = ts.factory
  * @internal
  *
  * This is a base class, which is inherited by the ASTSchemaBuilder,
- * the ASTKyselyCodegenEnhancer, and the ASTGlobalSchemaBuilder,
+ * the ASTDbTypesBuilder, and the ASTGlobalSchemaBuilder,
  * each of which is responsible for building up the output of the various
  * type files consumed by dream internally.
  *
@@ -25,167 +26,6 @@ export default class ASTBuilder {
    */
   protected newLine() {
     return f.createIdentifier('\n')
-  }
-
-  /**
-   * @internal
-   *
-   * given an interface declaration, it will extrace the relevant property statement
-   * by the given property name.
-   */
-  protected getPropertyFromInterface(
-    interfaceNode: ts.InterfaceDeclaration,
-    propertyName: string
-  ): ts.PropertySignature | null {
-    for (const member of interfaceNode.members) {
-      if (ts.isPropertySignature(member)) {
-        if (ts.isIdentifier(member.name) && member.name.text === propertyName) {
-          return member
-        }
-      }
-    }
-
-    return null
-  }
-
-  /**
-   * @internal
-   *
-   * returns an array of string type literals which were extracted from
-   * either a type or type union, depending on what is provided
-   * for the typeAlias. this allows you to safely and easily collect
-   * an array of types given an alias
-   */
-  protected extractStringLiteralTypeNodesFromTypeOrUnion(
-    typeAlias: ts.TypeAliasDeclaration
-  ): // this return type is mangled a bit, so that on the other side it will be
-  // easy to extract the text field from the literal without additional type checking.
-  // if isStringLiteral is true, then the text field will be present, but abstracting this
-  // out to a common function has caused type recognition to degrade here, forcing me to
-  // be a little more direct.
-  (ts.LiteralTypeNode & { literal: { text: string } })[] {
-    const literals: ReturnType<ASTBuilder['extractStringLiteralTypeNodesFromTypeOrUnion']> = []
-
-    if (ts.isUnionTypeNode(typeAlias.type)) {
-      typeAlias.type.types.forEach(typeNode => {
-        if (ts.isLiteralTypeNode(typeNode) && ts.isStringLiteral(typeNode.literal)) {
-          literals.push(typeNode as (typeof literals)[number])
-        }
-      })
-    } else if (ts.isLiteralTypeNode(typeAlias.type) && ts.isStringLiteral(typeAlias.type.literal)) {
-      literals.push(typeAlias.type as (typeof literals)[number])
-    }
-
-    return literals
-  }
-
-  /**
-   * @internal
-   *
-   * returns an array of type literals which were extracted from
-   * either a type or type union, depending on what is provided
-   * for the typeAlias. this allows you to safely and easily collect
-   * an array of types given an alias
-   */
-  protected extractTypeNodesFromTypeOrUnion(
-    typeAlias: ts.TypeAliasDeclaration | ts.PropertySignature
-  ): ts.TypeNode[] {
-    const literals: ts.TypeNode[] = []
-
-    if (typeAlias.type && ts.isUnionTypeNode(typeAlias.type)) {
-      typeAlias.type.types.forEach(typeNode => {
-        literals.push(typeNode)
-      })
-    } else if (typeAlias.type) {
-      literals.push(typeAlias.type)
-    }
-
-    return literals
-  }
-
-  /**
-   * @internal
-   *
-   * returns the provided node iff
-   *   a.) the node is an exported type alias
-   *   b.) the exported name matches the provided name (or else there was no name provided)
-   *
-   *  otherwise, returns null
-   */
-  protected exportedTypeAliasOrNull(node: ts.Node, exportName?: string): ts.TypeAliasDeclaration | null {
-    if (
-      ts.isTypeAliasDeclaration(node) &&
-      node?.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword) &&
-      (!exportName ? true : node.name.text === exportName)
-    )
-      return node
-
-    return null
-  }
-
-  /**
-   * @internal
-   *
-   * returns the provided node iff
-   *   a.) the node is an exported interface
-   *   b.) the exported name matches the provided name (or else there was no name provided)
-   *
-   *  otherwise, returns null
-   */
-  protected exportedInterfaceOrNull(node: ts.Node, exportName?: string): ts.InterfaceDeclaration | null {
-    if (
-      ts.isInterfaceDeclaration(node) &&
-      node?.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword) &&
-      (!exportName ? true : node.name.text === exportName)
-    )
-      return node
-
-    return null
-  }
-
-  /**
-   * @internal
-   *
-   * extracts the exportName from the provided dbSourceFile
-   */
-  protected findDbExport(dbSourceFile: ts.SourceFile, exportName: string) {
-    let foundNode: ts.Node | undefined
-
-    ts.forEachChild(dbSourceFile, node => {
-      const hasModifiers =
-        ts.isFunctionDeclaration(node) ||
-        ts.isClassDeclaration(node) ||
-        ts.isInterfaceDeclaration(node) ||
-        ts.isVariableStatement(node) ||
-        ts.isTypeAliasDeclaration(node)
-
-      if (hasModifiers) {
-        const isExported = node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)
-
-        if (isExported && ts.isVariableStatement(node)) {
-          const declarations = node.declarationList.declarations
-          const name = declarations?.[0]?.name as ts.Identifier
-
-          if (declarations.length > 0 && ts.isIdentifier(name) && name?.text === exportName) {
-            foundNode = node
-            return true // Stop traversal
-          }
-        }
-
-        const declarationWithName = node as any
-        if (
-          isExported &&
-          declarationWithName.name &&
-          ts.isIdentifier(declarationWithName.name) &&
-          declarationWithName.name.text === exportName
-        ) {
-          foundNode = node
-          return true // Stop traversal
-        }
-      }
-    })
-
-    return foundNode
   }
 
   /**
@@ -232,26 +72,6 @@ export default class ASTBuilder {
       // dependency of dream
       return output
     }
-  }
-
-  /**
-   * @internal
-   *
-   * given a type node, it will send back the first found generic
-   * provided to that type.
-   */
-  protected getFirstGenericType(node: ts.Node): ts.TypeNode | null {
-    if (ts.isTypeReferenceNode(node)) {
-      if (node.typeArguments && node.typeArguments.length > 0) {
-        return node.typeArguments[0]!
-      }
-    } else if (ts.isCallExpression(node)) {
-      if (node.typeArguments && node.typeArguments.length > 0) {
-        return node.typeArguments[0]!
-      }
-    }
-
-    return null
   }
 
   /**
@@ -339,31 +159,6 @@ export default class ASTBuilder {
   /**
    * @internal
    *
-   * for a given table name (i.e. balloon_lines), it will return the exported
-   * `BalloonLines` interface within the dbSourceFile
-   */
-  protected getTableInterfaceDeclaration(dbSourceFile: ts.SourceFile, tableName: string) {
-    const DB = this.findDbExport(dbSourceFile, 'DB') as ts.InterfaceDeclaration
-
-    let targetProperty: ts.PropertySignature | null = null
-    for (const member of DB.members) {
-      if (ts.isPropertySignature(member) && member.name.getText(dbSourceFile) === tableName) {
-        targetProperty = member
-        break
-      }
-    }
-
-    const tableInterfaceName = (targetProperty?.type as unknown as { typeName: { escapedText: string } })
-      .typeName?.escapedText
-    if (!tableInterfaceName) throw new Error(`failed to find table interface for table: ${tableName}`)
-
-    const tableInterface = this.findDbExport(dbSourceFile, tableInterfaceName)
-    return tableInterface as ts.InterfaceDeclaration
-  }
-
-  /**
-   * @internal
-   *
    * returns an array of global names for all serializers in the app
    */
   protected globalSerializerNames(): string[] {
@@ -379,47 +174,6 @@ export default class ASTBuilder {
    */
   protected isDateDbType(dbType: string): boolean {
     return /^date[[\]]*$/.test(dbType)
-  }
-
-  /**
-   * @internal
-   *
-   * checks if a database type is a time without time zone type (with optional array suffix)
-   */
-  protected isTimeWithoutTimeZoneDbType(dbType: string): boolean {
-    return /^time without time zone[[\]]*$/.test(dbType)
-  }
-
-  /**
-   * @internal
-   *
-   * checks if a database type is a time with time zone type (with optional array suffix)
-   */
-  protected isTimeWithTimeZoneDbType(dbType: string): boolean {
-    return /^time with time zone[[\]]*$/.test(dbType)
-  }
-
-  /**
-   * @internal
-   *
-   * checks if a database type is any time type (with or without time zone, with optional array suffix)
-   */
-  protected isTimeDbType(dbType: string): boolean {
-    return /^time (without|with) time zone(\[\])?$/.test(dbType)
-  }
-
-  /**
-   * @internal
-   *
-   * checks if a TypeScript type node represents a string-like type
-   * (string keyword, string type reference, or string literal)
-   */
-  protected isStringLikeType(node: ts.TypeNode, sourceFile: ts.SourceFile): boolean {
-    return (
-      node.kind === ts.SyntaxKind.StringKeyword ||
-      (ts.isTypeReferenceNode(node) && node.typeName.getText(sourceFile) === 'string') ||
-      (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal))
-    )
   }
 }
 
@@ -450,16 +204,10 @@ export interface SchemaBuilderAssociationData {
 
 export interface SchemaBuilderColumnData {
   dbType: string
+  valueType: IntrospectedValueType
   allowNull: boolean
   enumType: string | null
   enumValues: string | null
   foreignKey: string | null
   isArray: boolean
-}
-
-export interface SchemaBuilderInformationSchemaRow {
-  columnName: string
-  udtName: string
-  dataType: string
-  isNullable: 'YES' | 'NO'
 }

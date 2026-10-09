@@ -801,24 +801,24 @@ export interface DreamDbCredentialOptions {
   queryDriverClass?: typeof QueryDriverBase
 
   /**
-   * a string which informs the kysely-codegen tool,
-   * used to introspect tables under the hood, which tables to use.
-   * Can be an actual table name, or a glob pattern, i.e.
+   * The tables `sync` writes types for, when it should not be every table
+   * the connection can read. Every table it writes types for needs a Dream
+   * model. A table name, or a glob in Node's `path.matchesGlob` syntax,
+   * compared without regard to case, e.g.
+   *   "users"
+   *   "chalupas*"
    *   "public.*"
-   *   "public.+(user|post)"
+   *   "public.+(users|posts)"
    *
-   * see https://github.com/RobinBlomberg/kysely-codegen for more info
+   * A pattern that contains a `.` is matched against `<schema>.<table>`, and
+   * any other against the table's name alone.
    */
   tableIncludePattern?: string
 
   /**
-   * a string which informs the kysely-codegen tool,
-   * used to introspect tables under the hood, which tables to use.
-   * Can be an actual table name, or a glob pattern, i.e.
-   *   "public.*"
-   *   "public.+(user|post)"
-   *
-   * see https://github.com/RobinBlomberg/kysely-codegen for more info
+   * The tables `sync` leaves out of the types it writes, e.g. tables that no
+   * Dream model reads. Written like `tableIncludePattern`, and applied after
+   * it.
    */
   tableExcludePattern?: string
 }

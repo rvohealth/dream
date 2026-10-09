@@ -10,17 +10,11 @@ import pg from 'pg'
 
 import { sql, type SelectQueryBuilder } from 'kysely'
 import DreamCLI from '../../cli/index.js'
-import { isPrimitiveDataType } from '../../db/dataTypes.js'
 import { DEADLOCK_DETECTED, LOCK_NOT_AVAILABLE, pgErrorType, UNIQUE_VIOLATION } from '../../db/errors.js'
 import DreamApp from '../../dream-app/index.js'
 import SortableScopeLockWaitTimedOut from '../../errors/SortableScopeLockWaitTimedOut.js'
 import Dream from '../../Dream.js'
-import camelize from '../../helpers/camelize.js'
-import {
-  SchemaBuilderAssociationData,
-  SchemaBuilderColumnData,
-  SchemaBuilderInformationSchemaRow,
-} from '../../helpers/cli/ASTBuilder.js'
+import { IntrospectedDatabase, IntrospectedTable, IntrospectedValueType } from '../../types/db.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -193,49 +187,88 @@ export default class PostgresQueryDriver<
   }
 
   /**
-   * @internal
+   * Reads the tables, views, materialized views, and partitioned and foreign
+   * tables of every schema the connection's user can use, except Postgres's
+   * own schemas, partitions and Kysely's migration tables. A domain column
+   * reads as its base type.
    *
-   * this is used by the SchemaBuilder to store column data permanently
-   * within the types/dream.ts file.
+   * @param connectionName - the connection to read
    */
-  public static override async getColumnData(
-    connectionName: string,
-    tableName: string,
-    allTableAssociationData: { [key: string]: SchemaBuilderAssociationData }
-  ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
+  public static override async introspectDatabase(connectionName: string): Promise<IntrospectedDatabase> {
     const db = this.dbFor(connectionName, 'primary')
-    const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
-    const columnToDBTypeMap = await sqlQuery.execute(db)
-    const rows = columnToDBTypeMap.rows as SchemaBuilderInformationSchemaRow[]
 
-    const columnData: {
-      [key: string]: SchemaBuilderColumnData
-    } = {}
-    rows.forEach(row => {
-      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
-      const isArray = ['ARRAY'].includes(row.dataType)
-      const associationMetadata = allTableAssociationData[row.columnName]
+    const columnRows = (
+      await sql<PostgresIntrospectedColumnRow>`
+        SELECT
+          ns.nspname AS schemaname,
+          cls.relname AS tablename,
+          att.attname AS columnname,
+          format_type(base.oid, NULL) AS dbtype,
+          base.typcategory = 'A' AS isarray,
+          format_type(coalesce(elem.oid, base.oid), NULL) AS valuedbtype,
+          CASE WHEN coalesce(elem.typtype, base.typtype) = 'e' THEN coalesce(elem.typname, base.typname) END AS enumname,
+          NOT att.attnotnull AS nullable,
+          (att.atthasdef OR att.attidentity <> '' OR att.attgenerated <> '') AS hasdefault
+        FROM pg_catalog.pg_class AS cls
+        JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
+        JOIN pg_catalog.pg_attribute AS att ON att.attrelid = cls.oid
+        JOIN pg_catalog.pg_type AS typ ON typ.oid = att.atttypid
+        JOIN pg_catalog.pg_type AS base
+          ON base.oid = CASE WHEN typ.typtype = 'd' THEN typ.typbasetype ELSE typ.oid END
+        LEFT JOIN pg_catalog.pg_type AS elemraw ON base.typcategory = 'A' AND elemraw.oid = base.typelem
+        LEFT JOIN pg_catalog.pg_type AS elem
+          ON elem.oid = CASE WHEN elemraw.typtype = 'd' THEN elemraw.typbasetype ELSE elemraw.oid END
+        WHERE cls.relkind IN ('r', 'p', 'v', 'm', 'f')
+          AND NOT cls.relispartition
+          AND ns.nspname !~ '^pg_'
+          AND ns.nspname <> 'information_schema'
+          AND has_schema_privilege(ns.oid, 'USAGE')
+          AND cls.relname NOT IN ('kysely_migration', 'kysely_migration_lock')
+          AND att.attnum > 0
+          AND NOT att.attisdropped
+        ORDER BY ns.nspname, cls.relname, att.attnum
+      `.execute(db)
+    ).rows
 
-      columnData[camelize(row.columnName)] = {
-        dbType: row.udtName,
-        allowNull: row.isNullable === 'YES',
-        enumType: isEnum ? this.enumType(row) : null,
-        enumValues: isEnum ? `${this.enumType(row)}Values` : null,
-        isArray,
-        foreignKey: associationMetadata?.foreignKey || null,
+    const enumRows = (
+      await sql<{ enumname: string; label: string }>`
+        SELECT typ.typname AS enumname, enm.enumlabel AS label
+        FROM pg_catalog.pg_enum AS enm
+        JOIN pg_catalog.pg_type AS typ ON typ.oid = enm.enumtypid
+      `.execute(db)
+    ).rows
+
+    const tables: IntrospectedTable[] = []
+    for (const row of columnRows) {
+      let table = tables.at(-1)
+      if (table?.schema !== row.schemaname || table.name !== row.tablename) {
+        table = {
+          schema: row.schemaname,
+          name: row.tablename,
+          inDefaultSchema: row.schemaname === 'public',
+          columns: [],
+        }
+        tables.push(table)
       }
-    })
 
-    return Object.keys(columnData)
-      .sort()
-      .reduce(
-        (acc, key) => {
-          if (columnData[key] === undefined) return acc
-          acc[key] = columnData[key]
-          return acc
-        },
-        {} as { [key: string]: SchemaBuilderColumnData }
-      )
+      table.columns.push({
+        name: row.columnname,
+        dbType: row.dbtype,
+        valueType: row.enumname ? 'enum' : (POSTGRES_VALUE_TYPES[row.valuedbtype] ?? 'string'),
+        enumName: row.enumname,
+        isArray: row.isarray,
+        allowNull: row.nullable,
+        hasDefault: row.hasdefault,
+      })
+    }
+
+    const enumValues: Record<string, string[]> = {}
+    for (const row of enumRows) (enumValues[row.enumname] ||= []).push(row.label)
+
+    return {
+      tables,
+      enums: Object.keys(enumValues).map(name => ({ name, values: enumValues[name]! })),
+    }
   }
 
   public static override async duplicateDatabase(connectionName: string) {
@@ -449,4 +482,43 @@ export default class PostgresQueryDriver<
       },
     }
   }
+}
+
+/**
+ * The `types/db.ts` type of one value of each Postgres type Dream reads as
+ * something other than a string, keyed by the type's name as `format_type`
+ * gives it. Every other type, enums aside, reads as a string.
+ */
+const POSTGRES_VALUE_TYPES: Record<string, IntrospectedValueType> = {
+  smallint: 'number',
+  integer: 'number',
+  real: 'number',
+  'double precision': 'number',
+  oid: 'number',
+  bigint: 'Int8',
+  numeric: 'Numeric',
+  boolean: 'boolean',
+  date: 'Timestamp',
+  'timestamp without time zone': 'Timestamp',
+  'timestamp with time zone': 'Timestamp',
+  'time without time zone': 'ClockTime',
+  'time with time zone': 'ClockTimeTz',
+  json: 'Json',
+  jsonb: 'Json',
+  bytea: 'Buffer',
+  interval: 'Interval',
+  point: 'Point',
+  circle: 'Circle',
+}
+
+interface PostgresIntrospectedColumnRow {
+  schemaname: string
+  tablename: string
+  columnname: string
+  dbtype: string
+  isarray: boolean
+  valuedbtype: string
+  enumname: string | null
+  nullable: boolean
+  hasdefault: boolean
 }

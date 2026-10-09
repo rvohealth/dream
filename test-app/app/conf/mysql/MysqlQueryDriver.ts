@@ -1,7 +1,6 @@
 import { MysqlDialect, NoResultError, OrderByItemBuilder, sql } from 'kysely'
 import { createPool } from 'mysql2'
 import DreamCLI from '../../../../src/cli/index.js'
-import { isPrimitiveDataType } from '../../../../src/db/dataTypes.js'
 import { testDatabasePoolSize } from '../../../../src/db/testDatabasePool.js'
 import DreamApp, { DreamDbConfig } from '../../../../src/dream-app/index.js'
 import Dream from '../../../../src/Dream.js'
@@ -10,16 +9,15 @@ import executeDatabaseQuery from '../../../../src/dream/internal/executeDatabase
 import KyselyQueryDriver from '../../../../src/dream/QueryDriver/Kysely.js'
 import type { TestDatabaseLockSession } from '../../../../src/dream/QueryDriver/Base.js'
 import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
-import camelize from '../../../../src/helpers/camelize.js'
-import {
-  SchemaBuilderAssociationData,
-  SchemaBuilderColumnData,
-  SchemaBuilderInformationSchemaRow,
-} from '../../../../src/helpers/cli/ASTBuilder.js'
 import EnvInternal from '../../../../src/helpers/EnvInternal.js'
 import namespaceColumn from '../../../../src/helpers/namespaceColumn.js'
 import sqlAttributes from '../../../../src/helpers/sqlAttributes.js'
-import { DbConnectionType } from '../../../../src/types/db.js'
+import {
+  DbConnectionType,
+  IntrospectedDatabase,
+  IntrospectedTable,
+  IntrospectedValueType,
+} from '../../../../src/types/db.js'
 import { OrderDir } from '../../../../src/types/dream.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
@@ -157,62 +155,45 @@ export default class MysqlQueryDriver<DreamInstance extends Dream> extends Kysel
     DreamCLI.logger.logEndProgress()
   }
 
-  /**
-   * @internal
-   *
-   * this is used by the SchemaBuilder to store column data permanently
-   * within the types/dream.ts file.
-   */
-  public static override async getColumnData(
-    connectionName: string,
-    tableName: string,
-    associationData: { [key: string]: SchemaBuilderAssociationData }
-  ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
+  public static override async introspectDatabase(connectionName: string): Promise<IntrospectedDatabase> {
     const db = this.dbFor(connectionName, 'primary')
-    // const sqlQuery = sql`SELECT column_name, udt_name::regtype, is_nullable, data_type FROM information_schema.columns WHERE table_name = ${tableName}`
-    const sqlQuery = sql`SELECT column_name as column_name, column_type AS udt_name, is_nullable as is_nullable, data_type as data_type FROM information_schema.columns WHERE table_name = ${tableName}`
-    const columnToDBTypeMap = await sqlQuery.execute(db)
-    const rows = columnToDBTypeMap.rows as SchemaBuilderInformationSchemaRow[]
+    const rows = (
+      await sql<MysqlIntrospectedColumnRow>`
+        SELECT
+          table_schema AS schemaname,
+          table_name AS tablename,
+          column_name AS columnname,
+          column_type AS dbtype,
+          data_type AS datatype,
+          is_nullable AS nullable,
+          (column_default IS NOT NULL OR extra LIKE '%auto_increment%' OR extra LIKE '%GENERATED%') AS hasdefault
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name NOT IN ('kysely_migration', 'kysely_migration_lock')
+        ORDER BY table_name, ordinal_position
+      `.execute(db)
+    ).rows
 
-    const columnData: {
-      [key: string]: SchemaBuilderColumnData
-    } = {}
-    rows.forEach(row => {
-      const isEnum = ['USER-DEFINED', 'ARRAY'].includes(row.dataType) && !isPrimitiveDataType(row.udtName)
-      const isArray = ['ARRAY'].includes(row.dataType)
-      const associationMetadata = associationData[row.columnName]
-
-      columnData[camelize(row.columnName)] = {
-        dbType: row.udtName,
-        allowNull: row.isNullable === 'YES',
-        enumType: isEnum ? this.enumType(row) : null,
-        enumValues: isEnum ? `${this.enumType(row)}Values` : null,
-        isArray,
-        foreignKey: associationMetadata?.foreignKey || null,
+    const tables: IntrospectedTable[] = []
+    for (const row of rows) {
+      let table = tables.at(-1)
+      if (table?.name !== row.tablename) {
+        table = { schema: row.schemaname, name: row.tablename, inDefaultSchema: true, columns: [] }
+        tables.push(table)
       }
-    })
 
-    return Object.keys(columnData)
-      .sort()
-      .reduce(
-        (acc, key) => {
-          if (columnData[key] === undefined) return acc
-          acc[key] = columnData[key]
-          return acc
-        },
-        {} as { [key: string]: SchemaBuilderColumnData }
-      )
-  }
-
-  public static override get syncDialect(): string {
-    return 'mysql'
-  }
-
-  public static override codegenPassword(password: DreamDbConfig['password']): Promise<string> {
-    if (typeof password === 'function') {
-      throw new Error('MySQL does not support a password provider; configure a fixed password')
+      table.columns.push({
+        name: row.columnname,
+        dbType: row.dbtype,
+        valueType: MYSQL_VALUE_TYPES[row.datatype.toLowerCase()] ?? 'string',
+        enumName: null,
+        isArray: false,
+        allowNull: row.nullable === 'YES',
+        hasDefault: !!Number(row.hasdefault),
+      })
     }
-    return Promise.resolve(password)
+
+    return { tables, enums: [] }
   }
 
   public static override supportsParallelTestDatabases = true
@@ -479,4 +460,36 @@ async function duplicateMysqlDatabase(
       })
     })
   })
+}
+
+const MYSQL_VALUE_TYPES: Record<string, IntrospectedValueType> = {
+  tinyint: 'number',
+  smallint: 'number',
+  mediumint: 'number',
+  int: 'number',
+  integer: 'number',
+  bigint: 'number',
+  float: 'number',
+  double: 'number',
+  year: 'number',
+  date: 'Date',
+  datetime: 'Date',
+  timestamp: 'Date',
+  json: 'Json',
+  binary: 'Buffer',
+  varbinary: 'Buffer',
+  blob: 'Buffer',
+  tinyblob: 'Buffer',
+  mediumblob: 'Buffer',
+  longblob: 'Buffer',
+}
+
+interface MysqlIntrospectedColumnRow {
+  schemaname: string
+  tablename: string
+  columnname: string
+  dbtype: string
+  datatype: string
+  nullable: 'YES' | 'NO'
+  hasdefault: number | string
 }

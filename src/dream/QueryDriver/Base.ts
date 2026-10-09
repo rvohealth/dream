@@ -1,9 +1,7 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
-import type { DreamDbConfig } from '../../dream-app/index.js'
 import Dream from '../../Dream.js'
-import { SchemaBuilderAssociationData, SchemaBuilderColumnData } from '../../helpers/cli/ASTBuilder.js'
 import { AssociationStatement, OrderQueryStatement } from '../../types/associations/shared.js'
-import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
+import { DbConnectionType, IntrospectedDatabase, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
 import {
   PreloadedDreamsAndWhatTheyPointTo,
@@ -119,14 +117,12 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * comlpex to override. You will need to do the following
    * when overriding this method:
    *
-   * 1. introspect the db and use it to generate a db.ts file in the
-   *    same shape as the existing one. Currently, the process for generating
-   *    this file is extremely complex and messy, and will be difficult
-   *    to achieve.
+   * 1. generate a types/db.ts file in the same shape as the existing one.
+   *    KyselyQueryDriver does this with the ASTDbTypesBuilder, which writes
+   *    it from {@link introspectDatabase}.
    * 2. generate a types/dream.ts file in the same shape as the existing
-   *    one. This is normally done using the ASTSchemaBuilder
-   *    but this will likely need to be overridden to tailor to your custom
-   *    database engine.
+   *    one. KyselyQueryDriver does this with the ASTSchemaBuilder, which
+   *    also reads the connection through {@link introspectDatabase}.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async sync(
@@ -354,16 +350,21 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     throw new Error('override acquireAdvisoryTransactionLocks in child class')
   }
 
+  /**
+   * Reads the tables, columns and enums of the connection's database, from
+   * which `sync` writes the connection's `types/db.ts` and `types/dream.ts`.
+   * It returns every table the connection can read, sorted by schema and
+   * name; `sync` applies `tableIncludePattern` and `tableExcludePattern`
+   * itself.
+   *
+   * @param connectionName - the connection to read
+   */
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async getColumnData(
+  public static async introspectDatabase(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    connectionName: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    tableName: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    allTableAssociationData: { [key: string]: SchemaBuilderAssociationData }
-  ): Promise<{ [key: string]: SchemaBuilderColumnData }> {
-    throw new Error('implement getColumnData in child class')
+    connectionName: string
+  ): Promise<IntrospectedDatabase> {
+    throw new Error('implement introspectDatabase in child class')
   }
 
   /**
@@ -771,17 +772,6 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
     throw new Error('implement destroyDream in child class')
   }
 
-  public static get syncDialect(): string {
-    return 'postgres'
-  }
-
-  /** @internal Resolve the credential used by the database type generator. */
-  public static codegenPassword(password: DreamDbConfig['password']): Promise<string> {
-    if (typeof password === 'function') {
-      throw new Error('This database adapter does not support a password provider for type generation')
-    }
-    return Promise.resolve(password)
-  }
   /**
    * Returns the sql that would be executed by this Query
    *
