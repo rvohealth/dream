@@ -219,7 +219,7 @@ export default class PostgresQueryDriver<
           ns.nspname AS schemaname,
           cls.relname AS tablename,
           att.attname AS columnname,
-          format_type(base.oid, NULL) AS dbtype,
+          coalesce(format_type(elem.oid, NULL) || '[]', format_type(base.oid, NULL)) AS dbtype,
           base.typcategory = 'A' AS isarray,
           format_type(coalesce(elem.oid, base.oid), NULL) AS valuedbtype,
           CASE WHEN coalesce(elem.typtype, base.typtype) = 'e' THEN
@@ -231,11 +231,11 @@ export default class PostgresQueryDriver<
         FROM pg_catalog.pg_class AS cls
         JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
         JOIN pg_catalog.pg_attribute AS att ON att.attrelid = cls.oid
-        JOIN pg_catalog.pg_type AS base
-          ON base.oid = coalesce((SELECT db.base FROM domain_base AS db WHERE db.oid = att.atttypid), att.atttypid)
+        LEFT JOIN domain_base AS columndomain ON columndomain.oid = att.atttypid
+        JOIN pg_catalog.pg_type AS base ON base.oid = coalesce(columndomain.base, att.atttypid)
+        LEFT JOIN domain_base AS elemdomain ON elemdomain.oid = base.typelem
         LEFT JOIN pg_catalog.pg_type AS elem
-          ON base.typcategory = 'A'
-          AND elem.oid = coalesce((SELECT db.base FROM domain_base AS db WHERE db.oid = base.typelem), base.typelem)
+          ON base.typcategory = 'A' AND elem.oid = coalesce(elemdomain.base, base.typelem)
         LEFT JOIN pg_catalog.pg_namespace AS enumns ON enumns.oid = coalesce(elem.typnamespace, base.typnamespace)
         WHERE cls.relkind IN ('r', 'p', 'v', 'm', 'f')
           AND NOT EXISTS (SELECT 1 FROM pg_catalog.pg_inherits AS inh WHERE inh.inhrelid = cls.oid)
