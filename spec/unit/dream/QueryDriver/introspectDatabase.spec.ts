@@ -32,9 +32,11 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
       CREATE DOMAIN chalupasdujour_introspection_score AS chalupasdujour_introspection_level;
       CREATE DOMAIN chalupasdujour_introspection_mood_domain AS chalupasdujour_introspection_mood;
       CREATE DOMAIN chalupasdujour_introspection_mood_domain2 AS chalupasdujour_introspection_mood_domain;
+      CREATE DOMAIN chalupasdujour_introspection_day AS date;
       CREATE TABLE chalupasdujour_introspection_scores (
         score chalupasdujour_introspection_score,
-        mood chalupasdujour_introspection_mood_domain2
+        mood chalupasdujour_introspection_mood_domain2,
+        days chalupasdujour_introspection_day[]
       );
       CREATE SCHEMA chalupasdujour_introspection_other;
       CREATE TYPE chalupasdujour_introspection_other.chalupasdujour_introspection_mood AS ENUM ('meh');
@@ -45,6 +47,7 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
     await sql`
       DROP SCHEMA IF EXISTS chalupasdujour_introspection_other CASCADE;
       DROP TABLE IF EXISTS chalupasdujour_introspection_scores;
+      DROP DOMAIN IF EXISTS chalupasdujour_introspection_day;
       DROP DOMAIN IF EXISTS chalupasdujour_introspection_mood_domain2;
       DROP DOMAIN IF EXISTS chalupasdujour_introspection_mood_domain;
       DROP DOMAIN IF EXISTS chalupasdujour_introspection_score;
@@ -154,7 +157,7 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
     ])
   })
 
-  it('reads a column of a domain over a domain as the type at the bottom of its domains', async () => {
+  it('reads a column of a domain, or of an array of one, as the type at the bottom of its domains', async () => {
     const { tables } = await PostgresQueryDriver.introspectDatabase('default')
     const scores = table(tables, 'chalupasdujour_introspection_scores')!
 
@@ -166,6 +169,7 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
         valueType: 'enum',
         enumName: 'chalupasdujour_introspection_mood',
       }),
+      expect.objectContaining({ name: 'days', dbType: 'date[]', valueType: 'Timestamp', isArray: true }),
     ])
   })
 
