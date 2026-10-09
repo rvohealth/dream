@@ -66,8 +66,8 @@ export default async function (dreamApp: DreamApp) {
           ssl: false,
         }
       : undefined,
-    tableExcludePattern: 'chalupasdujour*', // used to make sure we feed valid arguments to kysely-codegen
-    tableIncludePattern: 'public.*', // used to make sure we feed valid arguments to kysely-codegen
+    tableExcludePattern: 'chalupasdujour*', // exercises table pattern matching during sync
+    tableIncludePattern: 'public.*', // exercises table pattern matching during sync
   })
 
   dreamApp.set('db', 'alternateConnection', {
