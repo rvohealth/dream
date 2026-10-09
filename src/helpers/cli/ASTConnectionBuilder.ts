@@ -1,6 +1,4 @@
-import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
-import ts from 'typescript'
 import dbTypesFilenameForConnection from '../../db/helpers/dbTypesFilenameForConnection.js'
 import dreamSchemaTypesFilenameForConnection from '../../db/helpers/dreamSchemaTypesFilenameForConnection.js'
 import DreamApp from '../../dream-app/index.js'
@@ -12,18 +10,26 @@ import {
 } from '../../errors/associations/InvalidComputedForeignKey.js'
 import FailedToIdentifyAssociation from '../../errors/schema-builder/FailedToIdentifyAssociation.js'
 import { HasManyStatement } from '../../package-exports/types.js'
+import { IntrospectedDatabase, IntrospectedTable } from '../../types/db.js'
+import camelize from '../camelize.js'
 import intersection from '../intersection.js'
 import sortBy from '../sortBy.js'
 import uniq from '../uniq.js'
-import ASTBuilder, { SchemaBuilderAssociationData, SchemaData } from './ASTBuilder.js'
+import pascalize from '../pascalize.js'
+import ASTBuilder, {
+  SchemaBuilderAssociationData,
+  SchemaBuilderColumnData,
+  SchemaData,
+} from './ASTBuilder.js'
 import resolveIgnoredColumns from './resolveIgnoredColumns.js'
+import tableMatchesPattern from './tableMatchesPattern.js'
 
 /**
  * @internal
  *
  * This is a base class, which is inherited by the ASTSchemaBuilder and
- * the ASTKyselyCodegenEnhancer, both of which is responsible for building
- * up the output of the various type files consumed by dream internally.
+ * the ASTDbTypesBuilder, each of which builds one of the type files a
+ * connection's sync writes, from the same introspection of the connection.
  *
  * This base class is just a container for common methods used by both
  * classes. It requires a connectionName to be provided, unlike the underlying
@@ -33,8 +39,77 @@ import resolveIgnoredColumns from './resolveIgnoredColumns.js'
 export default class ASTConnectionBuilder extends ASTBuilder {
   public hasForeignKeyError: boolean = false
 
+  private introspection: Promise<IntrospectedDatabase> | undefined
+
   constructor(protected connectionName: string) {
     super()
+  }
+
+  /**
+   * @internal
+   *
+   * the connection's tables, sorted by their key in the DB interface, and its
+   * enums, read through the query driver once per builder. The tables that
+   * `tableIncludePattern` leaves out, or `tableExcludePattern` names, are left
+   * out.
+   */
+  protected async introspectedDatabase(): Promise<IntrospectedDatabase> {
+    this.introspection ||= (async () => {
+      const dbDriverClass = Query.dbDriverClass<Dream>(this.connectionName)
+      const database = await dbDriverClass.introspectDatabase(this.connectionName)
+      const credentials = DreamApp.getOrFail().dbCredentialsFor(this.connectionName)
+      const includePattern = credentials?.tableIncludePattern
+      const excludePattern = credentials?.tableExcludePattern
+
+      return {
+        ...database,
+        tables: database.tables
+          .filter(
+            table =>
+              (!includePattern || tableMatchesPattern(table, includePattern)) &&
+              !(excludePattern && tableMatchesPattern(table, excludePattern))
+          )
+          .sort((a, b) => this.tableKey(a).localeCompare(this.tableKey(b))),
+      }
+    })()
+
+    return await this.introspection
+  }
+
+  /**
+   * @internal
+   *
+   * the table's key in the DB interface and in Dream's schema: its name, or
+   * `<schema>.<name>` outside the connection's default schema
+   */
+  protected tableKey(table: IntrospectedTable) {
+    return table.inDefaultSchema ? table.name : `${table.schema}.${table.name}`
+  }
+
+  /**
+   * @internal
+   *
+   * the TypeScript name of each enum the connection's tables use, keyed by
+   * the enum's database name: the name pascalized, with a number added when
+   * it would repeat an earlier enum's name or one of `reservedNames`
+   */
+  protected async enumTypeNames(reservedNames: string[] = []): Promise<Map<string, string>> {
+    const database = await this.introspectedDatabase()
+    const usedEnumNames = new Set(
+      database.tables.flatMap(table => table.columns.map(column => column.enumName).filter(name => !!name))
+    )
+    const taken = new Set(reservedNames)
+    const typeNames = new Map<string, string>()
+
+    for (const enumName of [...usedEnumNames].sort()) {
+      const baseName: string = pascalize(enumName!)
+      let typeName = baseName
+      for (let suffix = 2; taken.has(typeName); suffix++) typeName = `${baseName}${suffix}`
+      taken.add(typeName)
+      typeNames.set(enumName!, typeName)
+    }
+
+    return typeNames
   }
 
   /**
@@ -74,89 +149,19 @@ export default class ASTConnectionBuilder extends ASTBuilder {
   /**
    * @internal
    *
-   * returns the db source file for the given connectionName, injecting
-   * the source file with the actual file contents, so that AST nodes
-   * can be built through ingesting.
-   */
-  protected async getDbSourceFile(): Promise<ts.SourceFile> {
-    const fileContent = await this.loadDbSyncFile()
-    return ts.createSourceFile('./db.js', fileContent, ts.ScriptTarget.Latest, true)
-  }
-
-  /**
-   * @internal
-   *
-   * reads the db source file for the given connection, returning the contents
-   * as a raw string
-   */
-  protected async loadDbSyncFile() {
-    return (await fs.readFile(this.dbPath())).toString()
-  }
-
-  /**
-   * @internal
-   *
    * builds up the schema data for every table into an object, which
    * can be read and injected into AST nodes.
    */
   protected async getSchemaData() {
-    const tables = await this.getTables()
+    const database = await this.introspectedDatabase()
+    const enumTypeNames = await this.enumTypeNames(DB_TYPES_RESERVED_NAMES)
 
     const schemaData: SchemaData = {}
-    for (const table of tables) {
-      schemaData[table] = await this.tableData(table)
+    for (const table of database.tables) {
+      schemaData[this.tableKey(table)] = this.tableData(table, enumTypeNames)
     }
 
     return schemaData
-  }
-
-  /**
-   * @internal
-   *
-   * used by getSchemaData to build up all table data
-   */
-  private async getTables() {
-    const fileContents = await this.loadDbSyncFile()
-    const tableLines = /export interface DB {([^}]*)}/.exec(fileContents)![1]
-    if (tableLines === undefined) return []
-
-    const tables = tableLines
-      .split('\n')
-      .map(line => {
-        const stingArray = line.split(':')
-        const substring = stingArray[0]
-        if (substring === undefined) return ''
-        return substring.replace(/\s*/, '')
-      })
-      .filter(line => !!line)
-    return tables
-  }
-
-  /**
-   * @internal
-   *
-   * finds all enums used by the app, and returns information
-   * about those enums that can be used for type generating purpposes
-   */
-  protected async getAllEnumValueNames(): Promise<
-    {
-      enumValues: string
-      enumType: string
-    }[]
-  > {
-    const schemaData = await this.getSchemaData()
-    const enumValueNames = Object.values(schemaData)
-      .map(tableData =>
-        Object.keys(tableData.columns)
-          .filter(columnName => !!tableData.columns[columnName]?.enumValues)
-          .map(columnName => ({
-            enumValues: tableData.columns[columnName]!.enumValues as string,
-            enumType: tableData.columns[columnName]!.enumType as string,
-          }))
-      )
-      .flat()
-
-    return enumValueNames
   }
 
   /**
@@ -281,7 +286,8 @@ export default class ASTConnectionBuilder extends ASTBuilder {
    * retrieves the table data for an individual table.
    * Can be used to build up types
    */
-  private async tableData(tableName: string) {
+  private tableData(table: IntrospectedTable, enumTypeNames: Map<string, string>) {
+    const tableName = this.tableKey(table)
     const dreamApp = DreamApp.getOrFail()
     const models = Object.values(dreamApp.models).filter(model => model.table === tableName)
     const maybeModel = models[0]
@@ -325,7 +331,7 @@ may need to update the table getter in the corresponding Dream.
           models.flatMap(model => model['scopes'].named.map(scopeStatement => scopeStatement.method))
         ),
       },
-      columns: this.withoutIgnoredColumns(await this.getColumnData(tableName, associationData), tableName),
+      columns: this.withoutIgnoredColumns(this.columnData(table, associationData, enumTypeNames), tableName),
       virtualColumns: uniq(
         models.flatMap(model => model['virtualAttributes'].map(prop => prop.property) || [])
       ),
@@ -377,14 +383,70 @@ may need to update the table getter in the corresponding Dream.
   /**
    * @internal
    *
-   * retrieves the column data for an individual table and association.
-   * Can be used to build up types
+   * the columns of an introspected table, as Dream's schema records them,
+   * keyed by camelized column name
    */
-  private async getColumnData(
-    tableName: string,
-    allTableAssociationData: { [key: string]: SchemaBuilderAssociationData }
+  private columnData(
+    table: IntrospectedTable,
+    allTableAssociationData: { [key: string]: SchemaBuilderAssociationData },
+    enumTypeNames: Map<string, string>
   ) {
-    const dbDriverClass = Query.dbDriverClass<Dream>(this.connectionName)
-    return await dbDriverClass.getColumnData(this.connectionName, tableName, allTableAssociationData)
+    const columnData: { [key: string]: SchemaBuilderColumnData } = {}
+
+    for (const column of table.columns) {
+      const enumType = column.enumName ? enumTypeNames.get(column.enumName)! : null
+      columnData[camelize(column.name)] = {
+        dbType: column.dbType,
+        valueType: column.valueType,
+        allowNull: column.allowNull,
+        enumType,
+        enumValues: enumType ? `${enumType}Values` : null,
+        isArray: column.isArray,
+        foreignKey: allTableAssociationData[column.name]?.foreignKey || null,
+      }
+    }
+
+    return Object.keys(columnData)
+      .sort()
+      .reduce(
+        (acc, key) => {
+          acc[key] = columnData[key]!
+          return acc
+        },
+        {} as { [key: string]: SchemaBuilderColumnData }
+      )
   }
 }
+
+/**
+ * @internal
+ *
+ * the names types/db.ts declares for its columns, imports or uses from
+ * JavaScript, which no enum or table interface may take
+ */
+export const DB_TYPES_RESERVED_NAMES = [
+  'ArrayType',
+  'ArrayTypeImpl',
+  'Buffer',
+  'CalendarDate',
+  'Circle',
+  'ClockTime',
+  'ClockTimeTz',
+  'ColumnType',
+  'DB',
+  'DBClass',
+  'Date',
+  'DateTime',
+  'Generated',
+  'IPostgresInterval',
+  'Int8',
+  'Interval',
+  'Json',
+  'JsonArray',
+  'JsonObject',
+  'JsonPrimitive',
+  'JsonValue',
+  'Numeric',
+  'Point',
+  'Timestamp',
+]
