@@ -230,7 +230,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * })
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A Query for this model with the inner join clause applied
    */
   public innerJoin<
@@ -265,7 +265,7 @@ export default class DreamInstanceTransactionBuilder<DreamInstance extends Dream
    * })
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A Query for this model with the left join clause applied
    */
   public leftJoin<

@@ -2036,7 +2036,7 @@ export default class Dream {
    * await User.innerJoin('posts').first()
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A Query for this model with the inner join clause applied
    */
   public static innerJoin<
@@ -2070,7 +2070,7 @@ export default class Dream {
    * await user.innerJoin('posts').first()
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A Query for this model with the inner join clause applied
    */
   public innerJoin<
@@ -2103,7 +2103,7 @@ export default class Dream {
    * await User.leftJoin('posts').first()
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A Query for this model with the left join clause applied
    */
   public static leftJoin<
@@ -2137,7 +2137,7 @@ export default class Dream {
    * await user.leftJoin('posts').first()
    * ```
    *
-   * @param args - A chain of association names and where clauses
+   * @param args - A chain of association names and and/andNot/andAny clauses
    * @returns A Query for this model with the left join clause applied
    */
   public leftJoin<
@@ -4512,8 +4512,8 @@ export default class Dream {
 
   /**
    * Updates all records matching the association with
-   * the provided attributes. If a where statement is passed,
-   * The on statement will be applied to the query
+   * the provided attributes. If an and, andNot or andAny
+   * statement is passed, it will be applied to the query
    * before updating.
    *
    * ```ts
@@ -4525,11 +4525,13 @@ export default class Dream {
    *
    * @param associationName - The name of the association to update
    * @param attributes - The attributes to update on the association
-   * @param options - Options for updating the association
-   * @param options.and - Optional on statement to apply to query before updating
-   * @param options.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
-   * @param options.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when updating the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
-   * @param options.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
+   * @param updateAssociationOptions - Options for updating the association
+   * @param updateAssociationOptions.and - Optional and statement to apply to query before updating
+   * @param updateAssociationOptions.andNot - Optional andNot statement to apply to query before updating
+   * @param updateAssociationOptions.andAny - Optional andAny statement to apply to query before updating
+   * @param updateAssociationOptions.skipHooks - If true, skips applying model hooks during the update operation. Defaults to false
+   * @param updateAssociationOptions.bypassAllDefaultScopes - If true, bypasses user-removable default scopes when updating the association; an STI child's reserved discriminator remains enforced, including when associations are loaded. Defaults to false
+   * @param updateAssociationOptions.defaultScopesToBypass - An array of default scope names to bypass when updating the association. Defaults to an empty array
    * @returns The number of updated records
    */
   public async updateAssociation<I extends Dream, AssociationName extends DreamAssociationNames<I>>(
