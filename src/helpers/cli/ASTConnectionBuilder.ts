@@ -40,38 +40,51 @@ export default class ASTConnectionBuilder extends ASTBuilder {
   public hasForeignKeyError: boolean = false
 
   private introspection: Promise<IntrospectedDatabase> | undefined
+  private readonly introspectionFrom: ASTConnectionBuilder | undefined
 
-  constructor(protected connectionName: string) {
+  /**
+   * @param connectionName - the connection whose type file the builder writes
+   * @param opts.introspectionFrom - another builder of the same connection,
+   *   whose reading of it this builder takes instead of reading the connection
+   *   again, so that a sync reads each connection once for both type files
+   */
+  constructor(
+    protected connectionName: string,
+    opts: { introspectionFrom?: ASTConnectionBuilder } = {}
+  ) {
     super()
+    this.introspectionFrom = opts.introspectionFrom
   }
 
   /**
    * @internal
    *
    * the connection's tables, sorted by their key in the DB interface, and its
-   * enums, read through the query driver once per builder. The tables that
-   * `tableIncludePattern` leaves out, or `tableExcludePattern` names, are left
-   * out.
+   * enums, read through the query driver once, by this builder or by the one
+   * it takes its introspection from. The tables that `tableIncludePattern`
+   * leaves out, or `tableExcludePattern` names, are left out.
    */
   protected async introspectedDatabase(): Promise<IntrospectedDatabase> {
-    this.introspection ||= (async () => {
-      const dbDriverClass = Query.dbDriverClass<Dream>(this.connectionName)
-      const database = await dbDriverClass.introspectDatabase(this.connectionName)
-      const credentials = DreamApp.getOrFail().dbCredentialsFor(this.connectionName)
-      const includePattern = credentials?.tableIncludePattern
-      const excludePattern = credentials?.tableExcludePattern
+    this.introspection ||=
+      this.introspectionFrom?.introspectedDatabase() ??
+      (async () => {
+        const dbDriverClass = Query.dbDriverClass<Dream>(this.connectionName)
+        const database = await dbDriverClass.introspectDatabase(this.connectionName)
+        const credentials = DreamApp.getOrFail().dbCredentialsFor(this.connectionName)
+        const includePattern = credentials?.tableIncludePattern
+        const excludePattern = credentials?.tableExcludePattern
 
-      return {
-        ...database,
-        tables: database.tables
-          .filter(
-            table =>
-              (!includePattern || tableMatchesPattern(table, includePattern)) &&
-              !(excludePattern && tableMatchesPattern(table, excludePattern))
-          )
-          .sort((a, b) => this.tableKey(a).localeCompare(this.tableKey(b))),
-      }
-    })()
+        return {
+          ...database,
+          tables: database.tables
+            .filter(
+              table =>
+                (!includePattern || tableMatchesPattern(table, includePattern)) &&
+                !(excludePattern && tableMatchesPattern(table, excludePattern))
+            )
+            .sort((a, b) => this.tableKey(a).localeCompare(this.tableKey(b))),
+        }
+      })()
 
     return await this.introspection
   }
