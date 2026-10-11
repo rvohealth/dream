@@ -364,6 +364,23 @@ describe('DreamSerializer#customAttribute', () => {
       })
     })
 
+    it.skip('an allOf carries neither an object body nor a primitive type beside it', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { type: 'object', required: ['name'], allOf: [{ $serializer: UserSerializer }] },
+      })
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error an object body beside allOf is not rendered; put it in an allOf member
+        openapi: { type: 'object', properties: { name: 'string' }, allOf: [{ type: 'object' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('name', () => null, {
+        // @ts-expect-error a primitive type beside allOf is not allowed
+        openapi: { type: 'string', allOf: [{ type: 'string' }] },
+      })
+    })
+
     it.skip('a flattened serializer ref may be nullable but not a list', () => {
       const pet = Pet.new()
 
