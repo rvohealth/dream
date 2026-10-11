@@ -2575,7 +2575,6 @@ export default class Query<
       const boundaryValues = await this.cursorBoundaryValues(orderedQuery, {
         cursor: options.cursor,
         orderStatements,
-        rowKeyIndexes,
         rowKeyColumns,
       })
 
@@ -2656,21 +2655,14 @@ export default class Query<
     {
       cursor,
       orderStatements,
-      rowKeyIndexes,
       rowKeyColumns,
     }: {
       cursor: string
       orderStatements: OrderQueryStatement<string>[]
-      rowKeyIndexes: number[]
       rowKeyColumns: string[]
     }
   ): Promise<unknown[] | undefined> {
-    const { primaryKey, rowKeys } = decodeCursorRowKeys(cursor, {
-      tableName: this.tableName,
-      orderStatements,
-      rowKeyIndexes,
-      rowKeyColumns,
-    })
+    const { primaryKey, rowKeys } = decodeCursorRowKeys(cursor, { tableName: this.tableName, rowKeyColumns })
     // the only order statement is the primary key, so the cursor is the value
     if (orderStatements.length === 1) return [primaryKey]
 
@@ -3863,18 +3855,9 @@ function whereRowsSortingAfter(
 const ROW_KEYS_CURSOR_PREFIX = 'v2.'
 
 /**
- * Prefix of a cursor that carries every value its row sorts by, its row's keys
- * among them, along with its record's primary key. Only the keys are read from
- * it: the values its row sorts by are read from the database, as they are for
- * every cursor.
- */
-const ORDER_VALUES_CURSOR_PREFIX = 'v1.'
-
-/**
- * A short digest of the table and columns a cursor's keys or values were read
- * from, so that a cursor passed to a Query that reads other columns resumes
- * from its primary key rather than matching its keys against the wrong
- * columns.
+ * A short digest of the table and columns a cursor's keys were read from, so
+ * that a cursor passed to a Query that reads other columns resumes from its
+ * primary key rather than matching its keys against the wrong columns.
  */
 function cursorSignature(tableAndColumns: unknown): string {
   return crypto.createHash('sha256').update(JSON.stringify(tableAndColumns)).digest('base64url').slice(0, 12)
@@ -3896,22 +3879,12 @@ function encodeRowKeysCursor({
 /**
  * The primary key a cursor is or carries, and the keys of the row it names
  * when it names one of the Query's rows by `rowKeyColumns` (otherwise null).
- * `rowKeyIndexes` are the positions of those columns in `orderStatements`. A
- * cursor that cannot be read as one Dream issues is taken to be a primary key.
+ * A cursor that cannot be read as one Dream issues is taken to be a primary
+ * key.
  */
 function decodeCursorRowKeys(
   cursor: string,
-  {
-    tableName,
-    orderStatements,
-    rowKeyIndexes,
-    rowKeyColumns,
-  }: {
-    tableName: string
-    orderStatements: OrderQueryStatement<string>[]
-    rowKeyIndexes: number[]
-    rowKeyColumns: string[]
-  }
+  { tableName, rowKeyColumns }: { tableName: string; rowKeyColumns: string[] }
 ): { primaryKey: unknown; rowKeys: unknown[] | null } {
   const rowKeysPayload = cursorPayload(cursor, ROW_KEYS_CURSOR_PREFIX)
   const keys = rowKeysPayload?.k
@@ -3922,28 +3895,6 @@ function decodeCursorRowKeys(
       keys.every(isCursorRowKey)
 
     return { primaryKey: keys[0], rowKeys: namesQueryRow ? keys : null }
-  }
-
-  const orderValuesPayload = cursorPayload(cursor, ORDER_VALUES_CURSOR_PREFIX)
-  const primaryKey = orderValuesPayload?.k
-  const values = orderValuesPayload?.v
-  if (orderValuesPayload && isCursorPrimaryKey(primaryKey)) {
-    const orderSignature = cursorSignature([
-      tableName,
-      orderStatements.map(({ column, direction }) => [column, direction]),
-    ])
-    // each value is a [type, value] pair, and a key's type is 'json'
-    const rowKeys =
-      orderValuesPayload.s === orderSignature &&
-      Array.isArray(values) &&
-      values.length === orderStatements.length
-        ? rowKeyIndexes.map(index => {
-            const taggedValue: unknown = values[index]
-            return Array.isArray(taggedValue) && taggedValue[0] === 'json' ? taggedValue[1] : undefined
-          })
-        : null
-
-    return { primaryKey, rowKeys: rowKeys?.every(isCursorRowKey) ? rowKeys : null }
   }
 
   return { primaryKey: cursor, rowKeys: null }

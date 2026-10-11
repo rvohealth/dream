@@ -572,37 +572,6 @@ describe('Query#cursorPaginate', () => {
         expect(page2).toEqual({ cursor: null, results: [expect.toMatchDreamModel(user)] })
       })
     })
-
-    context('passed a cursor carrying the sort values of its row, as earlier 2.36.0 cursors do', () => {
-      it('resumes after that row, at the position the database sorts it now', async () => {
-        const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
-        // orderedPosts orders by position, which numbers the user's posts 1, 2, 3
-        await Post.create({ user })
-        const post2 = await Post.create({ user })
-        await Post.create({ user })
-
-        // the row for post2, carrying a position of 1 where the database holds 2; its
-        // signature is the one those cursors carry for User.innerJoin('orderedPosts')
-        const cursor =
-          'v1.' +
-          Buffer.from(
-            JSON.stringify({
-              s: 'y7VMOPQ6HSUx',
-              k: user.id,
-              v: [
-                ['json', 1],
-                ['json', user.id],
-                ['json', post2.id],
-              ],
-            }),
-            'utf8'
-          ).toString('base64url')
-
-        const page = await User.innerJoin('orderedPosts').cursorPaginate({ pageSize: 3, cursor })
-        // only the row for post3 sorts after post2's position of 2
-        expect(page).toEqual({ cursor: null, results: [expect.toMatchDreamModel(user)] })
-      })
-    })
   })
 
   context('a query joining a HasMany association and ordered by a column of the joined records', () => {
