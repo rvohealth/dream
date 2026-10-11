@@ -44,5 +44,15 @@ describe('Dream#setAttributes', () => {
       )
       expect(user.secret).toEqual('original')
     })
+
+    it('has set the attributes before the rejected one, and not those after it, when it throws', () => {
+      const user = User.new({ email: 'original@email', name: 'original name' })
+
+      expect(() =>
+        user.setAttributes({ email: 'changed@email', encryptedSecret: 'plaintext', name: 'changed name' })
+      ).toThrow(DoNotSetEncryptedFieldsDirectly)
+      expect(user.email).toEqual('changed@email')
+      expect(user.name).toEqual('original name')
+    })
   })
 })
