@@ -50,7 +50,7 @@ export default class ASTConnectionBuilder extends ASTBuilder {
    */
   constructor(
     protected connectionName: string,
-    opts: { introspectionFrom?: ASTConnectionBuilder } = {}
+    opts: { introspectionFrom?: ASTConnectionBuilder | undefined } = {}
   ) {
     super()
     this.introspectionFrom = opts.introspectionFrom
