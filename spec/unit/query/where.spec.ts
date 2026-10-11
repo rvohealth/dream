@@ -1389,6 +1389,36 @@ describe('Query#where', () => {
         })
       })
 
+      context('within whereAny', () => {
+        it('includes zero when zero is the start', async () => {
+          const records = await Rating.query()
+            .whereAny([{ rating: range(0, begin) }, { rating: 9 }])
+            .all()
+          expect(records).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning, ratingAfter])
+        })
+      })
+
+      context('within an association condition', () => {
+        it('includes zero when zero is the start of a join condition', async () => {
+          const ratings = await User.innerJoin('ratings', { and: { rating: range(0, begin) } })
+            .order({ 'ratings.rating': 'asc' })
+            .pluck('ratings.rating')
+          expect(ratings).toEqual([0, 2, 3])
+        })
+
+        it('includes zero when zero is the start of a preload condition', async () => {
+          const loadedUser = await User.preload('ratings', { and: { rating: range(0, begin) } }).findOrFail(
+            user.id
+          )
+          expect(loadedUser.ratings).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning])
+        })
+
+        it('includes zero when zero is the start of an associationQuery condition', async () => {
+          const records = await user.associationQuery('ratings', { and: { rating: range(0, begin) } }).all()
+          expect(records).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning])
+        })
+      })
+
       context('against a bigint column', () => {
         it('includes a 0n start', async () => {
           await ModelForOpenapiTypeSpecs.create({
