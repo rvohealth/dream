@@ -201,16 +201,16 @@ export default class PostgresQueryDriver<
 
     const columnRows = (
       await sql<PostgresIntrospectedColumnRow>`
-        WITH RECURSIVE domain_chain(oid, base) AS (
-          SELECT typ.oid, typ.typbasetype FROM pg_catalog.pg_type AS typ WHERE typ.typtype = 'd'
+        WITH RECURSIVE domain_chain(oid, base, domainnotnull) AS (
+          SELECT typ.oid, typ.typbasetype, typ.typnotnull FROM pg_catalog.pg_type AS typ WHERE typ.typtype = 'd'
           UNION ALL
-          SELECT chain.oid, typ.typbasetype
+          SELECT chain.oid, typ.typbasetype, chain.domainnotnull OR typ.typnotnull
           FROM domain_chain AS chain
           JOIN pg_catalog.pg_type AS typ ON typ.oid = chain.base
           WHERE typ.typtype = 'd'
         ),
-        domain_base(oid, base) AS (
-          SELECT chain.oid, chain.base
+        domain_base(oid, base, domainnotnull) AS (
+          SELECT chain.oid, chain.base, chain.domainnotnull
           FROM domain_chain AS chain
           JOIN pg_catalog.pg_type AS typ ON typ.oid = chain.base
           WHERE typ.typtype <> 'd'
@@ -226,7 +226,7 @@ export default class PostgresQueryDriver<
             CASE WHEN enumns.nspname = 'public' THEN coalesce(elem.typname, base.typname)
             ELSE enumns.nspname || '.' || coalesce(elem.typname, base.typname) END
           END AS enumname,
-          NOT att.attnotnull AS nullable,
+          NOT (att.attnotnull OR coalesce(columndomain.domainnotnull, false)) AS nullable,
           (att.atthasdef OR att.attidentity <> '' OR att.attgenerated <> '') AS hasdefault
         FROM pg_catalog.pg_class AS cls
         JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
