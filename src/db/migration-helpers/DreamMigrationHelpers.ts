@@ -445,6 +445,13 @@ export default class DreamMigrationHelpers {
    * reports the skip, and the skipped value is whatever that writer encrypted it with,
    * which is the new key only once the precondition above holds.
    *
+   * **A value neither key opens stops the helper.** Decrypting it throws, as reading the
+   * property would (`DecryptionRotationError` while a `legacy` key is configured,
+   * `DecryptionError` without one), so the migration fails. Where the migrator runs in
+   * one transaction (Postgres), the rows rewritten before it roll back with the
+   * migration; elsewhere they stay rewritten, under `current`, and running the helper
+   * again once the value is fixed rewrites them again harmlessly.
+   *
    * **Rewrites rows one at a time** (each value needs a fresh random IV computed in Node,
    * so the rewrite cannot be a single SQL `UPDATE`), reading them in keyset batches of
    * `batchSize` to bound memory. Where the migration runs inside a transaction (on
@@ -456,7 +463,7 @@ export default class DreamMigrationHelpers {
    * @param db - The Kysely database object passed into the migration up/down function
    * @param options - Configuration options
    * @param options.table - The name of the table
-   * @param options.column - The plaintext column name the encrypted column was derived from, as passed to `encryptColumn`
+   * @param options.column - The name the encrypted column was derived from: the plaintext column passed to `encryptColumn`, or the snake_case name of the `@Encrypted` property (`secret_phone` for `secretPhone`, whose default backing column is `encrypted_secret_phone`)
    * @param options.encryptedColumnName - The encrypted column to rewrite. Defaults to `encrypted_<column>`, matching the `@Encrypted` decorator's default; pass this when the decorator was given a custom encrypted column name.
    * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
    * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.

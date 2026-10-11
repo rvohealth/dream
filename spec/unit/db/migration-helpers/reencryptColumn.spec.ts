@@ -3,6 +3,8 @@ import DreamMigrationHelpers from '../../../../src/db/migration-helpers/DreamMig
 import DreamApp from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
 import InternalEncrypt from '../../../../src/encrypt/InternalEncrypt.js'
+import DecryptionError from '../../../../src/errors/encrypt/DecryptionError.js'
+import DecryptionRotationError from '../../../../src/errors/encrypt/DecryptionRotationError.js'
 import db from '../../../../test-app/db/index.js'
 
 describe('DreamMigrationHelpers.reencryptColumn', () => {
@@ -169,6 +171,69 @@ describe('DreamMigrationHelpers.reencryptColumn', () => {
     await DreamMigrationHelpers.reencryptColumn(_db, { table: 'pets', column: 'secret_phone' })
 
     expect(listener).not.toHaveBeenCalled()
+  })
+
+  context('when a value decrypts with neither key', () => {
+    it('throws DecryptionRotationError, leaving the rows rewritten before it under the current key', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      await _db
+        .insertInto('pets')
+        .values([
+          {
+            encrypted_secret_phone: Encrypt.encrypt('555-1234', { algorithm: 'aes-256-gcm', key: oldKey }),
+            created_at: '2024-02-02',
+          },
+          {
+            encrypted_secret_phone: Encrypt.encrypt('555-9876', {
+              algorithm: 'aes-256-gcm',
+              key: Encrypt.generateKey('aes-256-gcm'),
+            }),
+            created_at: '2024-02-02',
+          },
+        ])
+        .execute()
+
+      await expect(
+        DreamMigrationHelpers.reencryptColumn(_db, { table: 'pets', column: 'secret_phone' })
+      ).rejects.toThrow(DecryptionRotationError)
+
+      // outside a transaction, the first row stays rewritten under the current key
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: newKey } } })
+      const pets = await _db.selectFrom('pets').selectAll().orderBy('id').execute()
+      expect(InternalEncrypt.decryptColumn(pets[0]!.encryptedSecretPhone)).toEqual('555-1234')
+      expect(() => InternalEncrypt.decryptColumn(pets[1]!.encryptedSecretPhone)).toThrow(DecryptionError)
+    })
+
+    context('with no legacy key configured', () => {
+      it('throws DecryptionError', async () => {
+        const dreamApp = DreamApp.getOrFail()
+        dreamApp.set('encryption', {
+          columns: { current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') } },
+        })
+        await _db
+          .insertInto('pets')
+          .values({
+            encrypted_secret_phone: Encrypt.encrypt('555-9876', {
+              algorithm: 'aes-256-gcm',
+              key: Encrypt.generateKey('aes-256-gcm'),
+            }),
+            created_at: '2024-02-02',
+          })
+          .execute()
+
+        await expect(
+          DreamMigrationHelpers.reencryptColumn(_db, { table: 'pets', column: 'secret_phone' })
+        ).rejects.toThrow(DecryptionError)
+      })
+    })
   })
 
   context('with a custom encryptedColumnName', () => {
