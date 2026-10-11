@@ -39,6 +39,23 @@ context.skip('type tests', () => {
     User.query().innerJoin('posts', { and: { body: 'hello' }, andNot: { body: 'goodbye' } }, 'comments')
   })
 
+  it('forbids a variable whose type declares a condition key other than and, andNot and andAny', () => {
+    const condition: { and: { body: string }; body: string } = { and: { body: 'hello' }, body: 'hello' }
+
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .innerJoin('posts', condition)
+
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .innerJoin('posts', condition, 'comments')
+
+    // allowed: a type that declares no specific keys, which the runtime check covers instead
+    const untypedCondition: Record<string, unknown> = { and: { body: 'hello' } }
+    User.query().innerJoin('posts', untypedCondition)
+    User.query().innerJoin('posts', untypedCondition, 'comments')
+  })
+
   it('forbids joining a polymorphic BelongsTo association, which raises at runtime', () => {
     Rating.query()
       // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
