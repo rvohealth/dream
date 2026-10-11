@@ -38,6 +38,13 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
         mood chalupasdujour_introspection_mood_domain2,
         days chalupasdujour_introspection_day[]
       );
+      CREATE DOMAIN chalupasdujour_introspection_required_text AS text NOT NULL;
+      CREATE DOMAIN chalupasdujour_introspection_required_text2 AS chalupasdujour_introspection_required_text;
+      CREATE TABLE chalupasdujour_introspection_notes (
+        note chalupasdujour_introspection_required_text,
+        note2 chalupasdujour_introspection_required_text2,
+        notes chalupasdujour_introspection_required_text[]
+      );
       CREATE SCHEMA chalupasdujour_introspection_other;
       CREATE TYPE chalupasdujour_introspection_other.chalupasdujour_introspection_mood AS ENUM ('meh');
     `.execute(db())
@@ -46,6 +53,9 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
   afterEach(async () => {
     await sql`
       DROP SCHEMA IF EXISTS chalupasdujour_introspection_other CASCADE;
+      DROP TABLE IF EXISTS chalupasdujour_introspection_notes;
+      DROP DOMAIN IF EXISTS chalupasdujour_introspection_required_text2;
+      DROP DOMAIN IF EXISTS chalupasdujour_introspection_required_text;
       DROP TABLE IF EXISTS chalupasdujour_introspection_scores;
       DROP DOMAIN IF EXISTS chalupasdujour_introspection_day;
       DROP DOMAIN IF EXISTS chalupasdujour_introspection_mood_domain2;
@@ -170,6 +180,20 @@ describe('PostgresQueryDriver.introspectDatabase', () => {
         enumName: 'chalupasdujour_introspection_mood',
       }),
       expect.objectContaining({ name: 'days', dbType: 'date[]', valueType: 'Timestamp', isArray: true }),
+    ])
+  })
+
+  it('reads a column whose domain, at any depth, is NOT NULL as not allowing null', async () => {
+    const { tables } = await PostgresQueryDriver.introspectDatabase('default')
+    const scores = table(tables, 'chalupasdujour_introspection_scores')!
+    const notes = table(tables, 'chalupasdujour_introspection_notes')!
+
+    expect(scores.columns.find(column => column.name === 'score')).toMatchObject({ allowNull: true })
+    expect(notes.columns).toEqual([
+      expect.objectContaining({ name: 'note', dbType: 'text', allowNull: false }),
+      expect.objectContaining({ name: 'note2', dbType: 'text', allowNull: false }),
+      // the element domain's NOT NULL constrains the elements, not the column
+      expect.objectContaining({ name: 'notes', dbType: 'text[]', isArray: true, allowNull: true }),
     ])
   })
 
