@@ -91,6 +91,11 @@
     "pluralize-esm": "^9.0.5",
     "typescript": ">=5.0.0"
   },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@eslint/js": "=10.0.1",
     "@rvoh/dream-spec-helpers": "^2.3.0",

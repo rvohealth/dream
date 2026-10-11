@@ -64,9 +64,6 @@ import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
 import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
 import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
-import ASTGlobalSchemaBuilder from '../../helpers/cli/ASTGlobalSchemaBuilder.js'
-import ASTDbTypesBuilder from '../../helpers/cli/ASTDbTypesBuilder.js'
-import ASTSchemaBuilder from '../../helpers/cli/ASTSchemaBuilder.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
 import compact from '../../helpers/compact.js'
 import { normalizeDataForDb } from '../../helpers/db/normalizeDataForDb.js'
@@ -321,6 +318,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     options: { schemaOnly?: boolean } = {}
   ) {
     try {
+      const { ASTDbTypesBuilder, ASTSchemaBuilder, ASTGlobalSchemaBuilder } = await loadTypeFileBuilders()
+
       // the schema builder takes the db types builder's reading of the
       // connection, so that a sync reads each connection once for both files
       const dbTypesBuilder = options?.schemaOnly ? undefined : new ASTDbTypesBuilder(connectionName)
@@ -3979,4 +3978,21 @@ function maybeBindArrayAsSingleValue(
 function shouldSoftDelete(dream: Dream, reallyDestroy: boolean) {
   const dreamClass = dream.constructor as typeof Dream
   return dreamClass['softDelete'] && !reallyDestroy
+}
+
+/**
+ * The type file builders import `typescript`, a devDependency that a
+ * production install does not have, and this driver is reached from the
+ * package's main entry, so they are loaded only when `sync` runs: in
+ * development, and never in production, where migrations run with
+ * `--skip-sync`.
+ */
+async function loadTypeFileBuilders() {
+  const [{ default: ASTDbTypesBuilder }, { default: ASTSchemaBuilder }, { default: ASTGlobalSchemaBuilder }] =
+    await Promise.all([
+      import('../../helpers/cli/ASTDbTypesBuilder.js'),
+      import('../../helpers/cli/ASTSchemaBuilder.js'),
+      import('../../helpers/cli/ASTGlobalSchemaBuilder.js'),
+    ])
+  return { ASTDbTypesBuilder, ASTSchemaBuilder, ASTGlobalSchemaBuilder }
 }
