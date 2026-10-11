@@ -273,8 +273,8 @@ export default class SerializerRenderer {
   /**
    * The keys a flattened `rendersOne` adds to the parent's payload when its associated object is
    * null: each key any of `serializers` declares, set to `null`. There are several serializers when
-   * the association is a polymorphic BelongsTo, one for each target class, and their keys are
-   * unioned.
+   * the association is a polymorphic BelongsTo, one for each target class, or when the associated
+   * class is an STI base, one for each child, and their keys are unioned.
    *
    * Each serializer is built over an empty object to read its declarations, so a serializer that
    * reads a property of its data while being built still builds, and nothing is rendered: no
@@ -289,7 +289,8 @@ export default class SerializerRenderer {
   ): Record<string, null> {
     return serializers.reduce<Record<string, null>>((flattenedKeys, serializer) => {
       // a serializer reached again, e.g. one that flattens itself directly or through others, or
-      // one that two polymorphic targets both flatten, adds no keys the first walk through it did not
+      // one that two polymorphic targets or two STI children both flatten, adds no keys the first
+      // walk through it did not
       if (serializersBeingFlattened.has(serializer)) return flattenedKeys
       serializersBeingFlattened.add(serializer)
 

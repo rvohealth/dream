@@ -3,6 +3,7 @@ import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
+import Collar from '../../../../test-app/app/models/Collar.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserViewModel from '../../../../test-app/app/view-models/UserViewModel.js'
@@ -403,6 +404,43 @@ describe('DreamSerializer#rendersOne', () => {
           id: null,
           name: null,
           type: null,
+        })
+      })
+
+      it('renders null for every key the serializer of any STI child of the associated class declares', () => {
+        const collar = Collar.new({ tagName: 'Spot', balloon: null })
+
+        const MySerializer = (data: Collar) =>
+          DreamSerializer(Collar, data).attribute('tagName').rendersOne('balloon', { flatten: true })
+
+        // Balloon's STI children sort Animal, Latex, Mylar, and only Mylar's default serializer
+        // renders `mylarOnlyProperty`
+        expect(MySerializer(collar).render()).toEqual({
+          tagName: 'Spot',
+          color: null,
+          mylarOnlyProperty: null,
+        })
+      })
+
+      it('renders a key several STI children declare once, alongside the keys only one child declares', () => {
+        const collar = Collar.new({ tagName: 'Spot', balloon: null })
+
+        const MySerializer = (data: Collar) =>
+          DreamSerializer(Collar, data)
+            .attribute('tagName')
+            .rendersOne('balloon', { flatten: true, serializerKey: 'stiUnion' })
+
+        // every `stiUnion` serializer renders `color` and `sandbags`; `material` is Animal's alone,
+        // `multicolor` and `heartRatings` Latex's, `mylarOnlyProperty` and `balloonLine` Mylar's
+        expect(MySerializer(collar).render()).toEqual({
+          tagName: 'Spot',
+          color: null,
+          sandbags: null,
+          material: null,
+          multicolor: null,
+          heartRatings: null,
+          mylarOnlyProperty: null,
+          balloonLine: null,
         })
       })
     })

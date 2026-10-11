@@ -1,6 +1,7 @@
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
 import PolymorphicTask from '../../../../test-app/app/models/Polymorphic/Task.js'
 import { default as DreamUser } from '../../../../test-app/app/models/User.js'
 import { PolymorphicTaskSerializer } from '../../../../test-app/app/serializers/Polymorphic/TaskSerializer.js'
@@ -284,6 +285,26 @@ describe('ObjectSerializer#rendersOne', () => {
             favoriteWord: null,
             name: null,
             birthdate: null,
+          })
+        })
+
+        it('renders null for every key the serializer of any STI child of the dreamClass declares', () => {
+          interface CollarWithBalloon {
+            tagName: string
+            balloon: Balloon | null
+          }
+
+          const MySerializer = (data: CollarWithBalloon) =>
+            ObjectSerializer(data)
+              .attribute('tagName', { openapi: 'string' })
+              .rendersOne('balloon', { dreamClass: Balloon, flatten: true })
+
+          // Balloon's STI children sort Animal, Latex, Mylar, and only Mylar's default serializer
+          // renders `mylarOnlyProperty`
+          expect(MySerializer({ tagName: 'Spot', balloon: null }).render()).toEqual({
+            tagName: 'Spot',
+            color: null,
+            mylarOnlyProperty: null,
           })
         })
 

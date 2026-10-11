@@ -273,7 +273,8 @@ export default class ObjectSerializerBuilder<
    *     before the `rendersOne`, and an attribute declared after it replaces the association's.
    *     When the association is `null`, every key its serializer declares renders as `null`
    *     (for a polymorphic `BelongsTo`, every key the serializer of any of its target classes
-   *     declares), in the same order (so an `id` declared before the `rendersOne` becomes
+   *     declares, and for an association to an STI base, every key the serializer of any of its
+   *     STI children declares), in the same order (so an `id` declared before the `rendersOne` becomes
    *     `null`); nothing in that serializer is rendered, so its custom attribute callbacks do
    *     not run, and a flattened `customAttribute` in it adds no keys. Psychic adds the association's OpenAPI
    *     schema to the parent's as an `allOf` branch, so a shared key's value must match both
