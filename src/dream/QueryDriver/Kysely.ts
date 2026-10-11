@@ -321,16 +321,20 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     options: { schemaOnly?: boolean } = {}
   ) {
     try {
-      if (!options?.schemaOnly) {
+      // the schema builder takes the db types builder's reading of the
+      // connection, so that a sync reads each connection once for both files
+      const dbTypesBuilder = options?.schemaOnly ? undefined : new ASTDbTypesBuilder(connectionName)
+
+      if (dbTypesBuilder) {
         await DreamCLI.logger.logProgress(
           `introspecting db for connection: ${connectionName}...`,
           async () => {
-            await new ASTDbTypesBuilder(connectionName).build()
+            await dbTypesBuilder.build()
           }
         )
       }
 
-      const newSchemaBuilder = new ASTSchemaBuilder(connectionName)
+      const newSchemaBuilder = new ASTSchemaBuilder(connectionName, { introspectionFrom: dbTypesBuilder })
 
       await DreamCLI.logger.logProgress(
         `building dream schema for connection ${connectionName}...`,
