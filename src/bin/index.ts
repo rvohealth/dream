@@ -157,7 +157,7 @@ export default class DreamBin {
  * An STI child shares its parent's table, so its migration belongs to the
  * parent model's connection.
  */
-function stiParentConnectionName(fullyQualifiedModelName: string, fullyQualifiedParentName: string) {
+function stiParentConnectionName(fullyQualifiedModelName: string, fullyQualifiedParentName: string): string {
   const parentModel =
     DreamApp.getOrFail().models[standardizeFullyQualifiedModelName(fullyQualifiedParentName)]
   if (!parentModel)
