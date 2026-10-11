@@ -126,6 +126,33 @@ describe('@Encrypted', () => {
       expect(listener).toHaveBeenCalledTimes(1)
     })
 
+    it('fires again for a listener that reads the property after an await, since the guard covers only its synchronous run', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      let readsAfterAwait = 0
+      const listener = vi.fn(async ({ dream, property }: EncryptionLegacyKeyUsedEvent) => {
+        await Promise.resolve()
+        // each read here fires the event again, so the reads are bounded
+        if (readsAfterAwait++ < 2) void (dream as unknown as Record<string, unknown>)[property]
+      })
+      dreamApp.on('encryption:legacy-key-used', listener)
+
+      expect(user.secret).toEqual('Howdy world')
+      expect(listener).toHaveBeenCalledTimes(1)
+
+      await new Promise(resolve => setTimeout(resolve, 0))
+      expect(listener).toHaveBeenCalledTimes(3)
+    })
+
     it('fires for another record whose property a listener reads', async () => {
       const oldKey = Encrypt.generateKey('aes-256-gcm')
       const newKey = Encrypt.generateKey('aes-256-gcm')

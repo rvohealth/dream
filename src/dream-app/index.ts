@@ -699,7 +699,11 @@ export default class DreamApp {
    *   propagates from that read. Reading the same property of the same
    *   record inside the callback returns its value without firing the event
    *   again, so a callback can read the property and assign the value back,
-   *   which re-encrypts it under `current` for the record's next save.
+   *   which re-encrypts it under `current` for the record's next save. That
+   *   holds only while the callback runs synchronously: a callback that
+   *   reads the property after an `await` fires the event again from that
+   *   read, so an `async` callback should read the property before its
+   *   first `await`.
    *
    * ```ts
    * dreamApp.on('encryption:legacy-key-used', ({ dream, property }) => {
