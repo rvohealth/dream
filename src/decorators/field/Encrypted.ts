@@ -1,9 +1,9 @@
 import Dream from '../../Dream.js'
 import DreamApp from '../../dream-app/index.js'
+import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
 import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
-import pascalize from '../../helpers/pascalize.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
@@ -14,7 +14,7 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
 
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
-    const encryptedKey = column || `encrypted${pascalize(key)}`
+    const encryptedKey = column || defaultEncryptedColumnName(key)
     // records whose legacy-key listeners for this property are running; a
     // read of the property on one of them returns its value without
     // dispatching the event again, so a listener that reads the property

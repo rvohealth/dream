@@ -5,6 +5,7 @@ import Query from '../../dream/Query.js'
 import InvalidDecimalFieldPassedToGenerator from '../../errors/InvalidDecimalFieldPassedToGenerator.js'
 import NoColumnsToAlterMigration from '../../errors/NoColumnsToAlterMigration.js'
 import UnparseableMigrationColumn from '../../errors/UnparseableMigrationColumn.js'
+import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import { LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import camelize from '../camelize.js'
 import compact from '../compact.js'
@@ -217,7 +218,7 @@ export default function generateMigrationContent({
           break
 
         case 'encrypted':
-          attributeName = `encrypted_${attributeName}`
+          attributeName = snakeify(defaultEncryptedColumnName(attributeName))
           columnDefs.push(
             generateColumnStr(attributeName, 'text', descriptors, {
               omitInlineNonNull,

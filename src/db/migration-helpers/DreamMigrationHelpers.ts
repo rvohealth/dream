@@ -1,9 +1,11 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
+import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DropEnumValueRetypeFailed, {
   DropEnumValueRetypeFailedOpts,
   quotedRelationName,
 } from '../../errors/DropEnumValueRetypeFailed.js'
+import snakeify from '../../helpers/snakeify.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -327,7 +329,7 @@ export default class DreamMigrationHelpers {
    * @param options - Configuration options
    * @param options.table - The name of the table
    * @param options.column - The current (plaintext) column name
-   * @param options.encryptedColumnName - The target encrypted column name. Defaults to `encrypted_<column>`, matching the `@Encrypted` decorator's default; pass this when the decorator was given a custom encrypted column name.
+   * @param options.encryptedColumnName - The target encrypted column name. Defaults to the column the `@Encrypted` decorator reads for a property named after `column` (`encrypted_phone` for `phone`); pass this when the decorator was given a custom encrypted column name.
    * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
    * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
    */
@@ -336,7 +338,7 @@ export default class DreamMigrationHelpers {
     {
       table,
       column,
-      encryptedColumnName = `encrypted_${column}`,
+      encryptedColumnName = snakeify(defaultEncryptedColumnName(column)),
       primaryKey = 'id',
       batchSize = 1000,
     }: EncryptColumnOpts
@@ -382,7 +384,7 @@ export default class DreamMigrationHelpers {
    * @param options - Configuration options
    * @param options.table - The name of the table
    * @param options.column - The target (plaintext) column name to rename back to
-   * @param options.encryptedColumnName - The current encrypted column name. Defaults to `encrypted_<column>`.
+   * @param options.encryptedColumnName - The current encrypted column name. Defaults to the column the `@Encrypted` decorator reads for a property named after `column` (`encrypted_phone` for `phone`).
    * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
    * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
    * @param options.columnType - When provided, the restored column is converted to this type. When omitted, the column is left as `text`.
@@ -392,7 +394,7 @@ export default class DreamMigrationHelpers {
     {
       table,
       column,
-      encryptedColumnName = `encrypted_${column}`,
+      encryptedColumnName = snakeify(defaultEncryptedColumnName(column)),
       primaryKey = 'id',
       batchSize = 1000,
       columnType,
