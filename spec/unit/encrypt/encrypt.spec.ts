@@ -355,6 +355,38 @@ describe('Encrypt', () => {
     })
   })
 
+  describe('#reencrypt', () => {
+    const current: EncryptOptions = { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') }
+    const legacy: EncryptOptions = { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') }
+
+    it('encrypts a value the legacy key opens again with the current key', () => {
+      const reencrypted = Encrypt.reencrypt(Encrypt.encrypt({ token: 'abc' }, legacy), current, legacy)
+
+      expect(Encrypt.decrypt(reencrypted, current)).toEqual({ token: 'abc' })
+    })
+
+    it('encrypts a value the current key opens again with the current key', () => {
+      const encrypted = Encrypt.encrypt('hello', current)
+      const reencrypted = Encrypt.reencrypt(encrypted, current, legacy)
+
+      expect(reencrypted).not.toEqual(encrypted)
+      expect(Encrypt.decrypt(reencrypted, current)).toEqual('hello')
+    })
+
+    it('throws DecryptionRotationError for a value neither key opens', () => {
+      const encrypted = Encrypt.encrypt('hello', {
+        algorithm: 'aes-256-gcm',
+        key: Encrypt.generateKey('aes-256-gcm'),
+      })
+
+      expect(() => Encrypt.reencrypt(encrypted, current, legacy)).toThrow(DecryptionRotationError)
+    })
+
+    it('throws DecryptionError for a value the current key does not open, when given no legacy key', () => {
+      expect(() => Encrypt.reencrypt(Encrypt.encrypt('hello', legacy), current)).toThrow(DecryptionError)
+    })
+  })
+
   describe('#generateKey', () => {
     context('algorithm: aes-256-gcm', () => {
       it('generates a 32-bit, base64-encoded string', () => {

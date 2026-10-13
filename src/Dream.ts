@@ -1769,6 +1769,71 @@ export default class Dream {
   }
 
   /**
+   * Encrypts every value of the model's `@deco.Encrypted` properties again
+   * with the current column encryption key, so that reading them no longer
+   * needs the `legacy` key. It is a step of a key rotation (see
+   * `Encrypt.generateKey`): run it in each environment, once that
+   * environment has deployed its rotated keys, from a console or a script,
+   * not from a migration, whose result would then depend on the keys a given
+   * environment has configured when the migration runs.
+   *
+   * ```ts
+   * await User.reencryptEncryptedColumns()
+   * ```
+   *
+   * It walks every row of the model's table, including rows its default
+   * scopes (such as soft delete) hide and an STI model's siblings, in batches in primary key order, and opens
+   * each non-null value with the current key or, failing that, the legacy
+   * one (see `Encrypt.reencrypt`). Each row is written on its own, with
+   * no model hooks and without changing `updatedAt`, and only while the
+   * column still holds the value read, so a row an app saves in between
+   * keeps the newer value. Reading values here does not fire
+   * `dreamApp.on('encryption:legacy-key-used', ...)`.
+   *
+   * **Run it only once every server encrypts with the new key.** It walks
+   * the table once, so a row a server still configured with the old
+   * `current` writes behind it stays encrypted with the old key, and so does
+   * old-key ciphertext later written straight into a backing column
+   * (`setAttribute`, `setAttributes` and `updateAttributes` accept, for a
+   * backing column, ciphertext that either key opens). Once no writer uses
+   * the old key and this has run for every model with encrypted properties,
+   * `legacy` is safe to drop.
+   *
+   * **A value neither key opens stops it**, throwing as reading the property
+   * would (`DecryptionRotationError` while a `legacy` key is configured,
+   * `DecryptionError` without one). The rows rewritten before it stay
+   * rewritten; running it again once the value is fixed rewrites them again
+   * harmlessly.
+   *
+   * @param opts - Optional parameters
+   * @param opts.batchSize - how many rows to read per batch. Defaults to 1000
+   */
+  public static async reencryptEncryptedColumns<T extends typeof Dream>(
+    this: T,
+    opts?: FindEachOpts
+  ): Promise<void> {
+    const encryptedColumnNames = this.encryptedAttributes.map(attribute => attribute.encryptedColumnName)
+    if (!encryptedColumnNames.length) return
+
+    const tableClass = this.stiBaseClassOrOwnClass
+    await tableClass.removeAllDefaultScopes().findEach(async record => {
+      for (const columnName of encryptedColumnNames) {
+        const ciphertext = record.getAttribute(columnName as any)
+        if (ciphertext === null || ciphertext === undefined) continue
+
+        // written through Kysely, since Query#update refuses any value for a
+        // backing column, ciphertext included
+        await tableClass
+          .removeAllDefaultScopes()
+          .where({ [tableClass.primaryKey]: record.primaryKeyValue(), [columnName]: ciphertext } as any)
+          .toKysely('update')
+          .set({ [columnName]: InternalEncrypt.reencryptColumn(ciphertext) } as any)
+          .execute()
+      }
+    }, opts)
+  }
+
+  /**
    * Returns a new instance of Query scoped to the given
    * model class. Especially useful with {@link Query#toKysely}.
    *

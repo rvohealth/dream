@@ -32,6 +32,21 @@ export default class InternalEncrypt {
   }
 
   /**
+   * Encrypts `data`, a column's ciphertext, again with the current column key
+   * (see `Encrypt.reencrypt`), opening it with the current key or, failing
+   * that, the legacy one. It does not call `onLegacyKeyUsed`.
+   */
+  public static reencryptColumn(data: any) {
+    const dreamApp = DreamApp.getOrFail()
+    const encryptOpts = dreamApp.encryption?.columns
+    if (!encryptOpts) throw new MissingColumnEncryptionOpts()
+
+    if (data === null || data === undefined) return null
+
+    return Encrypt.reencrypt(data, encryptOpts.current, encryptOpts.legacy)
+  }
+
+  /**
    * Whether `data` is ciphertext that the column keys (current, then legacy)
    * open to a value `decryptColumn` returns. A missing column encryption
    * config or key still throws, since that is a configuration error rather

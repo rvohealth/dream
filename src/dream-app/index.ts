@@ -693,8 +693,8 @@ export default class DreamApp {
    *   record whose value is still under the old key fires the event each time
    *   the property is read. A row nobody reads never fires it, so a quiet
    *   event does not prove that `legacy` is safe to drop;
-   *   `DreamMigrationHelpers.reencryptColumn` rewrites every row instead. The
-   *   migration helpers do not fire the event. The callback runs
+   *   `Model.reencryptEncryptedColumns()` rewrites every row instead. Neither
+   *   it nor the migration helpers fire the event. The callback runs
    *   synchronously inside the property read, and an error it throws
    *   propagates from that read. Reading the same property of the same
    *   record inside the callback returns its value without firing the event

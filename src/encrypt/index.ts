@@ -90,6 +90,35 @@ export default class Encrypt {
     }
   }
 
+  /**
+   * Opens `encrypted` as {@link Encrypt.decrypt} does, with `currentOpts` and,
+   * when they do not open it, `legacyOpts`, and encrypts the value again with
+   * `currentOpts`, so that reading it no longer needs the legacy key. Use it
+   * during a key rotation for a value stored outside an `@deco.Encrypted`
+   * column, such as a cookie; `Model.reencryptEncryptedColumns()` does this
+   * for every value of a model's encrypted properties.
+   *
+   * ```ts
+   * const rewritten = Encrypt.reencrypt(
+   *   storedValue,
+   *   { algorithm: 'aes-256-gcm', key: newKey },
+   *   { algorithm: 'aes-256-gcm', key: oldKey }
+   * )
+   * ```
+   *
+   * @throws MissingEncryptionKey
+   * @throws DecryptionError
+   * @throws DecryptionParseError
+   * @throws DecryptionRotationError
+   */
+  public static reencrypt(
+    encrypted: string,
+    currentOpts: EncryptOptions,
+    legacyOpts?: DecryptOptions
+  ): string {
+    return this.encrypt(this.decrypt(encrypted, currentOpts, legacyOpts), currentOpts)
+  }
+
   private static attemptDecryptionWithLegacyKeys<RetType>(
     encrypted: string,
     currentOpts: DecryptOptions,
@@ -135,14 +164,16 @@ export default class Encrypt {
    * 4. For cookies, wait at least the cookie `maxAge` so all in-flight
    *    cookies have either expired or been re-issued under the new key. For
    *    `@Encrypted` columns, re-encrypt every existing row under the new key
-   *    with a migration that calls `DreamMigrationHelpers.reencryptColumn`
-   *    for each encrypted column. Run it only once every server runs with the
-   *    new `current`: a server still on the old `current` keeps writing
-   *    old-key values that the helper's single pass over the table can miss.
-   *    Writing old-key ciphertext straight into a backing column
-   *    (`setAttribute`, `setAttributes` or `updateAttributes` given the
-   *    backing column) after the helper has run also puts an old-key value
-   *    back.
+   *    by calling `reencryptEncryptedColumns()` on each model that has
+   *    encrypted properties (`await User.reencryptEncryptedColumns()`), in
+   *    each environment, from a console or a script rather than a migration.
+   *    Run it only once every server in that environment runs with the new
+   *    `current`: a server still on the old `current` keeps writing old-key
+   *    values that its single pass over the table can miss. Writing old-key
+   *    ciphertext straight into a backing column (`setAttribute`,
+   *    `setAttributes` or `updateAttributes` given the backing column) after
+   *    it has run also puts an old-key value back. For any other value
+   *    encrypted with these keys, {@link Encrypt.reencrypt} rewrites it.
    * 5. Drop `legacy` from config and deploy again.
    *
    * To see which values still need the old key while `legacy` is
