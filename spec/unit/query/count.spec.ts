@@ -19,14 +19,37 @@ describe('Query#count', () => {
   context('joins distinct', () => {
     it('counts distinct records', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      const otherUser = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'fred' })
+      await User.create({ email: 'how@fishman', password: 'howyadoin', name: 'zed' })
       await Composition.create({ user, content: 'Hello' })
       await Composition.create({ user, content: 'Hello' })
       await Composition.create({ user, content: 'Goodbye' })
+      await Composition.create({ user: otherUser, content: 'Hello' })
 
       const count = await User.innerJoin('compositions', { and: { content: 'Hello' } })
         .distinct()
         .count()
-      expect(count).toEqual(1)
+      expect(count).toEqual(2)
+    })
+  })
+
+  context('distinct', () => {
+    it('counts each record once', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+      await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'fred' })
+      await User.create({ email: 'how@fishman', password: 'howyadoin', name: 'zed' })
+
+      expect(await User.distinct().count()).toEqual(3)
+    })
+
+    context('on a column', () => {
+      it('counts one record for each value of the column', async () => {
+        await User.create({ email: 'fred@frewd', password: 'howyadoin', name: 'fred' })
+        await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'fred' })
+        await User.create({ email: 'how@fishman', password: 'howyadoin', name: 'zed' })
+
+        expect(await User.distinct('name').count()).toEqual(2)
+      })
     })
   })
 

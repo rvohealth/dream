@@ -56,6 +56,23 @@ describe('Query#paginate', () => {
     })
   })
 
+  context('with distinct', () => {
+    it('counts the records and pages the distinct query returns', async () => {
+      const results = await User.distinct().paginate({ pageSize: 3, page: 1 })
+
+      expect(results).toEqual({
+        recordCount: 4,
+        pageCount: 2,
+        currentPage: 1,
+        results: [
+          expect.toMatchDreamModel(user1),
+          expect.toMatchDreamModel(user4),
+          expect.toMatchDreamModel(user3),
+        ],
+      })
+    })
+  })
+
   context('with a similarity condition', () => {
     it('pages best match first, returning every match exactly once across pages', async () => {
       // for "chalupa", "chalupa chalupa" ranks highest and "chalupazz" lowest;

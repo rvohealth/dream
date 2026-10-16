@@ -898,7 +898,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     const countClause = distinctColumn
-      ? count(sql`DISTINCT ${distinctColumn}`)
+      ? count(sql`DISTINCT ${sql.ref(distinctColumn)}`)
       : count(query['namespaceColumn'](query.dreamInstance['_primaryKey']))
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
