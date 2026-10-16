@@ -70,7 +70,7 @@ export default class DreamMigrationHelpers {
     await sql`
     ALTER TABLE ${sql.table(table)}
     ADD CONSTRAINT ${sql.table(constraintName)}
-      UNIQUE (${sql.raw(columns.join(', '))})
+      UNIQUE (${sql.join(columns.map(column => sql.ref(column)))})
       DEFERRABLE INITIALLY DEFERRED;
   `.execute(db)
   }
@@ -86,7 +86,7 @@ export default class DreamMigrationHelpers {
    * @param __namedParameters.value - The name of the value to add to the enum
    */
   public static async addEnumValue(db: Kysely<any>, { enumName, value }: AddValueToEnumOpts) {
-    await sql`ALTER TYPE ${sql.raw(enumName)} ADD VALUE IF NOT EXISTS '${sql.raw(value)}';`.execute(db)
+    await sql`ALTER TYPE ${sql.table(enumName)} ADD VALUE IF NOT EXISTS ${sql.lit(value)};`.execute(db)
   }
 
   /**
@@ -135,9 +135,7 @@ export default class DreamMigrationHelpers {
     { table, column }: { table: string; column: string }
   ) {
     await sql`
-    CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(table)} USING GIN (${sql.raw(
-      `${column} gin_trgm_ops`
-    )});
+    CREATE INDEX IF NOT EXISTS ${sql.table(indexName)} ON ${sql.table(table)} USING GIN (${sql.ref(column)} gin_trgm_ops);
   `.execute(db)
   }
 
@@ -577,7 +575,7 @@ function constraintContextFor(
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {
-  const response = await sql`SELECT unnest(enum_range(NULL::${sql.raw(enumName)}))`.execute(db)
+  const response = await sql`SELECT unnest(enum_range(NULL::${sql.table(enumName)}))`.execute(db)
   return response.rows.map(row => (row as any).unnest)
 }
 
@@ -598,10 +596,10 @@ async function replaceArrayValues(
     .set({
       [column]:
         tableAndColumnToChange.behavior === 'remove'
-          ? sql.raw(`array_remove(${column}, '${value}')`)
-          : sql.raw(`array_replace(${column}, '${value}', '${tableAndColumnToChange.replaceWith}')`),
+          ? sql`array_remove(${sql.ref(column)}, ${value})`
+          : sql`array_replace(${sql.ref(column)}, ${value}, ${tableAndColumnToChange.replaceWith})`,
     })
-    .where(sql.raw(`'${value}'`), '=', sql.raw(`ANY(${column})`))
+    .where(sql<boolean>`${value} = ANY(${sql.ref(column)})`)
     .execute()
 }
 
@@ -633,10 +631,10 @@ async function updateTableColumnToNewEnumArrayType(
   const { table, column } = tableAndColumnToChange
 
   await sql`
-    ALTER TABLE ${sql.raw(table)}
-    ALTER ${sql.raw(column)}
-    TYPE ${sql.raw(enumName)}[]
-    USING ${sql.raw(column)}::${sql.raw(enumName)}[];
+    ALTER TABLE ${sql.table(table)}
+    ALTER COLUMN ${sql.ref(column)}
+    TYPE ${sql.table(enumName)}[]
+    USING ${sql.ref(column)}::${sql.table(enumName)}[];
   `.execute(db)
 }
 
@@ -649,10 +647,10 @@ async function updateTableColumnToNewEnumType(
   const { table, column } = tableAndColumnToChange
 
   await sql`
-    ALTER TABLE ${sql.raw(table)}
-    ALTER ${sql.raw(column)}
-    TYPE ${sql.raw(enumName)}
-    USING ${sql.raw(column)}::${sql.raw(enumName)};
+    ALTER TABLE ${sql.table(table)}
+    ALTER COLUMN ${sql.ref(column)}
+    TYPE ${sql.table(enumName)}
+    USING ${sql.ref(column)}::${sql.table(enumName)};
   `.execute(db)
 }
 

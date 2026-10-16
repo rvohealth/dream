@@ -728,6 +728,92 @@ describe('DreamMigrationHelpers.dropEnumValue', () => {
         expect(lastPet!.temporaryEnums).toEqual('{a}')
       })
     })
+
+    context('a value containing an apostrophe', () => {
+      beforeEach(async () => {
+        await sql`ALTER TYPE temp_enum ADD VALUE ${sql.lit("o'brien")}`.execute(_db)
+        await _db
+          .insertInto('pets')
+          .values({ temporary_enums: ['a', "o'brien"], created_at: '2024-02-02' })
+          .execute()
+      })
+
+      it('replaces it with replaceWith', async () => {
+        await DreamMigrationHelpers.dropEnumValue(_db, {
+          enumName: 'temp_enum',
+          value: "o'brien",
+          replacements: [
+            {
+              table: 'pets',
+              column: 'temporary_enums',
+              array: true,
+              behavior: 'replace',
+              replaceWith: 'b',
+            },
+          ],
+        })
+
+        const pet = await _db.selectFrom('pets').selectAll().executeTakeFirst()
+        expect(pet!.temporaryEnums).toEqual('{a,b}')
+      })
+
+      it('removes it', async () => {
+        await DreamMigrationHelpers.dropEnumValue(_db, {
+          enumName: 'temp_enum',
+          value: "o'brien",
+          replacements: [
+            {
+              table: 'pets',
+              column: 'temporary_enums',
+              array: true,
+              behavior: 'remove',
+            },
+          ],
+        })
+
+        const pet = await _db.selectFrom('pets').selectAll().executeTakeFirst()
+        expect(pet!.temporaryEnums).toEqual('{a}')
+      })
+    })
+  })
+
+  context('an enum and columns named with reserved words', () => {
+    beforeEach(async () => {
+      await _db.schema.createType('order').asEnum(['a', 'b', 'c']).execute()
+      await _db.schema
+        .alterTable('pets')
+        .addColumn('select', sql`"order"`)
+        .addColumn('group', sql`"order"[]`)
+        .execute()
+    })
+
+    afterEach(async () => {
+      await _db.schema.alterTable('pets').dropColumn('select').dropColumn('group').execute()
+      await _db.schema.dropType('order').execute()
+    })
+
+    it('replaces the value in both columns and drops it from the enum', async () => {
+      await _db
+        .insertInto('pets')
+        .values({ select: 'c', group: ['a', 'c'], created_at: '2024-02-02' })
+        .execute()
+
+      await DreamMigrationHelpers.dropEnumValue(_db, {
+        enumName: 'order',
+        value: 'c',
+        replacements: [
+          { table: 'pets', column: 'select', behavior: 'replace', replaceWith: 'b' },
+          { table: 'pets', column: 'group', array: true, behavior: 'replace', replaceWith: 'b' },
+        ],
+      })
+
+      const pet = await _db.selectFrom('pets').selectAll().executeTakeFirst()
+      expect(pet!.select).toEqual('b')
+      expect(pet!.group).toEqual('{a,b}')
+      const response = await sql`SELECT unnest(enum_range(NULL::"order"))`.execute(_db)
+      const allEnumValues = response.rows.map(row => (row as any).unnest)
+      expect(allEnumValues).toEqual(['a', 'b'])
+    })
   })
 })
 
