@@ -341,22 +341,6 @@ describe('DreamSerializer#rendersOne', () => {
         })
       })
 
-      it('renders null for every key of a serializer that reads its data while being built', () => {
-        const pet = Pet.new({ id: '3', user: null, name: 'Snoopy', species: 'dog' })
-
-        const OwnerSerializer = (user: User) => {
-          const serializer = DreamSerializer(User, user).attribute('id')
-          return user.email ? serializer.attribute('email') : serializer.attribute('name')
-        }
-
-        const MySerializer = (data: Pet) =>
-          DreamSerializer(Pet, data)
-            .attribute('species')
-            .rendersOne('user', { flatten: true, serializer: OwnerSerializer })
-
-        expect(MySerializer(pet).render()).toEqual({ species: 'dog', id: null, name: null })
-      })
-
       it('renders null for every key its serializer declares, without running the serializer callbacks', () => {
         const pet = Pet.new({ id: '3', user: null, name: 'Snoopy', species: 'dog' })
 

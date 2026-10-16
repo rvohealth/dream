@@ -276,9 +276,8 @@ export default class SerializerRenderer {
    * the association is a polymorphic BelongsTo, one for each target class, or when the associated
    * class is an STI base, one for each child, and their keys are unioned.
    *
-   * Each serializer is built over an empty object to read its declarations, so a serializer that
-   * reads a property of its data while being built still builds, and nothing is rendered: no
-   * attribute callback runs and no association of the missing object is read. A flattened
+   * Each serializer is built over an empty object to read its declarations, and nothing is
+   * rendered: no attribute callback runs and no association of the missing object is read. A flattened
    * `rendersOne` it declares adds its own serializers' keys the same way. A flattened
    * `customAttribute` adds none, since only its callback knows its keys.
    */
