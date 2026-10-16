@@ -69,7 +69,7 @@ export default class DreamMigrationHelpers {
     await this.dropConstraint(db, constraintName, { table })
     await sql`
     ALTER TABLE ${sql.table(table)}
-    ADD CONSTRAINT ${sql.table(constraintName)}
+    ADD CONSTRAINT ${sql.ref(constraintName)}
       UNIQUE (${sql.join(columns.map(column => sql.ref(column)))})
       DEFERRABLE INITIALLY DEFERRED;
   `.execute(db)
@@ -86,7 +86,7 @@ export default class DreamMigrationHelpers {
    * @param __namedParameters.value - The name of the value to add to the enum
    */
   public static async addEnumValue(db: Kysely<any>, { enumName, value }: AddValueToEnumOpts) {
-    await sql`ALTER TYPE ${sql.table(enumName)} ADD VALUE IF NOT EXISTS ${sql.lit(value)};`.execute(db)
+    await sql`ALTER TYPE ${sql.ref(enumName)} ADD VALUE IF NOT EXISTS ${sql.lit(value)};`.execute(db)
   }
 
   /**
@@ -135,7 +135,7 @@ export default class DreamMigrationHelpers {
     { table, column }: { table: string; column: string }
   ) {
     await sql`
-    CREATE INDEX IF NOT EXISTS ${sql.table(indexName)} ON ${sql.table(table)} USING GIN (${sql.ref(column)} gin_trgm_ops);
+    CREATE INDEX IF NOT EXISTS ${sql.ref(indexName)} ON ${sql.table(table)} USING GIN (${sql.ref(column)} gin_trgm_ops);
   `.execute(db)
   }
 
@@ -152,7 +152,7 @@ export default class DreamMigrationHelpers {
    */
   public static async dropConstraint(db: Kysely<any>, constraintName: string, { table }: { table: string }) {
     await sql`
-    ALTER TABLE ${sql.table(table)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
+    ALTER TABLE ${sql.table(table)} DROP CONSTRAINT IF EXISTS ${sql.ref(constraintName)};
   `.execute(db)
   }
 
@@ -575,7 +575,7 @@ function constraintContextFor(
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {
-  const response = await sql`SELECT unnest(enum_range(NULL::${sql.table(enumName)}))`.execute(db)
+  const response = await sql`SELECT unnest(enum_range(NULL::${sql.ref(enumName)}))`.execute(db)
   return response.rows.map(row => (row as any).unnest)
 }
 
@@ -633,8 +633,8 @@ async function updateTableColumnToNewEnumArrayType(
   await sql`
     ALTER TABLE ${sql.table(table)}
     ALTER COLUMN ${sql.ref(column)}
-    TYPE ${sql.table(enumName)}[]
-    USING ${sql.ref(column)}::${sql.table(enumName)}[];
+    TYPE ${sql.ref(enumName)}[]
+    USING ${sql.ref(column)}::${sql.ref(enumName)}[];
   `.execute(db)
 }
 
@@ -649,8 +649,8 @@ async function updateTableColumnToNewEnumType(
   await sql`
     ALTER TABLE ${sql.table(table)}
     ALTER COLUMN ${sql.ref(column)}
-    TYPE ${sql.table(enumName)}
-    USING ${sql.ref(column)}::${sql.table(enumName)};
+    TYPE ${sql.ref(enumName)}
+    USING ${sql.ref(column)}::${sql.ref(enumName)};
   `.execute(db)
 }
 
