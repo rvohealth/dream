@@ -19,21 +19,6 @@ describe('DreamSerializer#customAttribute', () => {
     })
   })
 
-  it('renders the callback value without applying as, default or precision', () => {
-    const MySerializer = (user: User) =>
-      DreamSerializer(User, user)
-        .customAttribute('renamed', () => 'value', { openapi: 'string', as: 'other' })
-        .customAttribute('defaulted', () => undefined, { openapi: 'string', default: 'fallback' })
-        .customAttribute('rating', () => 3.14159, { openapi: 'decimal', precision: 2 })
-
-    const serializer = MySerializer(User.new({ email: 'abc', password: '123' }))
-    expect(serializer.render()).toEqual({
-      renamed: 'value',
-      defaulted: null,
-      rating: 3.14159,
-    })
-  })
-
   context('returning a serializer', () => {
     it('automatically renders the serializer', async () => {
       const OtherSerializer = (data: ModelForOpenapiTypeSpecs) =>
@@ -333,6 +318,26 @@ describe('DreamSerializer#customAttribute', () => {
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
   // comments, which will become invalid if the type errors stop raising
   context('type tests', () => {
+    it.skip('takes no as, default or precision, since the callback computes the value', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('name', () => 'value', {
+        openapi: 'string',
+        // @ts-expect-error the attribute is named by its first argument
+        as: 'other',
+      })
+      DreamSerializer(Pet, pet).customAttribute('name', () => undefined, {
+        openapi: 'string',
+        // @ts-expect-error any fallback belongs in the callback
+        default: 'fallback',
+      })
+      DreamSerializer(Pet, pet).customAttribute('rating', () => 3.14159, {
+        openapi: 'decimal',
+        // @ts-expect-error any rounding belongs in the callback
+        precision: 2,
+      })
+    })
+
     it.skip('a nullable schema lists a null branch in its anyOf or oneOf rather than a nullable type beside it', () => {
       const pet = Pet.new()
 

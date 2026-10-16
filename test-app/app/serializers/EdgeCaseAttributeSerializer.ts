@@ -7,7 +7,4 @@ export default (data: EdgeCaseAttribute) =>
     .attribute('kPop')
     .attribute('popK')
     .attribute('popKPop')
-    .customAttribute('roundedPopKPop', () => round(data.popKPop ?? 0, 2), {
-      openapi: 'decimal',
-      precision: 2,
-    })
+    .customAttribute('roundedPopKPop', () => round(data.popKPop ?? 0, 2), { openapi: 'decimal' })

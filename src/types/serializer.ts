@@ -38,7 +38,11 @@ export interface InternalAnyTypedSerializerCustomAttribute {
   type: 'customAttribute'
   name: string
   fn: (x?: any, y?: any) => any
-  options: Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean }
+  options: {
+    openapi: CustomAttributeOpenapi
+    required?: false
+    flatten?: boolean
+  }
 }
 
 export interface InternalAnyRendersOneOrManyOpts {
@@ -181,14 +185,17 @@ type DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> = Assoc
           }
   : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
 
+type CustomAttributeOpenapi = OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+
 /**
- * The options of `customAttribute`. With `flatten: true`, `openapi` may be anything but a
+ * The options of `customAttribute`. The callback's return value renders as is, so there is
+ * no `as`, `default` or `precision`. With `flatten: true`, `openapi` may be anything but a
  * serializer ref with `many: true`: flattening spreads one object's properties into the
  * parent, and a list has none to spread.
  */
-export type CustomAttributeOptions<Options extends { openapi: unknown }> =
-  | (Options & { flatten?: false })
-  | (Omit<Options, 'openapi'> & { flatten: true; openapi: OpenapiForFlattening<Options['openapi']> })
+export type CustomAttributeOptions =
+  | { openapi: CustomAttributeOpenapi; required?: false; flatten?: false }
+  | { openapi: OpenapiForFlattening<CustomAttributeOpenapi>; required?: false; flatten: true }
 
 type OpenapiForFlattening<Openapi> = Openapi extends unknown
   ? 'many' extends keyof Openapi

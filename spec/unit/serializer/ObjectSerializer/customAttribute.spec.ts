@@ -97,22 +97,6 @@ describe('ObjectSerializer#customAttribute', () => {
         expect(serializer.render()).toEqual({})
       })
     })
-
-    context('with a default', () => {
-      it('are rendered as null', () => {
-        const MySerializer = (user: User) =>
-          ObjectSerializer(user).customAttribute('email', () => user.email, {
-            default: 'fallback@peanuts.com',
-            openapi: 'string',
-          })
-
-        const serializer = MySerializer({ email: undefined as unknown as string, password: '123' })
-
-        expect(serializer.render()).toEqual({
-          email: null,
-        })
-      })
-    })
   })
 
   context('flatten', () => {
@@ -158,6 +142,26 @@ describe('ObjectSerializer#customAttribute', () => {
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
   // comments, which will become invalid if the type errors stop raising
   context('type tests', () => {
+    it.skip('takes no as, default or precision, since the callback computes the value', () => {
+      const user: User = { email: 'abc', password: '123' }
+
+      ObjectSerializer(user).customAttribute('email', () => user.email, {
+        openapi: 'string',
+        // @ts-expect-error the attribute is named by its first argument
+        as: 'other',
+      })
+      ObjectSerializer(user).customAttribute('email', () => undefined, {
+        openapi: 'string',
+        // @ts-expect-error any fallback belongs in the callback
+        default: 'fallback',
+      })
+      ObjectSerializer(user).customAttribute('rating', () => 3.14159, {
+        openapi: 'decimal',
+        // @ts-expect-error any rounding belongs in the callback
+        precision: 2,
+      })
+    })
+
     it.skip('a flattened serializer ref may be nullable but not a list', () => {
       const data = { email: 'abc' }
 

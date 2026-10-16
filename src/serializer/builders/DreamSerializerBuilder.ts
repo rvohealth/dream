@@ -244,8 +244,8 @@ export default class DreamSerializerBuilder<
    * Executes a callback function to generate a custom attribute value.
    * The `openapi` option is always required since the return type cannot be inferred.
    *
-   * `as`, `default` and `precision` are accepted by the options type but have no effect here:
-   * the attribute is named by `name`, and any fallback or rounding belongs in the callback.
+   * The callback's return value renders as is, so any fallback or rounding belongs in the
+   * callback.
    *
    * @param name - The attribute name for the computed value
    * @param fn - Callback function that returns the computed value
@@ -289,16 +289,12 @@ export default class DreamSerializerBuilder<
    * ```
    */
 
-  public customAttribute(
-    name: string,
-    fn: () => unknown,
-    options: CustomAttributeOptions<NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption>
-  ) {
+  public customAttribute(name: string, fn: () => unknown, options: CustomAttributeOptions) {
     this.attributes.push({
       type: 'customAttribute',
       name,
       fn,
-      options: options as any,
+      options,
     })
 
     return this

@@ -7,7 +7,6 @@ import {
   InternalAnyTypedSerializerDelegatedAttribute,
   InternalAnyTypedSerializerRendersMany,
   InternalAnyTypedSerializerRendersOne,
-  NonAutomaticSerializerAttributeOptions,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
   SerializerType,
 } from '../../types/serializer.js'
@@ -198,8 +197,7 @@ export default class ObjectSerializerBuilder<
    * Executes a callback function to generate a custom attribute value.
    * The `openapi` option is always required since the return type cannot be inferred.
    *
-   * `default` is accepted by the options type but has no effect here: any fallback belongs in
-   * the callback.
+   * The callback's return value renders as is, so any fallback belongs in the callback.
    *
    * @param name - The attribute name for the computed value
    * @param fn - Callback function that returns the computed value
@@ -242,11 +240,7 @@ export default class ObjectSerializerBuilder<
    * })
    * ```
    */
-  public customAttribute(
-    name: string,
-    fn: () => unknown,
-    options: CustomAttributeOptions<Omit<NonAutomaticSerializerAttributeOptions, 'as'>>
-  ) {
+  public customAttribute(name: string, fn: () => unknown, options: CustomAttributeOptions) {
     this.attributes.push({
       type: 'customAttribute',
       name,
