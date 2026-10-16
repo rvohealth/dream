@@ -1525,19 +1525,19 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   /**
    * @internal
    *
-   * A page of a select that carries DISTINCT ON with an ORDER BY of its own
-   * (as an association that declares `distinct` and `order` produces), or null
+   * A page of a select that carries DISTINCT ON (as a Query that calls
+   * `distinct`, or an association that declares `distinct`, produces), or null
    * for any other select.
    *
-   * Such a select keeps the row of each group that sorts first in that ORDER
+   * Such a select keeps the row of each group that sorts first in its ORDER
    * BY, so narrowing it to the rows after a cursor would let it keep a row it
    * does not return (a group's later row, once the cursor has passed the
    * group's first). It is read as a derived table instead, and narrowed to
    * `rowsAfter`, sorted and limited outside it. The Query's order statements
-   * follow its ORDER BY, so that the select keeps the same row of each group
-   * every time it runs, and each of their columns is read out of it under a
-   * short alias (as `pluck` reads them), since a joined table's column cannot
-   * be named outside it.
+   * follow the select's own ORDER BY, if it has one, so that the select keeps
+   * the same row of each group every time it runs, and each of their columns
+   * is read out of it under a short alias (as `pluck` reads them), since a
+   * joined table's column cannot be named outside it.
    *
    * @param rowsAfter - where statements, any of which a row of the page matches
    * @returns The page's rows, each an array of its order statement columns' values, or null
@@ -1547,7 +1547,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
   ): Promise<unknown[][] | null> {
     const { kyselyQuery: selectCore, selectDb } = this.buildSelectCore()
     const selectNode = selectCore.toOperationNode()
-    if (!selectNode.distinctOn?.length || !selectNode.orderBy?.items.length) return null
+    if (!selectNode.distinctOn?.length) return null
 
     const baseSqlAlias = this.query['baseSqlAlias']
     const orderStatements = this.query['orderStatements']

@@ -673,10 +673,10 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   /**
    * @internal
    *
-   * A page of a select that keeps one row of each group (DISTINCT ON with an
-   * ORDER BY of its own, as an association that declares `distinct` and
-   * `order` produces), or null for any other select, whose pages cursor
-   * pagination reads as it reads any select's.
+   * A page of a select that keeps one row of each group (DISTINCT ON, as a
+   * Query that calls `distinct`, or an association that declares `distinct`,
+   * produces), or null for any other select, whose pages cursor pagination
+   * reads as it reads any select's.
    *
    * The page is the values of the Query's order statement columns for each
    * row the select returns that matches any of `rowsAfter` (every row when it

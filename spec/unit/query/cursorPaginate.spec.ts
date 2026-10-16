@@ -652,11 +652,35 @@ describe('Query#cursorPaginate', () => {
       expect(cursor).toBeNull()
       expect(results).toMatchDreamModels([user2, user1])
     })
+
+    context('ordered by a joined column after the primary key', () => {
+      it('returns each record once across pages, ending with a null cursor', async () => {
+        const user1 = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+        const user2 = await User.create({ email: 'fred@fred2', password: 'howyadoin' })
+        await Post.create({ user: user1, body: 'a' })
+        await Post.create({ user: user1, body: 'b' })
+        await Post.create({ user: user2, body: 'c' })
+
+        const results: User[] = []
+        let cursor: string | null | undefined = undefined
+        for (let pageCount = 0; pageCount < 10 && cursor !== null; pageCount++) {
+          const page: CursorPaginatedDreamQueryResult<User> = await User.innerJoin('posts')
+            .distinct()
+            .order({ id: 'desc', 'posts.body': 'asc' })
+            .cursorPaginate({ pageSize: 1, cursor })
+          results.push(...page.results)
+          cursor = page.cursor
+        }
+
+        expect(cursor).toBeNull()
+        expect(results).toMatchDreamModels([user2, user1])
+      })
+    })
   })
 
   context('a query calling distinct on a column other than the primary key', () => {
-    it('can begin a page with another record of the value the previous page ended on, which all() does not return', async () => {
-      const olderSnoopy = await Pet.create({ name: 'Snoopy', createdAt: snoopy.createdAt.minus({ day: 1 }) })
+    it('returns only the records all() returns, ending with a null cursor', async () => {
+      await Pet.create({ name: 'Snoopy', createdAt: snoopy.createdAt.minus({ day: 1 }) })
       const query = Pet.distinct('name').order({ name: 'asc', createdAt: 'desc' })
 
       const results: Pet[] = []
@@ -669,7 +693,7 @@ describe('Query#cursorPaginate', () => {
 
       expect(cursor).toBeNull()
       expect(await query.all()).toMatchDreamModels([aster, snoopy, woodstock])
-      expect(results).toMatchDreamModels([aster, snoopy, olderSnoopy, woodstock])
+      expect(results).toMatchDreamModels([aster, snoopy, woodstock])
     })
   })
 

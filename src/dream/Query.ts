@@ -2362,16 +2362,14 @@ export default class Query<
    * record's primary key. A Query that calls `distinct` on another column has
    * to be ordered by that column first (e.g.:
    * `Post.distinct('category').order({ category: 'asc', createdAt: 'desc' })`),
-   * or the database rejects its pages. Its cursor is also the last record's
-   * primary key, but its pages can return records {@link Query.all} does not:
-   * each page after the first keeps one record for each value of that column
-   * out of the records sorting after the previous page's last record, so it
-   * can begin with another record of that record's value (an older post of
-   * the same category). Over an association that declares `distinct` and an
-   * `order` led by its distinct column (an `associationQuery` of it, or a
-   * Query that joins it), the pages return the rows {@link Query.all} returns:
-   * the row the association's `order` keeps for each value of its distinct
-   * column.
+   * or the database rejects its pages. Its pages return the records
+   * {@link Query.all} returns, the one its order keeps for each value of that
+   * column (the newest post of each category), and its cursor is also the
+   * last record's primary key. Over an association that declares `distinct`
+   * and an `order` led by its distinct column (an `associationQuery` of it, or
+   * a Query that joins it), the pages return the rows {@link Query.all}
+   * returns: the row the association's `order` keeps for each value of its
+   * distinct column.
    *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
@@ -2457,16 +2455,14 @@ export default class Query<
    * record's primary key. A Query that calls `distinct` on another column has
    * to be ordered by that column first (e.g.:
    * `Post.distinct('category').order({ category: 'asc', createdAt: 'desc' })`),
-   * or the database rejects its pages. Its cursor is also the last record's
-   * primary key, but its pages can return records {@link Query.all} does not:
-   * each page after the first keeps one record for each value of that column
-   * out of the records sorting after the previous page's last record, so it
-   * can begin with another record of that record's value (an older post of
-   * the same category). Over an association that declares `distinct` and an
-   * `order` led by its distinct column (an `associationQuery` of it, or a
-   * Query that joins it), the pages return the rows {@link Query.all} returns:
-   * the row the association's `order` keeps for each value of its distinct
-   * column.
+   * or the database rejects its pages. Its pages return the records
+   * {@link Query.all} returns, the one its order keeps for each value of that
+   * column (the newest post of each category), and its cursor is also the
+   * last record's primary key. Over an association that declares `distinct`
+   * and an `order` led by its distinct column (an `associationQuery` of it, or
+   * a Query that joins it), the pages return the rows {@link Query.all}
+   * returns: the row the association's `order` keeps for each value of its
+   * distinct column.
    *
    * A similarity condition (`ops.similarity`, `ops.wordSimilarity`,
    * `ops.strictWordSimilarity`) still decides which records match, but its
@@ -2583,12 +2579,12 @@ export default class Query<
       }
     }
 
-    // A select that keeps one row of each group (as an association that
-    // declares `distinct` and an `order` produces) chooses that row from the
-    // rows it reads, so it is not narrowed to the rows sorting after the
-    // cursor, which would let it choose a row it does not return: the driver
-    // reads its page, choosing each group's row before narrowing. Any other
-    // select is narrowed by its own conditions.
+    // A select that keeps one row of each group (as a Query that calls
+    // `distinct`, or an association that declares `distinct`, produces)
+    // chooses that row from the rows it reads, so it is not narrowed to the
+    // rows sorting after the cursor, which would let it choose a row it does
+    // not return: the driver reads its page, choosing each group's row before
+    // narrowing. Any other select is narrowed by its own conditions.
     const distinctOnPageRows = await pageQuery.dbDriverInstance().pluckDistinctOnPage(rowsSortingAfter)
     const query = rowsSortingAfter ? pageQuery.whereAny(rowsSortingAfter as any) : pageQuery
 
