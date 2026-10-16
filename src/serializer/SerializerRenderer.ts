@@ -276,10 +276,11 @@ export default class SerializerRenderer {
    * the association is a polymorphic BelongsTo, one for each target class, or when the associated
    * class is an STI base, one for each child, and their keys are unioned.
    *
-   * Each serializer is built over an empty object to read its declarations, and nothing is
-   * rendered: no attribute callback runs and no association of the missing object is read. A flattened
-   * `rendersOne` it declares adds its own serializers' keys the same way. A flattened
-   * `customAttribute` adds none, since only its callback knows its keys.
+   * Each serializer is built with `undefined` data to read its declarations, as Psychic's OpenAPI
+   * generation and `preloadFor` build it, and nothing is rendered: no attribute callback runs and
+   * no association of the missing object is read. A flattened `rendersOne` it declares adds its
+   * own serializers' keys the same way. A flattened `customAttribute` adds none, since only its
+   * callback knows its keys.
    */
   private nullFlattenedAttributes(
     serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
@@ -293,7 +294,10 @@ export default class SerializerRenderer {
       if (serializersBeingFlattened.has(serializer)) return flattenedKeys
       serializersBeingFlattened.add(serializer)
 
-      const serializerBuilder = serializer({}, passthroughData) as DreamSerializerBuilder<any, any>
+      const serializerBuilder = serializer(undefined as any, passthroughData) as DreamSerializerBuilder<
+        any,
+        any
+      >
       const dreamClass =
         serializerBuilder instanceof DreamSerializerBuilder
           ? (serializerBuilder['$typeForOpenapi'] as typeof Dream)
