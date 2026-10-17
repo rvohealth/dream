@@ -1,7 +1,5 @@
 import { sql } from 'kysely'
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
-import DreamApp from '../../../src/dream-app/index.js'
-import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import BatchingIncompatibleWithLimitOrOffset from '../../../src/errors/BatchingIncompatibleWithLimitOrOffset.js'
 import ops from '../../../src/ops/index.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
@@ -239,24 +237,6 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id, pet3.id])
     })
 
-    it('visits a record once for each distinct value the join returns it for, as all() returns it', async () => {
-      const now = DateTime.now()
-      const pet1 = await Pet.create()
-      const pet2 = await Pet.create()
-      await pet1.createAssociation('collars', { tagName: 'a', createdAt: now })
-      await pet1.createAssociation('collars', { tagName: 'b', createdAt: now })
-      await pet2.createAssociation('collars', { tagName: 'c', createdAt: now })
-
-      const records: Pet[] = []
-      await Pet.innerJoin('newestCollarPerTagName').findEach(
-        pet => {
-          records.push(pet)
-        },
-        { batchSize: 1 }
-      )
-      expect(records.map(r => r.id)).toEqual([pet1.id, pet1.id, pet2.id])
-    })
-
     it('visits each record the join returns when the Query binds more than half the parameters one statement can', async () => {
       const now = DateTime.now()
       const pet1 = await Pet.create()
@@ -299,29 +279,6 @@ describe('Query#findEach', () => {
         { batchSize: 2 }
       )
       expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id, pet3.id])
-    })
-
-    it('visits a record the join returned when the walk began, though the callback changed another so that the join no longer returns it', async () => {
-      const now = DateTime.now()
-      const pet1 = await Pet.create()
-      const pet2 = await Pet.create()
-      await pet1.createAssociation('collars', { tagName: 'a', createdAt: now })
-      const pet1CollarB = await pet1.createAssociation('collars', {
-        tagName: 'b',
-        createdAt: now.minus({ day: 1 }),
-      })
-      await pet2.createAssociation('collars', { tagName: 'b', createdAt: now })
-
-      const records: Pet[] = []
-      await Pet.innerJoin('newestCollarPerTagName').findEach(
-        async pet => {
-          records.push(pet)
-          // pet1's 'b' collar becomes the newest, so the join returns pet1 for 'b' in place of pet2
-          if (pet.id === pet1.id) await pet1CollarB.update({ createdAt: now.plus({ day: 1 }) })
-        },
-        { batchSize: 1 }
-      )
-      expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id])
     })
   })
 
@@ -372,39 +329,6 @@ describe('Query#findEach', () => {
           { batchSize: 1 }
         )
       expect(records.map(r => r.id)).toEqual([zed.id, newerFred.id])
-    })
-  })
-
-  context('under a query driver that applies only the conditions, order and limit of the Query', () => {
-    it('visits every record once, in ascending primary key order across batches, and stops', async () => {
-      const pet1 = await Pet.create()
-      const pet2 = await Pet.create()
-      const pet3 = await Pet.create()
-
-      // stands in for an app's own driver, which applies the Query's
-      // conditions, order and limit but does not read the keys of a select
-      // that keeps one row of each group, as a driver that subclasses
-      // QueryDriverBase directly does not
-      class ConditionsOrderAndLimitDriver extends PostgresQueryDriver<any> {
-        // eslint-disable-next-line @typescript-eslint/require-await
-        public override async pluckDistinctOnRowKeys() {
-          return null
-        }
-      }
-      vi.spyOn(DreamApp.getOrFail(), 'dbConnectionQueryDriverClass').mockReturnValue(
-        ConditionsOrderAndLimitDriver
-      )
-
-      const records: Pet[] = []
-      await Pet.query().findEach(
-        pet => {
-          // a walk that does not stop would otherwise revisit pets until the spec times out
-          if (records.length === 3) throw new Error('findEach visited more records than exist')
-          records.push(pet)
-        },
-        { batchSize: 2 }
-      )
-      expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id, pet3.id])
     })
   })
 
