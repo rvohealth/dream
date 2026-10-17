@@ -1,4 +1,5 @@
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
+import UnrecognizedAssociationConditionKeys from '../../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import range from '../../../../src/helpers/range.js'
 import ops from '../../../../src/ops/index.js'
 import { CalendarDate, ClockTime, ClockTimeTz } from '../../../../src/package-exports/index.js'
@@ -666,6 +667,50 @@ describe('Query#joins with simple associations', () => {
         .all()
 
       expect(results).toMatchDreamModels([user])
+    })
+  })
+
+  context('with a condition key other than and, andNot and andAny', () => {
+    it('throws, naming the key, whether the condition ends the chain or sits mid-chain', () => {
+      const condition: Record<string, unknown> = { and: { primary: true }, primary: false }
+
+      expect(() => User.query().innerJoin('compositions', condition)).toThrow(
+        'in the condition on the "compositions" association: primary'
+      )
+      expect(() => User.query().innerJoin('compositions', condition, 'compositionAssets')).toThrow(
+        UnrecognizedAssociationConditionKeys
+      )
+    })
+
+    it('throws when the key’s value is undefined', () => {
+      const condition: Record<string, unknown> = { and: { primary: true }, primary: undefined }
+
+      expect(() => User.query().innerJoin('compositions', condition)).toThrow(
+        UnrecognizedAssociationConditionKeys
+      )
+    })
+  })
+
+  context('with and, andNot and andAny in the same condition', () => {
+    it('applies all three', async () => {
+      const user1 = await User.create({ email: 'fred1@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'fred2@frewd', password: 'howyadoin' })
+      const user3 = await User.create({ email: 'fred3@frewd', password: 'howyadoin' })
+      const user4 = await User.create({ email: 'fred4@frewd', password: 'howyadoin' })
+      await Composition.create({ user: user1, content: 'hello', primary: true })
+      await Composition.create({ user: user2, content: 'goodbye', primary: true })
+      await Composition.create({ user: user3, content: 'hi', primary: false })
+      await Composition.create({ user: user4, content: 'howdy', primary: true })
+
+      const users = await User.query()
+        .innerJoin('compositions', {
+          and: { primary: true },
+          andNot: { content: 'goodbye' },
+          andAny: [{ content: 'hello' }, { content: 'hi' }],
+        })
+        .all()
+
+      expect(users).toMatchDreamModels([user1])
     })
   })
 })

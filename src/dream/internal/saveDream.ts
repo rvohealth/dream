@@ -177,8 +177,14 @@ async function writeDream<DreamInstance extends Dream>(
     // the row returned by the driver comes from `RETURNING *` (or a
     // `select *` reload on drivers without RETURNING support), so under
     // schema/image skew it can contain columns this build's compiled
-    // schema doesn't know about; those must never reach setAttributes
-    dream.setAttributes(filterRowToKnownColumns(data, dream.columns() as Set<string>) as any)
+    // schema doesn't know about; those are filtered out before the row is
+    // written back. It is a row read from the database, so its @Encrypted
+    // backing columns hold the ciphertext Dream stored and are written
+    // without setAttribute's decryption check
+    dream['_setAttributes'](filterRowToKnownColumns(data, dream.columns() as Set<string>) as any, {
+      bypassUserDefinedSetters: true,
+      fromDatabase: true,
+    })
   }
 
   // set frozen attributes to what has already been saved

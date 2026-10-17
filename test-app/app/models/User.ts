@@ -57,7 +57,10 @@ export default class User extends ApplicationModel {
   @deco.Encrypted()
   public secret: DreamColumn<User, 'encryptedSecret'>
 
-  @deco.Encrypted('myOtherEncryptedSecret')
+  @deco.Encrypted({
+    column: 'myOtherEncryptedSecret',
+    openapi: { type: ['object', 'null'], properties: { token: 'string' }, required: ['token'] },
+  })
   public otherSecret: { token: string } | null
 
   @deco.Virtual('string')

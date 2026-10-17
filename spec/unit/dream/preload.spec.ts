@@ -1,5 +1,6 @@
 import DreamDbConnection from '../../../src/db/DreamDbConnection.js'
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
+import UnrecognizedAssociationConditionKeys from '../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
@@ -29,6 +30,13 @@ describe('Dream.preload', () => {
 
     const reloaded = await User.preload('compositions', { and: { content: 'goodbye' } }).first()
     expect(reloaded!.compositions).toMatchDreamModels([composition])
+  })
+
+  it('throws on a condition key other than and, andNot and andAny', () => {
+    const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+    expect(() => User.preload('posts', condition)).toThrow(UnrecognizedAssociationConditionKeys)
+    expect(() => User.preload('posts', condition, 'comments')).toThrow(UnrecognizedAssociationConditionKeys)
   })
 
   context('with an explicit constraint on a non-optional BelongsTo association', () => {
@@ -63,6 +71,16 @@ describe('Dream.preload', () => {
       })
 
       expect(reloadedCompositionAssetAudit!.compositionAsset).toMatchDreamModel(compositionAsset)
+    })
+
+    it('throws on a condition key other than and, andNot and andAny', async () => {
+      const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+      await ApplicationModel.transaction(txn => {
+        expect(() => User.txn(txn).preload('posts', condition, 'comments')).toThrow(
+          UnrecognizedAssociationConditionKeys
+        )
+      })
     })
   })
 
@@ -141,6 +159,14 @@ context.skip('type tests', () => {
       .preload('allPets', { and: { invalidArg: 123 } })
   })
 
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.preload('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    User.preload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(txn => {
@@ -158,6 +184,12 @@ context.skip('type tests', () => {
         User.txn(txn)
           // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
           .preload('mainCompositionAsset', 'composition', { and: { user: User.new() } })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        User.txn(txn).preload('posts', { and: { body: 'hello' }, body: 'hello' })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        User.txn(txn).preload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
       })
     })
   })

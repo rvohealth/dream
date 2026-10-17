@@ -6,6 +6,7 @@ import * as runHooksForModule from '../../../../src/dream/internal/runHooksFor.j
 import Query from '../../../../src/dream/Query.js'
 import CannotDestroyAssociationOnUnpersistedDream from '../../../../src/errors/associations/CannotDestroyAssociationOnUnpersistedDream.js'
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
+import UnrecognizedAssociationConditionKeys from '../../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
@@ -412,6 +413,47 @@ describe('Dream#reallyDestroyAssociation', () => {
     })
   })
 
+  context('with an option other than and, andNot, andAny and the documented options', () => {
+    it('rejects the call without destroying any associated record', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions', { content: 'chalupas dujour' })
+      const composition2 = await user.createAssociation('compositions', { content: 'chips ahoy' })
+      const options: Record<string, unknown> = { cascade: false, content: 'chalupas dujour' }
+
+      await expect(user.reallyDestroyAssociation('compositions', options)).rejects.toThrow(
+        UnrecognizedAssociationConditionKeys
+      )
+      expect(await Composition.all()).toMatchDreamModels([composition, composition2])
+    })
+
+    it('rejects the query-only lock option', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await user.createAssociation('compositions')
+      const options: Record<string, unknown> = { lock: true }
+
+      await expect(user.reallyDestroyAssociation('compositions', options)).rejects.toThrow(
+        UnrecognizedAssociationConditionKeys
+      )
+      expect(await Composition.all()).toMatchDreamModels([composition])
+    })
+
+    context('in a transaction', () => {
+      it('rejects the call without destroying any associated record', async () => {
+        const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+        const composition = await user.createAssociation('compositions', { content: 'chalupas dujour' })
+        const composition2 = await user.createAssociation('compositions', { content: 'chips ahoy' })
+        const options: Record<string, unknown> = { cascade: false, content: 'chalupas dujour' }
+
+        await expect(
+          ApplicationModel.transaction(
+            async txn => await user.txn(txn).reallyDestroyAssociation('compositions', options)
+          )
+        ).rejects.toThrow(UnrecognizedAssociationConditionKeys)
+        expect(await Composition.all()).toMatchDreamModels([composition, composition2])
+      })
+    })
+  })
+
   context('performing reallyDestroyAssociation on an unpersisted model ', () => {
     it('throws CannotDestroyAssociationOnUnpersistedDream', async () => {
       const user = User.new()
@@ -440,12 +482,25 @@ context.skip('type tests', () => {
     await User.new().reallyDestroyAssociation('notARealAssociation')
   })
 
+  it('forbids an option other than and, andNot, andAny and the documented options', async () => {
+    const user = User.new()
+
+    // @ts-expect-error only the condition keys and the documented options are accepted
+    await user.reallyDestroyAssociation('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error only the condition keys and the documented options are accepted
+    await user.reallyDestroyAssociation('posts', { cascade: false, body: 'hello' })
+  })
+
   context('in a transaction', () => {
     it('ensures invalid arguments error', async () => {
       await ApplicationModel.transaction(async txn => {
         const user = User.new()
         // @ts-expect-error intentionally passing invalid arg to test that type protection is working
         await user.txn(txn).reallyDestroyAssociation('notARealAssociation')
+
+        // @ts-expect-error only the condition keys and the documented options are accepted
+        await user.txn(txn).reallyDestroyAssociation('posts', { and: { body: 'hello' }, body: 'hello' })
       })
     })
   })

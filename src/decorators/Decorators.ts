@@ -18,7 +18,7 @@ import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { ValidationType } from '../types/validation.js'
 import Virtual from './field-or-getter/Virtual.js'
-import Encrypted from './field/Encrypted.js'
+import Encrypted, { EncryptedOptions } from './field/Encrypted.js'
 import BelongsTo from './field/association/BelongsTo.js'
 import HasMany from './field/association/HasMany.js'
 import HasOne from './field/association/HasOne.js'
@@ -237,16 +237,41 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *
    *   // automatically sets `myEncryptedPhone` to the encrypted value that
    *   // `phone` is set to new/create/update, e.g., `await user.update({ phone })`
-   *   @deco.Encrypted('myEncryptedPhone)
+   *   @deco.Encrypted('myEncryptedPhone')
    *   public phone: string
+   *
+   *   // automatically sets `myEncryptedMfaSettings` to the encrypted value that
+   *   // `mfaSettings` is set to in new/create/update, and declares the
+   *   // value's OpenAPI shape, since it is not a string
+   *   @deco.Encrypted({
+   *     column: 'myEncryptedMfaSettings',
+   *     openapi: { type: ['object', 'null'], properties: { token: 'string' } },
+   *   })
+   *   public mfaSettings: { token: string } | null
    * }
    * ```
    *
-   * @param column — if omitted, then 'encrypted' is prepended to the Pascal cased version of the decorated field
+   * The decorated property may hold any JSON-serializable value. Its OpenAPI
+   * shape is what Psychic uses to cast the property in params and to render
+   * it in request body and serializer OpenAPI. Without an `openapi` option,
+   * that shape is `'string'`, or `['string', 'null']` when the backing column
+   * allows null. Pass `openapi` when the property holds a non-string value,
+   * such as an object, a number, or an array; it accepts any shape
+   * `@deco.Virtual` accepts. The declared shape is used exactly as given and
+   * replaces the nullability inferred from the backing column, so when the
+   * backing column allows null, include `'null'` in the shape, e.g.
+   * `type: ['object', 'null']`.
+   *
+   * @param columnOrOptions - Either the backing column's name, or an options object:
+   * - `column` — the backing column's name; if omitted, then 'encrypted' is prepended to the Pascal cased version of the decorated field
+   * - `openapi` — the OpenAPI shape of the decorated property's value; if omitted, the property's shape is a string (see above)
    * @returns An Encrypted decorator
    */
-  public Encrypted(this: Decorators<TD>, column?: DreamColumnNames<T>) {
-    return Encrypted(column)
+  public Encrypted(
+    this: Decorators<TD>,
+    columnOrOptions?: DreamColumnNames<T> | EncryptedOptions<DreamColumnNames<T>>
+  ) {
+    return Encrypted(columnOrOptions)
   }
 
   /**

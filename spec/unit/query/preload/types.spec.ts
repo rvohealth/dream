@@ -43,6 +43,16 @@ context.skip('type tests', () => {
     User.query().preload('balloons', 'shapable', { and: { name: 'octagon' } })
   })
 
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .preload('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .preload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+  })
+
   it('validates and-clauses on an association traversed through an alias', () => {
     const user = undefined as unknown as User
     const post = undefined as unknown as Post
@@ -116,6 +126,11 @@ context.skip('type tests', () => {
           .txn(txn)
           // @ts-expect-error constraint on a non-optional BelongsTo is forbidden
           .preload('balloonSpotterBalloons', 'balloon', { and: { color: 'blue' } })
+
+        User.query()
+          .txn(txn)
+          // @ts-expect-error a condition accepts only and, andNot and andAny
+          .preload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
       })
     })
   })

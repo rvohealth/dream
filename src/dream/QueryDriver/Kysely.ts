@@ -92,6 +92,7 @@ import { HasOneStatement } from '../../types/associations/hasOne.js'
 import {
   AssociationStatement,
   InternalWhereStatement,
+  OrderQueryStatement,
   SelfOnStatement,
 } from '../../types/associations/shared.js'
 import { DbConnectionType, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
@@ -157,6 +158,23 @@ interface PendingThroughAssociation {
 }
 
 export default class KyselyQueryDriver<DreamInstance extends Dream> extends QueryDriverBase<DreamInstance> {
+  /**
+   * @internal
+   *
+   * While `associationOrderStatements` builds a select, the order statements
+   * that association joins add to it, in the order they are added.
+   */
+  private associationOrderCollector: OrderQueryStatement<string>[] | null = null
+
+  /**
+   * @internal
+   *
+   * While `joinedRowKeyColumns` builds a select, the namespaced primary keys of
+   * the tables that HasOne and HasMany joins add to it, in the order they are
+   * added.
+   */
+  private joinedRowKeyCollector: string[] | null = null
+
   // ATTENTION FRED
   // stop trying to make this async. You never learn...
   //
@@ -646,7 +664,8 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let kyselyQuery = this.buildSelect(options)
     // row locking is adapter-specific, so it goes through the query driver seam
     if (options.lock) kyselyQuery = this.applyRowLock(kyselyQuery, this.query['baseSqlAlias'])
-    const results = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const results: any[] = await executeDatabaseQuery(kyselyQuery, 'execute')
+
     const theAll = results.map(r => this.dbResultToDreamInstance(r, this.dreamClass))
     await this.applyPreload(
       this.query['preloadStatements'] as any,
@@ -860,7 +879,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     const countClause = distinctColumn
-      ? count(sql`DISTINCT ${distinctColumn}`)
+      ? count(sql`DISTINCT ${sql.ref(distinctColumn)}`)
       : count(query['namespaceColumn'](query.dreamInstance['_primaryKey']))
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
@@ -1165,35 +1184,16 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       columns?: DreamColumnNames<DreamInstance>[]
     } = {}
   ): SelectQueryBuilder<any, any, any> {
-    let kyselyQuery: SelectQueryBuilder<any, any, any>
+    const selectCore = this.buildSelectCore({ bypassOrder })
+    let kyselyQuery = selectCore.kyselyQuery
 
-    if (this.query['baseSelectQuery']) {
-      const connectionOverride = this.query['connectionOverride']
-
-      const query = connectionOverride
-        ? this.query['baseSelectQuery'].connection(connectionOverride)
-        : this.query['baseSelectQuery']
-      kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(query).buildSelect({
-        bypassSelectAll: true,
-      })
-    } else {
-      const from =
-        this.query['baseSqlAlias'] === this.query['tableName']
-          ? this.query['tableName']
-          : `${this.query['tableName']} as ${this.query['baseSqlAlias']}`
-
-      kyselyQuery = this.dbFor('select').selectFrom(from)
+    if (this.query['bypassImplicitOrder']) {
+      // a keyset cursor compares only the Query's order statements, so the
+      // orderings emitted above (a similarity rank, an association's declared
+      // `order`, including those of an association query's base select) are
+      // cleared rather than left to sort ahead of them
+      kyselyQuery = kyselyQuery.clearOrderBy()
     }
-
-    if (this.query['distinctColumn']) {
-      kyselyQuery = kyselyQuery.distinctOn(this.query['distinctColumn'])
-    }
-
-    kyselyQuery = this.buildCommon(kyselyQuery)
-
-    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, {
-      bypassOrder: bypassOrder || !!this.query['distinctColumn'],
-    }) as typeof kyselyQuery
 
     if (this.query['orderStatements'].length && !bypassOrder) {
       this.query['orderStatements'].forEach(orderStatement => {
@@ -1222,6 +1222,234 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     if (bypassOrder) kyselyQuery = kyselyQuery.clearOrderBy()
 
     return kyselyQuery
+  }
+
+  /**
+   * @internal
+   *
+   * The select's source, joins, conditions, DISTINCT ON and similarity
+   * ranking, before the Query's own order statements, limit, offset and
+   * selection are applied, together with the connection the select runs on.
+   */
+  private buildSelectCore(
+    this: KyselyQueryDriver<DreamInstance>,
+    { bypassOrder = false }: { bypassOrder?: boolean } = {}
+  ): {
+    kyselyQuery: SelectQueryBuilder<any, any, any>
+    selectDb: ReturnType<KyselyQueryDriver<DreamInstance>['dbFor']>
+  } {
+    let kyselyQuery: SelectQueryBuilder<any, any, any>
+    let selectDb: ReturnType<KyselyQueryDriver<DreamInstance>['dbFor']>
+
+    if (this.query['baseSelectQuery']) {
+      const connectionOverride = this.query['connectionOverride']
+
+      const query = connectionOverride
+        ? this.query['baseSelectQuery'].connection(connectionOverride)
+        : this.query['baseSelectQuery']
+      const baseSelectDriver = new (this.constructor as typeof KyselyQueryDriver)(query)
+      baseSelectDriver.associationOrderCollector = this.associationOrderCollector
+      baseSelectDriver.joinedRowKeyCollector = this.joinedRowKeyCollector
+      selectDb = baseSelectDriver.dbFor('select')
+      kyselyQuery = baseSelectDriver.buildSelect({
+        bypassSelectAll: true,
+      })
+    } else {
+      const from =
+        this.query['baseSqlAlias'] === this.query['tableName']
+          ? this.query['tableName']
+          : `${this.query['tableName']} as ${this.query['baseSqlAlias']}`
+
+      selectDb = this.dbFor('select')
+      kyselyQuery = selectDb.selectFrom(from)
+    }
+
+    if (this.query['distinctColumn']) {
+      kyselyQuery = kyselyQuery.distinctOn(this.query['distinctColumn'])
+    }
+
+    kyselyQuery = this.buildCommon(kyselyQuery)
+
+    kyselyQuery = this.conditionallyAttachSimilarityColumnsToSelect(kyselyQuery, {
+      bypassOrder: bypassOrder || !!this.query['distinctColumn'],
+    }) as typeof kyselyQuery
+
+    return { kyselyQuery, selectDb }
+  }
+
+  /**
+   * @internal
+   *
+   * The order statements that the declared `order` of the associations the
+   * Query is built on or joins contributes to its ORDER BY, in the order they
+   * sort, each column namespaced by the alias it is read from. They are read
+   * off the same join code that emits them, by building the select.
+   *
+   * @returns An array of namespaced order statements
+   */
+  public override associationOrderStatements(): OrderQueryStatement<string>[] {
+    const collected: OrderQueryStatement<string>[] = []
+    this.associationOrderCollector = collected
+
+    try {
+      this.buildSelect()
+    } finally {
+      this.associationOrderCollector = null
+    }
+
+    return collected
+  }
+
+  /**
+   * @internal
+   *
+   * The primary key of each table the Query reaches through a HasOne or
+   * HasMany association (one it joins, one an association it joins goes
+   * through, or one its association query is built on), namespaced by the
+   * alias it is read from, in join order. They are read off the same join code
+   * that emits the joins, by building the select.
+   *
+   * @returns An array of namespaced primary key columns
+   */
+  public override joinedRowKeyColumns(): string[] {
+    const collected: string[] = []
+    this.joinedRowKeyCollector = collected
+
+    try {
+      this.buildSelect()
+    } finally {
+      this.joinedRowKeyCollector = null
+    }
+
+    return collected
+  }
+
+  /**
+   * @internal
+   *
+   * A page of a select that carries DISTINCT ON (as a Query that calls
+   * `distinct`, or an association that declares `distinct`, produces), or null
+   * for any other select.
+   *
+   * Such a select keeps the row of each group that sorts first in its ORDER
+   * BY, so narrowing it to the rows after a cursor would let it keep a row it
+   * does not return (a group's later row, once the cursor has passed the
+   * group's first). It is read as a derived table instead, and narrowed to
+   * `rowsAfter`, sorted and limited outside it. The Query's order statements
+   * follow the select's own ORDER BY, if it has one, so that the select keeps
+   * the same row of each group every time it runs, and each of their columns
+   * is read out of it under a short alias (as `pluck` reads them), since a
+   * joined table's column cannot be named outside it.
+   *
+   * @param rowsAfter - where statements, any of which a row of the page matches
+   * @returns The page's rows, each an array of its order statement columns' values, or null
+   */
+  public override async pluckDistinctOnPage(
+    rowsAfter: Record<string, unknown>[] | null
+  ): Promise<unknown[][] | null> {
+    const { kyselyQuery: selectCore, selectDb } = this.buildSelectCore()
+    const selectNode = selectCore.toOperationNode()
+    if (!selectNode.distinctOn?.length) return null
+
+    const baseSqlAlias = this.query['baseSqlAlias']
+    const orderStatements = this.query['orderStatements']
+    const pageColumns = orderStatements.map((orderStatement, index) => {
+      this.validatePlainColumn(this.dreamClass, orderStatement.column)
+      return { column: this.namespaceColumn(orderStatement.column), alias: `pluck${index}` }
+    })
+
+    let distinctSelect = selectCore
+    orderStatements.forEach(orderStatement => {
+      distinctSelect = distinctSelect.orderBy(
+        this.namespaceColumn(orderStatement.column),
+        this.orderByDirection(orderStatement.direction)
+      )
+    })
+    distinctSelect = distinctSelect.select(
+      pageColumns.map(({ column, alias }) => `${column} as ${alias}` as any)
+    )
+
+    let pageSelect: SelectQueryBuilder<any, any, any> = selectDb.selectFrom(
+      distinctSelect.as(baseSqlAlias) as any
+    )
+    pageSelect = pageSelect.select(pageColumns.map(({ alias }) => `${baseSqlAlias}.${alias}` as any))
+
+    if (rowsAfter) {
+      const derivedColumns = new Map(
+        pageColumns.map(({ column, alias }) => [column, `${baseSqlAlias}.${alias}`])
+      )
+      pageSelect = pageSelect.where((eb: ExpressionBuilder<any, any>) =>
+        eb.or(
+          rowsAfter.map(whereStatement =>
+            this.whereStatementToExpressionWrapper(
+              this.dreamClass,
+              eb,
+              Object.fromEntries(
+                Object.entries(whereStatement).map(([column, value]) => [
+                  derivedColumns.get(this.namespaceColumn(column))!,
+                  value,
+                ])
+              )
+            )
+          )
+        )
+      )
+    }
+
+    pageColumns.forEach(({ alias }, index) => {
+      pageSelect = pageSelect.orderBy(
+        `${baseSqlAlias}.${alias}`,
+        this.orderByDirection(orderStatements[index]!.direction)
+      )
+    })
+
+    if (this.query['limitStatement']) pageSelect = pageSelect.limit(this.query['limitStatement'])
+
+    return (await executeDatabaseQuery(pageSelect, 'execute')).map(row =>
+      pageColumns.map(({ alias }) => row[alias] as unknown)
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * For a select that carries DISTINCT ON (as a Query that calls `distinct`,
+   * or an association that declares `distinct`, produces), the values of
+   * `rowKeyColumns` for every row it returns, sorted by those columns,
+   * ascending; null for any other select.
+   *
+   * The select runs as `all()` runs it, with its own ORDER BY choosing each
+   * group's row, and is read as a derived table, sorted outside it. Each of
+   * `rowKeyColumns` is read out of it under a short alias (as `pluck` reads
+   * them), since a joined table's column cannot be named outside it.
+   *
+   * @param rowKeyColumns - the namespaced columns that tell the select's rows apart
+   * @returns The rows' values of `rowKeyColumns`, or null
+   */
+  public override async pluckDistinctOnRowKeys(rowKeyColumns: string[]): Promise<unknown[][] | null> {
+    const { kyselyQuery: selectCore, selectDb } = this.buildSelectCore()
+    if (!selectCore.toOperationNode().distinctOn?.length) return null
+
+    const baseSqlAlias = this.query['baseSqlAlias']
+    const keyColumns = rowKeyColumns.map((column, index) => {
+      this.validatePlainColumn(this.dreamClass, column)
+      return { column: this.namespaceColumn(column), alias: `key${index}` }
+    })
+
+    const distinctSelect = this.buildSelect({ bypassSelectAll: true }).select(
+      keyColumns.map(({ column, alias }) => `${column} as ${alias}` as any)
+    )
+    let keySelect: SelectQueryBuilder<any, any, any> = selectDb.selectFrom(
+      distinctSelect.as(baseSqlAlias) as any
+    )
+    keySelect = keySelect.select(keyColumns.map(({ alias }) => `${baseSqlAlias}.${alias}` as any))
+    keyColumns.forEach(({ alias }) => {
+      keySelect = keySelect.orderBy(`${baseSqlAlias}.${alias}`, this.orderByDirection('asc'))
+    })
+
+    return (await executeDatabaseQuery(keySelect, 'execute')).map(row =>
+      keyColumns.map(({ alias }) => row[alias] as unknown)
+    )
   }
 
   public orderByDirection(direction: OrderDir | null): (obj: OrderByItemBuilder) => OrderByItemBuilder {
@@ -2047,25 +2275,22 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       b = val.operator as KyselyComparisonOperatorExpression
       c = val.value
     } else if (val instanceof Range) {
-      const rangeStart = val.begin
-      const rangeEnd = val.end
-      const excludeEnd = val.excludeEnd
+      // a bound is present unless it is null or undefined, matching the Range
+      // constructor, so falsy bounds such as 0, 0n and '' still constrain the query
+      const boundConditions: { operator: KyselyComparisonOperatorExpression; value: unknown }[] = []
+      if (val.begin != null) boundConditions.push({ operator: '>=', value: val.begin })
+      if (val.end != null) boundConditions.push({ operator: val.excludeEnd ? '<' : '<=', value: val.end })
 
-      if (rangeStart && rangeEnd) {
-        a = attr
-        b = '>='
-        c = rangeStart
+      // the Range constructor rejects a range with neither bound, so firstBound is always set
+      const [firstBound, secondBound] = boundConditions
+      a = attr
+      b = firstBound!.operator
+      c = firstBound!.value
+
+      if (secondBound) {
         a2 = attr
-        b2 = excludeEnd ? '<' : '<='
-        c2 = rangeEnd
-      } else if (rangeStart) {
-        a = attr
-        b = '>='
-        c = rangeStart
-      } else {
-        a = attr
-        b = excludeEnd ? '<' : '<='
-        c = rangeEnd
+        b2 = secondBound.operator
+        c2 = secondBound.value
       }
     } else {
       a = attr
@@ -3077,6 +3302,10 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         }
       )
 
+      this.joinedRowKeyCollector?.push(
+        this.namespaceColumn(association.modelCB().primaryKey, currentTableAlias)
+      )
+
       if (association.type === 'HasMany') {
         if (association.order) {
           query = this.applyOrderStatementForAssociation({
@@ -3122,14 +3351,18 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let selectQuery = query as SelectQueryBuilder<any, any, any>
     const orderStatement = association.order
 
-    if (typeof orderStatement === 'string') {
-      selectQuery = selectQuery.orderBy(this.namespaceColumn(orderStatement, tableNameOrAlias), 'asc')
-    } else {
-      Object.keys(orderStatement as Record<string, OrderDir>).forEach(column => {
-        const direction = (orderStatement as any)[column] as OrderDir
-        selectQuery = selectQuery.orderBy(this.namespaceColumn(column, tableNameOrAlias), direction)
-      })
-    }
+    const orderQueryStatements: OrderQueryStatement<string>[] =
+      typeof orderStatement === 'string'
+        ? [{ column: this.namespaceColumn(orderStatement, tableNameOrAlias), direction: 'asc' }]
+        : Object.keys(orderStatement as Record<string, OrderDir>).map(column => ({
+            column: this.namespaceColumn(column, tableNameOrAlias),
+            direction: (orderStatement as any)[column] as OrderDir,
+          }))
+
+    orderQueryStatements.forEach(({ column, direction }) => {
+      selectQuery = selectQuery.orderBy(column, direction)
+    })
+    this.associationOrderCollector?.push(...orderQueryStatements)
 
     return selectQuery as QueryType
   }

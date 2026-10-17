@@ -1,3 +1,7 @@
+import DreamApp from '../../../src/dream-app/index.js'
+import Encrypt from '../../../src/encrypt/index.js'
+import DoNotSetEncryptedFieldsDirectly from '../../../src/errors/DoNotSetEncryptedFieldsDirectly.js'
+import DecryptionError from '../../../src/errors/encrypt/DecryptionError.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal.js'
@@ -34,7 +38,95 @@ describe('Dream#updateAttributes', () => {
     })
   })
 
+  context('with undefined values', () => {
+    it('skips a column given as undefined, keeping its stored value', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', name: 'Chalupa Joe' })
+
+      await user.updateAttributes({ name: undefined, email: 'chalupas@dujour' })
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.name).toEqual('Chalupa Joe')
+      expect(reloaded.email).toEqual('chalupas@dujour')
+    })
+
+    it('clears an encrypted property given as undefined', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
+
+      await user.updateAttributes({ secret: undefined })
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.secret).toBeNull()
+    })
+  })
+
+  context('with an @Encrypted backing column', () => {
+    it('saves ciphertext the app can decrypt', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
+      const ciphertext = User.new({ secret: 'copied secret' }).getAttribute('encryptedSecret')
+
+      await user.updateAttributes({ encryptedSecret: ciphertext })
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.secret).toEqual('copied secret')
+    })
+
+    it('saves null, clearing the column', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
+
+      await user.updateAttributes({ encryptedSecret: null })
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.secret).toBeNull()
+    })
+
+    it('rejects plaintext, saving nothing', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
+
+      await expect(
+        user.updateAttributes({ email: 'chalupas@dujour', encryptedSecret: 'plaintext' })
+      ).rejects.toThrow(DoNotSetEncryptedFieldsDirectly)
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.email).toEqual('how@yadoin')
+      expect(reloaded.secret).toEqual('original')
+    })
+
+    it('saves and reloads a record whose stored ciphertext no longer decrypts', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
+      const dreamApp = DreamApp.getOrFail()
+      const originalEncryption = dreamApp.encryption
+
+      try {
+        dreamApp.set('encryption', {
+          columns: { current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') } },
+        })
+
+        await user.updateAttributes({ email: 'chalupas@dujour' })
+        await user.reload()
+
+        expect(user.email).toEqual('chalupas@dujour')
+        expect(() => user.secret).toThrow(DecryptionError)
+      } finally {
+        dreamApp.set('encryption', originalEncryption)
+      }
+    })
+  })
+
   context('when in a transaction', () => {
+    it('rejects plaintext for an @Encrypted backing column, saving nothing', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
+
+      await expect(
+        ApplicationModel.transaction(async txn => {
+          await user.txn(txn).updateAttributes({ email: 'chalupas@dujour', encryptedSecret: 'plaintext' })
+        })
+      ).rejects.toThrow(DoNotSetEncryptedFieldsDirectly)
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.email).toEqual('how@yadoin')
+      expect(reloaded.secret).toEqual('original')
+    })
+
     it('calls model hooks', async () => {
       const pet = await Pet.create({ name: 'howyadoin' })
 

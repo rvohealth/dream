@@ -6,5 +6,5 @@ export const CircularReferenceModelBSummarySerializer = (circularReferenceModelB
 
 export const CircularReferenceModelBSerializer = (circularReferenceModelB: ModelB) =>
   CircularReferenceModelBSummarySerializer(circularReferenceModelB)
-    .delegatedAttribute('currentLocalizedText', 'title', { openapi: 'string' })
+    .delegatedAttribute('currentLocalizedText', 'title')
     .rendersOne('modelAChild')

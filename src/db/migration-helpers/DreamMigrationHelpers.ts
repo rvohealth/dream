@@ -1,9 +1,11 @@
 import { ColumnDataType, Kysely, RawBuilder, sql } from 'kysely'
+import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DropEnumValueRetypeFailed, {
   DropEnumValueRetypeFailedOpts,
   quotedRelationName,
 } from '../../errors/DropEnumValueRetypeFailed.js'
+import snakeify from '../../helpers/snakeify.js'
 
 export default class DreamMigrationHelpers {
   /**
@@ -67,8 +69,8 @@ export default class DreamMigrationHelpers {
     await this.dropConstraint(db, constraintName, { table })
     await sql`
     ALTER TABLE ${sql.table(table)}
-    ADD CONSTRAINT ${sql.table(constraintName)}
-      UNIQUE (${sql.raw(columns.join(', '))})
+    ADD CONSTRAINT ${sql.ref(constraintName)}
+      UNIQUE (${sql.join(columns.map(column => sql.ref(column)))})
       DEFERRABLE INITIALLY DEFERRED;
   `.execute(db)
   }
@@ -84,7 +86,7 @@ export default class DreamMigrationHelpers {
    * @param __namedParameters.value - The name of the value to add to the enum
    */
   public static async addEnumValue(db: Kysely<any>, { enumName, value }: AddValueToEnumOpts) {
-    await sql`ALTER TYPE ${sql.raw(enumName)} ADD VALUE IF NOT EXISTS '${sql.raw(value)}';`.execute(db)
+    await sql`ALTER TYPE ${sql.ref(enumName)} ADD VALUE IF NOT EXISTS ${sql.lit(value)};`.execute(db)
   }
 
   /**
@@ -133,9 +135,7 @@ export default class DreamMigrationHelpers {
     { table, column }: { table: string; column: string }
   ) {
     await sql`
-    CREATE INDEX IF NOT EXISTS ${sql.raw(indexName)} ON ${sql.raw(table)} USING GIN (${sql.raw(
-      `${column} gin_trgm_ops`
-    )});
+    CREATE INDEX IF NOT EXISTS ${sql.ref(indexName)} ON ${sql.table(table)} USING GIN (${sql.ref(column)} gin_trgm_ops);
   `.execute(db)
   }
 
@@ -152,7 +152,7 @@ export default class DreamMigrationHelpers {
    */
   public static async dropConstraint(db: Kysely<any>, constraintName: string, { table }: { table: string }) {
     await sql`
-    ALTER TABLE ${sql.table(table)} DROP CONSTRAINT IF EXISTS ${sql.table(constraintName)};
+    ALTER TABLE ${sql.table(table)} DROP CONSTRAINT IF EXISTS ${sql.ref(constraintName)};
   `.execute(db)
   }
 
@@ -327,7 +327,7 @@ export default class DreamMigrationHelpers {
    * @param options - Configuration options
    * @param options.table - The name of the table
    * @param options.column - The current (plaintext) column name
-   * @param options.encryptedColumnName - The target encrypted column name. Defaults to `encrypted_<column>`, matching the `@Encrypted` decorator's default; pass this when the decorator was given a custom encrypted column name.
+   * @param options.encryptedColumnName - The target encrypted column name. Defaults to the column the `@Encrypted` decorator reads for a property named after `column` (`encrypted_phone` for `phone`); pass this when the decorator was given a custom encrypted column name.
    * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
    * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
    */
@@ -336,7 +336,7 @@ export default class DreamMigrationHelpers {
     {
       table,
       column,
-      encryptedColumnName = `encrypted_${column}`,
+      encryptedColumnName = snakeify(defaultEncryptedColumnName(column)),
       primaryKey = 'id',
       batchSize = 1000,
     }: EncryptColumnOpts
@@ -382,7 +382,7 @@ export default class DreamMigrationHelpers {
    * @param options - Configuration options
    * @param options.table - The name of the table
    * @param options.column - The target (plaintext) column name to rename back to
-   * @param options.encryptedColumnName - The current encrypted column name. Defaults to `encrypted_<column>`.
+   * @param options.encryptedColumnName - The current encrypted column name. Defaults to the column the `@Encrypted` decorator reads for a property named after `column` (`encrypted_phone` for `phone`).
    * @param options.primaryKey - The primary key column used to keyset-paginate and target each row's update. Defaults to `id`.
    * @param options.batchSize - How many rows to read per batch. Defaults to `1000`.
    * @param options.columnType - When provided, the restored column is converted to this type. When omitted, the column is left as `text`.
@@ -392,7 +392,7 @@ export default class DreamMigrationHelpers {
     {
       table,
       column,
-      encryptedColumnName = `encrypted_${column}`,
+      encryptedColumnName = snakeify(defaultEncryptedColumnName(column)),
       primaryKey = 'id',
       batchSize = 1000,
       columnType,
@@ -575,7 +575,7 @@ function constraintContextFor(
 }
 
 async function getEnumValues(db: Kysely<any>, enumName: string) {
-  const response = await sql`SELECT unnest(enum_range(NULL::${sql.raw(enumName)}))`.execute(db)
+  const response = await sql`SELECT unnest(enum_range(NULL::${sql.ref(enumName)}))`.execute(db)
   return response.rows.map(row => (row as any).unnest)
 }
 
@@ -596,10 +596,10 @@ async function replaceArrayValues(
     .set({
       [column]:
         tableAndColumnToChange.behavior === 'remove'
-          ? sql.raw(`array_remove(${column}, '${value}')`)
-          : sql.raw(`array_replace(${column}, '${value}', '${tableAndColumnToChange.replaceWith}')`),
+          ? sql`array_remove(${sql.ref(column)}, ${value})`
+          : sql`array_replace(${sql.ref(column)}, ${value}, ${tableAndColumnToChange.replaceWith})`,
     })
-    .where(sql.raw(`'${value}'`), '=', sql.raw(`ANY(${column})`))
+    .where(sql<boolean>`${value} = ANY(${sql.ref(column)})`)
     .execute()
 }
 
@@ -631,10 +631,10 @@ async function updateTableColumnToNewEnumArrayType(
   const { table, column } = tableAndColumnToChange
 
   await sql`
-    ALTER TABLE ${sql.raw(table)}
-    ALTER ${sql.raw(column)}
-    TYPE ${sql.raw(enumName)}[]
-    USING ${sql.raw(column)}::${sql.raw(enumName)}[];
+    ALTER TABLE ${sql.table(table)}
+    ALTER COLUMN ${sql.ref(column)}
+    TYPE ${sql.ref(enumName)}[]
+    USING ${sql.ref(column)}::${sql.ref(enumName)}[];
   `.execute(db)
 }
 
@@ -647,10 +647,10 @@ async function updateTableColumnToNewEnumType(
   const { table, column } = tableAndColumnToChange
 
   await sql`
-    ALTER TABLE ${sql.raw(table)}
-    ALTER ${sql.raw(column)}
-    TYPE ${sql.raw(enumName)}
-    USING ${sql.raw(column)}::${sql.raw(enumName)};
+    ALTER TABLE ${sql.table(table)}
+    ALTER COLUMN ${sql.ref(column)}
+    TYPE ${sql.ref(enumName)}
+    USING ${sql.ref(column)}::${sql.ref(enumName)};
   `.execute(db)
 }
 

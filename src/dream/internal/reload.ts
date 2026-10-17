@@ -21,7 +21,12 @@ export default async function reload<DreamInstance extends Dream>(
   } as any)
 
   const reloadedRecord = await query.firstOrFail()
-  dream.setAttributes(reloadedRecord.getAttributes() as any)
+  // a row read from the database, so its @Encrypted backing columns hold the
+  // ciphertext Dream stored and are written without setAttribute's decryption check
+  dream['_setAttributes'](reloadedRecord.getAttributes() as any, {
+    bypassUserDefinedSetters: true,
+    fromDatabase: true,
+  })
 
   dream['freezeAttributes']()
   dream['originalAttributes'] = dream.getAttributes()

@@ -270,14 +270,21 @@ describe('Env', () => {
     })
 
     context('when the specified environment variable is "0"', () => {
-      it('is true', () => {
+      it('is false', () => {
         process.env.ENV_BOOLEAN_TEST = '0'
         expect(TestEnv.boolean('ENV_BOOLEAN_TEST')).toBe(false)
       })
     })
 
+    context('when the specified environment variable is "true"', () => {
+      it('is false', () => {
+        process.env.ENV_BOOLEAN_TEST = 'true'
+        expect(TestEnv.boolean('ENV_BOOLEAN_TEST')).toBe(false)
+      })
+    })
+
     context('when the specified environment variable is undefined', () => {
-      it('is true', () => {
+      it('is false', () => {
         delete process.env.ENV_BOOLEAN_TEST
         expect(TestEnv.boolean('ENV_BOOLEAN_TEST')).toBe(false)
       })

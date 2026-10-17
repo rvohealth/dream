@@ -35,6 +35,16 @@ context.skip('type tests', () => {
     User.query().leftJoinPreload('balloons', 'user', { and: { email: 'hello@world' } })
   })
 
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    User.query()
+      // @ts-expect-error a condition accepts only and, andNot and andAny
+      .leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+  })
+
   it('forbids joining a polymorphic BelongsTo association, which raises at runtime', () => {
     Rating.query()
       // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
@@ -97,6 +107,11 @@ context.skip('type tests', () => {
           .txn(txn)
           // @ts-expect-error joining a polymorphic BelongsTo raises CannotJoinPolymorphicBelongsToError
           .leftJoinPreload('rateable')
+
+        User.query()
+          .txn(txn)
+          // @ts-expect-error a condition accepts only and, andNot and andAny
+          .leftJoinPreload('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
       })
     })
   })

@@ -89,6 +89,10 @@ export default class Pet extends ApplicationModel {
   @deco.HasMany('Collar', { distinct: 'tagName' })
   public uniqueCollars: Collar[]
 
+  // the newest collar for each tag name
+  @deco.HasMany('Collar', { distinct: 'tagName', order: { tagName: 'asc', createdAt: 'desc' } })
+  public newestCollarPerTagName: Collar[]
+
   @deco.HasMany('Balloon', { through: 'uniqueCollars', source: 'balloon' })
   public uniqueBalloons: Balloon[]
 

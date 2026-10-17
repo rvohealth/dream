@@ -1,4 +1,6 @@
+import DreamApp from '../../../src/dream-app/index.js'
 import Encrypt from '../../../src/encrypt/index.js'
+import DecryptionError from '../../../src/errors/encrypt/DecryptionError.js'
 import InternalEncrypt from '../../../src/encrypt/InternalEncrypt.js'
 import initializeDreamApp from '../../../test-app/cli/helpers/initializeDreamApp.js'
 
@@ -47,6 +49,53 @@ describe('InternalEncrypt', () => {
         })
         const decrypted = InternalEncrypt.decryptColumn(val)
         expect(decrypted).toEqual('howyadoin')
+      })
+    })
+
+    context('with no legacy column key configured', () => {
+      it('throws DecryptionError for a value encrypted with a key that is no longer configured', () => {
+        const oldKey = Encrypt.generateKey('aes-256-gcm')
+        const newKey = Encrypt.generateKey('aes-256-gcm')
+        DreamApp.getOrFail().set('encryption', {
+          columns: { current: { algorithm: 'aes-256-gcm', key: newKey } },
+        })
+        const val = Encrypt.encrypt('howyadoin', { algorithm: 'aes-256-gcm', key: oldKey })
+
+        expect(() => InternalEncrypt.decryptColumn(val)).toThrow(DecryptionError)
+      })
+    })
+
+    context('with an onLegacyKeyUsed callback', () => {
+      it('calls it when the legacy column key opened the value', () => {
+        const oldKey = Encrypt.generateKey('aes-256-gcm')
+        const newKey = Encrypt.generateKey('aes-256-gcm')
+        DreamApp.getOrFail().set('encryption', {
+          columns: {
+            current: { algorithm: 'aes-256-gcm', key: newKey },
+            legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+          },
+        })
+        const val = Encrypt.encrypt('howyadoin', { algorithm: 'aes-256-gcm', key: oldKey })
+        const onLegacyKeyUsed = vi.fn()
+
+        expect(InternalEncrypt.decryptColumn(val, { onLegacyKeyUsed })).toEqual('howyadoin')
+        expect(onLegacyKeyUsed).toHaveBeenCalledTimes(1)
+      })
+
+      it('does not call it when the current column key opened the value', () => {
+        const oldKey = Encrypt.generateKey('aes-256-gcm')
+        const newKey = Encrypt.generateKey('aes-256-gcm')
+        DreamApp.getOrFail().set('encryption', {
+          columns: {
+            current: { algorithm: 'aes-256-gcm', key: newKey },
+            legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+          },
+        })
+        const val = InternalEncrypt.encryptColumn('howyadoin')
+        const onLegacyKeyUsed = vi.fn()
+
+        expect(InternalEncrypt.decryptColumn(val, { onLegacyKeyUsed })).toEqual('howyadoin')
+        expect(onLegacyKeyUsed).not.toHaveBeenCalled()
       })
     })
   })

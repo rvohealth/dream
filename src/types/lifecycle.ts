@@ -90,6 +90,12 @@ export interface AfterHookOpts<T extends Dream | null = null> {
    * Only run this hook if one of the specified columns was changed in the
    * most recent save operation.
    *
+   * On a create, a column counts when, just before the insert, it holds a
+   * value other than `undefined` (for an instance from `dup`, other than the
+   * copied value), whether the caller or a before hook assigned it; values
+   * the insert fills in, such as the primary key, timestamps, database
+   * defaults and `null` for a column nobody assigned, do not count.
+   *
    * ```ts
    * @deco.AfterUpdate({ ifChanged: ['email'] })
    * public sendEmailVerification() { ... }

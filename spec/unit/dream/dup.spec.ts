@@ -1,5 +1,6 @@
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
+import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream#dup', () => {
@@ -37,6 +38,20 @@ describe('Dream#dup', () => {
     const savedCopy = await User.findOrFail(copy.id)
     expect(savedCopy.email).toEqual('original@example.com')
     expect(savedCopy.name).toEqual('Copied name')
+  })
+
+  it('reports the columns the insert set, not the copied values, as the changes of a saved duplicate', async () => {
+    const pet = await Pet.create({ species: 'dog', name: 'Snoopy' })
+    const copy = pet.dup()
+
+    await copy.save()
+
+    expect(copy.changes()).toEqual({
+      id: { was: undefined, now: copy.id },
+      createdAt: { was: undefined, now: copy.createdAt },
+      positionWithinSpecies: { was: undefined, now: 2 },
+    })
+    expect(copy.savedChangeToAttribute('name')).toEqual(false)
   })
 
   context('miscellaneous attributes', () => {

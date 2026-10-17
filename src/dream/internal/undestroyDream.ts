@@ -220,7 +220,7 @@ async function undestroyAssociatedRecords<I extends Dream>(
         defaultScopesToBypass: (options.defaultScopesToBypass ?? []) as string[],
       })
 
-      await query.removeDefaultScope(SOFT_DELETE_SCOPE_NAME as any).findEach(async record => {
+      await query.removeDefaultScope(SOFT_DELETE_SCOPE_NAME as any)['findEachRecordOnce'](async record => {
         markSortableCascadeEdge(record, association)
         await (record as any).txn(txn).undestroy(options)
       })
