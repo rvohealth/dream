@@ -766,58 +766,41 @@ export default class Query<
    * each row's values of `rowKeyColumns` with what to visit for it, if
    * anything. A row whose keys appear again in the same batch is visited once.
    *
-   * Each batch is the next `batchSize` rows after the last row of the one
-   * before, compared on `rowKeyColumns` by a where clause, which every driver
-   * applies. A select that keeps one row of each group (DISTINCT ON) cannot be
-   * narrowed that way: narrowing it before it chooses each group's row would
-   * let it choose a row it does not return. So the keys of all of its rows are
-   * read before the first batch, and each batch reads the rows of the next of
-   * those keys that still match. The walk then visits the rows the select
-   * returned when it began, less any destroyed or changed so that they no
-   * longer match; a row the select returns only after the walk began is not
-   * visited.
+   * A select that keeps one row of each group (DISTINCT ON) is walked from the
+   * keys of all of its rows, read before the first batch (see
+   * `walkRowBatchesFromKeys`); any other, by a cursor (see
+   * `walkRowBatchesByCursor`).
    */
   private async walkRowBatches<Item>(
     this: Query<DreamInstance, QueryTypeOpts>,
     rowKeyColumns: string[],
     batchSize: number,
-    readBatch: (
-      batchQuery: Query<DreamInstance, any>
-    ) => Promise<{ rowKeys: unknown[]; item: Item | undefined }[]>,
+    readBatch: (batchQuery: Query<DreamInstance, any>) => Promise<WalkedRow<Item>[]>,
     visit: (item: Item) => void | Promise<void>
   ): Promise<void> {
-    const visitBatch = async (rows: { rowKeys: unknown[]; item: Item | undefined }[]) => {
-      const visitedRowKeys = new Set<string>()
-      for (const { rowKeys, item } of rows) {
-        const rowKeysId = rowKeysIdentity(rowKeys)
-        if (item === undefined || visitedRowKeys.has(rowKeysId)) continue
-        visitedRowKeys.add(rowKeysId)
-        await visit(item)
-      }
-    }
-
     const distinctOnRowKeys = await this.dbDriverInstance().pluckDistinctOnRowKeys(rowKeyColumns)
+
     if (distinctOnRowKeys) {
-      // each group's row is chosen already, so a batch's rows are read by
-      // their keys alone, unordered, and put back in the order of those keys
-      const unorderedQuery = this.clone({ order: null })
-      const rowKeysList = uniq(distinctOnRowKeys, rowKeysIdentity)
-      const readSize = Math.min(batchSize, ROW_KEYS_PER_READ)
-
-      for (let start = 0; start < rowKeysList.length; start += readSize) {
-        const batchRowKeys = rowKeysList.slice(start, start + readSize)
-        const positions = new Map(
-          batchRowKeys.map((rowKeys, position) => [rowKeysIdentity(rowKeys), position])
-        )
-        const rows = await readBatch(
-          unorderedQuery.whereAny(whereRowKeysAmong(rowKeyColumns, batchRowKeys) as any)
-        )
-        const position = (row: { rowKeys: unknown[] }) => positions.get(rowKeysIdentity(row.rowKeys)) ?? 0
-        await visitBatch(rows.sort((a, b) => position(a) - position(b)))
-      }
-      return
+      await this.walkRowBatchesFromKeys(distinctOnRowKeys, rowKeyColumns, batchSize, readBatch, visit)
+    } else {
+      await this.walkRowBatchesByCursor(rowKeyColumns, batchSize, readBatch, visit)
     }
+  }
 
+  /**
+   * @internal
+   *
+   * Walks the rows this Query returns in batches of the next `batchSize` rows
+   * after the last row of the batch before, compared on `rowKeyColumns` by a
+   * where clause, which every driver applies (see `walkRowBatches`).
+   */
+  private async walkRowBatchesByCursor<Item>(
+    this: Query<DreamInstance, QueryTypeOpts>,
+    rowKeyColumns: string[],
+    batchSize: number,
+    readBatch: (batchQuery: Query<DreamInstance, any>) => Promise<WalkedRow<Item>[]>,
+    visit: (item: Item) => void | Promise<void>
+  ): Promise<void> {
     const rowKeyOrder: OrderQueryStatement<string>[] = rowKeyColumns.map(column => ({
       column,
       direction: 'asc',
@@ -833,10 +816,51 @@ export default class Query<
         ? orderedQuery.whereAny(whereRowsSortingAfter(rowKeyOrder, lastRowKeys, 0) as any)
         : orderedQuery
       const rows = await readBatch(batchQuery)
-      await visitBatch(rows)
+      await visitWalkedRows(rows, visit)
       rowCount = rows.length
       lastRowKeys = rows.at(-1)?.rowKeys
     } while (rowCount > 0 && rowCount === batchSize)
+  }
+
+  /**
+   * @internal
+   *
+   * Walks a select that keeps one row of each group (DISTINCT ON), whose rows'
+   * values of `rowKeyColumns` are `distinctOnRowKeys`, read before the first
+   * batch (see `walkRowBatches`). Such a select cannot be walked by a cursor:
+   * narrowing it to the rows after the cursor before it chooses each group's
+   * row would let it choose a row it does not return. So each batch reads the
+   * rows of the next of those keys that still match, by their keys alone and
+   * unordered, since each group's row is chosen already, and puts them back
+   * in the order of those keys. The walk visits the rows the select returned
+   * when it began, less any destroyed or changed so that they no longer match;
+   * a row the select returns only after the walk began is not visited.
+   */
+  private async walkRowBatchesFromKeys<Item>(
+    this: Query<DreamInstance, QueryTypeOpts>,
+    distinctOnRowKeys: unknown[][],
+    rowKeyColumns: string[],
+    batchSize: number,
+    readBatch: (batchQuery: Query<DreamInstance, any>) => Promise<WalkedRow<Item>[]>,
+    visit: (item: Item) => void | Promise<void>
+  ): Promise<void> {
+    const unorderedQuery = this.clone({ order: null })
+    const rowKeysList = uniq(distinctOnRowKeys, rowKeysIdentity)
+    const readSize = Math.min(batchSize, ROW_KEYS_PER_READ)
+
+    for (let start = 0; start < rowKeysList.length; start += readSize) {
+      const batchRowKeys = rowKeysList.slice(start, start + readSize)
+      const positions = new Map(batchRowKeys.map((rowKeys, position) => [rowKeysIdentity(rowKeys), position]))
+      const position = (row: WalkedRow<Item>) => positions.get(rowKeysIdentity(row.rowKeys)) ?? 0
+
+      const rows = await readBatch(
+        unorderedQuery.whereAny(whereRowKeysAmong(rowKeyColumns, batchRowKeys) as any)
+      )
+      await visitWalkedRows(
+        rows.sort((a, b) => position(a) - position(b)),
+        visit
+      )
+    }
   }
 
   /**
@@ -3920,7 +3944,33 @@ export interface QueryOpts<
  *  - desc after NULL: nothing (only the equality prefix continues)
  */
 /**
- * The most rows a batch of `walkRowBatches` reads by their keys in one
+ * A row a batch of `walkRowBatches` read: its values of the row key columns,
+ * and what to visit for it, if anything.
+ */
+interface WalkedRow<Item> {
+  rowKeys: unknown[]
+  item: Item | undefined
+}
+
+/**
+ * Calls `visit` with the item of each of `rows` that has one, in the order of
+ * `rows`, once for each row's keys.
+ */
+async function visitWalkedRows<Item>(
+  rows: WalkedRow<Item>[],
+  visit: (item: Item) => void | Promise<void>
+): Promise<void> {
+  const visitedRowKeys = new Set<string>()
+  for (const { rowKeys, item } of rows) {
+    const rowKeysId = rowKeysIdentity(rowKeys)
+    if (item === undefined || visitedRowKeys.has(rowKeysId)) continue
+    visitedRowKeys.add(rowKeysId)
+    await visit(item)
+  }
+}
+
+/**
+ * The most rows a batch of `walkRowBatchesFromKeys` reads by their keys in one
  * statement, so that the keys it binds stay well under Postgres's limit of
  * 65,535 parameters in a statement, alongside those the Query binds.
  */
