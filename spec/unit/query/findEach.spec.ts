@@ -177,6 +177,28 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([newestA.id, newestB.id, newestC.id])
     })
 
+    it('visits the records the association returned when the walk began, not one the callback makes the newest of its tag', async () => {
+      const pet = await Pet.create()
+      const now = DateTime.now()
+      const newestB = await pet.createAssociation('collars', { tagName: 'b', createdAt: now })
+      const olderA = await pet.createAssociation('collars', {
+        tagName: 'a',
+        createdAt: now.minus({ day: 1 }),
+      })
+      const newestA = await pet.createAssociation('collars', { tagName: 'a', createdAt: now })
+
+      const records: Collar[] = []
+      await pet.associationQuery('newestCollarPerTagName').findEach(
+        async collar => {
+          records.push(collar)
+          // olderA becomes the newest 'a' collar before the batch holding newestA is read
+          if (collar.id === newestB.id) await olderA.update({ createdAt: now.plus({ day: 1 }) })
+        },
+        { batchSize: 1 }
+      )
+      expect(records.map(r => r.id)).toEqual([newestB.id, newestA.id])
+    })
+
     it('visits the record the association returns for a null distinct value once', async () => {
       const pet = await Pet.create()
       const now = DateTime.now()
@@ -235,6 +257,24 @@ describe('Query#findEach', () => {
         { batchSize: 2 }
       )
       expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id, pet3.id])
+    })
+
+    it('visits a record once for each distinct value the join returns it for, as all() returns it', async () => {
+      const now = DateTime.now()
+      const pet1 = await Pet.create()
+      const pet2 = await Pet.create()
+      await pet1.createAssociation('collars', { tagName: 'a', createdAt: now })
+      await pet1.createAssociation('collars', { tagName: 'b', createdAt: now })
+      await pet2.createAssociation('collars', { tagName: 'c', createdAt: now })
+
+      const records: Pet[] = []
+      await Pet.innerJoin('newestCollarPerTagName').findEach(
+        pet => {
+          records.push(pet)
+        },
+        { batchSize: 1 }
+      )
+      expect(records.map(r => r.id)).toEqual([pet1.id, pet1.id, pet2.id])
     })
 
     it('visits each record the join returns when the Query binds more than half the parameters one statement can', async () => {
