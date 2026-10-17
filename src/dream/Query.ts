@@ -352,26 +352,6 @@ export default class Query<
   /**
    * @internal
    *
-   * Set on each batch window of `findEach`, whose windows after the first
-   * carry their cursor as a where clause, `primary key > <the previous
-   * window's last primary key>`, so that a driver that reads only the Query's
-   * conditions, order and limit pages through the walk. `walk` is the same
-   * object on every window of one walk. A driver whose select cannot be
-   * windowed by that clause keeps, in `walk`, the primary keys of the records
-   * the walk has yet to visit and the first window, which carries no cursor,
-   * both taken on the first window, and reads each window from them instead:
-   * a select that carries DISTINCT ON with an ORDER BY of its own (an
-   * association's declared `distinct` and `order`) keeps one row of each
-   * group, and returns another row of a group once the walk's callback
-   * destroys or changes the one it kept.
-   */
-  private readonly batchWindow: {
-    walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean }
-  } | null = null
-
-  /**
-   * @internal
-   *
    * The base sql alias to use for the base model
    * of this Query
    */
@@ -445,7 +425,6 @@ export default class Query<
     this.connectionOverride = opts.connection
     this.shouldReallyDestroy = opts.shouldReallyDestroy || false
     this.bypassImplicitOrder = opts.bypassImplicitOrder || false
-    this.batchWindow = opts.batchWindow || null
     this.originalOpts = Object.freeze(opts)
   }
 
@@ -529,7 +508,6 @@ export default class Query<
         opts.shouldReallyDestroy !== undefined ? opts.shouldReallyDestroy : this.shouldReallyDestroy,
       bypassImplicitOrder:
         opts.bypassImplicitOrder !== undefined ? opts.bypassImplicitOrder : this.bypassImplicitOrder,
-      batchWindow: opts.batchWindow !== undefined ? opts.batchWindow : this.batchWindow,
     }) as Q
   }
 
@@ -636,33 +614,44 @@ export default class Query<
    * that association, and for the relevance ranking of a similarity condition
    * (`ops.similarity`, `ops.wordSimilarity`, `ops.strictWordSimilarity`),
    * which still decides which records are visited, but not in what order.
-   * An association that declares `distinct` and an `order` led by the
-   * distinct column still uses that `order` to choose which record of each
-   * group is visited, so `findEach` visits the records the association
-   * returns, breaking ties within a group by the lowest primary key. Over
-   * such an association, `findEach` reads the primary keys of all of those
-   * records before visiting the first, and visits only those that still
-   * match when their batch is read, so a record the association returns only
-   * because the callback destroyed or changed another record of its group
-   * (as `destroy` does) is not visited.
+   * `findEach` visits the records {@link Query.all} returns: a Query that
+   * joins a HasOne or HasMany association (directly, through an association
+   * it joins, or as the association an `associationQuery` goes through)
+   * returns a record once for each row the join matches, and `findEach`
+   * visits it once for each of those rows, the rows of one record in
+   * ascending order of the joined rows' primary keys. Call `distinct()` to
+   * visit each record once.
    *
    * This is not a limitation that can be lifted. `findEach` guarantees that
-   * every matching record is visited exactly once, and it delivers that by
-   * paginating on a keyset: each batch selects the next `batchSize` records
-   * with a primary key greater than the last record of the previous batch.
-   * That guarantee only holds over a stable, unique key. Ordering by a
-   * mutable, non-unique column would mean a record whose sort value changed
-   * partway through the iteration could be skipped entirely or visited twice.
-   * ({@link Query.cursorPaginate} can honor an arbitrary order precisely
-   * because a paginated UI tolerates that anomaly; a full traversal cannot.)
+   * every matching row is visited exactly once, and it delivers that by
+   * paginating on a keyset: each batch selects the next `batchSize` rows
+   * whose primary keys (the record's, then the joined rows') sort after the
+   * last row of the previous batch. That guarantee only holds over a stable,
+   * unique key. Ordering by a mutable, non-unique column would mean a record
+   * whose sort value changed partway through the iteration could be skipped
+   * entirely or visited twice. ({@link Query.cursorPaginate} can honor an
+   * arbitrary order precisely because a paginated UI tolerates that anomaly;
+   * a full traversal cannot.)
+   *
+   * A Query that keeps one record of each group (one that calls `distinct`,
+   * or an `associationQuery` of an association that declares `distinct`, or
+   * a Query that joins one) cannot be paginated that way: its own `order`, or
+   * the association's, chooses which record of each group it returns, and a
+   * batch that narrowed it to the rows after the previous batch would let it
+   * choose another. So `findEach` reads the keys of all of its rows before
+   * visiting the first, and visits those whose rows still match when their
+   * batch is read. It visits the rows the Query returned when the walk began,
+   * less any destroyed or changed so that they no longer match the Query's
+   * conditions, and not a row the Query returns only after the walk began,
+   * such as the next record of a group whose record the callback destroyed.
    *
    * If you need records processed in a particular order, load them with a
    * regular ordered query instead of `findEach`.
    *
-   * A `limit` or `offset` on the Query cannot compose with the batch windows
-   * — each batch re-applies the Query's conditions, so the limit would be
+   * A `limit` or `offset` on the Query cannot compose with the batches —
+   * each batch re-applies the Query's conditions, so the limit would be
    * silently replaced by `batchSize` and the offset re-applied to every
-   * window — so a limit- or offset-carrying Query throws at runtime.
+   * batch — so a limit- or offset-carrying Query throws at runtime.
    *
    * @param cb - The callback to call for each found record
    * @param __namedParameters - Options for batch processing
@@ -675,40 +664,179 @@ export default class Query<
     cb: (instance: DreamInstance) => void | Promise<void>,
     { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
   ): Promise<void> {
+    await this.findEachRow(this.rowKeyColumns(), cb, batchSize)
+  }
+
+  /**
+   * @internal
+   *
+   * `findEach`, visiting each record once rather than once for each row a
+   * HasOne or HasMany join returns it in, for the operations that act on each
+   * record it visits (`destroy`, `reallyDestroy`, `undestroy` and `update`
+   * without `lock: true`).
+   */
+  private async findEachRecordOnce(
+    this: Query<DreamInstance, QueryTypeOpts>,
+    cb: (instance: DreamInstance) => void | Promise<void>,
+    { batchSize = Query.BATCH_SIZES.FIND_EACH }: { batchSize?: number } = {}
+  ): Promise<void> {
+    await this.findEachRow([this.namespacedPrimaryKey], cb, batchSize)
+  }
+
+  /**
+   * @internal
+   *
+   * Calls `cb` with the record of each row this Query returns, telling its
+   * rows apart by `rowKeyColumns` (see `walkRowBatches`).
+   */
+  private async findEachRow(
+    this: Query<DreamInstance, QueryTypeOpts>,
+    rowKeyColumns: string[],
+    cb: (instance: DreamInstance) => void | Promise<void>,
+    batchSize: number
+  ): Promise<void> {
     if (this.joinLoadActivated) throw new LeftJoinPreloadIncompatibleWithFindEach()
-    // a limit or offset cannot compose with the batch windows: the window
-    // queries would re-apply it per batch — the limit silently replaced by
-    // batchSize, the offset skipping rows inside every window
+    // a limit or offset cannot compose with the batches: each batch re-applies
+    // the Query's conditions, so the limit would be silently replaced by
+    // batchSize and the offset re-applied to every batch
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
-    let records: any[]
-    // ordered by primary key alone, so that each window holds the next
-    // batchSize records after the cursor
-    const query = this.clone({ bypassImplicitOrder: true })
-      .order(null)
-      .order(this.namespacedPrimaryKey as any)
+
+    // read as the attribute, since primaryKeyValue() reads a primary key of 0 as null
+    const primaryKey = this.dreamInstance['_primaryKey']
+    const primaryKeyOf = (record: DreamInstance): unknown => (record as any)[primaryKey]
+
+    await this.walkRowBatches(
+      rowKeyColumns,
+      batchSize,
+      async batchQuery => {
+        if (rowKeyColumns.length === 1) {
+          const records = await batchQuery.all()
+          return records.map(record => ({ rowKeys: [primaryKeyOf(record)], item: record }))
+        }
+
+        // a record carries no joined row's keys, so the batch's rows are read
+        // for them first, and each is paired with its record by primary key
+        const rows = (await this.dbDriverInstance(batchQuery).pluck(
+          ...(rowKeyColumns as any[])
+        )) as unknown[][]
+        const records = new Map(
+          (await batchQuery.all()).map(record => [rowKeysIdentity([primaryKeyOf(record)]), record])
+        )
+        return rows.map(rowKeys => ({ rowKeys, item: records.get(rowKeysIdentity([rowKeys[0]])) }))
+      },
+      cb
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * The columns that tell apart the rows this Query returns: its primary key,
+   * then the primary keys of the rows HasOne and HasMany joins add (see
+   * `rowKeyColumnsOfJoinedRows`).
+   */
+  private rowKeyColumns(): string[] {
+    return [this.namespacedPrimaryKey, ...this.rowKeyColumnsOfJoinedRows()]
+  }
+
+  /**
+   * @internal
+   *
+   * A HasOne or HasMany join returns a record once for each row it matches,
+   * and the primary keys of the joined rows, with the Query's own, tell those
+   * rows apart. These are those primary keys, namespaced, other than the
+   * Query's own. A Query that calls `distinct` returns one row for each value
+   * of its distinct column rather than one for each row the join matches, so
+   * it has none.
+   */
+  private rowKeyColumnsOfJoinedRows(): string[] {
+    if (this.distinctColumn) return []
+    return uniq(this.dbDriverInstance().joinedRowKeyColumns()).filter(
+      column => column !== this.namespacedPrimaryKey
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * Walks the rows this Query returns in batches, for `findEach` and
+   * `pluckEach`, and calls `visit` with what `readBatch` reads for each row,
+   * in ascending order of `rowKeyColumns`, the columns that tell its rows
+   * apart. `readBatch` reads a Query that returns a batch's rows, and returns
+   * each row's values of `rowKeyColumns` with what to visit for it, if
+   * anything. A row whose keys appear again in the same batch is visited once.
+   *
+   * Each batch is the next `batchSize` rows after the last row of the one
+   * before, compared on `rowKeyColumns` by a where clause, which every driver
+   * applies. A select that keeps one row of each group (DISTINCT ON) cannot be
+   * narrowed that way: narrowing it before it chooses each group's row would
+   * let it choose a row it does not return. So the keys of all of its rows are
+   * read before the first batch, and each batch reads the rows of the next of
+   * those keys that still match. The walk then visits the rows the select
+   * returned when it began, less any destroyed or changed so that they no
+   * longer match; a row the select returns only after the walk began is not
+   * visited.
+   */
+  private async walkRowBatches<Item>(
+    this: Query<DreamInstance, QueryTypeOpts>,
+    rowKeyColumns: string[],
+    batchSize: number,
+    readBatch: (
+      batchQuery: Query<DreamInstance, any>
+    ) => Promise<{ rowKeys: unknown[]; item: Item | undefined }[]>,
+    visit: (item: Item) => void | Promise<void>
+  ): Promise<void> {
+    const visitBatch = async (rows: { rowKeys: unknown[]; item: Item | undefined }[]) => {
+      const visitedRowKeys = new Set<string>()
+      for (const { rowKeys, item } of rows) {
+        const rowKeysId = rowKeysIdentity(rowKeys)
+        if (item === undefined || visitedRowKeys.has(rowKeysId)) continue
+        visitedRowKeys.add(rowKeysId)
+        await visit(item)
+      }
+    }
+
+    const distinctOnRowKeys = await this.dbDriverInstance().pluckDistinctOnRowKeys(rowKeyColumns)
+    if (distinctOnRowKeys) {
+      // each group's row is chosen already, so a batch's rows are read by
+      // their keys alone, unordered, and put back in the order of those keys
+      const unorderedQuery = this.clone({ order: null })
+      const rowKeysList = uniq(distinctOnRowKeys, rowKeysIdentity)
+      const readSize = Math.min(batchSize, ROW_KEYS_PER_READ)
+
+      for (let start = 0; start < rowKeysList.length; start += readSize) {
+        const batchRowKeys = rowKeysList.slice(start, start + readSize)
+        const positions = new Map(
+          batchRowKeys.map((rowKeys, position) => [rowKeysIdentity(rowKeys), position])
+        )
+        const rows = await readBatch(
+          unorderedQuery.whereAny(whereRowKeysAmong(rowKeyColumns, batchRowKeys) as any)
+        )
+        const position = (row: { rowKeys: unknown[] }) => positions.get(rowKeysIdentity(row.rowKeys)) ?? 0
+        await visitBatch(rows.sort((a, b) => position(a) - position(b)))
+      }
+      return
+    }
+
+    const rowKeyOrder: OrderQueryStatement<string>[] = rowKeyColumns.map(column => ({
+      column,
+      direction: 'asc',
+    }))
+    const orderedQuery = this.clone({ order: null, bypassImplicitOrder: true })
+      .clone({ order: rowKeyOrder } as any)
       .limit(batchSize as any)
-    // the cursor is compared against a sentinel rather than tested for
-    // truthiness, since a primary key of 0 is a legitimate cursor value that
-    // would otherwise reset the window to the start of the set
-    let lastId: any = undefined
-    const walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean } = {}
+    let lastRowKeys: unknown[] | undefined = undefined
+    let rowCount: number
 
     do {
-      // the cursor is a where clause, which every driver applies; a driver
-      // that cannot window its select by it reads the window from what it
-      // keeps in `walk` instead
-      const windowQuery =
-        lastId === undefined
-          ? query
-          : query.where({ [this.dreamInstance['_primaryKey']]: ops.greaterThan(lastId) } as any)
-      records = await windowQuery.clone({ batchWindow: { walk } }).all()
-
-      for (const record of records) {
-        await cb(record)
-      }
-
-      lastId = records.at(-1)?.primaryKeyValue?.()
-    } while (records.length > 0 && records.length === batchSize)
+      const batchQuery = lastRowKeys
+        ? orderedQuery.whereAny(whereRowsSortingAfter(rowKeyOrder, lastRowKeys, 0) as any)
+        : orderedQuery
+      const rows = await readBatch(batchQuery)
+      await visitBatch(rows)
+      rowCount = rows.length
+      lastRowKeys = rows.at(-1)?.rowKeys
+    } while (rowCount > 0 && rowCount === batchSize)
   }
 
   /**
@@ -2099,10 +2227,20 @@ export default class Query<
    * // 3
    * ```
    *
-   * A `limit` or `offset` on the Query cannot compose with the batch windows
-   * — each window replaces the limit with the batch size and the offset with
-   * the running window offset, silently ignoring both — so a limit- or
-   * offset-carrying Query throws at runtime.
+   * `pluckEach` reads the rows {@link Query.findEach} visits, in the same
+   * batches and the same order: ascending primary key, then, for a Query
+   * that joins a HasOne or HasMany association, the joined rows' primary
+   * keys, so each row the join returns is plucked once. Like `findEach`, it
+   * discards the Query's `order`, an association's declared `order` and the
+   * relevance ranking of a similarity condition, and it reads a Query that
+   * keeps one record of each group (one that calls `distinct`, or over an
+   * association that declares `distinct`) from the keys of all of its rows,
+   * read before the first batch.
+   *
+   * A `limit` or `offset` on the Query cannot compose with the batches —
+   * each batch re-applies the Query's conditions, so the limit would be
+   * silently replaced by the batch size and the offset re-applied to every
+   * batch — so a limit- or offset-carrying Query throws at runtime.
    *
    * @param args - a list of column names to pluck, followed by a callback function to call for each set of found fields
    * @returns void
@@ -2155,9 +2293,9 @@ export default class Query<
     if (!providedCb) throw new MissingRequiredCallbackFunctionToPluckEach('pluckEach', args)
     if (providedOpts !== undefined && !providedOpts?.batchSize)
       throw new CannotPassAdditionalFieldsToPluckEachAfterCallback('pluckEach', args)
-    // a limit or offset cannot compose with the batch windows: the window
-    // queries would replace the limit with batchSize and the offset with the
-    // running window offset, silently ignoring both
+    // a limit or offset cannot compose with the batches: each batch re-applies
+    // the Query's conditions, so the limit would be silently replaced by
+    // batchSize and the offset re-applied to every batch
     if (this.limitStatement || this.offsetStatement) throw new BatchingIncompatibleWithLimitOrOffset()
 
     const onlyColumns = args.filter(
@@ -2165,35 +2303,28 @@ export default class Query<
     ) as DreamColumnNames<DreamInstance>[]
 
     const batchSize = providedOpts?.batchSize || Query.BATCH_SIZES.PLUCK_EACH_THROUGH
+    const rowKeyColumns = this.rowKeyColumns()
+    // the row keys lead, so that a batch's rows can be told apart; a column
+    // asked for that is one of them is read once
+    const pluckedColumns = uniq([...rowKeyColumns, ...onlyColumns], column => this.namespaceColumn(column))
+    const valueIndexes = onlyColumns.map(column =>
+      pluckedColumns.findIndex(plucked => this.namespaceColumn(plucked) === this.namespaceColumn(column))
+    )
 
-    let offset = 0
-    let records: any[]
-    do {
-      const onlyIncludesPrimaryKey = onlyColumns.find(
-        column => column === this.dreamClass.primaryKey || column === this.namespacedPrimaryKey
-      )
-      const columnsIncludingPrimaryKey: DreamColumnNames<DreamInstance>[] = onlyIncludesPrimaryKey
-        ? onlyColumns
-        : [this.namespacedPrimaryKey, ...onlyColumns]
-
-      const query = this.offset(offset as any)
-        .order(null)
-        .order(this.namespacedPrimaryKey as any)
-        .limit(batchSize as any)
-
-      records = await this.dbDriverInstance(query).pluck(...columnsIncludingPrimaryKey)
-
-      // In order to batch, we need to order by primary key, so the primary key must be plucked.
-      // If the developer did not include the primary key in the columns to pluck, then we prepended it above
-      // and need to remove it from each group of plucked columns prior to passing them into the callback functions
-      const vals = onlyIncludesPrimaryKey ? records : records.map(valueArr => valueArr.slice(1))
-
-      for (const val of vals) {
-        await providedCb(...val)
-      }
-
-      offset += batchSize
-    } while (records.length > 0 && records.length === batchSize)
+    await this.walkRowBatches(
+      rowKeyColumns,
+      batchSize,
+      async batchQuery => {
+        const rows = (await this.dbDriverInstance(batchQuery).pluck(
+          ...(pluckedColumns as any[])
+        )) as unknown[][]
+        return rows.map(row => ({
+          rowKeys: row.slice(0, rowKeyColumns.length),
+          item: valueIndexes.map(index => row[index]),
+        }))
+      },
+      values => providedCb(...values)
+    )
   }
 
   /**
@@ -2526,19 +2657,12 @@ export default class Query<
         orderStatement.column === this.namespacedPrimaryKey
     ) ?? { column: this.namespacedPrimaryKey, direction: 'desc' }
 
-    // A HasOne or HasMany join returns a record once for each row it matches,
-    // and the primary keys of the joined rows, with the Query's own, tell those
-    // rows apart. Those not already ordered by follow the Query's own primary
-    // key as the last statements the cursor pages by, so that the rows a record
-    // is returned for sort the same way on every page. A Query that calls
-    // `distinct` returns one row for each value of its distinct column rather
-    // than one for each row the join matches, so it pages by its order and
-    // primary key alone.
-    const joinedRowKeyColumns = this.distinctColumn
-      ? []
-      : uniq(this.dbDriverInstance().joinedRowKeyColumns()).filter(
-          column => column !== this.namespacedPrimaryKey
-        )
+    // The primary keys of the rows a HasOne or HasMany join adds, which tell
+    // apart the rows it returns a record in, follow the Query's own primary key
+    // as the last statements the cursor pages by, those not already ordered
+    // by, so that the rows a record is returned for sort the same way on every
+    // page.
+    const joinedRowKeyColumns = this.rowKeyColumnsOfJoinedRows()
     const orderedColumns = new Set(
       [...cursorOrderStatements, primaryKeyStatement].map(orderStatement =>
         this.namespaceColumn(orderStatement.column)
@@ -2613,13 +2737,7 @@ export default class Query<
     if (!pageRows.length) return { cursor: null, results: [] }
 
     const pageRowKeys = pageRows.map(row => rowKeyIndexes.map(index => row[index]))
-    const results = await orderedQuery
-      .whereAny(
-        pageRowKeys.map(rowKeys =>
-          Object.fromEntries(rowKeyColumns.map((column, index) => [column, rowKeys[index]]))
-        ) as any
-      )
-      .all()
+    const results = await orderedQuery.whereAny(whereRowKeysAmong(rowKeyColumns, pageRowKeys) as any).all()
 
     const lastRowKeys = pageRowKeys.at(-1)!
     let cursor: string | null = null
@@ -2959,7 +3077,7 @@ export default class Query<
       return await this.lockedDestroy(options, resolvedBatchSize)
     }
 
-    await this.findEach(
+    await this.findEachRecordOnce(
       async result => {
         const subquery = this.dreamTransaction
           ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
@@ -3262,21 +3380,21 @@ export default class Query<
     if (!this.dreamClass['softDelete']) throw new CannotCallUndestroyOnANonSoftDeleteModel(this.dreamClass)
     let counter = 0
 
-    await this.removeDefaultScope(SOFT_DELETE_SCOPE_NAME as AllDefaultScopeNames<DreamInstance>).findEach(
-      async result => {
-        const subquery = this.dreamTransaction
-          ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
-          : result
+    await this.removeDefaultScope(
+      SOFT_DELETE_SCOPE_NAME as AllDefaultScopeNames<DreamInstance>
+    ).findEachRecordOnce(async result => {
+      const subquery = this.dreamTransaction
+        ? (result.txn(this.dreamTransaction) as unknown as DreamInstance)
+        : result
 
-        await subquery.undestroy({
-          bypassAllDefaultScopes: this.bypassAllDefaultScopes,
-          defaultScopesToBypass: this.defaultScopesToBypass,
-          cascade,
-          skipHooks,
-        })
-        counter++
-      }
-    )
+      await subquery.undestroy({
+        bypassAllDefaultScopes: this.bypassAllDefaultScopes,
+        defaultScopesToBypass: this.defaultScopesToBypass,
+        cascade,
+        skipHooks,
+      })
+      counter++
+    })
 
     return counter
   }
@@ -3600,7 +3718,7 @@ export default class Query<
 
     let counter = 0
 
-    await this.findEach(
+    await this.findEachRecordOnce(
       async result => {
         // as on the locked path, the callback receives a clone, so only the
         // attributes it returns are written
@@ -3750,10 +3868,6 @@ export interface QueryOpts<
   connection?: DbConnectionType | undefined
   shouldReallyDestroy?: boolean | undefined
   bypassImplicitOrder?: boolean | undefined
-  batchWindow?:
-    | { walk: { keys?: unknown[]; firstWindow?: Query<any, any>; groupsNarrowable?: boolean } }
-    | null
-    | undefined
 }
 
 /**
@@ -3805,6 +3919,36 @@ export interface QueryOpts<
  *    for the Query's own primary key, which is never NULL)
  *  - desc after NULL: nothing (only the equality prefix continues)
  */
+/**
+ * The most rows a batch of `walkRowBatches` reads by their keys in one
+ * statement, so that the keys it binds stay well under Postgres's limit of
+ * 65,535 parameters in a statement, alongside those the Query binds.
+ */
+const ROW_KEYS_PER_READ = 1000
+
+/**
+ * The where clauses, any one of which matches a row whose values of
+ * `rowKeyColumns` are one of `rowKeysList`.
+ */
+function whereRowKeysAmong(rowKeyColumns: string[], rowKeysList: unknown[][]): Record<string, unknown>[] {
+  if (rowKeyColumns.length === 1) return [{ [rowKeyColumns[0]!]: rowKeysList.map(rowKeys => rowKeys[0]) }]
+  return rowKeysList.map(rowKeys =>
+    Object.fromEntries(rowKeyColumns.map((column, index) => [column, rowKeys[index]]))
+  )
+}
+
+/**
+ * A string that two rows' keys share only when they are equal, whatever type
+ * the driver returned each key as.
+ */
+function rowKeysIdentity(rowKeys: unknown[]): string {
+  return JSON.stringify(
+    rowKeys.map(value =>
+      value === null || value === undefined ? null : String(value as string | number | bigint)
+    )
+  )
+}
+
 function whereRowsSortingAfter(
   orderStatements: OrderQueryStatement<string>[],
   boundaryValues: unknown[],

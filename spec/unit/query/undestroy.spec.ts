@@ -57,6 +57,19 @@ describe('Query#undestroy', () => {
     })
   })
 
+  context('on a join that returns a record in more than one row', () => {
+    it('undestroys each record once, counting it once', async () => {
+      const user = await User.create({ email: 'fred@frewd', name: 'howyadoin', password: 'hamz' })
+      const post = await Post.create({ user, body: 'hello world' })
+      await PostComment.create({ post, body: 'one' })
+      await PostComment.create({ post, body: 'two' })
+      await post.destroy({ cascade: false })
+
+      expect(await Post.innerJoin('comments').undestroy()).toEqual(1)
+      expect(await Post.count()).toEqual(1)
+    })
+  })
+
   context('when the Query carries a limit or offset', () => {
     it('rejects them rather than corrupting the batch windows', async () => {
       // the batch windows re-apply the Query's conditions per batch, so a

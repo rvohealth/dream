@@ -811,6 +811,20 @@ describe('Query#destroy', () => {
     })
   })
 
+  context('on a join that returns a record in more than one row', () => {
+    it('destroys each record once, counting it once', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user2 })
+      await Post.create({ user: user2 })
+
+      expect(await User.innerJoin('posts').destroy({ batchSize: 3 })).toEqual(2)
+      expect(await User.count()).toEqual(0)
+    })
+  })
+
   context('batchSize', () => {
     it('rejects 0, which would otherwise mean "no limit" and destroy the whole set in one batch', async () => {
       await Pet.create({ name: 'aster' })

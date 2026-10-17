@@ -695,6 +695,27 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * @internal
+   *
+   * For a select that keeps one row of each group (DISTINCT ON, as a Query
+   * that calls `distinct`, or an association that declares `distinct`,
+   * produces), the values of `rowKeyColumns` for every row it returns, sorted
+   * by those columns, ascending; null for any other select. `findEach` and
+   * `pluckEach` read a select that keeps one row of each group from these
+   * keys rather than by a cursor, which would narrow the select before it
+   * chooses each group's row.
+   *
+   * A driver whose selects never keep one row of each group returns null.
+   *
+   * @param rowKeyColumns - the namespaced columns that tell the select's rows apart
+   * @returns The rows' values of `rowKeyColumns`, or null
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+  public async pluckDistinctOnRowKeys(rowKeyColumns: string[]): Promise<unknown[][] | null> {
+    return null
+  }
+
+  /**
    * Returns a new Kysely SelectQueryBuilder instance to be used
    * in a sub Query
    *

@@ -196,16 +196,7 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([newestNull.id, newestA.id])
     })
 
-    it('visits every record when a batch holds more of them than one statement can bind parameters for', async ({
-      skip,
-    }) => {
-      // Postgres 13 compares each row with every value of an `= any` array rather
-      // than hashing the array, so there this walk takes longer than a spec allows
-      const { rows } = await sql<{
-        version: number
-      }>`select current_setting('server_version_num')::int as version`.execute(testDb('default', 'primary'))
-      if (rows[0]!.version < 140_000) skip()
-
+    it('visits every record when a batch holds more of them than one statement can bind parameters for', async () => {
       const pet = await Pet.create()
       // one more record than Postgres binds parameters in one statement
       await sql`
@@ -248,7 +239,7 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id, pet3.id])
     })
 
-    it('visits a record the join returns for more than one distinct value once', async () => {
+    it('visits a record once for each distinct value the join returns it for, as all() returns it', async () => {
       const now = DateTime.now()
       const pet1 = await Pet.create()
       const pet2 = await Pet.create()
@@ -263,7 +254,7 @@ describe('Query#findEach', () => {
         },
         { batchSize: 1 }
       )
-      expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id])
+      expect(records.map(r => r.id)).toEqual([pet1.id, pet1.id, pet2.id])
     })
 
     it('visits each record the join returns when the Query binds more than half the parameters one statement can', async () => {
@@ -310,7 +301,7 @@ describe('Query#findEach', () => {
       expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id, pet3.id])
     })
 
-    it('does not visit a record the join stops returning because the callback changed another, across batches', async () => {
+    it('visits a record the join returned when the walk began, though the callback changed another so that the join no longer returns it', async () => {
       const now = DateTime.now()
       const pet1 = await Pet.create()
       const pet2 = await Pet.create()
@@ -330,7 +321,57 @@ describe('Query#findEach', () => {
         },
         { batchSize: 1 }
       )
-      expect(records.map(r => r.id)).toEqual([pet1.id])
+      expect(records.map(r => r.id)).toEqual([pet1.id, pet2.id])
+    })
+  })
+
+  context('when the Query joins a HasMany association', () => {
+    it('visits each record once for each row the join returns, across batches, as all() returns them', async () => {
+      const user1 = await User.create({ email: 'a@a.com', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'b@b.com', password: 'howyadoin' })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user1 })
+      await Post.create({ user: user2 })
+
+      const records: User[] = []
+      await User.innerJoin('posts').findEach(
+        user => {
+          records.push(user)
+        },
+        { batchSize: 2 }
+      )
+      expect(records.map(r => r.id)).toEqual([user1.id, user1.id, user1.id, user2.id])
+    })
+  })
+
+  context('when the Query calls distinct on a column other than the primary key', () => {
+    it('visits the record its order keeps for each value, in ascending primary key order', async () => {
+      const now = DateTime.now()
+      await User.create({
+        email: 'a@a.com',
+        password: 'howyadoin',
+        name: 'fred',
+        createdAt: now.minus({ day: 1 }),
+      })
+      const zed = await User.create({ email: 'b@b.com', password: 'howyadoin', name: 'zed' })
+      const newerFred = await User.create({
+        email: 'c@c.com',
+        password: 'howyadoin',
+        name: 'fred',
+        createdAt: now,
+      })
+
+      const records: User[] = []
+      await User.distinct('name')
+        .order({ name: 'asc', createdAt: 'desc' })
+        .findEach(
+          user => {
+            records.push(user)
+          },
+          { batchSize: 1 }
+        )
+      expect(records.map(r => r.id)).toEqual([zed.id, newerFred.id])
     })
   })
 
@@ -341,11 +382,13 @@ describe('Query#findEach', () => {
       const pet3 = await Pet.create()
 
       // stands in for an app's own driver, which applies the Query's
-      // conditions, order and limit but not the batch window Dream's own
-      // drivers read
+      // conditions, order and limit but does not read the keys of a select
+      // that keeps one row of each group, as a driver that subclasses
+      // QueryDriverBase directly does not
       class ConditionsOrderAndLimitDriver extends PostgresQueryDriver<any> {
-        public override async takeAll(options: { columns?: any[]; lock?: boolean } = {}) {
-          return await new PostgresQueryDriver(this.query.clone({ batchWindow: null })).takeAll(options)
+        // eslint-disable-next-line @typescript-eslint/require-await
+        public override async pluckDistinctOnRowKeys() {
+          return null
         }
       }
       vi.spyOn(DreamApp.getOrFail(), 'dbConnectionQueryDriverClass').mockReturnValue(
