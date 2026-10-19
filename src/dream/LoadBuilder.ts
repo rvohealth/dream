@@ -116,7 +116,7 @@ export default class LoadBuilder<DreamInstance extends Dream> {
    *   .execute()
    * ```
    *
-   * @param args - A list of associations (and optional where clauses) to load
+   * @param args - A chain of association names and and/andNot/andAny clauses to load
    * @returns A chainable LoadBuilder instance
    */
   public load<

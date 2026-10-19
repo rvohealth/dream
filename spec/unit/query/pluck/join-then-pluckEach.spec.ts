@@ -96,6 +96,29 @@ describe('Query#pluckEach on a join query', () => {
     expect(plucked).toEqual([[edge2.id, edge2.name]])
   })
 
+  context('with a HasMany join', () => {
+    it('plucks each row the join returns once, across batches, ordered by the primary keys', async () => {
+      const user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      await Composition.create({ user: user1, content: 'one' })
+      await Composition.create({ user: user1, content: 'two' })
+      await Composition.create({ user: user1, content: 'three' })
+      await Composition.create({ user: user2, content: 'four' })
+
+      const plucked: any[] = []
+      await User.query()
+        .innerJoin('compositions')
+        .pluckEach(
+          'compositions.content',
+          content => {
+            plucked.push(content)
+          },
+          { batchSize: 2 }
+        )
+      expect(plucked).toEqual(['one', 'two', 'three', 'four'])
+    })
+  })
+
   context('with a similarity operator', () => {
     it('respects the similarity operator', async () => {
       const user1 = await User.create({ name: 'jeremy', email: 'hello@world1', password: 'howyadoin' })

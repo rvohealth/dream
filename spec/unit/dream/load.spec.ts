@@ -1,4 +1,5 @@
 import NonLoadedAssociation from '../../../src/errors/associations/NonLoadedAssociation.js'
+import UnrecognizedAssociationConditionKeys from '../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
@@ -26,6 +27,14 @@ describe('Dream#load', () => {
     expect(clone.name).toEqual('Snoopy Snoopy Snoopy')
     expect(clone.pets).toMatchDreamModels([freshPet])
     expect(() => freshUser.pets).toThrow(NonLoadedAssociation)
+  })
+
+  it('throws on a condition key other than and, andNot and andAny', () => {
+    const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+    expect(() => user.load('posts', condition)).toThrow(UnrecognizedAssociationConditionKeys)
+    expect(() => user.load('posts', condition, 'comments')).toThrow(UnrecognizedAssociationConditionKeys)
+    expect(() => user.load('pets').load('posts', condition)).toThrow(UnrecognizedAssociationConditionKeys)
   })
 
   context('with an explicit constraint on a non-optional BelongsTo association', () => {
@@ -71,6 +80,16 @@ describe('Dream#load', () => {
       })
 
       expect(pets.map(p => p.name).sort()).toEqual(['aster', 'violet'])
+    })
+
+    it('throws on a condition key other than and, andNot and andAny', async () => {
+      const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+      await ApplicationModel.transaction(txn => {
+        expect(() => user.txn(txn).load('posts', condition, 'comments')).toThrow(
+          UnrecognizedAssociationConditionKeys
+        )
+      })
     })
   })
 
@@ -140,6 +159,36 @@ describe('Dream#load', () => {
       const clone = await user.load('compositionAssets').load('pets').execute()
       expect(clone.compositionAssets[0]!.name).toEqual('compositionAsset X')
       expect(clone.pets[0]!.name).toEqual('aster')
+    })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  it('forbids a condition key other than and, andNot and andAny', () => {
+    const user = User.new()
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    user.load('posts', { and: { body: 'hello' }, body: 'hello' })
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    user.load('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+
+    // @ts-expect-error a condition accepts only and, andNot and andAny
+    user.load('pets').load('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+  })
+
+  context('in a transaction', () => {
+    it('forbids a condition key other than and, andNot and andAny', async () => {
+      await ApplicationModel.transaction(txn => {
+        const user = User.new()
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        user.txn(txn).load('posts', { and: { body: 'hello' }, body: 'hello' })
+
+        // @ts-expect-error a condition accepts only and, andNot and andAny
+        user.txn(txn).load('posts', { and: { body: 'hello' }, body: 'hello' }, 'comments')
+      })
     })
   })
 })

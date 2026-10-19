@@ -161,7 +161,7 @@ describe('DreamSerializer#customAttribute', () => {
   })
 
   context('flatten', () => {
-    it('renders the serialized data into this model and adjusts the OpenAPI spec accordingly', () => {
+    it('spreads the rendered serializer output it returns into the parent output', () => {
       const birthdate = CalendarDate.fromISO('1950-10-02')
       const user = User.new({ id: '7', name: 'Charlie', birthdate })
       const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -194,8 +194,45 @@ describe('DreamSerializer#customAttribute', () => {
       })
     })
 
+    it('spreads the keys of a returned plain object into the parent output', () => {
+      const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute('coordinates', () => ({ lat: 40.7, lng: -74.0 }), {
+            flatten: true,
+            openapi: {
+              type: 'object',
+              required: ['lat', 'lng'],
+              properties: {
+                lat: { type: 'number' },
+                lng: { type: 'number' },
+              },
+            },
+          })
+
+      expect(MySerializer(pet).render()).toEqual({ species: 'dog', lat: 40.7, lng: -74.0 })
+    })
+
+    it('adds no keys for a callback that returns null or undefined', () => {
+      const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+      const openapi = {
+        type: 'object',
+        properties: { lat: { type: 'number' }, lng: { type: 'number' } },
+      } as const
+
+      const MySerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute('nullCoordinates', () => null, { flatten: true, openapi })
+          .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
+
+      expect(MySerializer(pet).render()).toEqual({ species: 'dog' })
+    })
+
     context('when optional and flatten', () => {
-      it('the other association is wrapped in anyOf with null', () => {
+      it('spreads a present association unchanged (optional is an OpenAPI-only marker)', () => {
         const birthdate = CalendarDate.fromISO('1950-10-02')
         const user = User.new({ id: '7', name: 'Charlie', birthdate })
         const pet = Pet.new({ id: '3', user, name: 'Snoopy', species: 'dog' })
@@ -274,6 +311,103 @@ describe('DreamSerializer#customAttribute', () => {
           favoriteWord: null,
           birthdate: null,
         })
+      })
+    })
+  })
+
+  // type tests are all intentionally skipped. Instead, add @ts-expect-error
+  // comments, which will become invalid if the type errors stop raising
+  context('type tests', () => {
+    it.skip('takes no as, default or precision, since the callback computes the value', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('name', () => 'value', {
+        openapi: 'string',
+        // @ts-expect-error the attribute is named by its first argument
+        as: 'other',
+      })
+      DreamSerializer(Pet, pet).customAttribute('name', () => undefined, {
+        openapi: 'string',
+        // @ts-expect-error any fallback belongs in the callback
+        default: 'fallback',
+      })
+      DreamSerializer(Pet, pet).customAttribute('rating', () => 3.14159, {
+        openapi: 'decimal',
+        // @ts-expect-error any rounding belongs in the callback
+        precision: 2,
+      })
+    })
+
+    it.skip('a nullable schema lists a null branch in its anyOf or oneOf rather than a nullable type beside it', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { description: 'who owns it', anyOf: [{ $serializer: UserSerializer }, { type: 'null' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { oneOf: [{ type: 'object', properties: { name: 'string' } }, { type: 'null' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { type: 'object', allOf: [{ $serializer: UserSerializer }] },
+      })
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error anyOf applies to null too, so a nullable type beside it cannot admit null
+        openapi: { type: ['object', 'null'], anyOf: [{ $serializer: UserSerializer }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error a type beside oneOf is not allowed
+        openapi: { type: 'object', oneOf: [{ $serializer: UserSerializer }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('name', () => null, {
+        // @ts-expect-error a type beside anyOf is not allowed
+        openapi: { type: 'string', anyOf: [{ type: 'string' }, { type: 'null' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error allOf applies to null too, so a nullable type beside it cannot admit null
+        openapi: { type: ['object', 'null'], allOf: [{ $serializer: UserSerializer }] },
+      })
+    })
+
+    it.skip('an allOf carries neither an object body nor a primitive type beside it', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        openapi: { type: 'object', required: ['name'], allOf: [{ $serializer: UserSerializer }] },
+      })
+
+      DreamSerializer(Pet, pet).customAttribute('owner', () => null, {
+        // @ts-expect-error an object body beside allOf is not rendered; put it in an allOf member
+        openapi: { type: 'object', properties: { name: 'string' }, allOf: [{ type: 'object' }] },
+      })
+      DreamSerializer(Pet, pet).customAttribute('name', () => null, {
+        // @ts-expect-error a primitive type beside allOf is not allowed
+        openapi: { type: 'string', allOf: [{ type: 'string' }] },
+      })
+    })
+
+    it.skip('a flattened serializer ref may be nullable but not a list', () => {
+      const pet = Pet.new()
+
+      DreamSerializer(Pet, pet).customAttribute('user', () => null, {
+        flatten: true,
+        openapi: { $serializer: UserSerializer, maybeNull: true },
+      })
+
+      DreamSerializer(Pet, pet).customAttribute('users', () => [], {
+        openapi: { $serializer: UserSerializer, many: true },
+      })
+
+      // @ts-expect-error a list has no properties to spread into the parent
+      DreamSerializer(Pet, pet).customAttribute('users', () => [], {
+        flatten: true,
+        openapi: { $serializer: UserSerializer, many: true },
+      })
+
+      // @ts-expect-error a list has no properties to spread into the parent
+      DreamSerializer(Pet, pet).customAttribute('users', () => [], {
+        flatten: true,
+        openapi: { $serializable: User, many: true },
       })
     })
   })

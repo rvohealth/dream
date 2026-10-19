@@ -9,6 +9,9 @@ import {
 import DreamTransaction from '../../DreamTransaction.js'
 import Query from '../../Query.js'
 import applyScopeBypassingSettingsToQuery from '../applyScopeBypassingSettingsToQuery.js'
+import assertRecognizedAssociationConditionKeys, {
+  ASSOCIATION_CONDITION_KEYS,
+} from './assertRecognizedAssociationConditionKeys.js'
 
 export default function associationQuery<
   DreamInstance extends Dream,
@@ -32,6 +35,15 @@ export default function associationQuery<
     defaultScopesToBypass: string[]
   }
 ): AssociationQuery {
+  // a condition carrying none of and/andNot/andAny skips the join below, so the
+  // chain check in Query never sees it
+  assertRecognizedAssociationConditionKeys(
+    joinAndStatements,
+    ASSOCIATION_CONDITION_KEYS,
+    associationName,
+    'associationQuery'
+  )
+
   const association = dream['associationMetadataMap']()[associationName as any] as HasManyStatement<
     any,
     any,

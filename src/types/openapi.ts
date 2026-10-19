@@ -32,17 +32,17 @@ export type OpenapiSchemaBase =
   | OpenapiSchemaNull
   | OpenapiSchemaExpressionRef
 
-export type OpenapiSchemaShorthandExpressionAnyOf = {
+export type OpenapiSchemaShorthandExpressionAnyOf = OpenapiSchemaCombinatorFields<{
   anyOf: OpenapiSchemaBodyShorthand[]
-}
+}>
 
-export type OpenapiSchemaShorthandExpressionOneOf = {
+export type OpenapiSchemaShorthandExpressionOneOf = OpenapiSchemaCombinatorFields<{
   oneOf: OpenapiSchemaBodyShorthand[]
-}
+}>
 
-export type OpenapiSchemaShorthandExpressionAllOf = {
+export type OpenapiSchemaShorthandExpressionAllOf = OpenapiSchemaCombinatorFields<{
   allOf: OpenapiSchemaBodyShorthand[]
-}
+}>
 
 export type OpenapiSchemaShorthandExpressionSerializerRef = {
   $serializer: DreamModelSerializerType | SimpleObjectSerializerType
@@ -66,21 +66,40 @@ export type OpenapiSchemaExpressionRefSchemaShorthand = {
   $schema: string
 }
 
-export type OpenapiSchemaExpressionAllOf = {
+export type OpenapiSchemaExpressionAllOf = OpenapiSchemaCombinatorFields<{
   allOf: OpenapiSchemaBody[]
-}
+}>
 
-export type OpenapiSchemaExpressionAnyOf = {
+export type OpenapiSchemaExpressionAnyOf = OpenapiSchemaCombinatorFields<{
   anyOf: OpenapiSchemaBody[]
-}
+}>
 
-export type OpenapiSchemaExpressionOneOf = {
+export type OpenapiSchemaExpressionOneOf = OpenapiSchemaCombinatorFields<{
   oneOf: OpenapiSchemaBody[]
-}
+}>
 
+/**
+ * The fields of a schema that declares a `type`. `anyOf` and `oneOf` are not
+ * among them: they apply to every value, `null` included, so a nullable `type`
+ * beside one cannot admit `null`. A schema that may be null lists a
+ * `{ type: 'null' }` branch in its `anyOf` or `oneOf` instead.
+ */
 export type OpenapiSchemaCommonFields<T> = T & {
   description?: string
   summary?: string
+  anyOf?: never
+  oneOf?: never
+}
+
+/**
+ * The fields of a schema that is an `allOf`, `anyOf` or `oneOf`: the
+ * combinator and the fields that describe it, but no `type` (see
+ * `OpenapiSchemaCommonFields`).
+ */
+export type OpenapiSchemaCombinatorFields<T> = T & {
+  description?: string
+  summary?: string
+  type?: never
 }
 
 export type OpenapiSchemaString = OpenapiSchemaCommonFields<{
@@ -108,15 +127,13 @@ export type OpenapiSchemaNumber = OpenapiSchemaCommonFields<{
 
 export type OpenapiSchemaNull = {
   type: 'null'
+  anyOf?: never
+  oneOf?: never
 }
 
 export type OpenapiNumberFormats = 'decimal' | 'double'
 
-export type OpenapiSchemaObject =
-  | OpenapiSchemaObjectBase
-  | OpenapiSchemaObjectOneOf
-  | OpenapiSchemaObjectAnyOf
-  | OpenapiSchemaObjectAllOf
+export type OpenapiSchemaObject = OpenapiSchemaObjectBase | OpenapiSchemaObjectAllOf
 
 export type OpenapiSchemaObjectBase = CommonOpenapiSchemaObjectFields<{
   minProperties?: number
@@ -132,24 +149,23 @@ export type OpenapiSchemaObjectBase = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaExpressionAnyOf
     | OpenapiSchemaExpressionAllOf
     | false
+  allOf?: never
 }>
 
-export type OpenapiSchemaObjectOneOf = CommonOpenapiSchemaObjectFields<{
-  oneOf?: OpenapiSchemaBody[]
-}>
-
-export type OpenapiSchemaObjectAnyOf = CommonOpenapiSchemaObjectFields<{
-  anyOf?: OpenapiSchemaBody[]
-}>
-
-export type OpenapiSchemaObjectAllOf = CommonOpenapiSchemaObjectFields<{
+/**
+ * An object schema that is also an `allOf`. Its `type` cannot be nullable:
+ * `allOf` applies to every value, so `null` would have to match each of its
+ * object members. A schema that may be null is an `anyOf` or `oneOf` with a
+ * `{ type: 'null' }` branch.
+ */
+export type OpenapiSchemaObjectAllOf = OpenapiSchemaCommonFields<{
+  type: 'object'
+  required?: string[]
   allOf?: OpenapiSchemaBody[]
 }>
 
 export type OpenapiSchemaObjectShorthand =
   | OpenapiSchemaObjectBaseShorthand
-  | OpenapiSchemaObjectOneOfShorthand
-  | OpenapiSchemaObjectAnyOfShorthand
   | OpenapiSchemaObjectAllOfShorthand
 
 export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
@@ -171,17 +187,15 @@ export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
     | OpenapiSchemaShorthandExpressionSerializerRef
     | OpenapiSchemaShorthandExpressionSerializableRef
     | false
+  allOf?: never
 }>
 
-export type OpenapiSchemaObjectOneOfShorthand = CommonOpenapiSchemaObjectFields<{
-  oneOf?: OpenapiSchemaBodyShorthand[]
-}>
-
-export type OpenapiSchemaObjectAnyOfShorthand = CommonOpenapiSchemaObjectFields<{
-  anyOf?: OpenapiSchemaBodyShorthand[]
-}>
-
-export type OpenapiSchemaObjectAllOfShorthand = CommonOpenapiSchemaObjectFields<{
+/**
+ * The shorthand form of `OpenapiSchemaObjectAllOf`.
+ */
+export type OpenapiSchemaObjectAllOfShorthand = OpenapiSchemaCommonFields<{
+  type: 'object'
+  required?: string[]
   allOf?: OpenapiSchemaBodyShorthand[]
 }>
 

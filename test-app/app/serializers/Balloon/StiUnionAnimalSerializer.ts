@@ -1,4 +1,3 @@
-import { BalloonLineMaterialsEnumValues } from '../../../types/db.js'
 import Animal from '../../models/Balloon/Latex/Animal.js'
 import BalloonSerializer from '../BalloonSerializer.js'
 
@@ -13,8 +12,4 @@ import BalloonSerializer from '../BalloonSerializer.js'
  * `rendersOne('balloonLine')`).
  */
 export default (data: Animal) =>
-  BalloonSerializer(Animal, data)
-    .rendersMany('sandbags')
-    .delegatedAttribute('balloonLine', 'material', {
-      openapi: { type: 'string', enum: BalloonLineMaterialsEnumValues },
-    })
+  BalloonSerializer(Animal, data).rendersMany('sandbags').delegatedAttribute('balloonLine', 'material')

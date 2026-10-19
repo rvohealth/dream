@@ -2,8 +2,10 @@ import BatchingIncompatibleWithLimitOrOffset from '../../../../src/errors/Batchi
 import CannotPassAdditionalFieldsToPluckEachAfterCallback from '../../../../src/errors/CannotPassAdditionalFieldsToPluckEachAfterCallback.js'
 import MissingRequiredCallbackFunctionToPluckEach from '../../../../src/errors/MissingRequiredCallbackFunctionToPluckEach.js'
 import ops from '../../../../src/ops/index.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Edge from '../../../../test-app/app/models/Graph/Edge.js'
+import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#pluckEach', () => {
@@ -121,14 +123,74 @@ describe('Query#pluckEach', () => {
     })
 
     context('with a similarity operator', () => {
-      it('respects the similarity operator', async () => {
+      it('plucks the matches in ascending primary key order, not by relevance', async () => {
         const plucked: any[] = []
         await User.where({ name: ops.similarity('helloworld') }).pluckEach('id', id => {
           plucked.push(id)
         })
 
-        expect(plucked).toEqual([user2.id, user1.id])
+        expect(plucked).toEqual([user1.id, user2.id])
       })
+    })
+  })
+
+  context('when the callback destroys each record it is passed', () => {
+    it('plucks every record once, across batches', async () => {
+      const plucked: any[] = []
+      await User.query().pluckEach(
+        'id',
+        async id => {
+          plucked.push(id)
+          await User.where({ id }).destroy()
+        },
+        { batchSize: 1 }
+      )
+
+      expect(plucked).toEqual([user1.id, user2.id, user3.id])
+    })
+  })
+
+  context('when the Query calls distinct on a column other than the primary key', () => {
+    it('plucks the record its order keeps for each value, in ascending primary key order', async () => {
+      const newerC = await User.create({ email: 'c@cccc', password: 'howyadoin', name: 'c' })
+
+      const plucked: any[] = []
+      await User.distinct('name')
+        .order({ name: 'asc', createdAt: 'desc' })
+        .pluckEach(
+          'email',
+          email => {
+            plucked.push(email)
+          },
+          { batchSize: 1 }
+        )
+
+      expect(plucked).toEqual([user2.email, user3.email, newerC.email])
+    })
+  })
+
+  context('over an association that declares distinct and an order led by it', () => {
+    it('plucks the record the association returns for each distinct value, in ascending primary key order', async () => {
+      const pet = await Pet.create()
+      const now = DateTime.now()
+      await pet.createAssociation('collars', { tagName: 'a', createdAt: now.minus({ day: 1 }) })
+      const newestA = await pet.createAssociation('collars', { tagName: 'a', createdAt: now })
+      const newestB = await pet.createAssociation('collars', { tagName: 'b', createdAt: now })
+
+      const plucked: any[] = []
+      await pet.associationQuery('newestCollarPerTagName').pluckEach(
+        'id',
+        'tagName',
+        (id, tagName) => {
+          plucked.push([id, tagName])
+        },
+        { batchSize: 1 }
+      )
+
+      expect(plucked).toEqual([
+        [newestA.id, 'a'],
+        [newestB.id, 'b'],
+      ])
     })
   })
 

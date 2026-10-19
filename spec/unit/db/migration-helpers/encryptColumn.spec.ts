@@ -24,6 +24,8 @@ describe('DreamMigrationHelpers.encryptColumn', () => {
     await sql`ALTER TABLE pets DROP COLUMN IF EXISTS secret_phone`.execute(_db)
     await sql`ALTER TABLE pets DROP COLUMN IF EXISTS encrypted_secret_phone`.execute(_db)
     await sql`ALTER TABLE pets DROP COLUMN IF EXISTS my_encrypted_phone`.execute(_db)
+    await sql`ALTER TABLE pets DROP COLUMN IF EXISTS ssn_last_4`.execute(_db)
+    await sql`ALTER TABLE pets DROP COLUMN IF EXISTS encrypted_ssn_last4`.execute(_db)
   })
 
   it('renames the column to encrypted_<column> as text', async () => {
@@ -31,6 +33,14 @@ describe('DreamMigrationHelpers.encryptColumn', () => {
 
     expect(await columnDataType(_db, 'pets', 'secret_phone')).toBeNull()
     expect(await columnDataType(_db, 'pets', 'encrypted_secret_phone')).toEqual('text')
+  })
+
+  it('names the encrypted column as @deco.Encrypted reads it, without an underscore before a digit', async () => {
+    await _db.schema.alterTable('pets').addColumn('ssn_last_4', 'text').execute()
+
+    await DreamMigrationHelpers.encryptColumn(_db, { table: 'pets', column: 'ssn_last_4' })
+
+    expect(await columnDataType(_db, 'pets', 'encrypted_ssn_last4')).toEqual('text')
   })
 
   it('encrypts each non-null value so it decrypts back to the original', async () => {

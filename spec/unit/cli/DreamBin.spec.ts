@@ -314,5 +314,30 @@ describe('DreamBin', () => {
 
       expect(findWritten('serializer')).toBeUndefined()
     })
+
+    context('when no connectionName is given', () => {
+      it("writes the migration to the parent model's connection folder", async () => {
+        await DreamBin.generateStiChild(
+          'AlternateDbConnectionUser/Admin',
+          'AlternateDbConnectionUser',
+          ['level:integer'],
+          { serializer: true }
+        )
+
+        const migration = findWritten('migration')!
+        expect(migration.basePath).toMatch(/migrations\/alternateConnection$/)
+        expect(migration.content).toContain("alterTable('alternate_db_connection_users')")
+      })
+
+      it('rejects a parent that is not one of the app models, before writing files', async () => {
+        await expect(
+          DreamBin.generateStiChild('Room/Kitchen', 'Room', ['oven_count:integer'], { serializer: true })
+        ).rejects.toThrow(
+          'Cannot generate the STI child Room/Kitchen: its parent, Room, is not one of the app models.'
+        )
+
+        expect(spy).not.toHaveBeenCalled()
+      })
+    })
   })
 })

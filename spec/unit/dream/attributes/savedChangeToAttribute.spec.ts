@@ -14,6 +14,12 @@ describe('Dream#savedChangeToAttribute', () => {
       await pet.update({ name: 'my little pony' })
       expect(pet.savedChangeToAttribute('species')).toEqual(false)
     })
+
+    it('returns true for a nullable column the create left unassigned, which the insert returned as null', async () => {
+      const pet = await Pet.create({ species: 'cat' })
+      expect(pet.name).toBeNull()
+      expect(pet.savedChangeToAttribute('name')).toEqual(true)
+    })
   })
 
   context('with an existing record', () => {
@@ -27,6 +33,35 @@ describe('Dream#savedChangeToAttribute', () => {
 
       await pet.update({ name: 'my little pony' })
       expect(pet.savedChangeToAttribute('species')).toEqual(false)
+    })
+
+    it('returns false for a column with an unsaved change on a record that has not been saved since it was loaded', async () => {
+      const { id } = await Pet.create({ species: 'cat' })
+      const pet = await Pet.findOrFail(id)
+
+      pet.species = 'dog'
+      expect(pet.savedChangeToAttribute('species')).toEqual(false)
+    })
+
+    it('returns false for a column the most recent save did not change, while an unsaved change to it is pending', async () => {
+      const { id } = await Pet.create({ species: 'cat' })
+      const pet = await Pet.findOrFail(id)
+      await pet.update({ name: 'my little pony' })
+
+      pet.species = 'dog'
+      expect(pet.savedChangeToAttribute('species')).toEqual(false)
+    })
+
+    it('keeps returning true for a column the most recent save changed after a later unsaved edit to it', async () => {
+      const { id } = await Pet.create({ species: 'cat' })
+      const pet = await Pet.findOrFail(id)
+      await pet.update({ species: 'dog' })
+
+      pet.species = 'frog'
+      expect(pet.savedChangeToAttribute('species')).toEqual(true)
+
+      pet.species = 'cat'
+      expect(pet.savedChangeToAttribute('species')).toEqual(true)
     })
   })
 

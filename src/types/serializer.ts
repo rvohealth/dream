@@ -2,7 +2,13 @@ import Dream from '../Dream.js'
 import { RoundingPrecision } from '../helpers/round.js'
 import DreamSerializerBuilder from '../serializer/builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from '../serializer/builders/ObjectSerializerBuilder.js'
-import { DreamSerializable, DreamSerializableArray, ViewModelClass } from './dream.js'
+import {
+  DreamSerializable,
+  DreamSerializableArray,
+  DreamVirtualColumns,
+  NonJsonDreamColumnNames,
+  ViewModelClass,
+} from './dream.js'
 import { OpenapiDescription, OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from './openapi.js'
 
 export type SerializerCasing = 'camel' | 'snake'
@@ -32,7 +38,11 @@ export interface InternalAnyTypedSerializerCustomAttribute {
   type: 'customAttribute'
   name: string
   fn: (x?: any, y?: any) => any
-  options: Omit<NonAutomaticSerializerAttributeOptions, 'as'> & { flatten?: boolean }
+  options: {
+    openapi: CustomAttributeOpenapi
+    required?: false
+    flatten?: boolean
+  }
 }
 
 export interface InternalAnyRendersOneOrManyOpts {
@@ -142,6 +152,56 @@ export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOptio
     // openapi, which is undesirable)
     precision?: RoundingPrecision
   }
+
+/**
+ * The options argument of `DreamSerializer#delegatedAttribute`. A Dream model's non-json
+ * column infers its OpenAPI shape, so its `openapi` takes only a description and the
+ * argument may be left out. A json/jsonb column or a non-Dream target has no shape to
+ * infer, so the argument is required and its `openapi` takes a full shape.
+ */
+export type DelegatedAttributeOptionsArgs<AssociatedModelType, TargetAttributeName> =
+  DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> extends infer Options
+    ? Partial<Options> extends Options
+      ? [options?: Options]
+      : [options: Options]
+    : never
+
+type DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> = AssociatedModelType extends Dream
+  ? TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+      keyof AssociatedModelType &
+      'type'
+    ? AutomaticSerializerAttributeOptionsForType & {
+        optional?: boolean
+        required?: false
+      }
+    : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
+      ? SerializerAttributeOptionsForVirtualColumn & { optional?: boolean }
+      : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+            keyof AssociatedModelType &
+            string
+        ? AutomaticSerializerAttributeOptions & { optional?: boolean }
+        : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
+            optional?: boolean
+          }
+  : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
+
+type CustomAttributeOpenapi = OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+
+/**
+ * The options of `customAttribute`. The callback's return value renders as is, so there is
+ * no `as`, `default` or `precision`. With `flatten: true`, `openapi` may be anything but a
+ * serializer ref with `many: true`: flattening spreads one object's properties into the
+ * parent, and a list has none to spread.
+ */
+export type CustomAttributeOptions =
+  | { openapi: CustomAttributeOpenapi; required?: false; flatten?: false }
+  | { openapi: OpenapiForFlattening<CustomAttributeOpenapi>; required?: false; flatten: true }
+
+type OpenapiForFlattening<Openapi> = Openapi extends unknown
+  ? 'many' extends keyof Openapi
+    ? Omit<Openapi, 'many'> & { many?: false }
+    : Openapi
+  : never
 
 export type DreamModelSerializerType = (data: any, passthroughData?: any) => DreamSerializerBuilder<any, any>
 

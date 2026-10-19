@@ -17,6 +17,7 @@ import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
 import HeartRating from '../../../test-app/app/models/ExtraRating/HeartRating.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
+import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import Post from '../../../test-app/app/models/Post.js'
 import Rating from '../../../test-app/app/models/Rating.js'
@@ -1321,6 +1322,137 @@ describe('Query#where', () => {
           .where({ rating: range(null, end, true) })
           .all()
         expect(records).toMatchDreamModels([ratingBefore, ratingBeginning, ratingWithin])
+      })
+    })
+
+    context('a bound of zero', () => {
+      let ratingNegative: Rating
+      let ratingZero: Rating
+
+      beforeEach(async () => {
+        ratingNegative = await Rating.create({ user, rateable: post, rating: -3 })
+        ratingZero = await Rating.create({ user, rateable: post, rating: 0 })
+      })
+
+      it('includes zero and omits negative numbers when zero is the start', async () => {
+        const records = await Rating.query()
+          .where({ rating: range(0, begin) })
+          .all()
+        expect(records).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning])
+      })
+
+      it('includes zero and omits positive numbers when zero is the end', async () => {
+        const records = await Rating.query()
+          .where({ rating: range(-3, 0) })
+          .all()
+        expect(records).toMatchDreamModels([ratingNegative, ratingZero])
+      })
+
+      it('matches only zero when zero is both the start and the end', async () => {
+        const records = await Rating.query()
+          .where({ rating: range(0, 0) })
+          .all()
+        expect(records).toMatchDreamModels([ratingZero])
+      })
+
+      context('end is not passed', () => {
+        it('matches zero and every number above it', async () => {
+          const records = await Rating.query()
+            .where({ rating: range(0) })
+            .all()
+          expect(records).toMatchDreamModels([
+            ratingZero,
+            ratingBefore,
+            ratingBeginning,
+            ratingWithin,
+            ratingEnd,
+            ratingAfter,
+          ])
+        })
+      })
+
+      context('excludeEnd is passed', () => {
+        it('omits zero when zero is the end', async () => {
+          const records = await Rating.query()
+            .where({ rating: range(-3, 0, true) })
+            .all()
+          expect(records).toMatchDreamModels([ratingNegative])
+        })
+      })
+
+      context('within whereNot', () => {
+        it('matches only the numbers outside a range that starts at zero', async () => {
+          const records = await Rating.query()
+            .whereNot({ rating: range(0, begin) })
+            .all()
+          expect(records).toMatchDreamModels([ratingNegative, ratingWithin, ratingEnd, ratingAfter])
+        })
+      })
+
+      context('within whereAny', () => {
+        it('includes zero when zero is the start', async () => {
+          const records = await Rating.query()
+            .whereAny([{ rating: range(0, begin) }, { rating: 9 }])
+            .all()
+          expect(records).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning, ratingAfter])
+        })
+      })
+
+      context('within an association condition', () => {
+        it('includes zero when zero is the start of a join condition', async () => {
+          const ratings = await User.innerJoin('ratings', { and: { rating: range(0, begin) } })
+            .order({ 'ratings.rating': 'asc' })
+            .pluck('ratings.rating')
+          expect(ratings).toEqual([0, 2, 3])
+        })
+
+        it('includes zero when zero is the start of a preload condition', async () => {
+          const loadedUser = await User.preload('ratings', { and: { rating: range(0, begin) } }).findOrFail(
+            user.id
+          )
+          expect(loadedUser.ratings).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning])
+        })
+
+        it('includes zero when zero is the start of an associationQuery condition', async () => {
+          const records = await user.associationQuery('ratings', { and: { rating: range(0, begin) } }).all()
+          expect(records).toMatchDreamModels([ratingZero, ratingBefore, ratingBeginning])
+        })
+      })
+
+      context('against a bigint column', () => {
+        it('includes a 0n start', async () => {
+          await ModelForOpenapiTypeSpecs.create({
+            email: 'negative@b.com',
+            passwordDigest: 'abcd',
+            favoriteBigint: '-1',
+          })
+          const zero = await ModelForOpenapiTypeSpecs.create({
+            email: 'zero@b.com',
+            passwordDigest: 'abcd',
+            favoriteBigint: '0',
+          })
+          const positive = await ModelForOpenapiTypeSpecs.create({
+            email: 'positive@b.com',
+            passwordDigest: 'abcd',
+            favoriteBigint: '5',
+          })
+
+          const records = await ModelForOpenapiTypeSpecs.where({ favoriteBigint: range(0n) }).all()
+          expect(records).toMatchDreamModels([zero, positive])
+        })
+      })
+    })
+  })
+
+  context('a string range', () => {
+    context('the start is an empty string', () => {
+      it('matches every non-null string', async () => {
+        const unnamedUser = await User.create({ email: 'empty@frewd', password: 'howyadoin', name: '' })
+        const namedUser = await User.create({ email: 'named@frewd', password: 'howyadoin', name: 'Amy' })
+        await User.create({ email: 'null@frewd', password: 'howyadoin', name: null })
+
+        const records = await User.where({ name: range('') }).all()
+        expect(records).toMatchDreamModels([unnamedUser, namedUser])
       })
     })
   })

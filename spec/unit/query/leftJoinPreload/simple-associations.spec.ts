@@ -1,5 +1,6 @@
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import MissingRequiredBelongsToAssociation from '../../../../src/errors/associations/MissingRequiredBelongsToAssociation.js'
+import UnrecognizedAssociationConditionKeys from '../../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import BalloonLine from '../../../../test-app/app/models/BalloonLine.js'
@@ -16,6 +17,17 @@ import PostComment from '../../../../test-app/app/models/PostComment.js'
 import User from '../../../../test-app/app/models/User.js'
 
 describe('Query#leftJoinPreload with simple associations', () => {
+  it('throws on a condition key other than and, andNot and andAny', () => {
+    const condition: Record<string, unknown> = { and: { body: 'hello' }, body: 'hello' }
+
+    expect(() => User.query().leftJoinPreload('posts', condition)).toThrow(
+      UnrecognizedAssociationConditionKeys
+    )
+    expect(() => User.query().leftJoinPreload('posts', condition, 'comments')).toThrow(
+      UnrecognizedAssociationConditionKeys
+    )
+  })
+
   context('multiple associations', () => {
     let user: User
     let composition: Composition

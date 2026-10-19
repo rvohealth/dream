@@ -2,6 +2,7 @@ import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
+import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
 
@@ -35,10 +36,7 @@ describe('DreamSerializer#delegatedAttribute', () => {
     const pet = Pet.new({ user, name: 'Snoopy' })
 
     const MySerializer = (data: Pet) =>
-      DreamSerializer(Pet, data).delegatedAttribute('user', 'name', {
-        default: 'Woodstock',
-        openapi: 'string',
-      })
+      DreamSerializer(Pet, data).delegatedAttribute('user', 'name', { default: 'Woodstock' })
 
     const serializer = MySerializer(pet)
 
@@ -50,8 +48,8 @@ describe('DreamSerializer#delegatedAttribute', () => {
   context('when repeating the same key using required: false to shadow a default', () => {
     const MySerializer = (data: Pet) =>
       DreamSerializer(Pet, data)
-        .delegatedAttribute('userThroughUuid', 'name', { openapi: 'string' })
-        .delegatedAttribute('user', 'name', { openapi: 'string', required: false })
+        .delegatedAttribute('userThroughUuid', 'name')
+        .delegatedAttribute('user', 'name', { required: false })
 
     it('keeps the fallback value when the shadowing association is absent', () => {
       const fallbackUser = User.new({ name: 'Fallback name' })
@@ -79,12 +77,8 @@ describe('DreamSerializer#delegatedAttribute', () => {
 
       const MySerializerWithAs = (data: Pet) =>
         DreamSerializer(Pet, data)
-          .delegatedAttribute('userThroughUuid', 'name', { as: 'displayName', openapi: 'string' })
-          .delegatedAttribute('user', 'name', {
-            as: 'displayName',
-            openapi: 'string',
-            required: false,
-          })
+          .delegatedAttribute('userThroughUuid', 'name', { as: 'displayName' })
+          .delegatedAttribute('user', 'name', { as: 'displayName', required: false })
 
       expect(MySerializerWithAs(pet).render()).toEqual({
         displayName: 'Shadowing name',
@@ -99,13 +93,13 @@ describe('DreamSerializer#delegatedAttribute', () => {
           type: 'delegatedAttribute',
           targetName: 'userThroughUuid',
           name: 'name',
-          options: { openapi: 'string' },
+          options: {},
         },
         {
           type: 'delegatedAttribute',
           targetName: 'user',
           name: 'name',
-          options: { openapi: 'string', required: false },
+          options: { required: false },
         },
       ])
       expect(attributes[0].options).not.toHaveProperty('required')
@@ -118,7 +112,7 @@ describe('DreamSerializer#delegatedAttribute', () => {
 
       const MySerializer = (data: Pet) =>
         DreamSerializer(Pet, data)
-          .delegatedAttribute('user', 'name', { openapi: 'string' })
+          .delegatedAttribute('user', 'name')
           // passing a generic argument here just to ensure the types stay correct
           .delegatedAttribute<Pet>('user', 'birthdate', { openapi: 'date' })
 
@@ -134,10 +128,7 @@ describe('DreamSerializer#delegatedAttribute', () => {
       const pet = Pet.new({ user: null, name: 'Snoopy' })
 
       const MySerializer = (data: Pet) =>
-        DreamSerializer(Pet, data).delegatedAttribute('user', 'name', {
-          default: 'Woodstock',
-          openapi: 'string',
-        })
+        DreamSerializer(Pet, data).delegatedAttribute('user', 'name', { default: 'Woodstock' })
 
       const serializer = MySerializer(pet)
 
@@ -227,6 +218,30 @@ describe('DreamSerializer#delegatedAttribute', () => {
 
         expect(MySerializer(collar).render()).toEqual({ type: null })
       })
+    })
+  })
+
+  // type tests are all intentionally skipped. Instead, add @ts-expect-error
+  // comments, which will become invalid if the type errors stop raising
+  context('type tests', () => {
+    it.skip('a non-json column takes only a description as its OpenAPI override', () => {
+      const pet = Pet.new()
+      DreamSerializer(Pet, pet).delegatedAttribute('user', 'email')
+      DreamSerializer(Pet, pet).delegatedAttribute('user', 'email', { default: 'none' })
+      DreamSerializer(Pet, pet).delegatedAttribute('user', 'email', { openapi: { description: 'contact' } })
+
+      // @ts-expect-error a non-json column's OpenAPI shape comes from the column itself
+      DreamSerializer(Pet, pet).delegatedAttribute('user', 'email', { openapi: { type: 'string' } })
+    })
+
+    it.skip('a json column requires a full OpenAPI shape', () => {
+      const asset = CompositionAsset.new()
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata', {
+        openapi: { type: 'object', properties: { theme: 'string' } },
+      })
+
+      // @ts-expect-error a json column has no shape to infer
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata')
     })
   })
 })

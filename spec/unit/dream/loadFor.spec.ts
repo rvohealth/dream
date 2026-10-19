@@ -1,3 +1,4 @@
+import UnrecognizedAssociationConditionKeys from '../../../src/errors/associations/UnrecognizedAssociationConditionKeys.js'
 import { DreamClassAssociationAndStatement } from '../../../src/types/dream.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -44,6 +45,38 @@ describe('Dream#loadFor(serializerKey)', () => {
         .execute()
       expect(reloaded.pet).toMatchDreamModel(pet)
       expect(reloaded.pet.ratings).toMatchDreamModels([rating2])
+    })
+  })
+
+  context('with a callback function that returns a key other than and, andNot and andAny', () => {
+    it('throws', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const pet = await Pet.create({ user })
+      const collar = await Collar.create({ pet })
+
+      expect(() =>
+        collar.loadFor('default', (associationName, dreamClass) => {
+          if (dreamClass.typeof(Pet) && associationName === 'ratings')
+            return { and: { rating: 7 }, rating: 3 }
+        })
+      ).toThrow(UnrecognizedAssociationConditionKeys)
+    })
+
+    context('in a transaction', () => {
+      it('throws', async () => {
+        const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+        const pet = await Pet.create({ user })
+        const collar = await Collar.create({ pet })
+
+        await ApplicationModel.transaction(txn => {
+          expect(() =>
+            collar.txn(txn).loadFor('default', (associationName, dreamClass) => {
+              if (dreamClass.typeof(Pet) && associationName === 'ratings')
+                return { and: { rating: 7 }, rating: 3 }
+            })
+          ).toThrow(UnrecognizedAssociationConditionKeys)
+        })
+      })
     })
   })
 
