@@ -3680,7 +3680,9 @@ export default class Dream {
    * Writes the value into the current attributes as given, with none of
    * setAttribute's checks. Only for values Dream already trusts: a row read
    * from the database, and the ciphertext the @Encrypted property setter
-   * has just produced. Every caller-supplied value goes through setAttribute.
+   * writes (freshly encrypted, or the ciphertext as loaded or last saved,
+   * which it keeps when that already holds the assigned plaintext). Every
+   * caller-supplied value goes through setAttribute.
    */
   private setAttributeUnchecked(column: string, val: any): void {
     this.currentAttributes[column] = val

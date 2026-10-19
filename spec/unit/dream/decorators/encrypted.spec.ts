@@ -1,6 +1,7 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
 import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
@@ -198,6 +199,57 @@ describe('@Encrypted', () => {
       expect(user.secret).toEqual('Howdy world')
       expect(listener).toHaveBeenCalledTimes(2)
     })
+
+    it('leaves the record dirty when the value is assigned back, and saving rewrites it under the current key', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      const secret = reloadedUser.secret
+      reloadedUser.secret = secret
+      expect(reloadedUser.isDirty).toBe(true)
+      expect(Object.keys(reloadedUser.dirtyAttributes())).toEqual(['encryptedSecret'])
+      await reloadedUser.save()
+
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: newKey } } })
+      expect((await User.findOrFail(user.id)).secret).toEqual('Howdy world')
+    })
+
+    it('leaves the record dirty when a listener assigns the value back, and saving rewrites it under the current key', async () => {
+      const oldKey = Encrypt.generateKey('aes-256-gcm')
+      const newKey = Encrypt.generateKey('aes-256-gcm')
+      const dreamApp = DreamApp.getOrFail()
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: oldKey } } })
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      dreamApp.set('encryption', {
+        columns: {
+          current: { algorithm: 'aes-256-gcm', key: newKey },
+          legacy: { algorithm: 'aes-256-gcm', key: oldKey },
+        },
+      })
+      dreamApp.on('encryption:legacy-key-used', ({ dream, property }: EncryptionLegacyKeyUsedEvent) => {
+        const record = dream as unknown as Record<string, unknown>
+        const value = record[property]
+        record[property] = value
+      })
+
+      const reloadedUser = await User.findOrFail(user.id)
+      expect(reloadedUser.secret).toEqual('Howdy world')
+      expect(reloadedUser.isDirty).toBe(true)
+      await reloadedUser.save()
+
+      dreamApp.set('encryption', { columns: { current: { algorithm: 'aes-256-gcm', key: newKey } } })
+      expect((await User.findOrFail(user.id)).secret).toEqual('Howdy world')
+    })
   })
 
   context('reading a value that the current column key opens', () => {
@@ -216,6 +268,163 @@ describe('@Encrypted', () => {
       const reloadedUser = await User.findOrFail(user.id)
       expect(reloadedUser.secret).toEqual('Howdy world')
       expect(listener).not.toHaveBeenCalled()
+    })
+  })
+
+  context('assigning a persisted record the plaintext its encrypted property already holds', () => {
+    it('leaves a loaded record clean, and saving it neither writes the row nor records a saved change', async () => {
+      const updatedAt = DateTime.now().minus({ day: 1 })
+      const user = await User.create({
+        secret: 'Howdy world',
+        email: 'a@b.com',
+        password: 's3cr3t!',
+        updatedAt,
+      })
+      const reloadedUser = await User.findOrFail(user.id)
+      const storedCiphertext = reloadedUser.getAttribute('encryptedSecret')
+
+      reloadedUser.secret = 'Howdy world'
+      expect(reloadedUser.isDirty).toBe(false)
+      expect(reloadedUser.dirtyAttributes()).toEqual({})
+      expect(reloadedUser.changes()).toEqual({})
+
+      await reloadedUser.save()
+      expect(reloadedUser.savedChangeToAttribute('encryptedSecret')).toBe(false)
+      const userAfterSave = await User.findOrFail(user.id)
+      expect(userAfterSave.getAttribute('encryptedSecret')).toEqual(storedCiphertext)
+      expect(userAfterSave.updatedAt.toISO()).toEqual(updatedAt.toISO())
+    })
+
+    it('leaves a record clean after the create that saved the value, and the save that follows keeps reporting the create as the saved change', async () => {
+      const updatedAt = DateTime.now().minus({ day: 1 })
+      const user = await User.create({
+        secret: 'Howdy world',
+        email: 'a@b.com',
+        password: 's3cr3t!',
+        updatedAt,
+      })
+      const storedCiphertext = user.getAttribute('encryptedSecret')
+
+      user.secret = 'Howdy world'
+      expect(user.isDirty).toBe(false)
+      expect(user.dirtyAttributes()).toEqual({})
+      expect(user.changes().encryptedSecret).toEqual({ was: undefined, now: storedCiphertext })
+
+      await user.save()
+      expect(user.savedChangeToAttribute('encryptedSecret')).toBe(true)
+      const userAfterSave = await User.findOrFail(user.id)
+      expect(userAfterSave.getAttribute('encryptedSecret')).toEqual(storedCiphertext)
+      expect(userAfterSave.updatedAt.toISO()).toEqual(updatedAt.toISO())
+    })
+
+    it('leaves the record clean when the property is assigned a different plaintext and then its original one', async () => {
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      const reloadedUser = await User.findOrFail(user.id)
+      const storedCiphertext = reloadedUser.getAttribute('encryptedSecret')
+
+      reloadedUser.secret = 'Howdy moon'
+      expect(reloadedUser.isDirty).toBe(true)
+      reloadedUser.secret = 'Howdy world'
+      expect(reloadedUser.isDirty).toBe(false)
+      expect(reloadedUser.getAttribute('encryptedSecret')).toEqual(storedCiphertext)
+    })
+
+    it('runs no after-save, after-update, commit, or ifChanging/ifChanged hooks when the record is saved', async () => {
+      const hooksRun: string[] = []
+      const deco = new Decorators<typeof UserWithSecretHooks>()
+      class UserWithSecretHooks extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted()
+        public secret: string
+
+        @deco.BeforeUpdate({ ifChanging: ['encryptedSecret'] })
+        public beforeUpdateIfChanging() {
+          hooksRun.push('beforeUpdateIfChanging')
+        }
+
+        @deco.AfterSave()
+        public afterSave() {
+          hooksRun.push('afterSave')
+        }
+
+        @deco.AfterUpdate()
+        public afterUpdate() {
+          hooksRun.push('afterUpdate')
+        }
+
+        @deco.AfterUpdate({ ifChanged: ['encryptedSecret'] })
+        public afterUpdateIfChanged() {
+          hooksRun.push('afterUpdateIfChanged')
+        }
+
+        @deco.AfterSaveCommit()
+        public afterSaveCommit() {
+          hooksRun.push('afterSaveCommit')
+        }
+
+        @deco.AfterUpdateCommit()
+        public afterUpdateCommit() {
+          hooksRun.push('afterUpdateCommit')
+        }
+      }
+      UserWithSecretHooks['defineAttributeAccessors']()
+      processDynamicallyDefinedModels(UserWithSecretHooks)
+      const user = await User.create({ secret: 'Howdy world', email: 'a@b.com', password: 's3cr3t!' })
+      const userWithSecretHooks = await UserWithSecretHooks.findOrFail(user.id)
+
+      userWithSecretHooks.secret = 'Howdy world'
+      await userWithSecretHooks.save()
+      expect(hooksRun).toEqual([])
+
+      userWithSecretHooks.secret = 'Howdy moon'
+      await userWithSecretHooks.save()
+      expect(hooksRun.sort()).toEqual(
+        [
+          'afterSave',
+          'afterSaveCommit',
+          'afterUpdate',
+          'afterUpdateCommit',
+          'afterUpdateIfChanged',
+          'beforeUpdateIfChanging',
+        ].sort()
+      )
+    })
+  })
+
+  context('assigning a persisted record a different plaintext', () => {
+    it('marks the record dirty and saves the new value, including an array that differs only in a falsy element', async () => {
+      const deco = new Decorators<typeof UserWithJsonSecret>()
+      class UserWithJsonSecret extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: 'json' })
+        public secret: unknown
+      }
+      UserWithJsonSecret['defineAttributeAccessors']()
+      processDynamicallyDefinedModels(UserWithJsonSecret)
+      const user = await User.create({ email: 'a@b.com', password: 's3cr3t!' })
+
+      for (const [original, changed] of [
+        [[0], [1]],
+        [[false], [true]],
+        ['Howdy world', 'Howdy moon'],
+      ]) {
+        const userWithJsonSecret = await UserWithJsonSecret.findOrFail(user.id)
+        await userWithJsonSecret.update({ secret: original })
+
+        const reloadedUser = await UserWithJsonSecret.findOrFail(user.id)
+        reloadedUser.secret = changed
+        expect(reloadedUser.isDirty).toBe(true)
+        expect(Object.keys(reloadedUser.dirtyAttributes())).toEqual(['encryptedSecret'])
+        await reloadedUser.save()
+
+        expect((await UserWithJsonSecret.findOrFail(user.id)).secret).toEqual(changed)
+      }
     })
   })
 

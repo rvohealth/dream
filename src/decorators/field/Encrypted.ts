@@ -104,9 +104,20 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
            *
            */
           if (this.columnSetterGuardActivated) return
-          // the value was just encrypted, so it bypasses setAttribute's check
-          // that a backing column receives only decryptable ciphertext
-          this.setAttributeUnchecked(encryptedKey, InternalEncrypt.encryptColumn(val))
+          // On a persisted record, the ciphertext as loaded or last saved is
+          // kept when the current key opens it to the assigned value, so
+          // assigning a property the plaintext it already holds leaves the
+          // record clean; any other value is encrypted fresh. Either way the
+          // value is ciphertext Dream produced, so it bypasses setAttribute's
+          // check that a backing column receives only decryptable ciphertext
+          const dream = this as Dream
+          this.setAttributeUnchecked(
+            encryptedKey,
+            InternalEncrypt.reuseOrEncryptColumn(
+              val,
+              dream.isPersisted ? dream['frozenAttributes'][encryptedKey] : undefined
+            )
+          )
         },
 
         configurable: false,
