@@ -17,6 +17,36 @@ export default class InternalEncrypt {
   }
 
   /**
+   * Returns `existingCiphertext` when the current column key opens it to a
+   * value whose JSON serialization equals `data`'s, the plaintext
+   * `encryptColumn(data)` would encrypt, and otherwise `encryptColumn(data)`.
+   * A value only the legacy key opens, ciphertext no key opens, and a
+   * missing `existingCiphertext` all get fresh ciphertext. It never calls
+   * `onLegacyKeyUsed`.
+   */
+  public static encryptColumnUnlessHeld(data: any, existingCiphertext: unknown) {
+    if (data === null || data === undefined || typeof existingCiphertext !== 'string')
+      return this.encryptColumn(data)
+
+    const dreamApp = DreamApp.getOrFail()
+    const encryptOpts = dreamApp.encryption?.columns
+    if (!encryptOpts) throw new MissingColumnEncryptionOpts()
+
+    let existingPlaintext: unknown
+    try {
+      existingPlaintext = Encrypt.decrypt(existingCiphertext, encryptOpts.current)
+    } catch (err) {
+      if (err instanceof DecryptionError || err instanceof DecryptionParseError)
+        return this.encryptColumn(data)
+      throw err
+    }
+
+    return JSON.stringify(existingPlaintext) === JSON.stringify(data)
+      ? existingCiphertext
+      : this.encryptColumn(data)
+  }
+
+  /**
    * Decrypts `data` with the column keys, current then legacy.
    * `onLegacyKeyUsed` is passed to `Encrypt.decrypt`, so it is called only
    * when the legacy key opened the value.
