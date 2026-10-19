@@ -113,7 +113,7 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
           const dream = this as Dream
           this.setAttributeUnchecked(
             encryptedKey,
-            InternalEncrypt.encryptColumnUnlessHeld(
+            InternalEncrypt.reuseOrEncryptColumn(
               val,
               dream.isPersisted ? dream['frozenAttributes'][encryptedKey] : undefined
             )

@@ -24,7 +24,7 @@ export default class InternalEncrypt {
    * missing `existingCiphertext` all get fresh ciphertext. It never calls
    * `onLegacyKeyUsed`.
    */
-  public static encryptColumnUnlessHeld(data: any, existingCiphertext: unknown) {
+  public static reuseOrEncryptColumn(data: any, existingCiphertext: unknown) {
     if (data === null || data === undefined || typeof existingCiphertext !== 'string')
       return this.encryptColumn(data)
 
