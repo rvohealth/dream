@@ -201,42 +201,37 @@ export default class PostgresQueryDriver<
 
     const columnRows = (
       await sql<PostgresIntrospectedColumnRow>`
-        WITH RECURSIVE domain_chain(oid, base, domainnotnull) AS (
-          SELECT typ.oid, typ.typbasetype, typ.typnotnull FROM pg_catalog.pg_type AS typ WHERE typ.typtype = 'd'
-          UNION ALL
-          SELECT chain.oid, typ.typbasetype, chain.domainnotnull OR typ.typnotnull
-          FROM domain_chain AS chain
-          JOIN pg_catalog.pg_type AS typ ON typ.oid = chain.base
-          WHERE typ.typtype = 'd'
-        ),
-        domain_base(oid, base, domainnotnull) AS (
-          SELECT chain.oid, chain.base, chain.domainnotnull
-          FROM domain_chain AS chain
-          JOIN pg_catalog.pg_type AS typ ON typ.oid = chain.base
+        WITH RECURSIVE domain_base(oid, base, domainnotnull) AS (
+          SELECT dom.oid, dom.typbasetype, dom.typnotnull
+          FROM pg_catalog.pg_type AS dom
+          JOIN pg_catalog.pg_type AS typ ON typ.oid = dom.typbasetype
           WHERE typ.typtype <> 'd'
+          UNION ALL
+          SELECT dom.oid, parent.base, parent.domainnotnull OR dom.typnotnull
+          FROM domain_base AS parent
+          JOIN pg_catalog.pg_type AS dom ON dom.typbasetype = parent.oid
         )
         SELECT
           ns.nspname AS schemaname,
           cls.relname AS tablename,
           att.attname AS columnname,
-          coalesce(format_type(elem.oid, NULL) || '[]', format_type(base.oid, NULL)) AS dbtype,
+          format_type(val.oid, NULL) || CASE WHEN base.typcategory = 'A' THEN '[]' ELSE '' END AS dbtype,
           base.typcategory = 'A' AS isarray,
-          format_type(coalesce(elem.oid, base.oid), NULL) AS valuedbtype,
-          CASE WHEN coalesce(elem.typtype, base.typtype) = 'e' THEN
-            CASE WHEN enumns.nspname = 'public' THEN coalesce(elem.typname, base.typname)
-            ELSE enumns.nspname || '.' || coalesce(elem.typname, base.typname) END
+          format_type(val.oid, NULL) AS valuedbtype,
+          CASE WHEN val.typtype = 'e' THEN
+            CASE WHEN valns.nspname = 'public' THEN val.typname ELSE valns.nspname || '.' || val.typname END
           END AS enumname,
           NOT (att.attnotnull OR coalesce(columndomain.domainnotnull, false)) AS nullable,
-          (att.atthasdef OR att.attidentity <> '' OR att.attgenerated <> '') AS hasdefault
+          (att.atthasdef OR att.attidentity <> '') AS hasdefault
         FROM pg_catalog.pg_class AS cls
         JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
         JOIN pg_catalog.pg_attribute AS att ON att.attrelid = cls.oid
         LEFT JOIN domain_base AS columndomain ON columndomain.oid = att.atttypid
         JOIN pg_catalog.pg_type AS base ON base.oid = coalesce(columndomain.base, att.atttypid)
         LEFT JOIN domain_base AS elemdomain ON elemdomain.oid = base.typelem
-        LEFT JOIN pg_catalog.pg_type AS elem
-          ON base.typcategory = 'A' AND elem.oid = coalesce(elemdomain.base, base.typelem)
-        LEFT JOIN pg_catalog.pg_namespace AS enumns ON enumns.oid = coalesce(elem.typnamespace, base.typnamespace)
+        JOIN pg_catalog.pg_type AS val
+          ON val.oid = CASE WHEN base.typcategory = 'A' THEN coalesce(elemdomain.base, base.typelem) ELSE base.oid END
+        JOIN pg_catalog.pg_namespace AS valns ON valns.oid = val.typnamespace
         WHERE cls.relkind IN ('r', 'p', 'v', 'm', 'f')
           AND NOT EXISTS (SELECT 1 FROM pg_catalog.pg_inherits AS inh WHERE inh.inhrelid = cls.oid)
           AND ns.nspname !~ '^pg_'
