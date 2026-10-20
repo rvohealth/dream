@@ -20,9 +20,7 @@ export default function tableMatchesPattern(
   const subject = pattern.includes('.') ? `${table.schema ?? '*'}.${table.name}` : table.name
   // matchesGlob does not read a backslash as an escape, so an escaped
   // character is matched through a class of that one character
-  const glob = pattern.replace(/\\(.)/g, (_, character: string) =>
-    character === ']' ? '[]]' : `[${character}]`
-  )
+  const glob = pattern.replace(/\\(.)/g, (_, character: string) => `[${character}]`)
 
   return matchesGlob(subject.toLowerCase(), glob.toLowerCase())
 }
