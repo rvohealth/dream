@@ -32,6 +32,38 @@ const config = typescriptEslint.config(
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-this-alias': 'off',
     },
+  },
+
+  // typescript is a devDependency (and an optional peer), so a production
+  // install does not have it, and a package entry that reaches it through
+  // static imports fails at import time. Only the type file builders import
+  // it, and the rest of src loads them with a dynamic import() (see
+  // loadTypeFileBuilders in src/dream/QueryDriver/Kysely.ts)
+  {
+    files: ['src/**/*.ts'],
+    ignores: ['src/helpers/cli/AST*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'typescript',
+              message: 'Only the type file builders (src/helpers/cli/AST*.ts) may import typescript.',
+              allowTypeImports: true,
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/AST*'],
+              caseSensitive: true,
+              message: 'The type file builders import typescript; load them with a dynamic import().',
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
+    },
   }
 )
 export default config
