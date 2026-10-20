@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.36.1",
+  "version": "2.37.0",
   "description": "dream orm",
   "engines": {
     "node": ">=24"
@@ -87,10 +87,14 @@
     "commander": "^14.0.3",
     "dotenv": "*",
     "kysely": "^0.29.0",
-    "kysely-codegen": "~0.20.0",
     "pg": "*",
     "pluralize-esm": "^9.0.5",
     "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@eslint/js": "=10.0.1",
@@ -104,7 +108,6 @@
     "eslint": "^10.0.0",
     "jest-extended": "^4.0.2",
     "kysely": "^0.29.0",
-    "kysely-codegen": "~0.20.0",
     "mysql2": "^3.14.2",
     "pg": "^8.13.3",
     "pluralize-esm": "^9.0.5",
