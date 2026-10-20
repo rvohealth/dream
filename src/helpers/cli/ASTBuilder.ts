@@ -177,6 +177,17 @@ export default class ASTBuilder {
   }
 }
 
+/**
+ * @internal
+ *
+ * A property name for an object literal, interface or class: the name itself
+ * when it is an identifier, and a string literal otherwise, such as a table
+ * outside the default schema (`inventory.parts`).
+ */
+export function propertyName(name: string) {
+  return /^[A-Za-z_$][\w$]*$/.test(name) ? f.createIdentifier(name) : f.createStringLiteral(name)
+}
+
 export interface SchemaData {
   [key: string]: TableData
 }
