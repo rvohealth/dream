@@ -119,11 +119,12 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
  * `customAttribute`'s callback returned, from which the rendered variant is read. A serializer's
  * declarations are the rendered variant, so a `$serializable` ref to an STI base adds the keys of
  * every other child. A plain object returned for an `openapi` with several variants (the members
- * of an `anyOf` or `oneOf`, or one `$serializer` per child of a `$serializable` ref to an STI base)
- * renders the variant that declares every key the object has; when several do, the first of them
- * whose required keys the object all has, and when none does, the keys it has. Its top-level keys
- * render cased per `casing`, so they are compared cased. Otherwise the `openapi` has one variant,
- * the rendered one, and nothing is added.
+ * of an `anyOf` or `oneOf`, or one `$serializer` per child of a `$serializable` ref to an STI base,
+ * a member with several variants of its own contributing each of them) renders the variant that
+ * declares every key the object has; when several do, the first of them whose required keys the
+ * object all has, and when none does, the keys it has. Its top-level keys render cased per
+ * `casing`, so they are compared cased. Otherwise the `openapi` has one variant, the rendered one,
+ * and nothing is added.
  */
 export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
@@ -158,9 +159,10 @@ export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
 }
 
 /**
- * The shapes a value of `openapi` may take, each one a variant a plain object may render: the
- * members of an `anyOf` or `oneOf`, or a `$serializer` ref to each serializer a `$serializable`
- * ref resolves to.
+ * The shapes a value of `openapi` may take, each one a variant a plain object may render: a
+ * `$serializer` ref to each serializer a `$serializable` ref resolves to, or the members of an
+ * `anyOf` or `oneOf`, each member that itself has several variants (a nested `anyOf` or `oneOf`,
+ * or a `$serializable` ref to an STI base) contributing those variants in its place.
  */
 function openapiVariants(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
@@ -175,7 +177,13 @@ function openapiVariants(
           openapi.$serializableSerializerKey ?? openapi.key
         ).map(serializer => ({ $serializer: serializer }))
 
-  return [...(('anyOf' in openapi && openapi.anyOf) || []), ...(('oneOf' in openapi && openapi.oneOf) || [])]
+  return [
+    ...(('anyOf' in openapi && openapi.anyOf) || []),
+    ...(('oneOf' in openapi && openapi.oneOf) || []),
+  ].flatMap(member => {
+    const memberVariants = openapiVariants(member)
+    return memberVariants.length > 1 ? memberVariants : [member]
+  })
 }
 
 function newWalk({
