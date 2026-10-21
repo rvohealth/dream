@@ -19,7 +19,7 @@ import { DateTime } from '../utils/datetime/DateTime.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { nullFlattenedKeys } from './helpers/nullFlattenedKeys.js'
+import { nullFlattenedSerializerKeys } from './helpers/nullFlattenedSerializerKeys.js'
 import { serializersForAssociatedClass } from './helpers/serializersForAssociatedClass.js'
 
 export interface SerializerRendererOpts {
@@ -161,7 +161,7 @@ export default class SerializerRenderer {
           if (!associatedObject && attribute.options.flatten) {
             return {
               ...accumulator,
-              ...nullFlattenedKeys(
+              ...nullFlattenedSerializerKeys(
                 serializersForAssociatedClass(
                   data instanceof Dream ? (data.constructor as typeof Dream) : null,
                   attribute.name,

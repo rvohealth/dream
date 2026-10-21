@@ -1,7 +1,7 @@
 ## 2.38.0
 
 - **A flattened `rendersOne` whose associated object is null renders the keys of a flattened `customAttribute` its serializer declares as `null`.** Every other key the nested serializer declares already rendered as `null`, but a flattened `customAttribute` contributed none, so a client saw some of the nested keys as `null` and others missing. It now contributes the keys its `openapi` declares: each key of its `properties`, the keys of the serializer a `$serializer` ref names, the keys of every serializer a `$serializable` ref resolves to (every child's for an STI base, using its `$serializableSerializerKey` or `key`), and the keys of every member of an `allOf`, `anyOf` or `oneOf`. A ref with `many: true` contributes none. As with the other keys, no callback runs and the keys follow the render's casing. A flattened `customAttribute` whose callback returns `null` or `undefined` on a serializer that is rendered still adds no keys.
-- **`DreamApp.system.nullFlattenedKeys(serializers, { casing, passthroughData })` returns the keys a flattened serializer renders as `null` when its value is null**, for framework packages such as Psychic to describe that payload in OpenAPI. It is the walk the renderer itself uses, so the two cannot drift. Like the rest of `DreamApp.system` it is internal and not meant for application code.
+- **`DreamApp.system.nullFlattenedSerializerKeys(serializers, { casing, passthroughData })` returns the keys a flattened serializer renders as `null` when its value is null**, for framework packages such as Psychic to describe that payload in OpenAPI. It is the walk the renderer itself uses, so the two cannot drift. Like the rest of `DreamApp.system` it is internal and not meant for application code.
 
 ## 2.37.0
 

@@ -10,12 +10,12 @@ import DreamSerializerBuilder from '../builders/DreamSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from './inferSerializerFromDreamOrViewModel.js'
 import { serializersForAssociatedClass } from './serializersForAssociatedClass.js'
 
-export interface NullFlattenedKeysOptions {
+export interface NullFlattenedSerializerKeysOptions {
   casing?: SerializerCasing
   passthroughData?: object
 }
 
-interface NullFlattenedKeysWalk {
+interface NullFlattenedSerializerKeysWalk {
   casing: SerializerCasing
   passthroughData: object
   serializersBeingFlattened: Set<DreamModelSerializerType | SimpleObjectSerializerType>
@@ -42,20 +42,20 @@ interface NullFlattenedKeysWalk {
  * `passthroughData` is handed to each serializer as it is built, as when rendering; outside a
  * render it may be left out.
  */
-export function nullFlattenedKeys(
+export function nullFlattenedSerializerKeys(
   serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
-  { casing = 'camel', passthroughData = {} }: NullFlattenedKeysOptions = {}
+  { casing = 'camel', passthroughData = {} }: NullFlattenedSerializerKeysOptions = {}
 ): Record<string, null> {
-  return nullFlattenedSerializerKeys(serializers, {
+  return walkSerializers(serializers, {
     casing,
     passthroughData,
     serializersBeingFlattened: new Set(),
   })
 }
 
-function nullFlattenedSerializerKeys(
+function walkSerializers(
   serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
-  walk: NullFlattenedKeysWalk
+  walk: NullFlattenedSerializerKeysWalk
 ): Record<string, null> {
   return serializers.reduce<Record<string, null>>((flattenedKeys, serializer) => {
     // a serializer reached again, e.g. one that flattens itself directly or through others, or
@@ -101,7 +101,7 @@ function nullFlattenedSerializerKeys(
 
           return {
             ...keys,
-            ...nullFlattenedSerializerKeys(
+            ...walkSerializers(
               serializersForAssociatedClass(dreamClass, attribute.name, attribute.options),
               walk
             ),
@@ -119,18 +119,18 @@ function nullFlattenedSerializerKeys(
 
 function nullFlattenedOpenapiKeys(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
-  walk: NullFlattenedKeysWalk
+  walk: NullFlattenedSerializerKeysWalk
 ): Record<string, null> {
   if (typeof openapi !== 'object' || Array.isArray(openapi)) return {}
 
   if ('$serializer' in openapi) {
     if (openapi.many) return {}
-    return nullFlattenedSerializerKeys([openapi.$serializer], walk)
+    return walkSerializers([openapi.$serializer], walk)
   }
 
   if ('$serializable' in openapi) {
     if (openapi.many) return {}
-    return nullFlattenedSerializerKeys(
+    return walkSerializers(
       inferSerializersFromDreamClassOrViewModelClass(
         openapi.$serializable,
         openapi.$serializableSerializerKey ?? openapi.key

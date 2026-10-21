@@ -1,6 +1,6 @@
 import DreamApp from '../../../../src/dream-app/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
-import { nullFlattenedKeys } from '../../../../src/serializer/helpers/nullFlattenedKeys.js'
+import { nullFlattenedSerializerKeys } from '../../../../src/serializer/helpers/nullFlattenedSerializerKeys.js'
 import { SimpleObjectSerializerType } from '../../../../src/types/serializer.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 
@@ -17,9 +17,9 @@ interface Contact {
 const AddressSerializer = (address: Address) =>
   ObjectSerializer(address).attribute('city', { openapi: 'string' })
 
-describe('nullFlattenedKeys', () => {
+describe('nullFlattenedSerializerKeys', () => {
   it('is reachable through DreamApp.system', () => {
-    expect(DreamApp.system.nullFlattenedKeys).toBe(nullFlattenedKeys)
+    expect(DreamApp.system.nullFlattenedSerializerKeys).toBe(nullFlattenedSerializerKeys)
   })
 
   it('returns null for every key a serializer declares, without running its callbacks', () => {
@@ -31,7 +31,7 @@ describe('nullFlattenedKeys', () => {
         .rendersOne('address', { serializer: AddressSerializer })
         .rendersMany('addresses', { serializer: AddressSerializer })
 
-    expect(nullFlattenedKeys([ContactSerializer])).toEqual({
+    expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({
       email: null,
       emailLength: null,
       city: null,
@@ -46,7 +46,7 @@ describe('nullFlattenedKeys', () => {
         .attribute('emailAddress', { openapi: 'string' })
         .rendersOne('address', { serializer: AddressSerializer, flatten: true })
 
-    expect(nullFlattenedKeys([ContactSerializer])).toEqual({ emailAddress: null, city: null })
+    expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ emailAddress: null, city: null })
   })
 
   context('a flattened customAttribute', () => {
@@ -57,7 +57,7 @@ describe('nullFlattenedKeys', () => {
           openapi: { type: 'object', properties: { phoneNumber: 'string', extension: 'string' } },
         })
 
-      expect(nullFlattenedKeys([ContactSerializer])).toEqual({ phoneNumber: null, extension: null })
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ phoneNumber: null, extension: null })
     })
 
     it('adds the keys of the serializer a $serializer ref names', () => {
@@ -67,7 +67,7 @@ describe('nullFlattenedKeys', () => {
           openapi: { $serializer: AddressSerializer },
         })
 
-      expect(nullFlattenedKeys([ContactSerializer])).toEqual({ city: null })
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ city: null })
     })
 
     it('adds the keys of every STI child serializer a $serializable ref resolves to', () => {
@@ -77,7 +77,7 @@ describe('nullFlattenedKeys', () => {
           openapi: { $serializable: Balloon, key: 'stiUnion' },
         })
 
-      expect(nullFlattenedKeys([ContactSerializer])).toEqual({
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({
         color: null,
         multicolor: null,
         mylarOnlyProperty: null,
@@ -107,7 +107,7 @@ describe('nullFlattenedKeys', () => {
           },
         })
 
-      expect(nullFlattenedKeys([ContactSerializer])).toEqual({
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({
         phoneNumber: null,
         city: null,
         fax: null,
@@ -122,7 +122,7 @@ describe('nullFlattenedKeys', () => {
           openapi: { anyOf: [{ $serializer: AddressSerializer, many: true }, { type: 'null' }] },
         })
 
-      expect(nullFlattenedKeys([ContactSerializer])).toEqual({})
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({})
     })
   })
 
@@ -135,7 +135,7 @@ describe('nullFlattenedKeys', () => {
           openapi: { type: 'object', properties: { phoneNumber: 'string' } },
         })
 
-    expect(nullFlattenedKeys([ContactSerializer], { casing: 'snake' })).toEqual({
+    expect(nullFlattenedSerializerKeys([ContactSerializer], { casing: 'snake' })).toEqual({
       email_address: null,
       phone_number: null,
     })
@@ -148,7 +148,7 @@ describe('nullFlattenedKeys', () => {
         openapi: 'string',
       })
 
-    expect(nullFlattenedKeys([ContactSerializer], { passthroughData: { locale: 'en' } })).toEqual({
+    expect(nullFlattenedSerializerKeys([ContactSerializer], { passthroughData: { locale: 'en' } })).toEqual({
       email_en: null,
     })
   })
@@ -165,6 +165,6 @@ describe('nullFlattenedKeys', () => {
         .rendersOne('parent', { serializer: NodeSerializer, flatten: true })
         .customAttribute('sibling', () => null, { flatten: true, openapi: { $serializer: NodeSerializer } })
 
-    expect(nullFlattenedKeys([NodeSerializer])).toEqual({ label: null })
+    expect(nullFlattenedSerializerKeys([NodeSerializer])).toEqual({ label: null })
   })
 })
