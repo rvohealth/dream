@@ -21,7 +21,7 @@ import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import {
   nullFlattenedOpenapiKeys,
-  nullFlattenedOpenapiKeysOfOtherVariants,
+  nullFlattenedOpenapiKeysOfOtherVariantsForValue,
   nullFlattenedSerializerKeys,
   nullFlattenedSerializerKeysOfOtherVariants,
 } from './helpers/nullFlattenedSerializerKeys.js'
@@ -143,7 +143,11 @@ export default class SerializerRenderer {
 
             return {
               ...accumulator,
-              ...nullFlattenedOpenapiKeysOfOtherVariants(attribute.options.openapi, value, flattenOptions),
+              ...nullFlattenedOpenapiKeysOfOtherVariantsForValue(
+                attribute.options.openapi,
+                value,
+                flattenOptions
+              ),
               ...applyRenderingOptionsToAttribute(
                 null,
                 value,

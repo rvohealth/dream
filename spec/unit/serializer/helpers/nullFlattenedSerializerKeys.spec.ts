@@ -2,9 +2,11 @@ import DreamApp from '../../../../src/dream-app/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import {
   nullFlattenedOpenapiKeysOfOtherVariants,
+  nullFlattenedOpenapiKeysOfOtherVariantsForValue,
   nullFlattenedSerializerKeys,
   nullFlattenedSerializerKeysOfOtherVariants,
 } from '../../../../src/serializer/helpers/nullFlattenedSerializerKeys.js'
+import { OpenapiSchemaBodyShorthand } from '../../../../src/types/openapi.js'
 import { SimpleObjectSerializerType } from '../../../../src/types/serializer.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -217,9 +219,49 @@ describe('nullFlattenedSerializerKeysOfOtherVariants', () => {
 })
 
 describe('nullFlattenedOpenapiKeysOfOtherVariants', () => {
+  const AddressSerializer = (address: { city: string }) =>
+    ObjectSerializer(address).attribute('city', { openapi: 'string' })
+
+  const phoneMember: OpenapiSchemaBodyShorthand = {
+    type: 'object',
+    properties: { phoneNumber: 'string', extension: 'string' },
+    required: ['phoneNumber'],
+  }
+  const faxMember: OpenapiSchemaBodyShorthand = { type: 'object', properties: { fax: 'string' } }
+  const addressMember: OpenapiSchemaBodyShorthand = { $serializer: AddressSerializer }
+  const openapi: OpenapiSchemaBodyShorthand = {
+    anyOf: [phoneMember, faxMember, addressMember, { type: 'null' }],
+  }
+
+  it('is reachable through DreamApp.system, beside nullFlattenedSerializerKeysOfOtherVariants', () => {
+    expect(DreamApp.system.nullFlattenedOpenapiKeysOfOtherVariants).toBe(
+      nullFlattenedOpenapiKeysOfOtherVariants
+    )
+    expect(DreamApp.system.nullFlattenedSerializerKeysOfOtherVariants).toBe(
+      nullFlattenedSerializerKeysOfOtherVariants
+    )
+  })
+
+  it('returns null for each key another member requires that the rendered member does not declare', () => {
+    expect(nullFlattenedOpenapiKeysOfOtherVariants(openapi, phoneMember)).toEqual({ city: null })
+    expect(nullFlattenedOpenapiKeysOfOtherVariants(openapi, faxMember)).toEqual({
+      phoneNumber: null,
+      city: null,
+    })
+    expect(nullFlattenedOpenapiKeysOfOtherVariants(openapi, addressMember)).toEqual({ phoneNumber: null })
+  })
+
+  it('takes a $serializer ref to one STI child as the rendered variant of a $serializable ref to the base', () => {
+    expect(
+      nullFlattenedOpenapiKeysOfOtherVariants({ $serializable: Balloon }, { $serializer: LatexSerializer })
+    ).toEqual({ mylarOnlyProperty: null })
+  })
+})
+
+describe('nullFlattenedOpenapiKeysOfOtherVariantsForValue', () => {
   it('reads a returned serializer’s declarations as the rendered variant, so a $serializable STI ref adds the other children’s keys', () => {
     expect(
-      nullFlattenedOpenapiKeysOfOtherVariants(
+      nullFlattenedOpenapiKeysOfOtherVariantsForValue(
         { $serializable: Balloon },
         LatexSerializer(Latex.new({ color: 'red' }))
       )
@@ -228,7 +270,7 @@ describe('nullFlattenedOpenapiKeysOfOtherVariants', () => {
 
   it('returns nothing for a plain object returned for an openapi with a single shape', () => {
     expect(
-      nullFlattenedOpenapiKeysOfOtherVariants(
+      nullFlattenedOpenapiKeysOfOtherVariantsForValue(
         { type: 'object', properties: { a: 'string', b: 'string' }, required: ['a', 'b'] },
         { a: 'x' }
       )
@@ -237,7 +279,7 @@ describe('nullFlattenedOpenapiKeysOfOtherVariants', () => {
 
   it('compares a returned object’s keys in the render’s casing', () => {
     expect(
-      nullFlattenedOpenapiKeysOfOtherVariants(
+      nullFlattenedOpenapiKeysOfOtherVariantsForValue(
         {
           anyOf: [
             { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
@@ -248,5 +290,29 @@ describe('nullFlattenedOpenapiKeysOfOtherVariants', () => {
         { casing: 'snake' }
       )
     ).toEqual({ fax_number: null })
+  })
+
+  it('reads a plain object as the one member declaring every key it has, so that member’s omitted optional keys stay absent', () => {
+    // `extension` is optional in the phone member and required in the fax member; a phone-shaped
+    // value without it renders the phone member, which declares it, so it is not filled
+    expect(
+      nullFlattenedOpenapiKeysOfOtherVariantsForValue(
+        {
+          oneOf: [
+            {
+              type: 'object',
+              properties: { phoneNumber: 'string', extension: 'string' },
+              required: ['phoneNumber'],
+            },
+            {
+              type: 'object',
+              properties: { fax: 'string', extension: 'string' },
+              required: ['fax', 'extension'],
+            },
+          ],
+        },
+        { phoneNumber: '555' }
+      )
+    ).toEqual({ fax: null })
   })
 })

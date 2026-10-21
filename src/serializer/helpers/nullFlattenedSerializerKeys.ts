@@ -88,15 +88,33 @@ export function nullFlattenedSerializerKeysOfOtherVariants(
 }
 
 /**
- * The keys a flattened `customAttribute` adds to the parent's payload, each set to `null`, beside
- * the non-null `value` its callback returned: each key a variant of its `openapi` requires that
- * the rendered variant does not declare. When `value` is a serializer, the rendered variant is
- * that serializer's declarations, so a `$serializable` ref to an STI base adds the keys of every
- * other child. When it is a plain object and the `openapi` is an `anyOf` or `oneOf`, the rendered
- * variant is the keys the object has. Otherwise the `openapi` has one variant, the rendered one,
- * and nothing is added.
+ * The keys a flattened `customAttribute` with this `openapi` adds to the parent's payload, each
+ * set to `null`, when it renders `renderedVariant`: each key a variant of `openapi` requires that
+ * `renderedVariant` does not declare. `renderedVariant` is any `openapi` shorthand: one member of
+ * an `anyOf` or `oneOf`, or `{ $serializer: childSerializer }` for one child of a `$serializable`
+ * ref to an STI base. A key requires its value when a `properties` shape lists it in its
+ * `required` array, or when a serializer declares it without `required: false`.
  */
 export function nullFlattenedOpenapiKeysOfOtherVariants(
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
+  renderedVariant: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
+  options: NullFlattenedSerializerKeysOptions = {}
+): Record<string, null> {
+  return nullKeysRequiredByOthers(
+    walkOpenapi(openapi, newWalk(options)),
+    Object.keys(walkOpenapi(renderedVariant, newWalk(options)))
+  )
+}
+
+/**
+ * As `nullFlattenedOpenapiKeysOfOtherVariants`, for the non-null `value` a flattened
+ * `customAttribute`'s callback returned, from which the rendered variant is read. A serializer's
+ * declarations are the rendered variant, so a `$serializable` ref to an STI base adds the keys of
+ * every other child. A plain object returned for an `anyOf` or `oneOf` renders the one member that
+ * declares every key the object has, or, when no single member does, the keys it has. Otherwise
+ * the `openapi` has one variant, the rendered one, and nothing is added.
+ */
+export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
   value: unknown,
   options: NullFlattenedSerializerKeysOptions = {}
@@ -115,7 +133,16 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
     typeof value === 'object' &&
     value !== null
   ) {
-    renderedKeys = Object.keys(value).map(key => setCase(key, walk.casing))
+    const valueKeys = Object.keys(value).map(key => setCase(key, walk.casing))
+    const members = [
+      ...(('anyOf' in openapi && openapi.anyOf) || []),
+      ...(('oneOf' in openapi && openapi.oneOf) || []),
+    ]
+    const candidateMembersKeys = members
+      .map(member => Object.keys(walkOpenapi(member, newWalk(options))))
+      .filter(memberKeys => valueKeys.every(key => memberKeys.includes(key)))
+
+    renderedKeys = candidateMembersKeys.length === 1 ? candidateMembersKeys[0]! : valueKeys
   } else {
     return {}
   }
