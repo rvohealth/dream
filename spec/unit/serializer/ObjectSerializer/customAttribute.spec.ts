@@ -495,6 +495,85 @@ describe('ObjectSerializer#customAttribute', () => {
         aKey: '1',
       })
     })
+
+    it('renders a plain object a nested anyOf or oneOf member declares together with the allOf beside it as that member, leaving its optional keys absent', () => {
+      const base: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { common: 'string' },
+        required: ['common'],
+      }
+      const renderedMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { aKey: 'string', x: 'string' },
+        required: ['aKey'],
+      }
+      const otherMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { bKey: 'string' },
+        required: ['bKey'],
+      }
+      const outerMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { cKey: 'string', x: 'string' },
+        required: ['cKey', 'x'],
+      }
+
+      const openapis = [
+        { anyOf: [{ allOf: [base], anyOf: [renderedMember, otherMember] }, outerMember] },
+        { oneOf: [{ allOf: [base], oneOf: [renderedMember, otherMember] }, outerMember] },
+      ]
+      openapis.forEach(openapi => {
+        const MySerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('details', () => ({ common: 'c', aKey: '1' }), {
+            flatten: true,
+            openapi,
+          })
+
+        const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+        expect(rendered).toEqual({ common: 'c', aKey: '1', bKey: null, cKey: null })
+        expect(rendered).toEqual({
+          ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, { allOf: [base, renderedMember] }),
+          common: 'c',
+          aKey: '1',
+        })
+      })
+    })
+
+    it('renders a plain object an anyOf member declares together with the allOf beside the anyOf as that member, leaving its optional keys absent', () => {
+      const base: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { common: 'string' },
+        required: ['common'],
+      }
+      const renderedMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { aKey: 'string', x: 'string' },
+        required: ['aKey'],
+      }
+      const openapi = {
+        allOf: [base],
+        anyOf: [
+          renderedMember,
+          { type: 'object', properties: { bKey: 'string', x: 'string' }, required: ['bKey', 'x'] },
+        ],
+      }
+
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('details', () => ({ common: 'c', aKey: '1' }), {
+          flatten: true,
+          openapi,
+        })
+
+      const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+      expect(rendered).toEqual({ common: 'c', aKey: '1', bKey: null })
+      expect(rendered).toEqual({
+        ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, { allOf: [base, renderedMember] }),
+        common: 'c',
+        aKey: '1',
+      })
+    })
   })
 
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
