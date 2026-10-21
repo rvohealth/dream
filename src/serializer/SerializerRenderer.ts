@@ -132,10 +132,17 @@ export default class SerializerRenderer {
             const flattenOptions = { casing: this.renderOpts.casing, passthroughData }
 
             // a flattened customAttribute's keys are the parent's own keys: a callback that returns
-            // null or undefined renders each key its openapi declares as null, as a null flattened
-            // rendersOne does, and one that returns a value of one variant of its openapi renders
-            // as null each key another variant requires that the rendered one does not declare
-            if (value === null || value === undefined)
+            // null or undefined, or a serializer built over null or undefined data (which renders
+            // null), renders each key its openapi declares as null, as a null flattened rendersOne
+            // does, and one that returns a value of one variant of its openapi renders as null each
+            // key another variant requires that the rendered one does not declare
+            const valueRendersNull =
+              value === null ||
+              value === undefined ||
+              ((value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder) &&
+                ((value as DreamSerializerBuilder<any, any>)['data'] ?? null) === null)
+
+            if (valueRendersNull)
               return {
                 ...accumulator,
                 ...nullFlattenedOpenapiKeys(attribute.options.openapi, flattenOptions),

@@ -113,45 +113,63 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
  * As `nullFlattenedOpenapiKeysOfOtherVariants`, for the non-null `value` a flattened
  * `customAttribute`'s callback returned, from which the rendered variant is read. A serializer's
  * declarations are the rendered variant, so a `$serializable` ref to an STI base adds the keys of
- * every other child. A plain object returned for an `anyOf` or `oneOf` renders the one member that
- * declares every key the object has, or, when no single member does, the keys it has; its keys
- * render as written, so they are compared as written. Otherwise
- * the `openapi` has one variant, the rendered one, and nothing is added.
+ * every other child. A plain object returned for an `openapi` with several variants (the members
+ * of an `anyOf` or `oneOf`, or one `$serializer` per child of a `$serializable` ref to an STI base)
+ * renders the variant that declares every key the object has; when several do, the first of them
+ * whose required keys the object all has, and when none does, the keys it has. Its keys render as
+ * written, so they are compared as written. Otherwise the `openapi` has one variant, the rendered
+ * one, and nothing is added.
  */
 export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
   value: unknown,
   options: NullFlattenedSerializerKeysOptions = {}
 ): Record<string, null> {
-  const walk = newWalk(options)
-  let renderedKeys: string[]
-
-  if (value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder) {
-    renderedKeys = Object.keys(
-      walkSerializerBuilder(value as DreamSerializerBuilder<any, any>, newWalk(options))
+  if (value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder)
+    return nullKeysRequiredByOthers(
+      walkOpenapi(openapi, newWalk(options)),
+      Object.keys(walkSerializerBuilder(value as DreamSerializerBuilder<any, any>, newWalk(options)))
     )
-  } else if (
-    typeof openapi === 'object' &&
-    !Array.isArray(openapi) &&
-    ('anyOf' in openapi || 'oneOf' in openapi) &&
-    typeof value === 'object' &&
-    value !== null
-  ) {
-    const valueKeys = Object.keys(value)
-    const members = [
-      ...(('anyOf' in openapi && openapi.anyOf) || []),
-      ...(('oneOf' in openapi && openapi.oneOf) || []),
-    ]
-    const candidateMembersKeys = members
-      .map(member => Object.keys(walkOpenapi(member, newWalk(options))))
-      .filter(memberKeys => valueKeys.every(key => memberKeys.includes(key)))
 
-    renderedKeys = candidateMembersKeys.length === 1 ? candidateMembersKeys[0]! : valueKeys
-  } else {
-    return {}
-  }
+  const variants = openapiVariants(openapi)
+  if (variants.length < 2 || typeof value !== 'object' || value === null) return {}
 
-  return nullKeysRequiredByOthers(walkOpenapi(openapi, walk), renderedKeys)
+  const valueKeys = Object.keys(value)
+  const candidates = variants
+    .map(variant => ({ variant, requirements: walkOpenapi(variant, newWalk(options)) }))
+    .filter(({ requirements }) =>
+      valueKeys.every(key => Object.prototype.hasOwnProperty.call(requirements, key))
+    )
+  const renderedVariant =
+    candidates.length === 1
+      ? candidates[0]!.variant
+      : candidates.find(({ requirements }) =>
+          Object.keys(requirements).every(key => !requirements[key] || valueKeys.includes(key))
+        )?.variant
+
+  if (renderedVariant) return nullFlattenedOpenapiKeysOfOtherVariants(openapi, renderedVariant, options)
+  return nullKeysRequiredByOthers(walkOpenapi(openapi, newWalk(options)), valueKeys)
+}
+
+/**
+ * The shapes a value of `openapi` may take, each one a variant a plain object may render: the
+ * members of an `anyOf` or `oneOf`, or a `$serializer` ref to each serializer a `$serializable`
+ * ref resolves to.
+ */
+function openapiVariants(
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+): (OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes)[] {
+  if (typeof openapi !== 'object' || Array.isArray(openapi)) return []
+
+  if ('$serializable' in openapi)
+    return openapi.many
+      ? []
+      : inferSerializersFromDreamClassOrViewModelClass(
+          openapi.$serializable,
+          openapi.$serializableSerializerKey ?? openapi.key
+        ).map(serializer => ({ $serializer: serializer }))
+
+  return [...(('anyOf' in openapi && openapi.anyOf) || []), ...(('oneOf' in openapi && openapi.oneOf) || [])]
 }
 
 function newWalk({
