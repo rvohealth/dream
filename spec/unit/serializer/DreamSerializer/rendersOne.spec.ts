@@ -368,6 +368,7 @@ describe('DreamSerializer#rendersOne', () => {
           id: null,
           favoriteWord: null,
           nameLength: null,
+          firstName: null,
           likesChalupas: null,
           featuredPost: null,
           posts: null,

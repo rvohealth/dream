@@ -99,6 +99,146 @@ describe('ObjectSerializer#rendersOne', () => {
           toyName: null,
         })
       })
+
+      context('with a flattened customAttribute', () => {
+        interface Address {
+          city: string
+        }
+
+        interface Contact {
+          email: string
+          address: Address
+        }
+
+        interface PetWithContact {
+          species: string
+          contact: Contact | null
+        }
+
+        const AddressSerializer = (address: Address) =>
+          ObjectSerializer(address).attribute('city', { openapi: 'string' })
+
+        it('renders null for every key of its openapi properties', () => {
+          const ContactSerializer = (contact: Contact) =>
+            ObjectSerializer(contact)
+              .attribute('email', { openapi: 'string' })
+              .rendersOne('address', { serializer: AddressSerializer, flatten: true })
+              .customAttribute('phone', () => ({ phoneNumber: '555-1234' }), {
+                flatten: true,
+                openapi: { type: 'object', properties: { phoneNumber: 'string' } },
+              })
+
+          const PetSerializer = (pet: PetWithContact) =>
+            ObjectSerializer(pet)
+              .attribute('species', { openapi: 'string' })
+              .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+
+          expect(PetSerializer({ species: 'cat', contact: null }).render()).toEqual({
+            species: 'cat',
+            email: null,
+            city: null,
+            phoneNumber: null,
+          })
+
+          expect(PetSerializer({ species: 'cat', contact: null }).render({}, { casing: 'snake' })).toEqual({
+            species: 'cat',
+            email: null,
+            city: null,
+            phone_number: null,
+          })
+        })
+
+        it('renders null for every key of a $serializer ref’s serializer, and none for a many ref', () => {
+          const NeighborSerializer = (neighbor: { name: string }) =>
+            ObjectSerializer(neighbor).attribute('name', { openapi: 'string' })
+
+          const ContactSerializer = (contact: Contact) =>
+            ObjectSerializer(contact)
+              .attribute('email', { openapi: 'string' })
+              .customAttribute('address', () => AddressSerializer(contact.address), {
+                flatten: true,
+                openapi: { $serializer: AddressSerializer },
+              })
+              .customAttribute('neighbors', () => null, {
+                flatten: true,
+                openapi: { anyOf: [{ $serializer: NeighborSerializer, many: true }, { type: 'null' }] },
+              })
+
+          const PetSerializer = (pet: PetWithContact) =>
+            ObjectSerializer(pet)
+              .attribute('species', { openapi: 'string' })
+              .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+
+          expect(PetSerializer({ species: 'cat', contact: null }).render()).toEqual({
+            species: 'cat',
+            email: null,
+            city: null,
+          })
+        })
+
+        it('renders null for every key of every STI child serializer a $serializable ref resolves to', () => {
+          const ContactSerializer = (contact: Contact) =>
+            ObjectSerializer(contact)
+              .attribute('email', { openapi: 'string' })
+              .customAttribute('balloon', () => null, {
+                flatten: true,
+                openapi: { $serializable: Balloon, key: 'stiUnion' },
+              })
+
+          const PetSerializer = (pet: PetWithContact) =>
+            ObjectSerializer(pet)
+              .attribute('species', { openapi: 'string' })
+              .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+
+          expect(PetSerializer({ species: 'cat', contact: null }).render()).toEqual({
+            species: 'cat',
+            email: null,
+            color: null,
+            multicolor: null,
+            mylarOnlyProperty: null,
+            sandbags: null,
+            heartRatings: null,
+            material: null,
+            balloonLine: null,
+          })
+        })
+
+        it('renders null for the union of the keys of every member of an anyOf, oneOf or allOf', () => {
+          const ContactSerializer = (contact: Contact) =>
+            ObjectSerializer(contact)
+              .attribute('email', { openapi: 'string' })
+              .customAttribute('details', () => null, {
+                flatten: true,
+                openapi: {
+                  anyOf: [
+                    { type: 'object', properties: { phoneNumber: 'string' } },
+                    { $serializer: AddressSerializer },
+                    {
+                      oneOf: [
+                        { type: 'object', properties: { fax: 'string' } },
+                        { allOf: [{ type: 'object', properties: { pager: 'string' } }] },
+                      ],
+                    },
+                    { type: 'null' },
+                  ],
+                },
+              })
+
+          const PetSerializer = (pet: PetWithContact) =>
+            ObjectSerializer(pet)
+              .attribute('species', { openapi: 'string' })
+              .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+
+          expect(PetSerializer({ species: 'cat', contact: null }).render()).toEqual({
+            species: 'cat',
+            email: null,
+            phoneNumber: null,
+            city: null,
+            fax: null,
+            pager: null,
+          })
+        })
+      })
     })
   })
 
