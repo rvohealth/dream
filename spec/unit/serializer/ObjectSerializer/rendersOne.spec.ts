@@ -100,6 +100,27 @@ describe('ObjectSerializer#rendersOne', () => {
         })
       })
 
+      it('leaves out a key the serializer declares with `required: false`', () => {
+        interface Owner {
+          name: string
+          nickname?: string
+        }
+
+        interface PetWithOwner {
+          owner: Owner | null
+        }
+
+        const OwnerSerializer = (owner: Owner) =>
+          ObjectSerializer(owner)
+            .attribute('name', { openapi: 'string' })
+            .attribute('nickname', { openapi: 'string', required: false })
+
+        const MySerializer = (data: PetWithOwner) =>
+          ObjectSerializer(data).rendersOne('owner', { serializer: OwnerSerializer, flatten: true })
+
+        expect(MySerializer({ owner: null }).render()).toEqual({ name: null })
+      })
+
       context('with a flattened customAttribute', () => {
         interface Address {
           city: string
@@ -118,14 +139,18 @@ describe('ObjectSerializer#rendersOne', () => {
         const AddressSerializer = (address: Address) =>
           ObjectSerializer(address).attribute('city', { openapi: 'string' })
 
-        it('renders null for every key of its openapi properties', () => {
+        it('renders null for each key its openapi `required` array lists, in the render’s casing', () => {
           const ContactSerializer = (contact: Contact) =>
             ObjectSerializer(contact)
               .attribute('email', { openapi: 'string' })
               .rendersOne('address', { serializer: AddressSerializer, flatten: true })
               .customAttribute('phone', () => ({ phoneNumber: '555-1234' }), {
                 flatten: true,
-                openapi: { type: 'object', properties: { phoneNumber: 'string' } },
+                openapi: {
+                  type: 'object',
+                  properties: { phoneNumber: 'string', phoneExtension: 'string' },
+                  required: ['phoneNumber'],
+                },
               })
 
           const PetSerializer = (pet: PetWithContact) =>
@@ -144,7 +169,7 @@ describe('ObjectSerializer#rendersOne', () => {
             species: 'cat',
             email: null,
             city: null,
-            phoneNumber: null,
+            phone_number: null,
           })
         })
 
@@ -203,7 +228,7 @@ describe('ObjectSerializer#rendersOne', () => {
           })
         })
 
-        it('renders null for the union of the keys of every member of an anyOf, oneOf or allOf', () => {
+        it('renders null for the union of the keys every member of an anyOf, oneOf or allOf requires', () => {
           const ContactSerializer = (contact: Contact) =>
             ObjectSerializer(contact)
               .attribute('email', { openapi: 'string' })
@@ -211,12 +236,14 @@ describe('ObjectSerializer#rendersOne', () => {
                 flatten: true,
                 openapi: {
                   anyOf: [
-                    { type: 'object', properties: { phoneNumber: 'string' } },
+                    { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
                     { $serializer: AddressSerializer },
                     {
                       oneOf: [
                         { type: 'object', properties: { fax: 'string' } },
-                        { allOf: [{ type: 'object', properties: { pager: 'string' } }] },
+                        {
+                          allOf: [{ type: 'object', properties: { pager: 'string' }, required: ['pager'] }],
+                        },
                       ],
                     },
                     { type: 'null' },
@@ -234,7 +261,6 @@ describe('ObjectSerializer#rendersOne', () => {
             email: null,
             phoneNumber: null,
             city: null,
-            fax: null,
             pager: null,
           })
         })
@@ -310,15 +336,14 @@ describe('ObjectSerializer#rendersOne', () => {
           ).toEqual({ species: 'cat', email: 'a@b.c', phoneNumber: null, city: 'Paris' })
         })
 
-        it('renders null for every key every member declares when the callback returns null, as when the association is null', () => {
+        it('renders null for each key a member requires when the callback returns null, as when the association is null', () => {
+          // `extension` and `fax` are optional in their members and stay absent
           expect(
             PetSerializer({ species: 'cat', contact: { email: 'a@b.c', details: null } }).render()
           ).toEqual({
             species: 'cat',
             email: 'a@b.c',
             phoneNumber: null,
-            extension: null,
-            fax: null,
             city: null,
           })
 
@@ -326,8 +351,6 @@ describe('ObjectSerializer#rendersOne', () => {
             species: 'cat',
             email: null,
             phoneNumber: null,
-            extension: null,
-            fax: null,
             city: null,
           })
         })

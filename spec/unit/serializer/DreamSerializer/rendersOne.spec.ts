@@ -353,7 +353,11 @@ describe('DreamSerializer#rendersOne', () => {
             .customAttribute('nameLength', () => user.name!.length, { openapi: 'integer' })
             .customAttribute('nameParts', () => ({ firstName: user.name!.split(' ')[0] }), {
               flatten: true,
-              openapi: { type: 'object', properties: { firstName: { type: 'string' } } },
+              openapi: {
+                type: 'object',
+                properties: { firstName: { type: 'string' } },
+                required: ['firstName'],
+              },
             })
             .delegatedAttribute('userSettings', 'likesChalupas')
             .rendersOne('featuredPost')

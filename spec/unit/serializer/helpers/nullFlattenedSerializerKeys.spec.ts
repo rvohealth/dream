@@ -1,6 +1,7 @@
 import DreamApp from '../../../../src/dream-app/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import {
+  nullFlattenedOpenapiKeys,
   nullFlattenedOpenapiKeysOfOtherVariants,
   nullFlattenedOpenapiKeysOfOtherVariantsForValue,
   nullFlattenedSerializerKeys,
@@ -57,15 +58,44 @@ describe('nullFlattenedSerializerKeys', () => {
     expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ emailAddress: null, city: null })
   })
 
+  it('leaves out a key a serializer declares with `required: false`', () => {
+    const ContactSerializer = (contact: Contact) =>
+      ObjectSerializer(contact)
+        .attribute('emailAddress', { openapi: 'string', required: false })
+        .delegatedAttribute('address', 'city', { openapi: 'string', required: false })
+        .customAttribute('emailLength', () => contact.emailAddress.length, {
+          openapi: 'integer',
+          required: false,
+        })
+        .rendersOne('address', { serializer: AddressSerializer })
+
+    expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ address: null })
+  })
+
   context('a flattened customAttribute', () => {
-    it('adds every key of its openapi properties', () => {
+    it('adds each key of its openapi properties that the `required` array lists', () => {
       const ContactSerializer = (contact: Contact) =>
         ObjectSerializer(contact).customAttribute('phone', () => ({ phoneNumber: '555-1234' }), {
           flatten: true,
-          openapi: { type: 'object', properties: { phoneNumber: 'string', extension: 'string' } },
+          openapi: {
+            type: 'object',
+            properties: { phoneNumber: 'string', extension: 'string' },
+            required: ['phoneNumber'],
+          },
         })
 
-      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ phoneNumber: null, extension: null })
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ phoneNumber: null })
+    })
+
+    it('adds none of its keys when it is `required: false`', () => {
+      const ContactSerializer = (contact: Contact) =>
+        ObjectSerializer(contact).customAttribute('address', () => undefined, {
+          flatten: true,
+          required: false,
+          openapi: { $serializer: AddressSerializer },
+        })
+
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({})
     })
 
     it('adds the keys of the serializer a $serializer ref names', () => {
@@ -96,18 +126,18 @@ describe('nullFlattenedSerializerKeys', () => {
       })
     })
 
-    it('adds the union of the keys of every member of an anyOf, oneOf or allOf', () => {
+    it('adds the union of the keys every member of an anyOf, oneOf or allOf requires', () => {
       const ContactSerializer = (contact: Contact) =>
         ObjectSerializer(contact).customAttribute('details', () => null, {
           flatten: true,
           openapi: {
             anyOf: [
-              { type: 'object', properties: { phoneNumber: 'string' } },
+              { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
               { $serializer: AddressSerializer },
               {
                 oneOf: [
                   { type: 'object', properties: { fax: 'string' } },
-                  { allOf: [{ type: 'object', properties: { pager: 'string' } }] },
+                  { allOf: [{ type: 'object', properties: { pager: 'string' }, required: ['pager'] }] },
                 ],
               },
               { type: 'null' },
@@ -118,9 +148,22 @@ describe('nullFlattenedSerializerKeys', () => {
       expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({
         phoneNumber: null,
         city: null,
-        fax: null,
         pager: null,
       })
+    })
+
+    it('adds a key an object shape’s own `required` array lists beside the allOf member that declares it', () => {
+      const ContactSerializer = (contact: Contact) =>
+        ObjectSerializer(contact).customAttribute('details', () => null, {
+          flatten: true,
+          openapi: {
+            type: 'object',
+            required: ['kind'],
+            allOf: [{ type: 'object', properties: { kind: 'string', label: 'string' } }],
+          },
+        })
+
+      expect(nullFlattenedSerializerKeys([ContactSerializer])).toEqual({ kind: null })
     })
 
     it('adds no keys for a many ref', () => {
@@ -134,18 +177,18 @@ describe('nullFlattenedSerializerKeys', () => {
     })
   })
 
-  it('cases each key a serializer declares per the casing option, and leaves openapi properties keys as written', () => {
+  it('cases each key a serializer declares and each openapi properties key per the casing option', () => {
     const ContactSerializer = (contact: Contact) =>
       ObjectSerializer(contact)
         .attribute('emailAddress', { openapi: 'string' })
         .customAttribute('phone', () => null, {
           flatten: true,
-          openapi: { type: 'object', properties: { phoneNumber: 'string' } },
+          openapi: { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
         })
 
     expect(nullFlattenedSerializerKeys([ContactSerializer], { casing: 'snake' })).toEqual({
       email_address: null,
-      phoneNumber: null,
+      phone_number: null,
     })
   })
 
@@ -174,6 +217,43 @@ describe('nullFlattenedSerializerKeys', () => {
         .customAttribute('sibling', () => null, { flatten: true, openapi: { $serializer: NodeSerializer } })
 
     expect(nullFlattenedSerializerKeys([NodeSerializer])).toEqual({ label: null })
+  })
+})
+
+describe('nullFlattenedOpenapiKeys', () => {
+  it('is reachable through DreamApp.system', () => {
+    expect(DreamApp.system.nullFlattenedOpenapiKeys).toBe(nullFlattenedOpenapiKeys)
+  })
+
+  it('returns exactly the keys a flattened customAttribute with this openapi renders as null for a null value', () => {
+    const OptionalCitySerializer = (address: Address) =>
+      ObjectSerializer(address).attribute('city', { openapi: 'string', required: false })
+
+    const openapi: OpenapiSchemaBodyShorthand = {
+      anyOf: [
+        {
+          type: 'object',
+          properties: { phoneNumber: 'string', extension: 'string' },
+          required: ['phoneNumber'],
+        },
+        { $serializer: AddressSerializer },
+        { $serializer: OptionalCitySerializer },
+        { type: 'null' },
+      ],
+    }
+
+    const ContactSerializer = (contact: Contact) =>
+      ObjectSerializer(contact).customAttribute('details', () => null, { flatten: true, openapi })
+
+    expect(nullFlattenedOpenapiKeys(openapi)).toEqual({ phoneNumber: null, city: null })
+    expect(nullFlattenedOpenapiKeys(openapi)).toEqual(
+      ContactSerializer({ emailAddress: 'a', address: { city: 'b' }, addresses: [] }).render()
+    )
+    expect(nullFlattenedOpenapiKeys(openapi, { casing: 'snake' })).toEqual({ phone_number: null, city: null })
+  })
+
+  it('returns nothing for a shape whose `required` array lists none of its keys', () => {
+    expect(nullFlattenedOpenapiKeys({ type: 'object', properties: { phoneNumber: 'string' } })).toEqual({})
   })
 })
 
@@ -277,7 +357,7 @@ describe('nullFlattenedOpenapiKeysOfOtherVariantsForValue', () => {
     ).toEqual({})
   })
 
-  it('compares a returned object’s keys with openapi properties keys as written, whatever the render’s casing', () => {
+  it('compares a returned object’s keys with openapi properties keys in the render’s casing', () => {
     expect(
       nullFlattenedOpenapiKeysOfOtherVariantsForValue(
         {
@@ -289,7 +369,7 @@ describe('nullFlattenedOpenapiKeysOfOtherVariantsForValue', () => {
         { phoneNumber: '555' },
         { casing: 'snake' }
       )
-    ).toEqual({ faxNumber: null })
+    ).toEqual({ fax_number: null })
   })
 
   it('reads a plain object as the one member declaring every key it has, so that member’s omitted optional keys stay absent', () => {

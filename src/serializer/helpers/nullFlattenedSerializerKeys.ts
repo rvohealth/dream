@@ -33,22 +33,26 @@ interface NullFlattenedSerializerKeysWalk {
 /**
  * The keys a flattened `rendersOne` adds to the parent's payload when its associated object is
  * null, returned as an object with each key set to `null`, ready to spread into the parent's
- * payload (`Object.keys` of it for the key names alone): each key any of `serializers` declares.
- * A key a serializer declares is cased per `casing`, as the renderer cases it; a key of an `openapi`
- * `properties` shape is returned as written, as a callback's plain object renders. There are several serializers when the association is a polymorphic
- * BelongsTo, one for each target class, or when the associated class is an STI base, one for each
- * child, and their keys are unioned.
+ * payload (`Object.keys` of it for the key names alone): each key one of `serializers` requires.
+ * As a property read on an empty object is `undefined`, a null value carries no key it may omit:
+ * an attribute, delegatedAttribute or customAttribute declared with `required: false` adds no key.
+ * Every key is cased per `casing`, as the renderer cases it. There are several serializers when
+ * the association is a polymorphic BelongsTo, one for each target class, or when the associated
+ * class is an STI base, one for each child, and their required keys are unioned.
  *
  * Each serializer is built with `undefined` data to read its declarations, as Psychic's OpenAPI
  * generation and `preloadFor` build it, and nothing is rendered: no attribute callback runs and
- * no association of the missing object is read. A flattened `rendersOne` it declares adds its
- * own serializers' keys the same way. A flattened `customAttribute` adds the keys its `openapi`
- * declares: every key of its `properties`, the keys of the serializer a `$serializer` ref names or
- * of every serializer a `$serializable` ref resolves to (one per child for an STI base), walked
- * the same way, and the union of the keys of every member of an `allOf`, `anyOf` or `oneOf`. A ref
- * with `many: true` adds none, since a list has no keys to spread. A serializer reached again within
- * its own walk, as when one flattens itself, adds nothing, so the walk always terminates; one reached
- * again along another path is walked again, so each path adds its keys and their requirements.
+ * no association of the missing object is read. A non-flattened `rendersOne` or a `rendersMany`
+ * always adds its key. A flattened `rendersOne` it declares adds its own serializers' required keys
+ * the same way. A flattened `customAttribute` adds the keys its `openapi` requires: each key of
+ * its `properties` that the shape's `required` array lists, the required keys of the serializer a
+ * `$serializer` ref names or of every serializer a `$serializable` ref resolves to (one per child
+ * for an STI base), walked the same way, and the union of the keys every member of an `allOf`,
+ * `anyOf` or `oneOf` requires, with each key an object shape's own `required` array lists beside
+ * its members; one declared with `required: false` adds none. A ref with `many: true` adds none,
+ * since a list has no keys to spread. A serializer reached again within its own walk, as when one
+ * flattens itself, adds nothing, so the walk always terminates; one reached again along another
+ * path is walked again, so each path adds its keys and their requirements.
  *
  * `passthroughData` is handed to each serializer as it is built, as when rendering; outside a
  * render it may be left out.
@@ -57,19 +61,20 @@ export function nullFlattenedSerializerKeys(
   serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
   options: NullFlattenedSerializerKeysOptions = {}
 ): Record<string, null> {
-  return nullKeys(walkSerializers(serializers, newWalk(options)))
+  return nullRequiredKeys(walkSerializers(serializers, newWalk(options)))
 }
 
 /**
  * The keys a flattened `customAttribute` with this `openapi` adds to the parent's payload when
- * its callback returns null, each set to `null`, walked as `nullFlattenedSerializerKeys` walks a
- * flattened `customAttribute`.
+ * its callback returns null (or `undefined` without `required: false`), or a serializer built over
+ * null data, each set to `null`: each key `openapi` requires, walked as `nullFlattenedSerializerKeys`
+ * walks a flattened `customAttribute` and cased per `casing`.
  */
 export function nullFlattenedOpenapiKeys(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
   options: NullFlattenedSerializerKeysOptions = {}
 ): Record<string, null> {
-  return nullKeys(walkOpenapi(openapi, newWalk(options)))
+  return nullRequiredKeys(walkOpenapi(openapi, newWalk(options)))
 }
 
 /**
@@ -116,9 +121,9 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
  * every other child. A plain object returned for an `openapi` with several variants (the members
  * of an `anyOf` or `oneOf`, or one `$serializer` per child of a `$serializable` ref to an STI base)
  * renders the variant that declares every key the object has; when several do, the first of them
- * whose required keys the object all has, and when none does, the keys it has. Its keys render as
- * written, so they are compared as written. Otherwise the `openapi` has one variant, the rendered
- * one, and nothing is added.
+ * whose required keys the object all has, and when none does, the keys it has. Its top-level keys
+ * render cased per `casing`, so they are compared cased. Otherwise the `openapi` has one variant,
+ * the rendered one, and nothing is added.
  */
 export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
@@ -134,7 +139,8 @@ export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
   const variants = openapiVariants(openapi)
   if (variants.length < 2 || typeof value !== 'object' || value === null) return {}
 
-  const valueKeys = Object.keys(value)
+  const { casing } = newWalk(options)
+  const valueKeys = Object.keys(value).map(key => setCase(key, casing))
   const candidates = variants
     .map(variant => ({ variant, requirements: walkOpenapi(variant, newWalk(options)) }))
     .filter(({ requirements }) =>
@@ -179,9 +185,9 @@ function newWalk({
   return { casing, passthroughData, serializersBeingFlattened: new Set() }
 }
 
-function nullKeys(requirements: KeyRequirements): Record<string, null> {
+function nullRequiredKeys(requirements: KeyRequirements): Record<string, null> {
   return Object.keys(requirements).reduce<Record<string, null>>((keys, key) => {
-    keys[key] = null
+    if (requirements[key]) keys[key] = null
     return keys
   }, {})
 }
@@ -306,10 +312,9 @@ function walkOpenapi(
     )
   }
 
-  // a callback's plain object renders its keys as written, so `properties` keys are not cased
   const keys = Object.keys(('properties' in openapi && openapi.properties) || {}).reduce<KeyRequirements>(
     (propertyKeys, key) => {
-      propertyKeys[key] = false
+      propertyKeys[setCase(key, walk.casing)] = false
       return propertyKeys
     },
     {}
@@ -329,7 +334,8 @@ function walkOpenapi(
   // the shape's own `required` array requires a key its `properties` declare or a member declares
   const requiredKeys = ('required' in openapi && openapi.required) || []
   requiredKeys.forEach(key => {
-    if (Object.prototype.hasOwnProperty.call(shapeKeys, key)) shapeKeys[key] = true
+    const casedKey = setCase(key, walk.casing)
+    if (Object.prototype.hasOwnProperty.call(shapeKeys, casedKey)) shapeKeys[casedKey] = true
   })
 
   return shapeKeys

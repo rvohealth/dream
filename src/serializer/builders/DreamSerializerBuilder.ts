@@ -267,7 +267,10 @@ export default class DreamSerializerBuilder<
    *     When the `openapi` is an `anyOf` or `oneOf`, or a `$serializable` ref to an STI base, a
    *     present value also renders as `null` each key another variant requires that the rendered
    *     one does not declare, so a client sees the same keys whichever variant is rendered.
-   *     Attributes render in declaration order, so a key the returned object shares with
+   *     Every key it adds follows the render's casing like the parent's own keys: a returned
+   *     plain object's top-level keys and the `openapi`'s `properties` keys are cased (so
+   *     `casing: 'snake'` renders `phoneNumber` as `phone_number`, present or `null`), while
+   *     nested values render as returned. Attributes render in declaration order, so a key the returned object shares with
    *     another attribute takes the value of whichever is declared later; under the `allOf`,
    *     that value must match both schemas
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
@@ -424,8 +427,8 @@ export default class DreamSerializerBuilder<
        * If `true`, the rendered association's attributes are merged directly into
        * the parent object instead of being nested under the association key. A key
        * the parent shares with the association takes the value of whichever is
-       * declared later, and when the association is `null`, every key its serializer
-       * declares renders as `null`. See the `flatten` option of `rendersOne`.
+       * declared later, and when the association is `null`, each key its serializer
+       * requires renders as `null`. See the `flatten` option of `rendersOne`.
        */
       flatten?: boolean
 
