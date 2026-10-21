@@ -1,4 +1,5 @@
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
+import { OpenapiSchemaBodyShorthand } from '../../../../src/types/openapi.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
@@ -139,6 +140,115 @@ describe('ObjectSerializer#customAttribute', () => {
         email: 'abc',
         lat: null,
         lng: null,
+      })
+    })
+
+    it('renders its openapi properties keys as written under snake casing, whether the value is present or null', () => {
+      const MySerializer = (user: User, details: { phoneNumber: string } | { faxNumber: string } | null) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('details', () => details, {
+            flatten: true,
+            openapi: {
+              anyOf: [
+                { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
+                { type: 'object', properties: { faxNumber: 'string' }, required: ['faxNumber'] },
+              ],
+            },
+          })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(MySerializer(user, { phoneNumber: '1' }).render({}, { casing: 'snake' })).toEqual({
+        email: 'abc',
+        phoneNumber: '1',
+        faxNumber: null,
+      })
+      expect(MySerializer(user, null).render({}, { casing: 'snake' })).toEqual({
+        email: 'abc',
+        phoneNumber: null,
+        faxNumber: null,
+      })
+    })
+
+    it('renders null for the keys an anyOf member’s serializer requires whichever order the members are declared in, when another member flattens that serializer with `required: false`', () => {
+      interface Keyed {
+        optKey?: string
+        cKey?: string
+        rKey?: string
+      }
+
+      const CSerializer = (data: Keyed) => ObjectSerializer(data).attribute('cKey', { openapi: 'string' })
+      const RSerializer = (data: Keyed) => ObjectSerializer(data).attribute('rKey', { openapi: 'string' })
+      const OptSerializer = (data: Keyed) =>
+        ObjectSerializer(data)
+          .attribute('optKey', { openapi: 'string' })
+          .customAttribute('c', () => undefined, {
+            flatten: true,
+            required: false,
+            openapi: { $serializer: CSerializer },
+          })
+
+      const optFirst: OpenapiSchemaBodyShorthand = {
+        anyOf: [{ $serializer: OptSerializer }, { $serializer: CSerializer }, { $serializer: RSerializer }],
+      }
+      const cFirst: OpenapiSchemaBodyShorthand = {
+        anyOf: [{ $serializer: CSerializer }, { $serializer: OptSerializer }, { $serializer: RSerializer }],
+      }
+
+      ;[optFirst, cFirst].forEach(openapi => {
+        const PresentSerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('details', () => RSerializer({ rKey: 'x' }), {
+            flatten: true,
+            openapi,
+          })
+        const NullSerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('details', () => null, { flatten: true, openapi })
+
+        expect(PresentSerializer({ email: 'abc', password: '123' }).render()).toEqual({
+          optKey: null,
+          cKey: null,
+          rKey: 'x',
+        })
+        expect(NullSerializer({ email: 'abc', password: '123' }).render()).toEqual({
+          optKey: null,
+          cKey: null,
+          rKey: null,
+        })
+      })
+    })
+
+    it('renders null for the keys an object allOf member lists in its own `required` array when another member renders', () => {
+      const MySerializer = (user: User, details: { faxNumber: string } | null) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('details', () => details, {
+            flatten: true,
+            openapi: {
+              anyOf: [
+                {
+                  type: 'object',
+                  required: ['kind', 'phoneNumber'],
+                  allOf: [{ type: 'object', properties: { kind: 'string', phoneNumber: 'string' } }],
+                },
+                { type: 'object', properties: { faxNumber: 'string' }, required: ['faxNumber'] },
+              ],
+            },
+          })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(MySerializer(user, { faxNumber: '9' }).render()).toEqual({
+        email: 'abc',
+        kind: null,
+        phoneNumber: null,
+        faxNumber: '9',
+      })
+      expect(MySerializer(user, null).render()).toEqual({
+        email: 'abc',
+        kind: null,
+        phoneNumber: null,
+        faxNumber: null,
       })
     })
   })

@@ -19,8 +19,8 @@ export interface NullFlattenedSerializerKeysOptions {
 /**
  * Each key a flattened serializer or `openapi` declares, mapped to whether any declaration of it
  * requires it: `false` only when every declaration marks it optional, i.e. an attribute,
- * delegatedAttribute or customAttribute with `required: false`, or an `openapi` property its
- * shape's `required` list leaves out.
+ * delegatedAttribute or customAttribute with `required: false`, or an `openapi` property the
+ * `required` list of every object shape declaring it, or of every shape it is a member of, leaves out.
  */
 type KeyRequirements = Record<string, boolean>
 
@@ -33,8 +33,9 @@ interface NullFlattenedSerializerKeysWalk {
 /**
  * The keys a flattened `rendersOne` adds to the parent's payload when its associated object is
  * null, returned as an object with each key set to `null`, ready to spread into the parent's
- * payload (`Object.keys` of it for the key names alone): each key any of `serializers` declares,
- * cased per `casing`. There are several serializers when the association is a polymorphic
+ * payload (`Object.keys` of it for the key names alone): each key any of `serializers` declares.
+ * A key a serializer declares is cased per `casing`, as the renderer cases it; a key of an `openapi`
+ * `properties` shape is returned as written, as a callback's plain object renders. There are several serializers when the association is a polymorphic
  * BelongsTo, one for each target class, or when the associated class is an STI base, one for each
  * child, and their keys are unioned.
  *
@@ -45,8 +46,9 @@ interface NullFlattenedSerializerKeysWalk {
  * declares: every key of its `properties`, the keys of the serializer a `$serializer` ref names or
  * of every serializer a `$serializable` ref resolves to (one per child for an STI base), walked
  * the same way, and the union of the keys of every member of an `allOf`, `anyOf` or `oneOf`. A ref
- * with `many: true` adds none, since a list has no keys to spread. A serializer reached again, as
- * when one flattens itself, adds nothing, so the walk always terminates.
+ * with `many: true` adds none, since a list has no keys to spread. A serializer reached again within
+ * its own walk, as when one flattens itself, adds nothing, so the walk always terminates; one reached
+ * again along another path is walked again, so each path adds its keys and their requirements.
  *
  * `passthroughData` is handed to each serializer as it is built, as when rendering; outside a
  * render it may be left out.
@@ -92,8 +94,9 @@ export function nullFlattenedSerializerKeysOfOtherVariants(
  * set to `null`, when it renders `renderedVariant`: each key a variant of `openapi` requires that
  * `renderedVariant` does not declare. `renderedVariant` is any `openapi` shorthand: one member of
  * an `anyOf` or `oneOf`, or `{ $serializer: childSerializer }` for one child of a `$serializable`
- * ref to an STI base. A key requires its value when a `properties` shape lists it in its
- * `required` array, or when a serializer declares it without `required: false`.
+ * ref to an STI base. A key requires its value when an object shape's `required` array lists it,
+ * whether the shape's own `properties` declare it or a member of its `allOf`, `anyOf` or `oneOf`
+ * does, or when a serializer declares it without `required: false`.
  */
 export function nullFlattenedOpenapiKeysOfOtherVariants(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
@@ -111,7 +114,8 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
  * `customAttribute`'s callback returned, from which the rendered variant is read. A serializer's
  * declarations are the rendered variant, so a `$serializable` ref to an STI base adds the keys of
  * every other child. A plain object returned for an `anyOf` or `oneOf` renders the one member that
- * declares every key the object has, or, when no single member does, the keys it has. Otherwise
+ * declares every key the object has, or, when no single member does, the keys it has; its keys
+ * render as written, so they are compared as written. Otherwise
  * the `openapi` has one variant, the rendered one, and nothing is added.
  */
 export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
@@ -133,7 +137,7 @@ export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
     typeof value === 'object' &&
     value !== null
   ) {
-    const valueKeys = Object.keys(value).map(key => setCase(key, walk.casing))
+    const valueKeys = Object.keys(value)
     const members = [
       ...(('anyOf' in openapi && openapi.anyOf) || []),
       ...(('oneOf' in openapi && openapi.oneOf) || []),
@@ -186,9 +190,9 @@ function walkSerializers(
   walk: NullFlattenedSerializerKeysWalk
 ): KeyRequirements {
   return serializers.reduce<KeyRequirements>((flattenedKeys, serializer) => {
-    // a serializer reached again, e.g. one that flattens itself directly or through others, or
-    // one that two polymorphic targets or two STI children both flatten, adds no keys the first
-    // walk through it did not
+    // a serializer that flattens itself, directly or through others, adds no keys its walk in
+    // progress does not; one reached again along another path is walked again, since a path that
+    // requires its keys must not lose them to an earlier path that left them optional
     if (walk.serializersBeingFlattened.has(serializer)) return flattenedKeys
     walk.serializersBeingFlattened.add(serializer)
 
@@ -196,8 +200,11 @@ function walkSerializers(
       any,
       any
     >
+    const serializerKeys = walkSerializerBuilder(serializerBuilder, walk)
 
-    return mergeRequirements(flattenedKeys, walkSerializerBuilder(serializerBuilder, walk))
+    walk.serializersBeingFlattened.delete(serializer)
+
+    return mergeRequirements(flattenedKeys, serializerKeys)
   }, {})
 }
 
@@ -281,10 +288,10 @@ function walkOpenapi(
     )
   }
 
-  const requiredProperties = ('required' in openapi && openapi.required) || []
+  // a callback's plain object renders its keys as written, so `properties` keys are not cased
   const keys = Object.keys(('properties' in openapi && openapi.properties) || {}).reduce<KeyRequirements>(
     (propertyKeys, key) => {
-      propertyKeys[setCase(key, walk.casing)] = requiredProperties.includes(key)
+      propertyKeys[key] = false
       return propertyKeys
     },
     {}
@@ -296,10 +303,18 @@ function walkOpenapi(
     ...(('oneOf' in openapi && openapi.oneOf) || []),
   ]
 
-  return members.reduce<KeyRequirements>(
+  const shapeKeys = members.reduce<KeyRequirements>(
     (keys, member) => mergeRequirements(keys, walkOpenapi(member, walk)),
     keys
   )
+
+  // the shape's own `required` array requires a key its `properties` declare or a member declares
+  const requiredKeys = ('required' in openapi && openapi.required) || []
+  requiredKeys.forEach(key => {
+    if (Object.prototype.hasOwnProperty.call(shapeKeys, key)) shapeKeys[key] = true
+  })
+
+  return shapeKeys
 }
 
 function setCase(attr: string, casing: SerializerCasing) {

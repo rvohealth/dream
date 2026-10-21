@@ -144,7 +144,7 @@ describe('ObjectSerializer#rendersOne', () => {
             species: 'cat',
             email: null,
             city: null,
-            phone_number: null,
+            phoneNumber: null,
           })
         })
 

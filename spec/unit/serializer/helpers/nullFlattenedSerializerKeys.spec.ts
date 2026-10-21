@@ -134,7 +134,7 @@ describe('nullFlattenedSerializerKeys', () => {
     })
   })
 
-  it('cases every key per the casing option', () => {
+  it('cases each key a serializer declares per the casing option, and leaves openapi properties keys as written', () => {
     const ContactSerializer = (contact: Contact) =>
       ObjectSerializer(contact)
         .attribute('emailAddress', { openapi: 'string' })
@@ -145,7 +145,7 @@ describe('nullFlattenedSerializerKeys', () => {
 
     expect(nullFlattenedSerializerKeys([ContactSerializer], { casing: 'snake' })).toEqual({
       email_address: null,
-      phone_number: null,
+      phoneNumber: null,
     })
   })
 
@@ -277,7 +277,7 @@ describe('nullFlattenedOpenapiKeysOfOtherVariantsForValue', () => {
     ).toEqual({})
   })
 
-  it('compares a returned object’s keys in the render’s casing', () => {
+  it('compares a returned object’s keys with openapi properties keys as written, whatever the render’s casing', () => {
     expect(
       nullFlattenedOpenapiKeysOfOtherVariantsForValue(
         {
@@ -289,7 +289,7 @@ describe('nullFlattenedOpenapiKeysOfOtherVariantsForValue', () => {
         { phoneNumber: '555' },
         { casing: 'snake' }
       )
-    ).toEqual({ fax_number: null })
+    ).toEqual({ faxNumber: null })
   })
 
   it('reads a plain object as the one member declaring every key it has, so that member’s omitted optional keys stay absent', () => {
