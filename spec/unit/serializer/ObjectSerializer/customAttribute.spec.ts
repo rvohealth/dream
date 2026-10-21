@@ -123,7 +123,7 @@ describe('ObjectSerializer#customAttribute', () => {
       })
     })
 
-    it('adds no keys for a callback that returns null or undefined', () => {
+    it('renders null for every key its openapi declares when the callback returns null or undefined', () => {
       const openapi = {
         type: 'object',
         properties: { lat: { type: 'number' }, lng: { type: 'number' } },
@@ -135,7 +135,11 @@ describe('ObjectSerializer#customAttribute', () => {
           .customAttribute('nullCoordinates', () => null, { flatten: true, openapi })
           .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
 
-      expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({ email: 'abc' })
+      expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({
+        email: 'abc',
+        lat: null,
+        lng: null,
+      })
     })
   })
 

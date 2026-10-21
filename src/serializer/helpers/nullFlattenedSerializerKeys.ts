@@ -7,6 +7,7 @@ import {
   SimpleObjectSerializerType,
 } from '../../types/serializer.js'
 import DreamSerializerBuilder from '../builders/DreamSerializerBuilder.js'
+import ObjectSerializerBuilder from '../builders/ObjectSerializerBuilder.js'
 import { inferSerializersFromDreamClassOrViewModelClass } from './inferSerializerFromDreamOrViewModel.js'
 import { serializersForAssociatedClass } from './serializersForAssociatedClass.js'
 
@@ -14,6 +15,14 @@ export interface NullFlattenedSerializerKeysOptions {
   casing?: SerializerCasing
   passthroughData?: object
 }
+
+/**
+ * Each key a flattened serializer or `openapi` declares, mapped to whether any declaration of it
+ * requires it: `false` only when every declaration marks it optional, i.e. an attribute,
+ * delegatedAttribute or customAttribute with `required: false`, or an `openapi` property its
+ * shape's `required` list leaves out.
+ */
+type KeyRequirements = Record<string, boolean>
 
 interface NullFlattenedSerializerKeysWalk {
   casing: SerializerCasing
@@ -44,20 +53,112 @@ interface NullFlattenedSerializerKeysWalk {
  */
 export function nullFlattenedSerializerKeys(
   serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
-  { casing = 'camel', passthroughData = {} }: NullFlattenedSerializerKeysOptions = {}
+  options: NullFlattenedSerializerKeysOptions = {}
 ): Record<string, null> {
-  return walkSerializers(serializers, {
-    casing,
-    passthroughData,
-    serializersBeingFlattened: new Set(),
+  return nullKeys(walkSerializers(serializers, newWalk(options)))
+}
+
+/**
+ * The keys a flattened `customAttribute` with this `openapi` adds to the parent's payload when
+ * its callback returns null, each set to `null`, walked as `nullFlattenedSerializerKeys` walks a
+ * flattened `customAttribute`.
+ */
+export function nullFlattenedOpenapiKeys(
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
+  options: NullFlattenedSerializerKeysOptions = {}
+): Record<string, null> {
+  return nullKeys(walkOpenapi(openapi, newWalk(options)))
+}
+
+/**
+ * The keys a present flattened `rendersOne` adds to the parent's payload, each set to `null`,
+ * beside what `renderedSerializer` renders: each key one of `serializers` (every serializer the
+ * association may render with) requires that `renderedSerializer` does not declare at all. A key
+ * `renderedSerializer` declares is its own to render or, when `required: false`, to omit.
+ */
+export function nullFlattenedSerializerKeysOfOtherVariants(
+  serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
+  renderedSerializer: DreamModelSerializerType | SimpleObjectSerializerType,
+  options: NullFlattenedSerializerKeysOptions = {}
+): Record<string, null> {
+  return nullKeysRequiredByOthers(
+    walkSerializers(serializers, newWalk(options)),
+    Object.keys(walkSerializers([renderedSerializer], newWalk(options)))
+  )
+}
+
+/**
+ * The keys a flattened `customAttribute` adds to the parent's payload, each set to `null`, beside
+ * the non-null `value` its callback returned: each key a variant of its `openapi` requires that
+ * the rendered variant does not declare. When `value` is a serializer, the rendered variant is
+ * that serializer's declarations, so a `$serializable` ref to an STI base adds the keys of every
+ * other child. When it is a plain object and the `openapi` is an `anyOf` or `oneOf`, the rendered
+ * variant is the keys the object has. Otherwise the `openapi` has one variant, the rendered one,
+ * and nothing is added.
+ */
+export function nullFlattenedOpenapiKeysOfOtherVariants(
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
+  value: unknown,
+  options: NullFlattenedSerializerKeysOptions = {}
+): Record<string, null> {
+  const walk = newWalk(options)
+  let renderedKeys: string[]
+
+  if (value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder) {
+    renderedKeys = Object.keys(
+      walkSerializerBuilder(value as DreamSerializerBuilder<any, any>, newWalk(options))
+    )
+  } else if (
+    typeof openapi === 'object' &&
+    !Array.isArray(openapi) &&
+    ('anyOf' in openapi || 'oneOf' in openapi) &&
+    typeof value === 'object' &&
+    value !== null
+  ) {
+    renderedKeys = Object.keys(value).map(key => setCase(key, walk.casing))
+  } else {
+    return {}
+  }
+
+  return nullKeysRequiredByOthers(walkOpenapi(openapi, walk), renderedKeys)
+}
+
+function newWalk({
+  casing = 'camel',
+  passthroughData = {},
+}: NullFlattenedSerializerKeysOptions): NullFlattenedSerializerKeysWalk {
+  return { casing, passthroughData, serializersBeingFlattened: new Set() }
+}
+
+function nullKeys(requirements: KeyRequirements): Record<string, null> {
+  return Object.keys(requirements).reduce<Record<string, null>>((keys, key) => {
+    keys[key] = null
+    return keys
+  }, {})
+}
+
+function nullKeysRequiredByOthers(requirements: KeyRequirements, renderedKeys: string[]) {
+  return Object.keys(requirements).reduce<Record<string, null>>((keys, key) => {
+    if (requirements[key] && !renderedKeys.includes(key)) keys[key] = null
+    return keys
+  }, {})
+}
+
+/**
+ * A key is required when any of its declarations requires it.
+ */
+function mergeRequirements(requirements: KeyRequirements, other: KeyRequirements): KeyRequirements {
+  Object.keys(other).forEach(key => {
+    requirements[key] = (requirements[key] ?? false) || other[key]!
   })
+  return requirements
 }
 
 function walkSerializers(
   serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
   walk: NullFlattenedSerializerKeysWalk
-): Record<string, null> {
-  return serializers.reduce<Record<string, null>>((flattenedKeys, serializer) => {
+): KeyRequirements {
+  return serializers.reduce<KeyRequirements>((flattenedKeys, serializer) => {
     // a serializer reached again, e.g. one that flattens itself directly or through others, or
     // one that two polymorphic targets or two STI children both flatten, adds no keys the first
     // walk through it did not
@@ -68,59 +169,73 @@ function walkSerializers(
       any,
       any
     >
-    const dreamClass =
-      serializerBuilder instanceof DreamSerializerBuilder
-        ? (serializerBuilder['$typeForOpenapi'] as typeof Dream)
-        : null
 
-    return serializerBuilder['attributes'].reduce<Record<string, null>>((keys, attribute) => {
-      const attributeType = attribute.type
-      switch (attributeType) {
-        case 'attribute':
-        case 'delegatedAttribute':
-        case 'rendersMany':
-          keys[setCase(attribute.options?.as ?? attribute.name, walk.casing)] = null
-          return keys
-
-        case 'customAttribute':
-          if (!attribute.options.flatten) {
-            keys[setCase(attribute.name, walk.casing)] = null
-            return keys
-          }
-
-          return {
-            ...keys,
-            ...nullFlattenedOpenapiKeys(attribute.options.openapi, walk),
-          }
-
-        case 'rendersOne':
-          if (!attribute.options.flatten) {
-            keys[setCase(attribute.options.as ?? attribute.name, walk.casing)] = null
-            return keys
-          }
-
-          return {
-            ...keys,
-            ...walkSerializers(
-              serializersForAssociatedClass(dreamClass, attribute.name, attribute.options),
-              walk
-            ),
-          }
-
-        default: {
-          // protection so that if a new ValidationType is ever added, this will throw a type error at build time
-          const _never: never = attributeType
-          throw new Error(`Unhandled serializer attribute type: ${_never as string}`)
-        }
-      }
-    }, flattenedKeys)
+    return mergeRequirements(flattenedKeys, walkSerializerBuilder(serializerBuilder, walk))
   }, {})
 }
 
-function nullFlattenedOpenapiKeys(
+function walkSerializerBuilder(
+  serializerBuilder: DreamSerializerBuilder<any, any>,
+  walk: NullFlattenedSerializerKeysWalk
+): KeyRequirements {
+  const dreamClass =
+    serializerBuilder instanceof DreamSerializerBuilder
+      ? (serializerBuilder['$typeForOpenapi'] as typeof Dream)
+      : null
+
+  return serializerBuilder['attributes'].reduce<KeyRequirements>((keys, attribute) => {
+    const attributeType = attribute.type
+    switch (attributeType) {
+      case 'attribute':
+      case 'delegatedAttribute':
+        return mergeRequirements(keys, {
+          [setCase(attribute.options?.as ?? attribute.name, walk.casing)]:
+            attribute.options?.required !== false,
+        })
+
+      case 'rendersMany':
+        return mergeRequirements(keys, {
+          [setCase(attribute.options?.as ?? attribute.name, walk.casing)]: true,
+        })
+
+      case 'customAttribute': {
+        if (!attribute.options.flatten)
+          return mergeRequirements(keys, {
+            [setCase(attribute.name, walk.casing)]: attribute.options.required !== false,
+          })
+
+        const flattenedKeys = walkOpenapi(attribute.options.openapi, walk)
+        // a callback that may return undefined with `required: false` adds none of its keys
+        if (attribute.options.required === false)
+          Object.keys(flattenedKeys).forEach(key => (flattenedKeys[key] = false))
+
+        return mergeRequirements(keys, flattenedKeys)
+      }
+
+      case 'rendersOne':
+        if (!attribute.options.flatten)
+          return mergeRequirements(keys, {
+            [setCase(attribute.options.as ?? attribute.name, walk.casing)]: true,
+          })
+
+        return mergeRequirements(
+          keys,
+          walkSerializers(serializersForAssociatedClass(dreamClass, attribute.name, attribute.options), walk)
+        )
+
+      default: {
+        // protection so that if a new ValidationType is ever added, this will throw a type error at build time
+        const _never: never = attributeType
+        throw new Error(`Unhandled serializer attribute type: ${_never as string}`)
+      }
+    }
+  }, {})
+}
+
+function walkOpenapi(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
   walk: NullFlattenedSerializerKeysWalk
-): Record<string, null> {
+): KeyRequirements {
   if (typeof openapi !== 'object' || Array.isArray(openapi)) return {}
 
   if ('$serializer' in openapi) {
@@ -139,12 +254,14 @@ function nullFlattenedOpenapiKeys(
     )
   }
 
-  const keys = Object.keys(('properties' in openapi && openapi.properties) || {}).reduce<
-    Record<string, null>
-  >((propertyKeys, key) => {
-    propertyKeys[setCase(key, walk.casing)] = null
-    return propertyKeys
-  }, {})
+  const requiredProperties = ('required' in openapi && openapi.required) || []
+  const keys = Object.keys(('properties' in openapi && openapi.properties) || {}).reduce<KeyRequirements>(
+    (propertyKeys, key) => {
+      propertyKeys[setCase(key, walk.casing)] = requiredProperties.includes(key)
+      return propertyKeys
+    },
+    {}
+  )
 
   const members = [
     ...(('allOf' in openapi && openapi.allOf) || []),
@@ -152,11 +269,8 @@ function nullFlattenedOpenapiKeys(
     ...(('oneOf' in openapi && openapi.oneOf) || []),
   ]
 
-  return members.reduce<Record<string, null>>(
-    (keys, member) => ({
-      ...keys,
-      ...nullFlattenedOpenapiKeys(member, walk),
-    }),
+  return members.reduce<KeyRequirements>(
+    (keys, member) => mergeRequirements(keys, walkOpenapi(member, walk)),
     keys
   )
 }

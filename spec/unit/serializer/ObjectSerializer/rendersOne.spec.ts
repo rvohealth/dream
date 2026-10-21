@@ -240,6 +240,191 @@ describe('ObjectSerializer#rendersOne', () => {
         })
       })
     })
+
+    context('flatten, when the associated object is present', () => {
+      interface Address {
+        city: string
+      }
+
+      interface Contact {
+        email: string
+        nickname?: string
+        details: unknown
+      }
+
+      interface PetWithContact {
+        species: string
+        city?: string
+        contact: Contact | null
+      }
+
+      const AddressSerializer = (address: Address) =>
+        ObjectSerializer(address).attribute('city', { openapi: 'string' })
+
+      const ContactSerializer = (contact: Contact) =>
+        ObjectSerializer(contact)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('details', () => contact.details, {
+            flatten: true,
+            openapi: {
+              anyOf: [
+                {
+                  type: 'object',
+                  properties: { phoneNumber: 'string', extension: 'string' },
+                  required: ['phoneNumber'],
+                },
+                { type: 'object', properties: { fax: 'string' } },
+                { $serializer: AddressSerializer },
+                { type: 'null' },
+              ],
+            },
+          })
+
+      const PetSerializer = (pet: PetWithContact) =>
+        ObjectSerializer(pet)
+          .attribute('species', { openapi: 'string' })
+          .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+
+      context('with a flattened customAttribute whose openapi is an anyOf', () => {
+        it('renders null for each key another member requires that the returned object does not have', () => {
+          // `city` is required by AddressSerializer; `fax` is optional in its member and stays absent
+          expect(
+            PetSerializer({
+              species: 'cat',
+              contact: { email: 'a@b.c', details: { phoneNumber: '555' } },
+            }).render()
+          ).toEqual({ species: 'cat', email: 'a@b.c', phoneNumber: '555', city: null })
+
+          // `phoneNumber` is required by its member; `extension` and `fax` are optional and stay absent
+          expect(
+            PetSerializer({ species: 'cat', contact: { email: 'a@b.c', details: { fax: '556' } } }).render()
+          ).toEqual({ species: 'cat', email: 'a@b.c', fax: '556', phoneNumber: null, city: null })
+        })
+
+        it('reads the declarations of a returned serializer as the rendered member', () => {
+          expect(
+            PetSerializer({
+              species: 'cat',
+              contact: { email: 'a@b.c', details: AddressSerializer({ city: 'Paris' }) },
+            }).render()
+          ).toEqual({ species: 'cat', email: 'a@b.c', phoneNumber: null, city: 'Paris' })
+        })
+
+        it('renders null for every key every member declares when the callback returns null, as when the association is null', () => {
+          expect(
+            PetSerializer({ species: 'cat', contact: { email: 'a@b.c', details: null } }).render()
+          ).toEqual({
+            species: 'cat',
+            email: 'a@b.c',
+            phoneNumber: null,
+            extension: null,
+            fax: null,
+            city: null,
+          })
+
+          expect(PetSerializer({ species: 'cat', contact: null }).render()).toEqual({
+            species: 'cat',
+            email: null,
+            phoneNumber: null,
+            extension: null,
+            fax: null,
+            city: null,
+          })
+        })
+
+        it('renders a key it fills over a key the parent declares earlier, and yields to one the parent declares later, as any flattened key does', () => {
+          const CityFirstSerializer = (pet: PetWithContact) =>
+            ObjectSerializer(pet)
+              .attribute('city', { openapi: 'string' })
+              .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+
+          const CityLastSerializer = (pet: PetWithContact) =>
+            ObjectSerializer(pet)
+              .rendersOne('contact', { serializer: ContactSerializer, flatten: true })
+              .attribute('city', { openapi: 'string' })
+
+          const pet = {
+            species: 'cat',
+            city: 'Rome',
+            contact: { email: 'a@b.c', details: { phoneNumber: '555' } },
+          }
+
+          expect(CityFirstSerializer(pet).render()).toEqual({
+            city: null,
+            email: 'a@b.c',
+            phoneNumber: '555',
+          })
+          expect(CityLastSerializer(pet).render()).toEqual({
+            email: 'a@b.c',
+            phoneNumber: '555',
+            city: 'Rome',
+          })
+        })
+      })
+
+      it('leaves out a key the rendered serializer omits for `required: false`', () => {
+        const OptionalContactSerializer = (contact: Contact) =>
+          ObjectSerializer(contact)
+            .attribute('email', { openapi: 'string' })
+            .attribute('nickname', { openapi: 'string', required: false })
+
+        const MySerializer = (pet: PetWithContact) =>
+          ObjectSerializer(pet).rendersOne('contact', {
+            serializer: OptionalContactSerializer,
+            flatten: true,
+          })
+
+        expect(MySerializer({ species: 'cat', contact: { email: 'a@b.c', details: null } }).render()).toEqual(
+          {
+            email: 'a@b.c',
+          }
+        )
+      })
+
+      it('leaves out a key of a flattened customAttribute’s single shape that its callback does not return', () => {
+        const PartialContactSerializer = (contact: Contact) =>
+          ObjectSerializer(contact).customAttribute('details', () => ({ phoneNumber: '555' }), {
+            flatten: true,
+            openapi: {
+              type: 'object',
+              properties: { phoneNumber: 'string', extension: 'string' },
+              required: ['phoneNumber', 'extension'],
+            },
+          })
+
+        const MySerializer = (pet: PetWithContact) =>
+          ObjectSerializer(pet).rendersOne('contact', { serializer: PartialContactSerializer, flatten: true })
+
+        expect(MySerializer({ species: 'cat', contact: { email: 'a@b.c', details: null } }).render()).toEqual(
+          {
+            phoneNumber: '555',
+          }
+        )
+      })
+
+      it('leaves out every key of a flattened customAttribute with `required: false` whose callback returns undefined', () => {
+        const OptionalDetailsSerializer = (contact: Contact) =>
+          ObjectSerializer(contact)
+            .attribute('email', { openapi: 'string' })
+            .customAttribute('details', () => undefined, {
+              flatten: true,
+              required: false,
+              openapi: { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
+            })
+
+        const MySerializer = (pet: PetWithContact) =>
+          ObjectSerializer(pet).rendersOne('contact', {
+            serializer: OptionalDetailsSerializer,
+            flatten: true,
+          })
+
+        expect(MySerializer({ species: 'cat', contact: { email: 'a@b.c', details: null } }).render()).toEqual(
+          {
+            email: 'a@b.c',
+          }
+        )
+      })
+    })
   })
 
   context('Dream model', () => {

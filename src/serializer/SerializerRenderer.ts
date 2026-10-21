@@ -19,7 +19,12 @@ import { DateTime } from '../utils/datetime/DateTime.js'
 import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
-import { nullFlattenedSerializerKeys } from './helpers/nullFlattenedSerializerKeys.js'
+import {
+  nullFlattenedOpenapiKeys,
+  nullFlattenedOpenapiKeysOfOtherVariants,
+  nullFlattenedSerializerKeys,
+  nullFlattenedSerializerKeysOfOtherVariants,
+} from './helpers/nullFlattenedSerializerKeys.js'
 import { serializersForAssociatedClass } from './helpers/serializersForAssociatedClass.js'
 
 export interface SerializerRendererOpts {
@@ -124,8 +129,21 @@ export default class SerializerRenderer {
           if (value === undefined && attribute.options?.required === false) return accumulator
 
           if (attribute.options.flatten) {
+            const flattenOptions = { casing: this.renderOpts.casing, passthroughData }
+
+            // a flattened customAttribute's keys are the parent's own keys: a callback that returns
+            // null or undefined renders each key its openapi declares as null, as a null flattened
+            // rendersOne does, and one that returns a value of one variant of its openapi renders
+            // as null each key another variant requires that the rendered one does not declare
+            if (value === null || value === undefined)
+              return {
+                ...accumulator,
+                ...nullFlattenedOpenapiKeys(attribute.options.openapi, flattenOptions),
+              }
+
             return {
               ...accumulator,
+              ...nullFlattenedOpenapiKeysOfOtherVariants(attribute.options.openapi, value, flattenOptions),
               ...applyRenderingOptionsToAttribute(
                 null,
                 value,
@@ -190,6 +208,20 @@ export default class SerializerRenderer {
           if (attribute.options.flatten) {
             return {
               ...accumulator,
+              // every payload carries the keys of every serializer the association may render with
+              // (each STI child, each polymorphic target), so each key another one requires that the
+              // rendered one does not declare renders as null
+              ...(serializer
+                ? nullFlattenedSerializerKeysOfOtherVariants(
+                    serializersForAssociatedClass(
+                      data instanceof Dream ? (data.constructor as typeof Dream) : null,
+                      attribute.name,
+                      attribute.options
+                    ),
+                    serializer,
+                    { casing: this.renderOpts.casing, passthroughData }
+                  )
+                : {}),
               // passthrough data must be passed both into the serializer and render
               // because, if the serializer does accept passthrough data, then passing it in is how
               // it gets into the serializer, but if it does not accept passthrough data, and therefore
