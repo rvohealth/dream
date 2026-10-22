@@ -115,18 +115,22 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
 }
 
 /**
- * As `nullFlattenedOpenapiKeysOfOtherVariants`, for the non-null `value` a flattened
- * `customAttribute`'s callback returned, from which the rendered variant is read. A serializer's
- * declarations are the rendered variant, so a `$serializable` ref to an STI base adds the keys of
- * every other child. A plain object returned for an `openapi` with several variants (the members
- * of an `anyOf` or `oneOf`, or one `$serializer` per child of a `$serializable` ref to an STI base,
- * a member with several variants of its own contributing each of them, and an `allOf` beside an
- * `anyOf` or `oneOf` joining each of its variants) renders the variant that declares every key the
- * object has; when several do, the first of them whose required keys the object all has, and when
- * none does, the keys it has. Its top-level keys render cased per `casing`, so they are compared
- * cased. Otherwise the `openapi` has one variant, the rendered one, and nothing is added.
+ * The keys a flattened `customAttribute` with this `openapi` adds to the parent's payload, each
+ * set to `null`, beside the non-null `value` its callback returned, from which the rendered
+ * variant is read. A serializer's declarations are the rendered variant, so a `$serializable` ref
+ * to an STI base adds the keys of every other child, as `nullFlattenedOpenapiKeysOfOtherVariants`
+ * reads them; the serializer renders each of its own keys. A plain object renders only the keys
+ * it has, so it adds each key the rendered variant requires that the object leaves out as well as
+ * each key another variant requires that the rendered one does not declare. An `openapi` with one
+ * variant is the rendered one. Of several variants (the members of an `anyOf` or `oneOf`, or one
+ * `$serializer` per child of a `$serializable` ref to an STI base, a member with several variants
+ * of its own contributing each of them, and an `allOf` beside an `anyOf` or `oneOf` joining each
+ * of its variants), the rendered one is the variant that declares every key the object has; when
+ * several do, the first of them whose required keys the object all has, and when none is found,
+ * the object adds each key any variant requires. The object's top-level keys render cased per
+ * `casing`, so they are compared cased, and a key it has is never added.
  */
-export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
+export function nullFlattenedOpenapiKeysForValue(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
   value: unknown,
   options: NullFlattenedSerializerKeysOptions = {}
@@ -137,25 +141,34 @@ export function nullFlattenedOpenapiKeysOfOtherVariantsForValue(
       Object.keys(walkSerializerBuilder(value as DreamSerializerBuilder<any, any>, newWalk(options)))
     )
 
-  const variants = openapiVariants(openapi)
-  if (variants.length < 2 || typeof value !== 'object' || value === null) return {}
+  if (typeof value !== 'object' || value === null) return {}
 
   const { casing } = newWalk(options)
   const valueKeys = Object.keys(value).map(key => setCase(key, casing))
+  const variants = openapiVariants(openapi)
   const candidates = variants
     .map(variant => ({ variant, requirements: walkOpenapi(variant, newWalk(options)) }))
     .filter(({ requirements }) =>
       valueKeys.every(key => Object.prototype.hasOwnProperty.call(requirements, key))
     )
   const renderedVariant =
-    candidates.length === 1
-      ? candidates[0]!.variant
-      : candidates.find(({ requirements }) =>
-          Object.keys(requirements).every(key => !requirements[key] || valueKeys.includes(key))
-        )?.variant
+    variants.length < 2
+      ? openapi
+      : candidates.length === 1
+        ? candidates[0]!.variant
+        : candidates.find(({ requirements }) =>
+            Object.keys(requirements).every(key => !requirements[key] || valueKeys.includes(key))
+          )?.variant
 
-  if (renderedVariant) return nullFlattenedOpenapiKeysOfOtherVariants(openapi, renderedVariant, options)
-  return nullKeysRequiredByOthers(walkOpenapi(openapi, newWalk(options)), valueKeys)
+  const requiredKeys = renderedVariant
+    ? {
+        ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, renderedVariant, options),
+        ...nullFlattenedOpenapiKeys(renderedVariant, options),
+      }
+    : nullFlattenedOpenapiKeys(openapi, options)
+
+  valueKeys.forEach(key => delete requiredKeys[key])
+  return requiredKeys
 }
 
 /**

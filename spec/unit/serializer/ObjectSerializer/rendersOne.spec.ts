@@ -404,7 +404,7 @@ describe('ObjectSerializer#rendersOne', () => {
         )
       })
 
-      it('leaves out a key of a flattened customAttribute’s single shape that its callback does not return', () => {
+      it('renders as null a key a flattened customAttribute’s single shape requires that its callback leaves out', () => {
         const PartialContactSerializer = (contact: Contact) =>
           ObjectSerializer(contact).customAttribute('details', () => ({ phoneNumber: '555' }), {
             flatten: true,
@@ -421,6 +421,7 @@ describe('ObjectSerializer#rendersOne', () => {
         expect(MySerializer({ species: 'cat', contact: { email: 'a@b.c', details: null } }).render()).toEqual(
           {
             phoneNumber: '555',
+            extension: null,
           }
         )
       })

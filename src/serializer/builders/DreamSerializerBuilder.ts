@@ -264,9 +264,11 @@ export default class DreamSerializerBuilder<
    *     array, a key a `$serializer` or `$serializable` ref's serializer declares without
    *     `required: false`, and each such key of an `allOf`, `anyOf` or `oneOf` member. Its
    *     optional keys stay absent, and an `undefined` return with `required: false` adds no keys.
-   *     When the `openapi` is an `anyOf` or `oneOf`, or a `$serializable` ref to an STI base, a
-   *     present value also renders as `null` each key another variant requires that the rendered
-   *     one does not declare, so a client sees the same keys whichever variant is rendered.
+   *     A returned plain object also renders as `null` each key its shape requires that it
+   *     leaves out, and its optional keys it leaves out stay absent. When the `openapi` is an
+   *     `anyOf` or `oneOf`, or a `$serializable` ref to an STI base, a present value also renders
+   *     as `null` each key another variant requires that the rendered one does not declare, so a
+   *     client sees the same keys whichever variant is rendered.
    *     Every key it adds follows the render's casing like the parent's own keys: a returned
    *     plain object's top-level keys and the `openapi`'s `properties` keys are cased (so
    *     `casing: 'snake'` renders `phoneNumber` as `phone_number`, present or `null`), while

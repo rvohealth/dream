@@ -21,7 +21,7 @@ import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import {
   nullFlattenedOpenapiKeys,
-  nullFlattenedOpenapiKeysOfOtherVariantsForValue,
+  nullFlattenedOpenapiKeysForValue,
   nullFlattenedSerializerKeys,
   nullFlattenedSerializerKeysOfOtherVariants,
 } from './helpers/nullFlattenedSerializerKeys.js'
@@ -135,7 +135,8 @@ export default class SerializerRenderer {
             // callback that returns null or undefined, or a serializer built over null or undefined
             // data (which renders null), renders each key its openapi requires as null, as a null
             // flattened rendersOne does, and one that returns a value of one variant of its openapi
-            // renders as null each key another variant requires that the rendered one does not declare
+            // renders as null each key another variant requires that the rendered one does not
+            // declare, and each key the rendered one requires that a returned plain object leaves out
             const valueIsSerializerBuilder =
               value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder
             const valueRendersNull =
@@ -161,11 +162,7 @@ export default class SerializerRenderer {
 
             return {
               ...accumulator,
-              ...nullFlattenedOpenapiKeysOfOtherVariantsForValue(
-                attribute.options.openapi,
-                value,
-                flattenOptions
-              ),
+              ...nullFlattenedOpenapiKeysForValue(attribute.options.openapi, value, flattenOptions),
               // a returned serializer renders its keys in the render's casing; a returned plain
               // object's top-level keys are cased here, its nested values left as returned
               ...(valueIsSerializerBuilder ? renderedValue : this.setCaseOfKeys(renderedValue)),
