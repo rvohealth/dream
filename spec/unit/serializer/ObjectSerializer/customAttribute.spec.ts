@@ -1,6 +1,11 @@
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
+import { nullFlattenedOpenapiKeysOfOtherVariants } from '../../../../src/serializer/helpers/nullFlattenedSerializerKeys.js'
+import { OpenapiSchemaBodyShorthand } from '../../../../src/types/openapi.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import Balloon from '../../../../test-app/app/models/Balloon.js'
+import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
+import LatexSerializer from '../../../../test-app/app/serializers/Balloon/LatexSerializer.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
@@ -123,7 +128,7 @@ describe('ObjectSerializer#customAttribute', () => {
       })
     })
 
-    it('adds no keys for a callback that returns null or undefined', () => {
+    it('renders no key its openapi leaves optional when the callback returns null or undefined', () => {
       const openapi = {
         type: 'object',
         properties: { lat: { type: 'number' }, lng: { type: 'number' } },
@@ -136,6 +141,438 @@ describe('ObjectSerializer#customAttribute', () => {
           .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
 
       expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({ email: 'abc' })
+    })
+
+    it('renders null for each key its openapi `required` array lists when the callback returns null or undefined, leaving the others absent', () => {
+      const openapi = {
+        type: 'object' as const,
+        properties: {
+          lat: { type: 'number' as const },
+          lng: { type: 'number' as const },
+          altitude: { type: 'number' as const },
+        },
+        required: ['lat', 'lng'],
+      }
+
+      const NullSerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('coordinates', () => null, { flatten: true, openapi })
+      const UndefinedSerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('coordinates', () => undefined, { flatten: true, openapi })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(NullSerializer(user).render()).toEqual({ email: 'abc', lat: null, lng: null })
+      expect(UndefinedSerializer(user).render()).toEqual({ email: 'abc', lat: null, lng: null })
+    })
+
+    it('renders null for the keys a $serializer ref’s serializer requires when the callback returns null, leaving out its `required: false` keys', () => {
+      const AddressSerializer = (address: { city: string; zip?: string }) =>
+        ObjectSerializer(address)
+          .attribute('city', { openapi: 'string' })
+          .attribute('zip', { openapi: 'string', required: false })
+
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('address', () => null, {
+            flatten: true,
+            openapi: { $serializer: AddressSerializer },
+          })
+
+      expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({ email: 'abc', city: null })
+    })
+
+    it('cases the top-level keys of a returned plain object per the render’s casing, leaving nested values as returned', () => {
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('location', () => ({ homeAddress: { streetName: 'Main' } }), {
+            flatten: true,
+            openapi: {
+              type: 'object',
+              properties: {
+                homeAddress: { type: 'object', properties: { streetName: 'string' } },
+              },
+              required: ['homeAddress'],
+            },
+          })
+
+      expect(MySerializer({ email: 'abc', password: '123' }).render({}, { casing: 'snake' })).toEqual({
+        email: 'abc',
+        home_address: { streetName: 'Main' },
+      })
+    })
+
+    it('cases its keys per the render’s casing, whether the value is present or null', () => {
+      const MySerializer = (user: User, details: { phoneNumber: string } | { faxNumber: string } | null) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('details', () => details, {
+            flatten: true,
+            openapi: {
+              anyOf: [
+                { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
+                { type: 'object', properties: { faxNumber: 'string' }, required: ['faxNumber'] },
+              ],
+            },
+          })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(MySerializer(user, { phoneNumber: '1' }).render({}, { casing: 'snake' })).toEqual({
+        email: 'abc',
+        phone_number: '1',
+        fax_number: null,
+      })
+      expect(MySerializer(user, null).render({}, { casing: 'snake' })).toEqual({
+        email: 'abc',
+        phone_number: null,
+        fax_number: null,
+      })
+    })
+
+    it('renders null for the keys an anyOf member’s serializer requires whichever order the members are declared in, when another member flattens that serializer with `required: false`', () => {
+      interface Keyed {
+        optionalPathKey?: string
+        sharedKey?: string
+        renderedKey?: string
+      }
+
+      const SharedSerializer = (data: Keyed) =>
+        ObjectSerializer(data).attribute('sharedKey', { openapi: 'string' })
+      const RenderedSerializer = (data: Keyed) =>
+        ObjectSerializer(data).attribute('renderedKey', { openapi: 'string' })
+      const OptionalPathSerializer = (data: Keyed) =>
+        ObjectSerializer(data)
+          .attribute('optionalPathKey', { openapi: 'string' })
+          .customAttribute('shared', () => undefined, {
+            flatten: true,
+            required: false,
+            openapi: { $serializer: SharedSerializer },
+          })
+
+      const optionalPathFirst: OpenapiSchemaBodyShorthand = {
+        anyOf: [
+          { $serializer: OptionalPathSerializer },
+          { $serializer: SharedSerializer },
+          { $serializer: RenderedSerializer },
+        ],
+      }
+      const sharedFirst: OpenapiSchemaBodyShorthand = {
+        anyOf: [
+          { $serializer: SharedSerializer },
+          { $serializer: OptionalPathSerializer },
+          { $serializer: RenderedSerializer },
+        ],
+      }
+
+      ;[optionalPathFirst, sharedFirst].forEach(openapi => {
+        const PresentSerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('details', () => RenderedSerializer({ renderedKey: 'x' }), {
+            flatten: true,
+            openapi,
+          })
+        const NullSerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('details', () => null, { flatten: true, openapi })
+
+        expect(PresentSerializer({ email: 'abc', password: '123' }).render()).toEqual({
+          optionalPathKey: null,
+          sharedKey: null,
+          renderedKey: 'x',
+        })
+        expect(NullSerializer({ email: 'abc', password: '123' }).render()).toEqual({
+          optionalPathKey: null,
+          sharedKey: null,
+          renderedKey: null,
+        })
+      })
+    })
+
+    it('renders null for the keys an object allOf member lists in its own `required` array when another member renders', () => {
+      const MySerializer = (user: User, details: { faxNumber: string } | null) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('details', () => details, {
+            flatten: true,
+            openapi: {
+              anyOf: [
+                {
+                  type: 'object',
+                  required: ['kind', 'phoneNumber'],
+                  allOf: [{ type: 'object', properties: { kind: 'string', phoneNumber: 'string' } }],
+                },
+                { type: 'object', properties: { faxNumber: 'string' }, required: ['faxNumber'] },
+              ],
+            },
+          })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(MySerializer(user, { faxNumber: '9' }).render()).toEqual({
+        email: 'abc',
+        kind: null,
+        phoneNumber: null,
+        faxNumber: '9',
+      })
+      expect(MySerializer(user, null).render()).toEqual({
+        email: 'abc',
+        kind: null,
+        phoneNumber: null,
+        faxNumber: null,
+      })
+    })
+
+    it('renders a returned serializer built over null data as the callback returning null renders', () => {
+      interface Address {
+        city: string
+      }
+
+      const AddressSerializer = (address: Address | null) =>
+        ObjectSerializer(address).attribute('city', { openapi: 'string' })
+
+      const WrappedSerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('address', () => AddressSerializer(null), {
+            flatten: true,
+            openapi: { $serializer: AddressSerializer },
+          })
+      const NullSerializer = (user: User) =>
+        ObjectSerializer(user)
+          .attribute('email', { openapi: 'string' })
+          .customAttribute('address', () => null, {
+            flatten: true,
+            openapi: { $serializer: AddressSerializer },
+          })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(WrappedSerializer(user).render()).toEqual({ email: 'abc', city: null })
+      expect(WrappedSerializer(user).render()).toEqual(NullSerializer(user).render())
+    })
+
+    it('renders a returned anyOf member’s serializer built over null data as the callback returning null renders', () => {
+      const ReturnedMemberSerializer = (data: { returnedKey: string } | null) =>
+        ObjectSerializer(data).attribute('returnedKey', { openapi: 'string' })
+      const OtherMemberSerializer = (data: { otherKey: string } | null) =>
+        ObjectSerializer(data).attribute('otherKey', { openapi: 'string' })
+
+      const openapi: OpenapiSchemaBodyShorthand = {
+        anyOf: [
+          { $serializer: ReturnedMemberSerializer },
+          { $serializer: OtherMemberSerializer },
+          { type: 'null' },
+        ],
+      }
+
+      const WrappedSerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('details', () => ReturnedMemberSerializer(null), {
+          flatten: true,
+          openapi,
+        })
+      const NullSerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('details', () => null, { flatten: true, openapi })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(WrappedSerializer(user).render()).toEqual({ returnedKey: null, otherKey: null })
+      expect(WrappedSerializer(user).render()).toEqual(NullSerializer(user).render())
+    })
+
+    it('renders a plain object several oneOf members declare as the member whose required keys it has, whichever order they are declared in, leaving that member’s optional keys absent', () => {
+      const renderedMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { kind: 'string', a: 'string' },
+        required: ['kind'],
+      }
+      const otherMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { kind: 'string', a: 'string', b: 'string' },
+        required: ['kind', 'a', 'b'],
+      }
+
+      ;[{ oneOf: [renderedMember, otherMember] }, { oneOf: [otherMember, renderedMember] }].forEach(
+        openapi => {
+          const MySerializer = (user: User) =>
+            ObjectSerializer(user).customAttribute('details', () => ({ kind: 'one' }), {
+              flatten: true,
+              openapi,
+            })
+
+          const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+          expect(rendered).toEqual({ kind: 'one', b: null })
+          expect(rendered).toEqual({
+            ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, renderedMember),
+            kind: 'one',
+          })
+        }
+      )
+    })
+
+    it('renders null for the keys another STI child requires beside a plain object returned for a $serializable ref, as beside the child’s serializer', () => {
+      const latex = Latex.new({ color: 'red' })
+
+      const PlainSerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('balloon', () => LatexSerializer(latex).render(), {
+          flatten: true,
+          openapi: { $serializable: Balloon },
+        })
+      const WrappedSerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('balloon', () => LatexSerializer(latex), {
+          flatten: true,
+          openapi: { $serializable: Balloon },
+        })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(PlainSerializer(user).render()).toEqual({ color: 'red', mylarOnlyProperty: null })
+      expect(PlainSerializer(user).render()).toEqual(WrappedSerializer(user).render())
+      expect(PlainSerializer(user).render()).toEqual({
+        ...nullFlattenedOpenapiKeysOfOtherVariants(
+          { $serializable: Balloon },
+          { $serializer: LatexSerializer }
+        ),
+        color: 'red',
+      })
+    })
+
+    it('renders null for the keys another STI child requires beside a plain object returned for a $serializable ref that is an anyOf member, as beside the child’s serializer', () => {
+      const latex = Latex.new({ color: 'red' })
+      const openapi: OpenapiSchemaBodyShorthand = { anyOf: [{ $serializable: Balloon }, { type: 'null' }] }
+
+      const PlainSerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('balloon', () => LatexSerializer(latex).render(), {
+          flatten: true,
+          openapi,
+        })
+      const WrappedSerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('balloon', () => LatexSerializer(latex), {
+          flatten: true,
+          openapi,
+        })
+
+      const user: User = { email: 'abc', password: '123' }
+
+      expect(PlainSerializer(user).render()).toEqual({ color: 'red', mylarOnlyProperty: null })
+      expect(PlainSerializer(user).render()).toEqual(WrappedSerializer(user).render())
+      expect(PlainSerializer(user).render()).toEqual({
+        ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, { $serializer: LatexSerializer }),
+        color: 'red',
+      })
+    })
+
+    it('renders null for the keys every other member of a nested anyOf requires beside a plain object one of its members declares', () => {
+      const renderedMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { aKey: 'string' },
+        required: ['aKey'],
+      }
+      const openapi: OpenapiSchemaBodyShorthand = {
+        anyOf: [
+          {
+            anyOf: [renderedMember, { type: 'object', properties: { bKey: 'string' }, required: ['bKey'] }],
+          },
+          { type: 'object', properties: { cKey: 'string' }, required: ['cKey'] },
+        ],
+      }
+
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('details', () => ({ aKey: '1' }), {
+          flatten: true,
+          openapi,
+        })
+
+      const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+      expect(rendered).toEqual({ aKey: '1', bKey: null, cKey: null })
+      expect(rendered).toEqual({
+        ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, renderedMember),
+        aKey: '1',
+      })
+    })
+
+    it('renders a plain object a nested anyOf or oneOf member declares together with the allOf beside it as that member, leaving its optional keys absent', () => {
+      const base: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { common: 'string' },
+        required: ['common'],
+      }
+      const renderedMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { aKey: 'string', x: 'string' },
+        required: ['aKey'],
+      }
+      const otherMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { bKey: 'string' },
+        required: ['bKey'],
+      }
+      const outerMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { cKey: 'string', x: 'string' },
+        required: ['cKey', 'x'],
+      }
+
+      const openapis = [
+        { anyOf: [{ allOf: [base], anyOf: [renderedMember, otherMember] }, outerMember] },
+        { oneOf: [{ allOf: [base], oneOf: [renderedMember, otherMember] }, outerMember] },
+      ]
+      openapis.forEach(openapi => {
+        const MySerializer = (user: User) =>
+          ObjectSerializer(user).customAttribute('details', () => ({ common: 'c', aKey: '1' }), {
+            flatten: true,
+            openapi,
+          })
+
+        const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+        expect(rendered).toEqual({ common: 'c', aKey: '1', bKey: null, cKey: null })
+        expect(rendered).toEqual({
+          ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, { allOf: [base, renderedMember] }),
+          common: 'c',
+          aKey: '1',
+        })
+      })
+    })
+
+    it('renders a plain object an anyOf member declares together with the allOf beside the anyOf as that member, leaving its optional keys absent', () => {
+      const base: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { common: 'string' },
+        required: ['common'],
+      }
+      const renderedMember: OpenapiSchemaBodyShorthand = {
+        type: 'object',
+        properties: { aKey: 'string', x: 'string' },
+        required: ['aKey'],
+      }
+      const openapi = {
+        allOf: [base],
+        anyOf: [
+          renderedMember,
+          { type: 'object', properties: { bKey: 'string', x: 'string' }, required: ['bKey', 'x'] },
+        ],
+      }
+
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute('details', () => ({ common: 'c', aKey: '1' }), {
+          flatten: true,
+          openapi,
+        })
+
+      const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+      expect(rendered).toEqual({ common: 'c', aKey: '1', bKey: null })
+      expect(rendered).toEqual({
+        ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, { allOf: [base, renderedMember] }),
+        common: 'c',
+        aKey: '1',
+      })
     })
   })
 

@@ -258,8 +258,21 @@ export default class DreamSerializerBuilder<
    *     property bodies (`type: 'object'`, `properties`, and `required` listing the keys that
    *     are always present), or `{ $serializer: SomeSerializer }` when the callback returns
    *     what that serializer renders. A serializer ref with `many: true` does not type-check
-   *     here, since a list has no properties to spread. A `null` or `undefined` return adds no
-   *     keys. Attributes render in declaration order, so a key the returned object shares with
+   *     here, since a list has no properties to spread. A `null` return, a serializer built over
+   *     `null` or `undefined` data, or an `undefined` return without `required: false` renders as
+   *     `null` each key the `openapi` requires: a key an object shape lists in its `required`
+   *     array, a key a `$serializer` or `$serializable` ref's serializer declares without
+   *     `required: false`, and each such key of an `allOf`, `anyOf` or `oneOf` member. Its
+   *     optional keys stay absent, and an `undefined` return with `required: false` adds no keys.
+   *     A returned plain object also renders as `null` each key its shape requires that it
+   *     leaves out, and its optional keys it leaves out stay absent. When the `openapi` is an
+   *     `anyOf` or `oneOf`, or a `$serializable` ref to an STI base, a present value also renders
+   *     as `null` each key another variant requires that the rendered one does not declare, so a
+   *     client sees the same keys whichever variant is rendered.
+   *     Every key it adds follows the render's casing like the parent's own keys: a returned
+   *     plain object's top-level keys and the `openapi`'s `properties` keys are cased (so
+   *     `casing: 'snake'` renders `phoneNumber` as `phone_number`, present or `null`), while
+   *     nested values render as returned. Attributes render in declaration order, so a key the returned object shares with
    *     another attribute takes the value of whichever is declared later; under the `allOf`,
    *     that value must match both schemas
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
@@ -314,14 +327,23 @@ export default class DreamSerializerBuilder<
    *     declaration order, so when the parent and the association share a key (e.g., `id`),
    *     whichever is declared later wins: the association's value replaces an attribute declared
    *     before the `rendersOne`, and an attribute declared after it replaces the association's.
-   *     When the association is `null`, every key its serializer declares renders as `null`
-   *     (for a polymorphic `BelongsTo`, every key the serializer of any of its target classes
-   *     declares, and for an association to an STI base, every key the serializer of any of its
-   *     STI children declares), in the same order (so an `id` declared before the `rendersOne` becomes
-   *     `null`); nothing in that serializer is rendered, so its custom attribute callbacks do
-   *     not run, and a flattened `customAttribute` in it adds no keys. Psychic adds the association's OpenAPI
-   *     schema to the parent's as an `allOf` branch, so a shared key's value must match both
-   *     schemas, whichever declaration wins
+   *     When the association is `null`, each key its serializer requires renders as `null`: an
+   *     attribute, delegatedAttribute or customAttribute declared without `required: false`, and
+   *     every non-flattened `rendersOne` and `rendersMany` (for a polymorphic `BelongsTo`, each
+   *     key the serializer of any of its target classes requires, and for an association to an
+   *     STI base, each key the serializer of any of its STI children requires), in the same order
+   *     (so an `id` declared before the `rendersOne` becomes `null`), while a key declared with
+   *     `required: false` stays absent. A flattened `customAttribute` in that serializer adds the
+   *     keys its `openapi` requires: a key an object shape lists in its `required` array, a key a
+   *     `$serializer` or `$serializable` ref's serializer declares without `required: false`, and
+   *     each such key of an `allOf`, `anyOf` or `oneOf` member; a ref with `many: true` adds none,
+   *     and a flattened `customAttribute` declared with `required: false` adds none. Nothing in
+   *     that serializer is rendered, so its custom attribute callbacks do not run. When the
+   *     association to an STI base or polymorphic `BelongsTo` is present, each key another STI
+   *     child's or target's serializer requires that the held one's serializer does not declare
+   *     also renders as `null`, so a client sees the same keys whichever is held. Psychic adds
+   *     the association's OpenAPI schema to the parent's as an `allOf` branch, so a shared key's
+   *     value must match both schemas, whichever declaration wins
    *   - `optional` - When `true`, allows the association to be null/missing without causing
    *     an `OpenapiResponseValidationFailure` during Psychic controller unit specs. By default,
    *     `rendersOne` expects the association to be present (mirroring the `optional` option on
@@ -407,8 +429,8 @@ export default class DreamSerializerBuilder<
        * If `true`, the rendered association's attributes are merged directly into
        * the parent object instead of being nested under the association key. A key
        * the parent shares with the association takes the value of whichever is
-       * declared later, and when the association is `null`, every key its serializer
-       * declares renders as `null`. See the `flatten` option of `rendersOne`.
+       * declared later, and when the association is `null`, each key its serializer
+       * requires renders as `null`. See the `flatten` option of `rendersOne`.
        */
       flatten?: boolean
 

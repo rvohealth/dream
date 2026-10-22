@@ -5,6 +5,8 @@ import Balloon from '../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import Collar from '../../../../test-app/app/models/Collar.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
+import PolymorphicTask from '../../../../test-app/app/models/Polymorphic/Task.js'
+import Workout from '../../../../test-app/app/models/Polymorphic/Workout.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserViewModel from '../../../../test-app/app/view-models/UserViewModel.js'
 
@@ -351,7 +353,11 @@ describe('DreamSerializer#rendersOne', () => {
             .customAttribute('nameLength', () => user.name!.length, { openapi: 'integer' })
             .customAttribute('nameParts', () => ({ firstName: user.name!.split(' ')[0] }), {
               flatten: true,
-              openapi: { type: 'object', properties: { firstName: { type: 'string' } } },
+              openapi: {
+                type: 'object',
+                properties: { firstName: { type: 'string' } },
+                required: ['firstName'],
+              },
             })
             .delegatedAttribute('userSettings', 'likesChalupas')
             .rendersOne('featuredPost')
@@ -368,6 +374,7 @@ describe('DreamSerializer#rendersOne', () => {
           id: null,
           favoriteWord: null,
           nameLength: null,
+          firstName: null,
           likesChalupas: null,
           featuredPost: null,
           posts: null,
@@ -425,6 +432,38 @@ describe('DreamSerializer#rendersOne', () => {
           heartRatings: null,
           mylarOnlyProperty: null,
           balloonLine: null,
+        })
+      })
+    })
+
+    context('when the associated model is present', () => {
+      it('renders null for every key another STI child’s serializer declares that the rendered one does not', () => {
+        const collar = Collar.new({ tagName: 'Spot', balloon: Latex.new({ color: null }) })
+
+        const MySerializer = (data: Collar) =>
+          DreamSerializer(Collar, data).attribute('tagName').rendersOne('balloon', { flatten: true })
+
+        // Latex's default serializer renders `color` (here null, which stays as rendered), and only
+        // Mylar's renders `mylarOnlyProperty`
+        expect(MySerializer(collar).render()).toEqual({
+          tagName: 'Spot',
+          color: null,
+          mylarOnlyProperty: null,
+        })
+      })
+
+      it('renders null for every key another polymorphic target’s serializer declares that the rendered one does not', () => {
+        const task = PolymorphicTask.new({ taskable: Workout.new({ name: 'run', workoutType: null }) })
+
+        const MySerializer = (data: PolymorphicTask) =>
+          DreamSerializer(PolymorphicTask, data).rendersOne('taskable', { flatten: true })
+
+        // Workout's serializer renders `name` and `workoutType`; only Chore's renders
+        // `cleaningSupplies`
+        expect(MySerializer(task).render()).toEqual({
+          name: 'run',
+          workoutType: null,
+          cleaningSupplies: null,
         })
       })
     })

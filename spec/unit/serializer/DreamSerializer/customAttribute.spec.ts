@@ -215,7 +215,7 @@ describe('DreamSerializer#customAttribute', () => {
       expect(MySerializer(pet).render()).toEqual({ species: 'dog', lat: 40.7, lng: -74.0 })
     })
 
-    it('adds no keys for a callback that returns null or undefined', () => {
+    it('renders no key its openapi leaves optional when the callback returns null or undefined', () => {
       const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
       const openapi = {
         type: 'object',
@@ -229,6 +229,31 @@ describe('DreamSerializer#customAttribute', () => {
           .customAttribute('undefinedCoordinates', () => undefined, { flatten: true, openapi })
 
       expect(MySerializer(pet).render()).toEqual({ species: 'dog' })
+    })
+
+    it('renders null for each key its openapi `required` array lists when the callback returns null or undefined, leaving the others absent', () => {
+      const pet = Pet.new({ id: '3', name: 'Snoopy', species: 'dog' })
+      const openapi = {
+        type: 'object' as const,
+        properties: {
+          lat: { type: 'number' as const },
+          lng: { type: 'number' as const },
+          altitude: { type: 'number' as const },
+        },
+        required: ['lat', 'lng'],
+      }
+
+      const NullSerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute('coordinates', () => null, { flatten: true, openapi })
+      const UndefinedSerializer = (data: Pet) =>
+        DreamSerializer(Pet, data)
+          .attribute('species')
+          .customAttribute('coordinates', () => undefined, { flatten: true, openapi })
+
+      expect(NullSerializer(pet).render()).toEqual({ species: 'dog', lat: null, lng: null })
+      expect(UndefinedSerializer(pet).render()).toEqual({ species: 'dog', lat: null, lng: null })
     })
 
     context('when optional and flatten', () => {
