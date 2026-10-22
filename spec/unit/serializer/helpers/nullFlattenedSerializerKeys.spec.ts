@@ -395,8 +395,15 @@ describe('nullFlattenedOpenapiKeysForValue', () => {
   })
 
   it('reads a plain object as the one member declaring every key it has, so that member’s omitted optional keys stay absent', () => {
-    // `extension` is optional in the phone member and required in the fax member; a phone-shaped
-    // value without it renders the phone member, which declares it, so it is not filled
+    // this returns only the keys to add as null beside the object, never a key the object has; the
+    // renderer spreads this result and then the object, so the render is
+    // { fax: null, phoneNumber: '555' }:
+    //   1. the phone member is the only one declaring every key the object has (`phoneNumber`),
+    //      so it is the rendered member
+    //   2. the rendered member's own required keys add nothing: its only one, `phoneNumber`, is
+    //      in the object
+    //   3. the fax member requires `fax` and `extension`; the phone member does not declare `fax`,
+    //      so it is added as null, but it declares `extension` (as optional), so that is not added
     expect(
       nullFlattenedOpenapiKeysForValue(
         {
