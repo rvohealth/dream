@@ -145,7 +145,7 @@ export function nullFlattenedOpenapiKeysForValue(
 
   const { casing } = newWalk(options)
   const valueKeys = Object.keys(value).map(key => setCase(key, casing))
-  const variants = openapiVariants(openapi)
+  const variants = flattenedOpenapiVariants(openapi)
   const candidates = variants
     .map(variant => ({ variant, requirements: walkOpenapi(variant, newWalk(options)) }))
     .filter(({ requirements }) =>
@@ -177,9 +177,11 @@ export function nullFlattenedOpenapiKeysForValue(
  * `anyOf` or `oneOf`, each member that itself has several variants (a nested `anyOf` or `oneOf`,
  * or a `$serializable` ref to an STI base) contributing those variants in its place. An `allOf`
  * beside the `anyOf` or `oneOf` describes every value, so each variant is that `allOf` with the
- * variant added to its members.
+ * variant added to its members. Anything else (a single shape, a ref with `many: true`, or a
+ * primitive) has no variants and returns an empty list. Each variant may be passed back as the
+ * `renderedVariant` of `nullFlattenedOpenapiKeysOfOtherVariants`.
  */
-function openapiVariants(
+export function flattenedOpenapiVariants(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
 ): OpenapiSchemaBodyShorthand[] {
   if (typeof openapi !== 'object' || Array.isArray(openapi)) return []
@@ -196,7 +198,7 @@ function openapiVariants(
     ...(('anyOf' in openapi && openapi.anyOf) || []),
     ...(('oneOf' in openapi && openapi.oneOf) || []),
   ].flatMap(member => {
-    const memberVariants = openapiVariants(member)
+    const memberVariants = flattenedOpenapiVariants(member)
     return memberVariants.length > 1 ? memberVariants : [member]
   })
 

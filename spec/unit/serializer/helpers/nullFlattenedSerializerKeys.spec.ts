@@ -1,6 +1,7 @@
 import DreamApp from '../../../../src/dream-app/index.js'
 import ObjectSerializer from '../../../../src/serializer/ObjectSerializer.js'
 import {
+  flattenedOpenapiVariants,
   nullFlattenedOpenapiKeys,
   nullFlattenedOpenapiKeysOfOtherVariants,
   nullFlattenedOpenapiKeysForValue,
@@ -423,5 +424,37 @@ describe('nullFlattenedOpenapiKeysForValue', () => {
         { phoneNumber: '555' }
       )
     ).toEqual({ fax: null })
+  })
+})
+
+describe('flattenedOpenapiVariants', () => {
+  it('is reachable through DreamApp.system', () => {
+    expect(DreamApp.system.flattenedOpenapiVariants).toBe(flattenedOpenapiVariants)
+  })
+
+  it('returns a $serializer ref to each child a $serializable ref to an STI base resolves to', () => {
+    expect(flattenedOpenapiVariants({ $serializable: Balloon })).toEqual(
+      expect.arrayContaining([{ $serializer: LatexSerializer }])
+    )
+    expect(flattenedOpenapiVariants({ $serializable: Balloon }).length).toBeGreaterThan(1)
+  })
+
+  it('returns the members of an anyOf or oneOf, a member with several variants contributing them in its place, each joined with the allOf beside it', () => {
+    const shared: OpenapiSchemaBodyShorthand = { type: 'object', properties: { id: 'string' } }
+    const phone: OpenapiSchemaBodyShorthand = { type: 'object', properties: { phoneNumber: 'string' } }
+    const fax: OpenapiSchemaBodyShorthand = { type: 'object', properties: { fax: 'string' } }
+    const email: OpenapiSchemaBodyShorthand = { type: 'object', properties: { email: 'string' } }
+
+    expect(flattenedOpenapiVariants({ allOf: [shared], anyOf: [phone, { oneOf: [fax, email] }] })).toEqual([
+      { allOf: [shared, phone] },
+      { allOf: [shared, fax] },
+      { allOf: [shared, email] },
+    ])
+  })
+
+  it('returns no variants for a single shape, a ref with `many: true`, or a primitive', () => {
+    expect(flattenedOpenapiVariants({ type: 'object', properties: { a: 'string' } })).toEqual([])
+    expect(flattenedOpenapiVariants({ $serializable: Balloon, many: true })).toEqual([])
+    expect(flattenedOpenapiVariants('string')).toEqual([])
   })
 })
