@@ -452,6 +452,27 @@ describe('DreamSerializer#rendersOne', () => {
         })
       })
 
+      it('renders null for a key the rendered STI child’s serializer declares with `required: false` that another child’s serializer requires', () => {
+        const LatexWithOptionalMylarKeySerializer = (data: Latex) =>
+          DreamSerializer(Latex, data)
+            .attribute('color')
+            .customAttribute('mylarOnlyProperty', () => undefined, { openapi: 'string', required: false })
+        vi.spyOn(Latex.prototype, 'serializers', 'get').mockReturnValue({
+          default: LatexWithOptionalMylarKeySerializer,
+        } as unknown as Latex['serializers'])
+
+        const collar = Collar.new({ tagName: 'Spot', balloon: Latex.new({ color: 'red' }) })
+
+        const MySerializer = (data: Collar) =>
+          DreamSerializer(Collar, data).attribute('tagName').rendersOne('balloon', { flatten: true })
+
+        expect(MySerializer(collar).render()).toEqual({
+          tagName: 'Spot',
+          color: 'red',
+          mylarOnlyProperty: null,
+        })
+      })
+
       it('renders null for every key another polymorphic target’s serializer declares that the rendered one does not', () => {
         const task = PolymorphicTask.new({ taskable: Workout.new({ name: 'run', workoutType: null }) })
 

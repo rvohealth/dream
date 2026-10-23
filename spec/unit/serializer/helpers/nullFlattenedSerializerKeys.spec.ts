@@ -4,14 +4,12 @@ import {
   flattenedOpenapiVariants,
   nullFlattenedOpenapiKeys,
   nullFlattenedOpenapiKeysOfOtherVariants,
-  nullFlattenedOpenapiKeysForValue,
   nullFlattenedSerializerKeys,
   nullFlattenedSerializerKeysOfOtherVariants,
 } from '../../../../src/serializer/helpers/nullFlattenedSerializerKeys.js'
 import { OpenapiSchemaBodyShorthand } from '../../../../src/types/openapi.js'
 import { SimpleObjectSerializerType } from '../../../../src/types/serializer.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
-import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
 import LatexSerializer from '../../../../test-app/app/serializers/Balloon/LatexSerializer.js'
 
 interface Address {
@@ -336,94 +334,6 @@ describe('nullFlattenedOpenapiKeysOfOtherVariants', () => {
     expect(
       nullFlattenedOpenapiKeysOfOtherVariants({ $serializable: Balloon }, { $serializer: LatexSerializer })
     ).toEqual({ mylarOnlyProperty: null })
-  })
-})
-
-describe('nullFlattenedOpenapiKeysForValue', () => {
-  it('reads a returned serializer’s declarations as the rendered variant, so a $serializable STI ref adds the other children’s keys', () => {
-    expect(
-      nullFlattenedOpenapiKeysForValue(
-        { $serializable: Balloon },
-        LatexSerializer(Latex.new({ color: 'red' }))
-      )
-    ).toEqual({ mylarOnlyProperty: null })
-  })
-
-  it('adds each key an openapi with a single shape requires that a returned plain object leaves out, but not its optional keys', () => {
-    expect(
-      nullFlattenedOpenapiKeysForValue(
-        {
-          type: 'object',
-          properties: { a: 'string', b: 'string', c: 'string' },
-          required: ['a', 'b'],
-        },
-        { a: 'x' }
-      )
-    ).toEqual({ b: null })
-  })
-
-  it('adds each key the rendered member requires that a returned plain object leaves out, beside the other members’ keys', () => {
-    expect(
-      nullFlattenedOpenapiKeysForValue(
-        {
-          anyOf: [
-            {
-              type: 'object',
-              properties: { phoneNumber: 'string', extension: 'string' },
-              required: ['phoneNumber', 'extension'],
-            },
-            { type: 'object', properties: { faxNumber: 'string' }, required: ['faxNumber'] },
-          ],
-        },
-        { phoneNumber: '555' }
-      )
-    ).toEqual({ extension: null, faxNumber: null })
-  })
-
-  it('compares a returned object’s keys with openapi properties keys in the render’s casing', () => {
-    expect(
-      nullFlattenedOpenapiKeysForValue(
-        {
-          anyOf: [
-            { type: 'object', properties: { phoneNumber: 'string' }, required: ['phoneNumber'] },
-            { type: 'object', properties: { faxNumber: 'string' }, required: ['faxNumber'] },
-          ],
-        },
-        { phoneNumber: '555' },
-        { casing: 'snake' }
-      )
-    ).toEqual({ fax_number: null })
-  })
-
-  it('reads a plain object as the one member declaring every key it has, so that member’s omitted optional keys stay absent', () => {
-    // this returns only the keys to add as null beside the object, never a key the object has; the
-    // renderer spreads this result and then the object, so the render is
-    // { fax: null, phoneNumber: '555' }:
-    //   1. the phone member is the only one declaring every key the object has (`phoneNumber`),
-    //      so it is the rendered member
-    //   2. the rendered member's own required keys add nothing: its only one, `phoneNumber`, is
-    //      in the object
-    //   3. the fax member requires `fax` and `extension`; the phone member does not declare `fax`,
-    //      so it is added as null, but it declares `extension` (as optional), so that is not added
-    expect(
-      nullFlattenedOpenapiKeysForValue(
-        {
-          oneOf: [
-            {
-              type: 'object',
-              properties: { phoneNumber: 'string', extension: 'string' },
-              required: ['phoneNumber'],
-            },
-            {
-              type: 'object',
-              properties: { fax: 'string', extension: 'string' },
-              required: ['fax', 'extension'],
-            },
-          ],
-        },
-        { phoneNumber: '555' }
-      )
-    ).toEqual({ fax: null })
   })
 })
 
