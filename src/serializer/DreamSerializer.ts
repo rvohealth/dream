@@ -12,11 +12,11 @@ import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
  *
  * A serializer must not read its data while being built: what it declares may not
  * depend on its data. Dream and Psychic build it without data to read its shape (the
- * OpenAPI schema, and the null and other-variant keys of a flattened association or
- * `customAttribute` that uses it), so a serializer that reads its data while being
- * built throws when a flattened association or `customAttribute` that uses it is
- * rendered. Read the data inside a `customAttribute` callback, which runs only when
- * the serializer renders, not while it is built.
+ * OpenAPI schema, and the keys a flattened association or `customAttribute` that uses
+ * it renders as `null` where its value does not supply them), so a serializer that
+ * reads its data while being built throws when a flattened association or
+ * `customAttribute` that uses it is rendered. Read the data inside a `customAttribute`
+ * callback, which runs only when the serializer renders, not while it is built.
  *
  * @param dreamClass - The Dream model class the serializer renders
  * @param data - The Dream instance to render

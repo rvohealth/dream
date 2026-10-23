@@ -9,9 +9,10 @@ import {
 import { inferSerializersFromDreamClassOrViewModelClass } from './inferSerializerFromDreamOrViewModel.js'
 
 /**
- * Only used when flatten: true, and the associated object is null, in which case there is no
- * object to resolve a serializer from, but the renderer still needs the serializers whose keys it
- * renders as null in the parent's payload.
+ * Used by every flattened rendersOne render, whether the associated object is present or null: it
+ * lists every serializer the association may render with, whose required keys the renderer renders
+ * as null in the parent's payload, beneath the present object's own keys or alone when the object
+ * is null, where there is no object to resolve a serializer from.
  *
  * Resolves, in order, to the `serializer` option, the serializers of the `dreamClass` or
  * `viewModelClass` option, or the serializers of each class `parentClass` declares the association

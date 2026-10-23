@@ -21,9 +21,7 @@ import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
 import inferSerializerFromDreamOrViewModel from './helpers/inferSerializerFromDreamOrViewModel.js'
 import {
   nullFlattenedOpenapiKeys,
-  nullFlattenedOpenapiKeysForValue,
   nullFlattenedSerializerKeys,
-  nullFlattenedSerializerKeysOfOtherVariants,
 } from './helpers/nullFlattenedSerializerKeys.js'
 import { serializersForAssociatedClass } from './helpers/serializersForAssociatedClass.js'
 
@@ -131,12 +129,11 @@ export default class SerializerRenderer {
           if (attribute.options.flatten) {
             const flattenOptions = { casing: this.renderOpts.casing, passthroughData }
 
-            // a flattened customAttribute's keys are the parent's own keys, cased like them: a
-            // callback that returns null or undefined, or a serializer built over null or undefined
-            // data (which renders null), renders each key its openapi requires as null, as a null
-            // flattened rendersOne does, and one that returns a value of one variant of its openapi
-            // renders as null each key another variant requires that the rendered one does not
-            // declare, and each key the rendered one requires that a returned plain object leaves out
+            // a flattened customAttribute's keys are the parent's own keys, cased like them, and
+            // always include each key any shape of its openapi requires: a callback that returns
+            // null or undefined, or a serializer built over null or undefined data (which renders
+            // null), renders each of them as null, as a null flattened rendersOne does, and a
+            // present value renders its own keys over them, so a required key it leaves out is null
             const valueIsSerializerBuilder =
               value instanceof DreamSerializerBuilder || value instanceof ObjectSerializerBuilder
             const valueRendersNull =
@@ -144,12 +141,9 @@ export default class SerializerRenderer {
               value === undefined ||
               (valueIsSerializerBuilder &&
                 ((value as DreamSerializerBuilder<any, any>)['data'] ?? null) === null)
+            const nullRequiredKeys = nullFlattenedOpenapiKeys(attribute.options.openapi, flattenOptions)
 
-            if (valueRendersNull)
-              return {
-                ...accumulator,
-                ...nullFlattenedOpenapiKeys(attribute.options.openapi, flattenOptions),
-              }
+            if (valueRendersNull) return { ...accumulator, ...nullRequiredKeys }
 
             const renderedValue = applyRenderingOptionsToAttribute(
               null,
@@ -162,10 +156,11 @@ export default class SerializerRenderer {
 
             return {
               ...accumulator,
-              ...nullFlattenedOpenapiKeysForValue(attribute.options.openapi, value, flattenOptions),
+              ...nullRequiredKeys,
               // a returned serializer renders its keys in the render's casing; a returned plain
-              // object's top-level keys are cased here, its nested values left as returned
-              ...(valueIsSerializerBuilder ? renderedValue : this.setCaseOfKeys(renderedValue)),
+              // object's top-level keys are cased here, its nested values left as returned, and a
+              // key it sets to undefined is skipped, so a required key renders null beneath it
+              ...(valueIsSerializerBuilder ? renderedValue : this.setCaseOfDefinedKeys(renderedValue)),
             }
           } else {
             accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
@@ -190,20 +185,6 @@ export default class SerializerRenderer {
           const outputAttributeName = this.setCase(attribute.options.as ?? attribute.name)
           const associatedObject = data[attribute.name]
 
-          if (!associatedObject && attribute.options.flatten) {
-            return {
-              ...accumulator,
-              ...nullFlattenedSerializerKeys(
-                serializersForAssociatedClass(
-                  data instanceof Dream ? (data.constructor as typeof Dream) : null,
-                  attribute.name,
-                  attribute.options
-                ),
-                { casing: this.renderOpts.casing, passthroughData }
-              ),
-            }
-          }
-
           const serializer = associatedObject
             ? serializerForAssociatedObject(
                 associatedObject,
@@ -222,20 +203,18 @@ export default class SerializerRenderer {
           if (attribute.options.flatten) {
             return {
               ...accumulator,
-              // every payload carries the keys of every serializer the association may render with
-              // (each STI child, each polymorphic target), so each key another one requires that the
-              // rendered one does not declare renders as null
-              ...(serializer
-                ? nullFlattenedSerializerKeysOfOtherVariants(
-                    serializersForAssociatedClass(
-                      data instanceof Dream ? (data.constructor as typeof Dream) : null,
-                      attribute.name,
-                      attribute.options
-                    ),
-                    serializer,
-                    { casing: this.renderOpts.casing, passthroughData }
-                  )
-                : {}),
+              // a flattened rendersOne always renders each key any serializer the association may
+              // render with (each STI child, each polymorphic target) requires: as null when the
+              // associated object is null, and beneath the rendered serializer's own keys when it is
+              // present, so a required key the rendered serializer leaves out renders as null
+              ...nullFlattenedSerializerKeys(
+                serializersForAssociatedClass(
+                  data instanceof Dream ? (data.constructor as typeof Dream) : null,
+                  attribute.name,
+                  attribute.options
+                ),
+                { casing: this.renderOpts.casing, passthroughData }
+              ),
               // passthrough data must be passed both into the serializer and render
               // because, if the serializer does accept passthrough data, then passing it in is how
               // it gets into the serializer, but if it does not accept passthrough data, and therefore
@@ -317,11 +296,12 @@ export default class SerializerRenderer {
     return renderedAttributes
   }
 
-  private setCaseOfKeys(value: unknown) {
+  private setCaseOfDefinedKeys(value: unknown) {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
 
     return Object.keys(value).reduce<Record<string, unknown>>((casedValue, key) => {
-      casedValue[this.setCase(key)] = (value as Record<string, unknown>)[key]
+      const keyValue = (value as Record<string, unknown>)[key]
+      if (keyValue !== undefined) casedValue[this.setCase(key)] = keyValue
       return casedValue
     }, {})
   }
