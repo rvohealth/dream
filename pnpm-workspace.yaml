@@ -18,5 +18,11 @@ strictDepBuilds: false
 allowBuilds:
   esbuild: false
 
+# Supply-chain cooldown: refuse dependency versions published less than 3 days
+# ago (4320 minutes). Kept under the CVE-patch SLA so routine patching needs no
+# bypass. pnpm 11+ reads install policy only from this file, never from .npmrc.
+minimumReleaseAge: 4320
+# Only our own first-party packages are exempt; CI (check-cooldown-excludes)
+# rejects any non-@rvoh entry here.
 minimumReleaseAgeExclude:
   - '@rvoh/*'

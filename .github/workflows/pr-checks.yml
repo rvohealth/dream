@@ -27,13 +27,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: minimumReleaseAgeExclude must be @rvoh/* only
+      - name: minimumReleaseAge is set in pnpm-workspace.yaml and its exclude list is @rvoh/* only
         run: |
           # SECURITY: the minimumReleaseAge cooldown bypass list must stay @rvoh/*
           # only (our own packages). Any third-party entry is a permanent
           # supply-chain bypass and must be rejected — apply urgent patches via a
           # transient, reverted override instead of a persistent exclude.
-          bad=$(grep -nE '^[[:space:]]*minimumReleaseAgeExclude' .npmrc | grep -vE '=[[:space:]]*@rvoh/' || true)
+          #
+          # pnpm 11+ reads the cooldown and its exclude list only from
+          # pnpm-workspace.yaml (block or inline list form). It ignores them in
+          # .npmrc, so a copy there is rejected as misleading dead config.
+          stale=$(grep -nE '^[[:space:]]*minimumReleaseAge' .npmrc | sed 's/^/.npmrc:/' || true)
+          if [ -n "$stale" ]; then
+            echo "::error::minimumReleaseAge settings in .npmrc are ignored by pnpm; set them in pnpm-workspace.yaml:"
+            echo "$stale"
+            exit 1
+          fi
+          if ! grep -qE '^minimumReleaseAge:[[:space:]]*[1-9][0-9]*[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
+            echo "::error::pnpm-workspace.yaml must set a positive minimumReleaseAge (the supply-chain cooldown)"
+            exit 1
+          fi
+          bad=$(awk '
+            function emit(line, text) { gsub("[^[:alnum:]@/._*-]", "", text); if (text != "") print "pnpm-workspace.yaml:" line ": " text }
+            /^minimumReleaseAgeExclude:/ {
+              inblock = 1
+              rest = $0; sub(/^[^:]*:[[:space:]]*/, "", rest); sub(/[[:space:]]*#.*$/, "", rest)
+              if (rest != "") { n = split(rest, parts, ","); for (i = 1; i <= n; i++) emit(NR, parts[i]) }
+              next
+            }
+            inblock && /^[^[:space:]#]/ { inblock = 0 }
+            inblock && /^[[:space:]]*-/ { text = $0; sub(/^[[:space:]]*-[[:space:]]*/, "", text); sub(/[[:space:]]*#.*$/, "", text); emit(NR, text) }
+          ' pnpm-workspace.yaml | grep -vE '^pnpm-workspace\.yaml:[0-9]+: @rvoh/' || true)
           if [ -n "$bad" ]; then
             echo "::error::Non-@rvoh minimumReleaseAgeExclude entries (cooldown bypass must stay @rvoh/* only):"
             echo "$bad"
