@@ -128,6 +128,31 @@ describe('ObjectSerializer#customAttribute', () => {
       })
     })
 
+    it('renders null for a required key a returned plain object sets to undefined, and leaves out an optional one', () => {
+      const MySerializer = (user: User) =>
+        ObjectSerializer(user).customAttribute(
+          'details',
+          () => ({
+            aKey: '1',
+            bKey: undefined as string | undefined,
+            note: undefined as string | undefined,
+          }),
+          {
+            flatten: true,
+            openapi: {
+              type: 'object',
+              properties: { aKey: 'string', bKey: 'string', note: 'string' },
+              required: ['aKey', 'bKey'],
+            },
+          }
+        )
+
+      const rendered = MySerializer({ email: 'abc', password: '123' }).render()
+
+      expect(rendered).toStrictEqual({ aKey: '1', bKey: null })
+      expect(JSON.parse(JSON.stringify(rendered))).toEqual({ aKey: '1', bKey: null })
+    })
+
     it('renders no key its openapi leaves optional when the callback returns null or undefined', () => {
       const openapi = {
         type: 'object',

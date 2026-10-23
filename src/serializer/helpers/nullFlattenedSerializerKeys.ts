@@ -34,13 +34,14 @@ interface NullFlattenedSerializerKeysWalk {
  * with each key set to `null`, ready to spread into the parent's payload (`Object.keys` of it for
  * the key names alone): each key one of `serializers` requires. When the associated object is
  * null, these are the keys it renders; when it is present, the rendered serializer's own keys
- * render over them, so each of these it leaves out stays `null` and the payload has the same key
- * set whichever serializer renders and whether the object is null. As a property read on an empty
- * object is `undefined`, a null value carries no key it may omit: an attribute, delegatedAttribute
- * or customAttribute declared with `required: false` adds no key unless another of `serializers`
- * requires it. Every key is cased per `casing`, as the renderer cases it. There are several
- * serializers when the association is a polymorphic BelongsTo, one for each target class, or when
- * the associated class is an STI base, one for each child, and their required keys are unioned.
+ * render over them, so each of these it leaves out stays `null` and the payload always includes
+ * these keys, whichever serializer renders and whether the object is null. As a property read on
+ * an empty object is `undefined`, a null value carries no key it may omit: an attribute,
+ * delegatedAttribute or customAttribute declared with `required: false` adds no key unless another
+ * of `serializers` requires it. Every key is cased per `casing`, as the renderer cases it. There
+ * are several serializers when the association is a polymorphic BelongsTo, one for each target
+ * class, or when the associated class is an STI base, one for each child, and their required keys
+ * are unioned.
  *
  * Each serializer is built with `undefined` data to read its declarations, as Psychic's OpenAPI
  * generation and `preloadFor` build it, and nothing is rendered: no attribute callback runs and
@@ -72,8 +73,9 @@ export function nullFlattenedSerializerKeys(
  * `nullFlattenedSerializerKeys` walks a flattened `customAttribute` and cased per `casing`. When
  * its callback returns null (or `undefined` without `required: false`), or a serializer built over
  * null data, these are the keys it renders; when it returns any other value, that value's own keys
- * render over them, so each of these the value leaves out stays `null`. With `required: false`, a
- * callback that returns `undefined` adds none of them.
+ * render over them, so each of these the value leaves out, or a returned plain object sets to
+ * `undefined`, stays `null`. With `required: false`, a callback that returns `undefined` adds none
+ * of them.
  */
 export function nullFlattenedOpenapiKeys(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
@@ -125,17 +127,17 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
 }
 
 /**
- * The single shapes a value of a flattened `customAttribute` with this `openapi` may take, for a
- * consumer that describes the flattened payload as the union of them: a `$serializer` ref to each
- * serializer a `$serializable` ref resolves to (one per child for an STI base), or the members of
- * an `anyOf` or `oneOf`, each member that itself has several shapes (a nested `anyOf` or `oneOf`,
- * or a `$serializable` ref to an STI base) contributing those shapes in its place. An `allOf`
- * beside the `anyOf` or `oneOf` describes every value, so each shape is that `allOf` with the
- * shape added to its members. Anything else (a single shape, a ref with `many: true`, or a
- * primitive) has no variants and returns an empty list. Each shape may be passed back as the
- * `renderedVariant` of `nullFlattenedOpenapiKeysOfOtherVariants`. The renderer does not read a
- * value's shape from this list: whatever shape the value takes, it renders every key
- * `nullFlattenedOpenapiKeys` returns.
+ * Lists the single shapes a value of a flattened `customAttribute` with this `openapi` may take,
+ * which a consumer can union into one description of the flattened payload: a `$serializer` ref to
+ * each serializer a `$serializable` ref resolves to (one per child for an STI base), or the members
+ * of an `anyOf` or `oneOf` (an `anyOf`'s members listed before a sibling `oneOf`'s, not paired with
+ * them), each member that itself has several shapes (a nested `anyOf` or `oneOf`, or a
+ * `$serializable` ref to an STI base) contributing those shapes in its place. An `allOf` beside
+ * the `anyOf` or `oneOf` describes every value, so each shape is that `allOf` with the shape added
+ * to its members. Anything else (a single shape, a ref with `many: true`, or a primitive) has no
+ * variants and returns an empty list. Each shape may be passed back as the `renderedVariant` of
+ * `nullFlattenedOpenapiKeysOfOtherVariants`. The renderer does not read a value's shape from this
+ * list: whatever shape the value takes, it renders every key `nullFlattenedOpenapiKeys` returns.
  */
 export function flattenedOpenapiVariants(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes

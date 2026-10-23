@@ -158,8 +158,9 @@ export default class SerializerRenderer {
               ...accumulator,
               ...nullRequiredKeys,
               // a returned serializer renders its keys in the render's casing; a returned plain
-              // object's top-level keys are cased here, its nested values left as returned
-              ...(valueIsSerializerBuilder ? renderedValue : this.setCaseOfKeys(renderedValue)),
+              // object's top-level keys are cased here, its nested values left as returned, and a
+              // key it sets to undefined is skipped, so a required key renders null beneath it
+              ...(valueIsSerializerBuilder ? renderedValue : this.setCaseOfDefinedKeys(renderedValue)),
             }
           } else {
             accumulator[outputAttributeName] = applyRenderingOptionsToAttribute(
@@ -295,11 +296,12 @@ export default class SerializerRenderer {
     return renderedAttributes
   }
 
-  private setCaseOfKeys(value: unknown) {
+  private setCaseOfDefinedKeys(value: unknown) {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
 
     return Object.keys(value).reduce<Record<string, unknown>>((casedValue, key) => {
-      casedValue[this.setCase(key)] = (value as Record<string, unknown>)[key]
+      const keyValue = (value as Record<string, unknown>)[key]
+      if (keyValue !== undefined) casedValue[this.setCase(key)] = keyValue
       return casedValue
     }, {})
   }

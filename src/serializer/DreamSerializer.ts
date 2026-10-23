@@ -15,8 +15,8 @@ import DreamSerializerBuilder from './builders/DreamSerializerBuilder.js'
  * OpenAPI schema, and the keys a flattened association or `customAttribute` that uses
  * it renders as `null` where its value does not supply them), so a serializer that
  * reads its data while being built throws when a flattened association or
- * `customAttribute` that uses it is rendered. Read the data inside a `customAttribute` callback, which runs only when
- * the serializer renders, not while it is built.
+ * `customAttribute` that uses it is rendered. Read the data inside a `customAttribute`
+ * callback, which runs only when the serializer renders, not while it is built.
  *
  * @param dreamClass - The Dream model class the serializer renders
  * @param data - The Dream instance to render
