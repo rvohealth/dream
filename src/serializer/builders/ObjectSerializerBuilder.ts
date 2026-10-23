@@ -220,7 +220,9 @@ export default class ObjectSerializerBuilder<
    *     leaves out, and its optional keys it leaves out stay absent. When the `openapi` is an
    *     `anyOf` or `oneOf`, or a `$serializable` ref to an STI base, a present value also renders
    *     as `null` each key another variant requires that the rendered one does not declare, so a
-   *     client sees the same keys whichever variant is rendered.
+   *     client sees the same keys whichever variant is rendered. A returned plain object that has
+   *     every required key of several `anyOf` object members renders as their combination, so a
+   *     key one of them declares, even as optional, is not rendered as `null`.
    *     Every key it adds follows the render's casing like the parent's own keys: a returned
    *     plain object's top-level keys and the `openapi`'s `properties` keys are cased (so
    *     `casing: 'snake'` renders `phoneNumber` as `phone_number`, present or `null`), while

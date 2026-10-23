@@ -98,8 +98,9 @@ export function nullFlattenedSerializerKeysOfOtherVariants(
  * The keys a flattened `customAttribute` with this `openapi` adds to the parent's payload, each
  * set to `null`, when it renders `renderedVariant`: each key a variant of `openapi` requires that
  * `renderedVariant` does not declare. `renderedVariant` is any `openapi` shorthand: one member of
- * an `anyOf` or `oneOf`, or `{ $serializer: childSerializer }` for one child of a `$serializable`
- * ref to an STI base. A key requires its value when an object shape's `required` array lists it,
+ * an `anyOf` or `oneOf`, a combination of `anyOf` members, `{ allOf: [memberA, memberB] }`, which
+ * declares each key any of its members declares, or `{ $serializer: childSerializer }` for one
+ * child of a `$serializable` ref to an STI base. A key requires its value when an object shape's `required` array lists it,
  * whether the shape's own `properties` declare it or a member of its `allOf`, `anyOf` or `oneOf`
  * does, or when a serializer declares it without `required: false`.
  */
@@ -122,15 +123,16 @@ export function nullFlattenedOpenapiKeysOfOtherVariants(
  * reads them; the serializer renders each of its own keys. A plain object renders only the keys
  * it has, so it adds each key the rendered variant requires that the object leaves out as well as
  * each key another variant requires that the rendered one does not declare. An `openapi` with one
- * variant is the rendered one. Of several variants (the members of an `anyOf` or `oneOf`, or one
- * `$serializer` per child of a `$serializable` ref to an STI base, a member with several variants
- * of its own contributing each of them, an `anyOf` and a `oneOf` beside each other pairing each
- * variant of one with each of the other, and an `allOf` beside an `anyOf` or `oneOf` joining each
- * of its variants, as `flattenedOpenapiVariants` lists them), the rendered one is the variant that
- * declares every key the object has; when several do, the first of them whose required keys the
- * object all has, and when none is found, the object adds each key any variant requires. The
- * object's top-level keys render cased per `casing`, so they are compared cased, and a key it has
- * is never added.
+ * variant is the rendered one. Of several variants (as `flattenedOpenapiVariants` lists them),
+ * when the object has every required key of one or more of the `anyOf` members that may be
+ * combined, the rendered one is the combination of those members, joined with the `allOf` beside
+ * the `anyOf` and, with a `oneOf` beside it, paired with the `oneOf` variant picked as below among
+ * the pairings of that combination. So when the object takes several `anyOf` members, a key one
+ * of them declares, even as optional, is never added, while each key only an unmatched member
+ * requires is. Otherwise the rendered one is the variant that declares every key the object has;
+ * when several do, the first of them whose required keys the object all has, and when none is
+ * found, the object adds each key any variant requires. The object's top-level keys render cased
+ * per `casing`, so they are compared cased, and a key it has is never added.
  */
 export function nullFlattenedOpenapiKeysForValue(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
@@ -148,19 +150,8 @@ export function nullFlattenedOpenapiKeysForValue(
   const { casing } = newWalk(options)
   const valueKeys = Object.keys(value).map(key => setCase(key, casing))
   const variants = flattenedOpenapiVariants(openapi)
-  const candidates = variants
-    .map(variant => ({ variant, requirements: walkOpenapi(variant, newWalk(options)) }))
-    .filter(({ requirements }) =>
-      valueKeys.every(key => Object.prototype.hasOwnProperty.call(requirements, key))
-    )
   const renderedVariant =
-    variants.length < 2
-      ? openapi
-      : candidates.length === 1
-        ? candidates[0]!.variant
-        : candidates.find(({ requirements }) =>
-            Object.keys(requirements).every(key => !requirements[key] || valueKeys.includes(key))
-          )?.variant
+    variants.length < 2 ? openapi : renderedPlainObjectVariant(openapi, variants, valueKeys, options)
 
   const requiredKeys = renderedVariant
     ? {
@@ -177,14 +168,21 @@ export function nullFlattenedOpenapiKeysForValue(
  * The shapes a value of `openapi` may take, each one a variant a plain object may render: a
  * `$serializer` ref to each serializer a `$serializable` ref resolves to, or the members of an
  * `anyOf` or `oneOf`, each member that itself has several variants (a nested `anyOf` or `oneOf`,
- * or a `$serializable` ref to an STI base) contributing those variants in its place. An `anyOf`
- * and a `oneOf` beside each other each describe every value, so each variant is one of the
- * `anyOf`'s variants paired with one of the `oneOf`'s, `{ allOf: [anyOfVariant, oneOfVariant] }`,
- * ordered by the `anyOf` variant and then the `oneOf` one. An `allOf` beside them also describes
- * every value, so each variant is that `allOf` with the variant (or the pair) added to its members.
- * Anything else (a single shape, a ref with `many: true`, or a primitive) has no variants and
- * returns an empty list. Each variant may be passed back as the `renderedVariant` of
- * `nullFlattenedOpenapiKeysOfOtherVariants`.
+ * or a `$serializable` ref to an STI base) contributing those variants in its place. A value may
+ * take several members of an `anyOf`, so after its members' variants come the combinations of two
+ * or more of the members that may be combined, `{ allOf: [memberA, memberB, ...] }` with the
+ * members in declaration order, ordered by size and then by member order. A member may be
+ * combined when it is an object shape (a `type` including `'object'`, or an `allOf`, `anyOf` or
+ * `oneOf` without a `type`) with fewer than two variants of its own; a primitive, a `$ref`, a
+ * `$serializer` or `$serializable` ref, or a member with several variants of its own is only ever
+ * one of its own variants. An `anyOf` and a `oneOf` beside each other each describe every value,
+ * so each variant is one of the `anyOf`'s variants (a combination included) paired with one of
+ * the `oneOf`'s, `{ allOf: [anyOfVariant, oneOfVariant] }`, ordered by the `anyOf` variant and
+ * then the `oneOf` one. An `allOf` beside them also describes every value, so each variant is
+ * that `allOf` with the variant (or the pair) added to its members. Anything else (a single
+ * shape, a ref with `many: true`, or a primitive) has no variants and returns an empty list. Each
+ * variant may be passed back as the `renderedVariant` of `nullFlattenedOpenapiKeysOfOtherVariants`,
+ * which reads a combination as declaring every key any of its members declares.
  */
 export function flattenedOpenapiVariants(
   openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
@@ -199,9 +197,85 @@ export function flattenedOpenapiVariants(
           openapi.$serializableSerializerKey ?? openapi.key
         ).map(serializer => ({ $serializer: serializer }))
 
-  const anyOfVariants = expandedMemberVariants(('anyOf' in openapi && openapi.anyOf) || [])
-  const oneOfVariants = expandedMemberVariants(('oneOf' in openapi && openapi.oneOf) || [])
-  const sharedMembers = ('allOf' in openapi && openapi.allOf) || []
+  const { allOf, anyOf } = combinatorMembers(openapi)
+  return joinedVariants(
+    allOf,
+    [...expandedMemberVariants(anyOf), ...combinationsOfTwoOrMore(anyOf.filter(isCombinableMember))],
+    openapi
+  )
+}
+
+/**
+ * The rendered variant of a plain object among `variants`, the variants `flattenedOpenapiVariants`
+ * lists for `openapi`. When the object has the required keys of one or more combinable `anyOf`
+ * members, it is the variant built on the combination of those members, joined with the `allOf`
+ * beside the `anyOf` and, with a `oneOf` beside it, paired with the `oneOf` variant
+ * `variantDeclaringValueKeys` picks among those built on that combination. Otherwise it is the
+ * variant `variantDeclaringValueKeys` picks among all of them.
+ */
+function renderedPlainObjectVariant(
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes,
+  variants: OpenapiSchemaBodyShorthand[],
+  valueKeys: string[],
+  options: NullFlattenedSerializerKeysOptions
+): OpenapiSchemaBodyShorthand | undefined {
+  const { allOf, anyOf } = combinatorMembers(openapi)
+  const matchedMembers = anyOf
+    .filter(isCombinableMember)
+    .filter(member =>
+      Object.keys(nullFlattenedOpenapiKeys(member, options)).every(key => valueKeys.includes(key))
+    )
+  if (!matchedMembers.length) return variantDeclaringValueKeys(variants, valueKeys, options)
+
+  const matchedVariants = joinedVariants(allOf, [combination(matchedMembers)], openapi)
+  return matchedVariants.length === 1
+    ? matchedVariants[0]
+    : variantDeclaringValueKeys(matchedVariants, valueKeys, options)
+}
+
+/**
+ * The variant that declares every key a plain object has; when several do, the first of them
+ * whose required keys the object all has.
+ */
+function variantDeclaringValueKeys(
+  variants: OpenapiSchemaBodyShorthand[],
+  valueKeys: string[],
+  options: NullFlattenedSerializerKeysOptions
+): OpenapiSchemaBodyShorthand | undefined {
+  const candidates = variants
+    .map(variant => ({ variant, requirements: walkOpenapi(variant, newWalk(options)) }))
+    .filter(({ requirements }) =>
+      valueKeys.every(key => Object.prototype.hasOwnProperty.call(requirements, key))
+    )
+  return candidates.length === 1
+    ? candidates[0]!.variant
+    : candidates.find(({ requirements }) =>
+        Object.keys(requirements).every(key => !requirements[key] || valueKeys.includes(key))
+      )?.variant
+}
+
+function combinatorMembers(
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+): Record<'allOf' | 'anyOf' | 'oneOf', OpenapiSchemaBodyShorthand[]> {
+  if (typeof openapi !== 'object' || Array.isArray(openapi)) return { allOf: [], anyOf: [], oneOf: [] }
+  return {
+    allOf: ('allOf' in openapi && openapi.allOf) || [],
+    anyOf: ('anyOf' in openapi && openapi.anyOf) || [],
+    oneOf: ('oneOf' in openapi && openapi.oneOf) || [],
+  }
+}
+
+/**
+ * `anyOfVariants` paired with the variants of the `oneOf` of `openapi`, each variant of one with
+ * each of the other, or, without a `oneOf` (or an `anyOf`), the variants of either, each joined
+ * with the `allOf` members `sharedMembers`.
+ */
+function joinedVariants(
+  sharedMembers: OpenapiSchemaBodyShorthand[],
+  anyOfVariants: OpenapiSchemaBodyShorthand[],
+  openapi: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+): OpenapiSchemaBodyShorthand[] {
+  const oneOfVariants = expandedMemberVariants(combinatorMembers(openapi).oneOf)
 
   if (anyOfVariants.length && oneOfVariants.length)
     return anyOfVariants.flatMap(anyOfVariant =>
@@ -221,6 +295,46 @@ function expandedMemberVariants(members: OpenapiSchemaBodyShorthand[]): OpenapiS
     const memberVariants = flattenedOpenapiVariants(member)
     return memberVariants.length > 1 ? memberVariants : [member]
   })
+}
+
+/**
+ * An `anyOf` member a value may take together with other members: an object shape (a `type`
+ * including `'object'`, or an `allOf`, `anyOf` or `oneOf` without a `type`) with fewer than two
+ * variants of its own. A primitive, a `$ref`, or a `$serializer` or `$serializable` ref is not.
+ */
+function isCombinableMember(member: OpenapiSchemaBodyShorthand): boolean {
+  if (typeof member !== 'object' || Array.isArray(member)) return false
+  const types: unknown[] = 'type' in member ? [member.type].flat() : []
+  const isObjectShape =
+    'type' in member ? types.includes('object') : 'allOf' in member || 'anyOf' in member || 'oneOf' in member
+  return isObjectShape && flattenedOpenapiVariants(member).length < 2
+}
+
+/**
+ * Each combination of two or more of `members`, as `combination` builds it, ordered by size and
+ * then by the order of the members.
+ */
+function combinationsOfTwoOrMore(members: OpenapiSchemaBodyShorthand[]): OpenapiSchemaBodyShorthand[] {
+  const combinationsOfSize = (size: number, start: number): OpenapiSchemaBodyShorthand[][] =>
+    size === 0
+      ? [[]]
+      : members
+          .slice(start)
+          .flatMap((member, index) =>
+            combinationsOfSize(size - 1, start + index + 1).map(rest => [member, ...rest])
+          )
+
+  return members
+    .slice(1)
+    .flatMap((_, index) => combinationsOfSize(index + 2, 0))
+    .map(combination)
+}
+
+/**
+ * One member as itself, or several members as `{ allOf: members }`.
+ */
+function combination(members: OpenapiSchemaBodyShorthand[]): OpenapiSchemaBodyShorthand {
+  return members.length === 1 ? members[0]! : { allOf: members }
 }
 
 function newWalk({
