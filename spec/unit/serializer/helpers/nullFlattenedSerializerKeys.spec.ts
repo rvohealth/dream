@@ -425,27 +425,6 @@ describe('nullFlattenedOpenapiKeysForValue', () => {
       )
     ).toEqual({ fax: null })
   })
-  it('reads a plain object as the pairing of the anyOf member and the oneOf member declaring its keys, adding the keys the other members require', () => {
-    expect(
-      nullFlattenedOpenapiKeysForValue(
-        {
-          anyOf: [
-            { type: 'object', properties: { aKey: 'string' }, required: ['aKey'] },
-            { type: 'object', properties: { bKey: 'string' }, required: ['bKey'] },
-          ],
-          oneOf: [
-            { type: 'object', properties: { cKey: 'string', extension: 'string' }, required: ['cKey'] },
-            {
-              type: 'object',
-              properties: { dKey: 'string', extension: 'string' },
-              required: ['dKey', 'extension'],
-            },
-          ],
-        },
-        { aKey: '1', cKey: '2' }
-      )
-    ).toEqual({ bKey: null, dKey: null })
-  })
 })
 
 describe('flattenedOpenapiVariants', () => {
@@ -470,67 +449,6 @@ describe('flattenedOpenapiVariants', () => {
       { allOf: [shared, phone] },
       { allOf: [shared, fax] },
       { allOf: [shared, email] },
-    ])
-  })
-
-  it('returns one variant per pairing of an anyOf variant with a oneOf variant beside it', () => {
-    const a: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { aKey: 'string' },
-      required: ['aKey'],
-    }
-    const b: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { bKey: 'string' },
-      required: ['bKey'],
-    }
-    const c: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { cKey: 'string' },
-      required: ['cKey'],
-    }
-    const d: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { dKey: 'string' },
-      required: ['dKey'],
-    }
-
-    expect(flattenedOpenapiVariants({ anyOf: [a, b], oneOf: [c, d] })).toEqual([
-      { allOf: [a, c] },
-      { allOf: [a, d] },
-      { allOf: [b, c] },
-      { allOf: [b, d] },
-    ])
-  })
-
-  it('joins each pairing of an anyOf variant with a oneOf variant with the allOf beside them, a member with several variants contributing them in its place', () => {
-    const shared: OpenapiSchemaBodyShorthand = { type: 'object', properties: { id: 'string' } }
-    const a: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { aKey: 'string' },
-      required: ['aKey'],
-    }
-    const b: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { bKey: 'string' },
-      required: ['bKey'],
-    }
-    const c: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { cKey: 'string' },
-      required: ['cKey'],
-    }
-    const d: OpenapiSchemaBodyShorthand = {
-      type: 'object',
-      properties: { dKey: 'string' },
-      required: ['dKey'],
-    }
-
-    expect(flattenedOpenapiVariants({ allOf: [shared], anyOf: [{ anyOf: [a, b] }], oneOf: [c, d] })).toEqual([
-      { allOf: [shared, a, c] },
-      { allOf: [shared, a, d] },
-      { allOf: [shared, b, c] },
-      { allOf: [shared, b, d] },
     ])
   })
 
