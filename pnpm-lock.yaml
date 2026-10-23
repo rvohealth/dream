@@ -11,9 +11,6 @@ importers:
 
   .:
     dependencies:
-      colorette:
-        specifier: ^2.0.20
-        version: 2.0.20
       luxon:
         specifier: ^3.7.2
         version: 3.7.2
@@ -736,9 +733,6 @@ packages:
 
   color@3.2.1:
     resolution: {integrity: sha512-aBl7dZI9ENN6fUGC7mWpMTPNHmWUSNan9tuWN6ahh5ZLNk9baLJOnSMlrQkHcrfFgz2/RigjUVAjdx36VcemKA==}
-
-  colorette@2.0.20:
-    resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
 
   colorspace@1.1.4:
     resolution: {integrity: sha512-BgvKJiuVu1igBUF2kEjRCZXol6wiiGbY5ipL/oVPwm0BL9sIpMIzM8IK7vwuxIIzOXMV3Ey5w+vxhm0rR/TN8w==}
@@ -2101,8 +2095,6 @@ snapshots:
     dependencies:
       color-convert: 1.9.3
       color-string: 1.9.1
-
-  colorette@2.0.20: {}
 
   colorspace@1.1.4:
     dependencies:

@@ -76,7 +76,6 @@
     "prepack": "pnpm build && pnpm dream build:docs"
   },
   "dependencies": {
-    "colorette": "^2.0.20",
     "luxon": "^3.7.2",
     "yoctocolors": "^2.1.1"
   },
