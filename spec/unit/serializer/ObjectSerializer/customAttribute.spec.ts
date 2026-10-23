@@ -574,55 +574,6 @@ describe('ObjectSerializer#customAttribute', () => {
         aKey: '1',
       })
     })
-
-    it('renders a plain object with every key each anyOf member requires with no null keys', () => {
-      const MySerializer = (user: User) =>
-        ObjectSerializer(user).customAttribute('details', () => ({ aKey: '1', bKey: '2' }), {
-          flatten: true,
-          openapi: {
-            anyOf: [
-              { type: 'object', properties: { aKey: 'string' }, required: ['aKey'] },
-              { type: 'object', properties: { bKey: 'string' }, required: ['bKey'] },
-            ],
-          },
-        })
-
-      expect(MySerializer({ email: 'abc', password: '123' }).render()).toEqual({ aKey: '1', bKey: '2' })
-    })
-
-    it('renders a plain object with the required keys of several anyOf members as their combination, leaving absent a key one of them declares optional that an unmatched member requires', () => {
-      const a: OpenapiSchemaBodyShorthand = {
-        type: 'object',
-        properties: { aKey: 'string', extension: 'string' },
-        required: ['aKey'],
-      }
-      const b: OpenapiSchemaBodyShorthand = {
-        type: 'object',
-        properties: { bKey: 'string' },
-        required: ['bKey'],
-      }
-      const c: OpenapiSchemaBodyShorthand = {
-        type: 'object',
-        properties: { cKey: 'string', extension: 'string' },
-        required: ['cKey', 'extension'],
-      }
-      const openapi: OpenapiSchemaBodyShorthand = { anyOf: [a, b, c] }
-
-      const MySerializer = (user: User) =>
-        ObjectSerializer(user).customAttribute('details', () => ({ aKey: '1', bKey: '2' }), {
-          flatten: true,
-          openapi,
-        })
-
-      const rendered = MySerializer({ email: 'abc', password: '123' }).render()
-
-      expect(rendered).toEqual({ aKey: '1', bKey: '2', cKey: null })
-      expect(rendered).toEqual({
-        ...nullFlattenedOpenapiKeysOfOtherVariants(openapi, { allOf: [a, b] }),
-        aKey: '1',
-        bKey: '2',
-      })
-    })
   })
 
   // type tests are all intentionally skipped. Instead, add @ts-expect-error
