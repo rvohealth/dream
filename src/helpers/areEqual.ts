@@ -26,7 +26,7 @@ function areEqualOrUndefined(a: any, b: any): boolean | undefined {
   if (a === null) return b === null
   if (a === undefined) return b === undefined
   if (typeof a === 'boolean') return a === b
-  if (typeof a === 'number') return a === b
+  if (typeof a === 'number') return a === b || (Number.isNaN(a) && Number.isNaN(b))
   if (typeof a === 'string') return a === b
   if (a instanceof DateTime) return b instanceof DateTime && a.equals(b)
   if (a instanceof CalendarDate) return b instanceof CalendarDate && a.equals(b)
@@ -34,7 +34,7 @@ function areEqualOrUndefined(a: any, b: any): boolean | undefined {
   if (a instanceof ClockTimeTz) return b instanceof ClockTimeTz && a.equals(b)
 
   if (Array.isArray(a))
-    return Array.isArray(b) && a.length === b.length && !a.find((value, index) => !areEqual(value, b[index]))
+    return Array.isArray(b) && a.length === b.length && a.every((value, index) => areEqual(value, b[index]))
 
   if (a instanceof Dream) return a.equals(b)
 

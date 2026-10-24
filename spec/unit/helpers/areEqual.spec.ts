@@ -116,6 +116,33 @@ describe('areEqual', () => {
     expect(areEqual(array1, array4)).toBe(false)
   })
 
+  it('can compare arrays whose first differing element is falsy', () => {
+    expect(areEqual([0], [1])).toBe(false)
+    expect(areEqual([false], [true])).toBe(false)
+    expect(areEqual([''], ['a'])).toBe(false)
+    expect(areEqual([null], [1])).toBe(false)
+    expect(areEqual([0, 1], [5, 9])).toBe(false)
+    expect(areEqual([1, 0], [1, 7])).toBe(false)
+  })
+
+  it('can compare equal arrays that contain falsy elements', () => {
+    expect(areEqual([0], [0])).toBe(true)
+    expect(areEqual([null], [null])).toBe(true)
+    expect(areEqual([false, ''], [false, ''])).toBe(true)
+    expect(areEqual([1, 0, null], [1, 0, null])).toBe(true)
+  })
+
+  it('can compare NaN to itself', () => {
+    expect(areEqual(NaN, NaN)).toBe(true)
+    expect(areEqual(NaN, 7)).toBe(false)
+  })
+
+  it('can compare equal arrays that contain NaN', () => {
+    expect(areEqual([NaN], [NaN])).toBe(true)
+    expect(areEqual([1, NaN], [1, NaN])).toBe(true)
+    expect(areEqual([NaN], [1])).toBe(false)
+  })
+
   it('can compare simple objects', () => {
     const obj1 = { hello: 'world' }
     const obj2 = { hello: 'world' }
