@@ -210,9 +210,8 @@ pnpm spec spec/unit/helpers/
 
 ### Individual Spec Example in a Unit Spec File
 
-**Note:** Requires `allowOnly: true,` to be temporarily added to `spec/unit/vite.config.ts`
-
-Add `.only` to a spec example:
+Add `.only` to a spec example. Vitest allows it locally (`allowOnly` defaults to
+`!process.env.CI`) but CI rejects it, so remove it before pushing:
 
 ```typescript
 it.only('removes undefined and null values', () => {

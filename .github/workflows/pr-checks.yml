@@ -27,6 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "26"
+
+      - run: corepack enable
+      - run: pnpm --version
+
       - name: minimumReleaseAge is set in pnpm-workspace.yaml and its exclude list is @rvoh/* only
         run: |
           # SECURITY: the minimumReleaseAge cooldown bypass list must stay @rvoh/*
@@ -35,34 +42,55 @@ jobs:
           # transient, reverted override instead of a persistent exclude.
           #
           # pnpm 11+ reads the cooldown and its exclude list only from
-          # pnpm-workspace.yaml (block or inline list form). It ignores them in
-          # .npmrc, so a copy there is rejected as misleading dead config.
-          stale=$(grep -nE '^[[:space:]]*minimumReleaseAge' .npmrc | sed 's/^/.npmrc:/' || true)
+          # pnpm-workspace.yaml. It ignores them in .npmrc, so a copy there (in
+          # any key spelling) is rejected as misleading dead config.
+          stale=$(grep -niE "^[[:space:]]*[\"']?minimum[-_]?release[-_]?age" .npmrc | sed 's/^/.npmrc:/' || true)
           if [ -n "$stale" ]; then
             echo "::error::minimumReleaseAge settings in .npmrc are ignored by pnpm; set them in pnpm-workspace.yaml:"
             echo "$stale"
             exit 1
           fi
-          if ! grep -qE '^minimumReleaseAge:[[:space:]]*[1-9][0-9]*[[:space:]]*(#.*)?$' pnpm-workspace.yaml; then
-            echo "::error::pnpm-workspace.yaml must set a positive minimumReleaseAge (the supply-chain cooldown)"
+          if [ ! -f pnpm-workspace.yaml ]; then
+            echo "::error::pnpm-workspace.yaml is missing; it must set the minimumReleaseAge cooldown"
             exit 1
           fi
-          bad=$(awk '
-            function emit(line, text) { gsub("[^[:alnum:]@/._*-]", "", text); if (text != "") print "pnpm-workspace.yaml:" line ": " text }
-            /^minimumReleaseAgeExclude:/ {
-              inblock = 1
-              rest = $0; sub(/^[^:]*:[[:space:]]*/, "", rest); sub(/[[:space:]]*#.*$/, "", rest)
-              if (rest != "") { n = split(rest, parts, ","); for (i = 1; i <= n; i++) emit(NR, parts[i]) }
-              next
+          # Ask the pinned pnpm what it will enforce instead of pattern-matching
+          # the yaml. pnpm loads the file with its own parser, so quoted keys,
+          # flow lists, anchors and JSON-style mappings are read exactly as an
+          # install reads them. A load error (duplicate key, wrong type) fails.
+          if ! age=$(pnpm config get minimumReleaseAge --json); then
+            echo "::error::pnpm could not load its configuration from pnpm-workspace.yaml"
+            exit 1
+          fi
+          if ! excludes=$(pnpm config get minimumReleaseAgeExclude --json); then
+            echo "::error::pnpm could not load its configuration from pnpm-workspace.yaml"
+            exit 1
+          fi
+          AGE="$age" EXCLUDES="$excludes" node -e '
+            const read = (name, raw) => {
+              try {
+                return JSON.parse(raw)
+              } catch {
+                console.log(`::error::could not read ${name} from pnpm config (got: ${raw || "nothing"})`)
+                process.exit(1)
+              }
             }
-            inblock && /^[^[:space:]#]/ { inblock = 0 }
-            inblock && /^[[:space:]]*-/ { text = $0; sub(/^[[:space:]]*-[[:space:]]*/, "", text); sub(/[[:space:]]*#.*$/, "", text); emit(NR, text) }
-          ' pnpm-workspace.yaml | grep -vE '^pnpm-workspace\.yaml:[0-9]+: @rvoh/' || true)
-          if [ -n "$bad" ]; then
-            echo "::error::Non-@rvoh minimumReleaseAgeExclude entries (cooldown bypass must stay @rvoh/* only):"
-            echo "$bad"
-            exit 1
-          fi
+            const age = read("minimumReleaseAge", process.env.AGE)
+            const excludes = read("minimumReleaseAgeExclude", process.env.EXCLUDES) ?? []
+            let status = 0
+            if (!Number.isInteger(age) || age <= 0) {
+              console.log(`::error::pnpm-workspace.yaml must set a positive minimumReleaseAge (the supply-chain cooldown); pnpm reads ${JSON.stringify(age)}`)
+              status = 1
+            }
+            const list = Array.isArray(excludes) ? excludes : [excludes]
+            const bad = list.filter(entry => typeof entry !== "string" || !entry.startsWith("@rvoh/"))
+            if (bad.length > 0) {
+              console.log("::error::Non-@rvoh minimumReleaseAgeExclude entries (cooldown bypass must stay @rvoh/* only):")
+              for (const entry of bad) console.log(`pnpm-workspace.yaml: ${JSON.stringify(entry)}`)
+              status = 1
+            }
+            process.exit(status)
+          '
 
   tests:
     name: Unit tests (node ${{ matrix.node-version }}, postgres ${{ matrix.postgres-version }})
