@@ -126,6 +126,47 @@ describe('Dream#isDirty', () => {
     })
   })
 
+  context('an array column whose stored value has a falsy element', () => {
+    let user: User
+
+    beforeEach(async () => {
+      user = await User.create({ email: 'ham@', password: 'chalupas', favoriteNumbers: [0] })
+    })
+
+    it('is true when the element changes, and the save writes the change', async () => {
+      user.favoriteNumbers = [1]
+      expect(user.isDirty).toBe(true)
+      expect(user.willSaveChangeToAttribute('favoriteNumbers')).toBe(true)
+
+      await user.save()
+      expect(user.isDirty).toBe(false)
+
+      await user.reload()
+      expect(user.favoriteNumbers).toEqual([1])
+    })
+
+    it('is false when the array is assigned the value it already holds', () => {
+      user.favoriteNumbers = [0]
+      expect(user.isDirty).toBe(false)
+      expect(user.willSaveChangeToAttribute('favoriteNumbers')).toBe(false)
+    })
+
+    context('when another column changes in the same save', () => {
+      it('writes the array too, and keeps the assigned value after the save', async () => {
+        user.name = 'Fred'
+        user.favoriteNumbers = [1]
+        expect(user.willSaveChangeToAttribute('favoriteNumbers')).toBe(true)
+
+        await user.save()
+        expect(user.favoriteNumbers).toEqual([1])
+
+        await user.reload()
+        expect(user.name).toEqual('Fred')
+        expect(user.favoriteNumbers).toEqual([1])
+      })
+    })
+  })
+
   context('with a blank record', () => {
     it('considers a record clean until an attribute is assigned', () => {
       const user = User.new()

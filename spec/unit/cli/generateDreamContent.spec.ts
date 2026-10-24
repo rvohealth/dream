@@ -1146,6 +1146,55 @@ export default class Composition extends ApplicationModel {
     })
   })
 
+  context('importAliasPrefix is set on DreamApp', () => {
+    context('importAliasPrefix=#', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importAliasPrefix', 'get').mockReturnValue('#')
+      })
+
+      it('prefixes all alias imports with #', () => {
+        const res = generateDreamContent({
+          fullyQualifiedModelName: 'composition',
+          modelClassName: modelClassNameFrom('composition'),
+          columnsWithTypes: ['user:belongs_to'],
+          serializer: true,
+          includeAdminSerializers: false,
+        })
+        expect(res).toEqual(
+          `\
+import { Decorators } from '@rvoh/dream'
+import { DreamColumn, DreamSerializers } from '@rvoh/dream/types'
+import ApplicationModel from '#models/ApplicationModel.js'
+import User from '#models/User.js'
+
+const deco = new Decorators<typeof Composition>()
+
+export default class Composition extends ApplicationModel {
+  public override get table() {
+    return 'compositions' as const
+  }
+
+  public get serializers(): DreamSerializers<Composition> {
+    return {
+      default: 'CompositionSerializer',
+      summary: 'CompositionSummarySerializer',
+    }
+  }
+
+  public id: DreamColumn<Composition, 'id'>
+  public createdAt: DreamColumn<Composition, 'createdAt'>
+  public updatedAt: DreamColumn<Composition, 'updatedAt'>
+
+  @deco.BelongsTo('User', { on: 'userId' })
+  public user: User
+  public userId: DreamColumn<Composition, 'userId'>
+}
+`
+        )
+      })
+    })
+  })
+
   context('with an alternate connection provided', () => {
     it('uses the alternate connection name to formulate the base model name', () => {
       const res = generateDreamContent({

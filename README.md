@@ -171,39 +171,7 @@ await user.save()
 
 ### Specs
 
-Running specs is very easy, not much to explain here.
-
-```
-pnpm spec
-```
-
-We are using jest under the hood, and have a plugin enabled called `jest-plugin-context`, which allows us to branch specs out using the `context` function in place of `describe`, like so:
-
-```ts
-describe('Dream#pluck', () => {
-  let user1: User
-  let user2: User
-  beforeEach(async () => {
-    user1 = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
-    user2 = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
-  })
-
-  it('plucks the specified attributes and returns them as raw data', async () => {
-    const records = await User.pluck('id')
-    expect(records).toEqual([user1.id, user2.id])
-  })
-
-  context('with multiple fields', () => {
-    it('should return multi-dimensional array', async () => {
-      const records = await User.order('id').pluck('id', 'createdAt')
-      expect(records).toEqual([
-        [user1.id, user1.created_at],
-        [user2.id, user2.created_at],
-      ])
-    })
-  })
-})
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setting up the test databases and running the specs.
 
 ### Similarity matching
 
@@ -278,6 +246,6 @@ const pets = await user
 
 - **Ask them on [Stack Overflow](https://stackoverflow.com)**, using the `[dream]` tag.
 
-Dream is an open source library, so we encourage you to actively contribute. Visit our [Contributing](https://github.com/rvohealth/dream/CONTRIBUTING.md) guide to learn more about the processes we use for submitting pull requests or issues.
+Dream is an open source library, so we encourage you to actively contribute. Visit our [Contributing](CONTRIBUTING.md) guide to learn more about the processes we use for submitting pull requests or issues.
 
 Are you trying to report a possible security vulnerability? Visit our [Security Policy](https://github.com/rvohealth/dream/SECURITY.md) for guidelines about how to proceed.
