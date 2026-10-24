@@ -355,6 +355,29 @@ export default class DreamApp {
     return this._importExtension
   }
 
+  private _importAliasPrefix: GeneratorImportAliasPrefix = '@'
+  /**
+   * The prefix of the import aliases the CLI generators write: the `@` in
+   * `@models/User.js`, `@serializers/UserSerializer.js` and
+   * `@spec/factories/UserFactory.js`. Set with
+   * `dreamApp.set('importAliasPrefix', '#')` to have them write
+   * `#models/User.js` and so on, which Node resolves as subpath imports
+   * declared under `imports` in the app's package.json.
+   *
+   * Defaults to `@`. The default becomes `#` in Dream 3; an app that wants
+   * to keep `@` should set it explicitly with
+   * `dreamApp.set('importAliasPrefix', '@')`.
+   *
+   * Psychic's resource controller-spec generator still writes its
+   * `@spec/unit/helpers/authentication.js` import with a literal `@` until
+   * Psychic reads this setting (planned for 3.17.0), so a Psychic app should
+   * keep its `@spec` alias, or wait for that release, before switching to
+   * `#` only.
+   */
+  public get importAliasPrefix() {
+    return this._importAliasPrefix
+  }
+
   /**
    * if set to true, it will bypass deprecation checks that run
    * during the sync hook. Defaults to false, we only recommend
@@ -581,27 +604,29 @@ export default class DreamApp {
             ? LegacyCompatiblePrimaryKeyType
             : ApplyOpt extends 'importExtension'
               ? GeneratorImportStyle
-              : ApplyOpt extends 'logger'
-                ? DreamLogger
-                : ApplyOpt extends 'projectRoot'
-                  ? string
-                  : ApplyOpt extends 'inflections'
-                    ? () => void | Promise<void>
-                    : ApplyOpt extends 'packageManager'
-                      ? DreamAppAllowedPackageManagersEnum
-                      : ApplyOpt extends 'paths'
-                        ? DreamDirectoryPaths
-                        : ApplyOpt extends 'parallelTests'
-                          ? number
-                          : ApplyOpt extends 'unicodeNormalization'
-                            ? UnicodeNormalizationForm
-                            : ApplyOpt extends 'paginationPageSize'
-                              ? number
-                              : ApplyOpt extends 'paginationMaxPageSize'
+              : ApplyOpt extends 'importAliasPrefix'
+                ? GeneratorImportAliasPrefix
+                : ApplyOpt extends 'logger'
+                  ? DreamLogger
+                  : ApplyOpt extends 'projectRoot'
+                    ? string
+                    : ApplyOpt extends 'inflections'
+                      ? () => void | Promise<void>
+                      : ApplyOpt extends 'packageManager'
+                        ? DreamAppAllowedPackageManagersEnum
+                        : ApplyOpt extends 'paths'
+                          ? DreamDirectoryPaths
+                          : ApplyOpt extends 'parallelTests'
+                            ? number
+                            : ApplyOpt extends 'unicodeNormalization'
+                              ? UnicodeNormalizationForm
+                              : ApplyOpt extends 'paginationPageSize'
                                 ? number
-                                : ApplyOpt extends 'sortableScopeLockTimeout'
+                                : ApplyOpt extends 'paginationMaxPageSize'
                                   ? number
-                                  : never,
+                                  : ApplyOpt extends 'sortableScopeLockTimeout'
+                                    ? number
+                                    : never,
     secondaryOptions?: ApplyOpt extends 'db' ? DreamDbCredentialOptions : never
   ) {
     switch (applyOption) {
@@ -632,6 +657,10 @@ export default class DreamApp {
 
       case 'importExtension':
         this._importExtension = options as GeneratorImportStyle
+        break
+
+      case 'importAliasPrefix':
+        this._importAliasPrefix = options as GeneratorImportAliasPrefix
         break
 
       case 'logger':
@@ -789,6 +818,7 @@ export type DreamAppSetOption =
   | 'encryption'
   | 'inflections'
   | 'importExtension'
+  | 'importAliasPrefix'
   | 'logger'
   | 'paths'
   | 'primaryKeyType'
@@ -999,3 +1029,9 @@ export type DreamAppAllowedPackageManagersEnum = (typeof DreamAppAllowedPackageM
 // suffix style can change, and may need to be configured.
 export const GeneratorImportStyles = ['.js', '.ts', 'none'] as const
 export type GeneratorImportStyle = (typeof GeneratorImportStyles)[number]
+
+// GeneratorImportAliasPrefixes are used by CLI generators to determine the
+// prefix of the import aliases they write (`@models/User.js` vs
+// `#models/User.js`). The default is `@`; it becomes `#` in Dream 3.
+export const GeneratorImportAliasPrefixes = ['@', '#'] as const
+export type GeneratorImportAliasPrefix = (typeof GeneratorImportAliasPrefixes)[number]

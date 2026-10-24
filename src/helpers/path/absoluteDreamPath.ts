@@ -1,3 +1,4 @@
+import DreamApp from '../../dream-app/index.js'
 import addImportSuffix from '../cli/addImportSuffix.js'
 import pascalize from '../pascalize.js'
 import { DreamPaths } from './dreamPath.js'
@@ -25,15 +26,17 @@ export default function absoluteDreamPath(
 }
 
 function rootPath(destinationDreamPathType: SupportedDestinations) {
+  const prefix = DreamApp.getOrFail().importAliasPrefix
+
   switch (destinationDreamPathType) {
     case 'models':
-      return '@models/'
+      return `${prefix}models/`
 
     case 'serializers':
-      return '@serializers/'
+      return `${prefix}serializers/`
 
     case 'factories':
-      return '@spec/factories/'
+      return `${prefix}spec/factories/`
 
     default: {
       // protection so that if a new DreamPaths is ever added, this will throw a type error at build time
