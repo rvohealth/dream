@@ -34,6 +34,9 @@ jobs:
       - run: corepack enable
       - run: pnpm --version
 
+      - name: Test the production cooldown guard (offline)
+        run: node --test .github/tests/cooldown-guard.test.mjs
+
       - name: minimumReleaseAge is set in pnpm-workspace.yaml and its exclude list is @rvoh/* only
         run: |
           # SECURITY: the minimumReleaseAge cooldown bypass list must stay @rvoh/*
@@ -44,6 +47,21 @@ jobs:
           # pnpm 11+ reads the cooldown and its exclude list only from
           # pnpm-workspace.yaml. It ignores them in .npmrc, so a copy there (in
           # any key spelling) is rejected as misleading dead config.
+          # This is the project's conservative tool floor, not the earliest
+          # pnpm release that introduced each supply-chain setting. Verify the
+          # running tool before asking it which policy it enforces.
+          if ! version=$(pnpm --version); then
+            echo "::error::could not determine running pnpm; stable pnpm >=12 is required"
+            exit 1
+          fi
+          PNPM_VERSION="$version" node -e '
+            const version = process.env.PNPM_VERSION
+            const match = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.exec(version)
+            if (!match || BigInt(match[1]) < 12n) {
+              console.log("::error::stable pnpm >=12 is required to verify the cooldown policy")
+              process.exit(1)
+            }
+          '
           stale=$(grep -niE "^[[:space:]]*[\"']?minimum[-_]?release[-_]?age" .npmrc | sed 's/^/.npmrc:/' || true)
           if [ -n "$stale" ]; then
             echo "::error::minimumReleaseAge settings in .npmrc are ignored by pnpm; set them in pnpm-workspace.yaml:"
@@ -66,7 +84,11 @@ jobs:
             echo "::error::pnpm could not load its configuration from pnpm-workspace.yaml"
             exit 1
           fi
-          AGE="$age" EXCLUDES="$excludes" node -e '
+          if ! trust=$(pnpm config get trustLockfile --json); then
+            echo "::error::pnpm could not load its configuration from pnpm-workspace.yaml"
+            exit 1
+          fi
+          AGE="$age" EXCLUDES="$excludes" TRUST="$trust" node -e '
             const read = (name, raw) => {
               try {
                 return JSON.parse(raw)
@@ -77,9 +99,14 @@ jobs:
             }
             const age = read("minimumReleaseAge", process.env.AGE)
             const excludes = read("minimumReleaseAgeExclude", process.env.EXCLUDES) ?? []
+            const trust = read("trustLockfile", process.env.TRUST)
             let status = 0
-            if (!Number.isInteger(age) || age <= 0) {
-              console.log(`::error::pnpm-workspace.yaml must set a positive minimumReleaseAge (the supply-chain cooldown); pnpm reads ${JSON.stringify(age)}`)
+            if (!Number.isInteger(age) || age < 4320) {
+              console.log(`::error::pnpm-workspace.yaml must set an integer minimumReleaseAge >=4320 (the 3-day supply-chain cooldown); pnpm reads ${JSON.stringify(age)}`)
+              status = 1
+            }
+            if (trust !== null && trust !== false) {
+              console.log("::error::trustLockfile must be unset, null or false so pnpm verifies loaded lockfiles against the cooldown policy")
               status = 1
             }
             const list = Array.isArray(excludes) ? excludes : [excludes]
