@@ -33,8 +33,15 @@ function areEqualOrUndefined(a: any, b: any): boolean | undefined {
   if (a instanceof ClockTime) return b instanceof ClockTime && a.equals(b)
   if (a instanceof ClockTimeTz) return b instanceof ClockTimeTz && a.equals(b)
 
-  if (Array.isArray(a))
-    return Array.isArray(b) && a.length === b.length && a.every((value, index) => areEqual(value, b[index]))
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false
+
+    for (let index = 0; index < a.length; index++) {
+      if (!areEqual(a[index], b[index])) return false
+    }
+
+    return true
+  }
 
   if (a instanceof Dream) return a.equals(b)
 

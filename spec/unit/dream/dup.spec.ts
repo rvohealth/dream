@@ -18,6 +18,24 @@ describe('Dream#dup', () => {
     expect(user2.changes()).toEqual({})
   })
 
+  it('reports replacement of a copied sparse array in changes', () => {
+    const sparseNumbers = new Array<number>(2)
+    sparseNumbers[1] = 1
+    const copy = User.new({ favoriteNumbers: sparseNumbers }).dup()
+
+    expect(copy.favoriteNumbers).toStrictEqual(sparseNumbers)
+    expect(copy.changes()).toEqual({})
+    expect(copy.isPersisted).toBe(false)
+    expect(copy.isDirty).toBe(true)
+
+    copy.favoriteNumbers = [5, 1]
+
+    expect(copy.changes()).toStrictEqual({
+      favoriteNumbers: { was: sparseNumbers, now: [5, 1] },
+    })
+    expect(copy.isDirty).toBe(true)
+  })
+
   it('copies attributes to a new instance, resetting primary key, created and updated fields to undefined', async () => {
     const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
     const user2 = user.dup()

@@ -116,6 +116,59 @@ describe('areEqual', () => {
     expect(areEqual(array1, array4)).toBe(false)
   })
 
+  context('sparse arrays', () => {
+    it('does not equate all holes with concrete values in either order', () => {
+      const sparse = new Array<number>(2)
+      expect(areEqual(sparse, [1, 2])).toBe(false)
+      expect(areEqual([1, 2], sparse)).toBe(false)
+    })
+
+    it('compares holes before and after populated positions in either order', () => {
+      const leadingHole = new Array<number>(2)
+      leadingHole[1] = 1
+      const trailingHole = new Array<number>(2)
+      trailingHole[0] = 1
+
+      expect(areEqual(leadingHole, [2, 1])).toBe(false)
+      expect(areEqual([2, 1], leadingHole)).toBe(false)
+      expect(areEqual(trailingHole, [1, 2])).toBe(false)
+      expect(areEqual([1, 2], trailingHole)).toBe(false)
+    })
+
+    it('equates holes with undefined but distinguishes null in either order', () => {
+      const sparse = new Array<number>(1)
+      expect(areEqual(sparse, [undefined])).toBe(true)
+      expect(areEqual([undefined], sparse)).toBe(true)
+      expect(areEqual(sparse, [null])).toBe(false)
+      expect(areEqual([null], sparse)).toBe(false)
+      expect(areEqual([undefined], [null])).toBe(false)
+      expect(areEqual([null], [undefined])).toBe(false)
+    })
+
+    it('equates equivalent sparse arrays and rejects different lengths in either order', () => {
+      const sparse = new Array<number>(2)
+      sparse[1] = 1
+      const equivalent = new Array<number>(2)
+      equivalent[1] = 1
+
+      expect(areEqual(sparse, equivalent)).toBe(true)
+      expect(areEqual(equivalent, sparse)).toBe(true)
+      expect(areEqual(new Array<number>(2), new Array<number>(2))).toBe(true)
+      expect(areEqual(sparse, [1])).toBe(false)
+      expect(areEqual([1], sparse)).toBe(false)
+    })
+
+    it('recursively compares nested sparse arrays in either order', () => {
+      const sparse = new Array<number>(2)
+      sparse[1] = 1
+
+      expect(areEqual([sparse], [[2, 1]])).toBe(false)
+      expect(areEqual([[2, 1]], [sparse])).toBe(false)
+      expect(areEqual([sparse], [[undefined, 1]])).toBe(true)
+      expect(areEqual([[undefined, 1]], [sparse])).toBe(true)
+    })
+  })
+
   it('can compare arrays whose first differing element is falsy', () => {
     expect(areEqual([0], [1])).toBe(false)
     expect(areEqual([false], [true])).toBe(false)
