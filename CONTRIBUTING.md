@@ -91,14 +91,13 @@ Spec conventions:
 CI also runs these checks:
 
 - **Ensure no sync diffs.** CI runs `pnpm dream db:migrate --skip-sync` and then `pnpm dream sync`, and fails if that changes any file. When you change a migration, a model or a serializer, run `pnpm dream db:migrate` (or `pnpm dream sync`) and commit the regenerated `test-app/types` files.
-- **Cooldown exclude allowlist.** See the next section.
 
 ## Dependency updates and supply-chain policy
 
 [SECURITY.md](SECURITY.md#supply-chain-hardening) explains the reasoning. In practice:
 
 - **The install policy lives in `pnpm-workspace.yaml`**: `minimumReleaseAge: 4320`, a 3-day cooldown on newly published versions, and `minimumReleaseAgeExclude`, which lists only `@rvoh/*`. pnpm 11 and later ignore both settings in `.npmrc`, which holds only the registry pin.
-- **CI keeps the cooldown in place.** The "Cooldown exclude allowlist" job asks the pinned pnpm what it will enforce (`pnpm config get minimumReleaseAge` and `minimumReleaseAgeExclude`). It fails if the cooldown is not a positive number, if any exclude is not an `@rvoh/` package, or if `.npmrc` contains a release-age setting. If a version is too new to install, wait out the cooldown rather than excluding it. For an urgent third-party patch, SECURITY.md calls for a transient override that is reverted afterwards.
+- **pnpm enforces the cooldown on every install**, including CI's `pnpm install --frozen-lockfile`; there is no separate check. The `@rvoh/*` exclusion is the only bypass. If a version is too new to install, wait out the cooldown rather than excluding it. For an urgent third-party patch, SECURITY.md calls for a transient override that is reverted afterwards. Changes to `pnpm-workspace.yaml`, `.npmrc`, any pnpmfile or the workflow files are reviewed like any other code change.
 - **`allowBuilds` in `pnpm-workspace.yaml` is the allowlist** of dependencies that may run install scripts. Keep it minimal.
 - **`overrides` in `pnpm-workspace.yaml` currently holds one entry (`esbuild`).** A comment next to it explains why no parent upgrade fixes the advisory. Resolve advisories by upgrading the package that brings the dependency in, wherever that works.
 - **Change `package.json` and `pnpm-lock.yaml` together.** CI installs with `pnpm install --frozen-lockfile`.

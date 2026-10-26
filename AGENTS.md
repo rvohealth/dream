@@ -154,6 +154,10 @@ pnpm dream db:reset
 
 Syncs types, etc. This is automatically performed by `pnpm dream db:migrate` and `pnpm dream db:reset`, so it's not necessary to run separately if those are already being run.
 
+## CI Tooling: Industry Standards Only
+
+Use the standard, documented mechanism a tool already provides (for example pnpm's `minimumReleaseAge` for dependency cooldowns). Never hand-write CI scripts, guards or harnesses that re-verify a tool's own configuration; the tool enforcing its configuration is the check. If a protection needs enforcing against config edits, use code review, CODEOWNERS or branch protection on the config files, not a custom check. An agent that thinks a custom CI check is needed must stop and ask the owner, naming the standard it could not find.
+
 ## Build and Code Quality
 
 ### Build
