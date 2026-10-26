@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.39.0",
+  "version": "2.40.0",
   "description": "dream orm",
   "engines": {
     "node": ">=24"
@@ -76,8 +76,6 @@
     "prepack": "pnpm build && pnpm dream build:docs"
   },
   "dependencies": {
-    "colorette": "^2.0.20",
-    "dotenv": "^17.2.3",
     "luxon": "^3.7.2",
     "yoctocolors": "^2.1.1"
   },
@@ -85,13 +83,18 @@
     "@types/node": "*",
     "@types/pg": "*",
     "commander": "^14.0.3",
-    "dotenv": "*",
     "kysely": "^0.29.0",
     "pg": "*",
     "pluralize-esm": "^9.0.5",
     "typescript": ">=5.0.0"
   },
   "peerDependenciesMeta": {
+    "@types/node": {
+      "optional": true
+    },
+    "@types/pg": {
+      "optional": true
+    },
     "typescript": {
       "optional": true
     }
@@ -105,6 +108,7 @@
     "@typescript-eslint/parser": "^8.57.1",
     "@typescript/analyze-trace": "^0.10.1",
     "commander": "^14.0.3",
+    "dotenv": "^17.2.3",
     "eslint": "^10.0.0",
     "jest-extended": "^4.0.2",
     "kysely": "^0.29.0",
@@ -121,5 +125,5 @@
     "vitest": "^4.1.0",
     "winston": "^3.14.2"
   },
-  "packageManager": "pnpm@11.27.0+sha512.ad12821463bb143295f1fa3ecde77a6b9b97a7990386da800ff57bffc3964dc64b7b1c7559d5dbe5c337aea659ed9c8937d4370bd198ca2009bc6fa0249808e7"
+  "packageManager": "pnpm@12.14.0+sha512.c18ba6d87993d3d164cb5e8948f32b2c06ee854487e06cd8d86781342fb3e5bb4634367034711e86802baa9c37bea906ce1929ad08d70884c97d801df13389a6"
 }

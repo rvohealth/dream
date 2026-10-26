@@ -661,6 +661,38 @@ export const UserSerializer = (user: User) =>
       })
     })
   })
+
+  context('importAliasPrefix is set on DreamApp', () => {
+    context('importAliasPrefix=#', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importAliasPrefix', 'get').mockReturnValue('#')
+      })
+
+      it('prefixes all alias imports with #', () => {
+        const res = generateSerializerContent({
+          fullyQualifiedModelName: 'user',
+          modelClassName: modelClassNameFrom('user'),
+          columnsWithTypes: ['organization:belongs_to'],
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
+        })
+
+        expect(res).toEqual(
+          `\
+import { DreamSerializer } from '@rvoh/dream'
+import User from '#models/User.js'
+
+export const UserSummarySerializer = (user: User) =>
+  DreamSerializer(User, user)
+    .attribute('id')
+
+export const UserSerializer = (user: User) =>
+  UserSummarySerializer(user)
+`
+        )
+      })
+    })
+  })
 })
 
 function expectAttributeType(startingAttributeType: string) {

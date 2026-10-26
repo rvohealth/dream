@@ -495,6 +495,39 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
     })
   })
 
+  context('importAliasPrefix is set on DreamApp', () => {
+    context('importAliasPrefix=#', () => {
+      beforeEach(() => {
+        vi.spyOn(DreamApp.prototype, 'importAliasPrefix', 'get').mockReturnValue('#')
+      })
+
+      it('prefixes all alias imports with #', () => {
+        const res = generateFactoryContent({
+          fullyQualifiedModelName: 'My/Nested/User',
+          modelClassName: modelClassNameFrom('My/Nested/User'),
+          columnsWithTypes: ['name:string', 'My/Nested/DoubleNested/Organization:belongs_to'],
+        })
+        expect(res).toEqual(
+          `\
+import { UpdateableProperties } from '@rvoh/dream/types'
+import MyNestedUser from '#models/My/Nested/User.js'
+import createMyNestedDoubleNestedOrganization from '#spec/factories/My/Nested/DoubleNested/OrganizationFactory.js'
+
+let counter = 0
+
+export default async function createMyNestedUser(attrs: UpdateableProperties<MyNestedUser> = {}) {
+  return await MyNestedUser.create({
+    organization: attrs.organization ?? (await createMyNestedDoubleNestedOrganization()),
+    name: \`My/Nested/User name \${++counter}\`,
+    ...attrs,
+  })
+}
+`
+        )
+      })
+    })
+  })
+
   // `writeGeneratedFile` does `fs.writeFile(absFilePath, content)` with no
   // formatting pass, so the string this generator returns is byte-for-byte what
   // a developer's `prettier --check` sees on a brand-new factory. These specs
