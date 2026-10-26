@@ -22,7 +22,7 @@ allowBuilds:
 # ago (4320 minutes). Kept under the CVE-patch SLA so routine patching needs no
 # bypass. pnpm 11+ reads install policy only from this file, never from .npmrc.
 minimumReleaseAge: 4320
-# Only our own first-party packages are exempt; CI (check-cooldown-excludes)
-# rejects any non-@rvoh entry here.
+# Only our own first-party packages are exempt; keep this list @rvoh/* only
+# (reviewed like any other change).
 minimumReleaseAgeExclude:
   - '@rvoh/*'
