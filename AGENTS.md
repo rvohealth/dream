@@ -108,6 +108,14 @@ Compatibility-only residue (an error kept exported only for backward
 compatibility, not because new code should throw or catch it) must be
 documented as such, not treated as proof it still belongs in the public API.
 
+## Serializers: Declarations Never Depend on Data or Passthrough Data
+
+A serializer function must declare the same keys, names and associations whatever
+data and passthrough data it is called with. Dream and Psychic call it with neither
+to register it, preload for it and build its OpenAPI schema. Read either only inside
+a `customAttribute` callback, or hand passthrough data on to a child serializer. Never
+write a spec, test-app serializer or TSDoc example that shapes a declaration from either.
+
 ## Database Adapters: No Postgres-Only Code in Shared Paths
 
 Dream is moving toward real multi-database support, so framework code in shared

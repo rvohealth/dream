@@ -12,7 +12,6 @@ import { serializersForAssociatedClass } from './serializersForAssociatedClass.j
 
 export interface NullFlattenedSerializerKeysOptions {
   casing?: SerializerCasing
-  passthroughData?: object
 }
 
 /**
@@ -25,7 +24,6 @@ type KeyRequirements = Record<string, boolean>
 
 interface NullFlattenedSerializerKeysWalk {
   casing: SerializerCasing
-  passthroughData: object
   serializersBeingFlattened: Set<DreamModelSerializerType | SimpleObjectSerializerType>
 }
 
@@ -57,8 +55,9 @@ interface NullFlattenedSerializerKeysWalk {
  * flattens itself, adds nothing, so the walk always terminates; one reached again along another
  * path is walked again, so each path adds its keys and their requirements.
  *
- * `passthroughData` is handed to each serializer as it is built, as when rendering; outside a
- * render it may be left out.
+ * Each serializer is built with empty passthrough data, as Psychic's OpenAPI generation builds it,
+ * so the keys are the same whatever passthrough data a render carries: what a serializer declares
+ * must not depend on its passthrough data.
  */
 export function nullFlattenedSerializerKeys(
   serializers: (DreamModelSerializerType | SimpleObjectSerializerType)[],
@@ -164,11 +163,8 @@ export function flattenedOpenapiVariants(
   return sharedMembers.length ? variants.map(variant => ({ allOf: [...sharedMembers, variant] })) : variants
 }
 
-function newWalk({
-  casing = 'camel',
-  passthroughData = {},
-}: NullFlattenedSerializerKeysOptions): NullFlattenedSerializerKeysWalk {
-  return { casing, passthroughData, serializersBeingFlattened: new Set() }
+function newWalk({ casing = 'camel' }: NullFlattenedSerializerKeysOptions): NullFlattenedSerializerKeysWalk {
+  return { casing, serializersBeingFlattened: new Set() }
 }
 
 function nullRequiredKeys(requirements: KeyRequirements): Record<string, null> {
@@ -206,10 +202,7 @@ function walkSerializers(
     if (walk.serializersBeingFlattened.has(serializer)) return flattenedKeys
     walk.serializersBeingFlattened.add(serializer)
 
-    const serializerBuilder = serializer(undefined as any, walk.passthroughData) as DreamSerializerBuilder<
-      any,
-      any
-    >
+    const serializerBuilder = serializer(undefined as any, {}) as DreamSerializerBuilder<any, any>
     const serializerKeys = walkSerializerBuilder(serializerBuilder, walk)
 
     walk.serializersBeingFlattened.delete(serializer)
