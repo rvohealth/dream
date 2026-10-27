@@ -11,7 +11,8 @@ import { UpdateablePropertiesForClass } from '../../types/dream.js'
  * given for an array column is the whole array to store: the lookup compares
  * it with `ops.equal`, matching only a record whose array equals it
  * element-for-element, in order, instead of the `IN` a plain list means in a
- * where clause.
+ * where clause. PostgreSQL defines no equality operator for `json`, so on a
+ * `json[]` column this lookup raises at the database, as `ops.equal` does.
  */
 export default function findOrCreateLookupStatement<T extends typeof Dream>(
   dreamClass: T,
