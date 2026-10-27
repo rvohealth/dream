@@ -351,6 +351,16 @@ export default class DreamApp {
   }
 
   private _importExtension: GeneratorImportStyle = '.js'
+  /**
+   * The import suffix the CLI generators write: `.js`, `.ts` or `none`.
+   *
+   * In a Psychic app, set it in conf/app.ts with
+   * `psy.set('importExtension', …)`. Psychic forwards it here, and a different
+   * value set in conf/dream.ts throws at boot. In a Dream-only app, set it in
+   * conf/dream.ts with `dreamApp.set('importExtension', …)`.
+   *
+   * Defaults to `.js`.
+   */
   public get importExtension() {
     return this._importExtension
   }
@@ -359,20 +369,17 @@ export default class DreamApp {
   /**
    * The prefix of the import aliases the CLI generators write: the `@` in
    * `@models/User.js`, `@serializers/UserSerializer.js` and
-   * `@spec/factories/UserFactory.js`. Set with
-   * `dreamApp.set('importAliasPrefix', '#')` to have them write
+   * `@spec/factories/UserFactory.js`. Set it to `#` to have them write
    * `#models/User.js` and so on, which Node resolves as subpath imports
    * declared under `imports` in the app's package.json.
    *
-   * Defaults to `@`. The default becomes `#` in Dream 3; an app that wants
-   * to keep `@` should set it explicitly with
-   * `dreamApp.set('importAliasPrefix', '@')`.
+   * In a Psychic app, set it in conf/app.ts with
+   * `psy.set('importAliasPrefix', '#')`. Psychic forwards it here, and a
+   * different value set in conf/dream.ts throws at boot. In a Dream-only app,
+   * set it in conf/dream.ts with `dreamApp.set('importAliasPrefix', '#')`.
    *
-   * Psychic's resource controller-spec generator still writes its
-   * `@spec/unit/helpers/authentication.js` import with a literal `@` until
-   * Psychic reads this setting (planned for 3.17.0), so a Psychic app should
-   * keep its `@spec` alias, or wait for that release, before switching to
-   * `#` only.
+   * Defaults to `@`. The default becomes `#` in Dream 3; an app that wants
+   * to keep `@` should set it to `@` explicitly.
    */
   public get importAliasPrefix() {
     return this._importAliasPrefix

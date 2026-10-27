@@ -9,17 +9,23 @@ import ObjectSerializerBuilder from './builders/ObjectSerializerBuilder.js'
  *   ObjectSerializer(address).attribute('city', { openapi: 'string' })
  * ```
  *
- * A serializer must not read its data while being built: what it declares may not
- * depend on its data. Dream and Psychic build it without data to read its shape (the
- * OpenAPI schema, and the keys a flattened association or `customAttribute` that uses
- * it renders as `null` where its value does not supply them), so a serializer that
- * reads its data while being built throws when a flattened association or
- * `customAttribute` that uses it is rendered. Read the data inside a `customAttribute`
- * callback, which runs only when the serializer renders, not while it is built.
+ * A serializer must not read its data or its passthrough data while being built: what it
+ * declares (which keys, under which names, and which associations it renders) may not
+ * depend on either. Dream and Psychic build it without data to read its shape (the OpenAPI
+ * schema, the associations `preloadFor` loads, and the keys a flattened association or
+ * `customAttribute` that uses it renders as `null` where its value does not supply them),
+ * and without passthrough data when registering it, preloading and generating OpenAPI. A
+ * serializer that reads its data while being built throws when a flattened association or
+ * `customAttribute` that uses it is rendered; one that reads its passthrough data is never
+ * registered, or renders keys and associations its OpenAPI schema and `preloadFor` do not
+ * describe. Read either inside a `customAttribute` callback, which runs only when the
+ * serializer renders, not while it is built, and hand passthrough data on to the
+ * serializers it renders.
  *
  * @param data - The object to render
- * @param passthroughData - Data available to this serializer and passed down to the serializers
- *   it renders
+ * @param passthroughData - Data available to this serializer's callbacks when it renders,
+ *   and passed down to the serializers it renders. It must not decide what the serializer
+ *   declares.
  * @returns The serializer builder for method chaining
  */
 export default function ObjectSerializer<

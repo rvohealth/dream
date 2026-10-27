@@ -191,18 +191,6 @@ describe('nullFlattenedSerializerKeys', () => {
     })
   })
 
-  it('passes the passthrough data to each serializer it builds', () => {
-    const ContactSerializer = (contact: Contact, passthroughData: { locale: string }) =>
-      ObjectSerializer(contact, passthroughData).attribute('emailAddress', {
-        as: `email_${passthroughData.locale}`,
-        openapi: 'string',
-      })
-
-    expect(nullFlattenedSerializerKeys([ContactSerializer], { passthroughData: { locale: 'en' } })).toEqual({
-      email_en: null,
-    })
-  })
-
   it('terminates on a serializer that flattens itself, adding its keys once', () => {
     interface Node {
       label: string

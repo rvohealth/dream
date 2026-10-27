@@ -127,7 +127,7 @@ export default class SerializerRenderer {
           if (value === undefined && attribute.options?.required === false) return accumulator
 
           if (attribute.options.flatten) {
-            const flattenOptions = { casing: this.renderOpts.casing, passthroughData }
+            const flattenOptions = { casing: this.renderOpts.casing }
 
             // a flattened customAttribute's keys are the parent's own keys, cased like them, and
             // always include each key any shape of its openapi requires: a callback that returns
@@ -213,7 +213,7 @@ export default class SerializerRenderer {
                   attribute.name,
                   attribute.options
                 ),
-                { casing: this.renderOpts.casing, passthroughData }
+                { casing: this.renderOpts.casing }
               ),
               // passthrough data must be passed both into the serializer and render
               // because, if the serializer does accept passthrough data, then passing it in is how
