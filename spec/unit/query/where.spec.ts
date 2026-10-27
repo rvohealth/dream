@@ -1233,6 +1233,136 @@ describe('Query#where', () => {
     })
   })
 
+  context('a list of whole arrays against a date array column', () => {
+    const date1 = CalendarDate.fromISO('1987-07-22')
+    const date2 = CalendarDate.fromISO('1990-01-15')
+    const date3 = CalendarDate.fromISO('2001-12-31')
+
+    let bothDatesUser: User
+    let thirdDateUser: User
+    let nullDatesUser: User
+
+    beforeEach(async () => {
+      bothDatesUser = await User.create({
+        email: 'aaa@example.com',
+        password: 'howyadoin',
+        favoriteDates: [date1, date2],
+      })
+      thirdDateUser = await User.create({
+        email: 'bbb@example.com',
+        password: 'howyadoin',
+        favoriteDates: [date3],
+      })
+      await User.create({ email: 'ccc@example.com', password: 'howyadoin', favoriteDates: [date2, date1] })
+      await User.create({ email: 'ddd@example.com', password: 'howyadoin', favoriteDates: [date1] })
+      nullDatesUser = await User.create({
+        email: 'eee@example.com',
+        password: 'howyadoin',
+        favoriteDates: null,
+      })
+    })
+
+    it('matches the records whose whole array equals one of the listed arrays', async () => {
+      const users = await User.where({ favoriteDates: [[date1, date2], [date3]] }).all()
+      expect(users).toMatchDreamModels([bothDatesUser, thirdDateUser])
+    })
+
+    it('matches the records whose array is null when the list includes null', async () => {
+      const users = await User.where({ favoriteDates: [[date3], null] }).all()
+      expect(users).toMatchDreamModels([thirdDateUser, nullDatesUser])
+    })
+  })
+
+  context('a list of whole arrays against a timestamp array column', () => {
+    const datetime1 = DateTime.fromISO('1987-07-22T10:11:12Z')
+    const datetime2 = DateTime.fromISO('1990-01-15T08:00:00Z')
+    const datetime3 = DateTime.fromISO('2001-12-31T23:59:59Z')
+
+    let bothDatetimesUser: User
+    let thirdDatetimeUser: User
+    let nullDatetimesUser: User
+
+    beforeEach(async () => {
+      bothDatetimesUser = await User.create({
+        email: 'aaa@example.com',
+        password: 'howyadoin',
+        favoriteDatetimes: [datetime1, datetime2],
+      })
+      thirdDatetimeUser = await User.create({
+        email: 'bbb@example.com',
+        password: 'howyadoin',
+        favoriteDatetimes: [datetime3],
+      })
+      await User.create({
+        email: 'ccc@example.com',
+        password: 'howyadoin',
+        favoriteDatetimes: [datetime2, datetime1],
+      })
+      await User.create({ email: 'ddd@example.com', password: 'howyadoin', favoriteDatetimes: [datetime1] })
+      nullDatetimesUser = await User.create({
+        email: 'eee@example.com',
+        password: 'howyadoin',
+        favoriteDatetimes: null,
+      })
+    })
+
+    it('matches the records whose whole array equals one of the listed arrays', async () => {
+      const users = await User.where({ favoriteDatetimes: [[datetime1, datetime2], [datetime3]] }).all()
+      expect(users).toMatchDreamModels([bothDatetimesUser, thirdDatetimeUser])
+    })
+
+    it('matches the records whose array is null when the list includes null', async () => {
+      const users = await User.where({ favoriteDatetimes: [[datetime3], null] }).all()
+      expect(users).toMatchDreamModels([thirdDatetimeUser, nullDatetimesUser])
+    })
+  })
+
+  context('a list of whole arrays against a time array column', () => {
+    const morning = ClockTime.fromISO('08:00:00')
+    const evening = ClockTime.fromISO('17:30:00')
+    const morningTz = ClockTimeTz.fromISO('08:00:00Z')
+    const eveningTz = ClockTimeTz.fromISO('17:30:00Z')
+
+    let bothTimesModel: ModelForOpenapiTypeSpecs
+    let eveningModel: ModelForOpenapiTypeSpecs
+
+    beforeEach(async () => {
+      bothTimesModel = await ModelForOpenapiTypeSpecs.create({
+        passwordDigest: 'abcd',
+        name: 'both',
+        email: 'both@example.com',
+        times: [morning, evening],
+        timesWithZone: [morningTz, eveningTz],
+      })
+      eveningModel = await ModelForOpenapiTypeSpecs.create({
+        passwordDigest: 'abcd',
+        name: 'evening',
+        email: 'evening@example.com',
+        times: [evening],
+        timesWithZone: [eveningTz],
+      })
+      await ModelForOpenapiTypeSpecs.create({
+        passwordDigest: 'abcd',
+        name: 'reversed',
+        email: 'reversed@example.com',
+        times: [evening, morning],
+        timesWithZone: [eveningTz, morningTz],
+      })
+    })
+
+    it('matches the records whose whole time array equals one of the listed arrays', async () => {
+      const models = await ModelForOpenapiTypeSpecs.where({ times: [[morning, evening], [evening]] }).all()
+      expect(models).toMatchDreamModels([bothTimesModel, eveningModel])
+    })
+
+    it('matches the records whose whole time-with-time-zone array equals one of the listed arrays', async () => {
+      const models = await ModelForOpenapiTypeSpecs.where({
+        timesWithZone: [[morningTz, eveningTz], [eveningTz]],
+      }).all()
+      expect(models).toMatchDreamModels([bothTimesModel, eveningModel])
+    })
+  })
+
   context('a function returning a date range', () => {
     const begin = DateTime.now()
     const end = DateTime.now().plus({ day: 1 })
