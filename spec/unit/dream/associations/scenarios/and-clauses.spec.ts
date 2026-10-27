@@ -1,7 +1,10 @@
+import Decorators from '../../../../../src/decorators/Decorators.js'
+import ops from '../../../../../src/ops/index.js'
 import Balloon from '../../../../../test-app/app/models/Balloon.js'
 import Latex from '../../../../../test-app/app/models/Balloon/Latex.js'
 import Mylar from '../../../../../test-app/app/models/Balloon/Mylar.js'
 import Pet from '../../../../../test-app/app/models/Pet.js'
+import User from '../../../../../test-app/app/models/User.js'
 
 describe('and-clauses on associations (also see various specs in spec/unit/query)', () => {
   let pet: Pet
@@ -427,5 +430,49 @@ describe('and-clauses on associations (also see various specs in spec/unit/query
         })
       })
     })
+  })
+})
+
+// type tests intentionally skipped, since they will fail on build instead.
+context.skip('type tests', () => {
+  // The plain value form targets regular (scalar) columns; an array column is
+  // compared through `ops`, e.g. `ops.equal(['red', 'green'])`.
+  it('rejects a flat list against an array column in an association definition', () => {
+    const deco = new Decorators<typeof User2>()
+    class User2 extends User {
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      @deco.HasMany('Balloon', { and: { multicolor: ['red', 'green'] } })
+      public andBalloons: Balloon[]
+
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      @deco.HasMany('Balloon', { andNot: { multicolor: ['red', 'green'] } })
+      public andNotBalloons: Balloon[]
+
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      @deco.HasMany('Balloon', { andAny: [{ multicolor: ['red', 'green'] }] })
+      public andAnyBalloons: Balloon[]
+    }
+    expect(User2).toBeDefined()
+  })
+
+  it('accepts null, an empty list and ops against an array column in an association definition', () => {
+    const deco = new Decorators<typeof User2>()
+    class User2 extends User {
+      @deco.HasMany('Balloon', { and: { multicolor: null } })
+      public andNullBalloons: Balloon[]
+
+      @deco.HasMany('Balloon', { and: { multicolor: [] } })
+      public andEmptyBalloons: Balloon[]
+
+      @deco.HasMany('Balloon', { and: { multicolor: ops.equal(['red', 'green']) } })
+      public andEqualBalloons: Balloon[]
+
+      @deco.HasMany('Balloon', { andNot: { multicolor: [['red', 'green'], null] } })
+      public andNotListOfListsBalloons: Balloon[]
+
+      @deco.HasMany('Balloon', { and: { color: ['red', 'blue'] } })
+      public andScalarListBalloons: Balloon[]
+    }
+    expect(User2).toBeDefined()
   })
 })

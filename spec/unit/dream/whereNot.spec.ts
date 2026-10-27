@@ -1,4 +1,6 @@
+import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import Balloon from '../../../test-app/app/models/Balloon.js'
 import User from '../../../test-app/app/models/User.js'
 
 describe('Dream.whereNot', () => {
@@ -33,6 +35,20 @@ context.skip('type tests', () => {
   it('ensures invalid arguments error', () => {
     // @ts-expect-error intentionally passing invalid arg to test that type protection is working
     User.whereNot({ invalidArg: 123 })
+  })
+
+  // The plain value form targets regular (scalar) columns; an array column is
+  // compared through `ops`, e.g. `ops.equal(['red', 'green'])`.
+  it('rejects a flat list against an array column', () => {
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    Balloon.whereNot({ multicolor: ['red', 'green'] })
+  })
+
+  it('accepts null, an empty list, a list of whole arrays and ops against an array column', () => {
+    Balloon.whereNot({ multicolor: null })
+    Balloon.whereNot({ multicolor: [] })
+    Balloon.whereNot({ multicolor: [['red', 'green'], null] })
+    Balloon.whereNot({ multicolor: ops.equal(['red', 'green']) })
   })
 
   context('in a transaction', () => {

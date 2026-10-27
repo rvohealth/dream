@@ -1743,6 +1743,23 @@ describe('Query#where', () => {
       })
     })
 
+    // The plain value form targets regular (scalar) columns; an array column is
+    // compared through `ops`, e.g. `ops.equal(['red', 'green'])`.
+    it('rejects a flat list against an array column', () => {
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      Balloon.query().where({ multicolor: ['red', 'green'] })
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      ModelForOpenapiTypeSpecs.query().where({ favoriteTexts: ['a', 'b'] })
+    })
+
+    it('accepts null, an empty list, a list of whole arrays and ops against an array column', () => {
+      Balloon.query().where({ multicolor: null })
+      Balloon.query().where({ multicolor: [] })
+      Balloon.query().where({ multicolor: [['red', 'green'], null] })
+      Balloon.query().where({ multicolor: ops.equal(['red', 'green']) })
+      Balloon.query().where({ color: ['red', 'blue'] })
+    })
+
     context('in a transaction', () => {
       it('ensures invalid arguments error', async () => {
         await ApplicationModel.transaction(txn => {

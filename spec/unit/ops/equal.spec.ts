@@ -1,5 +1,6 @@
 import ArrayEqualityRequiresArrayColumn from '../../../src/errors/ops/ArrayEqualityRequiresArrayColumn.js'
 import ops from '../../../src/ops/index.js'
+import { type InternalWhereStatement } from '../../../src/types/associations/shared.js'
 import { type TableColumnIsArray } from '../../../src/types/dream.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
@@ -7,6 +8,7 @@ import Balloon from '../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../test-app/app/models/User.js'
+import { type DB } from '../../../test-app/types/db.js'
 
 describe('ops.equal', () => {
   context('against an array column', () => {
@@ -121,17 +123,18 @@ describe('ops.equal', () => {
       })
     })
 
-    // A bare array means `IN`, which is only meaningful against a scalar
-    // column: against an array column PostgreSQL is handed a value list where
-    // it expects an array literal. This is a compile error (see the `types`
-    // context below), so the cast stands in for the callers the types cannot
-    // reach — Javascript consumers, `DreamConst.passthrough` values, and
-    // values reconstructed from JSON.
+    // The plain value form of a where clause targets regular (scalar)
+    // columns, so a bare array means `IN`. Against an array column PostgreSQL
+    // is handed a value list where it expects an array literal, which is why
+    // an array column is compared through `ops` and the flat list is a compile
+    // error (see the `types` context below). This spec pins what the database
+    // does with the form the types reject.
     it('does not accept a bare array as exact array equality', async () => {
       const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
       await Mylar.create({ user, multicolor: ['red', 'green'] })
 
-      await expect(Balloon.where({ multicolor: ['red', 'green'] as any }).all()).rejects.toThrow(
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      await expect(Balloon.where({ multicolor: ['red', 'green'] }).all()).rejects.toThrow(
         /malformed array literal/
       )
     })
@@ -199,6 +202,15 @@ describe('ops.equal', () => {
       ModelForOpenapiTypeSpecs.where({ favoriteDates: ops.equal([CalendarDate.fromISO('1987-07-22')]) })
       Balloon.where({ multicolor: ops.equal(['red', 'green']) })
 
+      // the plain value form targets regular (scalar) columns, so the same
+      // arrays without ops.equal are rejected: a bare array means IN
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      ModelForOpenapiTypeSpecs.where({ favoriteTexts: ['a', 'b'] })
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      ModelForOpenapiTypeSpecs.where({ favoriteIntegers: [1, 2] })
+      // @ts-expect-error a flat list against an array column means IN; use ops.equal
+      Balloon.where({ multicolor: ['red', 'green'] })
+
       // an enum array column only accepts members of its own enum
       // @ts-expect-error 'chartreuse' is not a BalloonColorsEnum
       Balloon.where({ multicolor: ops.equal(['red', 'chartreuse']) })
@@ -245,15 +257,16 @@ describe('ops.equal', () => {
       User.where({ email: ops.equal('a@b.com') })
       User.where({ email: ['a@b.com', 'c@d.com'] })
 
-      // NOTE: `Balloon.where({ multicolor: ['red', 'green'] })` deliberately
-      // does NOT appear in the list above. It compiles — `Whereable` accepts a
-      // column's own `Selectable` type, which for an array column is an array
-      // — but it raises `malformed array literal` at the database, because a
-      // bare array means `IN`. The runtime spec
-      // 'does not accept a bare array as exact array equality' pins that;
-      // asserting it here would bless a form that always fails.
-
       expect(true).toBe(true)
+    })
+
+    // An untyped schema cannot tell an array column from a scalar one, so a
+    // plain list stays accepted against any column there.
+    it('accepts a plain list against any column under an untyped schema', () => {
+      const statement: InternalWhereStatement<Balloon, DB, any, 'beautiful_balloons'> = {
+        multicolor: ['red', 'green'],
+      }
+      expect(statement).toBeDefined()
     })
 
     // `TableColumnIsArray` documents itself as resolving to `false` for
