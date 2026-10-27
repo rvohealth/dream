@@ -1,6 +1,7 @@
 import Dream from '../../Dream.js'
 import { UpdateablePropertiesForClass, UpdateOrCreateByExtraOpts } from '../../types/dream.js'
 import DreamTransaction from '../DreamTransaction.js'
+import findOrCreateLookupStatement from './findOrCreateLookupStatement.js'
 import saveDream from './saveDream.js'
 
 export default async function updateOrCreateBy<T extends typeof Dream>(
@@ -9,9 +10,7 @@ export default async function updateOrCreateBy<T extends typeof Dream>(
   attributes: UpdateablePropertiesForClass<T>,
   extraOpts: UpdateOrCreateByExtraOpts<T> = {}
 ): Promise<InstanceType<T>> {
-  const existingRecord = await dreamClass
-    .txn(txn)
-    .findBy(dreamClass['extractAttributesFromUpdateableProperties'](attributes))
+  const existingRecord = await dreamClass.txn(txn).findBy(findOrCreateLookupStatement(dreamClass, attributes))
 
   const { with: attrs, skipHooks } = extraOpts
 

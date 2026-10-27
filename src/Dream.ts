@@ -30,6 +30,7 @@ import destroyDream from './dream/internal/destroyDream.js'
 import { destroyOptions, reallyDestroyOptions, undestroyOptions } from './dream/internal/destroyOptions.js'
 import ensureSTITypeFieldIsSet from './dream/internal/ensureSTITypeFieldIsSet.js'
 import findOrCreateBy from './dream/internal/findOrCreateBy.js'
+import findOrCreateLookupStatement from './dream/internal/findOrCreateLookupStatement.js'
 import type {
   InstanceDestroyOptions,
   InstanceUpdateOptions,
@@ -1589,7 +1590,7 @@ export default class Dream {
     } catch (err) {
       if (pgErrorType(err) === UNIQUE_VIOLATION) {
         const dreamModel = await this.findBy(
-          this.extractAttributesFromUpdateableProperties(attributes as UpdateablePropertiesForClass<T>)
+          findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
         )
         if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
         return dreamModel
@@ -1657,7 +1658,7 @@ export default class Dream {
     } catch (err) {
       if (pgErrorType(err) === UNIQUE_VIOLATION) {
         const existingRecord = await this.findBy(
-          this.extractAttributesFromUpdateableProperties(attributes as UpdateablePropertiesForClass<T>)
+          findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
         )
         if (!existingRecord) throw new CreateOrUpdateByFailedToCreateAndUpdate(this)
         const { with: attrs } = extraOpts
