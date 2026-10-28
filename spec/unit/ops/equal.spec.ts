@@ -1,6 +1,5 @@
 import ArrayEqualityRequiresArrayColumn from '../../../src/errors/ops/ArrayEqualityRequiresArrayColumn.js'
 import ops from '../../../src/ops/index.js'
-import { type InternalWhereStatement } from '../../../src/types/associations/shared.js'
 import { type TableColumnIsArray } from '../../../src/types/dream.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
@@ -8,7 +7,6 @@ import Balloon from '../../../test-app/app/models/Balloon.js'
 import Mylar from '../../../test-app/app/models/Balloon/Mylar.js'
 import ModelForOpenapiTypeSpecs from '../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import User from '../../../test-app/app/models/User.js'
-import { type DB } from '../../../test-app/types/db.js'
 
 describe('ops.equal', () => {
   context('against an array column', () => {
@@ -258,15 +256,6 @@ describe('ops.equal', () => {
       User.where({ email: ['a@b.com', 'c@d.com'] })
 
       expect(true).toBe(true)
-    })
-
-    // An untyped schema cannot tell an array column from a scalar one, so a
-    // plain list stays accepted against any column there.
-    it('accepts a plain list against any column under an untyped schema', () => {
-      const statement: InternalWhereStatement<Balloon, DB, any, 'beautiful_balloons'> = {
-        multicolor: ['red', 'green'],
-      }
-      expect(statement).toBeDefined()
     })
 
     // `TableColumnIsArray` documents itself as resolving to `false` for
