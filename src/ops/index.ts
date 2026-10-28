@@ -147,9 +147,13 @@ const ops = {
    *
    * **Array columns:** passing an array means literal array equality — the
    * whole array is bound as a single parameter, so the column must match
-   * element-for-element, in order. This is the opt-in counterpart to a bare
-   * array in a where clause (`Post.where({ tags: ['a', 'b'] })`), which means
-   * `IN`, and to `ops.any`, which tests for containment of a single element.
+   * element-for-element, in order. The plain value form of a where clause
+   * targets regular (scalar) columns, so comparing an array column against an
+   * array value goes through `ops`: a flat list against an array column
+   * (`Post.where({ tags: ['a', 'b'] })`) is a compile error. A list of whole
+   * arrays (`Post.where({ tags: [['a', 'b'], ['c']] })`) means `IN`, matching
+   * rows whose column equals any one of them, and `ops.any` tests for
+   * containment of a single element.
    * Element types are constrained by the column, so an enum array column
    * rejects a string that is not a member of its enum.
    *

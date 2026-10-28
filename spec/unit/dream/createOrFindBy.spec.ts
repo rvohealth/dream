@@ -104,6 +104,61 @@ describe('Dream.createOrFindBy', () => {
     expect(composition.userId).toEqual(user.id)
   })
 
+  context(
+    'with an array column in the find key, when a unique column conflicts with an existing record',
+    () => {
+      let existingPet: Pet
+
+      beforeEach(async () => {
+        existingPet = await Pet.create({
+          species: 'cat',
+          uniqueColumn: 'garfield',
+          favoriteTreats: ['chicken', 'tuna'],
+        })
+      })
+
+      it('returns the existing record whose array equals the given array', async () => {
+        const pet = await Pet.createOrFindBy({
+          uniqueColumn: 'garfield',
+          favoriteTreats: ['chicken', 'tuna'],
+        })
+
+        expect(pet).toMatchDreamModel(existingPet)
+        expect(await Pet.count()).toEqual(1)
+      })
+
+      it('throws CreateOrFindByFailedToCreateAndFind when the given array has the same elements in a different order', async () => {
+        await expect(
+          Pet.createOrFindBy({ uniqueColumn: 'garfield', favoriteTreats: ['tuna', 'chicken'] })
+        ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      })
+
+      it('throws CreateOrFindByFailedToCreateAndFind when the given array holds only some of the elements', async () => {
+        await expect(
+          Pet.createOrFindBy({ uniqueColumn: 'garfield', favoriteTreats: ['chicken'] })
+        ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      })
+
+      it('returns the existing record whose array is empty when given an empty array', async () => {
+        const emptyPet = await Pet.create({ species: 'cat', uniqueColumn: 'nermal', favoriteTreats: [] })
+
+        expect(await Pet.createOrFindBy({ uniqueColumn: 'nermal', favoriteTreats: [] })).toMatchDreamModel(
+          emptyPet
+        )
+        expect(await Pet.count()).toEqual(2)
+      })
+
+      it('returns the existing record whose array is null when given null', async () => {
+        const nullPet = await Pet.create({ species: 'cat', uniqueColumn: 'nermal', favoriteTreats: null })
+
+        expect(await Pet.createOrFindBy({ uniqueColumn: 'nermal', favoriteTreats: null })).toMatchDreamModel(
+          nullPet
+        )
+        expect(await Pet.count()).toEqual(2)
+      })
+    }
+  )
+
   context('with an encrypted column passed to createWith', () => {
     it('encrypts the value before persisting it', async () => {
       const u = await User.createOrFindBy(

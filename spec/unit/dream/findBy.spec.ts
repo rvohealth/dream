@@ -1,4 +1,5 @@
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
+import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
@@ -55,6 +56,20 @@ context.skip('type tests', () => {
     await User
       // @ts-expect-error intentionally passing invalid arg to test that type protection is working
       .findBy({ invalidArg: 123 })
+  })
+
+  // The plain value form targets regular (scalar) columns; an array column is
+  // compared through `ops`, e.g. `ops.equal(['red', 'green'])`.
+  it('rejects a flat list against an array column', async () => {
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    await Balloon.findBy({ multicolor: ['red', 'green'] })
+  })
+
+  it('accepts null, an empty list, a list of whole arrays and ops against an array column', async () => {
+    await Balloon.findBy({ multicolor: null })
+    await Balloon.findBy({ multicolor: [] })
+    await Balloon.findBy({ multicolor: [['red', 'green'], null] })
+    await Balloon.findBy({ multicolor: ops.equal(['red', 'green']) })
   })
 
   context('in a transaction', () => {

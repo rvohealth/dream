@@ -54,13 +54,23 @@ function normalizedString(_val: string | string[]) {
   return alreadyAnArray ? normalizedValueArray : normalizedValueArray[0]
 }
 
+type NestedArray<T> = (T | NestedArray<T>)[]
+type DateTimeOrDateValue = string | DateTime | CalendarDate | null | undefined
+type ClockTimeOrClockTimeTzValue = string | ClockTime | ClockTimeTz | null | undefined
+
+/**
+ * A value for a date or timestamp column (or an array of them) may be a single
+ * value, an array, or, as the `IN` operand against an array column, a list of
+ * whole arrays; every nested array is converted element by element.
+ */
 function dateTimeOrDateToSql(
   dateClass: typeof DateTime | typeof CalendarDate,
-  _val: string | string[] | (DateTime | CalendarDate) | (DateTime | CalendarDate)[]
-) {
+  _val: DateTimeOrDateValue | NestedArray<DateTimeOrDateValue>
+): unknown {
   const alreadyAnArray = Array.isArray(_val)
-  const normalizedValueArray = (alreadyAnArray ? _val : [_val]).map(val => {
+  const normalizedValueArray = (alreadyAnArray ? _val : [_val]).map((val): unknown => {
     if (val === null || val === undefined) return val
+    if (Array.isArray(val)) return dateTimeOrDateToSql(dateClass, val)
     if (val instanceof DateTime || val instanceof CalendarDate) return val.toSQL()
 
     try {
@@ -85,13 +95,19 @@ function dateTimeOrDateToSql(
   return alreadyAnArray ? normalizedValueArray : normalizedValueArray[0]
 }
 
+/**
+ * A value for a time column (or an array of them) may be a single value, an
+ * array, or, as the `IN` operand against an array column, a list of whole
+ * arrays; every nested array is converted element by element.
+ */
 function clockTimeOrClockTimeTzToSql(
   clockTimeClass: typeof ClockTime | typeof ClockTimeTz,
-  _val: string | string[] | (ClockTime | ClockTimeTz) | (ClockTime | ClockTimeTz)[]
-) {
+  _val: ClockTimeOrClockTimeTzValue | NestedArray<ClockTimeOrClockTimeTzValue>
+): unknown {
   const alreadyAnArray = Array.isArray(_val)
-  const normalizedValueArray = (alreadyAnArray ? _val : [_val]).map(val => {
+  const normalizedValueArray = (alreadyAnArray ? _val : [_val]).map((val): unknown => {
     if (val === null || val === undefined) return val
+    if (Array.isArray(val)) return clockTimeOrClockTimeTzToSql(clockTimeClass, val)
     if (val instanceof BaseClockTime) return val.toSQL()
 
     try {

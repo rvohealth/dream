@@ -187,6 +187,87 @@ describe('Dream.updateOrCreateBy', () => {
     })
   })
 
+  context('with an array column in the find key', () => {
+    let existingPet: Pet
+
+    beforeEach(async () => {
+      existingPet = await Pet.create({
+        species: 'cat',
+        name: 'Garfield',
+        favoriteTreats: ['chicken', 'tuna'],
+      })
+    })
+
+    it('updates the existing record whose array equals the given array', async () => {
+      const pet = await Pet.updateOrCreateBy(
+        { favoriteTreats: ['chicken', 'tuna'] },
+        { with: { name: 'Nermal' } }
+      )
+
+      expect(pet).toMatchDreamModel(existingPet)
+      expect((await Pet.find(existingPet.id))!.name).toEqual('Nermal')
+      expect(await Pet.count()).toEqual(1)
+    })
+
+    it('creates a record when the given array has the same elements in a different order', async () => {
+      const pet = await Pet.updateOrCreateBy(
+        { favoriteTreats: ['tuna', 'chicken'] },
+        { with: { name: 'Nermal' } }
+      )
+
+      expect(pet).not.toMatchDreamModel(existingPet)
+      expect((await Pet.find(pet.id))!.favoriteTreats).toEqual(['tuna', 'chicken'])
+      expect((await Pet.find(existingPet.id))!.name).toEqual('Garfield')
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('creates a record when the given array holds only some of the elements', async () => {
+      const pet = await Pet.updateOrCreateBy({ favoriteTreats: ['chicken'] }, { with: { name: 'Nermal' } })
+
+      expect(pet).not.toMatchDreamModel(existingPet)
+      expect((await Pet.find(pet.id))!.favoriteTreats).toEqual(['chicken'])
+      expect((await Pet.find(existingPet.id))!.name).toEqual('Garfield')
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('updates the existing record whose array is empty when given an empty array', async () => {
+      const emptyPet = await Pet.create({ species: 'cat', name: 'Garfield', favoriteTreats: [] })
+
+      const pet = await Pet.updateOrCreateBy({ favoriteTreats: [] }, { with: { name: 'Nermal' } })
+
+      expect(pet).toMatchDreamModel(emptyPet)
+      expect((await Pet.find(emptyPet.id))!.name).toEqual('Nermal')
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('updates the existing record whose array is null when given null', async () => {
+      const nullPet = await Pet.create({ species: 'cat', name: 'Garfield', favoriteTreats: null })
+
+      const pet = await Pet.updateOrCreateBy({ favoriteTreats: null }, { with: { name: 'Nermal' } })
+
+      expect(pet).toMatchDreamModel(nullPet)
+      expect((await Pet.find(nullPet.id))!.name).toEqual('Nermal')
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    context('given a transaction', () => {
+      it('updates the existing record whose array equals the given array', async () => {
+        let pet: Pet | null = null
+
+        await ApplicationModel.transaction(async txn => {
+          pet = await Pet.txn(txn).updateOrCreateBy(
+            { favoriteTreats: ['chicken', 'tuna'] },
+            { with: { name: 'Nermal' } }
+          )
+        })
+
+        expect(pet).toMatchDreamModel(existingPet)
+        expect((await Pet.find(existingPet.id))!.name).toEqual('Nermal')
+        expect(await Pet.count()).toEqual(1)
+      })
+    })
+  })
+
   context('with an encrypted column passed to with', () => {
     it('encrypts the value before persisting it', async () => {
       const u = await User.updateOrCreateBy(

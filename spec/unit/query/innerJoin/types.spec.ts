@@ -1,3 +1,4 @@
+import ops from '../../../../src/ops/index.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Rating from '../../../../test-app/app/models/Rating.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -95,6 +96,31 @@ context.skip('type tests', () => {
     User.query()
       // @ts-expect-error an array of association names is only allowed as the final argument
       .innerJoin(['posts'], 'compositions')
+  })
+
+  // The plain value form targets regular (scalar) columns; an array column is
+  // compared through `ops`, e.g. `ops.equal(['red', 'green'])`.
+  it('rejects a flat list against an array column', () => {
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    User.innerJoin('balloons', { and: { multicolor: ['red', 'green'] } })
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    User.innerJoin('balloons', { andNot: { multicolor: ['red', 'green'] } })
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    User.innerJoin('balloons', { andAny: [{ multicolor: ['red', 'green'] }] })
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    User.innerJoin('balloons').where({ 'balloons.multicolor': ['red', 'green'] })
+  })
+
+  it('accepts null, an empty list, a list of whole arrays and ops against an array column', () => {
+    User.innerJoin('balloons', { and: { multicolor: null } })
+    User.innerJoin('balloons', { and: { multicolor: [] } })
+    User.innerJoin('balloons', { and: { multicolor: [['red', 'green'], null] } })
+    User.innerJoin('balloons', { andNot: { multicolor: [['red', 'green'], null] } })
+    User.innerJoin('balloons', { and: { multicolor: ops.equal(['red', 'green']) } })
+    User.innerJoin('balloons').where({ 'balloons.multicolor': null })
+    User.innerJoin('balloons').where({ 'balloons.multicolor': [['red', 'green'], null] })
+    User.innerJoin('balloons').where({ 'balloons.multicolor': ops.equal(['red', 'green']) })
+    User.innerJoin('balloons', { and: { color: ['red', 'blue'] } })
   })
 
   context('in a transaction', () => {

@@ -4,6 +4,7 @@ import UnrecognizedAssociationConditionKeys from '../../../../src/errors/associa
 import MissingRequiredAssociationAndClause from '../../../../src/errors/associations/MissingRequiredAssociationAndClause.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import NoUpdateOnAssociationQuery from '../../../../src/errors/NoUpdateOnAssociationQuery.js'
+import ops from '../../../../src/ops/index.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../../test-app/app/models/Balloon/Latex.js'
@@ -744,6 +745,28 @@ context.skip('type tests', () => {
 
     // @ts-expect-error a condition accepts only and, andNot and andAny
     User.new().associationQuery('posts', { body: 'hello' })
+  })
+
+  // The plain value form targets regular (scalar) columns; an array column is
+  // compared through `ops`, e.g. `ops.equal(['red', 'green'])`.
+  it('rejects a flat list against an array column', () => {
+    const user = User.new()
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    user.associationQuery('balloons').where({ multicolor: ['red', 'green'] })
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    user.associationQuery('balloons', { and: { multicolor: ['red', 'green'] } })
+    // @ts-expect-error a flat list against an array column means IN; use ops.equal
+    user.associationQuery('balloons', { andNot: { multicolor: ['red', 'green'] } })
+  })
+
+  it('accepts null, an empty list, a list of whole arrays and ops against an array column', () => {
+    const user = User.new()
+    user.associationQuery('balloons').where({ multicolor: null })
+    user.associationQuery('balloons').where({ multicolor: [] })
+    user.associationQuery('balloons').where({ multicolor: [['red', 'green'], null] })
+    user.associationQuery('balloons').where({ multicolor: ops.equal(['red', 'green']) })
+    user.associationQuery('balloons', { and: { multicolor: [['red', 'green'], null] } })
+    user.associationQuery('balloons', { and: { multicolor: ops.equal(['red', 'green']) } })
   })
 
   context('in a transaction', () => {

@@ -1,4 +1,5 @@
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -101,6 +102,89 @@ describe('Dream.findOrCreateBy', () => {
       const user = await User.find(u!.id)
       expect(user!.email).toEqual('fred@frewd')
       expect(await user!.checkPassword('howyadoin')).toEqual(true)
+    })
+  })
+
+  context('with an array column in the find key', () => {
+    let existingPet: Pet
+
+    beforeEach(async () => {
+      existingPet = await Pet.create({ species: 'cat', favoriteTreats: ['chicken', 'tuna'] })
+    })
+
+    it('returns the existing record whose array equals the given array', async () => {
+      const pet = await Pet.findOrCreateBy({ favoriteTreats: ['chicken', 'tuna'] })
+
+      expect(pet).toMatchDreamModel(existingPet)
+      expect(await Pet.count()).toEqual(1)
+    })
+
+    it('creates a record when the given array has the same elements in a different order', async () => {
+      const pet = await Pet.findOrCreateBy({ favoriteTreats: ['tuna', 'chicken'] })
+
+      expect(pet).not.toMatchDreamModel(existingPet)
+      expect((await Pet.find(pet.id))!.favoriteTreats).toEqual(['tuna', 'chicken'])
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('creates a record when the given array holds only some of the elements', async () => {
+      const pet = await Pet.findOrCreateBy({ favoriteTreats: ['chicken'] })
+
+      expect(pet).not.toMatchDreamModel(existingPet)
+      expect((await Pet.find(pet.id))!.favoriteTreats).toEqual(['chicken'])
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('returns the existing record whose array is empty when given an empty array', async () => {
+      const emptyPet = await Pet.create({ species: 'cat', favoriteTreats: [] })
+
+      expect(await Pet.findOrCreateBy({ favoriteTreats: [] })).toMatchDreamModel(emptyPet)
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('returns the existing record whose array is null when given null', async () => {
+      const nullPet = await Pet.create({ species: 'cat', favoriteTreats: null })
+
+      expect(await Pet.findOrCreateBy({ favoriteTreats: null })).toMatchDreamModel(nullPet)
+      expect(await Pet.count()).toEqual(2)
+    })
+
+    it('returns the existing record when the array is combined with a scalar column', async () => {
+      const pet = await Pet.findOrCreateBy({ species: 'cat', favoriteTreats: ['chicken', 'tuna'] })
+
+      expect(pet).toMatchDreamModel(existingPet)
+      expect(await Pet.count()).toEqual(1)
+    })
+
+    context('given a transaction', () => {
+      it('returns the existing record whose array equals the given array', async () => {
+        let pet: Pet | null = null
+
+        await ApplicationModel.transaction(async txn => {
+          pet = await Pet.txn(txn).findOrCreateBy({ favoriteTreats: ['chicken', 'tuna'] })
+        })
+
+        expect(pet).toMatchDreamModel(existingPet)
+        expect(await Pet.count()).toEqual(1)
+      })
+    })
+  })
+
+  context('with a date array column in the find key', () => {
+    it('returns the existing record whose dates equal the given dates', async () => {
+      const existingUser = await User.create({
+        email: 'fred@fred',
+        password: 'howyadoin',
+        favoriteDates: [CalendarDate.fromISO('1987-07-22'), CalendarDate.fromISO('1990-01-15')],
+      })
+
+      const user = await User.findOrCreateBy(
+        { favoriteDates: [CalendarDate.fromISO('1987-07-22'), CalendarDate.fromISO('1990-01-15')] },
+        { createWith: { email: 'other@fred', password: 'howyadoin' } }
+      )
+
+      expect(user).toMatchDreamModel(existingUser)
+      expect(await User.count()).toEqual(1)
     })
   })
 

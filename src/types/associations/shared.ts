@@ -134,7 +134,6 @@ type NonKyselySupportedSupplementalWhereClauseValues<
   // a database error.
   PartialTypes = IsArrayColumn extends true
     ?
-        | (EnumTypeArray extends string[] ? EnumTypeArray : never)
         | OpsStatement<'=' | '!=' | '<>', ArrayOpsValType, any>
         | OpsStatement<KyselyComparisonOperatorExpression, PermanentOpsValTypes | RawBuilder<unknown>, any>
     : EnumTypeArray extends null
@@ -248,8 +247,22 @@ type JoinedAssociationColumnNames<
         Inc<Depth>
       >
 
-type Whereable<R> = {
-  [K in keyof Selectable<R>]?: Selectable<R>[K] | Selectable<R>[K][]
+// The plain value form of a where clause targets regular (scalar) columns: a
+// value means `=`, a list of values means `IN`, and `null` means `IS NULL`.
+// Comparing an array column against an array value goes through `ops`, e.g.
+// `Post.where({ tags: ops.equal(['a', 'b']) })`. An array column's plain value
+// is therefore limited to `null` and a list whose entries are each a whole
+// array or `null` (an `IN` of whole arrays, where `[]` matches nothing). A flat
+// list of elements against an array column, e.g.
+// `Post.where({ tags: ['a', 'b'] })`, is a compile error, since it is rendered
+// as the value list `IN ('a', 'b')`, which PostgreSQL rejects for an array
+// column unless every element is itself an array literal such as `'{a}'`.
+// Array-ness comes from the schema (`TableColumnIsArray`), not from the
+// Kysely column type, which also admits arrays for jsonb columns.
+type Whereable<DB, Schema, TableName extends keyof DB, R = DB[TableName]> = {
+  [K in keyof Selectable<R>]?: TableColumnIsArray<Schema, TableName, K> extends true
+    ? Extract<Selectable<R>[K], null> | Selectable<R>[K][]
+    : Selectable<R>[K] | Selectable<R>[K][]
 }
 
 // For filtering by BelongsTo model instance(s) in a where/and statement, e.g.
@@ -270,7 +283,9 @@ export type InternalWhereStatement<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<
-    Whereable<DB[TableName]> | DreamSelectable<DB, Schema, TableName> | WhereableAssociatedModelParam<I>
+    | Whereable<DB, Schema, TableName>
+    | DreamSelectable<DB, Schema, TableName>
+    | WhereableAssociatedModelParam<I>
   >
 >
 
@@ -314,7 +329,14 @@ type OnStatementForAssociationDefinition<
   TableName extends AssociationTableNames<DB, Schema> & keyof DB,
 > = Partial<
   MergeUnionOfRecordTypes<
-    | Partial<Selectable<DB[TableName]>>
+    // As in `Whereable`, the plain value form targets regular (scalar) columns.
+    // An array column accepts only `null` and `[]` as a plain value here;
+    // every other comparison against it goes through `ops`.
+    | Partial<{
+        [K in keyof Selectable<DB[TableName]>]: TableColumnIsArray<Schema, TableName, K> extends true
+          ? Extract<Selectable<DB[TableName]>[K], null> | readonly []
+          : Selectable<DB[TableName]>[K]
+      }>
     | Partial<{
         [ColumnName in keyof DB[TableName]]:
           | NonKyselySupportedSupplementalWhereClauseValues<DB, Schema, TableName, ColumnName>
