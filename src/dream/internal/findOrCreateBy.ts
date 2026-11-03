@@ -9,7 +9,12 @@ export default async function findOrCreateBy<T extends typeof Dream>(
   attributes: UpdateablePropertiesForClass<T>,
   extraOpts: CreateOrFindByExtraOpts<T> = {}
 ): Promise<InstanceType<T>> {
-  const existingRecord = await dreamClass.txn(txn).findBy(findOrCreateLookupStatement(dreamClass, attributes))
+  // where().first() rather than findBy: a value the database rejects is raised, never read as no match,
+  // so it cannot lead to creating a record that already exists
+  const existingRecord = await dreamClass
+    .txn(txn)
+    .where(findOrCreateLookupStatement(dreamClass, attributes))
+    .first()
 
   if (existingRecord) return existingRecord
 

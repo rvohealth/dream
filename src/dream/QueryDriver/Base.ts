@@ -1,5 +1,6 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
+import DataIncompatibleWithDatabaseField from '../../errors/db/DataIncompatibleWithDatabaseField.js'
 import { AssociationStatement, OrderQueryStatement } from '../../types/associations/shared.js'
 import { DbConnectionType, IntrospectedDatabase, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
@@ -294,6 +295,24 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public static isDeadlock(error: unknown): boolean {
     return false
+  }
+
+  /**
+   * @internal
+   *
+   * The Dream error to raise in place of `error` when `error` is the database
+   * rejecting a value for the column it is written to or compared with: a value
+   * the column's type cannot represent, a null in a NOT NULL column, or a CHECK
+   * constraint violation. Saves and reads (selects, aggregates, plucks and
+   * preloads) raise the returned error; bulk `Query#update` and `Query#delete`
+   * do not consult this. A driver that does not recognize the error returns
+   * null, and the original error propagates unchanged.
+   */
+  public static dataIncompatibleWithDatabaseFieldError(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    error: unknown
+  ): DataIncompatibleWithDatabaseField | null {
+    return null
   }
 
   /**

@@ -20,6 +20,8 @@ import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
 import CannotPaginateWithLeftJoinPreload from '../errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
+import ColumnOverflow from '../errors/db/ColumnOverflow.js'
+import DataTypeColumnTypeMismatch from '../errors/db/DataTypeColumnTypeMismatch.js'
 import RecordNotFound from '../errors/RecordNotFound.js'
 import cloneDeepSafe from '../helpers/cloneDeepSafe.js'
 import isObject from '../helpers/isObject.js'
@@ -513,11 +515,21 @@ export default class Query<
 
   /**
    * Finds a record matching the Query with the
-   * specified primary key. Returns null if not found.
+   * specified primary key. Returns null if not found,
+   * including when the database rejects the primary key
+   * as a value its column cannot hold (for example, `'abc'`
+   * for an integer primary key), since no record can have it.
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.query().find(123)
    * // User{id: 123}
+   *
+   * await User.query().find('abc')
+   * // null
    *
    * await User.query().find(null)
    * // null
@@ -534,13 +546,19 @@ export default class Query<
 
     return await this.where({
       [this.dreamInstance['_primaryKey']]: primaryKey,
-    } as any).first()
+    } as any).firstForLookup()
   }
 
   /**
    * Finds a record matching the Query with the
-   * specified primary key. If not found, an exception
-   * is raised.
+   * specified primary key. If not found, `RecordNotFound`
+   * is raised, including when the database rejects the
+   * primary key as a value its column cannot hold (for
+   * example, `'abc'` for an integer primary key).
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.query().findOrFail(123)
@@ -549,6 +567,7 @@ export default class Query<
    *
    * @param primaryKey - The primary key of the record to look up
    * @returns The found record
+   * @throws RecordNotFound if no record is found
    */
   public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
     const record = await this.find(primaryKey)
@@ -559,7 +578,14 @@ export default class Query<
   /**
    * Finds a record matching the Query and the
    * specified where statement. If not found, null
-   * is returned.
+   * is returned, including when the database rejects
+   * a value in the where statement as one its column
+   * cannot hold (for example, `'abc'` for a uuid column),
+   * since no record can match it.
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.query().findBy({ email: 'how@yadoin' })
@@ -570,13 +596,19 @@ export default class Query<
    * @returns Either the first record found matching the attributes, or else null
    */
   public async findBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance | null> {
-    return await this._where(whereStatement, 'where').first()
+    return await this._where(whereStatement, 'where').firstForLookup()
   }
 
   /**
    * Finds a record matching the Query and the
-   * specified where statement. If not found, an exception
-   * is raised.
+   * specified where statement. If not found, `RecordNotFound`
+   * is raised, including when the database rejects a value
+   * in the where statement as one its column cannot hold
+   * (for example, `'abc'` for a uuid column).
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.query().findOrFailBy({ email: 'how@yadoin' })
@@ -585,10 +617,39 @@ export default class Query<
    *
    * @param whereStatement - The where statement used to locate the record
    * @returns The first record found matching the attributes
+   * @throws RecordNotFound if no record is found
    */
   public async findOrFailBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance> {
     const record = await this.findBy(whereStatement)
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
+    return record
+  }
+
+  /**
+   * @internal
+   *
+   * The first record of this Query, for `find` and `findBy`. Returns null
+   * when the database rejects a value in the lookup as one its column cannot
+   * hold, since no record can match it. Only the lookup's own statement is
+   * read that way: preloads run after it, so a rejected value in a preload
+   * clause is raised. Inside a transaction the rejection is raised as well,
+   * because the database has already aborted the transaction and its next
+   * statement would fail.
+   */
+  private async firstForLookup(): Promise<DreamInstance | null> {
+    const hasPreloads = Object.keys(this.preloadStatements).length > 0
+    const lookupQuery = hasPreloads ? this.clone({ preloadStatements: {}, preloadOnStatements: {} }) : this
+
+    let record: DreamInstance | null
+    try {
+      record = await lookupQuery.first()
+    } catch (error) {
+      const noRecordCanMatch = error instanceof DataTypeColumnTypeMismatch || error instanceof ColumnOverflow
+      if (noRecordCanMatch && !this.dreamTransaction) return null
+      throw error
+    }
+
+    if (record && hasPreloads) await this.dbDriverInstance().hydratePreload(record)
     return record
   }
 

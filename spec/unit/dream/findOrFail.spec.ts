@@ -72,4 +72,11 @@ describe('Dream.findOrFail', () => {
       })
     })
   })
+
+  context('when passed a value the primary key column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.findOrFail('abc')).rejects.toThrow(RecordNotFound)
+      await expect(User.findOrFail('99999999999999999999')).rejects.toThrow(RecordNotFound)
+    })
+  })
 })

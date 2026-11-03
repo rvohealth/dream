@@ -10,8 +10,21 @@ import pg from 'pg'
 
 import { sql, type SelectQueryBuilder } from 'kysely'
 import DreamCLI from '../../cli/index.js'
-import { DEADLOCK_DETECTED, LOCK_NOT_AVAILABLE, pgErrorType, UNIQUE_VIOLATION } from '../../db/errors.js'
+import {
+  CHECK_VIOLATION,
+  COLUMN_OVERFLOW,
+  DEADLOCK_DETECTED,
+  INVALID_INPUT_SYNTAX,
+  LOCK_NOT_AVAILABLE,
+  NOT_NULL_VIOLATION,
+  pgErrorType,
+  UNIQUE_VIOLATION,
+} from '../../db/errors.js'
 import DreamApp from '../../dream-app/index.js'
+import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
+import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
+import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
+import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import SortableScopeLockWaitTimedOut from '../../errors/SortableScopeLockWaitTimedOut.js'
 import Dream from '../../Dream.js'
 import { IntrospectedDatabase, IntrospectedTable, IntrospectedValueType } from '../../types/db.js'
@@ -360,6 +373,24 @@ export default class PostgresQueryDriver<
 
   public static override isDeadlock(error: unknown): boolean {
     return pgErrorType(error) === DEADLOCK_DETECTED
+  }
+
+  public static override dataIncompatibleWithDatabaseFieldError(error: unknown) {
+    // pgErrorType recognizes only a pg DatabaseError, which is an Error
+    const databaseError = error as Error
+
+    switch (pgErrorType(error)) {
+      case COLUMN_OVERFLOW:
+        return new ColumnOverflow(databaseError)
+      case INVALID_INPUT_SYNTAX:
+        return new DataTypeColumnTypeMismatch(databaseError)
+      case NOT_NULL_VIOLATION:
+        return new NotNullViolation(databaseError)
+      case CHECK_VIOLATION:
+        return new CheckConstraintViolation(databaseError)
+      default:
+        return null
+    }
   }
 
   /**

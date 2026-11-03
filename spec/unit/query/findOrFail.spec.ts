@@ -81,4 +81,10 @@ describe('Query#findOrFail', () => {
       })
     })
   })
+
+  context('when passed a value the primary key column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.query().findOrFail('abc')).rejects.toThrow(RecordNotFound)
+    })
+  })
 })

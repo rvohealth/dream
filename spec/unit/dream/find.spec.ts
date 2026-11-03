@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import { sql } from 'kysely'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -104,6 +105,27 @@ describe('Dream.find', () => {
       const model = await ModelWithSerialPrimaryKey.create()
       const foundModel = await ModelWithSerialPrimaryKey.find(model.id.toString())
       expect(foundModel).toMatchDreamModel(model)
+    })
+  })
+
+  context('when passed a value the primary key column cannot hold', () => {
+    it('returns null for a value that is not an integer', async () => {
+      expect(await User.find('abc')).toBeNull()
+    })
+
+    it('returns null for an integer too large for the column', async () => {
+      expect(await User.find('99999999999999999999')).toBeNull()
+      expect(await ModelWithSerialPrimaryKey.find(3000000000)).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('raises DataTypeColumnTypeMismatch, since the database has aborted the transaction', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.txn(txn).find('abc')
+          })
+        ).rejects.toThrow(DataTypeColumnTypeMismatch)
+      })
     })
   })
 })

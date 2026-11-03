@@ -31,13 +31,6 @@ import pluralize from 'pluralize-esm'
 import { CliFileWriter } from '../../cli/CliFileWriter.js'
 import DreamCLI from '../../cli/index.js'
 import { DialectProviderCb } from '../../db/DreamDbConnection.js'
-import {
-  CHECK_VIOLATION,
-  COLUMN_OVERFLOW,
-  INVALID_INPUT_SYNTAX,
-  NOT_NULL_VIOLATION,
-  pgErrorType,
-} from '../../db/errors.js'
 import { default as _db } from '../../db/index.js'
 import validateColumn from '../../db/validators/validateColumn.js'
 import associationToGetterSetterProp from '../../decorators/field/association/associationToGetterSetterProp.js'
@@ -59,10 +52,6 @@ import CannotSaveMissingDream from '../../errors/CannotSaveMissingDream.js'
 import ArrayEqualityRequiresArrayColumn from '../../errors/ops/ArrayEqualityRequiresArrayColumn.js'
 import RowLockIncompatibleWithDistinct from '../../errors/RowLockIncompatibleWithDistinct.js'
 import RowLockIncompatibleWithJoinLoad from '../../errors/RowLockIncompatibleWithJoinLoad.js'
-import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
-import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
-import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
-import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
 import generateMigration from '../../helpers/cli/generateMigration.js'
 import compact from '../../helpers/compact.js'
@@ -118,7 +107,10 @@ import {
 import { DreamConst, primaryKeyTypes } from '../constants.js'
 import DreamTransaction from '../DreamTransaction.js'
 import associationStringToNameAndAlias from '../internal/associationStringToNameAndAlias.js'
-import executeDatabaseQuery from '../internal/executeDatabaseQuery.js'
+import executeDatabaseQuery, {
+  DbQueryCommand,
+  ExecuteDatabaseQueryReturnType,
+} from '../internal/executeDatabaseQuery.js'
 import extractAssignableAssociationAttributes from '../internal/extractAssignableAssociationAttributes.js'
 import orderByDirection from '../internal/orderByDirection.js'
 import shouldBypassDefaultScope from '../internal/shouldBypassDefaultScope.js'
@@ -594,7 +586,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     }
 
     const kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query.limit(1)).buildSelect()
-    const results = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirst')
+    const results = await this.executeReadQuery(kyselyQuery, 'executeTakeFirst')
 
     if (results) {
       const theFirst = this.dbResultToDreamInstance<typeof Dream, DreamInstance>(results, this.dreamClass)
@@ -646,7 +638,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     let kyselyQuery = this.buildSelect(options)
     // row locking is adapter-specific, so it goes through the query driver seam
     if (options.lock) kyselyQuery = this.applyRowLock(kyselyQuery, this.query['baseSqlAlias'])
-    const results: any[] = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const results: any[] = await this.executeReadQuery(kyselyQuery, 'execute')
 
     const theAll = results.map(r => this.dbResultToDreamInstance(r, this.dreamClass))
     await this.applyPreload(
@@ -681,7 +673,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     kyselyQuery = kyselyQuery.select(max(this.namespaceColumn(columnName)) as any)
 
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const data = await this.executeReadQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.max
   }
@@ -726,7 +718,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     kyselyQuery = kyselyQuery.select(min(this.namespaceColumn(columnName)) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const data = await this.executeReadQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return data.min
   }
@@ -771,7 +763,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     kyselyQuery = kyselyQuery.select(sum(this.namespaceColumn(columnName)) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const data = await this.executeReadQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.sum === null ? null : parseFloat(data.sum)
   }
 
@@ -817,7 +809,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     })
 
     kyselyQuery = kyselyQuery.select(avg(this.namespaceColumn(columnName)) as any)
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const data = await this.executeReadQuery(kyselyQuery, 'executeTakeFirstOrThrow')
     return data.avg
   }
 
@@ -866,7 +858,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     kyselyQuery = kyselyQuery.select(countClause.as('tablecount'))
 
-    const data = await executeDatabaseQuery(kyselyQuery, 'executeTakeFirstOrThrow')
+    const data = await this.executeReadQuery(kyselyQuery, 'executeTakeFirstOrThrow')
 
     return parseInt(data.tablecount.toString())
   }
@@ -927,7 +919,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       .select(aggregateExpression.as('aggregatevalue') as any)
       .groupBy(groupColumnRef as any)
 
-    const rows = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const rows = await this.executeReadQuery(kyselyQuery, 'execute')
 
     const result = new Map<any, any>()
     for (const row of rows) {
@@ -963,7 +955,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       kyselyQuery = kyselyQuery.select(`${this.namespaceColumn(field)} as ${shortAlias}` as any)
     })
 
-    return (await executeDatabaseQuery(kyselyQuery, 'execute')).map(singleResult =>
+    return (await this.executeReadQuery(kyselyQuery, 'execute')).map(singleResult =>
       shortAliases.map(alias => singleResult[alias])
     )
   }
@@ -1066,26 +1058,27 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       }
     } catch (error) {
       if (dream.isPersisted && error instanceof NoResultError) throw new CannotSaveMissingDream(dream)
+      throw this.dataIncompatibleWithDatabaseFieldError(error) ?? error
+    }
+  }
 
-      switch (pgErrorType(error)) {
-        case COLUMN_OVERFLOW:
-          throw new ColumnOverflow(error instanceof Error ? error : new Error('database column overflow'))
-
-        case INVALID_INPUT_SYNTAX:
-          throw new DataTypeColumnTypeMismatch(
-            error instanceof Error ? error : new Error('database column type error')
-          )
-
-        case NOT_NULL_VIOLATION:
-          throw new NotNullViolation(error instanceof Error ? error : new Error('not null violation'))
-
-        case CHECK_VIOLATION:
-          throw new CheckConstraintViolation(
-            error instanceof Error ? error : new Error('check constraint violation')
-          )
-      }
-
-      throw error
+  /**
+   * @internal
+   *
+   * Runs a read statement (a select, aggregate, pluck or preload), raising the
+   * driver's Dream error for a value the database rejects in place of the
+   * database's own error (see `dataIncompatibleWithDatabaseFieldError`).
+   */
+  private async executeReadQuery<
+    Command extends DbQueryCommand,
+    ReturnType extends ExecuteDatabaseQueryReturnType<Command>,
+  >(kyselyQuery: any, command: Command): Promise<ReturnType> {
+    try {
+      return await executeDatabaseQuery<Command, ReturnType>(kyselyQuery, command)
+    } catch (error) {
+      throw (
+        (this.constructor as typeof KyselyQueryDriver).dataIncompatibleWithDatabaseFieldError(error) ?? error
+      )
     }
   }
 
@@ -1387,7 +1380,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
 
     if (this.query['limitStatement']) pageSelect = pageSelect.limit(this.query['limitStatement'])
 
-    return (await executeDatabaseQuery(pageSelect, 'execute')).map(row =>
+    return (await this.executeReadQuery(pageSelect, 'execute')).map(row =>
       pageColumns.map(({ alias }) => row[alias] as unknown)
     )
   }
@@ -1429,7 +1422,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       keySelect = keySelect.orderBy(`${baseSqlAlias}.${alias}`, this.orderByDirection('asc'))
     })
 
-    return (await executeDatabaseQuery(keySelect, 'execute')).map(row =>
+    return (await this.executeReadQuery(keySelect, 'execute')).map(row =>
       keyColumns.map(({ alias }) => row[alias] as unknown)
     )
   }
@@ -1643,7 +1636,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
       })
     })
 
-    const queryResults = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const queryResults = await this.executeReadQuery(kyselyQuery, 'execute')
 
     const aliasToDreamIdMap = queryResults.reduce(
       (aliasToDreamIdMap: AliasToDreamIdMap, singleSqlResult: any) => {
@@ -3865,7 +3858,7 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         `${this.namespaceColumn(dreamClass.primaryKey, dreamClass.table)} as ${basePrimaryKeyAlias}` as any
       )
 
-    const rows = await executeDatabaseQuery(kyselyQuery, 'execute')
+    const rows = await this.executeReadQuery(kyselyQuery, 'execute')
 
     const preloadedDreamsAndWhatTheyPointTo: PreloadedDreamsAndWhatTheyPointTo[] = rows.map(
       (row: Record<string, any>) => {

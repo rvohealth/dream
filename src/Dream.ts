@@ -1598,7 +1598,8 @@ export default class Dream {
     } catch (err) {
       if (Query.dbDriverClass(this.prototype.connectionName).isUniqueConstraintViolation(err)) {
         const lookup = findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
-        const dreamModel = await this.findBy(lookup)
+        // where().first() rather than findBy: a value the database rejects is raised, never read as no match
+        const dreamModel = await this.where(lookup).first()
         if (!dreamModel)
           throw new CreateOrFindByFailedToCreateAndFind(this, {
             hidingDefaultScopes: await this.defaultScopesHidingLookup(lookup),
@@ -1676,7 +1677,8 @@ export default class Dream {
     } catch (err) {
       if (Query.dbDriverClass(this.prototype.connectionName).isUniqueConstraintViolation(err)) {
         const lookup = findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
-        const existingRecord = await this.findBy(lookup)
+        // where().first() rather than findBy: a value the database rejects is raised, never read as no match
+        const existingRecord = await this.where(lookup).first()
         if (!existingRecord)
           throw new CreateOrUpdateByFailedToCreateAndUpdate(this, {
             hidingDefaultScopes: await this.defaultScopesHidingLookup(lookup),
@@ -1716,7 +1718,8 @@ export default class Dream {
       query = query.removeDefaultScope(scopeName as AllDefaultScopeNames<InstanceType<T>>)
     }
 
-    return (await query.findBy(lookup)) ? removableDefaultScopes : []
+    // where().first() rather than findBy: a value the database rejects is raised, never read as no match
+    return (await query.where(lookup).first()) ? removableDefaultScopes : []
   }
 
   /**
@@ -1742,11 +1745,21 @@ export default class Dream {
 
   /**
    * Finds a record for the corresponding model with the
-   * specified primary key. Returns null if not found.
+   * specified primary key. Returns null if not found,
+   * including when the database rejects the primary key
+   * as a value its column cannot hold (for example, `'abc'`
+   * for an integer primary key), since no record can have it.
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.find(123)
    * // User{id: 123}
+   *
+   * await User.find('abc')
+   * // null
    *
    * await User.find(null)
    * // null
@@ -1767,15 +1780,23 @@ export default class Dream {
 
   /**
    * Finds a record for the corresponding model with the
-   * specified primary key. If not found, an exception is raised.
+   * specified primary key. If not found, `RecordNotFound` is
+   * raised, including when the database rejects the primary key
+   * as a value its column cannot hold (for example, `'abc'` for
+   * an integer primary key).
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
-   * await User.query().findOrFail(123)
+   * await User.findOrFail(123)
    * // User{id: 123}
    * ```
    *
    * @param primaryKey - The primaryKey of the record to look up
-   * @returns Either the found record, or else null
+   * @returns The found record
+   * @throws RecordNotFound if no record is found
    */
   public static async findOrFail<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
@@ -1931,7 +1952,14 @@ export default class Dream {
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, null is returned.
+   * If not found, null is returned, including when the database
+   * rejects a value in the where statement as one its column
+   * cannot hold (for example, `'abc'` for a uuid column), since
+   * no record can match it.
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.findBy({ email: 'how@yadoin' })
@@ -1951,7 +1979,13 @@ export default class Dream {
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, an exception is raised.
+   * If not found, `RecordNotFound` is raised, including when the
+   * database rejects a value in the where statement as one its
+   * column cannot hold (for example, `'abc'` for a uuid column).
+   *
+   * Inside a transaction, that rejection is raised instead, as
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has already aborted the transaction.
    *
    * ```ts
    * await User.findOrFailBy({ email: 'how@yadoin' })
@@ -1960,6 +1994,7 @@ export default class Dream {
    *
    * @param whereStatement - The where statement used to locate the record
    * @returns The first model found matching the whereStatement
+   * @throws RecordNotFound if no record is found
    */
   public static async findOrFailBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,

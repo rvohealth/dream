@@ -45,6 +45,12 @@ describe('Dream.findOrFailBy', () => {
       expect(user!.email).toEqual('fred@frewd')
     })
   })
+
+  context('when passed a value its column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.findOrFailBy({ uuid: 'abc' })).rejects.toThrow(RecordNotFound)
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.

@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import { sql } from 'kysely'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import ops from '../../../src/ops/index.js'
@@ -61,6 +62,23 @@ describe('Query#findBy', () => {
 
       expect(await LocalizedText.findBy({ localizable: composition })).toMatchDreamModel(localizedText1)
       expect(await LocalizedText.findBy({ localizable: compositionAsset })).toMatchDreamModel(localizedText2)
+    })
+  })
+
+  context('when passed a value its column cannot hold', () => {
+    it('returns null', async () => {
+      expect(await User.query().findBy({ id: '99999999999999999999' })).toBeNull()
+      expect(await User.query().findBy({ uuid: 'abc' })).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('raises DataTypeColumnTypeMismatch, since the database has aborted the transaction', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.query().txn(txn).findBy({ id: 'abc' })
+          })
+        ).rejects.toThrow(DataTypeColumnTypeMismatch)
+      })
     })
   })
 })

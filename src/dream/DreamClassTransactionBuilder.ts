@@ -395,6 +395,11 @@ export default class DreamClassTransactionBuilder<
    * Finds a record for the corresponding model with the
    * specified primary key. If not found, null is returned.
    *
+   * A primary key the database rejects as a value its column
+   * cannot hold (for example, `'abc'` for an integer primary key)
+   * raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because
+   * the database has already aborted the transaction.
+   *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
    *   await User.txn(txn).find(123)
@@ -422,6 +427,11 @@ export default class DreamClassTransactionBuilder<
    * Finds a record for the corresponding model with the
    * specified primary key. If not found, an exception is raised.
    *
+   * A primary key the database rejects as a value its column
+   * cannot hold (for example, `'abc'` for an integer primary key)
+   * raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because
+   * the database has already aborted the transaction.
+   *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
    *   await User.txn(txn).findOrFail(123)
@@ -444,6 +454,11 @@ export default class DreamClassTransactionBuilder<
    * the corresponding model and the specified where statement.
    * If not found, null is returned.
    *
+   * A value in the where statement that the database rejects as
+   * one its column cannot hold (for example, `'abc'` for a uuid
+   * column) raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`,
+   * because the database has already aborted the transaction.
+   *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
    *   await User.txn(txn).findBy({ email: 'how@yadoin' })
@@ -465,6 +480,11 @@ export default class DreamClassTransactionBuilder<
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
    * If not found, an exception is raised.
+   *
+   * A value in the where statement that the database rejects as
+   * one its column cannot hold (for example, `'abc'` for a uuid
+   * column) raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`,
+   * because the database has already aborted the transaction.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {

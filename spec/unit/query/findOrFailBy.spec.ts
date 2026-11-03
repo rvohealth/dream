@@ -28,6 +28,12 @@ describe('Query#findOrFailBy', () => {
       ).rejects.toThrow(RecordNotFound)
     })
   })
+
+  context('when passed a value its column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.query().findOrFailBy({ id: 'abc' })).rejects.toThrow(RecordNotFound)
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.

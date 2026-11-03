@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
@@ -68,6 +69,44 @@ describe('Query#find', () => {
           expect(await User.query().txn(txn).find(null)).toBeNull()
         })
       })
+    })
+  })
+
+  context('when passed a value the primary key column cannot hold', () => {
+    it('returns null', async () => {
+      expect(await User.query().find('abc')).toBeNull()
+    })
+
+    it('returns null from an association query', async () => {
+      expect(await user.associationQuery('posts').find('abc')).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('raises DataTypeColumnTypeMismatch, since the database has aborted the transaction', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.query().txn(txn).find('abc')
+          })
+        ).rejects.toThrow(DataTypeColumnTypeMismatch)
+      })
+    })
+  })
+
+  context('when a preload clause holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the found record', async () => {
+      await expect(
+        User.query()
+          .preload('ratings', { and: { id: 'abc' } })
+          .find(user.id)
+      ).rejects.toThrow(DataTypeColumnTypeMismatch)
+    })
+  })
+
+  context('with a preload', () => {
+    it('loads the association onto the found record', async () => {
+      const post = await user.createAssociation('posts')
+      const reloadedUser = await User.query().preload('posts').find(user.id)
+      expect(reloadedUser!.posts).toMatchDreamModels([post])
     })
   })
 })
