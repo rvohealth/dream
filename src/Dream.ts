@@ -1,7 +1,7 @@
 import { CompiledQuery, Selectable } from 'kysely'
 
 import yoctocolors from 'yoctocolors'
-import { pgErrorType, UNIQUE_VIOLATION } from './db/errors.js'
+import { STI_SCOPE_NAME } from './decorators/class/STI.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
@@ -1563,6 +1563,14 @@ export default class Dream {
    * IMPORTANT: A unique index/uniqueness constraint must exist on
    * at least one of the provided attributes
    *
+   * The lookup applies the model's default scopes, so a conflicting
+   * record they hide (for example, a soft-deleted one under a plain
+   * unique index) is never returned. When the lookup finds nothing,
+   * `CreateOrFindByFailedToCreateAndFind` is thrown: its message names
+   * the default scope likely hiding the conflicting record when the
+   * record is found with the model's default scopes removed, and
+   * otherwise lists the possible causes.
+   *
    * ```ts
    * const logEntry = await LogEntry.createOrFindBy({ externalId }, { createWith: params })
    * ```
@@ -1588,11 +1596,13 @@ export default class Dream {
       await dreamModel.save(skipHooks ? { skipHooks } : undefined)
       return dreamModel
     } catch (err) {
-      if (pgErrorType(err) === UNIQUE_VIOLATION) {
-        const dreamModel = await this.findBy(
-          findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
-        )
-        if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
+      if (Query.dbDriverClass(this.prototype.connectionName).isUniqueConstraintViolation(err)) {
+        const lookup = findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
+        const dreamModel = await this.findBy(lookup)
+        if (!dreamModel)
+          throw new CreateOrFindByFailedToCreateAndFind(this, {
+            hidingDefaultScopes: await this.defaultScopesHidingLookup(lookup),
+          })
         return dreamModel
       }
       throw err
@@ -1634,6 +1644,14 @@ export default class Dream {
    * IMPORTANT: A unique index/uniqueness constraint must exist on
    * at least one of the provided attributes
    *
+   * The lookup applies the model's default scopes, so a conflicting
+   * record they hide (for example, a soft-deleted one under a plain
+   * unique index) is never updated. When the lookup finds nothing,
+   * `CreateOrUpdateByFailedToCreateAndUpdate` is thrown: its message
+   * names the default scope likely hiding the conflicting record when
+   * the record is found with the model's default scopes removed, and
+   * otherwise lists the possible causes.
+   *
    * @param attributes - The base attributes for finding which record to update, also used when creating
    * @param extraOpts - Additional options
    * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
@@ -1656,11 +1674,13 @@ export default class Dream {
         skipHooks ? { skipHooks } : undefined
       )
     } catch (err) {
-      if (pgErrorType(err) === UNIQUE_VIOLATION) {
-        const existingRecord = await this.findBy(
-          findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
-        )
-        if (!existingRecord) throw new CreateOrUpdateByFailedToCreateAndUpdate(this)
+      if (Query.dbDriverClass(this.prototype.connectionName).isUniqueConstraintViolation(err)) {
+        const lookup = findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
+        const existingRecord = await this.findBy(lookup)
+        if (!existingRecord)
+          throw new CreateOrUpdateByFailedToCreateAndUpdate(this, {
+            hidingDefaultScopes: await this.defaultScopesHidingLookup(lookup),
+          })
         const { with: attrs } = extraOpts
 
         if (existingRecord) {
@@ -1670,6 +1690,33 @@ export default class Dream {
       }
       throw err
     }
+  }
+
+  /**
+   * @internal
+   *
+   * Used by createOrFindBy and createOrUpdateBy after their default-scoped
+   * lookup finds nothing. Returns the model's removable default scopes when a
+   * record matching `lookup` exists once they are all removed, and an empty
+   * array otherwise. The STI type discriminator is never removed. One probe
+   * with every removable scope removed cannot tell which of several scopes
+   * hid the record, so all of them are returned as candidates.
+   */
+  private static async defaultScopesHidingLookup<T extends typeof Dream>(
+    this: T,
+    lookup: WhereStatement<InstanceType<T>>
+  ): Promise<string[]> {
+    const removableDefaultScopes = this['scopes'].default
+      .map(scope => scope.method)
+      .filter(scopeName => scopeName !== STI_SCOPE_NAME)
+    if (!removableDefaultScopes.length) return []
+
+    let query: Query<InstanceType<T>, any> = this.query()
+    for (const scopeName of removableDefaultScopes) {
+      query = query.removeDefaultScope(scopeName as AllDefaultScopeNames<InstanceType<T>>)
+    }
+
+    return (await query.findBy(lookup)) ? removableDefaultScopes : []
   }
 
   /**

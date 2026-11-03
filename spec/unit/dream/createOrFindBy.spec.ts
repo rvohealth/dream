@@ -1,5 +1,6 @@
 import Dream from '../../../src/Dream.js'
 import CreateOrFindByFailedToCreateAndFind from '../../../src/errors/CreateOrFindByFailedToCreateAndFind.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -47,8 +48,45 @@ describe('Dream.createOrFindBy', () => {
           )
         ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
       })
+
+      it('lists the possible causes rather than blaming only `createWith`', async () => {
+        const promise = User.createOrFindBy(
+          { email: 'howya@doin' },
+          { createWith: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+        )
+
+        await expect(promise).rejects.toThrow(/Possible causes:/)
+        await expect(promise).rejects.toThrow(/a `createWith` value conflicts/)
+        await expect(promise).rejects.toThrow(/a find attribute outside the violated unique index differs/)
+        await expect(promise).rejects.toThrow(/a hook changed a find attribute/)
+      })
     }
   )
+
+  context('when the conflicting record is hidden by a default scope', () => {
+    it('throws CreateOrFindByFailedToCreateAndFind naming the default scope that hides the record', async () => {
+      const pet = await Pet.create({ species: 'cat', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrFindBy({ uniqueColumn: 'garfield' })
+
+      await expect(promise).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      await expect(promise).rejects.toThrow(/likely hidden by the default scope "dream:SoftDelete"/)
+      await expect(promise).rejects.not.toThrow(/Possible causes:/)
+    })
+
+    it('lists every removable default scope as a candidate when the model has several', async () => {
+      const pet = await Pet.create({ species: 'dog' })
+      const collar = await Collar.create({ pet, hidden: true })
+
+      const promise = Collar.createOrFindBy({ id: collar.id }, { createWith: { pet } })
+
+      await expect(promise).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      await expect(promise).rejects.toThrow(
+        /likely hidden by one of the default scopes "dream:SoftDelete", "hideHiddenCollars"/
+      )
+    })
+  })
 
   context('after create lifecycle hooks', () => {
     it('are called when creating', async () => {
@@ -137,6 +175,12 @@ describe('Dream.createOrFindBy', () => {
         await expect(
           Pet.createOrFindBy({ uniqueColumn: 'garfield', favoriteTreats: ['chicken'] })
         ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      })
+
+      it('does not blame a default scope when the conflicting record is visible', async () => {
+        await expect(
+          Pet.createOrFindBy({ uniqueColumn: 'garfield', favoriteTreats: ['chicken'] })
+        ).rejects.not.toThrow(/hidden by/)
       })
 
       it('returns the existing record whose array is empty when given an empty array', async () => {

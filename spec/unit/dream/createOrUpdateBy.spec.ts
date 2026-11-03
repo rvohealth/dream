@@ -1,4 +1,5 @@
 import CreateOrUpdateByFailedToCreateAndUpdate from '../../../src/errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -180,8 +181,46 @@ describe('Dream.createOrUpdateBy', () => {
           )
         ).rejects.toThrow(CreateOrUpdateByFailedToCreateAndUpdate)
       })
+
+      it('lists the possible causes rather than blaming only `with`', async () => {
+        const promise = User.createOrUpdateBy(
+          { email: 'howya@doin' },
+          { with: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+        )
+
+        await expect(promise).rejects.toThrow(/Possible causes:/)
+        await expect(promise).rejects.toThrow(/a `with` value conflicts/)
+        await expect(promise).rejects.toThrow(/a find attribute outside the violated unique index differs/)
+        await expect(promise).rejects.toThrow(/a hook changed a find attribute/)
+      })
     }
   )
+
+  context('when the conflicting record is hidden by a default scope', () => {
+    it('throws CreateOrUpdateByFailedToCreateAndUpdate naming the default scope that hides the record', async () => {
+      const pet = await Pet.create({ species: 'cat', name: 'Garfield', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrUpdateBy({ uniqueColumn: 'garfield' }, { with: { name: 'Nermal' } })
+
+      await expect(promise).rejects.toThrow(CreateOrUpdateByFailedToCreateAndUpdate)
+      await expect(promise).rejects.toThrow(/likely hidden by the default scope "dream:SoftDelete"/)
+      await expect(promise).rejects.not.toThrow(/Possible causes:/)
+      expect((await Pet.removeDefaultScope('dream:SoftDelete').find(pet.id))!.name).toEqual('Garfield')
+    })
+
+    it('lists every removable default scope as a candidate when the model has several', async () => {
+      const pet = await Pet.create({ species: 'dog' })
+      const collar = await Collar.create({ pet, hidden: true })
+
+      const promise = Collar.createOrUpdateBy({ id: collar.id }, { with: { pet } })
+
+      await expect(promise).rejects.toThrow(CreateOrUpdateByFailedToCreateAndUpdate)
+      await expect(promise).rejects.toThrow(
+        /likely hidden by one of the default scopes "dream:SoftDelete", "hideHiddenCollars"/
+      )
+    })
+  })
 
   context(
     'with an array column in the find key, when a unique column conflicts with an existing record',
@@ -226,6 +265,15 @@ describe('Dream.createOrUpdateBy', () => {
           )
         ).rejects.toThrow(CreateOrUpdateByFailedToCreateAndUpdate)
         expect((await Pet.find(existingPet.id))!.name).toEqual('Garfield')
+      })
+
+      it('does not blame a default scope when the conflicting record is visible', async () => {
+        await expect(
+          Pet.createOrUpdateBy(
+            { uniqueColumn: 'garfield', favoriteTreats: ['chicken'] },
+            { with: { name: 'Nermal' } }
+          )
+        ).rejects.not.toThrow(/hidden by/)
       })
 
       it('updates the existing record whose array is empty when given an empty array', async () => {
