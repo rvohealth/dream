@@ -255,6 +255,15 @@ export default class DreamCLI {
        * since the model's schema may come from a migration with another name.
        */
       existingFiles?: 'refuse' | 'overwrite' | 'skip'
+      /**
+       * The caller's own flags for `existingFiles: 'overwrite'` and
+       * `existingFiles: 'skip'`, named in the refusal in place of Dream's
+       * `--overwrite` and `--skip-existing`. With them, the refusal names
+       * these two flags and no Dream command. For example, a caller whose
+       * flags are `--overwrite` and `--overwrite-psychic-only` passes
+       * `{ overwrite: '--overwrite', skip: '--overwrite-psychic-only' }`.
+       */
+      existingFilesFlags?: { overwrite: string; skip: string }
     }
     fullyQualifiedParentName?: string | undefined
   }) {

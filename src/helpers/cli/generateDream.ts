@@ -2,7 +2,9 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import DreamCLI from '../../cli/index.js'
 import DreamApp from '../../dream-app/index.js'
-import GeneratedFilesAlreadyExist from '../../errors/GeneratedFilesAlreadyExist.js'
+import GeneratedFilesAlreadyExist, {
+  type GeneratedFilesAlreadyExistFlags,
+} from '../../errors/GeneratedFilesAlreadyExist.js'
 import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
 import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
@@ -49,6 +51,12 @@ export interface GenerateDreamOptions {
    * Defaults to `'refuse'`. See {@link GenerateDreamExistingFiles}.
    */
   existingFiles?: GenerateDreamExistingFiles | undefined
+  /**
+   * The caller's flags that select `existingFiles: 'overwrite'` and
+   * `existingFiles: 'skip'`, which the refusal names. Defaults to Dream's
+   * `--overwrite` and `--skip-existing`.
+   */
+  existingFilesFlags?: GeneratedFilesAlreadyExistFlags | undefined
 }
 
 export default async function generateDream({
@@ -149,7 +157,8 @@ export default async function generateDream({
     throw new GeneratedFilesAlreadyExist(
       fullyQualifiedModelName,
       existingTargets.map(target => target.relFilePath),
-      existingMigrations
+      existingMigrations,
+      options.existingFilesFlags
     )
 
   for (const target of targets) {

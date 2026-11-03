@@ -53,6 +53,90 @@ describe('DreamCLI', () => {
       )
     })
 
+    it('names --overwrite, --skip-existing and the generator commands in the refusal by default', async () => {
+      await fs.mkdir(path.join(projectRoot, 'test-app/spec/factories'), { recursive: true })
+      await fs.writeFile(
+        path.join(projectRoot, 'test-app/spec/factories/PostFactory.ts'),
+        'hand-edited factory'
+      )
+
+      await expect(
+        DreamCLI.generateDream({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['title:string'],
+          options: {
+            connectionName: 'default',
+            serializer: true,
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
+          },
+        })
+      ).rejects.toThrow(
+        `
+Refusing to generate Post, because these files already exist:
+  test-app/app/models/Post.ts
+  test-app/spec/factories/PostFactory.ts
+
+Nothing was written. To replace the model, spec, factory and serializer files,
+re-run with --overwrite. To keep the existing files and write only the missing
+ones, re-run with --skip-existing. g:model and g:sti-child accept both.
+`
+      )
+    })
+
+    it('names only the caller-supplied flags in the refusal when passed existingFilesFlags', async () => {
+      await fs.mkdir(path.join(projectRoot, 'test-app/spec/factories'), { recursive: true })
+      await fs.writeFile(
+        path.join(projectRoot, 'test-app/spec/factories/PostFactory.ts'),
+        'hand-edited factory'
+      )
+
+      await expect(
+        DreamCLI.generateDream({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['title:string'],
+          options: {
+            connectionName: 'default',
+            serializer: true,
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
+            existingFilesFlags: { overwrite: '--overwrite', skip: '--overwrite-psychic-only' },
+          },
+        })
+      ).rejects.toThrow(
+        `
+Refusing to generate Post, because these files already exist:
+  test-app/app/models/Post.ts
+  test-app/spec/factories/PostFactory.ts
+
+Nothing was written. To replace the model, spec, factory and serializer files,
+re-run with --overwrite. To keep the existing files and write only the missing
+ones, re-run with --overwrite-psychic-only.
+`
+      )
+    })
+
+    it('names the caller-supplied overwrite flag in the refusal note on an existing migration', async () => {
+      await fs.mkdir(path.join(projectRoot, 'test-app/db/migrations'), { recursive: true })
+      await fs.writeFile(path.join(projectRoot, 'test-app/db/migrations/1700000000000-create-post.ts'), '')
+
+      const error = await DreamCLI.generateDream({
+        fullyQualifiedModelName: 'Post',
+        columnsWithTypes: ['title:string'],
+        options: {
+          connectionName: 'default',
+          serializer: true,
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
+          existingFilesFlags: { overwrite: '--rewrite-all', skip: '--keep-model' },
+        },
+      }).catch((error: Error) => error)
+
+      expect((error as Error).message).toContain('The existing migration is kept even with --rewrite-all,')
+      expect((error as Error).message).not.toContain('--overwrite')
+      expect((error as Error).message).not.toContain('--skip-existing')
+    })
+
     it("replaces an existing model file when passed existingFiles: 'overwrite'", async () => {
       await DreamCLI.generateDream({
         fullyQualifiedModelName: 'Post',
