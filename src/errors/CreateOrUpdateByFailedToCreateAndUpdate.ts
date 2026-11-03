@@ -1,52 +1,66 @@
 import Dream from '../Dream.js'
-import { describeDefaultScopes } from './CreateOrFindByFailedToCreateAndFind.js'
+import {
+  CreateOrFindFailureCause,
+  describeAttributes,
+  describeDefaultScopes,
+  describePossibleCauses,
+  UNDETERMINED_CREATE_OR_FIND_FAILURE,
+} from './CreateOrFindByFailedToCreateAndFind.js'
 
 export default class CreateOrUpdateByFailedToCreateAndUpdate extends Error {
   private dreamClass: typeof Dream
-  private hidingDefaultScopes: string[]
+  private failureCause: CreateOrFindFailureCause
 
   /**
    * @param dreamClass - the model `createOrUpdateBy` was called on
-   * @param opts.hidingDefaultScopes - when a record matching the find
-   * attributes exists but the model's default scopes hide it, the model's
-   * removable default scopes, any of which may be the one hiding it
+   * @param failureCause - what could be told about why the record that
+   * blocked the insert was not found
    */
   constructor(
     dreamClass: typeof Dream,
-    { hidingDefaultScopes = [] }: { hidingDefaultScopes?: string[] } = {}
+    failureCause: CreateOrFindFailureCause = UNDETERMINED_CREATE_OR_FIND_FAILURE
   ) {
     super()
     this.dreamClass = dreamClass
-    this.hidingDefaultScopes = hidingDefaultScopes
+    this.failureCause = failureCause
   }
 
   public override get message() {
     const name = this.dreamClass.sanitizedName
+    const failureCause = this.failureCause
 
-    if (this.hidingDefaultScopes.length) {
-      return `
+    switch (failureCause.kind) {
+      case 'conflictingAttributes':
+        return `
+Failed to create instance of ${name}: the insert violated a uniqueness constraint,
+and no ${name} matching the find attributes exists to update.
+
+The violated unique index covers the \`with\` ${describeAttributes(failureCause.attributes)},
+so a \`with\` value likely conflicts with a different record. createOrUpdateBy
+looks the record to update up by the find attributes only; to find a record by
+${failureCause.attributes.join(', ')}, pass it as a find attribute instead.
+        `
+
+      case 'hiddenByDefaultScope':
+        return `
 Failed to create instance of ${name}: the insert violated a uniqueness constraint,
 and the ${name} to update was not found because it is
-likely hidden by ${describeDefaultScopes(this.hidingDefaultScopes)}.
+likely hidden by ${describeDefaultScopes(failureCause.defaultScopes)}.
 
 createOrUpdateBy only finds records the model's default scopes return, so it
 cannot update a hidden record. Restore the hidden record, or narrow the unique
 index so that it covers only the records the default scopes return (for
 example, a partial unique index).
-      `
-    }
+        `
 
-    return `
+      case 'undetermined':
+        return `
 Failed to create instance of ${name}: the insert violated a uniqueness constraint,
 and no ${name} matching the find attributes exists to update.
 
 Possible causes:
-  - a \`with\` value conflicts with a different record's unique column
-  - a find attribute outside the violated unique index differs from the
-    conflicting record's value
-  - a hook changed a find attribute before the insert, so the lookup used
-    the original value
-  - the conflicting record was deleted between the failed insert and the lookup
-    `
+${describePossibleCauses(failureCause, '`with`')}
+        `
+    }
   }
 }

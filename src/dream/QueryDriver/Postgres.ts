@@ -371,6 +371,50 @@ export default class PostgresQueryDriver<
     return pgErrorType(error) === UNIQUE_VIOLATION
   }
 
+  /**
+   * @internal
+   *
+   * Postgres implementation of {@link QueryDriverBase.violatedUniqueIndexColumns}.
+   * A unique violation names the index it hit in the error's `constraint`
+   * field (a unique constraint's index shares its name), and one catalog query
+   * reads that index's key columns. `INCLUDE` columns are not keys and are
+   * left out.
+   */
+  public static override async violatedUniqueIndexColumns(
+    connectionName: string,
+    error: unknown,
+    table: string
+  ): Promise<string[] | null> {
+    if (!(error instanceof pg.DatabaseError) || pgErrorType(error) !== UNIQUE_VIOLATION) return null
+    if (!error.constraint || !error.schema || !error.table) return null
+
+    const tableParts = table.split('.')
+    const tableName = tableParts.at(-1)
+    const tableSchema = tableParts.length > 1 ? tableParts[0] : undefined
+    if (error.table !== tableName || (tableSchema !== undefined && error.schema !== tableSchema)) return null
+
+    // the returned columns are aliased to single words: result keys come back camelized
+    const result = await sql<{ plain: boolean; columns: string[] }>`
+      SELECT
+        (idx.indexprs IS NULL AND idx.indpred IS NULL) AS plain,
+        ARRAY(
+          SELECT att.attname::text
+          FROM unnest(idx.indkey::int2[]) WITH ORDINALITY AS k(attnum, ord)
+          JOIN pg_catalog.pg_attribute AS att ON att.attrelid = idx.indrelid AND att.attnum = k.attnum
+          WHERE k.ord <= idx.indnkeyatts
+          ORDER BY k.ord
+        ) AS columns
+      FROM pg_catalog.pg_index AS idx
+      JOIN pg_catalog.pg_class AS cls ON cls.oid = idx.indexrelid
+      JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
+      WHERE ns.nspname = ${error.schema} AND cls.relname = ${error.constraint} AND idx.indisunique
+    `.execute(this.dbFor(connectionName, 'primary'))
+
+    const index = result.rows[0]
+    if (!index?.plain || !index.columns.length) return null
+    return index.columns
+  }
+
   public static override isDeadlock(error: unknown): boolean {
     return pgErrorType(error) === DEADLOCK_DETECTED
   }

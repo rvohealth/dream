@@ -59,7 +59,9 @@ import CannotUpdateAssociationOnUnpersistedDream from './errors/associations/Can
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
-import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import CreateOrFindByFailedToCreateAndFind, {
+  CreateOrFindFailureCause,
+} from './errors/CreateOrFindByFailedToCreateAndFind.js'
 import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
@@ -67,6 +69,7 @@ import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import RecordNotFound from './errors/RecordNotFound.js'
 import areEqual from './helpers/areEqual.js'
+import camelize from './helpers/camelize.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
@@ -1566,10 +1569,13 @@ export default class Dream {
    * The lookup applies the model's default scopes, so a conflicting
    * record they hide (for example, a soft-deleted one under a plain
    * unique index) is never returned. When the lookup finds nothing,
-   * `CreateOrFindByFailedToCreateAndFind` is thrown: its message names
-   * the default scope likely hiding the conflicting record when the
-   * record is found with the model's default scopes removed, and
-   * otherwise lists the possible causes.
+   * `CreateOrFindByFailedToCreateAndFind` is thrown. When the database
+   * identifies the violated unique index (Postgres does, unless it is an
+   * expression or partial index), its message names the `createWith`
+   * attributes that index covers as the likely cause, or, when the index
+   * covers only find attributes and the record is found with the model's
+   * default scopes removed, the default scope likely hiding it. Otherwise
+   * it lists the possible causes.
    *
    * ```ts
    * const logEntry = await LogEntry.createOrFindBy({ externalId }, { createWith: params })
@@ -1601,9 +1607,10 @@ export default class Dream {
         // where().first() rather than findBy: a value the database rejects is raised, never read as no match
         const dreamModel = await this.where(lookup).first()
         if (!dreamModel)
-          throw new CreateOrFindByFailedToCreateAndFind(this, {
-            hidingDefaultScopes: await this.defaultScopesHidingLookup(lookup),
-          })
+          throw new CreateOrFindByFailedToCreateAndFind(
+            this,
+            await this.createOrFindFailureCause(err, lookup, extraOpts.createWith)
+          )
         return dreamModel
       }
       throw err
@@ -1648,10 +1655,13 @@ export default class Dream {
    * The lookup applies the model's default scopes, so a conflicting
    * record they hide (for example, a soft-deleted one under a plain
    * unique index) is never updated. When the lookup finds nothing,
-   * `CreateOrUpdateByFailedToCreateAndUpdate` is thrown: its message
-   * names the default scope likely hiding the conflicting record when
-   * the record is found with the model's default scopes removed, and
-   * otherwise lists the possible causes.
+   * `CreateOrUpdateByFailedToCreateAndUpdate` is thrown. When the database
+   * identifies the violated unique index (Postgres does, unless it is an
+   * expression or partial index), its message names the `with`
+   * attributes that index covers as the likely cause, or, when the index
+   * covers only find attributes and the record is found with the model's
+   * default scopes removed, the default scope likely hiding it. Otherwise
+   * it lists the possible causes.
    *
    * @param attributes - The base attributes for finding which record to update, also used when creating
    * @param extraOpts - Additional options
@@ -1680,9 +1690,10 @@ export default class Dream {
         // where().first() rather than findBy: a value the database rejects is raised, never read as no match
         const existingRecord = await this.where(lookup).first()
         if (!existingRecord)
-          throw new CreateOrUpdateByFailedToCreateAndUpdate(this, {
-            hidingDefaultScopes: await this.defaultScopesHidingLookup(lookup),
-          })
+          throw new CreateOrUpdateByFailedToCreateAndUpdate(
+            this,
+            await this.createOrFindFailureCause(err, lookup, extraOpts.with)
+          )
         const { with: attrs } = extraOpts
 
         if (existingRecord) {
@@ -1698,7 +1709,53 @@ export default class Dream {
    * @internal
    *
    * Used by createOrFindBy and createOrUpdateBy after their default-scoped
-   * lookup finds nothing. Returns the model's removable default scopes when a
+   * lookup finds nothing, to tell why. The driver names the columns of the
+   * unique index the insert violated, when it can. When that index covers a
+   * `createWith`/`with` attribute, one of those values likely conflicted with
+   * another record. When it covers only find attributes, a record matching
+   * them that the default scopes hide is the record the insert conflicted
+   * with. Otherwise the cause is undetermined, and a hidden record matching
+   * the find attributes is only a candidate.
+   */
+  private static async createOrFindFailureCause<T extends typeof Dream>(
+    this: T,
+    error: unknown,
+    lookup: WhereStatement<InstanceType<T>>,
+    extraAttributes: UpdateablePropertiesForClass<T> | undefined
+  ): Promise<CreateOrFindFailureCause> {
+    const connectionName = this.prototype.connectionName
+    const indexColumns = await Query.dbDriverClass(connectionName).violatedUniqueIndexColumns(
+      connectionName,
+      error,
+      this.table
+    )
+    const indexAttributes = indexColumns?.map(column => camelize(column)) ?? null
+    const extraAttributeNames = Object.keys(
+      extraAttributes ? this.extractAttributesFromUpdateableProperties(extraAttributes) : {}
+    )
+
+    const conflictingAttributes = (indexAttributes ?? []).filter(attribute =>
+      extraAttributeNames.includes(attribute)
+    )
+    if (conflictingAttributes.length)
+      return { kind: 'conflictingAttributes', attributes: conflictingAttributes }
+
+    const hidingDefaultScopes = await this.defaultScopesHidingLookup(lookup)
+    const indexCoversOnlyFindAttributes = !!indexAttributes?.every(attribute => attribute in lookup)
+    if (hidingDefaultScopes.length && indexCoversOnlyFindAttributes)
+      return { kind: 'hiddenByDefaultScope', defaultScopes: hidingDefaultScopes }
+
+    return {
+      kind: 'undetermined',
+      hidingDefaultScopes,
+      extraAttributesMayConflict: indexAttributes === null && extraAttributeNames.length > 0,
+    }
+  }
+
+  /**
+   * @internal
+   *
+   * Used by createOrFindFailureCause. Returns the model's removable default scopes when a
    * record matching `lookup` exists once they are all removed, and an empty
    * array otherwise. The STI type discriminator is never removed. One probe
    * with every removable scope removed cannot tell which of several scopes

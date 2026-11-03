@@ -287,6 +287,33 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   /**
    * @internal
    *
+   * The columns of the unique index whose violation `error` reports, in index
+   * order, when that index is on `table` and is a plain one: every key is a
+   * column and it has no predicate. `createOrFindBy` and `createOrUpdateBy`
+   * ask this after a failed insert to tell which of their attributes
+   * conflicted. Returns null when the driver cannot tell, when the index is
+   * on another table, or when it is an expression or partial index; the
+   * default returns null.
+   *
+   * @param connectionName - the connection the insert ran on
+   * @param error - the error the insert raised
+   * @param table - the table the insert wrote to
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async violatedUniqueIndexColumns(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    error: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    table: string
+  ): Promise<string[] | null> {
+    return null
+  }
+
+  /**
+   * @internal
+   *
    * Whether `error` is the database aborting a transaction to break a deadlock
    * with another. `withConcurrentWriterRetry` reruns a transaction of Dream's
    * own that was aborted this way. A driver that does not recognize one reports
