@@ -15,6 +15,24 @@ import {
   TIME_WITHOUT_TIMEZONE_COLUMN_CHECK_REGEXP,
 } from './types/helpers.js'
 
+const mismatchesRaisedBeforeQuerying = new WeakSet<Error>()
+
+/**
+ * Whether `error` is the `DataTypeColumnTypeMismatch` raised here for a date,
+ * datetime or time value Dream cannot convert for its column. Values are
+ * converted while a statement is built, so such an error means the statement
+ * was never sent to the database.
+ */
+export function isMismatchRaisedBeforeQuerying(error: unknown): boolean {
+  return error instanceof Error && mismatchesRaisedBeforeQuerying.has(error)
+}
+
+function mismatchRaisedBeforeQuerying(error: Error): DataTypeColumnTypeMismatch {
+  const mismatch = new DataTypeColumnTypeMismatch(error)
+  mismatchesRaisedBeforeQuerying.add(mismatch)
+  return mismatch
+}
+
 export function normalizeDataForDb({
   val,
   dreamClass,
@@ -82,7 +100,7 @@ function dateTimeOrDateToSql(
 
       return dateClass.fromISO(val, { zone: 'UTC' }).toSQL()
     } catch (error) {
-      throw new DataTypeColumnTypeMismatch(
+      throw mismatchRaisedBeforeQuerying(
         error instanceof Error
           ? error
           : new Error(
@@ -119,7 +137,7 @@ function clockTimeOrClockTimeTzToSql(
 
       return clockTimeClass.fromISO(val, { zone: 'UTC' }).toSQL()
     } catch (error) {
-      throw new DataTypeColumnTypeMismatch(
+      throw mismatchRaisedBeforeQuerying(
         error instanceof Error
           ? error
           : new Error(

@@ -92,6 +92,48 @@ describe('Query#find', () => {
     })
   })
 
+  context('when a negated clause holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the matching record', async () => {
+      await expect(User.query().whereNot({ uuid: 'abc' }).find(user.id)).rejects.toThrow(
+        DataTypeColumnTypeMismatch
+      )
+    })
+
+    it('returns null when the primary key is a value its column cannot hold', async () => {
+      expect(await User.query().whereNot({ uuid: 'abc' }).find('abc')).toBeNull()
+    })
+  })
+
+  context('when a whereAny branch holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the matching record', async () => {
+      await expect(
+        User.query()
+          .whereAny([{ uuid: 'abc' }, { email: 'fred@frewd' }])
+          .find(user.id)
+      ).rejects.toThrow(DataTypeColumnTypeMismatch)
+    })
+  })
+
+  context('when a leftJoinPreload and-clause holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the found record', async () => {
+      await expect(
+        User.query()
+          .leftJoinPreload('posts', { and: { id: 'abc' } })
+          .find(user.id)
+      ).rejects.toThrow(DataTypeColumnTypeMismatch)
+    })
+  })
+
+  context('when a where clause holds a date its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the matching record', async () => {
+      await expect(
+        User.query()
+          .whereNot({ birthdate: 'garbage' as any })
+          .find(user.id)
+      ).rejects.toThrow(DataTypeColumnTypeMismatch)
+    })
+  })
+
   context('when a preload clause holds a value its column cannot hold', () => {
     it('raises DataTypeColumnTypeMismatch instead of returning null for the found record', async () => {
       await expect(

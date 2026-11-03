@@ -67,6 +67,21 @@ describe('Dream.findBy', () => {
       })
     })
   })
+
+  context('when passed a date its column cannot hold', () => {
+    it('returns null', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      expect(await User.findBy({ birthdate: 'garbage' as any })).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('returns null, since nothing reached the database', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(await User.txn(txn).findBy({ birthdate: 'garbage' as any })).toBeNull()
+        })
+      })
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.

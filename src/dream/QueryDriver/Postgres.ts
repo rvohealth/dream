@@ -27,7 +27,12 @@ import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismat
 import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import SortableScopeLockWaitTimedOut from '../../errors/SortableScopeLockWaitTimedOut.js'
 import Dream from '../../Dream.js'
-import { IntrospectedDatabase, IntrospectedTable, IntrospectedValueType } from '../../types/db.js'
+import {
+  DbConnectionType,
+  IntrospectedDatabase,
+  IntrospectedTable,
+  IntrospectedValueType,
+} from '../../types/db.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -434,6 +439,32 @@ export default class PostgresQueryDriver<
         return new CheckConstraintViolation(databaseError)
       default:
         return null
+    }
+  }
+
+  /**
+   * @internal
+   *
+   * Postgres implementation of {@link QueryDriverBase.rejectsAnyValueForColumnType}.
+   * One statement casts every value to its type, so Postgres's own input
+   * function for each type is the judge: a cast it rejects raises `22P02` or
+   * `22003`. Callers never ask inside a transaction, which a rejected cast
+   * would abort.
+   */
+  public static override async rejectsAnyValueForColumnType(
+    connectionName: string,
+    dbConnectionType: DbConnectionType,
+    values: { value: unknown; dbType: string }[]
+  ): Promise<boolean> {
+    if (!values.length) return false
+
+    const casts = values.map(({ value, dbType }) => sql`CAST(${value} AS ${sql.raw(dbType)})`)
+    try {
+      await sql`SELECT ${sql.join(casts)}`.execute(this.dbFor(connectionName, dbConnectionType))
+      return false
+    } catch (error) {
+      const errorType = pgErrorType(error)
+      return errorType === INVALID_INPUT_SYNTAX || errorType === COLUMN_OVERFLOW
     }
   }
 

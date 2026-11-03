@@ -1803,13 +1803,16 @@ export default class Dream {
   /**
    * Finds a record for the corresponding model with the
    * specified primary key. Returns null if not found,
-   * including when the database rejects the primary key
-   * as a value its column cannot hold (for example, `'abc'`
-   * for an integer primary key), since no record can have it.
+   * including when the primary key is a value its column
+   * cannot hold (for example, `'abc'` for an integer
+   * primary key).
    *
-   * Inside a transaction, that rejection is raised instead, as
-   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
-   * database has already aborted the transaction.
+   * When the database rejects a value elsewhere in the query (for
+   * example, in a `whereNot`, `whereAny` or `leftJoinPreload`
+   * clause), that rejection is raised as `DataTypeColumnTypeMismatch`
+   * or `ColumnOverflow`, since a record may still match. Inside a
+   * transaction, a primary key the database rejects is raised that
+   * way too, because the database has then aborted the transaction.
    *
    * ```ts
    * await User.find(123)
@@ -1838,13 +1841,16 @@ export default class Dream {
   /**
    * Finds a record for the corresponding model with the
    * specified primary key. If not found, `RecordNotFound` is
-   * raised, including when the database rejects the primary key
-   * as a value its column cannot hold (for example, `'abc'` for
-   * an integer primary key).
+   * raised, including when the primary key is a value its
+   * column cannot hold (for example, `'abc'` for an integer
+   * primary key).
    *
-   * Inside a transaction, that rejection is raised instead, as
-   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
-   * database has already aborted the transaction.
+   * When the database rejects a value elsewhere in the query (for
+   * example, in a `whereNot`, `whereAny` or `leftJoinPreload`
+   * clause), that rejection is raised as `DataTypeColumnTypeMismatch`
+   * or `ColumnOverflow`, since a record may still match. Inside a
+   * transaction, a primary key the database rejects is raised that
+   * way too, because the database has then aborted the transaction.
    *
    * ```ts
    * await User.findOrFail(123)
@@ -2009,14 +2015,22 @@ export default class Dream {
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, null is returned, including when the database
-   * rejects a value in the where statement as one its column
-   * cannot hold (for example, `'abc'` for a uuid column), since
-   * no record can match it.
+   * If not found, null is returned, including when a value the where
+   * statement compares for equality (a plain value or
+   * `ops.equal`) is one its column cannot hold: for example,
+   * `'abc'` for a uuid column, or a date string Dream cannot
+   * parse for a date column.
    *
-   * Inside a transaction, that rejection is raised instead, as
-   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
-   * database has already aborted the transaction.
+   * A value the database rejects anywhere else (in a list of values,
+   * under another operator such as `ops.not.equal` or `ops.lessThan`,
+   * or elsewhere in the query, such as a `whereNot` or `whereAny`
+   * clause) is raised as `DataTypeColumnTypeMismatch` or
+   * `ColumnOverflow`, since a record may still match; so is a date,
+   * datetime or time string there that Dream cannot parse. Inside a
+   * transaction, an equality value the database rejects is raised that
+   * way too, because the database has then aborted the transaction; a
+   * date, datetime or time string Dream cannot parse never reaches the
+   * database, so it is treated as not found there as well.
    *
    * ```ts
    * await User.findBy({ email: 'how@yadoin' })
@@ -2036,13 +2050,22 @@ export default class Dream {
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, `RecordNotFound` is raised, including when the
-   * database rejects a value in the where statement as one its
-   * column cannot hold (for example, `'abc'` for a uuid column).
+   * If not found, `RecordNotFound` is raised, including when
+   * a value the where statement compares for equality (a plain
+   * value or `ops.equal`) is one its column cannot hold: for
+   * example, `'abc'` for a uuid column, or a date string Dream
+   * cannot parse for a date column.
    *
-   * Inside a transaction, that rejection is raised instead, as
-   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
-   * database has already aborted the transaction.
+   * A value the database rejects anywhere else (in a list of values,
+   * under another operator such as `ops.not.equal` or `ops.lessThan`,
+   * or elsewhere in the query, such as a `whereNot` or `whereAny`
+   * clause) is raised as `DataTypeColumnTypeMismatch` or
+   * `ColumnOverflow`, since a record may still match; so is a date,
+   * datetime or time string there that Dream cannot parse. Inside a
+   * transaction, an equality value the database rejects is raised that
+   * way too, because the database has then aborted the transaction; a
+   * date, datetime or time string Dream cannot parse never reaches the
+   * database, so it is treated as not found there as well.
    *
    * ```ts
    * await User.findOrFailBy({ email: 'how@yadoin' })

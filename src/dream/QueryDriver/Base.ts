@@ -345,6 +345,34 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   /**
    * @internal
    *
+   * Whether the database rejects any of `values` as input for its `dbType`
+   * (the column type in the model's schema), judged by the database's own
+   * input rules. `find` and `findBy` ask this, outside a transaction, after
+   * the database rejected their statement, passing the values their lookup
+   * compares for equality: when one of those is rejected, no record can match
+   * the lookup, which then returns null; otherwise the rejected value was
+   * elsewhere in the Query, and the statement's error is raised. A driver that
+   * cannot tell returns false; the default does.
+   *
+   * @param connectionName - the connection the lookup ran on
+   * @param dbConnectionType - the connection type to ask on
+   * @param values - each value as sent to the database, with its column's type
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async rejectsAnyValueForColumnType(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dbConnectionType: DbConnectionType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    values: { value: unknown; dbType: string }[]
+  ): Promise<boolean> {
+    return false
+  }
+
+  /**
+   * @internal
+   *
    * Acquire exclusive, transaction-scoped locks on arbitrary keys, waiting
    * until any other transaction holding one of them finishes. The locks are
    * released when the enclosing transaction commits or rolls back — never by an

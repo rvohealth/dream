@@ -4,6 +4,7 @@ import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import ModelWithSerialPrimaryKey from '../../../test-app/app/models/ModelWithSerialPrimaryKey.js'
+import NonNullRating from '../../../test-app/app/models/NonNullRating.js'
 import User from '../../../test-app/app/models/User.js'
 import db from '../../../test-app/db/index.js'
 
@@ -116,6 +117,10 @@ describe('Dream.find', () => {
     it('returns null for an integer too large for the column', async () => {
       expect(await User.find('99999999999999999999')).toBeNull()
       expect(await ModelWithSerialPrimaryKey.find(3000000000)).toBeNull()
+    })
+
+    it('returns null on a model whose default scope negates a clause', async () => {
+      expect(await NonNullRating.find('abc')).toBeNull()
     })
 
     context('in a transaction', () => {

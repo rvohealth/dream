@@ -395,10 +395,11 @@ export default class DreamClassTransactionBuilder<
    * Finds a record for the corresponding model with the
    * specified primary key. If not found, null is returned.
    *
-   * A primary key the database rejects as a value its column
-   * cannot hold (for example, `'abc'` for an integer primary key)
-   * raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because
-   * the database has already aborted the transaction.
+   * A value the database rejects as one its column cannot hold,
+   * whether the primary key (for example, `'abc'` for an integer
+   * primary key) or a value elsewhere in the query, raises
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has then aborted the transaction.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
@@ -427,10 +428,11 @@ export default class DreamClassTransactionBuilder<
    * Finds a record for the corresponding model with the
    * specified primary key. If not found, an exception is raised.
    *
-   * A primary key the database rejects as a value its column
-   * cannot hold (for example, `'abc'` for an integer primary key)
-   * raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because
-   * the database has already aborted the transaction.
+   * A value the database rejects as one its column cannot hold,
+   * whether the primary key (for example, `'abc'` for an integer
+   * primary key) or a value elsewhere in the query, raises
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has then aborted the transaction.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
@@ -452,12 +454,17 @@ export default class DreamClassTransactionBuilder<
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, null is returned.
+   * If not found, null is returned, including when a value the where
+   * statement compares for equality (a plain value or `ops.equal`)
+   * is a date, datetime or time string Dream cannot parse for its
+   * column, which never reaches the database.
    *
-   * A value in the where statement that the database rejects as
-   * one its column cannot hold (for example, `'abc'` for a uuid
-   * column) raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`,
-   * because the database has already aborted the transaction.
+   * A value the database rejects as one its column cannot hold
+   * (for example, `'abc'` for a uuid column) raises
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has then aborted the transaction. A date, datetime or
+   * time string Dream cannot parse anywhere else in the query raises
+   * `DataTypeColumnTypeMismatch`.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
@@ -479,12 +486,17 @@ export default class DreamClassTransactionBuilder<
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, an exception is raised.
+   * If not found, `RecordNotFound` is raised, including when a
+   * value the where statement compares for equality (a plain value
+   * or `ops.equal`) is a date, datetime or time string Dream cannot
+   * parse for its column, which never reaches the database.
    *
-   * A value in the where statement that the database rejects as
-   * one its column cannot hold (for example, `'abc'` for a uuid
-   * column) raises `DataTypeColumnTypeMismatch` or `ColumnOverflow`,
-   * because the database has already aborted the transaction.
+   * A value the database rejects as one its column cannot hold
+   * (for example, `'abc'` for a uuid column) raises
+   * `DataTypeColumnTypeMismatch` or `ColumnOverflow`, because the
+   * database has then aborted the transaction. A date, datetime or
+   * time string Dream cannot parse anywhere else in the query raises
+   * `DataTypeColumnTypeMismatch`.
    *
    * ```ts
    * await ApplicationModel.transaction(async txn => {
