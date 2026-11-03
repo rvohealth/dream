@@ -70,6 +70,11 @@ export default class DreamBin {
       internalSerializers?: boolean
       modelName?: string
       softDelete?: boolean
+      /**
+       * Replace an existing model, spec, factory or serializer file instead
+       * of refusing to write anything. An existing migration is kept.
+       */
+      overwrite?: boolean
     }
   ) {
     await generateDream({
@@ -99,6 +104,11 @@ export default class DreamBin {
       adminSerializers?: boolean
       internalSerializers?: boolean
       modelName?: string
+      /**
+       * Replace an existing model, spec, factory or serializer file instead
+       * of refusing to write anything. An existing migration is kept.
+       */
+      overwrite?: boolean
     }
   ) {
     const connectionName =

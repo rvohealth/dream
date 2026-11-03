@@ -1,6 +1,10 @@
 import { Command } from 'commander'
+import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import DreamBin from '../../../src/bin/index.js'
 import DreamCLI, { columnsWithTypesDescriptionForStiChild } from '../../../src/cli/index.js'
+import DreamApp from '../../../src/dream-app/index.js'
 
 describe('DreamCLI', () => {
   describe('columnsWithTypesDescriptionForStiChild', () => {
@@ -13,7 +17,104 @@ describe('DreamCLI', () => {
     })
   })
 
+  describe('generateDream', () => {
+    let projectRoot: string
+
+    // The app's dream paths resolve under this empty temporary project root,
+    // so the generator never sees or touches test-app's own files.
+    beforeEach(async () => {
+      projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'dream-cli-spec-'))
+      vi.spyOn(DreamApp.getOrFail(), 'projectRoot', 'get').mockReturnValue(projectRoot)
+      vi.spyOn(DreamCLI.logger, 'log').mockImplementation(() => {})
+      await fs.mkdir(path.join(projectRoot, 'test-app/app/models'), { recursive: true })
+      await fs.writeFile(path.join(projectRoot, 'test-app/app/models/Post.ts'), 'hand-edited model')
+    })
+
+    afterEach(async () => {
+      await fs.rm(projectRoot, { recursive: true, force: true })
+    })
+
+    it('refuses to replace an existing model file by default', async () => {
+      await expect(
+        DreamCLI.generateDream({
+          fullyQualifiedModelName: 'Post',
+          columnsWithTypes: ['title:string'],
+          options: {
+            connectionName: 'default',
+            serializer: true,
+            stiBaseSerializer: false,
+            includeAdminSerializers: false,
+          },
+        })
+      ).rejects.toThrow('test-app/app/models/Post.ts')
+
+      expect(await fs.readFile(path.join(projectRoot, 'test-app/app/models/Post.ts'), 'utf8')).toEqual(
+        'hand-edited model'
+      )
+    })
+
+    it('replaces an existing model file when passed overwrite', async () => {
+      await DreamCLI.generateDream({
+        fullyQualifiedModelName: 'Post',
+        columnsWithTypes: ['title:string'],
+        options: {
+          connectionName: 'default',
+          serializer: true,
+          stiBaseSerializer: false,
+          includeAdminSerializers: false,
+          overwrite: true,
+        },
+      })
+
+      expect(await fs.readFile(path.join(projectRoot, 'test-app/app/models/Post.ts'), 'utf8')).toContain(
+        'export default class Post'
+      )
+    })
+  })
+
+  describe('g:model', () => {
+    it('passes --overwrite to the generator, and defaults it to false', async () => {
+      const generateDream = vi.spyOn(DreamBin, 'generateDream').mockResolvedValue(undefined)
+      vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never)
+      const program = new Command()
+      program.exitOverride()
+      DreamCLI.generateDreamCli(program, {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        initializeDreamApp: async () => ({}) as any,
+        seedDb: () => {},
+        onSync: () => {},
+      })
+
+      await program.parseAsync(['g:model', 'Post', 'title:string'], { from: 'user' })
+      await program.parseAsync(['g:model', 'Post', 'title:string', '--overwrite'], { from: 'user' })
+
+      expect(generateDream.mock.calls[0]![2]).toEqual(expect.objectContaining({ overwrite: false }))
+      expect(generateDream.mock.calls[1]![2]).toEqual(expect.objectContaining({ overwrite: true }))
+    })
+  })
+
   describe('g:sti-child', () => {
+    it('passes --overwrite to the generator, and defaults it to false', async () => {
+      const generateStiChild = vi.spyOn(DreamBin, 'generateStiChild').mockResolvedValue(undefined)
+      vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never)
+      const program = new Command()
+      program.exitOverride()
+      DreamCLI.generateDreamCli(program, {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        initializeDreamApp: async () => ({}) as any,
+        seedDb: () => {},
+        onSync: () => {},
+      })
+
+      await program.parseAsync(['g:sti-child', 'Room/Den', 'extends', 'Room'], { from: 'user' })
+      await program.parseAsync(['g:sti-child', 'Room/Den', 'extends', 'Room', '--overwrite'], {
+        from: 'user',
+      })
+
+      expect(generateStiChild.mock.calls[0]![3]).toEqual(expect.objectContaining({ overwrite: false }))
+      expect(generateStiChild.mock.calls[1]![3]).toEqual(expect.objectContaining({ overwrite: true }))
+    })
+
     it('rejects --connection-name without generating anything', async () => {
       const generateStiChild = vi.spyOn(DreamBin, 'generateStiChild').mockResolvedValue(undefined)
       vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never)

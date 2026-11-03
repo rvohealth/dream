@@ -1,11 +1,18 @@
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import DreamCLI from '../../cli/index.js'
+import DreamApp from '../../dream-app/index.js'
+import GeneratedFilesAlreadyExist from '../../errors/GeneratedFilesAlreadyExist.js'
+import dreamFileAndDirPaths from '../path/dreamFileAndDirPaths.js'
+import dreamPath from '../path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../standardizeFullyQualifiedModelName.js'
 import generateDreamContent from './generateDreamContent.js'
-import generateFactory from './generateFactory.js'
-import generateMigration from './generateMigration.js'
-import generateSerializer from './generateSerializer.js'
-import generateUnitSpec from './generateUnitSpec.js'
+import generateFactoryContent from './generateFactoryContent.js'
+import { buildMigration, type GeneratedMigration } from './generateMigration.js'
+import generateSerializerContent from './generateSerializerContent.js'
+import generateUnitSpecContent from './generateUnitSpecContent.js'
 import modelClassNameFrom from './modelClassNameFrom.js'
-import writeGeneratedFile from './writeGeneratedFile.js'
+import writeGeneratedFile, { type WriteGeneratedFileArgs } from './writeGeneratedFile.js'
 
 export interface GenerateDreamOptions {
   connectionName: string
@@ -23,6 +30,13 @@ export interface GenerateDreamOptions {
    * allows opt-out via `--no-soft-delete`.
    */
   softDelete?: boolean
+  /**
+   * When true, an existing model, spec, factory or serializer file is
+   * replaced. Otherwise, if any of them or the model's migration already
+   * exists, nothing is written and the generator throws a refusal listing
+   * them. An existing migration is kept either way.
+   */
+  overwrite?: boolean | undefined
 }
 
 export default async function generateDream({
@@ -44,47 +58,123 @@ export default async function generateDream({
   // caller-provided value.
   const softDelete = !isSTI && !!options.softDelete
 
-  await writeGeneratedFile({
-    dreamPathKey: 'models',
-    fileName: `${fullyQualifiedModelName}.ts`,
-    content: generateDreamContent({
-      fullyQualifiedModelName,
-      columnsWithTypes,
-      fullyQualifiedParentName,
-      serializer: options.serializer,
-      includeAdminSerializers: options.includeAdminSerializers,
-      includeInternalSerializers: options.includeInternalSerializers ?? false,
-      connectionName: options.connectionName,
-      tableName: options.tableName,
-      modelClassName,
-      softDelete,
-    }),
-    logLabel: 'dream',
-  })
+  const files: WriteGeneratedFileArgs[] = [
+    {
+      dreamPathKey: 'models',
+      fileName: `${fullyQualifiedModelName}.ts`,
+      content: generateDreamContent({
+        fullyQualifiedModelName,
+        columnsWithTypes,
+        fullyQualifiedParentName,
+        serializer: options.serializer,
+        includeAdminSerializers: options.includeAdminSerializers,
+        includeInternalSerializers: options.includeInternalSerializers ?? false,
+        connectionName: options.connectionName,
+        tableName: options.tableName,
+        modelClassName,
+        softDelete,
+      }),
+      logLabel: 'dream',
+    },
+    {
+      dreamPathKey: 'modelSpecs',
+      fileName: `${fullyQualifiedModelName}.spec.ts`,
+      content: generateUnitSpecContent({ fullyQualifiedModelName }),
+      logLabel: 'spec',
+    },
+    {
+      dreamPathKey: 'factories',
+      fileName: `${fullyQualifiedModelName}Factory.ts`,
+      content: generateFactoryContent({ fullyQualifiedModelName, columnsWithTypes, modelClassName }),
+      logLabel: 'factory',
+    },
+  ]
 
-  await generateUnitSpec({ fullyQualifiedModelName })
-  await generateFactory({ fullyQualifiedModelName, columnsWithTypes, modelClassName })
   if (options.serializer)
-    await generateSerializer({
-      fullyQualifiedModelName,
-      columnsWithTypes,
-      fullyQualifiedParentName,
-      stiBaseSerializer: options.stiBaseSerializer,
-      includeAdminSerializers: options.includeAdminSerializers,
-      includeInternalSerializers: options.includeInternalSerializers ?? false,
-      modelClassName,
+    files.push({
+      dreamPathKey: 'serializers',
+      fileName: `${fullyQualifiedModelName}Serializer.ts`,
+      content: generateSerializerContent({
+        fullyQualifiedModelName,
+        columnsWithTypes,
+        fullyQualifiedParentName,
+        stiBaseSerializer: options.stiBaseSerializer,
+        includeAdminSerializers: options.includeAdminSerializers,
+        includeInternalSerializers: options.includeInternalSerializers ?? false,
+        modelClassName,
+      }),
+      logLabel: 'serializer',
     })
 
-  if (columnsWithTypes.length || !isSTI) {
-    await generateMigration({
-      connectionName: options.connectionName,
-      migrationName: `Create${fullyQualifiedModelName}`,
-      columnsWithTypes,
-      fullyQualifiedModelName,
-      fullyQualifiedParentName,
-      tableName: options.tableName,
-      modelClassName,
-      softDelete,
+  const migration =
+    columnsWithTypes.length || !isSTI
+      ? buildMigration({
+          connectionName: options.connectionName,
+          migrationName: `Create${fullyQualifiedModelName}`,
+          columnsWithTypes,
+          fullyQualifiedModelName,
+          fullyQualifiedParentName,
+          tableName: options.tableName,
+          modelClassName,
+          softDelete,
+        })
+      : undefined
+
+  const existingFiles: string[] = []
+  for (const file of files) {
+    const { relFilePath, absFilePath } = dreamFileAndDirPaths(dreamPath(file.dreamPathKey!), file.fileName)
+    if (await fileExists(absFilePath)) existingFiles.push(relFilePath)
+  }
+  const existingMigrations = migration ? await migrationsWithStem(migration) : []
+
+  if (!options.overwrite && (existingFiles.length || existingMigrations.length))
+    throw new GeneratedFilesAlreadyExist(fullyQualifiedModelName, existingFiles, existingMigrations)
+
+  for (const file of files) await writeGeneratedFile({ ...file, overwrite: !!options.overwrite })
+
+  if (existingMigrations.length) {
+    for (const existingMigration of existingMigrations)
+      DreamCLI.logger.log(
+        `[dream] kept existing migration: ${existingMigration} (no new migration written; edit it by hand if the columns changed)`
+      )
+  } else if (migration) {
+    await writeGeneratedFile({
+      basePath: migration.basePath,
+      fileName: migration.fileName,
+      content: migration.content,
+      logLabel: 'migration',
     })
   }
+}
+
+async function fileExists(absFilePath: string) {
+  try {
+    await fs.lstat(absFilePath)
+    return true
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false
+    throw error
+  }
+}
+
+/**
+ * The project-relative paths of the migrations in `migration`'s folder whose
+ * file name differs from its own only in the version prefix. This reads the
+ * folder, never the database: the generator cannot tell whether such a
+ * migration has run, and a second one duplicates it either way.
+ */
+async function migrationsWithStem(migration: GeneratedMigration) {
+  const suffix = `-${migration.fileStem}.ts`
+  let fileNames: string[]
+  try {
+    fileNames = await fs.readdir(path.join(DreamApp.getOrFail().projectRoot, migration.basePath))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
+  }
+
+  return fileNames
+    .filter(fileName => fileName.endsWith(suffix) && /^\d+$/.test(fileName.slice(0, -suffix.length)))
+    .sort()
+    .map(fileName => path.join(migration.basePath, fileName))
 }

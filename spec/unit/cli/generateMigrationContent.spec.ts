@@ -2052,7 +2052,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     })
   })
 
-  // `writeGeneratedFile` does `fs.writeFile(absFilePath, content)` with no
+  // `writeGeneratedFile` writes `content` with `fs.writeFile` and no
   // formatting pass, so the string this generator returns is byte-for-byte what
   // a developer's `prettier --check` and `eslint` see on a brand-new migration.
   // These two specs assert that against the real tools rather than against a

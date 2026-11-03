@@ -14,6 +14,11 @@ export interface WriteGeneratedFileArgs {
   content: string
   /** Label for CLI output (e.g. 'dream', 'serializer', 'factory', 'spec', 'migration') */
   logLabel: string
+  /**
+   * When true, an existing file at the path is replaced. Otherwise the write
+   * fails if a file is already there.
+   */
+  overwrite?: boolean | undefined
 }
 
 /**
@@ -26,6 +31,7 @@ export default async function writeGeneratedFile({
   fileName,
   content,
   logLabel,
+  overwrite = false,
 }: WriteGeneratedFileArgs): Promise<void> {
   const resolvedBasePath = basePath ?? dreamPath(dreamPathKey!)
   const { relFilePath, absDirPath, absFilePath } = dreamFileAndDirPaths(resolvedBasePath, fileName)
@@ -33,14 +39,14 @@ export default async function writeGeneratedFile({
   try {
     DreamCLI.logger.log(`[dream] generating ${logLabel}: ${relFilePath}`)
     await fs.mkdir(absDirPath, { recursive: true })
-    await fs.writeFile(absFilePath, content)
+    await fs.writeFile(absFilePath, content, { flag: overwrite ? 'w' : 'wx' })
   } catch (error) {
     throw new Error(
       `
       Something happened while trying to create the ${logLabel} file:
         ${relFilePath}
 
-      Does this file already exist? Here is the error that was raised:
+      Here is the error that was raised:
         ${(error as Error).message}
     `,
       { cause: error }

@@ -240,6 +240,13 @@ export default class DreamCLI {
        * point — the CLI layer opts users in by default.
        */
       softDelete?: boolean
+      /**
+       * When true, an existing model, spec, factory or serializer file is
+       * replaced. By default, if any of them or the model's migration
+       * already exists, nothing is written and this throws an error listing
+       * them. An existing migration is kept either way.
+       */
+      overwrite?: boolean
     }
     fullyQualifiedParentName?: string | undefined
   }) {
@@ -371,6 +378,11 @@ ${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
         '--no-soft-delete',
         `skip generating the @SoftDelete() decorator and the corresponding nullable \`deleted_at\` column. By default, generated models use soft-delete semantics (rows are marked deleted via \`deleted_at\` instead of being removed from the database). Pass this flag when you want records to be hard-deleted.`
       )
+      .option(
+        '--overwrite',
+        'replace the model, spec, factory and serializer files when they already exist. Without it, the generator writes nothing and lists the existing files when any of them, or the migration it would write, already exists. An existing migration is kept even with --overwrite, never rewritten or duplicated, since it may already have run; edit it by hand if the columns changed',
+        false
+      )
       .argument(
         '<modelName>',
         `The fully qualified model name, using / for namespacing. This determines the model class name (may be overridden with \`--model-name\`), table name, and file path under src/app/models/.
@@ -394,6 +406,7 @@ ${INDENT}  Settings/CommunicationPreferences   # src/app/models/Settings/Communi
             adminSerializers?: boolean
             internalSerializers?: boolean
             softDelete: boolean
+            overwrite: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
@@ -444,6 +457,11 @@ ${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
         'also generate InternalSerializer and InternalSummarySerializer variants for internal API endpoints that may expose additional fields',
         false
       )
+      .option(
+        '--overwrite',
+        'replace the model, spec, factory and serializer files when they already exist. Without it, the generator writes nothing and lists the existing files when any of them, or the migration it would write, already exists. An existing migration is kept even with --overwrite, never rewritten or duplicated, since it may already have run; edit it by hand if the columns changed',
+        false
+      )
       .argument(
         '<childModelName>',
         `The namespaced child model path. By convention, children are nested under the parent name.
@@ -474,6 +492,7 @@ ${INDENT}  Health/Coach        # extends src/app/models/Health/Coach.ts`
             modelName?: string
             adminSerializers?: boolean
             internalSerializers?: boolean
+            overwrite: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
