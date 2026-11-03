@@ -563,8 +563,13 @@ ${INDENT}  pnpm psy db:migrate`
             {
               commandName: 'db:migrate',
               completedWork: 'Every pending migration ran successfully',
+              // never `sync` on its own here: the failed sync reverted the
+              // generated types to their pre-migration content, and a Psychic
+              // app's `psy sync` boots with the integrity checks on, so it
+              // fails against them as soon as a model or serializer uses what
+              // the migration added. db:migrate boots with them bypassed
               recoveryAdvice:
-                'run `sync` on its own, or re-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync',
+                're-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync',
             },
             async () => await DreamBin.sync(onSync)
           )
@@ -673,9 +678,11 @@ ${INDENT}Warning: all existing data will be lost. The seed file (db/seed.ts) wil
             // hook directly (below), while the `db:seed` *command* refuses to
             // seed under NODE_ENV=test unless DREAM_SEED_DB_IN_TEST=1 — and
             // NODE_ENV=test is the only environment DreamBin.sync does any
-            // work in, so it is the only environment this advice is printed in
+            // work in, so it is the only environment this advice is printed in.
+            // The second route re-runs db:migrate rather than `sync` for the
+            // reason given at db:migrate's own recovery advice
             recoveryAdvice:
-              're-run `db:reset`, which seeds directly and so picks up the skipped seeding step, or run `sync` on its own followed by `DREAM_SEED_DB_IN_TEST=1 db:seed` — this sync only runs under `NODE_ENV=test`, and a bare `db:seed` does not seed there',
+              're-run `db:reset`, which seeds directly and so picks up the skipped seeding step, or re-run `db:migrate` followed by `DREAM_SEED_DB_IN_TEST=1 db:seed` — this sync only runs under `NODE_ENV=test`, and a bare `db:seed` does not seed there',
           },
           async () => await DreamBin.sync(onSync)
         )
