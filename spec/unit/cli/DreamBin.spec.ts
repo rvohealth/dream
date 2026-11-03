@@ -275,7 +275,7 @@ describe('DreamBin', () => {
         spy.mockRestore()
       })
 
-      it('refuses, writes nothing, and names each existing file and --overwrite', async () => {
+      it('refuses, writes nothing, and names each existing file, --overwrite and --skip-existing', async () => {
         await writeProjectFile('test-app/app/models/Post.ts', 'hand-edited model')
         await writeProjectFile('test-app/spec/factories/PostFactory.ts', 'hand-edited factory')
 
@@ -292,6 +292,7 @@ describe('DreamBin', () => {
         expect(error.message).not.toContain('PostSerializer.ts')
         expect(error.message).not.toContain('Post.spec.ts')
         expect(error.message).toContain('--overwrite')
+        expect(error.message).toContain('--skip-existing')
         expect(await projectFiles()).toEqual([
           'test-app/app/models/Post.ts',
           'test-app/spec/factories/PostFactory.ts',
@@ -346,7 +347,7 @@ describe('DreamBin', () => {
             serializer: true,
             stiBaseSerializer: false,
             connectionName: 'default',
-            overwrite: true,
+            existingFiles: 'overwrite',
           })
 
           expect(await readProjectFile('test-app/app/models/Post.ts')).toContain('export default class Post')
@@ -374,7 +375,7 @@ describe('DreamBin', () => {
             serializer: true,
             stiBaseSerializer: false,
             connectionName: 'default',
-            overwrite: true,
+            existingFiles: 'overwrite',
           })
 
           expect(await readProjectFile('test-app/app/models/Post.ts')).toContain('export default class Post')
@@ -385,6 +386,94 @@ describe('DreamBin', () => {
             'original migration'
           )
           expect(logged.join('\n')).toMatch(/kept.*test-app\/db\/migrations\/1700000000000-create-post\.ts/)
+        })
+      })
+
+      context('with skip', () => {
+        it('writes only the missing files, leaves the existing ones byte-identical, and reports each kept file', async () => {
+          const logged: string[] = []
+          vi.spyOn(DreamCLI.logger, 'log').mockImplementation((text: string) => {
+            logged.push(text)
+          })
+          await writeProjectFile('test-app/spec/unit/models/Post.spec.ts', 'hand-edited spec')
+          await writeProjectFile('test-app/app/serializers/PostSerializer.ts', 'hand-edited serializer')
+
+          await DreamBin.generateDream('Post', ['title:string'], {
+            serializer: true,
+            stiBaseSerializer: false,
+            connectionName: 'default',
+            existingFiles: 'skip',
+          })
+
+          expect(await readProjectFile('test-app/spec/unit/models/Post.spec.ts')).toEqual('hand-edited spec')
+          expect(await readProjectFile('test-app/app/serializers/PostSerializer.ts')).toEqual(
+            'hand-edited serializer'
+          )
+          expect(await readProjectFile('test-app/app/models/Post.ts')).toContain('export default class Post')
+          expect(await readProjectFile('test-app/spec/factories/PostFactory.ts')).toContain('createPost')
+          expect(
+            (await projectFiles()).filter(file =>
+              /^test-app\/db\/migrations\/\d+-create-post\.ts$/.test(file)
+            )
+          ).toHaveLength(1)
+          expect(logged).toContain('[dream] kept existing spec: test-app/spec/unit/models/Post.spec.ts')
+          expect(logged).toContain(
+            '[dream] kept existing serializer: test-app/app/serializers/PostSerializer.ts'
+          )
+        })
+
+        it('writes no migration when the model file exists, even though no create migration matches, and says so', async () => {
+          const logged: string[] = []
+          vi.spyOn(DreamCLI.logger, 'log').mockImplementation((text: string) => {
+            logged.push(text)
+          })
+          await writeProjectFile('test-app/app/models/Post.ts', 'hand-edited model')
+          await writeProjectFile(
+            'test-app/db/migrations/1700000000000-create-posts.ts',
+            'hand-named migration'
+          )
+
+          await DreamBin.generateDream('Post', ['title:string'], {
+            serializer: true,
+            stiBaseSerializer: false,
+            connectionName: 'default',
+            existingFiles: 'skip',
+          })
+
+          expect(await readProjectFile('test-app/app/models/Post.ts')).toEqual('hand-edited model')
+          expect((await projectFiles()).filter(file => file.startsWith('test-app/db/migrations/'))).toEqual([
+            'test-app/db/migrations/1700000000000-create-posts.ts',
+          ])
+          expect(logged).toContain('[dream] kept existing dream: test-app/app/models/Post.ts')
+          expect(logged.join('\n')).toMatch(
+            /skipped migration.*test-app\/app\/models\/Post\.ts already exists/
+          )
+        })
+
+        it('keeps an existing create migration and reports it as kept', async () => {
+          const logged: string[] = []
+          vi.spyOn(DreamCLI.logger, 'log').mockImplementation((text: string) => {
+            logged.push(text)
+          })
+          await writeProjectFile('test-app/db/migrations/1700000000000-create-post.ts', 'original migration')
+
+          await DreamBin.generateDream('Post', ['title:string'], {
+            serializer: true,
+            stiBaseSerializer: false,
+            connectionName: 'default',
+            existingFiles: 'skip',
+          })
+
+          expect(await readProjectFile('test-app/app/models/Post.ts')).toContain('export default class Post')
+          expect((await projectFiles()).filter(file => file.startsWith('test-app/db/migrations/'))).toEqual([
+            'test-app/db/migrations/1700000000000-create-post.ts',
+          ])
+          expect(await readProjectFile('test-app/db/migrations/1700000000000-create-post.ts')).toEqual(
+            'original migration'
+          )
+          expect(logged.join('\n')).toMatch(
+            /kept existing migration: test-app\/db\/migrations\/1700000000000-create-post\.ts/
+          )
         })
       })
     })
@@ -525,10 +614,26 @@ describe('DreamBin', () => {
         await DreamBin.generateStiChild('Room/Kitchen', 'Room', [], {
           serializer: true,
           connectionName: 'default',
-          overwrite: true,
+          existingFiles: 'overwrite',
         })
 
         expect(await readProjectFile('test-app/app/models/Room/Kitchen.ts')).toContain('@STI(Room)')
+      })
+
+      it("with skip, keeps the existing child model and writes neither a second model nor the child's migration", async () => {
+        await writeProjectFile('test-app/app/models/Room/Kitchen.ts', 'hand-edited child')
+
+        await DreamBin.generateStiChild('Room/Kitchen', 'Room', ['oven_count:integer'], {
+          serializer: true,
+          connectionName: 'default',
+          existingFiles: 'skip',
+        })
+
+        expect(await readProjectFile('test-app/app/models/Room/Kitchen.ts')).toEqual('hand-edited child')
+        expect(await readProjectFile('test-app/spec/factories/Room/KitchenFactory.ts')).toContain(
+          'createRoomKitchen'
+        )
+        expect((await projectFiles()).filter(file => file.startsWith('test-app/db/migrations/'))).toEqual([])
       })
     })
 

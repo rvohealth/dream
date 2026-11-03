@@ -2,7 +2,7 @@ import DreamCLI from '../cli/index.js'
 import DreamApp from '../dream-app/index.js'
 import Query from '../dream/Query.js'
 import DBClassDeprecation from '../helpers/cli/DBClassDeprecation.js'
-import generateDream from '../helpers/cli/generateDream.js'
+import generateDream, { type GenerateDreamExistingFiles } from '../helpers/cli/generateDream.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import standardizeFullyQualifiedModelName from '../helpers/standardizeFullyQualifiedModelName.js'
 
@@ -71,10 +71,10 @@ export default class DreamBin {
       modelName?: string
       softDelete?: boolean
       /**
-       * Replace an existing model, spec, factory or serializer file instead
-       * of refusing to write anything. An existing migration is kept.
+       * What to do when a file the generator would write already exists.
+       * Defaults to `'refuse'`. See {@link GenerateDreamExistingFiles}.
        */
-      overwrite?: boolean
+      existingFiles?: GenerateDreamExistingFiles
     }
   ) {
     await generateDream({
@@ -105,10 +105,10 @@ export default class DreamBin {
       internalSerializers?: boolean
       modelName?: string
       /**
-       * Replace an existing model, spec, factory or serializer file instead
-       * of refusing to write anything. An existing migration is kept.
+       * What to do when a file the generator would write already exists.
+       * Defaults to `'refuse'`. See {@link GenerateDreamExistingFiles}.
        */
-      overwrite?: boolean
+      existingFiles?: GenerateDreamExistingFiles
     }
   ) {
     const connectionName =

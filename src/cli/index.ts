@@ -4,7 +4,7 @@ import DreamBin from '../bin/index.js'
 import DreamApp, { DreamAppInitOptions } from '../dream-app/index.js'
 import Encrypt, { EncryptAlgorithm } from '../encrypt/index.js'
 import SspawnRequiresDevelopmentOrTest from '../errors/SspawnRequiresDevelopmentOrTest.js'
-import generateDream from '../helpers/cli/generateDream.js'
+import generateDream, { type GenerateDreamExistingFiles } from '../helpers/cli/generateDream.js'
 import syncWithFailureContext from '../helpers/cli/syncWithFailureContext.js'
 import EnvInternal from '../helpers/EnvInternal.js'
 import loadRepl from '../helpers/loadRepl.js'
@@ -241,12 +241,20 @@ export default class DreamCLI {
        */
       softDelete?: boolean
       /**
-       * When true, an existing model, spec, factory or serializer file is
-       * replaced. By default, if any of them or the model's migration
-       * already exists, nothing is written and this throws an error listing
-       * them. An existing migration is kept either way.
+       * What to do when a file the generator would write already exists:
+       * - `'refuse'` (the default): write nothing and throw an error listing
+       *   the existing files
+       * - `'overwrite'`: replace the model, spec, factory and serializer files
+       * - `'skip'`: keep every existing file, write only the missing ones, and
+       *   log each file kept
+       *
+       * An existing migration with the name the generator would give the
+       * model's migration is kept under `'overwrite'` and `'skip'`, never
+       * rewritten or duplicated. Under `'skip'`, no migration is written when
+       * the model file already exists, even if no migration has that name,
+       * since the model's schema may come from a migration with another name.
        */
-      overwrite?: boolean
+      existingFiles?: 'refuse' | 'overwrite' | 'skip'
     }
     fullyQualifiedParentName?: string | undefined
   }) {
@@ -380,8 +388,16 @@ ${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
       )
       .option(
         '--overwrite',
-        'replace the model, spec, factory and serializer files when they already exist. Without it, the generator writes nothing and lists the existing files when any of them, or the migration it would write, already exists. An existing migration is kept even with --overwrite, never rewritten or duplicated, since it may already have run; edit it by hand if the columns changed',
+        'replace the model, spec, factory and serializer files when they already exist. Without it or --skip-existing, the generator writes nothing and lists the existing files when any of them, or the migration it would write, already exists. An existing migration is kept even with --overwrite, never rewritten or duplicated, since it may already have run; edit it by hand if the columns changed',
         false
+      )
+      .addOption(
+        new Option(
+          '--skip-existing',
+          'keep the model, spec, factory, serializer and migration files that already exist, write only the missing ones, and list each file kept. No migration is written when the model file already exists, even if no migration has the name the generator would use, since the model may already have one under another name. Cannot be combined with --overwrite'
+        )
+          .default(false)
+          .conflicts('overwrite')
       )
       .argument(
         '<modelName>',
@@ -407,10 +423,15 @@ ${INDENT}  Settings/CommunicationPreferences   # src/app/models/Settings/Communi
             internalSerializers?: boolean
             softDelete: boolean
             overwrite: boolean
+            skipExisting: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
-          await DreamBin.generateDream(modelName, columnsWithTypes, options)
+          const { overwrite, skipExisting, ...generatorOptions } = options
+          await DreamBin.generateDream(modelName, columnsWithTypes, {
+            ...generatorOptions,
+            existingFiles: existingFilesMode({ overwrite, skipExisting }),
+          })
           process.exit()
         }
       )
@@ -459,8 +480,16 @@ ${INDENT}  # model is named GroupDanceLesson instead of LessonDanceGroup`
       )
       .option(
         '--overwrite',
-        'replace the model, spec, factory and serializer files when they already exist. Without it, the generator writes nothing and lists the existing files when any of them, or the migration it would write, already exists. An existing migration is kept even with --overwrite, never rewritten or duplicated, since it may already have run; edit it by hand if the columns changed',
+        'replace the model, spec, factory and serializer files when they already exist. Without it or --skip-existing, the generator writes nothing and lists the existing files when any of them, or the migration it would write, already exists. An existing migration is kept even with --overwrite, never rewritten or duplicated, since it may already have run; edit it by hand if the columns changed',
         false
+      )
+      .addOption(
+        new Option(
+          '--skip-existing',
+          'keep the model, spec, factory, serializer and migration files that already exist, write only the missing ones, and list each file kept. No migration is written when the model file already exists, even if no migration has the name the generator would use, since the model may already have one under another name. Cannot be combined with --overwrite'
+        )
+          .default(false)
+          .conflicts('overwrite')
       )
       .argument(
         '<childModelName>',
@@ -493,12 +522,17 @@ ${INDENT}  Health/Coach        # extends src/app/models/Health/Coach.ts`
             adminSerializers?: boolean
             internalSerializers?: boolean
             overwrite: boolean
+            skipExisting: boolean
           }
         ) => {
           await initializeDreamApp({ bypassDreamIntegrityChecks: true, bypassDbConnectionsDuringInit: true })
           if (extendsWord !== 'extends')
             throw new Error('Expecting: `<child-name> extends <parent-name> <columns-and-types>')
-          await DreamBin.generateStiChild(childModelName, parentModelName, columnsWithTypes, options)
+          const { overwrite, skipExisting, ...generatorOptions } = options
+          await DreamBin.generateStiChild(childModelName, parentModelName, columnsWithTypes, {
+            ...generatorOptions,
+            existingFiles: existingFilesMode({ overwrite, skipExisting }),
+          })
           process.exit()
         }
       )
@@ -854,6 +888,22 @@ ${INDENT}Examples: User, Place, Room/Bedroom, Settings/CommunicationPreferences`
     return this._logger
   }
   private static _logger: DreamCliLogger | undefined = undefined
+}
+
+/**
+ * commander rejects --overwrite together with --skip-existing before an
+ * action runs, so at most one of them is set here.
+ */
+function existingFilesMode({
+  overwrite,
+  skipExisting,
+}: {
+  overwrite: boolean
+  skipExisting: boolean
+}): GenerateDreamExistingFiles {
+  if (overwrite) return 'overwrite'
+  if (skipExisting) return 'skip'
+  return 'refuse'
 }
 
 function myParseInt(value: string) {

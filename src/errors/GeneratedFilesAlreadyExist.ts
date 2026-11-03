@@ -29,7 +29,8 @@ Refusing to generate ${this.modelName}, because these files already exist:
 ${listing}
 
 Nothing was written. To replace the model, spec, factory and serializer files,
-re-run with --overwrite (g:model and g:sti-child accept it).
+re-run with --overwrite. To keep the existing files and write only the missing
+ones, re-run with --skip-existing. g:model and g:sti-child accept both.
 ${migrationNote}`
   }
 }
