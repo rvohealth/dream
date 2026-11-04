@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import RecordNotFound from '../../../src/errors/RecordNotFound.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -69,6 +70,23 @@ describe('Dream.findOrFail', () => {
         await ApplicationModel.transaction(async txn => {
           await expect(User.txn(txn).findOrFail(null)).rejects.toThrow(RecordNotFound)
         })
+      })
+    })
+  })
+
+  context('when passed a value the primary key column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.findOrFail('abc')).rejects.toThrow(RecordNotFound)
+      await expect(User.findOrFail('99999999999999999999')).rejects.toThrow(RecordNotFound)
+    })
+
+    context('in a transaction', () => {
+      it('raises DataTypeColumnTypeMismatch, since the database has aborted the transaction', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.txn(txn).findOrFail('abc')
+          })
+        ).rejects.toThrow(DataTypeColumnTypeMismatch)
       })
     })
   })

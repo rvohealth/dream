@@ -34,8 +34,13 @@ export interface SyncFailureContext {
    * work is already committed by the time the sync runs, so re-running it rolls
    * back a *further* migration rather than retrying the step that failed.
    *
-   * Defaults to ``run `sync` on its own`` — the retry that is safe after any of
-   * these commands, since it repeats only the step that actually failed.
+   * Defaults to ``run `sync` on its own``, which is not safe after every
+   * command: a failed sync reverts the generated types to what they were
+   * before the command ran, and a Psychic app's `psy sync` boots with the
+   * integrity checks on, so it fails against those types whenever a model or
+   * serializer already uses a table or column the command just added. A
+   * command that adds schema passes advice that re-runs `db:migrate`, which
+   * boots with the checks bypassed and goes straight to the sync.
    */
   recoveryAdvice?: string | undefined
 }

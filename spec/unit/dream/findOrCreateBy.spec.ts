@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import Composition from '../../../test-app/app/models/Composition.js'
@@ -198,6 +199,13 @@ describe('Dream.findOrCreateBy', () => {
       expect(user!.secret).toEqual('my secret')
       expect(typeof user!.getAttribute('encryptedSecret')).toEqual('string')
       expect(user!.getAttribute('encryptedSecret')).not.toEqual('my secret')
+    })
+  })
+
+  context('when a find-key value is one its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch without creating a record', async () => {
+      await expect(Pet.findOrCreateBy({ userId: 'abc' })).rejects.toThrow(DataTypeColumnTypeMismatch)
+      expect(await Pet.count()).toEqual(0)
     })
   })
 })

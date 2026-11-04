@@ -20,14 +20,19 @@ import NoUpdateOnAssociationQuery from '../errors/NoUpdateOnAssociationQuery.js'
 import CannotPaginateWithLeftJoinPreload from '../errors/pagination/CannotPaginateWithLeftJoinPreload.js'
 import CannotPaginateWithLimit from '../errors/pagination/CannotPaginateWithLimit.js'
 import CannotPaginateWithOffset from '../errors/pagination/CannotPaginateWithOffset.js'
+import ColumnOverflow from '../errors/db/ColumnOverflow.js'
+import DataTypeColumnTypeMismatch from '../errors/db/DataTypeColumnTypeMismatch.js'
 import RecordNotFound from '../errors/RecordNotFound.js'
 import cloneDeepSafe from '../helpers/cloneDeepSafe.js'
+import cachedTypeForAttribute from '../helpers/db/cachedTypeForAttribute.js'
+import { isMismatchRaisedBeforeQuerying, normalizeDataForDb } from '../helpers/db/normalizeDataForDb.js'
 import isObject from '../helpers/isObject.js'
 import namespaceColumn from '../helpers/namespaceColumn.js'
 import protectAgainstPollutingAssignment from '../helpers/protectAgainstPollutingAssignment.js'
 import { toSafeObject } from '../helpers/toSafeObject.js'
 import uniq from '../helpers/uniq.js'
 import ops from '../ops/index.js'
+import OpsStatement from '../ops/ops-statement.js'
 import { HasManyStatement } from '../types/associations/hasMany.js'
 import { HasOneStatement } from '../types/associations/hasOne.js'
 import {
@@ -76,6 +81,9 @@ import {
   QueryToKyselyTableNamesType,
 } from '../types/query.js'
 import { DreamClassAndAssociationNameTuple } from '../types/recursiveSerialization.js'
+import BaseClockTime from '../utils/datetime/BaseClockTime.js'
+import CalendarDate from '../utils/datetime/CalendarDate.js'
+import { DateTime } from '../utils/datetime/DateTime.js'
 import {
   JoinedAssociation,
   JoinedAssociationsTypeFromAssociations,
@@ -513,11 +521,24 @@ export default class Query<
 
   /**
    * Finds a record matching the Query with the
-   * specified primary key. Returns null if not found.
+   * specified primary key. Returns null if not found,
+   * including when the primary key is a value its column
+   * cannot hold (for example, `'abc'` for an integer
+   * primary key).
+   *
+   * When the database rejects a value elsewhere in the Query (for
+   * example, in a `whereNot`, `whereAny` or `leftJoinPreload`
+   * clause), that rejection is raised as `DataTypeColumnTypeMismatch`
+   * or `ColumnOverflow`, since a record may still match. Inside a
+   * transaction, a primary key the database rejects is raised that
+   * way too, because the database has then aborted the transaction.
    *
    * ```ts
    * await User.query().find(123)
    * // User{id: 123}
+   *
+   * await User.query().find('abc')
+   * // null
    *
    * await User.query().find(null)
    * // null
@@ -532,15 +553,23 @@ export default class Query<
   public async find(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance | null> {
     if (!primaryKey) return null
 
-    return await this.where({
-      [this.dreamInstance['_primaryKey']]: primaryKey,
-    } as any).first()
+    const lookup = { [this.dreamInstance['_primaryKey']]: primaryKey } as WhereStatement<DreamInstance>
+    return await this.where(lookup as any).firstForLookup(lookup)
   }
 
   /**
    * Finds a record matching the Query with the
-   * specified primary key. If not found, an exception
-   * is raised.
+   * specified primary key. If not found, `RecordNotFound`
+   * is raised, including when the primary key is a value
+   * its column cannot hold (for example, `'abc'` for an
+   * integer primary key).
+   *
+   * When the database rejects a value elsewhere in the Query (for
+   * example, in a `whereNot`, `whereAny` or `leftJoinPreload`
+   * clause), that rejection is raised as `DataTypeColumnTypeMismatch`
+   * or `ColumnOverflow`, since a record may still match. Inside a
+   * transaction, a primary key the database rejects is raised that
+   * way too, because the database has then aborted the transaction.
    *
    * ```ts
    * await User.query().findOrFail(123)
@@ -549,6 +578,7 @@ export default class Query<
    *
    * @param primaryKey - The primary key of the record to look up
    * @returns The found record
+   * @throws RecordNotFound if no record is found
    */
   public async findOrFail(primaryKey: PrimaryKeyForFind<DreamInstance>): Promise<DreamInstance> {
     const record = await this.find(primaryKey)
@@ -559,7 +589,22 @@ export default class Query<
   /**
    * Finds a record matching the Query and the
    * specified where statement. If not found, null
-   * is returned.
+   * is returned, including when a value the where
+   * statement compares for equality (a plain value or
+   * `ops.equal`) is one its column cannot hold: for example,
+   * `'abc'` for a uuid column, or a date string Dream cannot
+   * parse for a date column.
+   *
+   * A value the database rejects anywhere else (in a list of values,
+   * under another operator such as `ops.not.equal` or `ops.lessThan`,
+   * or elsewhere in the Query, such as a `whereNot` or `whereAny`
+   * clause) is raised as `DataTypeColumnTypeMismatch` or
+   * `ColumnOverflow`, since a record may still match; so is a date,
+   * datetime or time string there that Dream cannot parse. Inside a
+   * transaction, an equality value the database rejects is raised that
+   * way too, because the database has then aborted the transaction; a
+   * date, datetime or time string Dream cannot parse never reaches the
+   * database, so it is treated as not found there as well.
    *
    * ```ts
    * await User.query().findBy({ email: 'how@yadoin' })
@@ -570,13 +615,28 @@ export default class Query<
    * @returns Either the first record found matching the attributes, or else null
    */
   public async findBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance | null> {
-    return await this._where(whereStatement, 'where').first()
+    return await this._where(whereStatement, 'where').firstForLookup(whereStatement)
   }
 
   /**
    * Finds a record matching the Query and the
-   * specified where statement. If not found, an exception
-   * is raised.
+   * specified where statement. If not found, `RecordNotFound`
+   * is raised, including when a value the where
+   * statement compares for equality (a plain value or
+   * `ops.equal`) is one its column cannot hold: for example,
+   * `'abc'` for a uuid column, or a date string Dream cannot
+   * parse for a date column.
+   *
+   * A value the database rejects anywhere else (in a list of values,
+   * under another operator such as `ops.not.equal` or `ops.lessThan`,
+   * or elsewhere in the Query, such as a `whereNot` or `whereAny`
+   * clause) is raised as `DataTypeColumnTypeMismatch` or
+   * `ColumnOverflow`, since a record may still match; so is a date,
+   * datetime or time string there that Dream cannot parse. Inside a
+   * transaction, an equality value the database rejects is raised that
+   * way too, because the database has then aborted the transaction; a
+   * date, datetime or time string Dream cannot parse never reaches the
+   * database, so it is treated as not found there as well.
    *
    * ```ts
    * await User.query().findOrFailBy({ email: 'how@yadoin' })
@@ -585,11 +645,114 @@ export default class Query<
    *
    * @param whereStatement - The where statement used to locate the record
    * @returns The first record found matching the attributes
+   * @throws RecordNotFound if no record is found
    */
   public async findOrFailBy(whereStatement: WhereStatement<DreamInstance>): Promise<DreamInstance> {
     const record = await this.findBy(whereStatement)
     if (!record) throw new RecordNotFound(this.dreamInstance['sanitizedConstructorName'])
     return record
+  }
+
+  /**
+   * @internal
+   *
+   * The first record of this Query, for `find` and `findBy`, whose `lookup`
+   * (the primary key or where statement they were given) is already applied.
+   * Returns null when the lookup's own values tell that no record can match
+   * (see `lookupValueCannotBeHeld`); every other error is raised. Preloads
+   * run after the lookup's statement, so a rejected value in a preload clause
+   * is raised.
+   */
+  private async firstForLookup(lookup: WhereStatement<DreamInstance>): Promise<DreamInstance | null> {
+    const hasPreloads = Object.keys(this.preloadStatements).length > 0
+    const lookupQuery = hasPreloads ? this.clone({ preloadStatements: {}, preloadOnStatements: {} }) : this
+
+    let record: DreamInstance | null
+    try {
+      record = await lookupQuery.first()
+    } catch (error) {
+      if (await this.lookupValueCannotBeHeld(error, lookup)) return null
+      throw error
+    }
+
+    if (record && hasPreloads) await this.dbDriverInstance().hydratePreload(record)
+    return record
+  }
+
+  /**
+   * @internal
+   *
+   * Whether `error`, raised by a `find` or `findBy` statement, is a value of
+   * the lookup's own equality comparisons (see `lookupEqualityValues`) that
+   * its column cannot hold. Every matching record must equal each of those
+   * values, so when one cannot be held, no record can match. A rejected value
+   * anywhere else (a negated or OR'd clause, a join's `and` clause, a list of
+   * values, a negated or ordering operator) does not tell that, so it is
+   * raised.
+   *
+   * When Dream itself could not convert a value (a date, datetime or time
+   * string it cannot parse), nothing reached the database, and Dream's
+   * conversion of the lookup's values alone tells whether one of them was
+   * the value. When the database rejected the statement, the driver is asked
+   * whether it rejects one of the lookup's values on its own; inside a
+   * transaction it cannot be asked, since the database has aborted the
+   * transaction, so the error is raised.
+   */
+  private async lookupValueCannotBeHeld(
+    error: unknown,
+    lookup: WhereStatement<DreamInstance>
+  ): Promise<boolean> {
+    if (!(error instanceof DataTypeColumnTypeMismatch || error instanceof ColumnOverflow)) return false
+
+    const equalityValues = this.lookupEqualityValues(lookup)
+    const convertForDb = ({ column, value }: { column: string; value: unknown }) =>
+      normalizeDataForDb({ val: value, dreamClass: this.dreamClass, column })
+
+    if (isMismatchRaisedBeforeQuerying(error))
+      return equalityValues.some(equalityValue => {
+        try {
+          convertForDb(equalityValue)
+          return false
+        } catch (conversionError) {
+          if (conversionError instanceof DataTypeColumnTypeMismatch) return true
+          throw conversionError
+        }
+      })
+
+    if (this.dreamTransaction) return false
+
+    return await Query.dbDriverClass(this.connectionName).rejectsAnyValueForColumnType(
+      this.connectionName,
+      this.connectionOverride ?? 'primary',
+      equalityValues.map(equalityValue => ({
+        value: convertForDb(equalityValue),
+        dbType: cachedTypeForAttribute(this.dreamClass, equalityValue.column),
+      }))
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * The values a `find` or `findBy` lookup compares a column of this model
+   * with `=`, as a plain value or `ops.equal`: the primary key for `find`.
+   * Lists of values, other operators, ranges, associations, subqueries and
+   * nulls are left out, since a value there that its column cannot hold does
+   * not stop a record from matching the lookup.
+   */
+  private lookupEqualityValues(lookup: WhereStatement<DreamInstance>): { column: string; value: unknown }[] {
+    return Object.entries(lookup as Record<string, unknown>).flatMap(([column, comparison]) => {
+      if (!cachedTypeForAttribute(this.dreamClass, column)) return []
+
+      if (comparison instanceof OpsStatement) {
+        if (comparison.operator !== '=') return []
+        const value: unknown = comparison.value
+        // an array compared with `=` is a whole value of an array column
+        return Array.isArray(value) || isScalarWhereValue(value) ? [{ column, value }] : []
+      }
+
+      return isScalarWhereValue(comparison) ? [{ column, value: comparison }] : []
+    })
   }
 
   /**
@@ -2859,10 +3022,7 @@ export default class Query<
    * @returns boolean - true if any records match the query, false otherwise
    */
   public async exists(): Promise<boolean> {
-    // Implementing via `limit(1).all()`, rather than the simpler `!!(await this.first())`
-    // because it avoids the step of finding the first. Just find any, and return
-    // that one.
-    return (await (this as any).limit(1).all()).length > 0
+    return await this.dbDriverInstance().exists()
   }
 
   /**
@@ -4116,4 +4276,21 @@ function isCursorPrimaryKey(value: unknown): value is string | number {
  */
 function isCursorRowKey(value: unknown): boolean {
   return value === null || isCursorPrimaryKey(value)
+}
+
+/**
+ * Whether a where-clause value is compared with a column as one value: a
+ * string, number, bigint or boolean, or a date or time object, which Dream
+ * converts to a string before sending it.
+ */
+function isScalarWhereValue(value: unknown): boolean {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'bigint' ||
+    typeof value === 'boolean' ||
+    value instanceof DateTime ||
+    value instanceof CalendarDate ||
+    value instanceof BaseClockTime
+  )
 }

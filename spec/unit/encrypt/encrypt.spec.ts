@@ -1,4 +1,5 @@
 import * as crypto from 'crypto'
+import { inspect } from 'node:util'
 import Encrypt, { EncryptOptions } from '../../../src/encrypt/index.js'
 import DecryptionError from '../../../src/errors/encrypt/DecryptionError.js'
 import DecryptionParseError from '../../../src/errors/encrypt/DecryptionParseError.js'
@@ -226,6 +227,70 @@ describe('Encrypt', () => {
           })
           expect(serialized).not.toContain(secretPlaintext)
         })
+
+        it('does not carry the bytes of a payload that is not an encrypted envelope anywhere on the DecryptionError', () => {
+          const input = 'bob@example.com'
+          const payload = Buffer.from(input).toString('base64')
+
+          let caught: unknown
+          try {
+            Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A })
+          } catch (error) {
+            caught = error
+          }
+
+          expect(caught).toBeInstanceOf(DecryptionError)
+          expect((caught as DecryptionError).cause).toBeUndefined()
+          expect(inspect(caught, { depth: Infinity, showHidden: true })).not.toContain(input)
+        })
+
+        it('does not carry the value of an envelope field that is not a string anywhere on the DecryptionError', () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          const envelope = JSON.parse(Buffer.from(encrypted, 'base64').toString()) as Record<string, unknown>
+          const payload = Buffer.from(JSON.stringify({ ...envelope, tag: 12345678 })).toString('base64')
+
+          let caught: unknown
+          try {
+            Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A })
+          } catch (error) {
+            caught = error
+          }
+
+          expect(caught).toBeInstanceOf(DecryptionError)
+          expect((caught as DecryptionError).cause).toBeUndefined()
+          expect(inspect(caught, { depth: Infinity, showHidden: true })).not.toContain('12345678')
+        })
+
+        it('throws DecryptionError on a payload whose envelope is JSON null', () => {
+          const payload = Buffer.from('null').toString('base64')
+
+          let caught: unknown
+          try {
+            Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A })
+          } catch (error) {
+            caught = error
+          }
+
+          expect(caught).toBeInstanceOf(DecryptionError)
+          expect((caught as DecryptionError).cause).toBeUndefined()
+        })
+
+        it("carries the cipher's invalid-key-length error as the cause when the key is the wrong length", () => {
+          const encrypted = Encrypt.encrypt('howyadoin', { algorithm: ALG, key: KEY_A })
+          const sixteenByteKey = 'UXXA1fMDefJV7Y2s/vqm1g=='
+
+          let caught: unknown
+          try {
+            Encrypt.decrypt(encrypted, { algorithm: ALG, key: sixteenByteKey })
+          } catch (error) {
+            caught = error
+          }
+
+          expect(caught).toBeInstanceOf(DecryptionError)
+          expect(((caught as DecryptionError).cause as { code?: unknown }).code).toEqual(
+            'ERR_CRYPTO_INVALID_KEYLEN'
+          )
+        })
       })
 
       describe('three-arg form (rotation)', () => {
@@ -261,6 +326,24 @@ describe('Encrypt', () => {
           const rotErr = caught as DecryptionRotationError
           expect(rotErr.currentKeyError).toBeInstanceOf(DecryptionError)
           expect(rotErr.legacyKeyError).toBeInstanceOf(DecryptionError)
+        })
+
+        it('does not carry the bytes of a payload that is not an encrypted envelope anywhere on the DecryptionRotationError', () => {
+          const input = 'bob@example.com'
+          const payload = Buffer.from(input).toString('base64')
+
+          let caught: unknown
+          try {
+            Encrypt.decrypt(payload, { algorithm: ALG, key: KEY_A }, { algorithm: ALG, key: KEY_B })
+          } catch (error) {
+            caught = error
+          }
+
+          expect(caught).toBeInstanceOf(DecryptionRotationError)
+          const rotErr = caught as DecryptionRotationError
+          expect(rotErr.currentKeyError.cause).toBeUndefined()
+          expect(rotErr.legacyKeyError.cause).toBeUndefined()
+          expect(inspect(caught, { depth: Infinity, showHidden: true })).not.toContain(input)
         })
 
         it('does not retry the legacy key when current decrypts but plaintext is not JSON', () => {

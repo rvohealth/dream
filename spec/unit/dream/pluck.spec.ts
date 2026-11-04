@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -172,6 +173,12 @@ describe('Dream#pluck', () => {
         [user1.id, user1.createdAt],
         [user2.id, user2.createdAt],
       ])
+    })
+  })
+
+  context('with a where clause holding a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch', async () => {
+      await expect(User.where({ id: 'abc' }).pluck('email')).rejects.toThrow(DataTypeColumnTypeMismatch)
     })
   })
 })

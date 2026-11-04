@@ -528,7 +528,7 @@ export default async function createMyNestedUser(attrs: UpdateableProperties<MyN
     })
   })
 
-  // `writeGeneratedFile` does `fs.writeFile(absFilePath, content)` with no
+  // `writeGeneratedFile` writes `content` with `fs.writeFile` and no
   // formatting pass, so the string this generator returns is byte-for-byte what
   // a developer's `prettier --check` sees on a brand-new factory. These specs
   // assert that against the real Prettier rather than against a hand-copied

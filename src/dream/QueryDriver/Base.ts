@@ -1,5 +1,6 @@
 import { CompiledQuery, DeleteQueryBuilder, SelectQueryBuilder, UpdateQueryBuilder } from 'kysely'
 import Dream from '../../Dream.js'
+import DataIncompatibleWithDatabaseField from '../../errors/db/DataIncompatibleWithDatabaseField.js'
 import { AssociationStatement, OrderQueryStatement } from '../../types/associations/shared.js'
 import { DbConnectionType, IntrospectedDatabase, LegacyCompatiblePrimaryKeyType } from '../../types/db.js'
 import { DreamColumnNames, DreamConstructorType, DreamTableSchema } from '../../types/dream.js'
@@ -286,6 +287,33 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   /**
    * @internal
    *
+   * The columns of the unique index whose violation `error` reports, in index
+   * order, when that index is on `table` and is a plain one: every key is a
+   * column and it has no predicate. `createOrFindBy` and `createOrUpdateBy`
+   * ask this after a failed insert to tell which of their attributes
+   * conflicted. Returns null when the driver cannot tell, when the index is
+   * on another table, or when it is an expression or partial index; the
+   * default returns null.
+   *
+   * @param connectionName - the connection the insert ran on
+   * @param error - the error the insert raised
+   * @param table - the table the insert wrote to
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async violatedUniqueIndexColumns(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    error: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    table: string
+  ): Promise<string[] | null> {
+    return null
+  }
+
+  /**
+   * @internal
+   *
    * Whether `error` is the database aborting a transaction to break a deadlock
    * with another. `withConcurrentWriterRetry` reruns a transaction of Dream's
    * own that was aborted this way. A driver that does not recognize one reports
@@ -293,6 +321,52 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public static isDeadlock(error: unknown): boolean {
+    return false
+  }
+
+  /**
+   * @internal
+   *
+   * The Dream error to raise in place of `error` when `error` is the database
+   * rejecting a value for the column it is written to or compared with: a value
+   * the column's type cannot represent, a null in a NOT NULL column, or a CHECK
+   * constraint violation. Saves and reads (selects, aggregates, plucks and
+   * preloads) raise the returned error; bulk `Query#update` and `Query#delete`
+   * do not consult this. A driver that does not recognize the error returns
+   * null, and the original error propagates unchanged.
+   */
+  public static dataIncompatibleWithDatabaseFieldError(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    error: unknown
+  ): DataIncompatibleWithDatabaseField | null {
+    return null
+  }
+
+  /**
+   * @internal
+   *
+   * Whether the database rejects any of `values` as input for its `dbType`
+   * (the column type in the model's schema), judged by the database's own
+   * input rules. `find` and `findBy` ask this, outside a transaction, after
+   * the database rejected their statement, passing the values their lookup
+   * compares for equality: when one of those is rejected, no record can match
+   * the lookup, which then returns null; otherwise the rejected value was
+   * elsewhere in the Query, and the statement's error is raised. A driver that
+   * cannot tell returns false; the default does.
+   *
+   * @param connectionName - the connection the lookup ran on
+   * @param dbConnectionType - the connection type to ask on
+   * @param values - each value as sent to the database, with its column's type
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async rejectsAnyValueForColumnType(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectionName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dbConnectionType: DbConnectionType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    values: { value: unknown; dbType: string }[]
+  ): Promise<boolean> {
     return false
   }
 
@@ -595,6 +669,20 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async avgBy(groupColumn: string, aggregatedColumn: string): Promise<Map<any, any>> {
     throw new Error('implement avgBy in child class')
+  }
+
+  /**
+   * Returns true if a record matches the Query, false otherwise
+   *
+   * ```ts
+   * await User.where({ email: 'how@yadoin' }).exists()
+   * ```
+   *
+   * @returns true if any records match the Query, false otherwise
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async exists(): Promise<boolean> {
+    throw new Error('implement exists in child class')
   }
 
   /**

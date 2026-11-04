@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../test-app/app/models/CompositionAsset.js'
@@ -32,6 +33,12 @@ describe('Dream.max', () => {
       })
 
       expect(max).toEqual(7)
+    })
+  })
+
+  context('with a where clause holding a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch', async () => {
+      await expect(User.where({ id: 'abc' }).max('id')).rejects.toThrow(DataTypeColumnTypeMismatch)
     })
   })
 })

@@ -19,13 +19,19 @@ function loggedText() {
  * Everything between `program.parseAsync` and `DreamBin.sync` is the shipped
  * code path.
  */
-function buildCli({ seedDb = () => {} }: { seedDb?: () => Promise<void> | void } = {}) {
+function buildCli({
+  seedDb = () => {},
+  // eslint-disable-next-line @typescript-eslint/require-await
+  initializeDreamApp = async () => ({}) as any,
+}: {
+  seedDb?: () => Promise<void> | void
+  initializeDreamApp?: (opts?: any) => Promise<any>
+} = {}) {
   const program = new Command()
   program.exitOverride()
 
   DreamCLI.generateDreamCli(program, {
-    // eslint-disable-next-line @typescript-eslint/require-await
-    initializeDreamApp: async () => ({}) as any,
+    initializeDreamApp,
     seedDb,
     onSync: () => {},
   })
@@ -91,7 +97,7 @@ describe('syncWithFailureContext', () => {
     expect(loggedText()).toContain('The sync error itself is printed alongside this message.')
   })
 
-  it('defaults to the always-safe recovery advice, never recommending a re-run of the command', async () => {
+  it('defaults to running `sync` on its own, never recommending a re-run of the command', async () => {
     await expect(
       syncWithFailureContext({ commandName: 'db:rollback', completedWork: 'The rollback ran' }, () =>
         Promise.reject(new Error('boom'))
@@ -198,14 +204,27 @@ describe('the CLI commands that sync after their own work', () => {
       expect(message).not.toContain('did not run')
     })
 
-    it('says re-running db:migrate is safe, because the applied migrations make it a no-op', async () => {
+    it('sends the operator to a re-run of db:migrate, never to `sync` on its own', async () => {
       vi.spyOn(DreamBin, 'sync').mockRejectedValue(new Error('sync blew up'))
 
       await expect(buildCli().parseAsync(['db:migrate'], { from: 'user' })).rejects.toThrow('sync blew up')
 
       expect(loggedText()).toContain(
-        'Once it is resolved, run `sync` on its own, or re-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync.'
+        'Once it is resolved, re-run `db:migrate` — the migrations it already applied are not re-applied, so it goes straight back to the sync.'
       )
+      expect(loggedText()).not.toContain('run `sync` on its own')
+    })
+
+    it('boots with the integrity checks bypassed before migrating and syncing, so a re-run is not stopped by the stale types', async () => {
+      const initializeDreamApp = vi.fn().mockResolvedValue({})
+      const dbMigrate = vi.spyOn(DreamBin, 'dbMigrate').mockResolvedValue(undefined)
+      const sync = vi.spyOn(DreamBin, 'sync').mockResolvedValue(undefined)
+
+      await buildCli({ initializeDreamApp }).parseAsync(['db:migrate'], { from: 'user' })
+
+      expect(initializeDreamApp).toHaveBeenCalledWith({ bypassDreamIntegrityChecks: true })
+      expect(dbMigrate).toHaveBeenCalledOnce()
+      expect(sync).toHaveBeenCalledOnce()
     })
   })
 
@@ -224,14 +243,15 @@ describe('the CLI commands that sync after their own work', () => {
       expect(message).not.toContain('db:reset completed')
     })
 
-    it('offers a re-run of db:reset and a `sync`-then-seed route, naming DREAM_SEED_DB_IN_TEST on the second', async () => {
+    it('offers a re-run of db:reset and a migrate-then-seed route, naming DREAM_SEED_DB_IN_TEST on the second', async () => {
       vi.spyOn(DreamBin, 'sync').mockRejectedValue(new Error('sync blew up'))
 
       await expect(buildCli().parseAsync(['db:reset'], { from: 'user' })).rejects.toThrow('sync blew up')
 
       expect(loggedText()).toContain(
-        'Once it is resolved, re-run `db:reset`, which seeds directly and so picks up the skipped seeding step, or run `sync` on its own followed by `DREAM_SEED_DB_IN_TEST=1 db:seed` — this sync only runs under `NODE_ENV=test`, and a bare `db:seed` does not seed there.'
+        'Once it is resolved, re-run `db:reset`, which seeds directly and so picks up the skipped seeding step, or re-run `db:migrate` followed by `DREAM_SEED_DB_IN_TEST=1 db:seed` — this sync only runs under `NODE_ENV=test`, and a bare `db:seed` does not seed there.'
       )
+      expect(loggedText()).not.toContain('run `sync` on its own')
     })
 
     it('never sends the operator to a bare `db:seed`, which does not seed under NODE_ENV=test', async () => {
@@ -258,6 +278,7 @@ describe('the CLI commands that sync after their own work', () => {
      * real CLI, so the advice is checked against what the commands actually do
      * rather than against itself. `NODE_ENV` is already `test` here, which is
      * the only environment the sync — and therefore this advice — runs in.
+     * Route 2's `db:migrate` re-run is checked under db:migrate above.
      */
     context('the recovery routes, actually taken', () => {
       it('route 1: re-running `db:reset` seeds, because db:reset calls the seed hook directly', async () => {

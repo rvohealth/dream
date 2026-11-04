@@ -8,10 +8,10 @@ export default function decryptAESGCM<RetType>(
   encrypted: string,
   key: string
 ): RetType {
+  const { ciphertext, tag, iv } = unpackPayloadOrFail(encrypted)
+
   let plaintext: string
   try {
-    const { ciphertext, tag, iv } = unpackPayloadOrFail(encrypted)
-
     const decipher = crypto.createDecipheriv(
       algorithm,
       Buffer.from(key, 'base64') as any,
@@ -29,6 +29,9 @@ export default function decryptAESGCM<RetType>(
       decipher.final(),
     ]).toString('utf8')
   } catch (cause) {
+    // The cipher's error is kept as `cause`: its messages carry no input bytes, and
+    // callers read its `code` (e.g. ERR_CRYPTO_INVALID_KEYLEN to tell a misconfigured
+    // key from an undecryptable value).
     throw Object.assign(new DecryptionError(), { cause })
   }
 
@@ -44,19 +47,30 @@ export default function decryptAESGCM<RetType>(
   }
 }
 
-function unpackPayloadOrFail(payload: string | object) {
-  const unpackedPayload = (
-    typeof payload === 'string' ? JSON.parse(Buffer.from(payload, 'base64').toString()) : payload
-  ) as PsychicEncryptionPayload
-
-  if (typeof unpackedPayload !== 'object') {
-    throw new Error('Failed to unpack encrypted object. Must be an object with a ciphertext and tag property')
+// Every way the envelope can be malformed throws DecryptionError with no `cause`. The
+// encrypted value is caller input (a cookie, a token, a column that was never
+// encrypted), and the errors that unpacking it raises quote it: JSON.parse's
+// SyntaxError embeds a snippet of the decoded text, and Buffer.from's TypeError on a
+// non-string field echoes the field's value. Checking every field is a string here
+// means the cipher operations in decryptAESGCM only ever see strings.
+function unpackPayloadOrFail(payload: string | object): PsychicEncryptionPayload {
+  let unpackedPayload: unknown
+  try {
+    unpackedPayload =
+      typeof payload === 'string' ? JSON.parse(Buffer.from(payload, 'base64').toString()) : payload
+  } catch {
+    throw new DecryptionError()
   }
 
-  const { ciphertext, tag, iv } = unpackedPayload
-  if (!ciphertext) throw new Error('invalid ciphertext found')
-  if (!tag) throw new Error('invalid tag found')
-  if (!iv) throw new Error('missing iv')
+  if (typeof unpackedPayload !== 'object' || unpackedPayload === null) throw new DecryptionError()
+
+  const { ciphertext, tag, iv } = unpackedPayload as Record<string, unknown>
+  if (!isNonEmptyString(ciphertext) || !isNonEmptyString(tag) || !isNonEmptyString(iv))
+    throw new DecryptionError()
 
   return { ciphertext, tag, iv }
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0
 }

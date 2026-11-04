@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import RecordNotFound from '../../../src/errors/RecordNotFound.js'
 import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -26,6 +27,24 @@ describe('Query#findOrFailBy', () => {
       await expect(
         async () => await User.query().findOrFailBy({ name: ops.similarity('nonmatch') })
       ).rejects.toThrow(RecordNotFound)
+    })
+  })
+
+  context('when passed a value its column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.query().findOrFailBy({ id: 'abc' })).rejects.toThrow(RecordNotFound)
+    })
+
+    it('raises RecordNotFound for a date its column cannot hold', async () => {
+      await expect(User.query().findOrFailBy({ birthdate: 'garbage' as any })).rejects.toThrow(RecordNotFound)
+    })
+  })
+
+  context('when a negated clause holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch rather than RecordNotFound for the matching record', async () => {
+      await expect(
+        User.query().whereNot({ uuid: 'abc' }).findOrFailBy({ email: 'fred@frewd' })
+      ).rejects.toThrow(DataTypeColumnTypeMismatch)
     })
   })
 })
