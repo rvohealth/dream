@@ -1785,8 +1785,8 @@ export default class Dream {
       query = query.removeDefaultScope(scopeName as AllDefaultScopeNames<InstanceType<T>>)
     }
 
-    // where().first() rather than findBy: a value the database rejects is raised, never read as no match
-    return (await query.where(lookup).first()) ? removableDefaultScopes : []
+    // where() rather than findBy: a value the database rejects is raised, never read as no match
+    return (await query.where(lookup).exists()) ? removableDefaultScopes : []
   }
 
   /**
