@@ -832,6 +832,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
     return this.groupedAggregate(groupColumn, avg(this.namespaceColumn(aggregatedColumn)))
   }
 
+  public override async exists(): Promise<boolean> {
+    const kyselyQuery = new (this.constructor as typeof KyselyQueryDriver)(this.query.limit(1))
+      .buildSelect({ bypassSelectAll: true, bypassOrder: true })
+      .select(sql<number>`1`.as('present'))
+
+    return (await this.executeReadQuery(kyselyQuery, 'executeTakeFirst')) !== undefined
+  }
+
   /**
    * Retrieves the number of records in the database
    *

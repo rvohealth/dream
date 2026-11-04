@@ -672,6 +672,20 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
   }
 
   /**
+   * Returns true if a record matches the Query, false otherwise
+   *
+   * ```ts
+   * await User.where({ email: 'how@yadoin' }).exists()
+   * ```
+   *
+   * @returns true if any records match the Query, false otherwise
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async exists(): Promise<boolean> {
+    throw new Error('implement exists in child class')
+  }
+
+  /**
    * Retrieves the number of records in the database
    *
    * ```ts
