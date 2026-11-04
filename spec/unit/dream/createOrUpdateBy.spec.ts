@@ -235,6 +235,17 @@ describe('Dream.createOrUpdateBy', () => {
       )
     })
 
+    it('names the default scope when the violated unique index covers a `with` attribute and every find attribute', async () => {
+      vi.spyOn(PostgresQueryDriver, 'violatedUniqueIndexColumns').mockResolvedValue(['unique_column', 'name'])
+      const pet = await Pet.create({ species: 'cat', name: 'Nermal', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrUpdateBy({ uniqueColumn: 'garfield' }, { with: { name: 'Nermal' } })
+
+      await expect(promise).rejects.toThrow(/likely hidden by the default scope "dream:SoftDelete"/)
+      await expect(promise).rejects.not.toThrow(/`with`/)
+    })
+
     it('lists the hidden record as a possible cause when the database does not identify the violated unique index', async () => {
       vi.spyOn(PostgresQueryDriver, 'violatedUniqueIndexColumns').mockResolvedValue(null)
       const pet = await Pet.create({ species: 'cat', uniqueColumn: 'garfield' })

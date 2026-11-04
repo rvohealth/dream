@@ -5,11 +5,12 @@ import Dream from '../Dream.js'
  * record that blocked their insert was not found:
  *
  * - `conflictingAttributes`: the violated unique index covers these
- *   `createWith`/`with` attributes, so one of their values likely conflicts
- *   with a different record
+ *   `createWith`/`with` attributes but not every find attribute, so one of
+ *   their values likely conflicts with a different record
  * - `hiddenByDefaultScope`: the violated unique index covers only find
- *   attributes, and a record matching them exists once these default scopes
- *   are removed, so that record is the one the insert conflicted with
+ *   attributes, or every find attribute, and a record matching them exists
+ *   once these default scopes are removed, so that record is the one the
+ *   insert conflicted with
  * - `undetermined`: neither could be established. `hidingDefaultScopes` lists
  *   the default scopes hiding a record that matches the find attributes, if
  *   there is one, and `extraAttributesMayConflict` is true when a

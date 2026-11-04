@@ -1572,10 +1572,11 @@ export default class Dream {
    * `CreateOrFindByFailedToCreateAndFind` is thrown. When the database
    * identifies the violated unique index (Postgres does, unless it is an
    * expression or partial index), its message names the `createWith`
-   * attributes that index covers as the likely cause, or, when the index
-   * covers only find attributes and the record is found with the model's
-   * default scopes removed, the default scope likely hiding it. Otherwise
-   * it lists the possible causes.
+   * attributes that index covers as the likely cause, unless the index
+   * also covers every find attribute. When the index covers only find
+   * attributes, or every find attribute, and the record is found with the
+   * model's default scopes removed, the message names the default scope
+   * likely hiding it. Otherwise it lists the possible causes.
    *
    * ```ts
    * const logEntry = await LogEntry.createOrFindBy({ externalId }, { createWith: params })
@@ -1658,10 +1659,11 @@ export default class Dream {
    * `CreateOrUpdateByFailedToCreateAndUpdate` is thrown. When the database
    * identifies the violated unique index (Postgres does, unless it is an
    * expression or partial index), its message names the `with`
-   * attributes that index covers as the likely cause, or, when the index
-   * covers only find attributes and the record is found with the model's
-   * default scopes removed, the default scope likely hiding it. Otherwise
-   * it lists the possible causes.
+   * attributes that index covers as the likely cause, unless the index
+   * also covers every find attribute. When the index covers only find
+   * attributes, or every find attribute, and the record is found with the
+   * model's default scopes removed, the message names the default scope
+   * likely hiding it. Otherwise it lists the possible causes.
    *
    * @param attributes - The base attributes for finding which record to update, also used when creating
    * @param extraOpts - Additional options
@@ -1711,11 +1713,12 @@ export default class Dream {
    * Used by createOrFindBy and createOrUpdateBy after their default-scoped
    * lookup finds nothing, to tell why. The driver names the columns of the
    * unique index the insert violated, when it can. When that index covers a
-   * `createWith`/`with` attribute, one of those values likely conflicted with
-   * another record. When it covers only find attributes, a record matching
-   * them that the default scopes hide is the record the insert conflicted
-   * with. Otherwise the cause is undetermined, and a hidden record matching
-   * the find attributes is only a candidate.
+   * `createWith`/`with` attribute but not every find attribute, one of those
+   * values likely conflicted with another record. When it covers only find
+   * attributes, or every find attribute, a record matching them that the
+   * default scopes hide is the record the insert conflicted with. Otherwise
+   * the cause is undetermined, and a hidden record matching the find
+   * attributes is only a candidate.
    */
   private static async createOrFindFailureCause<T extends typeof Dream>(
     this: T,
@@ -1729,20 +1732,27 @@ export default class Dream {
       error,
       this.table
     )
-    const indexAttributes = indexColumns?.map(column => camelize(column)) ?? null
+    const indexAttributes: string[] | null = indexColumns?.map(column => camelize(column)) ?? null
     const extraAttributeNames = Object.keys(
       extraAttributes ? this.extractAttributesFromUpdateableProperties(extraAttributes) : {}
     )
 
-    const conflictingAttributes = (indexAttributes ?? []).filter(attribute =>
-      extraAttributeNames.includes(attribute)
-    )
-    if (conflictingAttributes.length)
-      return { kind: 'conflictingAttributes', attributes: conflictingAttributes }
+    // the conflicting record holds the inserted value in every column of the index, so when the
+    // index covers every find attribute, that record matches them and is not a different record
+    const indexCoversEveryFindAttribute =
+      !!indexAttributes && Object.keys(lookup).every(attribute => indexAttributes.includes(attribute))
+
+    if (!indexCoversEveryFindAttribute) {
+      const conflictingAttributes = (indexAttributes ?? []).filter(attribute =>
+        extraAttributeNames.includes(attribute)
+      )
+      if (conflictingAttributes.length)
+        return { kind: 'conflictingAttributes', attributes: conflictingAttributes }
+    }
 
     const hidingDefaultScopes = await this.defaultScopesHidingLookup(lookup)
     const indexCoversOnlyFindAttributes = !!indexAttributes?.every(attribute => attribute in lookup)
-    if (hidingDefaultScopes.length && indexCoversOnlyFindAttributes)
+    if (hidingDefaultScopes.length && (indexCoversOnlyFindAttributes || indexCoversEveryFindAttribute))
       return { kind: 'hiddenByDefaultScope', defaultScopes: hidingDefaultScopes }
 
     return {
