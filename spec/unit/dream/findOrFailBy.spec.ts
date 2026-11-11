@@ -45,6 +45,28 @@ describe('Dream.findOrFailBy', () => {
       expect(user!.email).toEqual('fred@frewd')
     })
   })
+
+  context('when passed a value its column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.findOrFailBy({ uuid: 'abc' })).rejects.toThrow(RecordNotFound)
+    })
+  })
+
+  context('when passed a date its column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.findOrFailBy({ birthdate: 'garbage' as any })).rejects.toThrow(RecordNotFound)
+    })
+
+    context('in a transaction', () => {
+      it('raises RecordNotFound, since nothing reached the database', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.txn(txn).findOrFailBy({ birthdate: 'garbage' as any })
+          })
+        ).rejects.toThrow(RecordNotFound)
+      })
+    })
+  })
 })
 
 // type tests intentionally skipped, since they will fail on build instead.

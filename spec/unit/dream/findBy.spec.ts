@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -46,6 +47,39 @@ describe('Dream.findBy', () => {
         user = await User.txn(txn).findBy({ id: u.id })
       })
       expect(user!.email).toEqual('fred@frewd')
+    })
+  })
+
+  context('when passed a value its column cannot hold', () => {
+    it('returns null', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      expect(await User.findBy({ id: 'abc' })).toBeNull()
+      expect(await User.findBy({ uuid: 'abc' })).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('raises DataTypeColumnTypeMismatch, since the database has aborted the transaction', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.txn(txn).findBy({ uuid: 'abc' })
+          })
+        ).rejects.toThrow(DataTypeColumnTypeMismatch)
+      })
+    })
+  })
+
+  context('when passed a date its column cannot hold', () => {
+    it('returns null', async () => {
+      await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      expect(await User.findBy({ birthdate: 'garbage' as any })).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('returns null, since nothing reached the database', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(await User.txn(txn).findBy({ birthdate: 'garbage' as any })).toBeNull()
+        })
+      })
     })
   })
 })

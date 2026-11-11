@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import RecordNotFound from '../../../src/errors/RecordNotFound.js'
 import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -79,6 +80,20 @@ describe('Query#findOrFail', () => {
           await expect(User.query().txn(txn).findOrFail(null)).rejects.toThrow(RecordNotFound)
         })
       })
+    })
+  })
+
+  context('when passed a value the primary key column cannot hold', () => {
+    it('raises RecordNotFound', async () => {
+      await expect(User.query().findOrFail('abc')).rejects.toThrow(RecordNotFound)
+    })
+  })
+
+  context('when a negated clause holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch rather than RecordNotFound for the matching record', async () => {
+      await expect(User.query().whereNot({ uuid: 'abc' }).findOrFail(user.id)).rejects.toThrow(
+        DataTypeColumnTypeMismatch
+      )
     })
   })
 })

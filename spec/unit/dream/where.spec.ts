@@ -1,3 +1,5 @@
+import ColumnOverflow from '../../../src/errors/db/ColumnOverflow.js'
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import ops from '../../../src/ops/index.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
@@ -26,6 +28,16 @@ describe('Dream.where', () => {
         records = await User.txn(txn).where({ email: 'fred@frewd' }).all()
       })
       expect(records).toMatchDreamModels([user1])
+    })
+  })
+
+  context('with a value the column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch', async () => {
+      await expect(User.where({ id: 'abc' }).all()).rejects.toThrow(DataTypeColumnTypeMismatch)
+    })
+
+    it('raises ColumnOverflow for an integer too large for the column', async () => {
+      await expect(User.where({ id: '99999999999999999999' }).all()).rejects.toThrow(ColumnOverflow)
     })
   })
 })

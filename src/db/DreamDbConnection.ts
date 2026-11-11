@@ -17,6 +17,26 @@ import {
   reportLeakedDbConnections,
 } from './dbConnectionLeakDiagnostics.js'
 
+/**
+ * @internal
+ *
+ * the CamelCasePlugin every Dream connection carries: it turns each
+ * attribute name a query names into the column name it queries, and each
+ * column name a result row carries into a camelized key
+ */
+export class DreamCamelCasePlugin extends CamelCasePlugin {
+  constructor() {
+    super({ underscoreBetweenUppercaseLetters: true })
+  }
+
+  /**
+   * the column name a query naming the given attribute targets
+   */
+  public columnNameForAttribute(attributeName: string): string {
+    return this.snakeCase(attributeName)
+  }
+}
+
 let connections = {} as { [key: string]: { [key: string]: Kysely<any> } }
 
 export default class DreamDbConnection {
@@ -47,7 +67,7 @@ export default class DreamDbConnection {
       },
 
       dialect: dialectProvider(connectionConf),
-      plugins: [new CamelCasePlugin({ underscoreBetweenUppercaseLetters: true })],
+      plugins: [new DreamCamelCasePlugin()],
     })
 
     const protectedName = protectAgainstPollutingAssignment(connectionName)

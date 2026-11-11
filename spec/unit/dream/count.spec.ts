@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../test-app/app/models/User.js'
 
@@ -20,6 +21,12 @@ describe('Dream.count', () => {
         count = await User.txn(txn).count()
       })
       expect(count).toEqual(1)
+    })
+  })
+
+  context('with a where clause holding a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch', async () => {
+      await expect(User.where({ id: 'abc' }).count()).rejects.toThrow(DataTypeColumnTypeMismatch)
     })
   })
 })

@@ -50,7 +50,26 @@ function validTableNameOrThrow(migrationName: string, table: string): string {
   return table
 }
 
-export default async function generateMigration({
+export interface GeneratedMigration {
+  /** The project-relative migrations folder the file goes in */
+  basePath: string
+  /** `<version>-<fileStem>.ts` */
+  fileName: string
+  /**
+   * The file name without its version prefix and extension, e.g.
+   * `create-room-bedroom` for the migration name `CreateRoom/Bedroom`
+   */
+  fileStem: string
+  content: string
+}
+
+export type GenerateMigrationArgs = Parameters<typeof buildMigration>[0]
+
+/**
+ * Builds and validates a migration without writing it, so a caller writing
+ * several files can build them all before writing any.
+ */
+export function buildMigration({
   migrationName,
   columnsWithTypes,
   connectionName,
@@ -78,13 +97,14 @@ export default async function generateMigration({
    * `created_at` / `updated_at` timestamps.
    */
   softDelete?: boolean
-}) {
+}): GeneratedMigration {
   const migrationsBasePath =
     connectionName === 'default'
       ? path.join(dreamPath('db'), 'migrations')
       : path.join(dreamPath('db'), 'migrations', connectionName)
 
-  const fileName = `${migrationVersion()}-${hyphenize(migrationName).replace(/\//g, '-')}.ts`
+  const fileStem = hyphenize(migrationName).replace(/\//g, '-')
+  const fileName = `${migrationVersion()}-${fileStem}.ts`
 
   const isSTI = !!fullyQualifiedParentName
   let content: string
@@ -130,10 +150,10 @@ export default async function generateMigration({
     })
   }
 
-  await writeGeneratedFile({
-    basePath: migrationsBasePath,
-    fileName,
-    content,
-    logLabel: 'migration',
-  })
+  return { basePath: migrationsBasePath, fileName, fileStem, content }
+}
+
+export default async function generateMigration(args: GenerateMigrationArgs) {
+  const { basePath, fileName, content } = buildMigration(args)
+  await writeGeneratedFile({ basePath, fileName, content, logLabel: 'migration' })
 }

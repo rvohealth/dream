@@ -1,5 +1,7 @@
 import Dream from '../../../src/Dream.js'
+import PostgresQueryDriver from '../../../src/dream/QueryDriver/Postgres.js'
 import CreateOrFindByFailedToCreateAndFind from '../../../src/errors/CreateOrFindByFailedToCreateAndFind.js'
+import Collar from '../../../test-app/app/models/Collar.js'
 import Composition from '../../../test-app/app/models/Composition.js'
 import Pet from '../../../test-app/app/models/Pet.js'
 import User from '../../../test-app/app/models/User.js'
@@ -46,6 +48,110 @@ describe('Dream.createOrFindBy', () => {
             { createWith: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
           )
         ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      })
+
+      it('names the `createWith` attribute the violated unique index covers', async () => {
+        const promise = User.createOrFindBy(
+          { email: 'howya@doin' },
+          { createWith: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+        )
+
+        await expect(promise).rejects.toThrow(/covers the `createWith` attribute socialSecurityNumber/)
+        await expect(promise).rejects.not.toThrow(/Possible causes:/)
+      })
+
+      it('lists the possible causes when the database does not identify the violated unique index', async () => {
+        vi.spyOn(PostgresQueryDriver, 'violatedUniqueIndexColumns').mockResolvedValue(null)
+
+        const promise = User.createOrFindBy(
+          { email: 'howya@doin' },
+          { createWith: { socialSecurityNumber: '1234567890', password: 'nothowyadoin' } }
+        )
+
+        await expect(promise).rejects.toThrow(/Possible causes:/)
+        await expect(promise).rejects.toThrow(/a `createWith` value conflicts/)
+        await expect(promise).rejects.toThrow(/a find attribute outside the violated unique index differs/)
+        await expect(promise).rejects.toThrow(/a hook changed a find attribute/)
+        await expect(promise).rejects.not.toThrow(/hidden by/)
+      })
+    }
+  )
+
+  context('when the conflicting record is hidden by a default scope', () => {
+    it('throws CreateOrFindByFailedToCreateAndFind naming the default scope that hides the record', async () => {
+      const pet = await Pet.create({ species: 'cat', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrFindBy({ uniqueColumn: 'garfield' })
+
+      await expect(promise).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      await expect(promise).rejects.toThrow(/likely hidden by the default scope "dream:SoftDelete"/)
+      await expect(promise).rejects.not.toThrow(/Possible causes:/)
+    })
+
+    it('lists every removable default scope as a candidate when the model has several', async () => {
+      const pet = await Pet.create({ species: 'dog' })
+      const collar = await Collar.create({ pet, hidden: true })
+
+      const promise = Collar.createOrFindBy({ id: collar.id }, { createWith: { pet } })
+
+      await expect(promise).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      await expect(promise).rejects.toThrow(
+        /likely hidden by one of the default scopes "dream:SoftDelete", "hideHiddenCollars"/
+      )
+    })
+
+    it('names the default scope when a `createWith` value is not in the violated unique index', async () => {
+      const pet = await Pet.create({ species: 'cat', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrFindBy({ uniqueColumn: 'garfield' }, { createWith: { name: 'Nermal' } })
+
+      await expect(promise).rejects.toThrow(/likely hidden by the default scope "dream:SoftDelete"/)
+      await expect(promise).rejects.not.toThrow(/`createWith`/)
+    })
+
+    it('names the default scope when the violated unique index covers a `createWith` attribute and every find attribute', async () => {
+      vi.spyOn(PostgresQueryDriver, 'violatedUniqueIndexColumns').mockResolvedValue(['unique_column', 'name'])
+      const pet = await Pet.create({ species: 'cat', name: 'Nermal', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrFindBy({ uniqueColumn: 'garfield' }, { createWith: { name: 'Nermal' } })
+
+      await expect(promise).rejects.toThrow(/likely hidden by the default scope "dream:SoftDelete"/)
+      await expect(promise).rejects.not.toThrow(/`createWith`/)
+    })
+
+    it('lists the hidden record as a possible cause when the database does not identify the violated unique index', async () => {
+      vi.spyOn(PostgresQueryDriver, 'violatedUniqueIndexColumns').mockResolvedValue(null)
+      const pet = await Pet.create({ species: 'cat', uniqueColumn: 'garfield' })
+      await pet.destroy()
+
+      const promise = Pet.createOrFindBy({ uniqueColumn: 'garfield' })
+
+      await expect(promise).rejects.toThrow(/Possible causes:/)
+      await expect(promise).rejects.toThrow(
+        /a record matching the find attributes exists but is hidden by the default scope "dream:SoftDelete"/
+      )
+      await expect(promise).rejects.not.toThrow(/`createWith`/)
+    })
+  })
+
+  context(
+    'when a `createWith` value conflicts with a visible record and a record matching the find attributes is hidden by a default scope',
+    () => {
+      beforeEach(async () => {
+        await Pet.create({ species: 'dog', name: 'Y', uniqueColumn: 'u' })
+        const hiddenPet = await Pet.create({ species: 'cat', name: 'X', uniqueColumn: 'other' })
+        await hiddenPet.destroy()
+      })
+
+      it('names the conflicting `createWith` attribute rather than blaming the default scope', async () => {
+        const promise = Pet.createOrFindBy({ name: 'X' }, { createWith: { uniqueColumn: 'u' } })
+
+        await expect(promise).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+        await expect(promise).rejects.toThrow(/covers the `createWith` attribute uniqueColumn/)
+        await expect(promise).rejects.not.toThrow(/hidden by/)
       })
     }
   )
@@ -137,6 +243,12 @@ describe('Dream.createOrFindBy', () => {
         await expect(
           Pet.createOrFindBy({ uniqueColumn: 'garfield', favoriteTreats: ['chicken'] })
         ).rejects.toThrow(CreateOrFindByFailedToCreateAndFind)
+      })
+
+      it('does not blame a default scope when the conflicting record is visible', async () => {
+        await expect(
+          Pet.createOrFindBy({ uniqueColumn: 'garfield', favoriteTreats: ['chicken'] })
+        ).rejects.not.toThrow(/hidden by/)
       })
 
       it('returns the existing record whose array is empty when given an empty array', async () => {

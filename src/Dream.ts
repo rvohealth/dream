@@ -1,7 +1,7 @@
 import { CompiledQuery, Selectable } from 'kysely'
 
 import yoctocolors from 'yoctocolors'
-import { pgErrorType, UNIQUE_VIOLATION } from './db/errors.js'
+import { STI_SCOPE_NAME } from './decorators/class/STI.js'
 import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.js'
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
@@ -59,7 +59,9 @@ import CannotUpdateAssociationOnUnpersistedDream from './errors/associations/Can
 import CanOnlyPassBelongsToModelParam from './errors/associations/CanOnlyPassBelongsToModelParam.js'
 import CannotCallUndestroyOnANonSoftDeleteModel from './errors/CannotCallUndestroyOnANonSoftDeleteModel.js'
 import ConstructorOnlyForInternalUse from './errors/ConstructorOnlyForInternalUse.js'
-import CreateOrFindByFailedToCreateAndFind from './errors/CreateOrFindByFailedToCreateAndFind.js'
+import CreateOrFindByFailedToCreateAndFind, {
+  CreateOrFindFailureCause,
+} from './errors/CreateOrFindByFailedToCreateAndFind.js'
 import CreateOrUpdateByFailedToCreateAndUpdate from './errors/CreateOrUpdateByFailedToCreateAndUpdate.js'
 import DoNotSetEncryptedFieldsDirectly from './errors/DoNotSetEncryptedFieldsDirectly.js'
 import GlobalNameNotSet from './errors/dream-app/GlobalNameNotSet.js'
@@ -67,6 +69,7 @@ import DreamMissingRequiredOverride from './errors/DreamMissingRequiredOverride.
 import NonExistentScopeProvidedToResort from './errors/NonExistentScopeProvidedToResort.js'
 import RecordNotFound from './errors/RecordNotFound.js'
 import areEqual from './helpers/areEqual.js'
+import camelize from './helpers/camelize.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
@@ -1563,6 +1566,18 @@ export default class Dream {
    * IMPORTANT: A unique index/uniqueness constraint must exist on
    * at least one of the provided attributes
    *
+   * The lookup applies the model's default scopes, so a conflicting
+   * record they hide (for example, a soft-deleted one under a plain
+   * unique index) is never returned. When the lookup finds nothing,
+   * `CreateOrFindByFailedToCreateAndFind` is thrown. When the database
+   * identifies the violated unique index (Postgres does, unless it is an
+   * expression or partial index), its message names the `createWith`
+   * attributes that index covers as the likely cause, unless the index
+   * also covers every find attribute. When the index covers only find
+   * attributes, or every find attribute, and the record is found with the
+   * model's default scopes removed, the message names the default scope
+   * likely hiding it. Otherwise it lists the possible causes.
+   *
    * ```ts
    * const logEntry = await LogEntry.createOrFindBy({ externalId }, { createWith: params })
    * ```
@@ -1588,11 +1603,15 @@ export default class Dream {
       await dreamModel.save(skipHooks ? { skipHooks } : undefined)
       return dreamModel
     } catch (err) {
-      if (pgErrorType(err) === UNIQUE_VIOLATION) {
-        const dreamModel = await this.findBy(
-          findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
-        )
-        if (!dreamModel) throw new CreateOrFindByFailedToCreateAndFind(this)
+      if (Query.dbDriverClass(this.prototype.connectionName).isUniqueConstraintViolation(err)) {
+        const lookup = findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
+        // where().first() rather than findBy: a value the database rejects is raised, never read as no match
+        const dreamModel = await this.where(lookup).first()
+        if (!dreamModel)
+          throw new CreateOrFindByFailedToCreateAndFind(
+            this,
+            await this.createOrFindFailureCause(err, lookup, extraOpts.createWith)
+          )
         return dreamModel
       }
       throw err
@@ -1634,6 +1653,18 @@ export default class Dream {
    * IMPORTANT: A unique index/uniqueness constraint must exist on
    * at least one of the provided attributes
    *
+   * The lookup applies the model's default scopes, so a conflicting
+   * record they hide (for example, a soft-deleted one under a plain
+   * unique index) is never updated. When the lookup finds nothing,
+   * `CreateOrUpdateByFailedToCreateAndUpdate` is thrown. When the database
+   * identifies the violated unique index (Postgres does, unless it is an
+   * expression or partial index), its message names the `with`
+   * attributes that index covers as the likely cause, unless the index
+   * also covers every find attribute. When the index covers only find
+   * attributes, or every find attribute, and the record is found with the
+   * model's default scopes removed, the message names the default scope
+   * likely hiding it. Otherwise it lists the possible causes.
+   *
    * @param attributes - The base attributes for finding which record to update, also used when creating
    * @param extraOpts - Additional options
    * @param extraOpts.with - additional attributes to persist when updating and creating, but not used for finding
@@ -1656,11 +1687,15 @@ export default class Dream {
         skipHooks ? { skipHooks } : undefined
       )
     } catch (err) {
-      if (pgErrorType(err) === UNIQUE_VIOLATION) {
-        const existingRecord = await this.findBy(
-          findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
-        )
-        if (!existingRecord) throw new CreateOrUpdateByFailedToCreateAndUpdate(this)
+      if (Query.dbDriverClass(this.prototype.connectionName).isUniqueConstraintViolation(err)) {
+        const lookup = findOrCreateLookupStatement(this, attributes as UpdateablePropertiesForClass<T>)
+        // where().first() rather than findBy: a value the database rejects is raised, never read as no match
+        const existingRecord = await this.where(lookup).first()
+        if (!existingRecord)
+          throw new CreateOrUpdateByFailedToCreateAndUpdate(
+            this,
+            await this.createOrFindFailureCause(err, lookup, extraOpts.with)
+          )
         const { with: attrs } = extraOpts
 
         if (existingRecord) {
@@ -1670,6 +1705,88 @@ export default class Dream {
       }
       throw err
     }
+  }
+
+  /**
+   * @internal
+   *
+   * Used by createOrFindBy and createOrUpdateBy after their default-scoped
+   * lookup finds nothing, to tell why. The driver names the columns of the
+   * unique index the insert violated, when it can. When that index covers a
+   * `createWith`/`with` attribute but not every find attribute, one of those
+   * values likely conflicted with another record. When it covers only find
+   * attributes, or every find attribute, a record matching them that the
+   * default scopes hide is the record the insert conflicted with. Otherwise
+   * the cause is undetermined, and a hidden record matching the find
+   * attributes is only a candidate.
+   */
+  private static async createOrFindFailureCause<T extends typeof Dream>(
+    this: T,
+    error: unknown,
+    lookup: WhereStatement<InstanceType<T>>,
+    extraAttributes: UpdateablePropertiesForClass<T> | undefined
+  ): Promise<CreateOrFindFailureCause> {
+    const connectionName = this.prototype.connectionName
+    const indexColumns = await Query.dbDriverClass(connectionName).violatedUniqueIndexColumns(
+      connectionName,
+      error,
+      this.table
+    )
+    const indexAttributes: string[] | null = indexColumns?.map(column => camelize(column)) ?? null
+    const extraAttributeNames = Object.keys(
+      extraAttributes ? this.extractAttributesFromUpdateableProperties(extraAttributes) : {}
+    )
+
+    // the conflicting record holds the inserted value in every column of the index, so when the
+    // index covers every find attribute, that record matches them and is not a different record
+    const indexCoversEveryFindAttribute =
+      !!indexAttributes && Object.keys(lookup).every(attribute => indexAttributes.includes(attribute))
+
+    if (!indexCoversEveryFindAttribute) {
+      const conflictingAttributes = (indexAttributes ?? []).filter(attribute =>
+        extraAttributeNames.includes(attribute)
+      )
+      if (conflictingAttributes.length)
+        return { kind: 'conflictingAttributes', attributes: conflictingAttributes }
+    }
+
+    const hidingDefaultScopes = await this.defaultScopesHidingLookup(lookup)
+    const indexCoversOnlyFindAttributes = !!indexAttributes?.every(attribute => attribute in lookup)
+    if (hidingDefaultScopes.length && (indexCoversOnlyFindAttributes || indexCoversEveryFindAttribute))
+      return { kind: 'hiddenByDefaultScope', defaultScopes: hidingDefaultScopes }
+
+    return {
+      kind: 'undetermined',
+      hidingDefaultScopes,
+      extraAttributesMayConflict: indexAttributes === null && extraAttributeNames.length > 0,
+    }
+  }
+
+  /**
+   * @internal
+   *
+   * Used by createOrFindFailureCause. Returns the model's removable default scopes when a
+   * record matching `lookup` exists once they are all removed, and an empty
+   * array otherwise. The STI type discriminator is never removed. One probe
+   * with every removable scope removed cannot tell which of several scopes
+   * hid the record, so all of them are returned as candidates.
+   */
+  private static async defaultScopesHidingLookup<T extends typeof Dream>(
+    this: T,
+    lookup: WhereStatement<InstanceType<T>>
+  ): Promise<string[]> {
+    const removableDefaultScopes = this['scopes'].default
+      .map(scope => scope.method)
+      .filter(scopeName => scopeName !== STI_SCOPE_NAME)
+    if (!removableDefaultScopes.length) return []
+
+    let query: Query<InstanceType<T>, any> = this.query()
+    for (const scopeName of removableDefaultScopes) {
+      query = query.removeDefaultScope(scopeName as AllDefaultScopeNames<InstanceType<T>>)
+    }
+
+    // where() rather than findBy: a value the database rejects is raised, never read as no match
+    return (await query.where(lookup).exists()) ? removableDefaultScopes : []
   }
 
   /**
@@ -1695,11 +1812,24 @@ export default class Dream {
 
   /**
    * Finds a record for the corresponding model with the
-   * specified primary key. Returns null if not found.
+   * specified primary key. Returns null if not found,
+   * including when the primary key is a value its column
+   * cannot hold (for example, `'abc'` for an integer
+   * primary key).
+   *
+   * When the database rejects a value elsewhere in the query (for
+   * example, in a `whereNot`, `whereAny` or `leftJoinPreload`
+   * clause), that rejection is raised as `DataTypeColumnTypeMismatch`
+   * or `ColumnOverflow`, since a record may still match. Inside a
+   * transaction, a primary key the database rejects is raised that
+   * way too, because the database has then aborted the transaction.
    *
    * ```ts
    * await User.find(123)
    * // User{id: 123}
+   *
+   * await User.find('abc')
+   * // null
    *
    * await User.find(null)
    * // null
@@ -1720,15 +1850,26 @@ export default class Dream {
 
   /**
    * Finds a record for the corresponding model with the
-   * specified primary key. If not found, an exception is raised.
+   * specified primary key. If not found, `RecordNotFound` is
+   * raised, including when the primary key is a value its
+   * column cannot hold (for example, `'abc'` for an integer
+   * primary key).
+   *
+   * When the database rejects a value elsewhere in the query (for
+   * example, in a `whereNot`, `whereAny` or `leftJoinPreload`
+   * clause), that rejection is raised as `DataTypeColumnTypeMismatch`
+   * or `ColumnOverflow`, since a record may still match. Inside a
+   * transaction, a primary key the database rejects is raised that
+   * way too, because the database has then aborted the transaction.
    *
    * ```ts
-   * await User.query().findOrFail(123)
+   * await User.findOrFail(123)
    * // User{id: 123}
    * ```
    *
    * @param primaryKey - The primaryKey of the record to look up
-   * @returns Either the found record, or else null
+   * @returns The found record
+   * @throws RecordNotFound if no record is found
    */
   public static async findOrFail<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,
@@ -1884,7 +2025,22 @@ export default class Dream {
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, null is returned.
+   * If not found, null is returned, including when a value the where
+   * statement compares for equality (a plain value or
+   * `ops.equal`) is one its column cannot hold: for example,
+   * `'abc'` for a uuid column, or a date string Dream cannot
+   * parse for a date column.
+   *
+   * A value the database rejects anywhere else (in a list of values,
+   * under another operator such as `ops.not.equal` or `ops.lessThan`,
+   * or elsewhere in the query, such as a `whereNot` or `whereAny`
+   * clause) is raised as `DataTypeColumnTypeMismatch` or
+   * `ColumnOverflow`, since a record may still match; so is a date,
+   * datetime or time string there that Dream cannot parse. Inside a
+   * transaction, an equality value the database rejects is raised that
+   * way too, because the database has then aborted the transaction; a
+   * date, datetime or time string Dream cannot parse never reaches the
+   * database, so it is treated as not found there as well.
    *
    * ```ts
    * await User.findBy({ email: 'how@yadoin' })
@@ -1904,7 +2060,22 @@ export default class Dream {
   /**
    * Finds the first record—ordered by primary key—matching
    * the corresponding model and the specified where statement.
-   * If not found, an exception is raised.
+   * If not found, `RecordNotFound` is raised, including when
+   * a value the where statement compares for equality (a plain
+   * value or `ops.equal`) is one its column cannot hold: for
+   * example, `'abc'` for a uuid column, or a date string Dream
+   * cannot parse for a date column.
+   *
+   * A value the database rejects anywhere else (in a list of values,
+   * under another operator such as `ops.not.equal` or `ops.lessThan`,
+   * or elsewhere in the query, such as a `whereNot` or `whereAny`
+   * clause) is raised as `DataTypeColumnTypeMismatch` or
+   * `ColumnOverflow`, since a record may still match; so is a date,
+   * datetime or time string there that Dream cannot parse. Inside a
+   * transaction, an equality value the database rejects is raised that
+   * way too, because the database has then aborted the transaction; a
+   * date, datetime or time string Dream cannot parse never reaches the
+   * database, so it is treated as not found there as well.
    *
    * ```ts
    * await User.findOrFailBy({ email: 'how@yadoin' })
@@ -1913,6 +2084,7 @@ export default class Dream {
    *
    * @param whereStatement - The where statement used to locate the record
    * @returns The first model found matching the whereStatement
+   * @throws RecordNotFound if no record is found
    */
   public static async findOrFailBy<T extends typeof Dream, I extends InstanceType<T>>(
     this: T,

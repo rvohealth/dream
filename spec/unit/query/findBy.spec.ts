@@ -1,3 +1,4 @@
+import DataTypeColumnTypeMismatch from '../../../src/errors/db/DataTypeColumnTypeMismatch.js'
 import { sql } from 'kysely'
 import CannotPassUndefinedAsAValueToAWhereClause from '../../../src/errors/CannotPassUndefinedAsAValueToAWhereClause.js'
 import ops from '../../../src/ops/index.js'
@@ -61,6 +62,84 @@ describe('Query#findBy', () => {
 
       expect(await LocalizedText.findBy({ localizable: composition })).toMatchDreamModel(localizedText1)
       expect(await LocalizedText.findBy({ localizable: compositionAsset })).toMatchDreamModel(localizedText2)
+    })
+  })
+
+  context('when passed a value its column cannot hold', () => {
+    it('returns null', async () => {
+      expect(await User.query().findBy({ id: '99999999999999999999' })).toBeNull()
+      expect(await User.query().findBy({ uuid: 'abc' })).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('raises DataTypeColumnTypeMismatch, since the database has aborted the transaction', async () => {
+        await expect(
+          ApplicationModel.transaction(async txn => {
+            await User.query().txn(txn).findBy({ id: 'abc' })
+          })
+        ).rejects.toThrow(DataTypeColumnTypeMismatch)
+      })
+    })
+  })
+
+  context('when passed a date its column cannot hold', () => {
+    it('returns null', async () => {
+      expect(await User.query().findBy({ birthdate: 'garbage' as any })).toBeNull()
+    })
+
+    context('in a transaction', () => {
+      it('returns null, and the transaction continues', async () => {
+        await ApplicationModel.transaction(async txn => {
+          expect(
+            await User.query()
+              .txn(txn)
+              .findBy({ birthdate: 'garbage' as any })
+          ).toBeNull()
+          expect(await User.query().txn(txn).findBy({ email: 'fred@frewd' })).toMatchDreamModel(user)
+        })
+      })
+    })
+  })
+
+  context('when a negated clause holds a value its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the matching record', async () => {
+      await expect(User.query().whereNot({ uuid: 'abc' }).findBy({ email: 'fred@frewd' })).rejects.toThrow(
+        DataTypeColumnTypeMismatch
+      )
+    })
+
+    it('raises DataTypeColumnTypeMismatch when the value is a date', async () => {
+      await expect(
+        User.query()
+          .whereNot({ birthdate: 'garbage' as any })
+          .findBy({ email: 'fred@frewd' })
+      ).rejects.toThrow(DataTypeColumnTypeMismatch)
+    })
+
+    it('returns null when a value of the lookup is one its column cannot hold', async () => {
+      expect(await User.query().whereNot({ email: 'other@frewd' }).findBy({ uuid: 'abc' })).toBeNull()
+    })
+  })
+
+  context('when an ops.not value in the lookup is one its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the matching record', async () => {
+      await expect(User.query().findBy({ uuid: ops.not.equal('abc') })).rejects.toThrow(
+        DataTypeColumnTypeMismatch
+      )
+    })
+  })
+
+  context('when an ops.equal value in the lookup is one its column cannot hold', () => {
+    it('returns null', async () => {
+      expect(await User.query().findBy({ uuid: ops.equal('abc') })).toBeNull()
+    })
+  })
+
+  context('when one member of a list of values is one its column cannot hold', () => {
+    it('raises DataTypeColumnTypeMismatch instead of returning null for the matching record', async () => {
+      await expect(User.query().findBy({ uuid: [user.uuid, 'abc'] })).rejects.toThrow(
+        DataTypeColumnTypeMismatch
+      )
     })
   })
 })

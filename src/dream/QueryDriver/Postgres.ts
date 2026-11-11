@@ -10,11 +10,29 @@ import pg from 'pg'
 
 import { sql, type SelectQueryBuilder } from 'kysely'
 import DreamCLI from '../../cli/index.js'
-import { DEADLOCK_DETECTED, LOCK_NOT_AVAILABLE, pgErrorType, UNIQUE_VIOLATION } from '../../db/errors.js'
+import {
+  CHECK_VIOLATION,
+  COLUMN_OVERFLOW,
+  DEADLOCK_DETECTED,
+  INVALID_INPUT_SYNTAX,
+  LOCK_NOT_AVAILABLE,
+  NOT_NULL_VIOLATION,
+  pgErrorType,
+  UNIQUE_VIOLATION,
+} from '../../db/errors.js'
 import DreamApp from '../../dream-app/index.js'
+import CheckConstraintViolation from '../../errors/db/CheckConstraintViolation.js'
+import ColumnOverflow from '../../errors/db/ColumnOverflow.js'
+import DataTypeColumnTypeMismatch from '../../errors/db/DataTypeColumnTypeMismatch.js'
+import NotNullViolation from '../../errors/db/NotNullViolation.js'
 import SortableScopeLockWaitTimedOut from '../../errors/SortableScopeLockWaitTimedOut.js'
 import Dream from '../../Dream.js'
-import { IntrospectedDatabase, IntrospectedTable, IntrospectedValueType } from '../../types/db.js'
+import {
+  DbConnectionType,
+  IntrospectedDatabase,
+  IntrospectedTable,
+  IntrospectedValueType,
+} from '../../types/db.js'
 import {
   findCitextArrayOid,
   findCorrespondingArrayOid,
@@ -358,8 +376,96 @@ export default class PostgresQueryDriver<
     return pgErrorType(error) === UNIQUE_VIOLATION
   }
 
+  /**
+   * @internal
+   *
+   * Postgres implementation of {@link QueryDriverBase.violatedUniqueIndexColumns}.
+   * A unique violation names the index it hit in the error's `constraint`
+   * field (a unique constraint's index shares its name), and one catalog query
+   * reads that index's key columns. `INCLUDE` columns are not keys and are
+   * left out.
+   */
+  public static override async violatedUniqueIndexColumns(
+    connectionName: string,
+    error: unknown,
+    table: string
+  ): Promise<string[] | null> {
+    if (!(error instanceof pg.DatabaseError) || pgErrorType(error) !== UNIQUE_VIOLATION) return null
+    if (!error.constraint || !error.schema || !error.table) return null
+
+    const tableParts = table.split('.')
+    const tableName = tableParts.at(-1)
+    const tableSchema = tableParts.length > 1 ? tableParts[0] : undefined
+    if (error.table !== tableName || (tableSchema !== undefined && error.schema !== tableSchema)) return null
+
+    // the returned columns are aliased to single words: result keys come back camelized
+    const result = await sql<{ plain: boolean; columns: string[] }>`
+      SELECT
+        (idx.indexprs IS NULL AND idx.indpred IS NULL) AS plain,
+        ARRAY(
+          SELECT att.attname::text
+          FROM unnest(idx.indkey::int2[]) WITH ORDINALITY AS k(attnum, ord)
+          JOIN pg_catalog.pg_attribute AS att ON att.attrelid = idx.indrelid AND att.attnum = k.attnum
+          WHERE k.ord <= idx.indnkeyatts
+          ORDER BY k.ord
+        ) AS columns
+      FROM pg_catalog.pg_index AS idx
+      JOIN pg_catalog.pg_class AS cls ON cls.oid = idx.indexrelid
+      JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
+      WHERE ns.nspname = ${error.schema} AND cls.relname = ${error.constraint} AND idx.indisunique
+    `.execute(this.dbFor(connectionName, 'primary'))
+
+    const index = result.rows[0]
+    if (!index?.plain || !index.columns.length) return null
+    return index.columns
+  }
+
   public static override isDeadlock(error: unknown): boolean {
     return pgErrorType(error) === DEADLOCK_DETECTED
+  }
+
+  public static override dataIncompatibleWithDatabaseFieldError(error: unknown) {
+    // pgErrorType recognizes only a pg DatabaseError, which is an Error
+    const databaseError = error as Error
+
+    switch (pgErrorType(error)) {
+      case COLUMN_OVERFLOW:
+        return new ColumnOverflow(databaseError)
+      case INVALID_INPUT_SYNTAX:
+        return new DataTypeColumnTypeMismatch(databaseError)
+      case NOT_NULL_VIOLATION:
+        return new NotNullViolation(databaseError)
+      case CHECK_VIOLATION:
+        return new CheckConstraintViolation(databaseError)
+      default:
+        return null
+    }
+  }
+
+  /**
+   * @internal
+   *
+   * Postgres implementation of {@link QueryDriverBase.rejectsAnyValueForColumnType}.
+   * One statement casts every value to its type, so Postgres's own input
+   * function for each type is the judge: a cast it rejects raises `22P02` or
+   * `22003`. Callers never ask inside a transaction, which a rejected cast
+   * would abort.
+   */
+  public static override async rejectsAnyValueForColumnType(
+    connectionName: string,
+    dbConnectionType: DbConnectionType,
+    values: { value: unknown; dbType: string }[]
+  ): Promise<boolean> {
+    if (!values.length) return false
+
+    const casts = values.map(({ value, dbType }) => sql`CAST(${value} AS ${sql.raw(dbType)})`)
+    try {
+      await sql`SELECT ${sql.join(casts)}`.execute(this.dbFor(connectionName, dbConnectionType))
+      return false
+    } catch (error) {
+      const errorType = pgErrorType(error)
+      return errorType === INVALID_INPUT_SYNTAX || errorType === COLUMN_OVERFLOW
+    }
   }
 
   /**

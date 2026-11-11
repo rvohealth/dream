@@ -1,4 +1,5 @@
 import * as path from 'node:path'
+import { DreamCamelCasePlugin } from '../../db/DreamDbConnection.js'
 import dbTypesFilenameForConnection from '../../db/helpers/dbTypesFilenameForConnection.js'
 import dreamSchemaTypesFilenameForConnection from '../../db/helpers/dreamSchemaTypesFilenameForConnection.js'
 import DreamApp from '../../dream-app/index.js'
@@ -8,6 +9,9 @@ import {
   ExplicitForeignKeyRequired,
   InvalidComputedForeignKey,
 } from '../../errors/associations/InvalidComputedForeignKey.js'
+import ColumnNamesDoNotRoundTrip, {
+  ColumnNameThatDoesNotRoundTrip,
+} from '../../errors/schema-builder/ColumnNamesDoNotRoundTrip.js'
 import FailedToIdentifyAssociation from '../../errors/schema-builder/FailedToIdentifyAssociation.js'
 import { HasManyStatement } from '../../package-exports/types.js'
 import { IntrospectedDatabase, IntrospectedTable } from '../../types/db.js'
@@ -62,7 +66,9 @@ export default class ASTConnectionBuilder extends ASTBuilder {
    * the connection's tables, sorted by their key in the DB interface, and its
    * enums, read through the query driver once, by this builder or by the one
    * it takes its introspection from. The tables that `tableIncludePattern`
-   * leaves out, or `tableExcludePattern` names, are left out.
+   * leaves out, or `tableExcludePattern` names, are left out. Fails, before
+   * either type file is written, when a column of a model's table does not
+   * round-trip through its attribute name (see guardColumnNamesRoundTrip).
    */
   protected async introspectedDatabase(): Promise<IntrospectedDatabase> {
     this.introspection ||=
@@ -74,19 +80,76 @@ export default class ASTConnectionBuilder extends ASTBuilder {
         const includePattern = credentials?.tableIncludePattern
         const excludePattern = credentials?.tableExcludePattern
 
-        return {
-          ...database,
-          tables: database.tables
-            .filter(
-              table =>
-                (!includePattern || tableMatchesPattern(table, includePattern)) &&
-                !(excludePattern && tableMatchesPattern(table, excludePattern))
-            )
-            .sort((a, b) => this.tableKey(a).localeCompare(this.tableKey(b))),
-        }
+        const tables = database.tables
+          .filter(
+            table =>
+              (!includePattern || tableMatchesPattern(table, includePattern)) &&
+              !(excludePattern && tableMatchesPattern(table, excludePattern))
+          )
+          .sort((a, b) => this.tableKey(a).localeCompare(this.tableKey(b)))
+
+        this.guardColumnNamesRoundTrip(tables)
+
+        return { ...database, tables }
       })()
 
     return await this.introspection
+  }
+
+  /**
+   * @internal
+   *
+   * fails the sync when a column of a table that one of the connection's
+   * models is backed by is not the column its attribute maps back to: Dream
+   * names the attribute by camelizing the column name, and each query naming
+   * the attribute targets the column the connection's CamelCasePlugin derives
+   * from it, so `address_line_1` (attribute `addressLine1`, which maps back to
+   * `address_line1`) could only be written, filtered on or join-loaded as a
+   * column that does not exist. A column the table's models ignore is
+   * skipped, since nothing queries it. A table no model is backed by is left
+   * to tableData, which fails the sync on it.
+   */
+  private guardColumnNamesRoundTrip(tables: IntrospectedTable[]) {
+    const columnNameMapper = new DreamCamelCasePlugin()
+    const columnsThatDoNotRoundTrip: ColumnNameThatDoesNotRoundTrip[] = []
+
+    for (const table of tables) {
+      const tableName = this.tableKey(table)
+      const models = this.connectionModels().filter(model => model.table === tableName)
+      if (!models.length) continue
+
+      const ignoredColumns = this.ignoredColumnsForTable(tableName)
+      const modelName = uniq(models.map(model => model['stiBaseClassOrOwnClass'].sanitizedName)).join(', ')
+
+      for (const column of table.columns) {
+        const attributeName = camelize(column.name)
+        if (ignoredColumns.has(attributeName)) continue
+
+        const mappedColumnName = columnNameMapper.columnNameForAttribute(attributeName)
+        if (mappedColumnName === column.name) continue
+
+        columnsThatDoNotRoundTrip.push({
+          tableName,
+          columnName: column.name,
+          attributeName,
+          mappedColumnName,
+          modelName,
+        })
+      }
+    }
+
+    if (columnsThatDoNotRoundTrip.length) throw new ColumnNamesDoNotRoundTrip(columnsThatDoNotRoundTrip)
+  }
+
+  /**
+   * @internal
+   *
+   * the models on the builder's connection
+   */
+  private connectionModels(): (typeof Dream)[] {
+    return Object.values(DreamApp.getOrFail().models).filter(
+      model => model.prototype?.connectionName === this.connectionName
+    )
   }
 
   /**
@@ -356,10 +419,7 @@ may need to update the table getter in the corresponding Dream.
    * given table (validating the declarations; see resolveIgnoredColumns)
    */
   protected ignoredColumnsForTable(tableName: string): Set<string> {
-    const dreamApp = DreamApp.getOrFail()
-    const allModels = Object.values(dreamApp.models).filter(
-      model => model.prototype?.connectionName === this.connectionName
-    )
+    const allModels = this.connectionModels()
     const models = allModels.filter(model => model.table === tableName)
 
     return resolveIgnoredColumns(models, tableName, allModels)
