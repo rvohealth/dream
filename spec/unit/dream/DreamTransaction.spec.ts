@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import DreamTransaction from '../../../src/dream/DreamTransaction.js'
 import { DateTime } from '../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
@@ -35,6 +36,25 @@ describe('DreamTransaction#isCommitted', () => {
         throw new Error('raised by the callback')
       })
     ).rejects.toThrow('raised by the callback')
+
+    expect(transaction!.isCommitted).toBe(false)
+    expect(await User.count()).toEqual(0)
+  })
+
+  it('is false when the callback catches a failed statement and returns normally', async () => {
+    let transaction = null as DreamTransaction<any> | null
+
+    await expect(
+      ApplicationModel.transaction(async txn => {
+        transaction = txn
+        await User.txn(txn).create({ email: 'fred@fred', password: 'howyadoin' })
+        try {
+          await sql`select 1 / 0`.execute(txn.kyselyTransaction)
+        } catch {
+          // the caller swallows the failed statement
+        }
+      })
+    ).rejects.toThrow(/current transaction is aborted/)
 
     expect(transaction!.isCommitted).toBe(false)
     expect(await User.count()).toEqual(0)

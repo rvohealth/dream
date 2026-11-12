@@ -49,9 +49,16 @@ export default class DreamTransaction<T extends Dream, DB extends T['DB'] = T['D
    * `true` means COMMIT succeeded; a commit hook may have thrown since.
    *
    * `false` means COMMIT has not succeeded as far as Dream knows: the
-   * transaction is still open, its callback threw, or the database refused
-   * the COMMIT. It does not prove the transaction was rolled back, since a
-   * connection lost during COMMIT can leave the outcome unknown.
+   * transaction is still open, its callback threw, the database aborted it
+   * after a failed statement, or the database refused the COMMIT. It does not
+   * prove the transaction was rolled back, since a connection lost during
+   * COMMIT can leave the outcome unknown.
+   *
+   * On Postgres, a failed statement aborts the transaction even when the
+   * callback catches its error, so such a transaction never commits:
+   * `ApplicationModel.transaction` rejects with Postgres's "current
+   * transaction is aborted" error, its commit hooks do not run, and
+   * `isCommitted` stays `false`.
    */
   public get isCommitted(): boolean {
     return this.committed

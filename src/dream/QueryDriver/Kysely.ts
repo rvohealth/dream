@@ -522,6 +522,15 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
         callbackResponse = (await (callback as (txn: DreamTransaction<DreamInstance>) => Promise<unknown>)(
           dreamTransaction
         )) as RetType
+
+        // A database that aborts a transaction on a failed statement (Postgres)
+        // answers COMMIT on that transaction with a rollback, not an error, so
+        // a callback that catches a failed statement and resolves would read as
+        // committed. This no-op statement fails in an aborted transaction, which
+        // rolls it back and rejects with the database's error before COMMIT, so
+        // its commit hooks never run and `isCommitted` stays false. On a
+        // database that does not abort on a failed statement, it succeeds.
+        await sql`select 1`.execute(kyselyTransaction)
       })
 
     await dreamTransaction.runAfterCommitHooks()

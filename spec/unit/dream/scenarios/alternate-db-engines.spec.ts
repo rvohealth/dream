@@ -1,6 +1,8 @@
 import { sql } from 'kysely'
 import CannotSaveMissingDream from '../../../../src/errors/CannotSaveMissingDream.js'
 import MysqlQueryDriver from '../../../../test-app/app/conf/mysql/MysqlQueryDriver.js'
+import DreamTransaction from '../../../../src/dream/DreamTransaction.js'
+import MysqlApplicationModel from '../../../../test-app/app/models/MysqlApplicationModel.js'
 import MysqlUser from '../../../../test-app/app/models/MysqlUser.js'
 
 function mysqlDb() {
@@ -50,6 +52,22 @@ describe('leveraging alternate db engines', () => {
       const error = thrown as Error
       expect(error.message).toContain('MysqlUser')
       expect(error.message).toContain(String(user.id))
+    })
+
+    it('commits a transaction whose callback catches a failed statement, since MySQL does not abort the transaction', async () => {
+      let transaction = null as DreamTransaction<any> | null
+      let createdUser = null as MysqlUser | null
+
+      await MysqlApplicationModel.transaction(async txn => {
+        transaction = txn
+        createdUser = await MysqlUser.txn(txn).create({ email: 'caught@mysql', name: 'caught failure' })
+        await expect(
+          sql`select * from table_that_does_not_exist`.execute(txn.kyselyTransaction)
+        ).rejects.toThrow()
+      })
+
+      expect(transaction!.isCommitted).toBe(true)
+      expect(await MysqlUser.where({ id: createdUser!.id }).count()).toEqual(1)
     })
 
     context('a locked read on a driver that has not implemented the row-locking seam', () => {

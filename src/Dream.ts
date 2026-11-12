@@ -2766,6 +2766,12 @@ export default class Dream {
    * in an outer variable and read its `isCommitted` after the rejection
    * (see {@link DreamTransaction.isCommitted}).
    *
+   * On Postgres, a failed statement aborts the transaction, so a callback
+   * that catches a failed statement's error and resolves still cannot
+   * commit: this call rejects with Postgres's "current transaction is
+   * aborted" error, none of the transaction's writes are saved, and its
+   * commit hooks do not run.
+   *
    * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
    * @returns The value the callback resolves to
    */
