@@ -4,6 +4,7 @@ import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.j
 import CompositionAssetAudit from '../../../../test-app/app/models/CompositionAssetAudit.js'
 import Sandbag from '../../../../test-app/app/models/Sandbag.js'
 import User from '../../../../test-app/app/models/User.js'
+import ValidationError from '../../../../src/errors/ValidationError.js'
 
 describe('Dream BeforeUpdate decorator', () => {
   it('runs the query before updating a record', async () => {
@@ -17,6 +18,45 @@ describe('Dream BeforeUpdate decorator', () => {
 
     await compositionAssetAudit.save()
     expect(compositionAssetAudit.approval).toEqual(false)
+  })
+
+  context('when the hook fills a value a validation requires', () => {
+    it('updates the record, because before-update hooks run before validation', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id })
+      const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
+      const replacementCompositionAsset = await CompositionAsset.create({ compositionId: composition.id })
+      const compositionAssetAudit = await CompositionAssetAudit.create({
+        compositionAssetId: compositionAsset.id,
+      })
+      vi.spyOn(CompositionAssetAudit.prototype, 'ensureApprovalIsSet').mockImplementation(function (
+        this: CompositionAssetAudit
+      ) {
+        this.compositionAssetId = replacementCompositionAsset.id
+      })
+      ;(compositionAssetAudit as any).compositionAssetId = null
+      await compositionAssetAudit.save()
+
+      const reloaded = await CompositionAssetAudit.findOrFail(compositionAssetAudit.id)
+      expect(reloaded.compositionAssetId).toEqual(replacementCompositionAsset.id)
+    })
+
+    it('rejects with a ValidationError when hooks are skipped', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id })
+      const compositionAsset = await CompositionAsset.create({ compositionId: composition.id })
+      const replacementCompositionAsset = await CompositionAsset.create({ compositionId: composition.id })
+      const compositionAssetAudit = await CompositionAssetAudit.create({
+        compositionAssetId: compositionAsset.id,
+      })
+      vi.spyOn(CompositionAssetAudit.prototype, 'ensureApprovalIsSet').mockImplementation(function (
+        this: CompositionAssetAudit
+      ) {
+        this.compositionAssetId = replacementCompositionAsset.id
+      })
+      ;(compositionAssetAudit as any).compositionAssetId = null
+      await expect(compositionAssetAudit.save({ skipHooks: true })).rejects.toThrow(ValidationError)
+    })
   })
 
   context('with ifChanging set on hook decorator', () => {

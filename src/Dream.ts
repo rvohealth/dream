@@ -3165,6 +3165,12 @@ export default class Dream {
    * declared using the Validate and Validates decorators,
    * and returns true if any of them fail.
    *
+   * Runs no model hooks. `save` runs BeforeCreate or BeforeUpdate
+   * hooks and then BeforeSave hooks before it validates, so a record
+   * one of those hooks would complete (for example, by setting a
+   * required BelongsTo foreign key) can be invalid here and still
+   * save successfully.
+   *
    * ```ts
    * class User extends ApplicationModel {
    *   @deco.Validates('presence')
@@ -3212,6 +3218,12 @@ export default class Dream {
    *
    * NOTE: Any validations that fail will leave the errors
    * field populated on your model instance.
+   *
+   * Runs no model hooks. `save` runs BeforeCreate or BeforeUpdate
+   * hooks and then BeforeSave hooks before it validates, so a record
+   * one of those hooks would complete (for example, by setting a
+   * required BelongsTo foreign key) can be invalid here and still
+   * save successfully.
    *
    * ```ts
    * class User extends ApplicationModel {

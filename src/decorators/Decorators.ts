@@ -574,6 +574,15 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   /**
    * BeforeCreate decorator
    *
+   * Runs the decorated method when a new record is saved, before any
+   * BeforeSave hooks and before the save-time validation check. A hook
+   * can therefore set a value a validation requires, such as a required
+   * BelongsTo foreign key, and the save succeeds. Saving with
+   * `skipHooks: true` skips the hook but still validates.
+   *
+   * `isValid` and `isInvalid` run no hooks, so they can report invalid
+   * for a record this hook would complete.
+   *
    * ```ts
    * class User {
    *   @deco.BeforeCreate()
@@ -593,6 +602,16 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   /**
    * BeforeSave decorator
    *
+   * Runs the decorated method when a record is saved, whether new or
+   * already persisted, after any BeforeCreate or BeforeUpdate hooks and
+   * before the save-time validation check. A hook can therefore set a
+   * value a validation requires, such as a required BelongsTo foreign
+   * key, and the save succeeds. Saving with `skipHooks: true` skips the
+   * hook but still validates.
+   *
+   * `isValid` and `isInvalid` run no hooks, so they can report invalid
+   * for a record this hook would complete.
+   *
    * ```ts
    * class User {
    *   @deco.BeforeSave()
@@ -611,6 +630,15 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
 
   /**
    * BeforeUpdate decorator
+   *
+   * Runs the decorated method when an already-persisted record is saved,
+   * before any BeforeSave hooks and before the save-time validation
+   * check. A hook can therefore set a value a validation requires, such
+   * as a required BelongsTo foreign key, and the save succeeds. Saving
+   * with `skipHooks: true` skips the hook but still validates.
+   *
+   * `isValid` and `isInvalid` run no hooks, so they can report invalid
+   * for a record this hook would complete.
    *
    * ```ts
    * class User {
