@@ -180,8 +180,8 @@ importers:
         specifier: '=10.0.1'
         version: 10.0.1(eslint@10.8.1(supports-color@7.2.0))
       '@rvoh/dream-spec-helpers':
-        specifier: ^2.3.0
-        version: 2.3.0(@types/node@26.6.3)(@types/pg@8.11.11)(pg@8.13.3)
+        specifier: ^2.5.0
+        version: 2.5.0(@types/node@26.6.3)(@types/pg@8.11.11)(pg@8.13.3)
       '@types/luxon':
         specifier: ^3.7.1
         version: 3.7.1
@@ -632,8 +632,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rvoh/dream-spec-helpers@2.3.0':
-    resolution: {integrity: sha512-i31/w2a2ZcUxumOmmfcfLBnCYNyFQ/lvEaR1x04fbF9L0HTbPlvEP0GSOr5XgISAi1UeY4IWJJNtGaKNiQHZQA==}
+  '@rvoh/dream-spec-helpers@2.5.0':
+    resolution: {integrity: sha512-bAquEYFOrt7+5/8oL0tG8dCLmu2KR3Xc8t6VmjDwQaFmYY830TktE8Nqn4cQoj87qbbKoPUY5rWVrK6QLpWzAw==}
+    engines: {node: '>=24'}
     peerDependencies:
       '@types/node': '*'
       '@types/pg': '*'
@@ -1953,7 +1954,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.0':
     optional: true
 
-  '@rvoh/dream-spec-helpers@2.3.0(@types/node@26.6.3)(@types/pg@8.11.11)(pg@8.13.3)':
+  '@rvoh/dream-spec-helpers@2.5.0(@types/node@26.6.3)(@types/pg@8.11.11)(pg@8.13.3)':
     dependencies:
       '@types/node': 26.6.3
       '@types/pg': 8.11.11

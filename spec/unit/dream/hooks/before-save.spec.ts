@@ -3,6 +3,7 @@ import Composition from '../../../../test-app/app/models/Composition.js'
 import CompositionAsset from '../../../../test-app/app/models/CompositionAsset.js'
 import Sandbag from '../../../../test-app/app/models/Sandbag.js'
 import User from '../../../../test-app/app/models/User.js'
+import ValidationError from '../../../../src/errors/ValidationError.js'
 
 describe('Dream BeforeSave decorator', () => {
   it('runs the query before creating a record', async () => {
@@ -19,6 +20,37 @@ describe('Dream BeforeSave decorator', () => {
     compositionAsset.src = null
     await compositionAsset.save()
     expect(compositionAsset.src).toEqual('default src')
+  })
+
+  context('when the hook fills a value a validation requires', () => {
+    it('saves the record, because before-save hooks run before validation', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id })
+      vi.spyOn(CompositionAsset.prototype, 'ensureDefaultSrc').mockImplementation(function (
+        this: CompositionAsset
+      ) {
+        this.compositionId = composition.id
+      })
+
+      const compositionAsset = CompositionAsset.new()
+      await compositionAsset.save()
+
+      const reloaded = await CompositionAsset.findOrFail(compositionAsset.id)
+      expect(reloaded.compositionId).toEqual(composition.id)
+    })
+
+    it('rejects with a ValidationError when hooks are skipped', async () => {
+      const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      const composition = await Composition.create({ userId: user.id })
+      vi.spyOn(CompositionAsset.prototype, 'ensureDefaultSrc').mockImplementation(function (
+        this: CompositionAsset
+      ) {
+        this.compositionId = composition.id
+      })
+
+      const compositionAsset = CompositionAsset.new()
+      await expect(compositionAsset.save({ skipHooks: true })).rejects.toThrow(ValidationError)
+    })
   })
 
   context('with ifChanging set on hook decorator', () => {

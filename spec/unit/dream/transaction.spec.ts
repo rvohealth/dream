@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import ValidationError from '../../../src/errors/ValidationError.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../test-app/app/models/Composition.js'
@@ -34,6 +35,27 @@ describe('ApplicationModel.transaction', () => {
       return 'howyadoin'
     })
     expect(res).toEqual('howyadoin')
+  })
+
+  context('a callback that catches a failed statement and returns normally', () => {
+    it("rejects with the database's aborted-transaction error, persists nothing and runs no commit hooks", async () => {
+      const user = await User.create({ email: 'fred@fred', password: 'howyadoin' })
+      const commitHookSpy = vi.spyOn(Composition.prototype, 'conditionallyChangeContentOnCreateCommit')
+
+      await expect(
+        ApplicationModel.transaction(async txn => {
+          await Composition.txn(txn).create({ user })
+          try {
+            await sql`select 1 / 0`.execute(txn.kyselyTransaction)
+          } catch {
+            // the caller swallows the failed statement
+          }
+        })
+      ).rejects.toThrow(/current transaction is aborted/)
+
+      expect(await Composition.count()).toEqual(0)
+      expect(commitHookSpy).not.toHaveBeenCalled()
+    })
   })
 
   context('a DB action that raises an exception', () => {

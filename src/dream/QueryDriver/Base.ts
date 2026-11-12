@@ -174,7 +174,7 @@ export default class QueryDriverBase<DreamInstance extends Dream> {
    * ```
    *
    * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
-   * @returns void
+   * @returns The value the callback resolves to
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async transaction<

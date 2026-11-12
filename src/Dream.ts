@@ -2758,8 +2758,22 @@ export default class Dream {
    * })
    * ```
    *
+   * Commit hooks (AfterCreateCommit, AfterUpdateCommit, AfterSaveCommit,
+   * AfterDestroyCommit) for records written in the transaction run after
+   * COMMIT. When one throws, this call rejects with that hook's error even
+   * though the transaction's writes are already in the database. To tell
+   * that apart from a transaction that did not commit, keep the transaction
+   * in an outer variable and read its `isCommitted` after the rejection
+   * (see {@link DreamTransaction.isCommitted}).
+   *
+   * On Postgres, a failed statement aborts the transaction, so a callback
+   * that catches a failed statement's error and resolves still cannot
+   * commit: this call rejects with Postgres's "current transaction is
+   * aborted" error, none of the transaction's writes are saved, and its
+   * commit hooks do not run.
+   *
    * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
-   * @returns void
+   * @returns The value the callback resolves to
    */
   public static async transaction<
     T extends typeof Dream,
@@ -3157,6 +3171,12 @@ export default class Dream {
    * declared using the Validate and Validates decorators,
    * and returns true if any of them fail.
    *
+   * Runs no model hooks. `save` runs BeforeCreate or BeforeUpdate
+   * hooks and then BeforeSave hooks before it validates, so a record
+   * one of those hooks would complete (for example, by setting a
+   * required BelongsTo foreign key) can be invalid here and still
+   * save successfully.
+   *
    * ```ts
    * class User extends ApplicationModel {
    *   @deco.Validates('presence')
@@ -3204,6 +3224,12 @@ export default class Dream {
    *
    * NOTE: Any validations that fail will leave the errors
    * field populated on your model instance.
+   *
+   * Runs no model hooks. `save` runs BeforeCreate or BeforeUpdate
+   * hooks and then BeforeSave hooks before it validates, so a record
+   * one of those hooks would complete (for example, by setting a
+   * required BelongsTo foreign key) can be invalid here and still
+   * save successfully.
    *
    * ```ts
    * class User extends ApplicationModel {
