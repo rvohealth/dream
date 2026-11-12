@@ -101,7 +101,7 @@
   },
   "devDependencies": {
     "@eslint/js": "=10.0.1",
-    "@rvoh/dream-spec-helpers": "^2.3.0",
+    "@rvoh/dream-spec-helpers": "^2.5.0",
     "@types/luxon": "^3.7.1",
     "@types/node": "^26.6.3",
     "@types/pg": "^8.11.11",
