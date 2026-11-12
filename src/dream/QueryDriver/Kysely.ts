@@ -504,8 +504,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
    * })
    * ```
    *
+   * Commit hooks (AfterCreateCommit, AfterUpdateCommit, AfterSaveCommit,
+   * AfterDestroyCommit) for records written in the transaction run after
+   * COMMIT. When one throws, this call rejects with that hook's error even
+   * though the transaction's writes are already in the database (see
+   * {@link DreamTransaction.isCommitted}).
+   *
    * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
-   * @returns void
+   * @returns The value the callback resolves to
    */
   public static override async transaction<
     DreamInstance extends Dream,
@@ -523,13 +529,14 @@ export default class KyselyQueryDriver<DreamInstance extends Dream> extends Quer
           dreamTransaction
         )) as RetType
 
-        // A database that aborts a transaction on a failed statement (Postgres)
-        // answers COMMIT on that transaction with a rollback, not an error, so
-        // a callback that catches a failed statement and resolves would read as
-        // committed. This no-op statement fails in an aborted transaction, which
-        // rolls it back and rejects with the database's error before COMMIT, so
-        // its commit hooks never run and `isCommitted` stays false. On a
-        // database that does not abort on a failed statement, it succeeds.
+        // Postgres rule: after any statement in a transaction fails, the transaction
+        // is "aborted", and COMMIT on it silently rolls everything back instead of
+        // raising an error. That happens when this callback catches a failed query
+        // and returns normally. `select 1` does nothing, but Postgres refuses it in an
+        // aborted transaction, so it throws here, before COMMIT: Kysely rolls back and
+        // rejects, commit hooks don't run, and `isCommitted` stays false. In a healthy
+        // transaction, and always on MySQL (which doesn't abort on a failed
+        // statement), it succeeds at once.
         await sql`select 1`.execute(kyselyTransaction)
       })
 
