@@ -2758,8 +2758,16 @@ export default class Dream {
    * })
    * ```
    *
+   * Commit hooks (AfterCreateCommit, AfterUpdateCommit, AfterSaveCommit,
+   * AfterDestroyCommit) for records written in the transaction run after
+   * COMMIT. When one throws, this call rejects with that hook's error even
+   * though the transaction's writes are already in the database. To tell
+   * that apart from a transaction that did not commit, keep the transaction
+   * in an outer variable and read its `isCommitted` after the rejection
+   * (see {@link DreamTransaction.isCommitted}).
+   *
    * @param callback - A callback function to call. The transaction provided to the callback can be passed to subsequent database calls within the transaction callback
-   * @returns void
+   * @returns The value the callback resolves to
    */
   public static async transaction<
     T extends typeof Dream,

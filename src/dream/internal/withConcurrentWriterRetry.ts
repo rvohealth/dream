@@ -68,7 +68,7 @@ export default async function withConcurrentWriterRetry<R>(
         return result
       })
     } catch (error) {
-      if (attemptTransaction?.['committed']) throw error
+      if (attemptTransaction?.isCommitted) throw error
 
       const undoneByConcurrentWriter =
         queryDriverClass.isDeadlock(error) ||
