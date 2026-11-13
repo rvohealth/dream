@@ -53,6 +53,19 @@ describe('Query#preload with simple associations', () => {
       expect(reloaded.balloons).toMatchDreamModels([balloon])
       expect(reloaded.compositions).toMatchDreamModels([composition])
     })
+
+    it('array syntax after an earlier preload through the same association keeps the deeper associations', async () => {
+      const pet = await Pet.create({ user, name: 'Aster' })
+      await Collar.create({ pet, balloon })
+
+      const reloaded = await User.query()
+        .preload('pets', 'collars', 'balloon')
+        .preload('pets', ['collars', 'user'])
+        .firstOrFail()
+
+      expect(reloaded.pets[0]!.collars[0]!.balloon).toMatchDreamModel(balloon)
+      expect(reloaded.pets[0]!.user).toMatchDreamModel(user)
+    })
   })
 
   it('aliases can be used to shorten the alias used in the query', async () => {
