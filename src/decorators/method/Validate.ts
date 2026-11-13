@@ -16,6 +16,12 @@ export default function Validate(): any {
         // already declared on the base STI class.
         t['customValidations'] = [...t['customValidations']]
       }
+
+      // an STI child inherits its base's `customValidations` via the copy above,
+      // and the base's method initializers run again while the child is globally
+      // initialized, so a method already registered is skipped rather than run
+      // twice on each validation
+      if (t['customValidations'].includes(key)) return
       ;(t['customValidations'] as string[]).push(key)
     })
   }

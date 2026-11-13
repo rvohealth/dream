@@ -148,18 +148,21 @@ export default function BelongsTo<BaseInstance extends Dream, AssociationGlobalN
         },
       } as BelongsToStatement<any, any, any, any>
 
-      if (dreamClass['isSTIChild']) {
-        applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
-        return
+      // an STI child reads its association metadata through its base, so only
+      // a class that is not an STI child registers the association
+      if (!dreamClass['isSTIChild']) {
+        if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
+          dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
+        ;(
+          dreamClass['associationMetadataByType']['belongsTo'] as BelongsToStatement<any, any, any, any>[]
+        ).push(association)
       }
 
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'associationMetadataByType'))
-        dreamClass['associationMetadataByType'] = blankAssociationsFactory(dreamClass)
-      ;(
-        dreamClass['associationMetadataByType']['belongsTo'] as BelongsToStatement<any, any, any, any>[]
-      ).push(association)
-
       applyGetterAndSetter(target, association, { isBelongsTo: true, foreignKeyBase: foreignKey })
+
+      // every class, an STI child included, registers the required-association
+      // validation on its own `validations`, so an STI child runs it whether it
+      // is globally initialized before or after its base
       if (!optional) validatesImplementation(target, key, 'requiredBelongsTo')
     })
   }
