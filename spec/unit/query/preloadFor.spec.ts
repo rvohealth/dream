@@ -250,6 +250,19 @@ describe('Dream.preloadFor(serializerKey)', () => {
       expect(collar.pet.ratings).toMatchDreamModels([rating])
       expect(collar.pet.ratings[0]!.user).toMatchDreamModel(user)
     })
+
+    it('keeps the deeply-nested associations when followed by a preload with the array syntax', async () => {
+      const user = await User.create({ email: 'how@yadoin', password: 'howyadoin' })
+      const pet = await Pet.create({ user })
+      const post = await Post.create({ body: 'hi', user })
+      const rating = await Rating.create({ user, rateable: post })
+      await Collar.create({ pet })
+
+      const collar = await Collar.query().preloadFor('deep').preload('pet', ['ratings', 'user']).firstOrFail()
+      expect(collar.pet.ratings).toMatchDreamModels([rating])
+      expect(collar.pet.ratings[0]!.user).toMatchDreamModel(user)
+      expect(collar.pet.user).toMatchDreamModel(user)
+    })
   })
 
   context('with a transaction', () => {
