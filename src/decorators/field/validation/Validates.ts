@@ -1,6 +1,7 @@
 import Dream from '../../../Dream.js'
 import { ValidationStatement, ValidationType } from '../../../types/validation.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
+import registerOnce from '../../helpers/registerOnce.js'
 
 export default function Validates<
   VT extends ValidationType,
@@ -45,61 +46,11 @@ export function validatesImplementation<
 
   if (!t['globallyInitializingDecorators']) return
 
-  if (!Object.getOwnPropertyDescriptor(t, 'validations')) {
-    // This pattern allows `validations` on a base STI class and on
-    // child STI classes. The new `validations` property will be created
-    // on the child STI class, but it will include all the `validations`
-    // already declared on the base STI class.
-    t['validations'] = [...t['validations']]
-  }
-
-  const validation: ValidationStatement = {
+  registerOnce(t, 'validations', {
     type,
     column: key,
     options: extractValidationOptionsFromArgs(type, args),
-  }
-
-  // an STI child inherits its base's `validations` via the copy above, and the
-  // base's field initializers run again while the child is globally
-  // initialized, so a validation already registered is skipped rather than
-  // checked (and its error reported) twice
-  if (t['validations'].some(existing => isSameValidation(existing, validation))) return
-  ;(t['validations'] as ValidationStatement[]).push(validation)
-}
-
-function isSameValidation(a: ValidationStatement, b: ValidationStatement): boolean {
-  if (a.type !== b.type || a.column !== b.column) return false
-
-  switch (b.type) {
-    case 'presence':
-    case 'requiredBelongsTo':
-      return true
-
-    case 'numericality':
-      return (
-        a.options?.numericality?.min === b.options?.numericality?.min &&
-        a.options?.numericality?.max === b.options?.numericality?.max
-      )
-
-    case 'length':
-      return (
-        a.options?.length?.min === b.options?.length?.min && a.options?.length?.max === b.options?.length?.max
-      )
-
-    case 'contains':
-      return isSameContainsValue(a.options?.contains?.value, b.options?.contains?.value)
-
-    default: {
-      // protection so that if a new ValidationType is ever added, this will throw a type error at build time
-      const _never: never = b.type
-      throw new Error(`Unhandled ValidationType: ${_never as string}`)
-    }
-  }
-}
-
-function isSameContainsValue(a: string | RegExp | undefined, b: string | RegExp | undefined): boolean {
-  if (a instanceof RegExp && b instanceof RegExp) return a.source === b.source && a.flags === b.flags
-  return a === b
+  } satisfies ValidationStatement)
 }
 
 function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
