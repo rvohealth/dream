@@ -275,7 +275,12 @@ export default class DreamSerializerBuilder<
    *     `casing: 'snake'` renders `phoneNumber` as `phone_number`, present or `null`), while
    *     nested values render as returned. Attributes render in declaration order, so a key the
    *     returned object shares with another attribute takes the value of whichever is declared
-   *     later, and that value must match both the attribute's declaration and the `openapi`'s
+   *     later, unless the later one leaves the key unrendered, which keeps the earlier value: a
+   *     later flattened `customAttribute` or `rendersOne` whose value leaves out a key it does
+   *     not require, or a later attribute, delegatedAttribute or customAttribute that its
+   *     `required: false` option omits from the render. The OpenAPI schema describes the shared
+   *     key by the later declaration's schema alone, so whichever value the key holds must
+   *     match that schema
    *   - `required` - Set to `false` to mark the attribute as optional in the OpenAPI schema;
    *     when omitted, attributes are required by default
    * @returns The serializer builder for method chaining
@@ -328,6 +333,12 @@ export default class DreamSerializerBuilder<
    *     declaration order, so when the parent and the association share a key (e.g., `id`),
    *     whichever is declared later wins: the association's value replaces an attribute declared
    *     before the `rendersOne`, and an attribute declared after it replaces the association's.
+   *     A later declaration that leaves the key unrendered keeps the earlier value instead: a key
+   *     the association's serializer does not render, such as one declared there with
+   *     `required: false` that no serializer requires (left out when that option omits it or the
+   *     association is `null`), keeps the parent's earlier value, and an attribute,
+   *     delegatedAttribute or customAttribute declared after the `rendersOne` that its
+   *     `required: false` option omits from the render keeps the association's value.
    *     Each key its serializer requires always renders, as `null` wherever the association
    *     does not supply it: an attribute, delegatedAttribute or customAttribute declared without
    *     `required: false`, and every non-flattened `rendersOne` and `rendersMany` (for a
@@ -349,8 +360,10 @@ export default class DreamSerializerBuilder<
    *     that is not an association and has neither option renders none of these keys, since no
    *     serializer is known for it). A key declared with `required: false` that no serializer
    *     requires stays absent unless it renders. The association's OpenAPI schema describes the
-   *     parent's payload too, so a shared key's value must match both the parent's declaration
-   *     and the association's, whichever declaration wins
+   *     parent's payload too, and a shared key is described by the later declaration's schema
+   *     alone: the earlier declaration leaves the key out, and an earlier flattened association
+   *     whose key is taken describes its remaining keys inline rather than by `$ref`. So
+   *     whichever value the key holds must match the later declaration's schema
    *   - `optional` - When `true`, allows the association to be null/missing without causing
    *     an `OpenapiResponseValidationFailure` during Psychic controller unit specs. By default,
    *     `rendersOne` expects the association to be present (mirroring the `optional` option on
@@ -436,7 +449,8 @@ export default class DreamSerializerBuilder<
        * If `true`, the rendered association's attributes are merged directly into
        * the parent object instead of being nested under the association key. A key
        * the parent shares with the association takes the value of whichever is
-       * declared later, and each key its serializer requires renders, as `null`
+       * declared later, or keeps the earlier value when the later declaration leaves
+       * it unrendered, and each key its serializer requires renders, as `null`
        * wherever the association does not supply it. See the `flatten` option of
        * `rendersOne`.
        */

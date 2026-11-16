@@ -1407,17 +1407,17 @@ export default class Query<
 
       //
     } else if (Array.isArray(nextAssociationStatement)) {
-      // this supports the final argument of load/preload statements
+      // this supports the final argument of load/preload statements. Each name goes through
+      // the string path, so a name the tree already holds keeps the subtree planned beneath it.
       nextAssociationStatement.forEach((associationName: string) => {
-        this.addAssociatedDreamClassToInnerJoinDreamClasses(
-          previousDreamClass,
-          associationName,
-          innerJoinDreamClasses
+        this.fleshOutJoinStatements(
+          innerJoinDreamClasses,
+          joinStatements,
+          joinAndStatements,
+          previousAssociationName,
+          [associationName],
+          previousDreamClass
         )
-      })
-
-      nextAssociationStatement.forEach(associationStatement => {
-        joinStatements[protectAgainstPollutingAssignment(associationStatement)] = Object.create(null)
       })
       //
     } else if (isObject(nextAssociationStatement) && previousAssociationName) {

@@ -1,5 +1,6 @@
 import Dream from '../../../Dream.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
+import registerOnce from '../../helpers/registerOnce.js'
 import scopeArray from './helpers/scopeArray.js'
 
 /**
@@ -17,25 +18,6 @@ export default function Sortable(opts: SortableOpts = {}): any {
       const dreamClass: typeof Dream = dream.constructor as typeof Dream
       if (!dreamClass['globallyInitializingDecorators']) return
 
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'sortableFields')) {
-        // This pattern allows `sortableFields` on a base STI class and on
-        // child STI classes. The new `sortableFields` property will be created
-        // on the child STI class, but it will include all the `sortableFields`
-        // already declared on the base STI class.
-        dreamClass['sortableFields'] = [...dreamClass['sortableFields']]
-      }
-
-      // an STI child inherits its base's sortable fields via the copy above, and
-      // the base's field initializers run again while the child is globally
-      // initialized, so without this guard the child registers a second config
-      // for the same position field whenever the base is initialized first
-      // (models are globally initialized in filesystem order). Every duplicate
-      // config repeats the child's position work on each save, so positions
-      // advance by the number of duplicates instead of by 1
-      if (dreamClass['sortableFields'].some(conf => conf.positionField === key)) {
-        return
-      }
-
       // the decorator registers nothing but this metadata: none of a sortable
       // field's runtime work runs as hooks. A save's preparation and position
       // write run as phases in `saveDream` (`prepareSortableFieldsForSave`,
@@ -46,10 +28,12 @@ export default function Sortable(opts: SortableOpts = {}): any {
       // relative to the user's hooks by the caller, so no user hook code can
       // interleave with the position work and every after-hook observes
       // computed positions and compacted scopes
-      ;(dreamClass['sortableFields'] as SortableFieldConfig[]).push({
-        scope: scopeArray(opts.scope),
-        positionField: key,
-      })
+      registerOnce(
+        dreamClass,
+        'sortableFields',
+        { scope: scopeArray(opts.scope), positionField: key },
+        (existing, entry) => existing.positionField === entry.positionField
+      )
     })
   }
 }

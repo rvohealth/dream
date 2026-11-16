@@ -7,6 +7,7 @@ import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
+import registerOnce from '../helpers/registerOnce.js'
 
 export default function Encrypted(columnOrOptions?: string | EncryptedOptions): any {
   const { column, openapi }: EncryptedOptions =
@@ -36,35 +37,14 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
         return
       }
 
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'virtualAttributes')) {
-        // This pattern allows `virtualAttributes` on a base STI class and on
-        // child STI classes. The new `virtualAttributes` property will be created
-        // on the child STI class, but it will include all the `virtualAttributes`
-        // already declared on the base STI class.
-        dreamClass['virtualAttributes'] = [...dreamClass['virtualAttributes']]
-      }
-      ;(dreamClass['virtualAttributes'] as VirtualAttributeStatement[]).push({
+      registerOnce(dreamClass, 'virtualAttributes', {
         property: key,
         type: openapi ?? (columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string'),
       } satisfies VirtualAttributeStatement)
 
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'explicitUnsafeParamColumns')) {
-        // This pattern allows `explicitUnsafeParamColumns` on a base STI class and on
-        // child STI classes. The new `explicitUnsafeParamColumns` property will be created
-        // on the child STI class, but it will include all the `explicitUnsafeParamColumns`
-        // already declared on the base STI class.
-        dreamClass['explicitUnsafeParamColumns'] = [...dreamClass['explicitUnsafeParamColumns']]
-      }
-      ;(dreamClass['explicitUnsafeParamColumns'] as string[]).push(encryptedKey)
+      registerOnce(dreamClass, 'explicitUnsafeParamColumns', encryptedKey)
 
-      if (!Object.getOwnPropertyDescriptor(dreamClass, 'encryptedAttributes')) {
-        // This pattern allows `encryptedAttributes` on a base STI class and on
-        // child STI classes. The new `encryptedAttributes` property will be created
-        // on the child STI class, but it will include all the `encryptedAttributes`
-        // already declared on the base STI class.
-        dreamClass['encryptedAttributes'] = [...dreamClass['encryptedAttributes']]
-      }
-      ;(dreamClass['encryptedAttributes'] as EncryptedAttributeStatement[]).push({
+      registerOnce(dreamClass, 'encryptedAttributes', {
         property: key,
         encryptedColumnName: encryptedKey,
       } satisfies EncryptedAttributeStatement)

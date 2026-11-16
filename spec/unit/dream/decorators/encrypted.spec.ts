@@ -1,6 +1,8 @@
+import STI from '../../../../src/decorators/class/STI.js'
 import Decorators from '../../../../src/decorators/Decorators.js'
 import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
+import { DreamColumn } from '../../../../src/types/dream.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
@@ -493,6 +495,65 @@ describe('@Encrypted', () => {
         { property: 'secret', encryptedColumnName: 'encryptedSecret' },
       ])
       expect(UserWithJsonSecret['virtualAttributes']).toEqual([{ property: 'secret', type: 'json' }])
+    })
+  })
+
+  context('on an STI base', () => {
+    it('lists each inherited encrypted attribute once on a child initialized after its base', () => {
+      const deco = new Decorators<typeof SecretiveBase>()
+
+      class SecretiveBase extends ApplicationModel {
+        public override get table() {
+          return 'sti_bases' as const
+        }
+
+        public id: DreamColumn<SecretiveBase, 'id'>
+
+        @deco.Encrypted()
+        public secret: string
+      }
+
+      @STI(SecretiveBase)
+      class SecretiveChild extends SecretiveBase {}
+
+      processDynamicallyDefinedModels(SecretiveBase, SecretiveChild)
+
+      expect(SecretiveChild['encryptedAttributes']).toEqual([
+        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+      ])
+      expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
+      expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])
+
+      const child = SecretiveChild.new()
+      child.secret = 'shh!'
+      expect(child.secret).toEqual('shh!')
+      expect(typeof child.getAttribute('encryptedSecret')).toEqual('string')
+    })
+
+    it('lists each inherited encrypted attribute once on a child initialized before its base', () => {
+      const deco = new Decorators<typeof SecretiveBase>()
+
+      class SecretiveBase extends ApplicationModel {
+        public override get table() {
+          return 'sti_bases' as const
+        }
+
+        public id: DreamColumn<SecretiveBase, 'id'>
+
+        @deco.Encrypted()
+        public secret: string
+      }
+
+      @STI(SecretiveBase)
+      class SecretiveChild extends SecretiveBase {}
+
+      processDynamicallyDefinedModels(SecretiveChild, SecretiveBase)
+
+      expect(SecretiveChild['encryptedAttributes']).toEqual([
+        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+      ])
+      expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
+      expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])
     })
   })
 })
