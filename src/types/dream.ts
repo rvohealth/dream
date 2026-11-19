@@ -332,6 +332,27 @@ export type DreamVirtualColumns<
   Schema = DreamInstance['schema'],
 > = VirtualColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
 
+/**
+ * The json/jsonb columns of a model, i.e. its columns that are not listed
+ * in the schema's `nonJsonColumnNames`. These are the columns `@deco.JSON`
+ * may decorate.
+ */
+export type JsonDreamColumnNames<DreamInstance extends Dream> = Exclude<
+  DreamColumnNames<DreamInstance>,
+  NonJsonDreamColumnNames<DreamInstance>
+>
+
+/**
+ * The json/jsonb columns of a model whose shape is declared with
+ * `@deco.JSON`, as listed in the schema's `jsonDecoratedColumns` (written by
+ * sync). A schema written before sync emitted that list yields `never`.
+ */
+export type DreamJSONDecoratedColumns<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['schema'],
+  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
+> = TableSchema['jsonDecoratedColumns' & keyof TableSchema]
+
 export type DreamBelongsToAssociationMetadata<
   DreamInstance extends Dream,
   SchemaAssociations = DreamAssociationMetadata<DreamInstance>,

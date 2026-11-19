@@ -201,6 +201,15 @@ export default class ASTSchemaBuilder extends ASTConnectionBuilder {
               ),
 
               f.createPropertyAssignment(
+                f.createIdentifier('jsonDecoratedColumns'),
+                f.createArrayLiteralExpression(
+                  [...(tableData?.jsonDecoratedColumns || [])]
+                    .sort()
+                    .map(columnName => f.createStringLiteral(columnName))
+                )
+              ),
+
+              f.createPropertyAssignment(
                 f.createIdentifier('associations'),
                 f.createObjectLiteralExpression(
                   Object.keys(tableData?.associations || {})

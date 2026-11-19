@@ -6,6 +6,7 @@ import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
 import { EncryptedAttributeStatement } from './decorators/field/Encrypted.js'
+import { JSONColumnShapeStatement } from './decorators/field/JSON.js'
 import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
@@ -380,6 +381,22 @@ export default class Dream {
    * freezing ensures that we never modify the static array on the inherited Dream class)
    */
   private static virtualAttributes: readonly VirtualAttributeStatement[] | VirtualAttributeStatement[] =
+    Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * Model storage for the shapes declared with the JSON decorator on json/jsonb
+   * columns, set on the inheriting class (this default assignment simply ensures
+   * that it is always an array rather than undefined, freezing ensures that we
+   * never modify the static array on the inherited Dream class).
+   *
+   * Kept apart from `virtualAttributes` because a decorated column is a real
+   * column: `isVirtualColumn` stays false for it. Not part of the public API;
+   * Psychic reaches it through the bracketed back-door
+   * (`dreamClass['jsonColumnShapes']`), as it does `virtualAttributes`.
+   */
+  private static jsonColumnShapes: readonly JSONColumnShapeStatement[] | JSONColumnShapeStatement[] =
     Object.freeze([])
 
   /**

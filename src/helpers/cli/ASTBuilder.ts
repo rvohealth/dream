@@ -200,6 +200,7 @@ export interface TableData {
   }
   columns: Readonly<{ [key: string]: SchemaBuilderColumnData }>
   virtualColumns: readonly string[]
+  jsonDecoratedColumns: readonly string[]
   associations: Readonly<{ [key: string]: SchemaBuilderAssociationData }>
 }
 

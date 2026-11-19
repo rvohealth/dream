@@ -407,6 +407,9 @@ may need to update the table getter in the corresponding Dream.
       virtualColumns: uniq(
         models.flatMap(model => model['virtualAttributes'].map(prop => prop.property) || [])
       ),
+      jsonDecoratedColumns: uniq(
+        models.flatMap(model => model['jsonColumnShapes'].map(statement => statement.column))
+      ),
       associations: associationData,
       serializerKeys,
     }

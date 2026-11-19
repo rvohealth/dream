@@ -3,6 +3,7 @@ import { RoundingPrecision } from '../helpers/round.js'
 import DreamSerializerBuilder from '../serializer/builders/DreamSerializerBuilder.js'
 import ObjectSerializerBuilder from '../serializer/builders/ObjectSerializerBuilder.js'
 import {
+  DreamJSONDecoratedColumns,
   DreamSerializable,
   DreamSerializableArray,
   DreamVirtualColumns,
@@ -137,6 +138,18 @@ export type SerializerAttributeOptionsForVirtualColumn = {
   required?: false
 }
 
+/**
+ * The options of `attribute` and `delegatedAttribute` on a json/jsonb column whose shape
+ * is declared with `@deco.JSON`: the shape comes from the model, so `openapi` takes only
+ * a description.
+ */
+export type SerializerAttributeOptionsForJSONDecoratedColumn = {
+  as?: string
+  default?: any
+  openapi?: OpenapiDescription
+  required?: false
+}
+
 export type NonAutomaticSerializerAttributeOptions = {
   as?: string
   default?: any
@@ -155,9 +168,11 @@ export type NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOptio
 
 /**
  * The options argument of `DreamSerializer#delegatedAttribute`. A Dream model's non-json
- * column infers its OpenAPI shape, so its `openapi` takes only a description and the
- * argument may be left out. A json/jsonb column or a non-Dream target has no shape to
- * infer, so the argument is required and its `openapi` takes a full shape.
+ * column infers its OpenAPI shape, and a json/jsonb column declared with `@deco.JSON`
+ * takes its shape from that declaration, so for either the `openapi` takes only a
+ * description and the argument may be left out. Any other json/jsonb column, or a
+ * non-Dream target, has no shape to infer, so the argument is required and its `openapi`
+ * takes a full shape.
  */
 export type DelegatedAttributeOptionsArgs<AssociatedModelType, TargetAttributeName> =
   DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> extends infer Options
@@ -176,13 +191,15 @@ type DelegatedAttributeOptions<AssociatedModelType, TargetAttributeName> = Assoc
       }
     : TargetAttributeName extends DreamVirtualColumns<AssociatedModelType>[number]
       ? SerializerAttributeOptionsForVirtualColumn & { optional?: boolean }
-      : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
-            keyof AssociatedModelType &
-            string
-        ? AutomaticSerializerAttributeOptions & { optional?: boolean }
-        : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
-            optional?: boolean
-          }
+      : TargetAttributeName extends DreamJSONDecoratedColumns<AssociatedModelType>[number]
+        ? SerializerAttributeOptionsForJSONDecoratedColumn & { optional?: boolean }
+        : TargetAttributeName extends NonJsonDreamColumnNames<AssociatedModelType> &
+              keyof AssociatedModelType &
+              string
+          ? AutomaticSerializerAttributeOptions & { optional?: boolean }
+          : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & {
+              optional?: boolean
+            }
   : NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption & { optional?: boolean }
 
 type CustomAttributeOpenapi = OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes

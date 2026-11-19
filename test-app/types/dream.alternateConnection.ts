@@ -124,6 +124,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
     associations: {
       alternateDbConnectionUser: {
         type: 'BelongsTo',
@@ -191,6 +192,7 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
     associations: {
       passthroughPosts: {
         type: 'HasMany',

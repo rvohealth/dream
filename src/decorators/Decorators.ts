@@ -13,12 +13,18 @@ import {
   HasOneThroughOptions,
   PolymorphicHasOneOptions,
 } from '../types/associations/hasOne.js'
-import { DreamColumnNames, GlobalModelNameTableMap, SortableOptions } from '../types/dream.js'
+import {
+  DreamColumnNames,
+  GlobalModelNameTableMap,
+  JsonDreamColumnNames,
+  SortableOptions,
+} from '../types/dream.js'
 import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { ValidationType } from '../types/validation.js'
 import Virtual from './field-or-getter/Virtual.js'
 import Encrypted, { EncryptedOptions } from './field/Encrypted.js'
+import JSONDecorator, { JSONColumnDecorator, JSONColumnShape } from './field/JSON.js'
 import BelongsTo from './field/association/BelongsTo.js'
 import HasMany from './field/association/HasMany.js'
 import HasOne from './field/association/HasOne.js'
@@ -272,6 +278,51 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
     columnOrOptions?: DreamColumnNames<T> | EncryptedOptions<DreamColumnNames<T>>
   ) {
     return Encrypted(columnOrOptions)
+  }
+
+  /**
+   * Declares the OpenAPI shape of a json, jsonb, json[] or jsonb[] column, once,
+   * on the model. Every reader of the column's shape uses this declaration:
+   * serializer `.attribute` and `.delegatedAttribute` (which then need no
+   * `openapi` option, and accept only a `description` in it) and, in Psychic,
+   * request-body OpenAPI and `Params.for`.
+   *
+   * ```ts
+   * class User extends ApplicationModel {
+   *   @deco.JSON({
+   *     type: 'object',
+   *     properties: { theme: { type: 'string', enum: ['light', 'dark'] }, fontSize: 'integer' },
+   *   })
+   *   public preferences: DreamColumn<User, 'preferences'>
+   * }
+   *
+   * // in the serializer, the shape comes from the model
+   * DreamSerializer(User, user).attribute('preferences')
+   * ```
+   *
+   * The shape describes the column's non-null value; whether the column may be
+   * null comes from the column itself, so the shape may not include `null` (a
+   * nullable column renders as the shape or null). On a json[] or jsonb[]
+   * column, the shape describes each element of the array, and may include
+   * `null` for an element that may be null.
+   *
+   * Only a json/jsonb column may be decorated: decorating any other property is
+   * a compile error, and, should one get past the types, an error when the
+   * models load at boot, as is a shape that includes `null` on a column that
+   * is not an array. A property that is not a column declares its shape with
+   * `@deco.Virtual` instead.
+   *
+   * After adding or removing `@deco.JSON`, re-run sync so the serializer types
+   * know which columns are declared.
+   *
+   * @param shape - The OpenAPI shape (shorthand allowed) of the column's value, or of each element for an array column
+   * @returns A JSON decorator
+   */
+  public JSON(
+    this: Decorators<TD>,
+    shape: JSONColumnShape
+  ): JSONColumnDecorator<JsonDreamColumnNames<T> & string> {
+    return JSONDecorator(shape)
   }
 
   /**

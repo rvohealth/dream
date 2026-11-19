@@ -4,7 +4,7 @@ import Composition from '../models/Composition.js'
 export default (data: Composition) =>
   DreamSerializer(Composition, data)
     .attribute('id')
-    .attribute('metadata', { openapi: 'json' })
+    .attribute('metadata')
     .rendersMany('compositionAssets')
     // .rendersMany('localizedTexts', () => LocalizedTextBaseSerializer<any>)
     .rendersOne('passthroughCurrentLocalizedText')

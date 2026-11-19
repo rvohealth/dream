@@ -45,6 +45,20 @@ describe('ASTSchemaBuilder', () => {
       })
     })
 
+    context('json decorated columns', () => {
+      it('renders jsonDecoratedColumns, listing the columns declared with @deco.JSON', () => {
+        expect(User.prototype.schema.compositions.jsonDecoratedColumns).toEqual(['metadata'])
+      })
+
+      it('renders an empty jsonDecoratedColumns for a table whose json columns are undeclared', () => {
+        expect(User.prototype.schema.model_for_openapi_type_specs.jsonDecoratedColumns).toEqual([])
+      })
+
+      it('does not list a @deco.JSON column among the virtualColumns', () => {
+        expect(User.prototype.schema.compositions.virtualColumns).toEqual([])
+      })
+    })
+
     context('columns', () => {
       context('bigint', () => {
         it('renders "bigint" for dbType', () => {
