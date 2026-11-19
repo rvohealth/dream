@@ -1,3 +1,5 @@
+import '../helpers/polyfills/symbolMetadata.js'
+
 import Dream from '../Dream.js'
 import {
   NonPolymorphicBelongsToOptions,

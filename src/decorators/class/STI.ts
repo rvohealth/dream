@@ -1,3 +1,5 @@
+import '../../helpers/polyfills/symbolMetadata.js'
+
 import Dream from '../../Dream.js'
 import StiChildCannotDeclareJSONColumnShape from '../../errors/sti/StiChildCannotDeclareJSONColumnShape.js'
 import StiChildCannotDeclareSortable from '../../errors/sti/StiChildCannotDeclareSortable.js'
