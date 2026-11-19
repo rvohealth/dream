@@ -22,6 +22,17 @@ We merge pull requests through the GitHub UI, so the local working branch is
 often already merged into `origin/main`. Starting from a stale, already-merged
 branch is the default failure mode this rule prevents.
 
+## Decide From Project Standards Instead of Asking
+
+When this file or another documented project rule answers a question, decide
+the question from that rule and state in one line which rule you applied; do
+not put it to a person. Ask only when nothing written answers it, or when the
+answer conflicts with an explicit instruction. Existing code is evidence, not a
+standard by itself: a practice becomes a standard when the code follows it
+consistently for a reason you can state. When you decide from a standard that
+is followed but not written down, write it into this file, with its reason, in
+the same change, so the answer travels with the project.
+
 ## MANDATORY: Completion Gauntlet Before Push / PR
 
 Before pushing a branch, opening a pull request, or otherwise declaring work
@@ -107,6 +118,30 @@ logging, or framework internals does not by itself justify a public export.
 Compatibility-only residue (an error kept exported only for backward
 compatibility, not because new code should throw or catch it) must be
 documented as such, not treated as proof it still belongs in the public API.
+
+## Invalid Declarations: Refused by Types and at Boot
+
+Refuse an invalid declaration (a model decorator, an association, a validation,
+a serializer attribute) in both of these places:
+
+- **In TypeScript**, wherever the types can express the rule.
+- **At boot, with a runtime check in the package that owns the declaration.**
+  In Dream that is class decoration (when the model file is imported) or the
+  decorator-initialization pass `DreamApp.init` runs when it loads the models.
+  Psychic checks its own declarations in `PsychicApp.init`. An invalid
+  declaration must never surface first at sync, at a request or at a save.
+
+Both halves are needed. Types leak: `as any`, wide-typed values, `as const`
+constants and plain JavaScript all get past them. And a boot failure is caught
+by every spec run and every deploy, while a failure on first use is found by a
+user.
+
+The error is not exported (see Public Error Exports), and its message names the
+class, the declaration, and what to declare instead.
+
+Rely on the types alone only when a declaration that slips past them is
+harmless or fails closed, for example an unknown name that is ignored so that
+nothing extra is accepted.
 
 ## Serializers: Declarations Never Depend on Data or Passthrough Data
 
