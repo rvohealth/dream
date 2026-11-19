@@ -486,7 +486,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
-   * NOTE: the Sortable decorator may not be used in STI child models (it may be used in the STI base class)
+   * NOTE: the Sortable decorator may be used on an STI base class, but not on
+   * an STI child: positions are kept across every row of the table the base
+   * and its children share, so declaring `@deco.Sortable` on an STI child
+   * throws when the child class is defined. For a separate position list per
+   * STI type, declare it on the base with `scope: 'type'`.
    *
    * @param opts - Configuration options for the sortable decorator
    * @param opts.scope - The column, association, or combination thereof which you would like to restrict the incrementing logic to. Can be a single column name, a single belongs-to association name, or an array of column/association names

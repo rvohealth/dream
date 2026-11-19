@@ -1,10 +1,12 @@
 import Dream from '../../Dream.js'
 import StiChildCannotDeclareJSONColumnShape from '../../errors/sti/StiChildCannotDeclareJSONColumnShape.js'
+import StiChildCannotDeclareSortable from '../../errors/sti/StiChildCannotDeclareSortable.js'
 import StiChildCannotDefineNewAssociations from '../../errors/sti/StiChildCannotDefineNewAssociations.js'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
 import { associationDeclarationNamesFromMetadata } from '../field/association/shared.js'
 import { JSON_DECLARATION_METADATA_KEY } from '../field/JSON.js'
+import { SORTABLE_DECLARATION_METADATA_KEY } from '../field/sortable/Sortable.js'
 import { declarationNamesFromMetadata } from '../helpers/declarationMetadata.js'
 import { scopeImplementation } from '../static-method/Scope.js'
 
@@ -25,6 +27,16 @@ export default function STI(dreamClass: typeof Dream) {
     )
     if (jsonDeclarationNames.length)
       throw new StiChildCannotDeclareJSONColumnShape(baseClass, stiChildClass, jsonDeclarationNames)
+
+    // positions are kept across every row of the table the base and every
+    // child share, so a child's Sortable field would number its siblings'
+    // rows with its own; per-type lists are the base's `scope: 'type'`
+    const sortableDeclarationNames = declarationNamesFromMetadata(
+      context?.metadata,
+      SORTABLE_DECLARATION_METADATA_KEY
+    )
+    if (sortableDeclarationNames.length)
+      throw new StiChildCannotDeclareSortable(baseClass, stiChildClass, sortableDeclarationNames)
 
     if (Object.getOwnPropertyDescriptor(stiChildClass, 'replicaSafe'))
       throw new StiChildIncompatibleWithReplicaSafeDecorator(stiChildClass)

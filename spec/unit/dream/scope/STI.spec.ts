@@ -4,6 +4,7 @@ import sqlResultToDreamInstance, {
   findExtendingDreamClass,
 } from '../../../../src/dream/internal/sqlResultToDreamInstance.js'
 import StiChildCannotDeclareJSONColumnShape from '../../../../src/errors/sti/StiChildCannotDeclareJSONColumnShape.js'
+import StiChildCannotDeclareSortable from '../../../../src/errors/sti/StiChildCannotDeclareSortable.js'
 import StiChildCannotDefineNewAssociations from '../../../../src/errors/sti/StiChildCannotDefineNewAssociations.js'
 import STIChildMissing from '../../../../src/errors/sti/STIChildMissing.js'
 import STIChildTypeMismatch from '../../../../src/errors/sti/STIChildTypeMismatch.js'
@@ -258,6 +259,84 @@ describe('Dream STI', () => {
 
       expect(JsonStiChild['jsonColumnShapes']).toEqual([{ column: 'jsonbData', openapi: shape }])
       expect(JsonStiBase['jsonColumnShapes']).toEqual([{ column: 'jsonbData', openapi: shape }])
+    })
+  })
+
+  context('when an STI child declares @deco.Sortable', () => {
+    class SortableStiBase extends ApplicationModel {
+      public override get table() {
+        return 'sortable_sti_models' as const
+      }
+    }
+
+    it('throws during class decoration, naming the child, the field and the base', () => {
+      const defineChild = () => {
+        const deco = new Decorators<typeof InvalidSortableStiChild>()
+
+        @STI(SortableStiBase)
+        class InvalidSortableStiChild extends SortableStiBase {
+          @deco.Sortable()
+          public positionIndependent: DreamColumn<InvalidSortableStiChild, 'positionIndependent'>
+        }
+
+        return InvalidSortableStiChild
+      }
+
+      expect(defineChild).toThrow(StiChildCannotDeclareSortable)
+      expect(defineChild).toThrow(
+        /STI child class: InvalidSortableStiChild\nField: positionIndependent\nSTI base class: SortableStiBase[\s\S]*Declare @deco.Sortable for positionIndependent\non the STI base class, SortableStiBase; to keep a separate\nposition list for each STI type, declare it there with scope: 'type'/
+      )
+    })
+
+    it('throws even when the child’s scope includes the type column', () => {
+      const defineChild = () => {
+        const deco = new Decorators<typeof TypeScopedSortableStiChild>()
+
+        @STI(SortableStiBase)
+        class TypeScopedSortableStiChild extends SortableStiBase {
+          @deco.Sortable({ scope: 'type' })
+          public positionByType: DreamColumn<TypeScopedSortableStiChild, 'positionByType'>
+        }
+
+        return TypeScopedSortableStiChild
+      }
+
+      expect(defineChild).toThrow(StiChildCannotDeclareSortable)
+    })
+  })
+
+  context('when an STI base declares @deco.Sortable', () => {
+    it('defines its children, which register the base’s sortable fields, with or without scope: type', () => {
+      const deco = new Decorators<typeof SortableStiBase>()
+
+      class SortableStiBase extends ApplicationModel {
+        public override get table() {
+          return 'sortable_sti_models' as const
+        }
+
+        @deco.Sortable()
+        public positionIndependent: DreamColumn<SortableStiBase, 'positionIndependent'>
+
+        @deco.Sortable({ scope: 'type' })
+        public positionByType: DreamColumn<SortableStiBase, 'positionByType'>
+      }
+
+      const defineChild = () => {
+        @STI(SortableStiBase)
+        class SortableStiChild extends SortableStiBase {}
+
+        return SortableStiChild
+      }
+
+      expect(defineChild).not.toThrow()
+
+      const SortableStiChild = defineChild()
+      processDynamicallyDefinedModels(SortableStiBase, SortableStiChild)
+
+      expect(SortableStiChild['sortableFields']).toEqual([
+        { scope: [], positionField: 'positionIndependent' },
+        { scope: ['type'], positionField: 'positionByType' },
+      ])
     })
   })
 
