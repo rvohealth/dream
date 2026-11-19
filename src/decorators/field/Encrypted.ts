@@ -3,10 +3,11 @@ import DreamApp from '../../dream-app/index.js'
 import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
+import ModelDeclaredShapeContainsReference from '../../errors/ModelDeclaredShapeContainsReference.js'
 import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
-import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
+import { VirtualAttributeShape, VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
+import findOpenapiShapeReference from '../helpers/findOpenapiShapeReference.js'
 import registerOnce from '../helpers/registerOnce.js'
 
 export default function Encrypted(columnOrOptions?: string | EncryptedOptions): any {
@@ -36,6 +37,16 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
         delete (this as any)[key]
         return
       }
+
+      const reference = findOpenapiShapeReference(openapi)
+      if (reference)
+        throw new ModelDeclaredShapeContainsReference(
+          dreamClass,
+          '@deco.Encrypted',
+          key,
+          reference.key,
+          reference.path
+        )
 
       registerOnce(dreamClass, 'virtualAttributes', {
         property: key,
@@ -121,7 +132,7 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
 
 export interface EncryptedOptions<ColumnName extends string = string> {
   column?: ColumnName
-  openapi?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
+  openapi?: VirtualAttributeShape
 }
 
 export interface EncryptedAttributeStatement {

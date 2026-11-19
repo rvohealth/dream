@@ -20,9 +20,8 @@ import {
   SortableOptions,
 } from '../types/dream.js'
 import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import { ValidationType } from '../types/validation.js'
-import Virtual from './field-or-getter/Virtual.js'
+import Virtual, { VirtualAttributeShape } from './field-or-getter/Virtual.js'
 import Encrypted, { EncryptedOptions } from './field/Encrypted.js'
 import JSONDecorator, { JSONColumnDecorator, JSONColumnShape } from './field/JSON.js'
 import BelongsTo from './field/association/BelongsTo.js'
@@ -263,7 +262,8 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * that shape is `'string'`, or `['string', 'null']` when the backing column
    * allows null. Pass `openapi` when the property holds a non-string value,
    * such as an object, a number, or an array; it accepts any shape
-   * `@deco.Virtual` accepts. The declared shape is used exactly as given and
+   * `@deco.Virtual` accepts, so it may not contain a reference (`$serializer`,
+   * `$serializable`, `$schema` or `$ref`). The declared shape is used exactly as given and
    * replaces the nullability inferred from the backing column, so when the
    * backing column allows null, include `'null'` in the shape, e.g.
    * `type: ['object', 'null']`.
@@ -311,6 +311,13 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * models load at boot, as is a shape that includes `null` on a column that
    * is not an array. A property that is not a column declares its shape with
    * `@deco.Virtual` instead.
+   *
+   * The shape may not contain a reference (`$serializer`, `$serializable`,
+   * `$schema` or `$ref`) at any depth: that is a compile error, and, should one
+   * get past the types, an error when the models load at boot. To render the
+   * column with a reference, leave it undecorated and declare its shape in the
+   * serializer's `.attribute(column, { openapi })` and, in Psychic, the request
+   * body's `combining`.
    *
    * On an STI model, declare `@deco.JSON` on the STI base: the column belongs
    * to the table the base and its children share, so it has one shape, which
@@ -624,10 +631,18 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
+   * The shape may not contain a reference (`$serializer`, `$serializable`,
+   * `$schema` or `$ref`) at any depth: that is a compile error, and, should one
+   * get past the types, an error when the models load at boot. To render the
+   * property with a reference, declare a shape without one here (such as
+   * `'json'`) and the shape that uses the reference in the serializer's
+   * `.attribute(name, { openapi })` and, in Psychic, the request body's
+   * `combining`.
+   *
    * @param openapi - Required. The OpenAPI shape that defines both the serializer OpenAPI shape and request body OpenAPI shape (in Psychic)
    * @returns A Virtual decorator
    */
-  public Virtual(this: Decorators<TD>, openapi: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand) {
+  public Virtual(this: Decorators<TD>, openapi: VirtualAttributeShape) {
     return Virtual(openapi)
   }
 

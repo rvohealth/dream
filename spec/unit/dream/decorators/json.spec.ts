@@ -1,10 +1,12 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
 import JSONDecoratorRequiresJsonColumn from '../../../../src/errors/JSONDecoratorRequiresJsonColumn.js'
 import JSONDecoratorShapeAllowsNull from '../../../../src/errors/JSONDecoratorShapeAllowsNull.js'
+import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 
 describe('@deco.JSON', () => {
@@ -178,6 +180,128 @@ describe('@deco.JSON', () => {
       }
 
       expect(() => processDynamicallyDefinedModels(NestedNullModel)).not.toThrow()
+    })
+  })
+
+  context('with a shape that contains a reference', () => {
+    it('is a compile error, and throws when the models load, for a reference at the top level', () => {
+      const deco = new Decorators<typeof TopLevelRefModel>()
+
+      class TopLevelRefModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        // @ts-expect-error a @deco.JSON shape may not contain a reference
+        @deco.JSON({ $serializer: UserSerializer })
+        public jsonbData: DreamColumn<TopLevelRefModel, 'jsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        /@deco\.JSON on TopLevelRefModel#jsonbData[\s\S]*`\$serializer` at the top level of the shape[\s\S]*Remove @deco\.JSON from TopLevelRefModel#jsonbData[\s\S]*\{ openapi \}[\s\S]*`combining`/
+      )
+    })
+
+    it('is a compile error, and throws when the models load, for a reference nested in the shape', () => {
+      const deco = new Decorators<typeof NestedRefModel>()
+
+      class NestedRefModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({
+          type: 'object',
+          properties: {
+            // @ts-expect-error a @deco.JSON shape may not contain a reference
+            owner: { type: 'array', items: { anyOf: [{ type: 'string' }, { $schema: 'Owner' }] } },
+          },
+        })
+        public jsonbData: DreamColumn<NestedRefModel, 'jsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(NestedRefModel)).toThrow(
+        /@deco\.JSON on NestedRefModel#jsonbData[\s\S]*`\$schema` at `properties\.owner\.items\.anyOf\[1\]`/
+      )
+    })
+
+    it('is a compile error, and throws when the models load, for each kind of reference', () => {
+      const deco = new Decorators<typeof EachRefModel>()
+
+      class EachRefModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        // @ts-expect-error a @deco.JSON shape may not contain a reference
+        @deco.JSON({ type: 'object', additionalProperties: { $serializable: User } })
+        public jsonbData: DreamColumn<EachRefModel, 'jsonbData'>
+
+        // @ts-expect-error a @deco.JSON shape may not contain a reference
+        @deco.JSON({ oneOf: [{ type: 'string' }, { $ref: '#/components/schemas/Owner' }] })
+        public jsonData: DreamColumn<EachRefModel, 'jsonData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(EachRefModel)).toThrow(
+        /`\$serializable` at `additionalProperties`/
+      )
+    })
+
+    it('throws when the models load for a reference smuggled past the types with a cast', () => {
+      const deco = new Decorators<typeof CastRefModel>()
+
+      class CastRefModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: 'object', properties: { owner: { $ref: '#/components/schemas/Owner' } } } as any)
+        public jsonbData: DreamColumn<CastRefModel, 'jsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(CastRefModel)).toThrow(
+        /@deco\.JSON on CastRefModel#jsonbData[\s\S]*`\$ref` at `properties\.owner`/
+      )
+    })
+
+    it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
+      const shapeWithRef = {
+        type: 'object',
+        properties: { owner: { type: 'string', $schema: 'Owner' } },
+      } as const
+
+      const deco = new Decorators<typeof ConstRefModel>()
+
+      class ConstRefModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON(shapeWithRef)
+        public jsonbData: DreamColumn<ConstRefModel, 'jsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(ConstRefModel)).toThrow(
+        /`\$schema` at `properties\.owner`/
+      )
+    })
+
+    it('accepts a property named like a reference keyword, which is not a reference', () => {
+      const deco = new Decorators<typeof RefNamedPropertyModel>()
+
+      class RefNamedPropertyModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: 'object', properties: { $ref: 'string' } })
+        public jsonbData: DreamColumn<RefNamedPropertyModel, 'jsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(RefNamedPropertyModel)).not.toThrow()
     })
   })
 })

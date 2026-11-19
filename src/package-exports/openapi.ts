@@ -13,6 +13,7 @@ export {
   type OpenapiSchemaBase,
   type OpenapiSchemaBody,
   type OpenapiSchemaBodyShorthand,
+  type OpenapiSchemaBodyShorthandWithoutRefs,
   type OpenapiSchemaCombinatorFields,
   type OpenapiSchemaCommonFields,
   type OpenapiSchemaExpressionAllOf,
@@ -42,6 +43,7 @@ export {
   type OpenapiShorthandAllTypes,
   type OpenapiShorthandPrimitiveBaseTypes,
   type OpenapiShorthandPrimitiveTypes,
+  type OpenapiShorthandRefs,
   type OpenapiTypeField,
   type OpenapiTypeFieldObject,
 } from '../types/openapi.js'

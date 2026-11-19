@@ -1,9 +1,11 @@
 import Dream from '../../Dream.js'
 import JSONDecoratorRequiresJsonColumn from '../../errors/JSONDecoratorRequiresJsonColumn.js'
 import JSONDecoratorShapeAllowsNull from '../../errors/JSONDecoratorShapeAllowsNull.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
+import ModelDeclaredShapeContainsReference from '../../errors/ModelDeclaredShapeContainsReference.js'
+import { OpenapiSchemaBodyShorthandWithoutRefs, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { markDeclarationInMetadata } from '../helpers/declarationMetadata.js'
+import findOpenapiShapeReference from '../helpers/findOpenapiShapeReference.js'
 import registerOnce from '../helpers/registerOnce.js'
 
 const JSON_DB_TYPES = ['json', 'jsonb', 'json[]', 'jsonb[]']
@@ -21,8 +23,9 @@ export const JSON_DECLARATION_METADATA_KEY = Symbol('dream:jsonDeclarationNames'
  * Registers the declared shape under `jsonColumnShapes` (never
  * `virtualAttributes`: the decorated property is a real column, so readers
  * keep applying the column's nullability and array-ness), and refuses, when
- * models are initialized at boot, a property that is not a json/jsonb column
- * or a shape that declares null for a non-array column. It also marks the
+ * models are initialized at boot, a property that is not a json/jsonb column,
+ * a shape that declares null for a non-array column, or a shape that contains
+ * a reference (one that got past the types). It also marks the
  * declaration on the class's decorator metadata, so `STI()` refuses it on an
  * STI child when the child class is defined.
  */
@@ -49,6 +52,16 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
       // element may be null whether or not the column is
       if (!columnMetadata.isArray && shapeAllowsNull(shape))
         throw new JSONDecoratorShapeAllowsNull(dreamClass, key)
+
+      const reference = findOpenapiShapeReference(shape)
+      if (reference)
+        throw new ModelDeclaredShapeContainsReference(
+          dreamClass,
+          '@deco.JSON',
+          key,
+          reference.key,
+          reference.path
+        )
 
       registerOnce(
         dreamClass,
@@ -80,7 +93,7 @@ function shapeAllowsNull(shape: unknown): boolean {
   )
 }
 
-export type JSONColumnShape = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
+export type JSONColumnShape = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthandWithoutRefs
 
 /**
  * The decorator returned by `deco.JSON(shape)`. It accepts only a class field

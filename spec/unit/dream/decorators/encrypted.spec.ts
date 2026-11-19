@@ -2,10 +2,12 @@ import STI from '../../../../src/decorators/class/STI.js'
 import Decorators from '../../../../src/decorators/Decorators.js'
 import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
+import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 
 describe('@Encrypted', () => {
@@ -554,6 +556,89 @@ describe('@Encrypted', () => {
       ])
       expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
       expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])
+    })
+  })
+
+  context('with an openapi shape that contains a reference', () => {
+    it('is a compile error, and throws when the models load, for a reference at the top level', () => {
+      const deco = new Decorators<typeof TopLevelRefModel>()
+
+      class TopLevelRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        // @ts-expect-error a @deco.Encrypted shape may not contain a reference
+        @deco.Encrypted({ openapi: { $serializer: UserSerializer } })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        /@deco\.Encrypted on TopLevelRefModel#secret[\s\S]*`\$serializer` at the top level of the shape[\s\S]*without a reference[\s\S]*\{ openapi \}[\s\S]*`combining`/
+      )
+    })
+
+    it('is a compile error, and throws when the models load, for a reference nested in the shape', () => {
+      const deco = new Decorators<typeof NestedRefModel>()
+
+      class NestedRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({
+          openapi: {
+            type: ['object', 'null'],
+            // @ts-expect-error a @deco.Encrypted shape may not contain a reference
+            properties: { token: { allOf: [{ $ref: '#/components/schemas/Token' }] } },
+          },
+        })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(NestedRefModel)).toThrow(
+        /@deco\.Encrypted on NestedRefModel#secret[\s\S]*`\$ref` at `properties\.token\.allOf\[0\]`/
+      )
+    })
+
+    it('throws when the models load for a reference smuggled past the types with a cast', () => {
+      const deco = new Decorators<typeof CastRefModel>()
+
+      class CastRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: { type: 'array', items: { $serializable: User } } as any })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(CastRefModel)).toThrow(/`\$serializable` at `items`/)
+    })
+
+    it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
+      const shapeWithRef = {
+        type: 'object',
+        properties: { token: { type: 'string', $schema: 'Token' } },
+      } as const
+
+      const deco = new Decorators<typeof ConstRefModel>()
+
+      class ConstRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: shapeWithRef })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ConstRefModel)).toThrow(
+        /`\$schema` at `properties\.token`/
+      )
     })
   })
 })

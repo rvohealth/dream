@@ -31,6 +31,18 @@ describe('DreamSerializer#delegatedAttribute', () => {
     })
   })
 
+  it('accepts a reference in an OpenAPI shape overriding a delegated virtual attribute, which the model declaration may not contain', () => {
+    const user = User.new({ randoVirtual: 'abc' })
+    const pet = Pet.new({ user, name: 'Snoopy' })
+
+    const MySerializer = (data: Pet) =>
+      DreamSerializer(Pet, data).delegatedAttribute('user', 'randoVirtual', {
+        openapi: { anyOf: [{ type: 'null' }, { $schema: 'RandoVirtual' }] },
+      })
+
+    expect(MySerializer(pet).render()).toEqual({ randoVirtual: 'abc' })
+  })
+
   it('supports specifying a default value', () => {
     const user = User.new({})
     const pet = Pet.new({ user, name: 'Snoopy' })

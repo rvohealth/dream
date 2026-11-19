@@ -6,6 +6,7 @@ import Composition from '../../../../test-app/app/models/Composition.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
+import PetSerializer from '../../../../test-app/app/serializers/PetSerializer.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
@@ -66,6 +67,19 @@ describe('DreamSerializer#attribute', () => {
 
     expect(serializer.render()).toEqual({
       lbs: 180.1,
+    })
+  })
+
+  it('accepts a reference in an OpenAPI shape overriding a virtual Dream attribute, which the model declaration may not contain', () => {
+    const MySerializer = (data: User) =>
+      DreamSerializer(User, data).attribute('randoVirtual', {
+        openapi: { type: 'object', properties: { pet: { $serializer: PetSerializer, maybeNull: true } } },
+      })
+
+    const serializer = MySerializer(User.new({ randoVirtual: 'abc' }))
+
+    expect(serializer.render()).toEqual({
+      randoVirtual: 'abc',
     })
   })
 
