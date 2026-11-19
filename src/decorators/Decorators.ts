@@ -312,6 +312,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * is not an array. A property that is not a column declares its shape with
    * `@deco.Virtual` instead.
    *
+   * On an STI model, declare `@deco.JSON` on the STI base: the column belongs
+   * to the table the base and its children share, so it has one shape, which
+   * the base and every child use. Declaring `@deco.JSON` on an STI child throws
+   * when the child class is defined.
+   *
    * After adding or removing `@deco.JSON`, re-run sync so the serializer types
    * know which columns are declared.
    *

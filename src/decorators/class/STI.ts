@@ -1,8 +1,11 @@
 import Dream from '../../Dream.js'
+import StiChildCannotDeclareJSONColumnShape from '../../errors/sti/StiChildCannotDeclareJSONColumnShape.js'
 import StiChildCannotDefineNewAssociations from '../../errors/sti/StiChildCannotDefineNewAssociations.js'
 import StiChildIncompatibleWithReplicaSafeDecorator from '../../errors/sti/StiChildIncompatibleWithReplicaSafeDecorator.js'
 import StiChildIncompatibleWithSoftDeleteDecorator from '../../errors/sti/StiChildIncompatibleWithSoftDeleteDecorator.js'
 import { associationDeclarationNamesFromMetadata } from '../field/association/shared.js'
+import { JSON_DECLARATION_METADATA_KEY } from '../field/JSON.js'
+import { declarationNamesFromMetadata } from '../helpers/declarationMetadata.js'
 import { scopeImplementation } from '../static-method/Scope.js'
 
 export const STI_SCOPE_NAME = 'dream:STI'
@@ -13,6 +16,15 @@ export default function STI(dreamClass: typeof Dream) {
 
     if (associationDeclarationNamesFromMetadata(context?.metadata).length)
       throw new StiChildCannotDefineNewAssociations(baseClass, stiChildClass)
+
+    // a json/jsonb column lives on the table the base and every child share,
+    // so its one shape is declared on the base
+    const jsonDeclarationNames = declarationNamesFromMetadata(
+      context?.metadata,
+      JSON_DECLARATION_METADATA_KEY
+    )
+    if (jsonDeclarationNames.length)
+      throw new StiChildCannotDeclareJSONColumnShape(baseClass, stiChildClass, jsonDeclarationNames)
 
     if (Object.getOwnPropertyDescriptor(stiChildClass, 'replicaSafe'))
       throw new StiChildIncompatibleWithReplicaSafeDecorator(stiChildClass)

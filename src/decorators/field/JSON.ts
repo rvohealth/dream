@@ -3,9 +3,17 @@ import JSONDecoratorRequiresJsonColumn from '../../errors/JSONDecoratorRequiresJ
 import JSONDecoratorShapeAllowsNull from '../../errors/JSONDecoratorShapeAllowsNull.js'
 import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
+import { markDeclarationInMetadata } from '../helpers/declarationMetadata.js'
 import registerOnce from '../helpers/registerOnce.js'
 
 const JSON_DB_TYPES = ['json', 'jsonb', 'json[]', 'jsonb[]']
+
+/**
+ * The decorator metadata key under which `@deco.JSON` records the columns a
+ * class declares itself, read by `STI()` to refuse `@deco.JSON` on an STI
+ * child.
+ */
+export const JSON_DECLARATION_METADATA_KEY = Symbol('dream:jsonDeclarationNames')
 
 /**
  * The implementation behind `@deco.JSON`, documented on `Decorators#JSON`.
@@ -14,11 +22,15 @@ const JSON_DB_TYPES = ['json', 'jsonb', 'json[]', 'jsonb[]']
  * `virtualAttributes`: the decorated property is a real column, so readers
  * keep applying the column's nullability and array-ness), and refuses, when
  * models are initialized at boot, a property that is not a json/jsonb column
- * or a shape that declares null for a non-array column.
+ * or a shape that declares null for a non-array column. It also marks the
+ * declaration on the class's decorator metadata, so `STI()` refuses it on an
+ * STI child when the child class is defined.
  */
 export default function JSONDecorator(shape: JSONColumnShape): any {
   return function (_: undefined, context: DecoratorContext) {
     const key = context.name
+
+    markDeclarationInMetadata(context, JSON_DECLARATION_METADATA_KEY)
 
     context.addInitializer(function (this: Dream) {
       const dreamClass: typeof Dream = this.constructor as typeof Dream
