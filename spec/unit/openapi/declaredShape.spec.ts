@@ -70,6 +70,25 @@ function encryptedShapesModel() {
   return EncryptedShapesModel
 }
 
+function oneOfNullEncryptedShapeModel() {
+  const deco = new Decorators<typeof OneOfNullEncryptedShapeModel>()
+
+  class OneOfNullEncryptedShapeModel extends ApplicationModel {
+    public override get table() {
+      return 'users' as const
+    }
+
+    // the encrypted_secret column allows null
+    @deco.Encrypted({
+      openapi: { oneOf: [{ type: 'object', properties: { token: 'string' } }, { type: 'null' }] },
+    })
+    public secret: { token: string } | null
+  }
+
+  processDynamicallyDefinedModels(OneOfNullEncryptedShapeModel)
+  return OneOfNullEncryptedShapeModel
+}
+
 describe('declared shapes', () => {
   it('are reachable through DreamApp.system', () => {
     expect(DreamApp.system.openapiColumnShape).toBe(openapiColumnShape)
@@ -101,6 +120,9 @@ describe('declared shapes', () => {
     it('leaves a shape that already accepts null as it is', () => {
       const nullable: OpenapiSchemaBody = { anyOf: [{ type: 'integer' }, { type: 'null' }] }
       expect(openapiColumnShape(nullable, { isArray: false, allowNull: true })).toBe(nullable)
+
+      const nullableOneOf: OpenapiSchemaBody = { oneOf: [{ type: 'integer' }, { type: 'null' }] }
+      expect(openapiColumnShape(nullableOneOf, { isArray: false, allowNull: true })).toBe(nullableOneOf)
     })
 
     it('makes an array of the shape for an array column, null when the column allows it', () => {
@@ -185,6 +207,9 @@ describe('declared shapes', () => {
       it('leaves a declared shape that already accepts null as declared', () => {
         expect(declaredShapeSchema(encryptedShapesModel(), 'otherSecret')).toEqual({
           anyOf: [{ type: 'object', properties: { token: { type: 'string' } } }, { type: 'null' }],
+        })
+        expect(declaredShapeSchema(oneOfNullEncryptedShapeModel(), 'secret')).toEqual({
+          oneOf: [{ type: 'object', properties: { token: { type: 'string' } } }, { type: 'null' }],
         })
         expect(declaredShapeSchema(User, 'otherSecret')).toEqual({
           type: ['object', 'null'],
