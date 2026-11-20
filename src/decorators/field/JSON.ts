@@ -1,8 +1,17 @@
 import Dream from '../../Dream.js'
 import JSONDecoratorRequiresJsonColumn from '../../errors/JSONDecoratorRequiresJsonColumn.js'
+import JSONDecoratorShapeAdmitsString from '../../errors/JSONDecoratorShapeAdmitsString.js'
 import JSONDecoratorShapeAllowsNull from '../../errors/JSONDecoratorShapeAllowsNull.js'
 import ModelDeclaredShapeContainsReference from '../../errors/ModelDeclaredShapeContainsReference.js'
-import { OpenapiSchemaBodyShorthandWithoutRefs, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
+import {
+  OpenapiSchemaBodyShorthandWithoutRefs,
+  OpenapiSchemaCommonFields,
+  OpenapiSchemaInteger,
+  OpenapiSchemaNull,
+  OpenapiSchemaNumber,
+  OpenapiSchemaShorthandPrimitiveGeneric,
+  OpenapiShorthandPrimitiveBaseTypes,
+} from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
 import { markDeclarationInMetadata } from '../helpers/declarationMetadata.js'
 import findOpenapiShapeReference from '../helpers/findOpenapiShapeReference.js'
@@ -29,9 +38,10 @@ export const JSON_DECLARATION_METADATA_KEY = Symbol('dream:jsonDeclarationNames'
  * defined.
  *
  * The refusals that read the generated schema (a property that is not a
- * json/jsonb column, a shape that declares null for a non-array column) are
- * not made here but by `validateJsonColumnShapes`, which `DreamApp#init` runs
- * with its other checks of the models against the schema.
+ * json/jsonb column, a shape that declares null for a non-array column, a
+ * shape that admits a string) are not made here but by
+ * `validateJsonColumnShapes`, which `DreamApp#init` runs with its other
+ * checks of the models against the schema.
  */
 export default function JSONDecorator(shape: JSONColumnShape): any {
   return function (_: undefined, context: DecoratorContext) {
@@ -65,9 +75,16 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
 
 /**
  * Refuses each `@deco.JSON` on `dreamClass` whose property is not a json/jsonb
- * column, or whose shape declares null for a column that is not an array.
+ * column, whose shape declares null for a column that is not an array, or
+ * whose shape admits a string (for a json[]/jsonb[] column, as an element).
  *
- * Both refusals read the generated schema, so `DreamApp#init` runs this with
+ * A string is refused because Dream stores a string given for a json/jsonb
+ * value as already-encoded JSON text, so a string value cannot round-trip:
+ * `'{"admin":true}'` is saved and read back as an object, and `'hello'` is
+ * not JSON and fails when it is saved. A shape that admits a string would let
+ * a client store any JSON value by sending it encoded, past the shape.
+ *
+ * These refusals read the generated schema, so `DreamApp#init` runs this with
  * its other checks of the models against the schema, which the commands that
  * regenerate the schema (`sync`, `db:migrate`, `g:migration`) bypass with
  * `bypassDreamIntegrityChecks`: until they regenerate it, the schema they boot
@@ -92,7 +109,46 @@ export function validateJsonColumnShapes(dreamClass: typeof Dream) {
     // element may be null whether or not the column is
     if (!columnMetadata.isArray && shapeAllowsNull(openapi))
       throw new JSONDecoratorShapeAllowsNull(dreamClass, column)
+
+    // on a json[]/jsonb[] column the shape describes each element, which is
+    // stored the same way, so it is refused there too
+    if (shapeAdmitsString(openapi))
+      throw new JSONDecoratorShapeAdmitsString(dreamClass, column, columnMetadata.isArray)
   }
+}
+
+// the shorthand types that render as `type: 'string'` ('decimal' renders as a
+// number and 'json' as an object)
+const STRING_SHORTHAND_TYPES = ['string', 'date', 'date-time'] as const
+
+/**
+ * Whether the shape itself admits a string, by JSON Schema: a string must get
+ * past every keyword the shape has, so its `type` must admit one, its `enum`
+ * list one, every `allOf` branch admit one and some `anyOf` and `oneOf`
+ * branch admit one. A shape with none of these admits anything. As in
+ * `shapeAllowsNull`, `properties` and `items` are never read: a string inside
+ * the shape is not a string value of the column.
+ */
+function shapeAdmitsString(shape: unknown): boolean {
+  if (typeof shape === 'string') return (STRING_SHORTHAND_TYPES as readonly string[]).includes(shape)
+  if (Array.isArray(shape)) return shape.some(shapeAdmitsString)
+  if (!shape || typeof shape !== 'object') return false
+
+  const schema = shape as {
+    type?: unknown
+    enum?: unknown
+    allOf?: unknown
+    anyOf?: unknown
+    oneOf?: unknown
+  }
+
+  if (schema.type !== undefined && !shapeAdmitsString(schema.type)) return false
+  if (Array.isArray(schema.enum) && !schema.enum.some(value => typeof value === 'string')) return false
+  if (Array.isArray(schema.allOf) && !schema.allOf.every(shapeAdmitsString)) return false
+
+  return [schema.anyOf, schema.oneOf].every(
+    branches => !Array.isArray(branches) || branches.some(shapeAdmitsString)
+  )
 }
 
 /**
@@ -127,7 +183,29 @@ function shapeAllowsNull(shape: unknown): boolean {
   )
 }
 
-export type JSONColumnShape = OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthandWithoutRefs
+type StringShorthandType = (typeof STRING_SHORTHAND_TYPES)[number]
+type NonStringShorthandBaseType = Exclude<OpenapiShorthandPrimitiveBaseTypes, StringShorthandType>
+type NonStringShorthandType =
+  | NonStringShorthandBaseType
+  | [NonStringShorthandBaseType, 'null']
+  | ['null', NonStringShorthandBaseType]
+
+/**
+ * The shape `@deco.JSON` accepts: any shape without a reference, except one
+ * whose own type is a string (`'string'`, `'date'`, `'date-time'`, or
+ * `{ type: 'string' }`), which `validateJsonColumnShapes` refuses at boot. A
+ * string reached through a composition (an `anyOf` or `oneOf` branch) is not a
+ * compile error, only refused at boot. `Exclude` takes out every member whose
+ * `type` is a primitive (string, integer, number, null and the generic
+ * shorthand); the non-string ones are added back.
+ */
+export type JSONColumnShape =
+  | NonStringShorthandType
+  | Exclude<OpenapiSchemaBodyShorthandWithoutRefs, OpenapiSchemaShorthandPrimitiveGeneric>
+  | OpenapiSchemaInteger
+  | OpenapiSchemaNumber
+  | OpenapiSchemaNull
+  | OpenapiSchemaCommonFields<{ type: NonStringShorthandType }>
 
 /**
  * The decorator returned by `deco.JSON(shape)`. It accepts only a class field

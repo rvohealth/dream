@@ -2,6 +2,7 @@ import Decorators from '../../../../src/decorators/Decorators.js'
 import DreamApp, { DreamAppInitOptions } from '../../../../src/dream-app/index.js'
 import Dream from '../../../../src/Dream.js'
 import JSONDecoratorRequiresJsonColumn from '../../../../src/errors/JSONDecoratorRequiresJsonColumn.js'
+import JSONDecoratorShapeAdmitsString from '../../../../src/errors/JSONDecoratorShapeAdmitsString.js'
 import JSONDecoratorShapeAllowsNull from '../../../../src/errors/JSONDecoratorShapeAllowsNull.js'
 import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
@@ -172,7 +173,7 @@ describe('@deco.JSON', () => {
           return 'model_for_openapi_type_specs' as const
         }
 
-        @deco.JSON(['string', 'null'])
+        @deco.JSON(['integer', 'null'])
         public jsonbData: DreamColumn<NullablePrimitiveModel, 'jsonbData'>
       }
 
@@ -291,6 +292,143 @@ describe('@deco.JSON', () => {
       }
 
       await expect(bootWith(NestedNullModel)).resolves.toBeInstanceOf(DreamApp)
+    })
+  })
+
+  // Dream's json setter stores a string as JSON text that is already encoded,
+  // so a string value of a json/jsonb column (or of an element of a
+  // json[]/jsonb[] column) cannot be saved and read back as that string
+  context('with a shape that admits a string', () => {
+    it('is a compile error, and throws when the app boots, for a top-level string type', async () => {
+      const deco = new Decorators<typeof StringShapeModel>()
+
+      class StringShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        // @ts-expect-error a @deco.JSON shape may not admit a string
+        @deco.JSON({ type: 'string' })
+        public jsonbData: DreamColumn<StringShapeModel, 'jsonbData'>
+      }
+
+      await expect(bootWith(StringShapeModel)).rejects.toThrow(JSONDecoratorShapeAdmitsString)
+      await expect(bootWith(StringShapeModel)).rejects.toThrow(
+        /StringShapeModel#jsonbData admits a string[\s\S]*already-encoded JSON text[\s\S]*wrap the string in an object/
+      )
+    })
+
+    it('is a compile error, and throws when the app boots, for a string-valued primitive shorthand', async () => {
+      const deco = new Decorators<typeof DateTimeShapeModel>()
+
+      class DateTimeShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        // @ts-expect-error a @deco.JSON shape may not admit a string
+        @deco.JSON('date-time')
+        public jsonbData: DreamColumn<DateTimeShapeModel, 'jsonbData'>
+      }
+
+      await expect(bootWith(DateTimeShapeModel)).rejects.toThrow(JSONDecoratorShapeAdmitsString)
+    })
+
+    it('throws when the app boots on an anyOf with a string branch', async () => {
+      const deco = new Decorators<typeof StringAnyOfModel>()
+
+      class StringAnyOfModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({
+          anyOf: [
+            { type: 'object', properties: { theme: { type: 'string', enum: ['light', 'dark'] } } },
+            { type: 'string' },
+          ],
+        })
+        public jsonbData: DreamColumn<StringAnyOfModel, 'jsonbData'>
+      }
+
+      await expect(bootWith(StringAnyOfModel)).rejects.toThrow(/StringAnyOfModel#jsonbData admits a string/)
+    })
+
+    it('throws when the app boots on a json[]/jsonb[] column whose elements may be strings', async () => {
+      const deco = new Decorators<typeof StringElementModel>()
+
+      class StringElementModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ oneOf: [{ type: 'integer' }, { allOf: [{ type: 'string' }, { type: 'string' }] }] })
+        public favoriteJsonbs: DreamColumn<StringElementModel, 'favoriteJsonbs'>
+      }
+
+      await expect(bootWith(StringElementModel)).rejects.toThrow(JSONDecoratorShapeAdmitsString)
+      await expect(bootWith(StringElementModel)).rejects.toThrow(
+        /StringElementModel#favoriteJsonbs, a json\[\]\/jsonb\[\] column, admits a string as an element/
+      )
+    })
+
+    it('throws when the app boots on a shape with no type or composition, which admits anything', async () => {
+      const deco = new Decorators<typeof UntypedShapeModel>()
+
+      class UntypedShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ description: 'anything' } as any)
+        public jsonbData: DreamColumn<UntypedShapeModel, 'jsonbData'>
+      }
+
+      await expect(bootWith(UntypedShapeModel)).rejects.toThrow(JSONDecoratorShapeAdmitsString)
+    })
+
+    it('boots under bypassDreamIntegrityChecks, which the commands that regenerate the schema pass', async () => {
+      const deco = new Decorators<typeof StringNotYetSyncedModel>()
+
+      class StringNotYetSyncedModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ anyOf: [{ type: 'object', properties: { hello: 'string' } }, { type: 'string' }] })
+        public jsonbData: DreamColumn<StringNotYetSyncedModel, 'jsonbData'>
+      }
+
+      await expect(
+        bootWith(StringNotYetSyncedModel, { bypassDreamIntegrityChecks: true })
+      ).resolves.toBeInstanceOf(DreamApp)
+    })
+
+    it('boots with object, array, number and boolean shapes, strings nested inside them, and an allOf with a branch that admits no string', async () => {
+      const deco = new Decorators<typeof NonStringShapesModel>()
+
+      class NonStringShapesModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: 'object', properties: { hello: 'string', when: 'date-time' } })
+        public jsonbData: DreamColumn<NonStringShapesModel, 'jsonbData'>
+
+        @deco.JSON({ type: 'array', items: { type: 'string' } })
+        public jsonData: DreamColumn<NonStringShapesModel, 'jsonData'>
+
+        @deco.JSON({ allOf: [{ anyOf: [{ type: 'string' }, { type: 'number' }] }, { type: 'number' }] })
+        public requiredJsonbData: DreamColumn<NonStringShapesModel, 'requiredJsonbData'>
+
+        @deco.JSON('number')
+        public requiredJsonData: DreamColumn<NonStringShapesModel, 'requiredJsonData'>
+
+        @deco.JSON({ anyOf: [{ type: 'boolean' }, { type: 'object', properties: { label: 'string' } }] })
+        public favoriteJsonbs: DreamColumn<NonStringShapesModel, 'favoriteJsonbs'>
+      }
+
+      await expect(bootWith(NonStringShapesModel)).resolves.toBeInstanceOf(DreamApp)
     })
   })
 

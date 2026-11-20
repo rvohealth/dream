@@ -308,6 +308,15 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * column, the shape describes each element of the array, and may include
    * `null` for an element that may be null.
    *
+   * The shape may not admit a string, on any column, including through an
+   * `anyOf` or `oneOf` branch: Dream stores a string given for a json/jsonb
+   * value as already-encoded JSON text, so a string value cannot be saved and
+   * read back as that string. Declare an object, array, number, integer or
+   * boolean shape, or wrap the string in an object. A shape whose own type is
+   * a string (`'string'`, `'date'`, `'date-time'`, `{ type: 'string' }`) is a
+   * compile error, and every shape that admits a string is an error when the
+   * app boots.
+   *
    * Only a json/jsonb column may be decorated: decorating any other property is
    * a compile error, and, should one get past the types, an error when the
    * app boots (`DreamApp.init` checks the models against the generated
