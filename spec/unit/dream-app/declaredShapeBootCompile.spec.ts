@@ -137,6 +137,80 @@ describe('DreamApp#init compiles every declared shape', () => {
     expect(error.message).toContain('@deco.Encrypted on EncryptedShapeModel#secret')
   })
 
+  context('a shape declaring AJV’s `$async: true`', () => {
+    // AJV compiles a root `$async: true` into a validator that returns a
+    // Promise, which a synchronous check would read as a pass; a non-literal
+    // constant gets past TypeScript's excess-property check
+    const ASYNC_SHAPE = { type: 'string' as const, pattern: '^allowed$', $async: true }
+
+    it('refuses a @deco.Encrypted shape, since Dream checks a declared shape synchronously', async () => {
+      const deco = new Decorators<typeof AsyncEncryptedShapeModel>()
+
+      class AsyncEncryptedShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: ASYNC_SHAPE })
+        public secret: string
+      }
+
+      const error = await bootErrorWith(AsyncEncryptedShapeModel)
+      expect(error.message).toContain('@deco.Encrypted on AsyncEncryptedShapeModel#secret')
+      expect(error.message).toContain('`$async: true`')
+      expect(error.message).toContain('remove\n`$async`, since Dream checks a declared shape synchronously')
+    })
+
+    it('refuses a plain-value @deco.Virtual shape', async () => {
+      const deco = new Decorators<typeof AsyncVirtualShapeModel>()
+
+      class AsyncVirtualShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.Virtual(ASYNC_SHAPE)
+        public code: string
+      }
+
+      const error = await bootErrorWith(AsyncVirtualShapeModel)
+      expect(error.message).toContain('@deco.Virtual on AsyncVirtualShapeModel#code')
+      expect(error.message).toContain('`$async: true`')
+    })
+
+    it('refuses `$async: true` nested inside a @deco.JSON shape', async () => {
+      const error = await bootErrorWith(
+        jsonShapeModel({ type: 'object', properties: { code: { type: 'string', $async: true } } })
+      )
+
+      expect(error.message).toContain('@deco.JSON on JsonShapeModel#jsonbData')
+      expect(error.message).toContain('async schema in sync schema')
+    })
+
+    it('under bypassDreamIntegrityChecks, throws the same error when the shape is first checked, never reading the Promise as a pass', async () => {
+      const deco = new Decorators<typeof LazyAsyncShapeModel>()
+
+      class LazyAsyncShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.Virtual(ASYNC_SHAPE)
+        public code: string
+      }
+
+      await expect(
+        bootWith([LazyAsyncShapeModel], { bypassDreamIntegrityChecks: true })
+      ).resolves.toBeInstanceOf(DreamApp)
+
+      for (let check = 0; check < 2; check++) {
+        expect(() => validateDeclaredShape(LazyAsyncShapeModel, 'code', 'different')).toThrow(
+          /@deco\.Virtual on LazyAsyncShapeModel#code[\s\S]*`\$async: true`/
+        )
+      }
+    })
+  })
+
   it('refuses a shape an STI child declares itself, naming the child', async () => {
     class ShapeStiBase extends ApplicationModel {
       public override get table() {

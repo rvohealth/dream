@@ -223,12 +223,15 @@ function declaredShapeValidator(dreamClass: typeof Dream, property: string): Val
         `${dreamClass.name}#${property} declares no shape to check (with @deco.JSON, @deco.Virtual or @deco.Encrypted)`
       )
 
+    let validator: ValidateFunction
     try {
       // no coercion and no defaults: the value must already match, and is
       // validated exactly as given
-      return createOpenapiAjv({ coerceTypes: false, useDefaults: false, removeAdditional: false }).compile(
-        schema
-      )
+      validator = createOpenapiAjv({
+        coerceTypes: false,
+        useDefaults: false,
+        removeAdditional: false,
+      }).compile(schema)
     } catch (cause) {
       throw new ModelDeclaredShapeDoesNotCompile(
         dreamClass,
@@ -238,8 +241,24 @@ function declaredShapeValidator(dreamClass: typeof Dream, property: string): Val
         { cause }
       )
     }
+
+    // AJV compiles a root `$async: true` into a validator that returns a
+    // Promise, which a synchronous check would read as a pass (a nested one
+    // already fails to compile, as an async schema in a sync schema)
+    if ('$async' in validator && validator.$async === true)
+      throw new ModelDeclaredShapeDoesNotCompile(
+        dreamClass,
+        property,
+        declaration.decorator,
+        ASYNC_SHAPE_REFUSAL
+      )
+
+    return validator
   })
 }
+
+const ASYNC_SHAPE_REFUSAL =
+  'the shape declares `$async: true`, which compiles to an asynchronous validator that returns a Promise; Dream checks a declared shape synchronously'
 
 function columnFacts(dreamClass: typeof Dream, column: string): OpenapiColumnFacts {
   const columnMetadata = dreamClass.prototype.schema?.[dreamClass.table]?.['columns']?.[column] as
