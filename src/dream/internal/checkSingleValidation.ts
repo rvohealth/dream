@@ -96,7 +96,9 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
  *   check never fires `encryption:legacy-key-used` (whose listener might
  *   assign the property mid-save) and never assigns or re-encrypts anything,
  *   leaving the record as clean as it was. Ciphertext that does not decrypt
- *   fails the check.
+ *   fails the check. A null backing column is the value null, taken without
+ *   decrypting, so it needs no column encryption config; the column's
+ *   nullability then decides it.
  *
  * Only whether the value matches is used. The checker's errors name paths
  * and keys of the value, which for an encrypted value are plaintext, so they
@@ -114,7 +116,9 @@ function checkDeclaredShape(dream: Dream, property: string): boolean {
   let value: unknown
   try {
     value = encryptedAttribute
-      ? InternalEncrypt.decryptColumn(stored)
+      ? stored === null
+        ? null
+        : InternalEncrypt.decryptColumn(stored)
       : storedJsonColumnValue(dreamClass, column, stored)
   } catch (error) {
     if (

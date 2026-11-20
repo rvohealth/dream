@@ -344,6 +344,22 @@ describe('a @deco.Encrypted shape checked at save', () => {
     })
   })
 
+  context('on a loaded record whose backing columns are null, in an app with no column encryption', () => {
+    it('takes the null without decrypting it, so the record validates and saves', async () => {
+      const user = await User.create({ email: 'a@b.com', password: 's3cr3t!' })
+      // an app that never sets `encryption`, as DreamApp.init allows
+      DreamApp.getOrFail().set('encryption', undefined as any)
+
+      const reloaded = await User.findOrFail(user.id)
+      expect(reloaded.getAttribute('encryptedSecret')).toBeNull()
+      expect(reloaded.getAttribute('myOtherEncryptedSecret')).toBeNull()
+      expect(reloaded.isValid).toBe(true)
+
+      await reloaded.update({ email: 'c@d.com' })
+      expect((await User.findOrFail(user.id)).email).toEqual('c@d.com')
+    })
+  })
+
   context('on a loaded record whose ciphertext no longer decrypts', () => {
     it('fails the validation, refusing a save that changes another column', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
