@@ -104,10 +104,24 @@ higher component and reset every component below it to zero:
 - Started at `2.20.0`, bumped the patch to `2.20.1`, then the work grew into a
   feature: the release is `2.21.0`, not `2.21.1`.
 - Started at `2.20.0`, bumped the minor to `2.21.0`, then the work turned into a
-  breaking change: the release is `3.0.0`, not `3.1.0`.
+  breaking change: the release is `3.0.0`, not `3.1.0`. Refusing an invalid
+  declaration is not a breaking change in this sense; see the next section.
 
 Stacked bumps produce confusing release jumps (a single PR appearing to skip a
 version) and misrepresent the release's level to consumers.
+
+### Refusing an Invalid Declaration Is a Minor Release
+
+Refusing a declaration Dream treats as invalid, at compile time or at boot (see
+Invalid Declarations: Refused by Types and at Boot), is a minor release, even
+when code that compiled or booted on the previous version now fails. The
+`CHANGELOG.md` entry calls out each such new failure, saying what now fails and
+what to declare instead.
+
+The reason: the declaration was already invalid and could only misbehave later,
+at a request, a save or a sync, so refusing it surfaces an existing bug rather
+than changing supported behavior. Dream has shipped such refusals as minors
+since 2.36.0.
 
 ## Public Error Exports
 
