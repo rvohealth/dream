@@ -308,7 +308,11 @@ class OpenapiShorthandExpander {
   }
 
   /**
-   * expands the `properties` of an object
+   * expands the `properties` of an object. In OpenAPI, `properties` is always
+   * a map of property names to schemas, so every key is a property name: a
+   * property named `oneOf`, `anyOf` or `allOf` is expanded as a property,
+   * never read as a composition (a composition written in place of the map
+   * is then a property whose shape is an array, which AJV refuses)
    */
   private parseObjectPropertyStatement(
     propertySegment:
@@ -320,14 +324,6 @@ class OpenapiShorthandExpander {
       | OpenapiSchemaShorthandExpressionAnyOf
       | OpenapiSchemaShorthandExpressionOneOf
   ): OpenapiSchemaBody {
-    if (
-      (propertySegment as OpenapiSchemaExpressionOneOf).oneOf ||
-      (propertySegment as OpenapiSchemaExpressionAllOf).allOf ||
-      (propertySegment as OpenapiSchemaExpressionAnyOf).anyOf
-    ) {
-      return this.expand(propertySegment as OpenapiShorthandSegment)
-    }
-
     const objectSegment = propertySegment as unknown as OpenapiSchemaObjectBase
     // the expanded properties go into a new object, never back into the
     // input: the input may be a declaration on a model (`@deco.JSON`,
@@ -384,9 +380,12 @@ The following values will be allowed:
   }
 
   /**
-   * returns an object the expansion does not know, with its common fields
+   * returns an object the expansion does not know, with its common fields,
+   * and an array it does not know (one that is not a nullable shorthand) as
+   * given, never spread into an object keyed by index
    */
   private unknownObjectStatement(segment: OpenapiShorthandSegment): OpenapiSchemaBody {
+    if (Array.isArray(segment)) return [...(segment as unknown[])] as unknown as OpenapiSchemaBody
     return this.applyCommonFieldsToPayload(segment as any) as OpenapiSchemaBody
   }
 

@@ -245,6 +245,29 @@ describe('DreamApp#init compiles every declared shape', () => {
     expect(validateDeclaredShape(ValidShapeModel, 'jsonbData', { phone: 'nope' }).isValid).toBe(false)
   })
 
+  it('boots a @deco.JSON shape whose properties are named oneOf, anyOf and allOf, checking each as a property', async () => {
+    const CombinatorNamedPropertiesModel = jsonShapeModel({
+      type: 'object',
+      properties: { oneOf: 'string', anyOf: ['integer', 'null'], allOf: { type: 'boolean' } },
+      required: ['oneOf'],
+    })
+
+    await expect(bootWith([CombinatorNamedPropertiesModel])).resolves.toBeInstanceOf(DreamApp)
+    expect(
+      validateDeclaredShape(CombinatorNamedPropertiesModel, 'jsonbData', {
+        oneOf: 'a',
+        anyOf: null,
+        allOf: true,
+      }).isValid
+    ).toBe(true)
+    expect(validateDeclaredShape(CombinatorNamedPropertiesModel, 'jsonbData', { anyOf: 1 }).isValid).toBe(
+      false
+    )
+    expect(
+      validateDeclaredShape(CombinatorNamedPropertiesModel, 'jsonbData', { oneOf: 'a', anyOf: 'b' }).isValid
+    ).toBe(false)
+  })
+
   context('under bypassDreamIntegrityChecks', () => {
     it('skips the compile at boot, and throws the same error when the shape is first checked, and every time after', async () => {
       const UncompilableShapeModel = jsonShapeModel({

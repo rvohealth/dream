@@ -162,6 +162,40 @@ describe('expandOpenapiShorthand', () => {
         } as any)
       ).toEqual({ type: 'object', required: ['a'], properties: { a: { type: 'string', format: 'date' } } })
     })
+
+    it('expands properties named oneOf, anyOf and allOf as properties, whatever shorthand they hold', () => {
+      const expanded = subject({
+        type: 'object',
+        properties: {
+          oneOf: 'string',
+          anyOf: ['integer', 'null'],
+          allOf: { type: 'object', properties: { oneOf: 'date' } },
+          other: 'boolean',
+        },
+        required: ['oneOf'],
+      })
+
+      expect(expanded).toEqual({
+        type: 'object',
+        required: ['oneOf'],
+        properties: {
+          oneOf: { type: 'string' },
+          anyOf: { type: ['integer', 'null'] },
+          allOf: { type: 'object', properties: { oneOf: { type: 'string', format: 'date' } } },
+          other: { type: 'boolean' },
+        },
+      })
+      expect(validates(expanded, { oneOf: 'a', anyOf: null, allOf: { oneOf: '2026-11-20' } })).toBe(true)
+      expect(validates(expanded, { oneOf: 1 })).toBe(false)
+    })
+
+    it('returns an array it does not know as given, so a composition written in place of the properties map is read as a property', () => {
+      const branches = [{ type: 'object' }, { type: 'array' }]
+      expect(subject({ type: 'object', properties: { oneOf: branches } } as any)).toEqual({
+        type: 'object',
+        properties: { oneOf: branches },
+      })
+    })
   })
 
   context('arrays', () => {
