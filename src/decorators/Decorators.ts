@@ -591,10 +591,13 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
-   * `'declaredShape'` is not declared here: `@deco.JSON` and
-   * `@deco.Encrypted` register it, checking the property's value against
-   * the shape they declare. Declaring it is a compile error, and, should one
-   * get past the types, an error when the models load at boot.
+   * `'declaredShape'` and `'requiredBelongsTo'` are not declared here:
+   * `@deco.JSON` and `@deco.Encrypted` register `'declaredShape'`, checking
+   * the property's value against the shape they declare, and a
+   * `@deco.BelongsTo` registers `'requiredBelongsTo'` unless it is declared
+   * `optional: true` (to require the association, drop `optional: true`).
+   * Declaring either is a compile error, and, should one get past the types,
+   * an error when the models load at boot.
    *
    * @param type — the type of validation
    * @param args — optional arguments specific to the type of validation

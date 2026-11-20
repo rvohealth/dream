@@ -7,9 +7,14 @@ import registerOnce from '../../helpers/registerOnce.js'
 /**
  * The validation types a declaration registers on its own, which
  * `@deco.Validates` refuses, in its types and when the models load at boot:
- * `declaredShape` is registered by `@deco.JSON` and `@deco.Encrypted`.
+ * `declaredShape` is registered by `@deco.JSON` and `@deco.Encrypted`, and
+ * `requiredBelongsTo` by a `@deco.BelongsTo` that is not `optional`, whose
+ * `optional` option alone decides whether the association may be absent.
  */
-const REGISTERED_VALIDATION_TYPES = ['declaredShape'] as const satisfies readonly ValidationType[]
+const REGISTERED_VALIDATION_TYPES = [
+  'declaredShape',
+  'requiredBelongsTo',
+] as const satisfies readonly ValidationType[]
 
 export type RegisteredValidationType = (typeof REGISTERED_VALIDATION_TYPES)[number]
 
