@@ -7,6 +7,7 @@ import type {
   VirtualAttributeStatement,
 } from '../decorators/field-or-getter/Virtual.js'
 import type { ModelShapeDecoratorName } from '../errors/ModelDeclaredShapeContainsReference.js'
+import ModelDeclaredShapeDoesNotCompile from '../errors/ModelDeclaredShapeDoesNotCompile.js'
 import { OpenapiSchemaBody, OpenapiShorthandPrimitiveTypes } from '../types/openapi.js'
 import createOpenapiAjv from './createOpenapiAjv.js'
 import expandOpenapiShorthand, { OpenapiShorthandSegment } from './expandOpenapiShorthand.js'
@@ -177,22 +178,66 @@ export function validateDeclaredShape(
 }
 
 /**
- * The validator `validateDeclaredShape` checks a property with, compiled the
- * first time the property is checked and reused after.
+ * @internal
+ *
+ * Compiles the validator of every shape `dreamClass` declares (each
+ * `@deco.JSON` column and each `@deco.Virtual` and `@deco.Encrypted`
+ * attribute, plain-value shapes included), so a declaration AJV cannot
+ * compile is refused when the app boots, and a later check reuses the
+ * validator compiled here. `DreamApp#validateApplicationModels` calls this for
+ * every model, STI children included, since a child may declare its own
+ * `@deco.Virtual` or `@deco.Encrypted`.
+ */
+export function compileDeclaredShapeValidators(dreamClass: typeof Dream): void {
+  for (const property of declaredShapeProperties(dreamClass)) declaredShapeValidator(dreamClass, property)
+}
+
+/**
+ * The properties `dreamClass` declares a shape for.
+ */
+function declaredShapeProperties(dreamClass: typeof Dream): string[] {
+  const jsonColumnShapes = (dreamClass['jsonColumnShapes'] ?? []) as readonly JSONColumnShapeStatement[]
+  const virtualAttributes = (dreamClass['virtualAttributes'] ?? []) as readonly VirtualAttributeStatement[]
+
+  return [
+    ...jsonColumnShapes.map(statement => statement.column),
+    ...virtualAttributes
+      .filter(statement => statement.type !== undefined)
+      .map(statement => statement.property),
+  ]
+}
+
+/**
+ * The validator `validateDeclaredShape` checks a property with, compiled at
+ * boot by `compileDeclaredShapeValidators`, or, after a boot that bypassed the
+ * integrity checks, the first time the property is checked, and reused after.
+ * A shape that does not compile throws `ModelDeclaredShapeDoesNotCompile`
+ * either way, and is not memoized, so every later check throws it again.
  */
 function declaredShapeValidator(dreamClass: typeof Dream, property: string): ValidateFunction {
   return memoizedPerProperty(declaredShapeValidators, dreamClass, property, () => {
+    const declaration = modelDeclaredShape(dreamClass, property)
     const schema = declaredShapeSchema(dreamClass, property)
-    if (schema === undefined)
+    if (declaration === undefined || schema === undefined)
       throw new Error(
         `${dreamClass.name}#${property} declares no shape to check (with @deco.JSON, @deco.Virtual or @deco.Encrypted)`
       )
 
-    // no coercion and no defaults: the value must already match, and is
-    // validated exactly as given
-    return createOpenapiAjv({ coerceTypes: false, useDefaults: false, removeAdditional: false }).compile(
-      schema
-    )
+    try {
+      // no coercion and no defaults: the value must already match, and is
+      // validated exactly as given
+      return createOpenapiAjv({ coerceTypes: false, useDefaults: false, removeAdditional: false }).compile(
+        schema
+      )
+    } catch (cause) {
+      throw new ModelDeclaredShapeDoesNotCompile(
+        dreamClass,
+        property,
+        declaration.decorator,
+        cause instanceof Error ? cause.message : String(cause),
+        { cause }
+      )
+    }
   })
 }
 

@@ -54,7 +54,12 @@ import importSerializers, {
 } from './helpers/importers/importSerializers.js'
 import lookupClassByGlobalName from './helpers/lookupClassByGlobalName.js'
 import createOpenapiAjv from '../openapi/createOpenapiAjv.js'
-import { declaredShapeSchema, openapiColumnShape, validateDeclaredShape } from '../openapi/declaredShape.js'
+import {
+  compileDeclaredShapeValidators,
+  declaredShapeSchema,
+  openapiColumnShape,
+  validateDeclaredShape,
+} from '../openapi/declaredShape.js'
 import expandOpenapiShorthand from '../openapi/expandOpenapiShorthand.js'
 import { openapiSchemaAcceptsNull, openapiSchemaWithNull } from '../openapi/openapiSchemaNullability.js'
 import openapiShorthandToOpenapi from '../openapi/openapiShorthandToOpenapi.js'
@@ -211,13 +216,18 @@ export default class DreamApp {
    * Ensures that all models are in a valid state against the generated
    * schema. Skipped under `bypassDreamIntegrityChecks`, which the commands
    * that regenerate the schema pass, so a check that reads the schema belongs
-   * here rather than in a decorator's initializer.
+   * here rather than in a decorator's initializer. It also compiles the
+   * validator of every shape a model declares (`@deco.JSON`, `@deco.Virtual`,
+   * `@deco.Encrypted`), so a shape AJV cannot compile is refused here rather
+   * than at a save or a request; under the bypass, such a shape throws the
+   * same error when it is first checked.
    *
    */
   private validateApplicationModels() {
     Object.values(this.models).forEach(modelClass => {
       validateTable(modelClass.prototype.schema, modelClass.prototype.table)
       validateJsonColumnShapes(modelClass)
+      compileDeclaredShapeValidators(modelClass)
     })
   }
 

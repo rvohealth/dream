@@ -326,6 +326,15 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * and decorated in the same change. A property that is not a column
    * declares its shape with `@deco.Virtual` instead.
    *
+   * The shape must compile into the validator (JSON Schema 2020-12, strict
+   * types) Dream checks the column's value with: a `pattern` must be a valid
+   * regular expression under the `u` flag, more than one non-null type is
+   * declared with `anyOf` rather than a `type` array, and `properties` is
+   * a map of property names to shapes. `DreamApp.init` compiles every
+   * declared shape and throws on one that does not compile; the commands that
+   * regenerate the schema skip that compile, and the error is then thrown when
+   * the shape is first checked.
+   *
    * The shape may not contain a reference (`$serializer`, `$serializable`,
    * `$schema` or `$ref`) at any depth: that is a compile error, and, should one
    * get past the types, an error when the models load at boot. To render the
@@ -644,6 +653,15 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *   }
    * }
    * ```
+   *
+   * The shape must compile into the validator (JSON Schema 2020-12, strict
+   * types) Dream checks the property's value with: a `pattern` must be a valid
+   * regular expression under the `u` flag, more than one non-null type is
+   * declared with `anyOf` rather than a `type` array, and `properties` is
+   * a map of property names to shapes. `DreamApp.init` compiles every
+   * declared shape and throws on one that does not compile; the commands that
+   * regenerate the schema skip that compile, and the error is then thrown when
+   * the shape is first checked.
    *
    * The shape may not contain a reference (`$serializer`, `$serializable`,
    * `$schema` or `$ref`) at any depth: that is a compile error, and, should one
