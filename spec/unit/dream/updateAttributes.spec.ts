@@ -2,6 +2,7 @@ import DreamApp from '../../../src/dream-app/index.js'
 import Encrypt from '../../../src/encrypt/index.js'
 import DoNotSetEncryptedFieldsDirectly from '../../../src/errors/DoNotSetEncryptedFieldsDirectly.js'
 import DecryptionError from '../../../src/errors/encrypt/DecryptionError.js'
+import ValidationError from '../../../src/errors/ValidationError.js'
 import ApplicationModel from '../../../test-app/app/models/ApplicationModel.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import Animal from '../../../test-app/app/models/Balloon/Latex/Animal.js'
@@ -91,7 +92,7 @@ describe('Dream#updateAttributes', () => {
       expect(reloaded.secret).toEqual('original')
     })
 
-    it('saves and reloads a record whose stored ciphertext no longer decrypts', async () => {
+    it('refuses to save a record whose stored ciphertext no longer decrypts, which still reloads', async () => {
       const user = await User.create({ email: 'how@yadoin', password: 'howyadoin', secret: 'original' })
       const dreamApp = DreamApp.getOrFail()
       const originalEncryption = dreamApp.encryption
@@ -101,10 +102,21 @@ describe('Dream#updateAttributes', () => {
           columns: { current: { algorithm: 'aes-256-gcm', key: Encrypt.generateKey('aes-256-gcm') } },
         })
 
-        await user.updateAttributes({ email: 'chalupas@dujour' })
+        // every save checks the decrypted value against the property's shape
+        // (a bare @deco.Encrypted() is a string), and ciphertext that does not
+        // decrypt fails that check
+        let thrownError: unknown
+        try {
+          await user.updateAttributes({ email: 'chalupas@dujour' })
+        } catch (err) {
+          thrownError = err
+        }
+        expect(thrownError).toBeInstanceOf(ValidationError)
+        expect((thrownError as ValidationError).errors).toEqual({ secret: ['declaredShape'] })
+
         await user.reload()
 
-        expect(user.email).toEqual('chalupas@dujour')
+        expect(user.email).toEqual('how@yadoin')
         expect(() => user.secret).toThrow(DecryptionError)
       } finally {
         dreamApp.set('encryption', originalEncryption)

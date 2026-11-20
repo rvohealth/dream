@@ -17,6 +17,7 @@ import { DecoratorContext } from '../DecoratorContextType.js'
 import { markDeclarationInMetadata } from '../helpers/declarationMetadata.js'
 import findOpenapiShapeReference from '../helpers/findOpenapiShapeReference.js'
 import registerOnce from '../helpers/registerOnce.js'
+import { validatesImplementation } from './validation/Validates.js'
 
 const JSON_DB_TYPES = ['json', 'jsonb', 'json[]', 'jsonb[]']
 
@@ -32,7 +33,9 @@ export const JSON_DECLARATION_METADATA_KEY = Symbol('dream:jsonDeclarationNames'
  *
  * Registers the declared shape under `jsonColumnShapes` (never
  * `virtualAttributes`: the decorated property is a real column, so readers
- * keep applying the column's nullability and array-ness), and refuses, when
+ * keep applying the column's nullability and array-ness), registers the
+ * `declaredShape` validation that checks the column's value against it on
+ * every save, and refuses, when
  * models are initialized at boot, a shape that contains a reference (one that
  * got past the types). It also marks the declaration on the class's decorator
  * metadata, so `STI()` refuses it on an STI child when the child class is
@@ -70,6 +73,12 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
         { column: key, openapi: shape } satisfies JSONColumnShapeStatement,
         (existing, entry) => existing.column === entry.column
       )
+
+      // every class, an STI child included (whose initialization runs this
+      // initializer of its base), registers the check of the column's value
+      // against the shape on its own `validations`, so the check runs on
+      // every save of the base and of each child
+      validatesImplementation(this, key, 'declaredShape')
     })
   }
 }
@@ -82,8 +91,9 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
  * A string is refused because Dream stores a string given for a json/jsonb
  * value as already-encoded JSON text, so a string value cannot round-trip:
  * `'{"admin":true}'` is saved and read back as an object, and `'hello'` is
- * not JSON and fails when it is saved. A shape that admits a string would let
- * a client store any JSON value by sending it encoded, past the shape.
+ * not JSON and fails the `declaredShape` validation when it is saved. A shape
+ * that admits a string would let a client store any JSON value by sending it
+ * encoded, past the shape.
  *
  * These refusals read the generated schema, so `DreamApp#init` runs this with
  * its other checks of the models against the schema, which the commands that

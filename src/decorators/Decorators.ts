@@ -22,7 +22,6 @@ import {
   SortableOptions,
 } from '../types/dream.js'
 import { AfterHookOpts, BeforeHookOpts } from '../types/lifecycle.js'
-import { ValidationType } from '../types/validation.js'
 import Virtual, { VirtualAttributeShape } from './field-or-getter/Virtual.js'
 import Encrypted, { EncryptedOptions } from './field/Encrypted.js'
 import JSONDecorator, { JSONColumnDecorator, JSONColumnShape } from './field/JSON.js'
@@ -42,7 +41,7 @@ import BeforeDestroy from './field/lifecycle/BeforeDestroy.js'
 import BeforeSave from './field/lifecycle/BeforeSave.js'
 import BeforeUpdate from './field/lifecycle/BeforeUpdate.js'
 import Sortable from './field/sortable/Sortable.js'
-import Validates from './field/validation/Validates.js'
+import Validates, { DeclarableValidationType } from './field/validation/Validates.js'
 import Validate from './method/Validate.js'
 import Scope from './static-method/Scope.js'
 
@@ -249,26 +248,38 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *
    *   // automatically sets `myEncryptedMfaSettings` to the encrypted value that
    *   // `mfaSettings` is set to in new/create/update, and declares the
-   *   // value's OpenAPI shape, since it is not a string
+   *   // value's OpenAPI shape, since it is not a string; when the backing
+   *   // column allows null, so does the property
    *   @deco.Encrypted({
    *     column: 'myEncryptedMfaSettings',
-   *     openapi: { type: ['object', 'null'], properties: { token: 'string' } },
+   *     openapi: { type: 'object', properties: { token: 'string' } },
    *   })
    *   public mfaSettings: { token: string } | null
    * }
    * ```
    *
    * The decorated property may hold any JSON-serializable value. Its OpenAPI
-   * shape is what Psychic uses to cast the property in params and to render
-   * it in request body and serializer OpenAPI. Without an `openapi` option,
-   * that shape is `'string'`, or `['string', 'null']` when the backing column
-   * allows null. Pass `openapi` when the property holds a non-string value,
-   * such as an object, a number, or an array; it accepts any shape
-   * `@deco.Virtual` accepts, so it may not contain a reference (`$serializer`,
-   * `$serializable`, `$schema` or `$ref`). The declared shape is used exactly as given and
-   * replaces the nullability inferred from the backing column, so when the
-   * backing column allows null, include `'null'` in the shape, e.g.
-   * `type: ['object', 'null']`.
+   * shape is what every save checks the property's value against (see below),
+   * and what Psychic uses to cast the property in params and to render it in
+   * request body and serializer OpenAPI. Without an `openapi` option, that
+   * shape is `'string'`. Pass `openapi` when the property holds a non-string
+   * value, such as an object, a number, or an array; it accepts any shape
+   * `@deco.Virtual` accepts, so it may not contain a reference
+   * (`$serializer`, `$serializable`, `$schema` or `$ref`). The shape describes
+   * the property's non-null value: whether it may be null comes from the
+   * backing column, as for `@deco.JSON`, so when the backing column allows
+   * null, `null` is added to the shape (a shape that already accepts null is
+   * used as declared).
+   *
+   * Every save (and `isValid`) decrypts the backing column and checks the
+   * value against that shape as stored, with no coercion: a `'5'` assigned to
+   * an `'integer'` property is stored and read back as the string `'5'`, so
+   * it fails. A value that does not match, and ciphertext that no longer
+   * decrypts, fail the `declaredShape` validation, so the save throws a
+   * `ValidationError` naming the property, including a save that changes
+   * only other columns of a record loaded with such a value. A property left
+   * unset is not checked. The check reads no plaintext into the error, and it
+   * does not fire `encryption:legacy-key-used` or change the backing column.
    *
    * @param columnOrOptions - Either the backing column's name, or an options object:
    * - `column` — the backing column's name; if omitted, then 'encrypted' is prepended to the Pascal cased version of the decorated field
@@ -285,8 +296,9 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
   /**
    * Declares the OpenAPI shape of a json, jsonb, json[] or jsonb[] column, once,
    * on the model. Every reader of the column's shape uses this declaration:
-   * serializer `.attribute` and `.delegatedAttribute` (which then need no
-   * `openapi` option, and accept only a `description` in it) and, in Psychic,
+   * the `declaredShape` validation every save runs (see below), serializer
+   * `.attribute` and `.delegatedAttribute` (which then need no `openapi`
+   * option, and accept only a `description` in it) and, in Psychic,
    * request-body OpenAPI and `Params.for`.
    *
    * ```ts
@@ -307,6 +319,17 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * nullable column renders as the shape or null). On a json[] or jsonb[]
    * column, the shape describes each element of the array, and may include
    * `null` for an element that may be null.
+   *
+   * Every save (and `isValid`) checks the value the column would store against
+   * the shape, with no coercion, whoever writes it (a request, the console, a
+   * job, a seed or a factory). A string given for the column is stored as
+   * already-encoded JSON text, so it is checked as the value it encodes, and
+   * text that is not JSON fails. A value that does not match fails the
+   * `declaredShape` validation, so the save throws a `ValidationError` naming
+   * the column, including a save that changes only other columns of a record
+   * loaded with such a value. A column left unset on a new record is not
+   * checked, so its database default applies. `Query#update` with
+   * `skipHooks: true`, which runs no validations, does not check it.
    *
    * The shape may not admit a string, on any column, including through an
    * `anyOf` or `oneOf` branch: Dream stores a string given for a json/jsonb
@@ -568,12 +591,17 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * }
    * ```
    *
+   * `'declaredShape'` is not declared here: `@deco.JSON` and
+   * `@deco.Encrypted` register it, checking the property's value against
+   * the shape they declare. Declaring it is a compile error, and, should one
+   * get past the types, an error when the models load at boot.
+   *
    * @param type — the type of validation
    * @param args — optional arguments specific to the type of validation
    * @returns A Validates decorator
    */
   public Validates<
-    VT extends ValidationType,
+    VT extends DeclarableValidationType,
     VTArgs extends VT extends 'numericality'
       ? {
           /** The minimum allowed value (inclusive). */

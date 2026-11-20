@@ -3236,7 +3236,10 @@ export default class Dream {
 
   /**
    * Runs validation checks against all validations
-   * declared using the Validate and Validates decorators.
+   * declared using the Validate and Validates decorators,
+   * and those a declaration registers: the required-association
+   * check of a BelongsTo that is not `optional`, and the shape
+   * check of a `@deco.JSON` column or `@deco.Encrypted` property.
    * Returns true if none of the validations fail.
    *
    * NOTE: Any validations that fail will leave the errors

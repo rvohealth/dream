@@ -3,6 +3,7 @@ import Decorators from '../../../../src/decorators/Decorators.js'
 import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
 import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
+import { declaredShapeSchema, validateDeclaredShape } from '../../../../src/openapi/declaredShape.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
@@ -406,7 +407,16 @@ describe('@Encrypted', () => {
           return 'users' as const
         }
 
-        @deco.Encrypted({ openapi: 'json' })
+        // the shape admits each value the spec stores, since every save checks
+        // the value against it
+        @deco.Encrypted({
+          openapi: {
+            anyOf: [
+              { type: 'array', items: { anyOf: [{ type: 'integer' }, { type: 'boolean' }] } },
+              { type: 'string' },
+            ],
+          },
+        })
         public secret: unknown
       }
       UserWithJsonSecret['defineAttributeAccessors']()
@@ -481,13 +491,14 @@ describe('@Encrypted', () => {
   })
 
   context('with an openapi shape and no column', () => {
-    it('uses the word "encrypted" in front of the pascalized method name and registers the shape without adding null from the backing column', () => {
+    it('uses the word "encrypted" in front of the pascalized method name, and checks and renders the shape with null added from the nullable backing column', () => {
       const deco = new Decorators<typeof UserWithJsonSecret>()
       class UserWithJsonSecret extends ApplicationModel {
         public override get table() {
           return 'users' as const
         }
 
+        // on the nullable `encrypted_secret` column
         @deco.Encrypted({ openapi: 'json' })
         public secret: unknown
       }
@@ -497,6 +508,12 @@ describe('@Encrypted', () => {
         { property: 'secret', encryptedColumnName: 'encryptedSecret' },
       ])
       expect(UserWithJsonSecret['virtualAttributes']).toEqual([{ property: 'secret', type: 'json' }])
+
+      // the schema a save checks the value against, and Psychic renders
+      expect(declaredShapeSchema(UserWithJsonSecret, 'secret')).toEqual({ type: ['object', 'null'] })
+      expect(validateDeclaredShape(UserWithJsonSecret, 'secret', null)).toEqual({ isValid: true })
+      expect(validateDeclaredShape(UserWithJsonSecret, 'secret', {})).toEqual({ isValid: true })
+      expect(validateDeclaredShape(UserWithJsonSecret, 'secret', [0]).isValid).toBe(false)
     })
   })
 

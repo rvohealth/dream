@@ -9,6 +9,7 @@ import { DecoratorContext } from '../DecoratorContextType.js'
 import { VirtualAttributeShape, VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
 import findOpenapiShapeReference from '../helpers/findOpenapiShapeReference.js'
 import registerOnce from '../helpers/registerOnce.js'
+import { validatesImplementation } from './validation/Validates.js'
 
 export default function Encrypted(columnOrOptions?: string | EncryptedOptions): any {
   const { column, openapi }: EncryptedOptions =
@@ -59,6 +60,11 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
         property: key,
         encryptedColumnName: encryptedKey,
       } satisfies EncryptedAttributeStatement)
+
+      // checks the decrypted value against the property's shape, declared or
+      // the inferred string, on every save; registered on every class that
+      // initializes this, an STI child included
+      validatesImplementation(this, key, 'declaredShape')
 
       const dreamPrototype = Object.getPrototypeOf(this)
 
