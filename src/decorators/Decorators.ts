@@ -310,9 +310,12 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *
    * Only a json/jsonb column may be decorated: decorating any other property is
    * a compile error, and, should one get past the types, an error when the
-   * models load at boot, as is a shape that includes `null` on a column that
-   * is not an array. A property that is not a column declares its shape with
-   * `@deco.Virtual` instead.
+   * app boots (`DreamApp.init` checks the models against the generated
+   * schema), as is a shape that includes `null` on a column that is not an
+   * array. The commands that regenerate the schema (`sync`, `db:migrate`,
+   * `g:migration`) skip that check, so a column can be added in a migration
+   * and decorated in the same change. A property that is not a column
+   * declares its shape with `@deco.Virtual` instead.
    *
    * The shape may not contain a reference (`$serializer`, `$serializable`,
    * `$schema` or `$ref`) at any depth: that is a compile error, and, should one

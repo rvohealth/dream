@@ -10,6 +10,7 @@ import {
   testDatabaseNameForIndex,
 } from '../db/testDatabasePool.js'
 import validateTable from '../db/validators/validateTable.js'
+import { validateJsonColumnShapes } from '../decorators/field/JSON.js'
 import Dream from '../Dream.js'
 import Query from '../dream/Query.js'
 import QueryDriverBase from '../dream/QueryDriver/Base.js'
@@ -191,12 +192,16 @@ export default class DreamApp {
   /**
    * @internal
    *
-   * Ensures that all models are in a valid state
+   * Ensures that all models are in a valid state against the generated
+   * schema. Skipped under `bypassDreamIntegrityChecks`, which the commands
+   * that regenerate the schema pass, so a check that reads the schema belongs
+   * here rather than in a decorator's initializer.
    *
    */
   private validateApplicationModels() {
     Object.values(this.models).forEach(modelClass => {
       validateTable(modelClass.prototype.schema, modelClass.prototype.table)
+      validateJsonColumnShapes(modelClass)
     })
   }
 

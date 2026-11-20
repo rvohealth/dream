@@ -131,6 +131,14 @@ a serializer attribute) in both of these places:
   Psychic checks its own declarations in `PsychicApp.init`. An invalid
   declaration must never surface first at sync, at a request or at a save.
 
+A refusal that reads the generated schema (`types/db.ts`, `types/dream.ts`)
+belongs in `DreamApp#validateApplicationModels`, the integrity pass that
+`DreamApp.init` skips under `bypassDreamIntegrityChecks`, not in a decorator or
+its initializer. `sync`, `db:migrate` and `g:migration` boot with that bypass
+because the schema they boot against may not yet have a column a migration
+adds or changes: regenerating it is their job, and a refusal that reads it at
+model load would stop them from doing it.
+
 Both halves are needed. Types leak: `as any`, wide-typed values, `as const`
 constants and plain JavaScript all get past them. And a boot failure is caught
 by every spec run and every deploy, while a failure on first use is found by a

@@ -22,6 +22,10 @@ Property: ${this.property}, which is ${what}
 
 Remove @deco.JSON from ${this.dreamClass.name}#${this.property}. A column of any
 other type already has its OpenAPI shape inferred from the column, and a property
-that is not a column declares its shape with @deco.Virtual(shape) instead.`
+that is not a column declares its shape with @deco.Virtual(shape) instead.
+
+If a migration adds ${this.property} as a json/jsonb column, or changes it to one,
+run the migration: db:migrate re-runs sync, which updates the generated schema
+this check reads.`
   }
 }

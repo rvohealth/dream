@@ -23,11 +23,15 @@ export const JSON_DECLARATION_METADATA_KEY = Symbol('dream:jsonDeclarationNames'
  * Registers the declared shape under `jsonColumnShapes` (never
  * `virtualAttributes`: the decorated property is a real column, so readers
  * keep applying the column's nullability and array-ness), and refuses, when
- * models are initialized at boot, a property that is not a json/jsonb column,
- * a shape that declares null for a non-array column, or a shape that contains
- * a reference (one that got past the types). It also marks the
- * declaration on the class's decorator metadata, so `STI()` refuses it on an
- * STI child when the child class is defined.
+ * models are initialized at boot, a shape that contains a reference (one that
+ * got past the types). It also marks the declaration on the class's decorator
+ * metadata, so `STI()` refuses it on an STI child when the child class is
+ * defined.
+ *
+ * The refusals that read the generated schema (a property that is not a
+ * json/jsonb column, a shape that declares null for a non-array column) are
+ * not made here but by `validateJsonColumnShapes`, which `DreamApp#init` runs
+ * with its other checks of the models against the schema.
  */
 export default function JSONDecorator(shape: JSONColumnShape): any {
   return function (_: undefined, context: DecoratorContext) {
@@ -38,20 +42,6 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
     context.addInitializer(function (this: Dream) {
       const dreamClass: typeof Dream = this.constructor as typeof Dream
       if (!dreamClass['globallyInitializingDecorators']) return
-
-      const columnMetadata = (
-        dreamClass.prototype.schema[dreamClass.table]?.['columns'] as
-          | Record<string, { dbType: string; isArray: boolean } | undefined>
-          | undefined
-      )?.[key]
-
-      if (!columnMetadata || !JSON_DB_TYPES.includes(columnMetadata.dbType))
-        throw new JSONDecoratorRequiresJsonColumn(dreamClass, key, columnMetadata?.dbType ?? null)
-
-      // on a json[]/jsonb[] column the shape describes each element, and an
-      // element may be null whether or not the column is
-      if (!columnMetadata.isArray && shapeAllowsNull(shape))
-        throw new JSONDecoratorShapeAllowsNull(dreamClass, key)
 
       const reference = findOpenapiShapeReference(shape)
       if (reference)
@@ -70,6 +60,38 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
         (existing, entry) => existing.column === entry.column
       )
     })
+  }
+}
+
+/**
+ * Refuses each `@deco.JSON` on `dreamClass` whose property is not a json/jsonb
+ * column, or whose shape declares null for a column that is not an array.
+ *
+ * Both refusals read the generated schema, so `DreamApp#init` runs this with
+ * its other checks of the models against the schema, which the commands that
+ * regenerate the schema (`sync`, `db:migrate`, `g:migration`) bypass with
+ * `bypassDreamIntegrityChecks`: until they regenerate it, the schema they boot
+ * against need not have a column that was just added or changed.
+ */
+export function validateJsonColumnShapes(dreamClass: typeof Dream) {
+  // an STI child's shapes are its base's (`@deco.JSON` on an STI child is
+  // refused), so they are checked, and named, on the base
+  if (dreamClass['isSTIChild']) return
+
+  const columns = dreamClass.prototype.schema[dreamClass.table]?.['columns'] as
+    | Record<string, { dbType: string; isArray: boolean } | undefined>
+    | undefined
+
+  for (const { column, openapi } of dreamClass['jsonColumnShapes']) {
+    const columnMetadata = columns?.[column]
+
+    if (!columnMetadata || !JSON_DB_TYPES.includes(columnMetadata.dbType))
+      throw new JSONDecoratorRequiresJsonColumn(dreamClass, column, columnMetadata?.dbType ?? null)
+
+    // on a json[]/jsonb[] column the shape describes each element, and an
+    // element may be null whether or not the column is
+    if (!columnMetadata.isArray && shapeAllowsNull(openapi))
+      throw new JSONDecoratorShapeAllowsNull(dreamClass, column)
   }
 }
 

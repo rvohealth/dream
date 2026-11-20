@@ -1,4 +1,6 @@
 import Decorators from '../../../../src/decorators/Decorators.js'
+import DreamApp, { DreamAppInitOptions } from '../../../../src/dream-app/index.js'
+import Dream from '../../../../src/Dream.js'
 import JSONDecoratorRequiresJsonColumn from '../../../../src/errors/JSONDecoratorRequiresJsonColumn.js'
 import JSONDecoratorShapeAllowsNull from '../../../../src/errors/JSONDecoratorShapeAllowsNull.js'
 import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
@@ -7,7 +9,17 @@ import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.j
 import Composition from '../../../../test-app/app/models/Composition.js'
 import User from '../../../../test-app/app/models/User.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
+import initializeDreamApp from '../../../../test-app/cli/helpers/initializeDreamApp.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
+
+// Loads the model as the app's models load, then boots the app with it among
+// the app's models, so DreamApp#init validates it as it validates every model
+async function bootWith(modelClass: typeof Dream, opts: DreamAppInitOptions = {}) {
+  processDynamicallyDefinedModels(modelClass)
+  const models = { ...DreamApp.getOrFail().models, [modelClass.name]: modelClass }
+  vi.spyOn(DreamApp.prototype, 'models', 'get').mockReturnValue(models)
+  return await initializeDreamApp(opts)
+}
 
 describe('@deco.JSON', () => {
   it('registers the declared shape under the class’s jsonColumnShapes', () => {
@@ -54,7 +66,7 @@ describe('@deco.JSON', () => {
   })
 
   context('on a property that is not a json/jsonb column', () => {
-    it('throws when the models load, naming the model and property', () => {
+    it('throws when the app boots, naming the model and property', async () => {
       const deco = new Decorators<typeof NonJsonColumnModel>()
 
       class NonJsonColumnModel extends ApplicationModel {
@@ -67,15 +79,14 @@ describe('@deco.JSON', () => {
         public name: DreamColumn<NonJsonColumnModel, 'name'>
       }
 
-      expect(() => processDynamicallyDefinedModels(NonJsonColumnModel)).toThrow(
-        JSONDecoratorRequiresJsonColumn
-      )
-      expect(() => processDynamicallyDefinedModels(NonJsonColumnModel)).toThrow(
+      expect(() => processDynamicallyDefinedModels(NonJsonColumnModel)).not.toThrow()
+      await expect(bootWith(NonJsonColumnModel)).rejects.toThrow(JSONDecoratorRequiresJsonColumn)
+      await expect(bootWith(NonJsonColumnModel)).rejects.toThrow(
         /NonJsonColumnModel[\s\S]*Property: name, which is a "character varying" column/
       )
     })
 
-    it('throws when the models load on a property that is not a column at all', () => {
+    it('throws when the app boots on a property that is not a column at all', async () => {
       const deco = new Decorators<typeof NotAColumnModel>()
 
       class NotAColumnModel extends ApplicationModel {
@@ -88,14 +99,39 @@ describe('@deco.JSON', () => {
         public notAColumn: Record<string, string>
       }
 
-      expect(() => processDynamicallyDefinedModels(NotAColumnModel)).toThrow(
+      await expect(bootWith(NotAColumnModel)).rejects.toThrow(
         /Property: notAColumn, which is not a column of the "model_for_openapi_type_specs" table/
       )
+    })
+
+    // db:migrate, sync and g:migration boot with bypassDreamIntegrityChecks,
+    // since the generated schema they boot against may not have the column
+    // yet: it is what they regenerate
+    it('boots under bypassDreamIntegrityChecks, which the commands that regenerate the schema pass', async () => {
+      const deco = new Decorators<typeof NotYetSyncedModel>()
+
+      class NotYetSyncedModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        // @ts-expect-error @deco.JSON may only decorate a json/jsonb column
+        @deco.JSON({ type: 'object', properties: { hello: 'string' } })
+        public notYetSynced: Record<string, string>
+      }
+
+      await expect(bootWith(NotYetSyncedModel, { bypassDreamIntegrityChecks: true })).resolves.toBeInstanceOf(
+        DreamApp
+      )
+      expect(NotYetSyncedModel['jsonColumnShapes']).toEqual([
+        { column: 'notYetSynced', openapi: { type: 'object', properties: { hello: 'string' } } },
+      ])
+      await expect(bootWith(NotYetSyncedModel)).rejects.toThrow(JSONDecoratorRequiresJsonColumn)
     })
   })
 
   context('with a shape that allows null', () => {
-    it('throws when the models load on a column that is not an array', () => {
+    it('throws when the app boots on a column that is not an array', async () => {
       const deco = new Decorators<typeof NullableShapeModel>()
 
       class NullableShapeModel extends ApplicationModel {
@@ -107,13 +143,28 @@ describe('@deco.JSON', () => {
         public jsonbData: DreamColumn<NullableShapeModel, 'jsonbData'>
       }
 
-      expect(() => processDynamicallyDefinedModels(NullableShapeModel)).toThrow(JSONDecoratorShapeAllowsNull)
-      expect(() => processDynamicallyDefinedModels(NullableShapeModel)).toThrow(
-        /NullableShapeModel#jsonbData allows null/
-      )
+      await expect(bootWith(NullableShapeModel)).rejects.toThrow(JSONDecoratorShapeAllowsNull)
+      await expect(bootWith(NullableShapeModel)).rejects.toThrow(/NullableShapeModel#jsonbData allows null/)
     })
 
-    it('throws when the models load on a nullable primitive shorthand', () => {
+    it('boots under bypassDreamIntegrityChecks, since the generated schema may not yet have the column’s new type', async () => {
+      const deco = new Decorators<typeof NullableNotYetSyncedModel>()
+
+      class NullableNotYetSyncedModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: ['object', 'null'], properties: { hello: 'string' } })
+        public jsonbData: DreamColumn<NullableNotYetSyncedModel, 'jsonbData'>
+      }
+
+      await expect(
+        bootWith(NullableNotYetSyncedModel, { bypassDreamIntegrityChecks: true })
+      ).resolves.toBeInstanceOf(DreamApp)
+    })
+
+    it('throws when the app boots on a nullable primitive shorthand', async () => {
       const deco = new Decorators<typeof NullablePrimitiveModel>()
 
       class NullablePrimitiveModel extends ApplicationModel {
@@ -125,12 +176,10 @@ describe('@deco.JSON', () => {
         public jsonbData: DreamColumn<NullablePrimitiveModel, 'jsonbData'>
       }
 
-      expect(() => processDynamicallyDefinedModels(NullablePrimitiveModel)).toThrow(
-        JSONDecoratorShapeAllowsNull
-      )
+      await expect(bootWith(NullablePrimitiveModel)).rejects.toThrow(JSONDecoratorShapeAllowsNull)
     })
 
-    it('throws when the models load on an anyOf with a null branch', () => {
+    it('throws when the app boots on an anyOf with a null branch', async () => {
       const deco = new Decorators<typeof NullableAnyOfModel>()
 
       class NullableAnyOfModel extends ApplicationModel {
@@ -142,10 +191,10 @@ describe('@deco.JSON', () => {
         public jsonbData: DreamColumn<NullableAnyOfModel, 'jsonbData'>
       }
 
-      expect(() => processDynamicallyDefinedModels(NullableAnyOfModel)).toThrow(JSONDecoratorShapeAllowsNull)
+      await expect(bootWith(NullableAnyOfModel)).rejects.toThrow(JSONDecoratorShapeAllowsNull)
     })
 
-    it('allows a nullable element shape on a json[]/jsonb[] column', () => {
+    it('allows a nullable element shape on a json[]/jsonb[] column', async () => {
       const deco = new Decorators<typeof NullableElementModel>()
 
       class NullableElementModel extends ApplicationModel {
@@ -157,7 +206,7 @@ describe('@deco.JSON', () => {
         public favoriteJsonbs: DreamColumn<NullableElementModel, 'favoriteJsonbs'>
       }
 
-      processDynamicallyDefinedModels(NullableElementModel)
+      await expect(bootWith(NullableElementModel)).resolves.toBeInstanceOf(DreamApp)
 
       expect(NullableElementModel['jsonColumnShapes']).toEqual([
         {
@@ -167,7 +216,7 @@ describe('@deco.JSON', () => {
       ])
     })
 
-    it('allows null nested inside the shape', () => {
+    it('allows null nested inside the shape', async () => {
       const deco = new Decorators<typeof NestedNullModel>()
 
       class NestedNullModel extends ApplicationModel {
@@ -179,7 +228,7 @@ describe('@deco.JSON', () => {
         public jsonData: DreamColumn<NestedNullModel, 'jsonData'>
       }
 
-      expect(() => processDynamicallyDefinedModels(NestedNullModel)).not.toThrow()
+      await expect(bootWith(NestedNullModel)).resolves.toBeInstanceOf(DreamApp)
     })
   })
 
