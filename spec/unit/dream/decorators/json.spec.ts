@@ -378,6 +378,48 @@ describe('@deco.JSON', () => {
       )
     })
 
+    it('is a compile error, and throws when the models load, for a `for:` sentinel, whatever its `combining` holds', () => {
+      const deco = new Decorators<typeof ForSentinelModel>()
+
+      class ForSentinelModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({
+          // @ts-expect-error a @deco.JSON shape may not contain a `for:` sentinel
+          for: Composition,
+          only: [],
+          combining: { extra: { $ref: '#/components/schemas/Nope' } },
+        })
+        public requiredJsonbData: DreamColumn<ForSentinelModel, 'requiredJsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        /@deco\.JSON on ForSentinelModel#requiredJsonbData[\s\S]*`for:` sentinel at the top level of the shape/
+      )
+    })
+
+    it('throws when the models load for a `for:` sentinel nested in the shape past the types with a cast', () => {
+      const deco = new Decorators<typeof NestedForSentinelModel>()
+
+      class NestedForSentinelModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: 'array', items: { anyOf: [{ type: 'string' }, { for: Composition }] } } as any)
+        public jsonbData: DreamColumn<NestedForSentinelModel, 'jsonbData'>
+      }
+
+      expect(() => processDynamicallyDefinedModels(NestedForSentinelModel)).toThrow(
+        /`for:` sentinel at `items\.anyOf\[1\]`/
+      )
+    })
+
     it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
       const shapeWithRef = {
         type: 'object',

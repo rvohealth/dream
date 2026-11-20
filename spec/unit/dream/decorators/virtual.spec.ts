@@ -171,6 +171,30 @@ describe('@deco.Virtual', () => {
       expect(() => processDynamicallyDefinedModels(CastRefModel)).toThrow(/`\$ref` at `anyOf\[1\]`/)
     })
 
+    it('is a compile error, and throws when the models load, for a `for:` sentinel', () => {
+      const deco = new Decorators<typeof ForSentinelModel>()
+
+      class ForSentinelModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Virtual({
+          type: 'object',
+          // @ts-expect-error a @deco.Virtual shape may not contain a `for:` sentinel
+          properties: { owner: { for: User, only: ['email'] } },
+        })
+        public owner: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        /@deco\.Virtual on ForSentinelModel#owner[\s\S]*`for:` sentinel at `properties\.owner`/
+      )
+    })
+
     it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
       const shapeWithRef = { type: 'object', properties: {}, $schema: 'Owner' } as const
 

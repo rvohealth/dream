@@ -619,6 +619,26 @@ describe('@Encrypted', () => {
       expect(() => processDynamicallyDefinedModels(CastRefModel)).toThrow(/`\$serializable` at `items`/)
     })
 
+    it('throws when the models load for a `for:` sentinel smuggled past the types with a cast', () => {
+      const deco = new Decorators<typeof ForSentinelModel>()
+
+      class ForSentinelModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: { for: User, combining: { note: 'string' } } as any })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        /@deco\.Encrypted on ForSentinelModel#secret[\s\S]*`for:` sentinel at the top level of the shape/
+      )
+    })
+
     it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
       const shapeWithRef = {
         type: 'object',

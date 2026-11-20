@@ -2,7 +2,11 @@ const REFERENCE_KEYS = ['$serializer', '$serializable', '$schema', '$ref'] as co
 const COMBINATOR_KEYS = ['anyOf', 'oneOf', 'allOf'] as const
 
 export interface OpenapiShapeReference {
-  key: (typeof REFERENCE_KEYS)[number]
+  /**
+   * The reference key, or `for` for a `for:` sentinel (Psychic's request-body
+   * shorthand for a model's params)
+   */
+  key: (typeof REFERENCE_KEYS)[number] | 'for'
   /**
    * Where in the shape the reference is, e.g. `properties.owner.items`; an
    * empty string for the shape itself.
@@ -12,9 +16,15 @@ export interface OpenapiShapeReference {
 
 /**
  * Finds the first reference (`$serializer`, `$serializable`, `$schema` or
- * `$ref`) at any depth of an OpenAPI shorthand shape, the runtime counterpart
- * of `OpenapiSchemaBodyShorthandWithoutRefs` for a shape that got past the
- * types (a cast, an `as const` constant, or JavaScript).
+ * `$ref`) or `for:` sentinel at any depth of an OpenAPI shorthand shape, the
+ * runtime counterpart of `OpenapiSchemaBodyShorthandWithoutRefs` for a shape
+ * that got past the types (a cast, an `as const` constant, or JavaScript).
+ *
+ * A `for:` sentinel (`{ for: SomeModel, only, combining }`) is Psychic's
+ * request-body shorthand for a model's params, whose `combining` may hold
+ * references. A model-declared shape describes the property's value in
+ * responses as well as requests and belongs to no endpoint, so the sentinel
+ * has no meaning there and is refused itself rather than walked.
  *
  * It looks only where a schema can be: the shape itself, each `anyOf`,
  * `oneOf` and `allOf` branch, `items`, `additionalProperties`, each property
@@ -30,6 +40,8 @@ export default function findOpenapiShapeReference(
 
   const key = REFERENCE_KEYS.find(referenceKey => shape[referenceKey] !== undefined)
   if (key) return { key, path }
+
+  if (typeof shape.for === 'function') return { key: 'for', path }
 
   for (const combinatorKey of COMBINATOR_KEYS) {
     const branches = shape[combinatorKey]
