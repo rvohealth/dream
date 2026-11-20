@@ -133,6 +133,32 @@ Compatibility-only residue (an error kept exported only for backward
 compatibility, not because new code should throw or catch it) must be
 documented as such, not treated as proof it still belongs in the public API.
 
+## Package Surfaces: `@rvoh/dream/system` and `DreamApp.system`
+
+Dream has two surfaces besides its public entry points, and a new export goes
+on the one that matches who calls it:
+
+- **`@rvoh/dream/system`** (`src/package-exports/system.ts`) is a public,
+  semver-covered contract: CLI, generator and programmatic APIs and their
+  types, which applications and tooling may import. Removing or changing a
+  member is a breaking change.
+- **`DreamApp.system`** is `@internal`: runtime values that only Dream's
+  sibling packages (Psychic) call, such as the OpenAPI shorthand expansion,
+  the declared-shape checker and the AJV factory. It is not for application
+  code and not covered by semver. Add a helper that only a sibling package
+  needs here, never to `@rvoh/dream/system` or a public entry point.
+
+The reason: a sub-path member cannot be removed within a major version,
+because the published sibling packages accept any 2.x, while `DreamApp.system`
+is reached through the `DreamApp` class they already import, so it needs no
+new `exports` entry and can change with the sibling packages that call it.
+
+Known exceptions, kept on `@rvoh/dream/system` for 2.x compatibility though
+only Psychic uses them: `DreamBin`, `DreamImporter`, `DreamLogos`,
+`DreamSerializerBuilder`, `ObjectSerializerBuilder` and `PathHelpers`. Moving
+them onto `DreamApp.system` (and removing `PathHelpers`) waits for Dream 3.0;
+do not add to them.
+
 ## Invalid Declarations: Refused by Types and at Boot
 
 Refuse an invalid declaration (a model decorator, an association, a validation,

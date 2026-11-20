@@ -3,6 +3,7 @@ import JSONDecoratorRequiresJsonColumn from '../../errors/JSONDecoratorRequiresJ
 import JSONDecoratorShapeAdmitsString from '../../errors/JSONDecoratorShapeAdmitsString.js'
 import JSONDecoratorShapeAllowsNull from '../../errors/JSONDecoratorShapeAllowsNull.js'
 import ModelDeclaredShapeContainsReference from '../../errors/ModelDeclaredShapeContainsReference.js'
+import expandOpenapiShorthand from '../../openapi/expandOpenapiShorthand.js'
 import {
   OpenapiSchemaBodyShorthandWithoutRefs,
   OpenapiSchemaCommonFields,
@@ -117,24 +118,29 @@ export function validateJsonColumnShapes(dreamClass: typeof Dream) {
   }
 }
 
-// the shorthand types that render as `type: 'string'` ('decimal' renders as a
-// number and 'json' as an object)
-const STRING_SHORTHAND_TYPES = ['string', 'date', 'date-time'] as const
-
 /**
- * Whether the shape itself admits a string, by JSON Schema: a string must get
- * past every keyword the shape has, so its `type` must admit one, its `enum`
- * list one, every `allOf` branch admit one and some `anyOf` and `oneOf`
- * branch admit one. A shape with none of these admits anything. As in
+ * Whether the shape itself admits a string, by JSON Schema, read from the
+ * shape as expanded (the schema that is enforced and rendered): a string must
+ * get past every keyword the expanded shape has, so its `type` must admit one,
+ * its `enum` list one, every `allOf` branch admit one and some `anyOf` and
+ * `oneOf` branch admit one. A shape with none of these admits anything. As in
  * `shapeAllowsNull`, `properties` and `items` are never read: a string inside
  * the shape is not a string value of the column.
  */
-function shapeAdmitsString(shape: unknown): boolean {
-  if (typeof shape === 'string') return (STRING_SHORTHAND_TYPES as readonly string[]).includes(shape)
-  if (Array.isArray(shape)) return shape.some(shapeAdmitsString)
-  if (!shape || typeof shape !== 'object') return false
+function shapeAdmitsString(shape: JSONColumnShape): boolean {
+  return schemaAdmitsString(expandOpenapiShorthand(shape))
+}
 
-  const schema = shape as {
+function schemaAdmitsString(schema: unknown): boolean {
+  if (!schema || typeof schema !== 'object') return false
+
+  const {
+    type,
+    enum: enumValues,
+    allOf,
+    anyOf,
+    oneOf,
+  } = schema as {
     type?: unknown
     enum?: unknown
     allOf?: unknown
@@ -142,48 +148,46 @@ function shapeAdmitsString(shape: unknown): boolean {
     oneOf?: unknown
   }
 
-  if (schema.type !== undefined && !shapeAdmitsString(schema.type)) return false
-  if (Array.isArray(schema.enum) && !schema.enum.some(value => typeof value === 'string')) return false
-  if (Array.isArray(schema.allOf) && !schema.allOf.every(shapeAdmitsString)) return false
+  if (type !== undefined && !(type === 'string' || (Array.isArray(type) && type.includes('string'))))
+    return false
+  if (Array.isArray(enumValues) && !enumValues.some(value => typeof value === 'string')) return false
+  if (Array.isArray(allOf) && !allOf.every(schemaAdmitsString)) return false
 
-  return [schema.anyOf, schema.oneOf].every(
-    branches => !Array.isArray(branches) || branches.some(shapeAdmitsString)
-  )
+  return [anyOf, oneOf].every(branches => !Array.isArray(branches) || branches.some(schemaAdmitsString))
 }
 
 /**
- * Whether the shape itself admits null. Only the shape's own `type`,
- * `maybeNull` and compositions are read, never its `properties` or `items`:
- * a nullable property or element inside the shape is not a null value of the
- * column.
+ * Whether the shape itself admits null, read from the shape as expanded (the
+ * schema that is enforced and rendered). Only the expanded shape's own `type`
+ * and compositions are read, never its `properties` or `items`: a nullable
+ * property or element inside the shape is not a null value of the column.
  */
-function shapeAllowsNull(shape: unknown): boolean {
-  if (shape === 'null') return true
-  if (Array.isArray(shape)) return shape.includes('null')
-  if (!shape || typeof shape !== 'object') return false
+function shapeAllowsNull(shape: JSONColumnShape): boolean {
+  return schemaAllowsNull(expandOpenapiShorthand(shape))
+}
 
-  const schema = shape as {
+function schemaAllowsNull(schema: unknown): boolean {
+  if (!schema || typeof schema !== 'object') return false
+
+  const { type, allOf, anyOf, oneOf } = schema as {
     type?: unknown
     allOf?: unknown
     anyOf?: unknown
     oneOf?: unknown
-    maybeNull?: unknown
   }
 
-  if (schema.maybeNull === true) return true
-  if (schema.type !== undefined && shapeAllowsNull(schema.type)) return true
+  if (type === 'null' || (Array.isArray(type) && type.includes('null'))) return true
 
   // a value matches an allOf only when it matches every branch, so null
   // passes one only when every branch admits it
-  if (Array.isArray(schema.allOf) && schema.allOf.length > 0 && schema.allOf.every(shapeAllowsNull))
-    return true
+  if (Array.isArray(allOf) && allOf.length > 0 && allOf.every(schemaAllowsNull)) return true
 
-  return [schema.anyOf, schema.oneOf].some(
-    branches => Array.isArray(branches) && branches.some(branch => shapeAllowsNull(branch))
-  )
+  return [anyOf, oneOf].some(branches => Array.isArray(branches) && branches.some(schemaAllowsNull))
 }
 
-type StringShorthandType = (typeof STRING_SHORTHAND_TYPES)[number]
+// the shorthand types that expand to `type: 'string'` ('decimal' expands to a
+// number and 'json' to an object), which the types refuse for `@deco.JSON`
+type StringShorthandType = 'string' | 'date' | 'date-time'
 type NonStringShorthandBaseType = Exclude<OpenapiShorthandPrimitiveBaseTypes, StringShorthandType>
 type NonStringShorthandType =
   | NonStringShorthandBaseType

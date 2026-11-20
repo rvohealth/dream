@@ -237,6 +237,21 @@ describe('@deco.JSON', () => {
       await expect(bootWith(NestedNullableAllOfModel)).rejects.toThrow(JSONDecoratorShapeAllowsNull)
     })
 
+    it('boots on a nullable `type` cast beside an allOf that rejects null, since the expanded shape that is enforced keeps only the allOf', async () => {
+      const deco = new Decorators<typeof CastNullableTypeBesideAllOfModel>()
+
+      class CastNullableTypeBesideAllOfModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: ['object', 'null'], allOf: [{ type: 'object' }] } as any)
+        public jsonbData: DreamColumn<CastNullableTypeBesideAllOfModel, 'jsonbData'>
+      }
+
+      await expect(bootWith(CastNullableTypeBesideAllOfModel)).resolves.toBeInstanceOf(DreamApp)
+    })
+
     it('allows an allOf with a branch that does not allow null, since no null matches every branch', async () => {
       const deco = new Decorators<typeof NonNullAllOfModel>()
 
@@ -369,6 +384,23 @@ describe('@deco.JSON', () => {
       await expect(bootWith(StringElementModel)).rejects.toThrow(JSONDecoratorShapeAdmitsString)
       await expect(bootWith(StringElementModel)).rejects.toThrow(
         /StringElementModel#favoriteJsonbs, a json\[\]\/jsonb\[\] column, admits a string as an element/
+      )
+    })
+
+    it('throws when the app boots on a `type` cast beside an anyOf with a string branch, since the expanded shape that is enforced keeps only the anyOf', async () => {
+      const deco = new Decorators<typeof CastTypeBesideStringAnyOfModel>()
+
+      class CastTypeBesideStringAnyOfModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ type: 'integer', anyOf: ['string'] } as any)
+        public jsonbData: DreamColumn<CastTypeBesideStringAnyOfModel, 'jsonbData'>
+      }
+
+      await expect(bootWith(CastTypeBesideStringAnyOfModel)).rejects.toThrow(
+        /CastTypeBesideStringAnyOfModel#jsonbData admits a string/
       )
     })
 
