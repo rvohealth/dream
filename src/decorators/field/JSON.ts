@@ -95,6 +95,12 @@ export function validateJsonColumnShapes(dreamClass: typeof Dream) {
   }
 }
 
+/**
+ * Whether the shape itself admits null. Only the shape's own `type`,
+ * `maybeNull` and compositions are read, never its `properties` or `items`:
+ * a nullable property or element inside the shape is not a null value of the
+ * column.
+ */
 function shapeAllowsNull(shape: unknown): boolean {
   if (shape === 'null') return true
   if (Array.isArray(shape)) return shape.includes('null')
@@ -102,6 +108,7 @@ function shapeAllowsNull(shape: unknown): boolean {
 
   const schema = shape as {
     type?: unknown
+    allOf?: unknown
     anyOf?: unknown
     oneOf?: unknown
     maybeNull?: unknown
@@ -109,6 +116,11 @@ function shapeAllowsNull(shape: unknown): boolean {
 
   if (schema.maybeNull === true) return true
   if (schema.type !== undefined && shapeAllowsNull(schema.type)) return true
+
+  // a value matches an allOf only when it matches every branch, so null
+  // passes one only when every branch admits it
+  if (Array.isArray(schema.allOf) && schema.allOf.length > 0 && schema.allOf.every(shapeAllowsNull))
+    return true
 
   return [schema.anyOf, schema.oneOf].some(
     branches => Array.isArray(branches) && branches.some(branch => shapeAllowsNull(branch))

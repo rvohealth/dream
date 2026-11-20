@@ -194,6 +194,68 @@ describe('@deco.JSON', () => {
       await expect(bootWith(NullableAnyOfModel)).rejects.toThrow(JSONDecoratorShapeAllowsNull)
     })
 
+    it('throws when the app boots on an allOf whose every branch allows null', async () => {
+      const deco = new Decorators<typeof NullableAllOfModel>()
+
+      class NullableAllOfModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({ allOf: [{ type: ['string', 'null'] }] })
+        public requiredJsonbData: DreamColumn<NullableAllOfModel, 'requiredJsonbData'>
+      }
+
+      await expect(bootWith(NullableAllOfModel)).rejects.toThrow(
+        /NullableAllOfModel#requiredJsonbData allows null/
+      )
+    })
+
+    it('throws when the app boots on an allOf that allows null through nested compositions', async () => {
+      const deco = new Decorators<typeof NestedNullableAllOfModel>()
+
+      class NestedNullableAllOfModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({
+          anyOf: [
+            { type: 'integer' },
+            {
+              allOf: [
+                { anyOf: [{ type: 'string' }, { type: 'null' }] },
+                { allOf: [{ type: ['string', 'null'] }] },
+              ],
+            },
+          ],
+        })
+        public requiredJsonbData: DreamColumn<NestedNullableAllOfModel, 'requiredJsonbData'>
+      }
+
+      await expect(bootWith(NestedNullableAllOfModel)).rejects.toThrow(JSONDecoratorShapeAllowsNull)
+    })
+
+    it('allows an allOf with a branch that does not allow null, since no null matches every branch', async () => {
+      const deco = new Decorators<typeof NonNullAllOfModel>()
+
+      class NonNullAllOfModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({
+          allOf: [
+            { type: ['object', 'null'], properties: { hello: 'string' } },
+            { type: 'object', properties: { goodbye: 'string' } },
+          ],
+        })
+        public requiredJsonbData: DreamColumn<NonNullAllOfModel, 'requiredJsonbData'>
+      }
+
+      await expect(bootWith(NonNullAllOfModel)).resolves.toBeInstanceOf(DreamApp)
+    })
+
     it('allows a nullable element shape on a json[]/jsonb[] column', async () => {
       const deco = new Decorators<typeof NullableElementModel>()
 
