@@ -59,6 +59,7 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
       registerOnce(dreamClass, 'encryptedAttributes', {
         property: key,
         encryptedColumnName: encryptedKey,
+        shapeDeclared: openapi !== undefined,
       } satisfies EncryptedAttributeStatement)
 
       // checks the decrypted value against the property's shape, declared or
@@ -144,4 +145,12 @@ export interface EncryptedOptions<ColumnName extends string = string> {
 export interface EncryptedAttributeStatement {
   property: string
   encryptedColumnName: string
+  /**
+   * Whether the decorator declared the value's shape (`openapi`). A bare
+   * `@deco.Encrypted()` registers `'string'`, `null` added when the backing
+   * column allows it, as read from the schema the app booted with; sync reads
+   * the backing column's nullability fresh instead, so it types a bare one
+   * from `'string'` rather than from that registration.
+   */
+  shapeDeclared: boolean
 }

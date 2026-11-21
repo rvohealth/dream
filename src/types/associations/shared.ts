@@ -185,11 +185,19 @@ type NonKyselySupportedSupplementalWhereClauseValues<
       : EnumTypeArray extends string[]
         ? EnumTypeArray | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
         : never,
-> = PartialTypes extends never
-  ?
-      | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
-      | CurriedOpsStatement<any, any, any, ResolvedOpsValType>
-      | SelectQueryBuilder<DB, keyof DB, any>
+  // A json/jsonb column whose values are objects (one declared with
+  // `@deco.JSON`, typed by its shape) has no ops of its own above, so it takes
+  // the expression forms (`ops.jsonb`, `ops.expression` with a RawBuilder). The
+  // tuple wrapper keeps the check from distributing over `never`, which would
+  // yield `never` and leave the column without them; any other column with no
+  // ops stays `never`, as before.
+> = [PartialTypes] extends [never]
+  ? ColumnType extends 'json' | 'jsonb'
+    ?
+        | OpsStatement<KyselyComparisonOperatorExpression, ResolvedOpsValType, any>
+        | CurriedOpsStatement<any, any, any, ResolvedOpsValType>
+        | SelectQueryBuilder<DB, keyof DB, any>
+    : never
   :
       | PartialTypes
       | CurriedOpsStatement<any, any, any, ResolvedOpsValType>

@@ -361,7 +361,7 @@ describe('Dream STI', () => {
         expect.arrayContaining(['nickname', 'secret'])
       )
       expect(StiChildWithVirtualAndEncrypted['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
       ])
       expect(DynamicStiBase['virtualAttributes'].map(attr => attr.property)).not.toContain('nickname')
     })

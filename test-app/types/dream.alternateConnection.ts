@@ -125,6 +125,7 @@ export const schema = {
     },
     virtualColumns: [],
     jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       alternateDbConnectionUser: {
         type: 'BelongsTo',
@@ -193,6 +194,7 @@ export const schema = {
     },
     virtualColumns: [],
     jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       passthroughPosts: {
         type: 'HasMany',

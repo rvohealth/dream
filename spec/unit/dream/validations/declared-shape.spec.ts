@@ -88,6 +88,7 @@ describe('a @deco.JSON shape checked at save', () => {
     it('refuses to create the record, naming the column and the declaredShape validation', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
 
+      // @ts-expect-error metadata is typed by its declared shape, so this is a compile error too
       const error = await saveError(() => Composition.create({ user, metadata: { version: 'two' } }))
       expect(error.errors).toEqual({ metadata: ['declaredShape'] })
       expect(await Composition.count()).toEqual(0)
@@ -97,6 +98,7 @@ describe('a @deco.JSON shape checked at save', () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
       const composition = await Composition.create({ user, metadata: { version: 2 } })
 
+      // @ts-expect-error metadata is typed by its declared shape, so this is a compile error too
       const error = await saveError(() => composition.update({ metadata: { contributors: [7] } }))
       expect(error.errors).toEqual({ metadata: ['declaredShape'] })
       expect((await Composition.findOrFail(composition.id)).metadata).toEqual({ version: 2 })
@@ -104,6 +106,7 @@ describe('a @deco.JSON shape checked at save', () => {
 
     it('makes isValid false', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })
+      // @ts-expect-error metadata is typed by its declared shape, so this is a compile error too
       const composition = Composition.new({ user, metadata: { version: 'two' } })
 
       expect(composition.isValid).toBe(false)
@@ -255,7 +258,9 @@ function userWithEncryptedShape<const Shape>(openapi: Shape) {
     public email: DreamColumn<UserWithEncryptedShape, 'email'>
     public passwordDigest: DreamColumn<UserWithEncryptedShape, 'passwordDigest'>
 
-    // on the nullable `encrypted_secret` column
+    // on the nullable `encrypted_secret` column. The generated schema types
+    // the users table's `secret` by User's declaration (a string), not by this
+    // one, so a spec writing another type casts it
     @deco.Encrypted({ openapi: openapi as any })
     public secret: unknown
   }
@@ -293,7 +298,7 @@ describe('a @deco.Encrypted shape checked at save', () => {
       const user = await UserWithEncryptedShape.create({
         email: 'a@b.com',
         passwordDigest: 'abcd',
-        secret: 5,
+        secret: 5 as any,
       })
       expect((await UserWithEncryptedShape.findOrFail(user.id)).secret).toEqual(5)
 
@@ -307,7 +312,7 @@ describe('a @deco.Encrypted shape checked at save', () => {
       const user = await UserWithEncryptedShape.create({
         email: 'a@b.com',
         passwordDigest: 'abcd',
-        secret: 5,
+        secret: 5 as any,
       })
       await user.update({ secret: null })
       expect((await UserWithEncryptedShape.findOrFail(user.id)).secret).toBeNull()

@@ -24,6 +24,7 @@ import ASTBuilder, {
   SchemaBuilderColumnData,
   SchemaData,
 } from './ASTBuilder.js'
+import { DeclaredShapeTypes, encryptedAttributeTypes, jsonColumnTypes } from './ASTDeclaredShapeTypes.js'
 import { dbTypesName, dbTypesReservedNames } from './dbTypesNaming.js'
 import resolveIgnoredColumns from './resolveIgnoredColumns.js'
 import tableMatchesPattern from './tableMatchesPattern.js'
@@ -150,6 +151,47 @@ export default class ASTConnectionBuilder extends ASTBuilder {
     return Object.values(DreamApp.getOrFail().models).filter(
       model => model.prototype?.connectionName === this.connectionName
     )
+  }
+
+  /**
+   * @internal
+   *
+   * the types of each json/jsonb column of the table that a model of it
+   * declares with `@deco.JSON`, keyed by attribute name, from the declared
+   * shape and the column as just introspected (see jsonColumnTypes)
+   */
+  protected jsonColumnTypesForTable(table: IntrospectedTable): Map<string, DeclaredShapeTypes> {
+    const models = this.connectionModels().filter(model => model.table === this.tableKey(table))
+    const types = new Map<string, DeclaredShapeTypes>()
+
+    for (const column of table.columns) {
+      if (column.valueType !== 'Json') continue
+
+      const attributeName = camelize(column.name)
+      const columnTypes = jsonColumnTypes(models, attributeName, {
+        isArray: column.isArray,
+        allowNull: column.allowNull,
+      })
+      if (columnTypes) types.set(attributeName, columnTypes)
+    }
+
+    return types
+  }
+
+  /**
+   * @internal
+   *
+   * the types of each `@deco.Encrypted` property the table's models declare,
+   * keyed by property, with the nullability of each backing column as just
+   * introspected (see encryptedAttributeTypes)
+   */
+  private encryptedAttributeTypesForTable(table: IntrospectedTable): Map<string, DeclaredShapeTypes> {
+    const models = this.connectionModels().filter(model => model.table === this.tableKey(table))
+    const columnsAllowingNull = new Set<string>(
+      table.columns.filter(column => column.allowNull).map(column => camelize(column.name))
+    )
+
+    return encryptedAttributeTypes(models, column => columnsAllowingNull.has(column))
   }
 
   /**
@@ -410,6 +452,8 @@ may need to update the table getter in the corresponding Dream.
       jsonDecoratedColumns: uniq(
         models.flatMap(model => model['jsonColumnShapes'].map(statement => statement.column))
       ),
+      jsonColumnTypes: this.jsonColumnTypesForTable(table),
+      encryptedAttributeTypes: this.encryptedAttributeTypesForTable(table),
       associations: associationData,
       serializerKeys,
     }

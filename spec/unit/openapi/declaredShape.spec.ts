@@ -213,7 +213,7 @@ describe('declared shapes', () => {
         })
         expect(declaredShapeSchema(User, 'otherSecret')).toEqual({
           type: ['object', 'null'],
-          properties: { token: { type: 'string' } },
+          properties: { token: { type: 'string' }, issuedOn: { type: 'string', format: 'date' } },
           required: ['token'],
         })
       })

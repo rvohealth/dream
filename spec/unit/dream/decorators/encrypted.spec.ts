@@ -42,7 +42,11 @@ describe('@Encrypted', () => {
       expect.arrayContaining([
         {
           property: 'otherSecret',
-          type: { type: ['object', 'null'], properties: { token: 'string' }, required: ['token'] },
+          type: {
+            type: ['object', 'null'],
+            properties: { token: 'string', issuedOn: 'date' },
+            required: ['token'],
+          },
         },
       ])
     )
@@ -51,8 +55,8 @@ describe('@Encrypted', () => {
   it("adds each backing column to the Dream class's encryptedAttributes", () => {
     expect(User['encryptedAttributes']).toEqual(
       expect.arrayContaining([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
-        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
+        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret', shapeDeclared: true },
       ])
     )
   })
@@ -429,7 +433,9 @@ describe('@Encrypted', () => {
         ['Howdy world', 'Howdy moon'],
       ]) {
         const userWithJsonSecret = await UserWithJsonSecret.findOrFail(user.id)
-        await userWithJsonSecret.update({ secret: original })
+        // the generated schema types the users table's `secret` by User's
+        // declaration (a string), not by this model's
+        await userWithJsonSecret.update({ secret: original as any })
 
         const reloadedUser = await UserWithJsonSecret.findOrFail(user.id)
         reloadedUser.secret = changed
@@ -476,7 +482,7 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(UserWithColumnNameString)
 
       expect(UserWithColumnNameString['encryptedAttributes']).toEqual([
-        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
+        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret', shapeDeclared: false },
       ])
       expect(UserWithColumnNameString['virtualAttributes']).toEqual([
         { property: 'otherSecret', type: ['string', 'null'] },
@@ -505,7 +511,7 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(UserWithJsonSecret)
 
       expect(UserWithJsonSecret['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: true },
       ])
       expect(UserWithJsonSecret['virtualAttributes']).toEqual([{ property: 'secret', type: 'json' }])
 
@@ -538,7 +544,7 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(SecretiveBase, SecretiveChild)
 
       expect(SecretiveChild['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
       ])
       expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
       expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])
@@ -569,7 +575,7 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(SecretiveChild, SecretiveBase)
 
       expect(SecretiveChild['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
       ])
       expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
       expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])

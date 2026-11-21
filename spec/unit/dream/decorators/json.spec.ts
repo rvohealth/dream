@@ -32,6 +32,23 @@ describe('@deco.JSON', () => {
           properties: { version: 'integer', contributors: 'string[]' },
         },
       },
+      {
+        column: 'metadata3',
+        openapi: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              status: { type: 'string', enum: ['draft', 'published'] },
+              publishedOn: 'date',
+              reviewedOn: { type: 'date' },
+              reviewedAt: 'date-time',
+            },
+            required: ['status'],
+            additionalProperties: false,
+          },
+        },
+      },
     ])
   })
 

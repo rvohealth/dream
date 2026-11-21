@@ -96,7 +96,7 @@ import {
   DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAssociationNamesWithPassthroughOnClauses,
   DreamAssociationNamesWithRequiredOnClauses,
-  DreamAttributes,
+  DreamRawAttributes,
   DreamBelongsToAssociationNames,
   DreamColumnNames,
   DreamConstructorType,
@@ -3919,7 +3919,7 @@ export default class Dream {
   public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
     column: Key & string
-  ): DreamAttributes<I>[Key] {
+  ): DreamRawAttributes<I>[Key & keyof DreamRawAttributes<I>] {
     return (this as any).currentAttributes[column]
   }
 
@@ -3937,8 +3937,10 @@ export default class Dream {
    *  // }
    * ```
    */
-  public getAttributes<I extends Dream, DB extends I['DB']>(this: I): Selectable<DB[I['table']]> {
-    return { ...this.currentAttributes } as Selectable<DB[I['table']]>
+  public getAttributes<I extends Dream, DB extends I['DB']>(
+    this: I
+  ): DreamRawAttributes<I, Selectable<DB[I['table']]>> {
+    return { ...this.currentAttributes } as DreamRawAttributes<I, Selectable<DB[I['table']]>>
   }
 
   /**
@@ -3971,8 +3973,8 @@ export default class Dream {
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: I): Partial<Selectable<Table>> {
-    const obj: Partial<Selectable<Table>> = {}
+  >(this: I): Partial<DreamRawAttributes<I, Selectable<Table>>> {
+    const obj: Partial<DreamRawAttributes<I, Selectable<Table>>> = {}
 
     Object.keys(this.dirtyAttributes()).forEach(column => {
       ;(obj as any)[column] = (this.frozenAttributes as any)[column]
@@ -4043,10 +4045,14 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
+    Attributes = DreamRawAttributes<I, Selectable<Table>>,
     RetType = Partial<
       Record<
         DreamColumnNames<I>,
-        { was: Selectable<Table>[DreamColumnNames<I>]; now: Selectable<Table>[DreamColumnNames<I>] }
+        {
+          was: Attributes[DreamColumnNames<I> & keyof Attributes]
+          now: Attributes[DreamColumnNames<I> & keyof Attributes]
+        }
       >
     >,
   >(this: I): RetType {
@@ -4109,7 +4115,8 @@ export default class Dream {
     TableName extends I['table'],
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
-  >(this: I, columnName: ColumnName): Selectable<Table>[ColumnName] {
+    Attributes = DreamRawAttributes<I, Selectable<Table>>,
+  >(this: I, columnName: ColumnName): Attributes[ColumnName & keyof Attributes] {
     if (notEqual(this.frozenAttributes[columnName], this.getAttribute(columnName as any)))
       return this.frozenAttributes[columnName]
     return (this.attributesFromBeforeLastSave as any)[columnName]
@@ -4229,8 +4236,8 @@ export default class Dream {
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: I): Partial<Selectable<Table>> {
-    const obj: Partial<Selectable<Table>> = {}
+  >(this: I): Partial<DreamRawAttributes<I, Selectable<Table>>> {
+    const obj: Partial<DreamRawAttributes<I, Selectable<Table>>> = {}
 
     this.columns().forEach(column => {
       if (this.attributeIsDirty(column as any)) (obj as any)[column] = this.getAttribute(column as any)

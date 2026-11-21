@@ -387,7 +387,7 @@ export default class DreamClassTransactionBuilder<
     attributes?: UpdateableProperties<DreamInstance>,
     { skipHooks }: { skipHooks?: boolean } = {}
   ): Promise<DreamInstance> {
-    const dream = this.dreamClass.new(attributes) as DreamInstance
+    const dream = this.dreamClass.new(attributes as UpdateablePropertiesForClass<DreamClass>) as DreamInstance
     return saveDream<DreamInstance>(dream, this.dreamTransaction, skipHooks ? { skipHooks } : undefined)
   }
 

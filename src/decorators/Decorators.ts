@@ -239,12 +239,12 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *   @deco.Encrypted()
    *   // automatically sets `encryptedSsn` to the encrypted value that
    *   // `ssn` is set to in new/create/update, e.g., `await user.update({ ssn })`
-   *   public ssn: string
+   *   public ssn: DreamColumn<User, 'ssn'>
    *
    *   // automatically sets `myEncryptedPhone` to the encrypted value that
    *   // `phone` is set to new/create/update, e.g., `await user.update({ phone })`
    *   @deco.Encrypted('myEncryptedPhone')
-   *   public phone: string
+   *   public phone: DreamColumn<User, 'phone'>
    *
    *   // automatically sets `myEncryptedMfaSettings` to the encrypted value that
    *   // `mfaSettings` is set to in new/create/update, and declares the
@@ -254,7 +254,7 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    *     column: 'myEncryptedMfaSettings',
    *     openapi: { type: 'object', properties: { token: 'string' } },
    *   })
-   *   public mfaSettings: { token: string } | null
+   *   public mfaSettings: DreamColumn<User, 'mfaSettings'>
    * }
    * ```
    *
@@ -280,6 +280,17 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * only other columns of a record loaded with such a value. A property left
    * unset is not checked. The check reads no plaintext into the error, and it
    * does not fire `encryption:legacy-key-used` or change the backing column.
+   *
+   * Sync writes the property's TypeScript type from its shape into the
+   * generated schema, so `DreamColumn<User, 'mfaSettings'>` is the type of the
+   * decrypted value (in the example above, `{ token?: string; [key: string]:
+   * unknown }`, or that `| null` when the backing column allows null; see
+   * `@deco.JSON` for how a shape is typed), and
+   * `new`, `create`, `update` and, in Psychic, `paramsFor` take a value of the
+   * shape, where a `date` string also takes a `CalendarDate` and a
+   * `date-time` string a `DateTime`. When STI children declare one property
+   * with different shapes, its type is the union of theirs. Re-run sync after
+   * adding `@deco.Encrypted` or changing its shape.
    *
    * @param columnOrOptions - Either the backing column's name, or an options object:
    * - `column` — the backing column's name; if omitted, then 'encrypted' is prepended to the Pascal cased version of the decorated field
@@ -370,8 +381,27 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * the base and every child use. Declaring `@deco.JSON` on an STI child throws
    * when the child class is defined.
    *
-   * After adding or removing `@deco.JSON`, re-run sync so the serializer types
-   * know which columns are declared.
+   * Sync writes the column's TypeScript type from the shape, into
+   * `types/db.ts` and `types/dream.ts`, so the shape types the property
+   * (`DreamColumn<User, 'preferences'>`), `new`, `create`, `update`,
+   * `where`, a raw Kysely query of the column and, in Psychic, `paramsFor`.
+   * The type follows the shape as the save checks it: an object's properties
+   * are optional unless `required` lists them, and an object takes keys it
+   * does not declare unless it declares `additionalProperties: false`; an
+   * `enum` is a union of its values; `anyOf` and `oneOf` are unions and
+   * `allOf` an intersection; a nullable column adds `| null`. A `date` or
+   * `date-time` string reads back as a string (the value is stored as JSON),
+   * and a write also takes a `CalendarDate` for a `date` and a `DateTime` for
+   * a `date-time`. The readers that bypass the getter (`getAttribute`,
+   * `getAttributes`, `changedAttributes`, `changes`,
+   * `previousValueForAttribute`, `dirtyAttributes`) return the JSON text a
+   * json/jsonb column's attribute holds, so they type the column as a string.
+   * A raw Kysely write of JSON text takes a cast, and a raw Kysely write of a
+   * top-level array must be JSON text, since node-postgres sends a JavaScript
+   * array as a Postgres array, which a json/jsonb column refuses.
+   *
+   * After adding or removing `@deco.JSON`, or changing its shape, re-run sync
+   * so the generated types and the serializer types follow it.
    *
    * @param shape - The OpenAPI shape (shorthand allowed) of the column's value, or of each element for an array column
    * @returns A JSON decorator
