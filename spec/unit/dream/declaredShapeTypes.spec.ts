@@ -212,5 +212,19 @@ describe('types generated from declared shapes', () => {
       // @ts-expect-error secret is a string
       User.new({ secret: 1 })
     })
+
+    it.skip('is read by getAttribute as unknown, as is a @deco.Virtual property, since neither is a column', () => {
+      const user = User.new()
+
+      const secret = user.getAttribute('secret')
+      type _secret = Expect<Equal<typeof secret, unknown>>
+      const password = user.getAttribute('password')
+      type _password = Expect<Equal<typeof password, unknown>>
+      const email = user.getAttribute('email')
+      type _email = Expect<Equal<typeof email, string>>
+
+      void [secret, password, email]
+      void (null as unknown as [_secret, _password, _email])
+    })
   })
 })

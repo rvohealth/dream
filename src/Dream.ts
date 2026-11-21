@@ -3944,7 +3944,7 @@ export default class Dream {
   public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
     column: Key & string
-  ): DreamRawAttributes<I>[Key & keyof DreamRawAttributes<I>] {
+  ): Key extends keyof DreamRawAttributes<I> ? DreamRawAttributes<I>[Key] : unknown {
     return (this as any).currentAttributes[column]
   }
 
