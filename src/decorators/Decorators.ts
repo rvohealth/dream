@@ -280,6 +280,9 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * only other columns of a record loaded with such a value. A property left
    * unset is not checked. The check reads no plaintext into the error, and it
    * does not fire `encryption:legacy-key-used` or change the backing column.
+   * As for `@deco.JSON`, the check knows only the `ajv-formats` formats and
+   * Dream's `decimal` and `bigint`, and accepts any value for another
+   * `format`, such as one added through Psychic's `ajvOptions.init`.
    *
    * Sync writes the property's TypeScript type from its shape into the
    * generated schema, so `DreamColumn<User, 'mfaSettings'>` is the type of the
@@ -367,7 +370,12 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * a map of property names to shapes. `DreamApp.init` compiles every
    * declared shape and throws on one that does not compile; the commands that
    * regenerate the schema skip that compile, and the error is then thrown when
-   * the shape is first checked.
+   * the shape is first checked. The validator knows the `ajv-formats` formats
+   * (`date`, `date-time`, `email`, `uuid`, …) and Dream's `decimal` and
+   * `bigint`; any other `format` is treated as an annotation and accepts any
+   * value, including one an app adds through Psychic's `ajvOptions.init`,
+   * which only the request and response validators of that OpenAPI document
+   * or `@OpenAPI` endpoint check.
    *
    * The shape may not contain a reference (`$serializer`, `$serializable`,
    * `$schema` or `$ref`) at any depth: that is a compile error, and, should one

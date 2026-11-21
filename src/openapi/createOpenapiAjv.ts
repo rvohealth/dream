@@ -25,6 +25,13 @@ export type OpenapiAjv = Ajv2020
  * the `ajv-formats` formats (`date`, `date-time`, `email`, `uuid`, …), and
  * Dream's own `decimal` and `bigint` formats, which check a string's digits.
  *
+ * Those are the only formats Dream's declared-shape checker knows. A format an
+ * app adds through Psychic's `ajvOptions.init` (on an OpenAPI document or an
+ * `@OpenAPI` endpoint) is added only to the instance Psychic builds for that
+ * endpoint's request and response validators. Under `strict: false`, AJV
+ * treats a format it does not know as an annotation, logging a warning when it
+ * compiles the schema, so the declared-shape check accepts any value for it.
+ *
  * Defaults: no coercion, no removal of additional properties, defaults
  * applied, the first error only, formats validated, and `strict: false` with
  * `strictTypes: true`, so OpenAPI keywords JSON Schema does not know (such as
