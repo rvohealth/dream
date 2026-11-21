@@ -12,18 +12,41 @@ export type OpenapiSchemaBody =
   | OpenapiSchemaObject
   | OpenapiSchemaArray
 
-export type OpenapiSchemaBodyShorthand =
-  | OpenapiSchemaBase
-  | OpenapiSchemaShorthandPrimitiveGeneric
-  | OpenapiSchemaShorthandExpressionAnyOf
-  | OpenapiSchemaShorthandExpressionOneOf
-  | OpenapiSchemaShorthandExpressionAllOf
-  | OpenapiSchemaObjectShorthand
-  | OpenapiSchemaArrayShorthand
-  | OpenapiSchemaNull // no shorthand for type: null
+/**
+ * The reference forms a shorthand shape may contain: `$ref`, `$schema`,
+ * `$serializer` and `$serializable`.
+ */
+export type OpenapiShorthandRefs =
+  | OpenapiSchemaExpressionRef
   | OpenapiSchemaExpressionRefSchemaShorthand
   | OpenapiSchemaShorthandExpressionSerializerRef
   | OpenapiSchemaShorthandExpressionSerializableRef
+
+/**
+ * An OpenAPI shape, shorthand allowed. `Refs` is the reference forms it may
+ * contain, at any depth; by default every one of them. A shape whose `Refs` is
+ * `never` contains no reference (see `OpenapiSchemaBodyShorthandWithoutRefs`)
+ * and is still an `OpenapiSchemaBodyShorthand`.
+ */
+export type OpenapiSchemaBodyShorthand<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  | OpenapiSchemaString
+  | OpenapiSchemaInteger
+  | OpenapiSchemaNumber
+  | OpenapiSchemaNull // no shorthand for type: null
+  | OpenapiSchemaShorthandPrimitiveGeneric
+  | OpenapiSchemaShorthandExpressionAnyOf<Refs>
+  | OpenapiSchemaShorthandExpressionOneOf<Refs>
+  | OpenapiSchemaShorthandExpressionAllOf<Refs>
+  | OpenapiSchemaObjectShorthand<Refs>
+  | OpenapiSchemaArrayShorthand<Refs>
+  | Refs
+
+/**
+ * An OpenAPI shape, shorthand allowed, that contains no reference (`$ref`,
+ * `$schema`, `$serializer` or `$serializable`) at any depth: the shape a model
+ * declares with `@deco.JSON`, `@deco.Virtual` or `@deco.Encrypted`.
+ */
+export type OpenapiSchemaBodyShorthandWithoutRefs = OpenapiSchemaBodyShorthand<never>
 
 export type OpenapiSchemaBase =
   | OpenapiSchemaString
@@ -32,17 +55,20 @@ export type OpenapiSchemaBase =
   | OpenapiSchemaNull
   | OpenapiSchemaExpressionRef
 
-export type OpenapiSchemaShorthandExpressionAnyOf = OpenapiSchemaCombinatorFields<{
-  anyOf: OpenapiSchemaBodyShorthand[]
-}>
+export type OpenapiSchemaShorthandExpressionAnyOf<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  OpenapiSchemaCombinatorFields<{
+    anyOf: OpenapiSchemaBodyShorthand<Refs>[]
+  }>
 
-export type OpenapiSchemaShorthandExpressionOneOf = OpenapiSchemaCombinatorFields<{
-  oneOf: OpenapiSchemaBodyShorthand[]
-}>
+export type OpenapiSchemaShorthandExpressionOneOf<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  OpenapiSchemaCombinatorFields<{
+    oneOf: OpenapiSchemaBodyShorthand<Refs>[]
+  }>
 
-export type OpenapiSchemaShorthandExpressionAllOf = OpenapiSchemaCombinatorFields<{
-  allOf: OpenapiSchemaBodyShorthand[]
-}>
+export type OpenapiSchemaShorthandExpressionAllOf<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  OpenapiSchemaCombinatorFields<{
+    allOf: OpenapiSchemaBodyShorthand<Refs>[]
+  }>
 
 export type OpenapiSchemaShorthandExpressionSerializerRef = {
   $serializer: DreamModelSerializerType | SimpleObjectSerializerType
@@ -164,40 +190,42 @@ export type OpenapiSchemaObjectAllOf = OpenapiSchemaCommonFields<{
   allOf?: OpenapiSchemaBody[]
 }>
 
-export type OpenapiSchemaObjectShorthand =
-  | OpenapiSchemaObjectBaseShorthand
-  | OpenapiSchemaObjectAllOfShorthand
+export type OpenapiSchemaObjectShorthand<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  | OpenapiSchemaObjectBaseShorthand<Refs>
+  | OpenapiSchemaObjectAllOfShorthand<Refs>
 
-export type OpenapiSchemaObjectBaseShorthand = CommonOpenapiSchemaObjectFields<{
-  minProperties?: number
-  maxProperties?: number
-  properties?:
-    | OpenapiSchemaPropertiesShorthand
-    | OpenapiSchemaShorthandExpressionOneOf
-    | OpenapiSchemaShorthandExpressionAnyOf
-    | OpenapiSchemaShorthandExpressionAllOf
-    | OpenapiSchemaShorthandExpressionSerializerRef
-    | OpenapiSchemaShorthandExpressionSerializableRef
-  additionalProperties?:
-    | OpenapiShorthandPrimitiveTypes
-    | OpenapiSchemaBodyShorthand
-    | OpenapiSchemaShorthandExpressionOneOf
-    | OpenapiSchemaShorthandExpressionAnyOf
-    | OpenapiSchemaShorthandExpressionAllOf
-    | OpenapiSchemaShorthandExpressionSerializerRef
-    | OpenapiSchemaShorthandExpressionSerializableRef
-    | false
-  allOf?: never
-}>
+export type OpenapiSchemaObjectBaseShorthand<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  CommonOpenapiSchemaObjectFields<{
+    minProperties?: number
+    maxProperties?: number
+    properties?:
+      | OpenapiSchemaPropertiesShorthand<Refs>
+      | OpenapiSchemaShorthandExpressionOneOf<Refs>
+      | OpenapiSchemaShorthandExpressionAnyOf<Refs>
+      | OpenapiSchemaShorthandExpressionAllOf<Refs>
+      | OpenapiSchemaShorthandPropertiesRef<Refs>
+    additionalProperties?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand<Refs> | false
+    allOf?: never
+  }>
+
+/**
+ * The serializer references that may stand in for an object's whole
+ * `properties` (never `$ref` or `$schema`). Written as an intersection with
+ * `Refs`, rather than a conditional type, so that a shape without references
+ * stays assignable to one that allows them.
+ */
+type OpenapiSchemaShorthandPropertiesRef<Refs extends OpenapiShorthandRefs> = Refs &
+  (OpenapiSchemaShorthandExpressionSerializerRef | OpenapiSchemaShorthandExpressionSerializableRef)
 
 /**
  * The shorthand form of `OpenapiSchemaObjectAllOf`.
  */
-export type OpenapiSchemaObjectAllOfShorthand = OpenapiSchemaCommonFields<{
-  type: 'object'
-  required?: string[]
-  allOf?: OpenapiSchemaBodyShorthand[]
-}>
+export type OpenapiSchemaObjectAllOfShorthand<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  OpenapiSchemaCommonFields<{
+    type: 'object'
+    required?: string[]
+    allOf?: OpenapiSchemaBodyShorthand<Refs>[]
+  }>
 
 export type CommonOpenapiSchemaObjectFields<T> = OpenapiSchemaCommonFields<
   T & {
@@ -215,16 +243,11 @@ export type OpenapiSchemaArray = OpenapiSchemaCommonFields<{
     | OpenapiSchemaExpressionOneOf
 }>
 
-export type OpenapiSchemaArrayShorthand = OpenapiSchemaCommonFields<{
-  type: 'array' | ['array', 'null'] | ['null', 'array']
-  items:
-    | OpenapiSchemaBodyShorthand
-    | OpenapiSchemaShorthandExpressionAllOf
-    | OpenapiSchemaShorthandExpressionAnyOf
-    | OpenapiSchemaShorthandExpressionOneOf
-    | OpenapiSchemaShorthandExpressionSerializerRef
-    | OpenapiSchemaShorthandExpressionSerializableRef
-}>
+export type OpenapiSchemaArrayShorthand<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> =
+  OpenapiSchemaCommonFields<{
+    type: 'array' | ['array', 'null'] | ['null', 'array']
+    items: OpenapiSchemaBodyShorthand<Refs>
+  }>
 
 export interface OpenapiSchemaProperties {
   [key: string]: OpenapiSchemaBody
@@ -238,8 +261,8 @@ export type OpenapiSchemaShorthandPrimitiveGeneric = OpenapiSchemaCommonFields<{
   type: OpenapiShorthandPrimitiveTypes
 }>
 
-export interface OpenapiSchemaPropertiesShorthand {
-  [key: string]: OpenapiSchemaBodyShorthand | OpenapiShorthandPrimitiveTypes
+export interface OpenapiSchemaPropertiesShorthand<Refs extends OpenapiShorthandRefs = OpenapiShorthandRefs> {
+  [key: string]: OpenapiSchemaBodyShorthand<Refs> | OpenapiShorthandPrimitiveTypes
 }
 
 export interface OpenapiDescription {

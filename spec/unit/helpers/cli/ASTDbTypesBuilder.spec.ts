@@ -187,6 +187,59 @@ describe('ASTDbTypesBuilder#build', () => {
     )
   })
 
+  context('with a column a model declares with @deco.JSON', () => {
+    const databaseWithJsonColumns: IntrospectedDatabase = {
+      tables: [
+        {
+          schema: 'public',
+          name: 'compositions',
+          inDefaultSchema: true,
+          columns: [
+            column({ name: 'id', dbType: 'bigint', valueType: 'Int8', hasDefault: true }),
+            // NOT NULL in the generated schema the app booted with; nullable here,
+            // as a migration just made it
+            column({
+              name: 'metadata',
+              dbType: 'jsonb',
+              valueType: 'Json',
+              allowNull: true,
+              hasDefault: true,
+            }),
+            column({ name: 'metadata2', dbType: 'jsonb', valueType: 'Json', allowNull: true }),
+            column({ name: 'metadata3', dbType: 'jsonb', valueType: 'Json', allowNull: true }),
+          ],
+        },
+      ],
+      enums: [],
+    }
+
+    beforeEach(() => {
+      vi.spyOn(PostgresQueryDriver, 'introspectDatabase').mockResolvedValue(databaseWithJsonColumns)
+    })
+
+    it('types the column by its declared shape, wrapped for the column as introspected', async () => {
+      const types = await writtenTypes()
+
+      expect(types).toContain(
+        'metadata: Generated<{ version?: number contributors?: string[] [key: string]: unknown } | null>'
+      )
+    })
+
+    it('leaves a json column no model declares with @deco.JSON typed Json', async () => {
+      const types = await writtenTypes()
+
+      expect(types).toContain('metadata2: Json | null')
+    })
+
+    it('types a shape with a date by a ColumnType, read as a string and written as a string or a CalendarDate', async () => {
+      const types = await writtenTypes()
+
+      expect(types).toContain(
+        "metadata3: ColumnType< | { status: 'draft' | 'published' publishedOn?: string reviewedOn?: string reviewedAt?: string }[] | null, | { status: 'draft' | 'published' publishedOn?: string | CalendarDate reviewedOn?: string | CalendarDate reviewedAt?: string | DateTime }[] | null,"
+      )
+    })
+  })
+
   context('without table patterns', () => {
     it('keys a table outside the default schema by <schema>.<name>', async () => {
       const app = DreamApp.getOrFail()

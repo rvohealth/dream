@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rvoh/dream",
-  "version": "2.44.0",
+  "version": "2.45.0",
   "description": "dream orm",
   "engines": {
     "node": ">=24"
@@ -76,6 +76,8 @@
     "prepack": "pnpm build && pnpm dream build:docs"
   },
   "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "luxon": "^3.7.2",
     "yoctocolors": "^2.1.1"
   },

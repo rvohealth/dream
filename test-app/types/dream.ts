@@ -164,6 +164,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -247,6 +249,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -323,6 +327,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       balloonSpotterBalloons: {
         type: 'HasMany',
@@ -509,6 +515,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       balloonLine: {
         type: 'HasOne',
@@ -648,6 +656,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       localizable: {
         type: 'BelongsTo',
@@ -711,6 +721,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       currentLocalizedText: {
         type: 'HasOne',
@@ -810,6 +822,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       currentLocalizedText: {
         type: 'HasOne',
@@ -895,6 +909,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       child: {
         type: 'HasOne',
@@ -1047,6 +1063,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       balloon: {
         type: 'BelongsTo',
@@ -1148,6 +1166,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       composition: {
         type: 'HasOne',
@@ -1269,6 +1289,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       composition: {
         type: 'BelongsTo',
@@ -1369,7 +1391,11 @@ export const schema = {
         isArray: false,
       },
       metadata: {
-        coercedType: {} as Json,
+        coercedType: {} as {
+          version?: number
+          contributors?: string[]
+          [key: string]: unknown
+        },
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1387,7 +1413,14 @@ export const schema = {
         isArray: false,
       },
       metadata3: {
-        coercedType: {} as Json | null,
+        coercedType: {} as
+          | {
+              status: 'draft' | 'published'
+              publishedOn?: string
+              reviewedOn?: string
+              reviewedAt?: string
+            }[]
+          | null,
         enumType: null,
         enumArrayType: null,
         enumValues: null,
@@ -1424,6 +1457,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: ['metadata', 'metadata3'],
+    encryptedAttributes: {},
     associations: {
       cascadeDeletableLocalizedText: {
         type: 'HasOne',
@@ -1597,6 +1632,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   extra_ratings: {
@@ -1700,6 +1737,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       extraRateable: {
         type: 'BelongsTo',
@@ -1821,6 +1860,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       edge: {
         type: 'BelongsTo',
@@ -1960,6 +2001,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       edgeNodes: {
         type: 'HasMany',
@@ -2042,6 +2085,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       edgeNodes: {
         type: 'HasMany',
@@ -2172,6 +2217,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       user: {
         type: 'BelongsTo',
@@ -2230,6 +2277,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       users: {
         type: 'HasMany',
@@ -2288,6 +2337,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   localized_texts: {
@@ -2391,6 +2442,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       localizable: {
         type: 'BelongsTo',
@@ -2504,6 +2557,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       pet: {
         type: 'BelongsTo',
@@ -3169,6 +3224,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_with_date_time_conditional_hooks: {
@@ -3242,6 +3299,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_with_ignored_columns: {
@@ -3299,6 +3358,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       user: {
         type: 'BelongsTo',
@@ -3412,6 +3473,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_with_param_unsafe_columns: {
@@ -3495,6 +3558,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_with_serial_primary_keys: {
@@ -3534,6 +3599,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_without_custom_deleted_ats: {
@@ -3582,6 +3649,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_without_deleted_ats: {
@@ -3621,6 +3690,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   model_without_updated_at: {
@@ -3669,6 +3740,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   pet_understudy_join_models: {
@@ -3732,6 +3805,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       pet: {
         type: 'BelongsTo',
@@ -3884,6 +3959,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       andAny_arrayWithNull: {
         type: 'HasMany',
@@ -4596,6 +4673,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       chore: {
         type: 'BelongsTo',
@@ -4678,6 +4757,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       chore: {
         type: 'BelongsTo',
@@ -4745,6 +4826,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       choreCleaningSupplies: {
         type: 'HasMany',
@@ -4857,6 +4940,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   polymorphic_images: {
@@ -4905,6 +4990,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   polymorphic_localized_texts: {
@@ -4988,6 +5075,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       localizable: {
         type: 'BelongsTo',
@@ -5046,6 +5135,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       choreLocalizedTexts: {
         type: 'HasMany',
@@ -5174,6 +5265,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       image: {
         type: 'BelongsTo',
@@ -5266,6 +5359,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       taskable: {
         type: 'BelongsTo',
@@ -5348,6 +5443,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       polymorphicMetaUser: {
         type: 'BelongsTo',
@@ -5415,6 +5512,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       chores: {
         type: 'HasMany',
@@ -5506,6 +5605,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       image: {
         type: 'BelongsTo',
@@ -5573,6 +5674,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   polymorphic_workouts: {
@@ -5636,6 +5739,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       images: {
         type: 'HasMany',
@@ -5764,6 +5869,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       post: {
         type: 'BelongsTo',
@@ -5840,6 +5947,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       post: {
         type: 'HasOne',
@@ -5943,6 +6052,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       allComments: {
         type: 'HasMany',
@@ -6127,6 +6238,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       optionalRateable: {
         type: 'BelongsTo',
@@ -6247,6 +6360,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       mylar: {
         type: 'BelongsTo',
@@ -6314,6 +6429,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   sortable_cascade_children: {
@@ -6417,6 +6534,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       owner: {
         type: 'BelongsTo',
@@ -6475,6 +6594,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       children: {
         type: 'HasMany',
@@ -6576,6 +6697,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   sti_bases: {
@@ -6679,6 +6802,13 @@ export const schema = {
       },
     },
     virtualColumns: ['secret'],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {
+      secret: {
+        coercedType: {} as string | null,
+        writeType: {} as string | null,
+      },
+    },
     associations: {
       pet: {
         type: 'BelongsTo',
@@ -6771,6 +6901,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   through_a_to_other_model_join_models: {
@@ -6844,6 +6976,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       a: {
         type: 'BelongsTo',
@@ -6911,6 +7045,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       b: {
         type: 'HasOne',
@@ -6978,6 +7114,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       a: {
         type: 'BelongsTo',
@@ -7036,6 +7174,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       myA: {
         type: 'HasMany',
@@ -7274,6 +7414,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       a: {
         type: 'HasOne',
@@ -7350,6 +7492,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
   user_settings: {
@@ -7413,6 +7557,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       user: {
         type: 'BelongsTo',
@@ -7653,6 +7799,25 @@ export const schema = {
       'randoVirtual',
       'secret',
     ],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {
+      otherSecret: {
+        coercedType: {} as {
+          token: string
+          issuedOn?: string
+          [key: string]: unknown
+        } | null,
+        writeType: {} as {
+          token: string
+          issuedOn?: string | CalendarDate
+          [key: string]: unknown
+        } | null,
+      },
+      secret: {
+        coercedType: {} as string | null,
+        writeType: {} as string | null,
+      },
+    },
     associations: {
       allPets: {
         type: 'HasMany',

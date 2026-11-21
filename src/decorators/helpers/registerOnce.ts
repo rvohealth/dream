@@ -5,6 +5,7 @@ interface RegisteredLists {
   validations: (typeof Dream)['validations']
   customValidations: (typeof Dream)['customValidations']
   virtualAttributes: (typeof Dream)['virtualAttributes']
+  jsonColumnShapes: (typeof Dream)['jsonColumnShapes']
   explicitUnsafeParamColumns: (typeof Dream)['explicitUnsafeParamColumns']
   encryptedAttributes: (typeof Dream)['encryptedAttributes']
   sortableFields: (typeof Dream)['sortableFields']

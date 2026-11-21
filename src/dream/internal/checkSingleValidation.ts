@@ -1,10 +1,20 @@
 import Dream from '../../Dream.js'
+import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import NonLoadedAssociation from '../../errors/associations/NonLoadedAssociation.js'
+import DecryptionError from '../../errors/encrypt/DecryptionError.js'
+import DecryptionParseError from '../../errors/encrypt/DecryptionParseError.js'
+import DecryptionRotationError from '../../errors/encrypt/DecryptionRotationError.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
+import isJsonColumn from '../../helpers/db/types/isJsonColumn.js'
+import { validateDeclaredShape } from '../../openapi/declaredShape.js'
 import { AssociationMetadataMap, AssociationStatement } from '../../types/associations/shared.js'
 import { ValidationStatement } from '../../types/validation.js'
 
 export default function checkSingleValidation(dream: Dream, validation: ValidationStatement) {
+  // read as stored, never through the property's getter (see
+  // checkDeclaredShape), so it skips the read below
+  if (validation.type === 'declaredShape') return checkDeclaredShape(dream, validation.column)
+
   let value: any
   try {
     value = (dream as any)[validation.column]
@@ -69,6 +79,72 @@ export default function checkSingleValidation(dream: Dream, validation: Validati
       throw new Error(`Unhandled ValidationType: ${_never as string}`)
     }
   }
+}
+
+/**
+ * Whether the value `dream` would store for `property` matches the shape its
+ * `@deco.JSON` or `@deco.Encrypted` declaration registers, checked as given,
+ * with no coercion. An unset (`undefined`) value is not checked: nothing is
+ * written for it, so the column's default applies.
+ *
+ * The value is read as stored, never through the property's getter:
+ * - for `@deco.JSON`, a json/jsonb column holds JSON text, which is parsed
+ *   here, so text that is not JSON fails the check rather than throwing a
+ *   `SyntaxError` from the getter; a json[]/jsonb[] column holds the array,
+ *   which is checked as the JSON it is stored as.
+ * - for `@deco.Encrypted`, the backing column is decrypted directly, so the
+ *   check never fires `encryption:legacy-key-used` (whose listener might
+ *   assign the property mid-save) and never assigns or re-encrypts anything,
+ *   leaving the record as clean as it was. Ciphertext that does not decrypt
+ *   fails the check. A null backing column is the value null, taken without
+ *   decrypting, so it needs no column encryption config; the column's
+ *   nullability then decides it.
+ *
+ * Only whether the value matches is used. The checker's errors name paths
+ * and keys of the value, which for an encrypted value are plaintext, so they
+ * are discarded and never reach the validation error or a log.
+ */
+function checkDeclaredShape(dream: Dream, property: string): boolean {
+  const dreamClass = dream.constructor as typeof Dream
+  const encryptedAttribute = dreamClass['encryptedAttributes'].find(
+    statement => statement.property === property
+  )
+  const column = encryptedAttribute?.encryptedColumnName ?? property
+  const stored: unknown = (dream as any).getAttribute(column)
+  if (stored === undefined) return true
+
+  let value: unknown
+  try {
+    value = encryptedAttribute
+      ? stored === null
+        ? null
+        : InternalEncrypt.decryptColumn(stored)
+      : storedJsonColumnValue(dreamClass, column, stored)
+  } catch (error) {
+    if (
+      error instanceof SyntaxError ||
+      error instanceof DecryptionError ||
+      error instanceof DecryptionParseError ||
+      error instanceof DecryptionRotationError
+    )
+      return false
+    throw error
+  }
+
+  return validateDeclaredShape(dreamClass, property, value).isValid
+}
+
+/**
+ * The value a json, jsonb, json[] or jsonb[] column stores for `stored`, the
+ * attribute as the column's accessor keeps it: the accessor of a json/jsonb
+ * column keeps JSON text (a string given for it is taken as already-encoded
+ * JSON), and any other column, a json[]/jsonb[] one included, keeps the value
+ * as assigned, whose elements the database stores as their JSON.
+ */
+function storedJsonColumnValue(dreamClass: typeof Dream, column: string, stored: unknown): unknown {
+  if (stored === null) return null
+  if (typeof stored === 'string' && isJsonColumn(dreamClass, column as any)) return JSON.parse(stored)
+  return JSON.parse(JSON.stringify(stored))
 }
 
 function isBlank(value: any) {

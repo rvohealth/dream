@@ -1,5 +1,6 @@
 import Dream from '../../Dream.js'
 import {
+  DreamJSONDecoratedColumns,
   DreamOrViewModelSerializerKey,
   DreamVirtualColumns,
   NonJsonDreamColumnNames,
@@ -17,6 +18,7 @@ import {
   InternalAnyTypedSerializerRendersMany,
   InternalAnyTypedSerializerRendersOne,
   NonAutomaticSerializerAttributeOptionsWithPossibleDecimalRenderOption,
+  SerializerAttributeOptionsForJSONDecoratedColumn,
   SerializerAttributeOptionsForVirtualColumn,
   SerializerType,
 } from '../../types/serializer.js'
@@ -48,14 +50,17 @@ export default class DreamSerializerBuilder<
    * Includes an attribute from the data object in the serialized output.
    *
    * For DreamSerializer, OpenAPI types are automatically inferred from database columns.
-   * For json/jsonb columns and virtual attributes (getters), the `openapi` option is required.
+   * A json/jsonb column declared with `@deco.JSON` takes its shape from that declaration.
+   * For other json/jsonb columns and virtual attributes (getters), the `openapi` option is
+   * required.
    *
    * @param name - The attribute name from the data object
    * @param options - Configuration options:
    *   - `as` - Rename the attribute key in the serialized output and OpenAPI shape
    *   - `default` - Value to use when the attribute is undefined (not available for `type` columns)
-   *   - `openapi` - OpenAPI schema definition; required for json/jsonb columns and non-virtual
-   *     getters, optional for standard columns (where it can supplement inferred types with a
+   *   - `openapi` - OpenAPI schema definition; required for json/jsonb columns not declared
+   *     with `@deco.JSON` and for non-virtual getters, optional for standard columns and
+   *     `@deco.JSON` columns (where it can only supplement the inferred or declared shape with a
    *     `description`), and optional for `@deco.Virtual()` columns (where the type is inferred
    *     from the decorator)
    *   - `precision` - Round decimal values to the specified number of decimal places (0–9)
@@ -71,8 +76,11 @@ export default class DreamSerializerBuilder<
    * // With type inference (database column)
    * .attribute('email')
    *
-   * // With explicit OpenAPI type (virtual attribute or json column)
+   * // With explicit OpenAPI type (virtual attribute or json column without @deco.JSON)
    * .attribute('fullName', { openapi: { type: 'string' } })
+   *
+   * // A json column declared with @deco.JSON on the model (shape comes from the model)
+   * .attribute('preferences')
    *
    * // With default value
    * .attribute('status', { default: 'pending' })
@@ -100,13 +108,22 @@ export default class DreamSerializerBuilder<
     options?: SerializerAttributeOptionsForVirtualColumn
   ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
 
+  // attribute is a json/jsonb column whose shape is declared with @deco.JSON
+  public attribute(
+    name: DreamJSONDecoratedColumns<DataType>[number],
+    options?: SerializerAttributeOptionsForJSONDecoratedColumn
+  ): DreamSerializerBuilder<DataTypeForOpenapi, MaybeNullDataType, PassthroughDataType, DataType>
+
   // attribute is not a non-json dream column name
   public attribute<
-    // `keyof DataType` includes columns listed as properties, so non-json columns are excluded
-    // here, leaving them to the overload below, which accepts only an OpenAPI description
+    // `keyof DataType` includes columns listed as properties, so non-json columns and
+    // @deco.JSON columns are excluded here, leaving them to the overloads above and below,
+    // which accept only an OpenAPI description
     AttributeName extends Exclude<
       keyof DataType & string,
-      NonJsonDreamColumnNames<DataType> | DreamPropertiesToExclude
+      | NonJsonDreamColumnNames<DataType>
+      | DreamJSONDecoratedColumns<DataType>[number]
+      | DreamPropertiesToExclude
     >,
   >(
     name: AttributeName,
@@ -139,9 +156,10 @@ export default class DreamSerializerBuilder<
    *   3. otherwise → renders `null`
    *
    * When the target is a Dream model, a non-json column's OpenAPI shape is inferred
-   * from the column, so its `openapi` option takes only a `description`. json/jsonb
-   * columns and non-Dream targets have no shape to infer, so they require a full
-   * `openapi` shape.
+   * from the column, and a json/jsonb column declared with `@deco.JSON` takes its shape
+   * from that declaration, so for either the `openapi` option takes only a `description`.
+   * Other json/jsonb columns and non-Dream targets have no shape to infer, so they require
+   * a full `openapi` shape.
    *
    * `optional` and `required` are not aliases — they encode different things and can
    * be used together:
@@ -165,8 +183,9 @@ export default class DreamSerializerBuilder<
    *     a discriminator string when the association is actually missing produces a response
    *     indistinguishable from "association present with that type," which is misleading)
    *   - `openapi` - OpenAPI schema definition; required for non-Dream targets and json/jsonb
-   *     columns. On a non-json Dream column, whose shape is inferred, it takes only a
-   *     `description` (and, on the STI `type` column, a `type: 'string'` and `enum`)
+   *     columns not declared with `@deco.JSON`. On a non-json Dream column, whose shape is
+   *     inferred, and on a `@deco.JSON` column, whose shape is declared on the model, it takes
+   *     only a `description` (and, on the STI `type` column, a `type: 'string'` and `enum`)
    *   - `optional` - Set to `true` to mark the value as nullable in the OpenAPI schema:
    *     Psychic adds `null` to the rendered schema (e.g., `type: 'string'` becomes
    *     `type: ['string', 'null']`, and a `$ref` becomes `anyOf: [{ $ref }, { type: 'null' }]`).
@@ -192,10 +211,13 @@ export default class DreamSerializerBuilder<
    * // Rename the output key
    * .delegatedAttribute('profile', 'avatarUrl', { as: 'avatar' })
    *
-   * // A json/jsonb column has no shape to infer, so it declares one
-   * .delegatedAttribute('user', 'preferences', {
+   * // A json/jsonb column without @deco.JSON has no shape to infer, so it declares one
+   * .delegatedAttribute('user', 'settings', {
    *   openapi: { type: 'object', properties: { theme: 'string' } }
    * })
+   *
+   * // A json/jsonb column declared with @deco.JSON on its model needs no openapi
+   * .delegatedAttribute('user', 'preferences')
    * ```
    */
   public delegatedAttribute<

@@ -22,6 +22,17 @@ We merge pull requests through the GitHub UI, so the local working branch is
 often already merged into `origin/main`. Starting from a stale, already-merged
 branch is the default failure mode this rule prevents.
 
+## Decide From Project Standards Instead of Asking
+
+When this file or another documented project rule answers a question, decide
+the question from that rule and state in one line which rule you applied; do
+not put it to a person. Ask only when nothing written answers it, or when the
+answer conflicts with an explicit instruction. Existing code is evidence, not a
+standard by itself: a practice becomes a standard when the code follows it
+consistently for a reason you can state. When you decide from a standard that
+is followed but not written down, write it into this file, with its reason, in
+the same change, so the answer travels with the project.
+
 ## MANDATORY: Completion Gauntlet Before Push / PR
 
 Before pushing a branch, opening a pull request, or otherwise declaring work
@@ -93,10 +104,24 @@ higher component and reset every component below it to zero:
 - Started at `2.20.0`, bumped the patch to `2.20.1`, then the work grew into a
   feature: the release is `2.21.0`, not `2.21.1`.
 - Started at `2.20.0`, bumped the minor to `2.21.0`, then the work turned into a
-  breaking change: the release is `3.0.0`, not `3.1.0`.
+  breaking change: the release is `3.0.0`, not `3.1.0`. Refusing an invalid
+  declaration is not a breaking change in this sense; see the next section.
 
 Stacked bumps produce confusing release jumps (a single PR appearing to skip a
 version) and misrepresent the release's level to consumers.
+
+### Refusing an Invalid Declaration Is a Minor Release
+
+Refusing a declaration Dream treats as invalid, at compile time or at boot (see
+Invalid Declarations: Refused by Types and at Boot), is a minor release, even
+when code that compiled or booted on the previous version now fails. The
+`CHANGELOG.md` entry calls out each such new failure, saying what now fails and
+what to declare instead.
+
+The reason: the declaration was already invalid and could only misbehave later,
+at a request, a save or a sync, so refusing it surfaces an existing bug rather
+than changing supported behavior. Dream has shipped such refusals as minors
+since 2.36.0.
 
 ## Public Error Exports
 
@@ -107,6 +132,64 @@ logging, or framework internals does not by itself justify a public export.
 Compatibility-only residue (an error kept exported only for backward
 compatibility, not because new code should throw or catch it) must be
 documented as such, not treated as proof it still belongs in the public API.
+
+## Package Surfaces: `@rvoh/dream/system` and `DreamApp.system`
+
+Dream has two surfaces besides its public entry points, and a new export goes
+on the one that matches who calls it:
+
+- **`@rvoh/dream/system`** (`src/package-exports/system.ts`) is a public,
+  semver-covered contract: CLI, generator and programmatic APIs and their
+  types, which applications and tooling may import. Removing or changing a
+  member is a breaking change.
+- **`DreamApp.system`** is `@internal`: runtime values that only Dream's
+  sibling packages (Psychic) call, such as the OpenAPI shorthand expansion,
+  the declared-shape checker and the AJV factory. It is not for application
+  code and not covered by semver. Add a helper that only a sibling package
+  needs here, never to `@rvoh/dream/system` or a public entry point.
+
+The reason: a sub-path member cannot be removed within a major version,
+because the published sibling packages accept any 2.x, while `DreamApp.system`
+is reached through the `DreamApp` class they already import, so it needs no
+new `exports` entry and can change with the sibling packages that call it.
+
+Known exceptions, kept on `@rvoh/dream/system` for 2.x compatibility though
+only Psychic uses them: `DreamBin`, `DreamImporter`, `DreamLogos`,
+`DreamSerializerBuilder`, `ObjectSerializerBuilder` and `PathHelpers`. Moving
+them onto `DreamApp.system` (and removing `PathHelpers`) waits for Dream 3.0;
+do not add to them.
+
+## Invalid Declarations: Refused by Types and at Boot
+
+Refuse an invalid declaration (a model decorator, an association, a validation,
+a serializer attribute) in both of these places:
+
+- **In TypeScript**, wherever the types can express the rule.
+- **At boot, with a runtime check in the package that owns the declaration.**
+  In Dream that is class decoration (when the model file is imported) or the
+  decorator-initialization pass `DreamApp.init` runs when it loads the models.
+  Psychic checks its own declarations in `PsychicApp.init`. An invalid
+  declaration must never surface first at sync, at a request or at a save.
+
+A refusal that reads the generated schema (`types/db.ts`, `types/dream.ts`)
+belongs in `DreamApp#validateApplicationModels`, the integrity pass that
+`DreamApp.init` skips under `bypassDreamIntegrityChecks`, not in a decorator or
+its initializer. `sync`, `db:migrate` and `g:migration` boot with that bypass
+because the schema they boot against may not yet have a column a migration
+adds or changes: regenerating it is their job, and a refusal that reads it at
+model load would stop them from doing it.
+
+Both halves are needed. Types leak: `as any`, wide-typed values, `as const`
+constants and plain JavaScript all get past them. And a boot failure is caught
+by every spec run and every deploy, while a failure on first use is found by a
+user.
+
+The error is not exported (see Public Error Exports), and its message names the
+class, the declaration, and what to declare instead.
+
+Rely on the types alone only when a declaration that slips past them is
+harmless or fails closed, for example an unknown name that is ignored so that
+nothing extra is accepted.
 
 ## Serializers: Declarations Never Depend on Data or Passthrough Data
 

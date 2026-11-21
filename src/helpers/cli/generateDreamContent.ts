@@ -1,6 +1,5 @@
 import pluralize from 'pluralize-esm'
 import serializerGlobalNameFromFullyQualifiedModelName from '../../serializer/helpers/serializerGlobalNameFromFullyQualifiedModelName.js'
-import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import camelize from '../camelize.js'
 import globalClassNameFromFullyQualifiedModelName from '../globalClassNameFromFullyQualifiedModelName.js'
 import pascalize from '../pascalize.js'
@@ -289,10 +288,9 @@ export function createEncryptedAttribute(
   attribute: string,
   modelClassName: string
 ): AttributeProcessingResult {
-  const encryptedColumnName = defaultEncryptedColumnName(attributeName)
   const content = `
 @deco.Encrypted()
-public ${camelize(attributeName)}: DreamColumn<${modelClassName}, '${encryptedColumnName}'>`
+public ${camelize(attributeName)}: DreamColumn<${modelClassName}, '${camelize(attributeName)}'>`
 
   return {
     content,

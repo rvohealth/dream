@@ -1,10 +1,30 @@
 import Dream from '../../../Dream.js'
+import ValidatesCannotDeclareRegisteredValidation from '../../../errors/ValidatesCannotDeclareRegisteredValidation.js'
 import { ValidationStatement, ValidationType } from '../../../types/validation.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import registerOnce from '../../helpers/registerOnce.js'
 
+/**
+ * The validation types a declaration registers on its own, which
+ * `@deco.Validates` refuses, in its types and when the models load at boot:
+ * `declaredShape` is registered by `@deco.JSON` and `@deco.Encrypted`, and
+ * `requiredBelongsTo` by a `@deco.BelongsTo` that is not `optional`, whose
+ * `optional` option alone decides whether the association may be absent.
+ */
+const REGISTERED_VALIDATION_TYPES = [
+  'declaredShape',
+  'requiredBelongsTo',
+] as const satisfies readonly ValidationType[]
+
+export type RegisteredValidationType = (typeof REGISTERED_VALIDATION_TYPES)[number]
+
+/**
+ * The validation types `@deco.Validates` accepts.
+ */
+export type DeclarableValidationType = Exclude<ValidationType, RegisteredValidationType>
+
 export default function Validates<
-  VT extends ValidationType,
+  VT extends DeclarableValidationType,
   VTArgs extends VT extends 'numericality'
     ? {
         /** The minimum allowed value (inclusive). */
@@ -27,6 +47,17 @@ export default function Validates<
     const key = context.name
 
     context.addInitializer(function (this: Dream) {
+      const dreamClass = this.constructor as typeof Dream
+      if (
+        dreamClass['globallyInitializingDecorators'] &&
+        (REGISTERED_VALIDATION_TYPES as readonly ValidationType[]).includes(type)
+      )
+        throw new ValidatesCannotDeclareRegisteredValidation(
+          dreamClass,
+          key,
+          type as RegisteredValidationType
+        )
+
       validatesImplementation(this, key, type, args)
     })
   }
@@ -89,6 +120,7 @@ function extractValidationOptionsFromArgs(type: ValidationType, args: any) {
       }
 
     case 'requiredBelongsTo':
+    case 'declaredShape':
       return {}
 
     default: {

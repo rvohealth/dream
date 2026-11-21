@@ -64,14 +64,10 @@ function encryptedAttributesInStiDescendants(
   const encryptedAttributes = new Map<string, DeclaredEncryptedAttribute>()
 
   dreamClass['selfAndStiDescendants']().forEach(stiClass => {
-    stiClass['encryptedAttributes'].forEach(({ property, encryptedColumnName }) => {
-      const snakeifiedColumnName = snakeifyString(encryptedColumnName)
+    stiClass['encryptedAttributes'].forEach(statement => {
+      const snakeifiedColumnName = snakeifyString(statement.encryptedColumnName)
       if (encryptedAttributes.has(snakeifiedColumnName)) return
-      encryptedAttributes.set(snakeifiedColumnName, {
-        property,
-        encryptedColumnName,
-        declaringClass: stiClass,
-      })
+      encryptedAttributes.set(snakeifiedColumnName, { ...statement, declaringClass: stiClass })
     })
   })
 

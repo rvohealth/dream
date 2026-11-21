@@ -6,6 +6,7 @@ import { VirtualAttributeStatement } from './decorators/field-or-getter/Virtual.
 import associationToGetterSetterProp from './decorators/field/association/associationToGetterSetterProp.js'
 import { blankAssociationsFactory } from './decorators/field/association/shared.js'
 import { EncryptedAttributeStatement } from './decorators/field/Encrypted.js'
+import { JSONColumnShapeStatement } from './decorators/field/JSON.js'
 import { blankHooksFactory } from './decorators/field/lifecycle/shared.js'
 import resortAllRecords from './decorators/field/sortable/helpers/resortAllRecords.js'
 import { SortableFieldConfig } from './decorators/field/sortable/Sortable.js'
@@ -71,6 +72,7 @@ import RecordNotFound from './errors/RecordNotFound.js'
 import areEqual from './helpers/areEqual.js'
 import camelize from './helpers/camelize.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import { inferSerializersFromDreamClassOrViewModelClassOrFail } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
@@ -95,7 +97,7 @@ import {
   DreamAssociationNamesWithoutRequiredOnClauses,
   DreamAssociationNamesWithPassthroughOnClauses,
   DreamAssociationNamesWithRequiredOnClauses,
-  DreamAttributes,
+  DreamRawAttributes,
   DreamBelongsToAssociationNames,
   DreamColumnNames,
   DreamConstructorType,
@@ -380,6 +382,22 @@ export default class Dream {
    * freezing ensures that we never modify the static array on the inherited Dream class)
    */
   private static virtualAttributes: readonly VirtualAttributeStatement[] | VirtualAttributeStatement[] =
+    Object.freeze([])
+
+  /**
+   * @internal
+   *
+   * Model storage for the shapes declared with the JSON decorator on json/jsonb
+   * columns, set on the inheriting class (this default assignment simply ensures
+   * that it is always an array rather than undefined, freezing ensures that we
+   * never modify the static array on the inherited Dream class).
+   *
+   * Kept apart from `virtualAttributes` because a decorated column is a real
+   * column: `isVirtualColumn` stays false for it. Not part of the public API;
+   * Psychic reaches it through the bracketed back-door
+   * (`dreamClass['jsonColumnShapes']`), as it does `virtualAttributes`.
+   */
+  private static jsonColumnShapes: readonly JSONColumnShapeStatement[] | JSONColumnShapeStatement[] =
     Object.freeze([])
 
   /**
@@ -3219,7 +3237,10 @@ export default class Dream {
 
   /**
    * Runs validation checks against all validations
-   * declared using the Validate and Validates decorators.
+   * declared using the Validate and Validates decorators,
+   * and those a declaration registers: the required-association
+   * check of a BelongsTo that is not `optional`, and the shape
+   * check of a `@deco.JSON` column or `@deco.Encrypted` property.
    * Returns true if none of the validations fail.
    *
    * NOTE: Any validations that fail will leave the errors
@@ -3848,6 +3869,11 @@ export default class Dream {
    * (`user.secret = 'new secret'`) or pass it to
    * {@link Dream.setAttributes | setAttributes}, each of which encrypts it.
    *
+   * A json[] or jsonb[] column declared with `@deco.JSON` keeps the value as
+   * the JSON the database stores for it, as a json/jsonb column keeps JSON
+   * text, so it reads back the same before a save as after one: a
+   * `CalendarDate` or `DateTime` in an element reads back as its string.
+   *
    * ```ts
    *  const user = new User()
    *  user.setAttribute('email', 'sally@gmail.com')
@@ -3870,7 +3896,26 @@ export default class Dream {
     )
       throw new DoNotSetEncryptedFieldsDirectly(dreamClass, column, encryptedAttribute.property)
 
-    this.setAttributeUnchecked(column, val)
+    this.setAttributeUnchecked(
+      column,
+      val !== null && val !== undefined && dreamClass.isDeclaredJsonArrayColumn(column)
+        ? JSON.parse(JSON.stringify(val))
+        : val
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * Whether `column` is a json[] or jsonb[] column declared with `@deco.JSON`,
+   * whose generated type reads each element as the JSON the database returns
+   * for it.
+   */
+  private static isDeclaredJsonArrayColumn(column: string): boolean {
+    return (
+      this.jsonColumnShapes.some(statement => statement.column === column) &&
+      ['json[]', 'jsonb[]'].includes(cachedTypeForAttribute(this, column as any))
+    )
   }
 
   /**
@@ -3899,7 +3944,7 @@ export default class Dream {
   public getAttribute<I extends Dream, Key extends AttributeKeys<I>>(
     this: I,
     column: Key & string
-  ): DreamAttributes<I>[Key] {
+  ): Key extends keyof DreamRawAttributes<I> ? DreamRawAttributes<I>[Key] : unknown {
     return (this as any).currentAttributes[column]
   }
 
@@ -3917,8 +3962,10 @@ export default class Dream {
    *  // }
    * ```
    */
-  public getAttributes<I extends Dream, DB extends I['DB']>(this: I): Selectable<DB[I['table']]> {
-    return { ...this.currentAttributes } as Selectable<DB[I['table']]>
+  public getAttributes<I extends Dream, DB extends I['DB']>(
+    this: I
+  ): DreamRawAttributes<I, Selectable<DB[I['table']]>> {
+    return { ...this.currentAttributes } as DreamRawAttributes<I, Selectable<DB[I['table']]>>
   }
 
   /**
@@ -3951,8 +3998,8 @@ export default class Dream {
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: I): Partial<Selectable<Table>> {
-    const obj: Partial<Selectable<Table>> = {}
+  >(this: I): Partial<DreamRawAttributes<I, Selectable<Table>>> {
+    const obj: Partial<DreamRawAttributes<I, Selectable<Table>>> = {}
 
     Object.keys(this.dirtyAttributes()).forEach(column => {
       ;(obj as any)[column] = (this.frozenAttributes as any)[column]
@@ -4023,10 +4070,14 @@ export default class Dream {
     DB extends I['DB'],
     TableName extends I['table'],
     Table extends DB[TableName],
+    Attributes = DreamRawAttributes<I, Selectable<Table>>,
     RetType = Partial<
       Record<
         DreamColumnNames<I>,
-        { was: Selectable<Table>[DreamColumnNames<I>]; now: Selectable<Table>[DreamColumnNames<I>] }
+        {
+          was: Attributes[DreamColumnNames<I> & keyof Attributes]
+          now: Attributes[DreamColumnNames<I> & keyof Attributes]
+        }
       >
     >,
   >(this: I): RetType {
@@ -4089,7 +4140,8 @@ export default class Dream {
     TableName extends I['table'],
     Table extends DB[TableName],
     ColumnName extends DreamColumnNames<I>,
-  >(this: I, columnName: ColumnName): Selectable<Table>[ColumnName] {
+    Attributes = DreamRawAttributes<I, Selectable<Table>>,
+  >(this: I, columnName: ColumnName): Attributes[ColumnName & keyof Attributes] {
     if (notEqual(this.frozenAttributes[columnName], this.getAttribute(columnName as any)))
       return this.frozenAttributes[columnName]
     return (this.attributesFromBeforeLastSave as any)[columnName]
@@ -4209,8 +4261,8 @@ export default class Dream {
     TableName extends AssociationTableNames<DB, Schema> & keyof DB = I['table'] &
       AssociationTableNames<DB, Schema>,
     Table extends DB[keyof DB] = DB[TableName],
-  >(this: I): Partial<Selectable<Table>> {
-    const obj: Partial<Selectable<Table>> = {}
+  >(this: I): Partial<DreamRawAttributes<I, Selectable<Table>>> {
+    const obj: Partial<DreamRawAttributes<I, Selectable<Table>>> = {}
 
     this.columns().forEach(column => {
       if (this.attributeIsDirty(column as any)) (obj as any)[column] = this.getAttribute(column as any)

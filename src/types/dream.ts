@@ -126,15 +126,20 @@ export type TableColumnNames<
   Table extends DB[keyof DB] = DB[TableName],
 > = keyof Table & string
 
+/**
+ * The type of a model's column, or of one of its `@deco.Encrypted` properties
+ * (its decrypted value), as the generated schema gives it. A `@deco.JSON`
+ * column and a `@deco.Encrypted` property are typed by their declared shape.
+ */
 export type DreamColumn<
   DreamInstance extends Dream,
   Column extends keyof Attrs,
-  Attrs = DreamAttributes<DreamInstance>,
+  Attrs = DreamAttributes<DreamInstance> & DreamEncryptedAttributes<DreamInstance>,
 > = Attrs[Column & keyof Attrs]
 
 export type DreamClassColumn<
   DreamClass extends typeof Dream,
-  Column extends keyof DreamAttributes<DreamInstance>,
+  Column extends keyof (DreamAttributes<DreamInstance> & DreamEncryptedAttributes<DreamInstance>),
   DreamInstance extends InstanceType<DreamClass> = InstanceType<DreamClass>,
 > = DreamColumn<DreamInstance, Column>
 
@@ -327,10 +332,77 @@ type VirtualColumnsForTable<
   TableSchema = Schema[TableName],
 > = TableSchema['virtualColumns' & keyof TableSchema]
 
+/**
+ * The table's `encryptedAttributes`, as sync writes them: for each
+ * `@deco.Encrypted` property, the type of its value read (`coercedType`) and
+ * written (`writeType`). A schema written before sync emitted them has none.
+ */
+type EncryptedAttributesForTable<
+  Schema,
+  TableName extends keyof Schema,
+  TableSchema = Schema[TableName],
+  EncryptedAttributes = TableSchema['encryptedAttributes' & keyof TableSchema],
+> = [EncryptedAttributes] extends [never] ? Record<never, never> : EncryptedAttributes
+
+/**
+ * The type of each `@deco.Encrypted` property's decrypted value, keyed by
+ * property, from its declared shape (a bare `@deco.Encrypted()` is a
+ * string), with `null` when its backing column allows null.
+ */
+export type DreamEncryptedAttributes<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['schema'],
+  EncryptedAttributes = EncryptedAttributesForTable<Schema, DreamInstance['table'] & keyof Schema>,
+> = {
+  -readonly [K in keyof EncryptedAttributes]: EncryptedAttributes[K]['coercedType' &
+    keyof EncryptedAttributes[K]]
+}
+
+/**
+ * The type each virtual column takes when written: an `@deco.Encrypted`
+ * property's write type (its declared shape, where a `date` or `date-time`
+ * string also takes a `CalendarDate` or a `DateTime`), or `undefined`, as
+ * Kysely's `Updateable` gives a column, and `any` for the others
+ * (`@deco.Virtual` properties).
+ */
+type VirtualColumnWriteTypes<
+  Schema,
+  TableName,
+  VirtualColumns,
+  EncryptedAttributes = EncryptedAttributesForTable<Schema, TableName & keyof Schema>,
+> = VirtualColumns extends readonly any[]
+  ? {
+      [K in VirtualColumns[number]]: K extends keyof EncryptedAttributes
+        ? EncryptedAttributes[K]['writeType' & keyof EncryptedAttributes[K]] | undefined
+        : any
+    }
+  : object
+
 export type DreamVirtualColumns<
   DreamInstance extends Dream,
   Schema = DreamInstance['schema'],
 > = VirtualColumnsForTable<Schema, DreamInstance['table'] & keyof Schema>
+
+/**
+ * The json/jsonb columns of a model, i.e. its columns that are not listed
+ * in the schema's `nonJsonColumnNames`. These are the columns `@deco.JSON`
+ * may decorate.
+ */
+export type JsonDreamColumnNames<DreamInstance extends Dream> = Exclude<
+  DreamColumnNames<DreamInstance>,
+  NonJsonDreamColumnNames<DreamInstance>
+>
+
+/**
+ * The json/jsonb columns of a model whose shape is declared with
+ * `@deco.JSON`, as listed in the schema's `jsonDecoratedColumns` (written by
+ * sync). A schema written before sync emitted that list yields `never`.
+ */
+export type DreamJSONDecoratedColumns<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['schema'],
+  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
+> = TableSchema['jsonDecoratedColumns' & keyof TableSchema]
 
 export type DreamBelongsToAssociationMetadata<
   DreamInstance extends Dream,
@@ -370,6 +442,51 @@ export type DreamAttributes<
 > = {
   -readonly [K in keyof SchemaColumns]: SchemaColumns[K]['coercedType' & keyof SchemaColumns[K]]
 }
+
+/**
+ * The columns of a model whose attribute holds JSON text: the json and jsonb
+ * columns (not json[] or jsonb[]) declared with `@deco.JSON`. Their getter
+ * parses the text, so the column's type is its declared shape, while the
+ * readers that bypass getters (`getAttribute`, `getAttributes`,
+ * `changedAttributes`, `changes`, `previousValueForAttribute`,
+ * `dirtyAttributes`) return the text.
+ */
+type DreamJsonTextColumnNames<
+  DreamInstance extends Dream,
+  Schema = DreamInstance['schema'],
+  TableSchema = Schema[DreamInstance['table'] & keyof Schema],
+  SchemaColumns = TableSchema['columns' & keyof TableSchema],
+  JsonDecoratedColumns = TableSchema['jsonDecoratedColumns' & keyof TableSchema],
+> = JsonDecoratedColumns extends readonly any[]
+  ? {
+      [K in JsonDecoratedColumns[number] & keyof SchemaColumns]: SchemaColumns[K]['dbType' &
+        keyof SchemaColumns[K]] extends 'json' | 'jsonb'
+        ? K
+        : never
+    }[JsonDecoratedColumns[number] & keyof SchemaColumns]
+  : never
+
+/**
+ * `Attributes` (a model's attributes, or a row of its table) with the
+ * attributes that hold JSON text (see `DreamJsonTextColumnNames`) typed as
+ * that text: a string, or `null` when the column allows null.
+ */
+export type DreamRawAttributes<
+  DreamInstance extends Dream,
+  Attributes = DreamAttributes<DreamInstance>,
+  JsonTextColumnNames = DreamJsonTextColumnNames<DreamInstance>,
+  SchemaColumns = DreamInstance['schema'][DreamInstance['table'] & keyof DreamInstance['schema']]['columns' &
+    keyof DreamInstance['schema'][DreamInstance['table'] & keyof DreamInstance['schema']]],
+> = [JsonTextColumnNames] extends [never]
+  ? Attributes
+  : {
+      [K in keyof Attributes]: K extends JsonTextColumnNames
+        ? SchemaColumns[K & keyof SchemaColumns]['allowNull' &
+            keyof SchemaColumns[K & keyof SchemaColumns]] extends true
+          ? string | null
+          : string
+        : Attributes[K]
+    }
 
 export type DreamAttributeDbTypes<
   DreamInstance extends Dream,
@@ -604,7 +721,7 @@ export type UpdateablePropertiesForClass<
   VirtualColumns = DreamVirtualColumns<InstanceType<DreamClass>>,
 > = Partial<
   Updateable<InstanceType<DreamClass>['DB'][TableName]> &
-    (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
+    VirtualColumnWriteTypes<InstanceType<DreamClass>['schema'], TableName, VirtualColumns> &
     (AssociatedModelParam<InstanceType<DreamClass>> extends never
       ? object
       : AssociatedModelParam<InstanceType<DreamClass>>)
@@ -641,7 +758,7 @@ export type UpdateableAssociationProperties<
   VirtualColumns = VirtualColumnsForTable<Schema, AssociationTableName>,
 > = Partial<
   Updateable<DreamInstance['DB'][AssociationTableName]> &
-    (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
+    VirtualColumnWriteTypes<Schema, AssociationTableName, VirtualColumns> &
     (AssociatedModelParam<AssociationClass> extends never ? object : AssociatedModelParam<AssociationClass>)
 >
 
@@ -658,7 +775,7 @@ export type UpdateableProperties<
   VirtualColumns = DreamVirtualColumns<I>,
 > = Partial<
   Updateable<I['DB'][TableName]> &
-    (VirtualColumns extends readonly any[] ? Record<VirtualColumns[number], any> : object) &
+    VirtualColumnWriteTypes<I['schema'], TableName, VirtualColumns> &
     (AssociatedModelParam<I> extends never ? object : AssociatedModelParam<I>)
 >
 

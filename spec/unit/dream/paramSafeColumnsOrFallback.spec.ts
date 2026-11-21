@@ -1,4 +1,5 @@
 import { DreamParamSafeAttributes, DreamParamUnsafeColumnNames } from '../../../src/types/dream.js'
+import CalendarDate from '../../../src/utils/datetime/CalendarDate.js'
 import Balloon from '../../../test-app/app/models/Balloon.js'
 import Latex from '../../../test-app/app/models/Balloon/Latex.js'
 import LocalizedText from '../../../test-app/app/models/LocalizedText.js'
@@ -57,8 +58,11 @@ describe('Dream#paramSafeColumnsOrFallback', () => {
       type OtherSecretIsNotAny = ExpectFalse<IsAny<UserParamSafeAttributes['otherSecret']>>
 
       const password: string | undefined = null as unknown as UserParamSafeAttributes['password']
-      const secret: string | null = null as unknown as UserParamSafeAttributes['secret']
-      const otherSecret: { token: string } | null = null as unknown as UserParamSafeAttributes['otherSecret']
+      // an encrypted param is typed, as a column is, by what it takes when written: its declared
+      // shape (a date string also takes a CalendarDate), or undefined
+      const secret: string | null | undefined = null as unknown as UserParamSafeAttributes['secret']
+      const otherSecret: { token: string; issuedOn?: string | CalendarDate } | null | undefined =
+        null as unknown as UserParamSafeAttributes['otherSecret']
 
       // @ts-expect-error virtual params are not `any`
       const invalidPassword: number = null as unknown as UserParamSafeAttributes['password']

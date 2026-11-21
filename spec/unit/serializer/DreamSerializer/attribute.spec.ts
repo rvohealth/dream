@@ -2,9 +2,11 @@ import DreamSerializerBuilder from '../../../../src/serializer/builders/DreamSer
 import DreamSerializer from '../../../../src/serializer/DreamSerializer.js'
 import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
 import Balloon from '../../../../test-app/app/models/Balloon.js'
+import Composition from '../../../../test-app/app/models/Composition.js'
 import ModelForOpenapiTypeSpecs from '../../../../test-app/app/models/ModelForOpenapiTypeSpec.js'
 import Pet from '../../../../test-app/app/models/Pet.js'
 import User from '../../../../test-app/app/models/User.js'
+import PetSerializer from '../../../../test-app/app/serializers/PetSerializer.js'
 import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import fleshedOutModelForOpenapiTypeSpecs from '../../../scaffold/fleshedOutModelForOpenapiTypeSpecs.js'
 
@@ -37,6 +39,16 @@ describe('DreamSerializer#attribute', () => {
     })
   })
 
+  it('can render a json column declared with @deco.JSON without specifying OpenAPI shape', () => {
+    const MySerializer = (data: Composition) => DreamSerializer(Composition, data).attribute('metadata')
+
+    const serializer = MySerializer(Composition.new({ metadata: { version: 3, contributors: ['Ann'] } }))
+
+    expect(serializer.render()).toEqual({
+      metadata: { version: 3, contributors: ['Ann'] },
+    })
+  })
+
   it('can render virtual Dream attributes without specifying OpenAPI shape', () => {
     const MySerializer = (data: User) => DreamSerializer(User, data).attribute('lbs')
 
@@ -55,6 +67,19 @@ describe('DreamSerializer#attribute', () => {
 
     expect(serializer.render()).toEqual({
       lbs: 180.1,
+    })
+  })
+
+  it('accepts a reference in an OpenAPI shape overriding a virtual Dream attribute, which the model declaration may not contain', () => {
+    const MySerializer = (data: User) =>
+      DreamSerializer(User, data).attribute('randoVirtual', {
+        openapi: { type: 'object', properties: { pet: { $serializer: PetSerializer, maybeNull: true } } },
+      })
+
+    const serializer = MySerializer(User.new({ randoVirtual: 'abc' }))
+
+    expect(serializer.render()).toEqual({
+      randoVirtual: 'abc',
     })
   })
 
@@ -438,6 +463,35 @@ describe('DreamSerializer#attribute', () => {
 
       // @ts-expect-error a non-json column's OpenAPI shape comes from the column itself
       DreamSerializer(Pet, pet).attribute('species', { openapi: { type: ['string', 'null'], enum: ['cat'] } })
+    })
+
+    it.skip('a json column declared with @deco.JSON needs no OpenAPI and accepts only a description', () => {
+      const composition = Composition.new()
+      DreamSerializer(Composition, composition).attribute('metadata')
+      DreamSerializer(Composition, composition).attribute('metadata', {
+        as: 'meta',
+        default: {},
+        required: false,
+      })
+      DreamSerializer(Composition, composition).attribute('metadata', {
+        openapi: { description: 'the composition’s metadata' },
+      })
+
+      // @ts-expect-error a @deco.JSON column's shape comes from the model's declaration
+      DreamSerializer(Composition, composition).attribute('metadata', { openapi: 'json' })
+
+      // @ts-expect-error a @deco.JSON column's shape comes from the model's declaration
+      DreamSerializer(Composition, composition).attribute('metadata', {
+        openapi: { type: 'object', properties: { version: 'integer' } },
+      })
+    })
+
+    it.skip('a json column without @deco.JSON still requires a full OpenAPI shape', () => {
+      const composition = Composition.new()
+      DreamSerializer(Composition, composition).attribute('metadata2', { openapi: 'json' })
+
+      // @ts-expect-error a json column without @deco.JSON has no shape to infer
+      DreamSerializer(Composition, composition).attribute('metadata2')
     })
   })
 })

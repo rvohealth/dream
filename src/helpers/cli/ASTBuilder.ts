@@ -4,6 +4,7 @@ import DreamApp from '../../dream-app/index.js'
 import { DreamConst } from '../../dream/constants.js'
 import { IntrospectedValueType } from '../../types/db.js'
 import EnvInternal from '../EnvInternal.js'
+import type { DeclaredShapeTypes } from './ASTDeclaredShapeTypes.js'
 
 const f = ts.factory
 
@@ -200,6 +201,11 @@ export interface TableData {
   }
   columns: Readonly<{ [key: string]: SchemaBuilderColumnData }>
   virtualColumns: readonly string[]
+  jsonDecoratedColumns: readonly string[]
+  // the types of each `@deco.JSON` column, keyed by attribute name
+  jsonColumnTypes: ReadonlyMap<string, DeclaredShapeTypes>
+  // the types of each `@deco.Encrypted` property, keyed by property
+  encryptedAttributeTypes: ReadonlyMap<string, DeclaredShapeTypes>
   associations: Readonly<{ [key: string]: SchemaBuilderAssociationData }>
 }
 

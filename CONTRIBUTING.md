@@ -112,6 +112,7 @@ CI also runs these checks:
   - Purely internal changes (refactors, test-only changes, internal comments) get no changelog entry and no version bump.
   - A pull request bumps exactly one version component. If the scope grows, bump the higher component and reset the ones below it to zero.
 - **Public errors.** Export an error only when an application developer needs to throw it or catch it as part of a normal workflow.
+- **Invalid declarations fail at boot.** Refuse an invalid declaration in TypeScript where the types can express the rule, and with a runtime check at boot in the package that owns it, never first at sync, a request or a save. The error is not exported and names the class, the declaration and the fix. AGENTS.md has the details.
 - **No Postgres-only code in shared paths.** Put adapter-specific behavior behind the query-driver seam. AGENTS.md has the details.
 
 ## Releases
