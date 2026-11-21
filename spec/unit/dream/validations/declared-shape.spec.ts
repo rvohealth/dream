@@ -4,6 +4,8 @@ import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-ap
 import Encrypt from '../../../../src/encrypt/index.js'
 import ValidationError from '../../../../src/errors/ValidationError.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
+import CalendarDate from '../../../../src/utils/datetime/CalendarDate.js'
+import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import Composition from '../../../../test-app/app/models/Composition.js'
 import StiA from '../../../../test-app/app/models/Sti/A.js'
@@ -150,6 +152,63 @@ describe('a @deco.JSON shape checked at save', () => {
 
       // an element may be null only when the shape allows it
       await saveError(() => model.update({ favoriteJsonbs: [{ label: 'a' }, null] as any }))
+    })
+
+    context('with a date or date-time element property', () => {
+      function jsonArrayDateModel() {
+        const deco = new Decorators<typeof JsonArrayDateModel>()
+
+        class JsonArrayDateModel extends ApplicationModel {
+          public override get table() {
+            return 'model_for_openapi_type_specs' as const
+          }
+
+          public id: DreamColumn<JsonArrayDateModel, 'id'>
+
+          @deco.JSON({ type: 'object', properties: { on: 'date', at: 'date-time' }, required: ['on'] })
+          public favoriteJsonbs: DreamColumn<JsonArrayDateModel, 'favoriteJsonbs'>
+        }
+
+        JsonArrayDateModel['defineAttributeAccessors']()
+        processDynamicallyDefinedModels(JsonArrayDateModel)
+        return JsonArrayDateModel
+      }
+
+      // the generated type reads such a property as a string and writes it
+      // as a string, a CalendarDate or a DateTime; the column keeps the value
+      // as the JSON the database stores, so it reads back as that string
+      // before a save as after one. (This dynamically defined model is typed
+      // by the undecorated test-app column, hence the casts.)
+      const on = CalendarDate.fromISO('2026-11-20')
+      const at = DateTime.fromISO('2026-11-20T10:30:00.000Z', { zone: 'UTC' })
+
+      it('reads a CalendarDate or DateTime given for it back as its JSON string, before a save', () => {
+        const JsonArrayDateModel = jsonArrayDateModel()
+        const model = JsonArrayDateModel.new({ favoriteJsonbs: [{ on, at }] as any })
+
+        const expected = [{ on: on.toJSON(), at: at.toJSON() }]
+        expect(model.favoriteJsonbs).toEqual(expected)
+        expect(model.getAttribute('favoriteJsonbs')).toEqual(expected)
+        expect(model.isValid).toBe(true)
+
+        model.favoriteJsonbs = [{ on }] as any
+        expect(model.favoriteJsonbs).toEqual([{ on: on.toJSON() }])
+
+        model.setAttribute('favoriteJsonbs', [{ on, at }])
+        expect(model.getAttribute('favoriteJsonbs')).toEqual(expected)
+      })
+
+      it('stores the same JSON it read back before the save', async () => {
+        const JsonArrayDateModel = jsonArrayDateModel()
+        const model = await JsonArrayDateModel.create({
+          ...requiredAttributes,
+          favoriteJsonbs: [{ on, at }],
+        } as any)
+
+        const expected = [{ on: on.toJSON(), at: at.toJSON() }]
+        expect(model.favoriteJsonbs).toEqual(expected)
+        expect((await JsonArrayDateModel.findOrFail(model.id)).favoriteJsonbs).toEqual(expected)
+      })
     })
   })
 

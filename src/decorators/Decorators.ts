@@ -400,8 +400,10 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * `allOf` an intersection; a nullable column adds `| null`. A `date` or
    * `date-time` string reads back as a string (the value is stored as JSON),
    * and a write also takes a `CalendarDate` for a `date` and a `DateTime` for
-   * a `date-time`. The readers that bypass the getter (`getAttribute`,
-   * `getAttributes`, `changedAttributes`, `changes`,
+   * a `date-time`; a json[] or jsonb[] column keeps an assigned value as that
+   * JSON, as a json/jsonb column keeps JSON text, so the string reads back
+   * before a save as well as after one. The readers that bypass the getter
+   * (`getAttribute`, `getAttributes`, `changedAttributes`, `changes`,
    * `previousValueForAttribute`, `dirtyAttributes`) return the JSON text a
    * json/jsonb column's attribute holds, so they type the column as a string.
    * A raw Kysely write of JSON text takes a cast, and a raw Kysely write of a

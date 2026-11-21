@@ -72,6 +72,7 @@ import RecordNotFound from './errors/RecordNotFound.js'
 import areEqual from './helpers/areEqual.js'
 import camelize from './helpers/camelize.js'
 import cloneDeepSafe from './helpers/cloneDeepSafe.js'
+import cachedTypeForAttribute from './helpers/db/cachedTypeForAttribute.js'
 import isJsonColumn from './helpers/db/types/isJsonColumn.js'
 import notEqual from './helpers/notEqual.js'
 import { inferSerializersFromDreamClassOrViewModelClassOrFail } from './serializer/helpers/inferSerializerFromDreamOrViewModel.js'
@@ -3868,6 +3869,11 @@ export default class Dream {
    * (`user.secret = 'new secret'`) or pass it to
    * {@link Dream.setAttributes | setAttributes}, each of which encrypts it.
    *
+   * A json[] or jsonb[] column declared with `@deco.JSON` keeps the value as
+   * the JSON the database stores for it, as a json/jsonb column keeps JSON
+   * text, so it reads back the same before a save as after one: a
+   * `CalendarDate` or `DateTime` in an element reads back as its string.
+   *
    * ```ts
    *  const user = new User()
    *  user.setAttribute('email', 'sally@gmail.com')
@@ -3890,7 +3896,26 @@ export default class Dream {
     )
       throw new DoNotSetEncryptedFieldsDirectly(dreamClass, column, encryptedAttribute.property)
 
-    this.setAttributeUnchecked(column, val)
+    this.setAttributeUnchecked(
+      column,
+      val !== null && val !== undefined && dreamClass.isDeclaredJsonArrayColumn(column)
+        ? JSON.parse(JSON.stringify(val))
+        : val
+    )
+  }
+
+  /**
+   * @internal
+   *
+   * Whether `column` is a json[] or jsonb[] column declared with `@deco.JSON`,
+   * whose generated type reads each element as the JSON the database returns
+   * for it.
+   */
+  private static isDeclaredJsonArrayColumn(column: string): boolean {
+    return (
+      this.jsonColumnShapes.some(statement => statement.column === column) &&
+      ['json[]', 'jsonb[]'].includes(cachedTypeForAttribute(this, column as any))
+    )
   }
 
   /**
