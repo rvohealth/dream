@@ -89,6 +89,18 @@ describe('createOpenapiAjv', () => {
       for (const value of ['1.5', 'abc', '', '1e5']) expect(validate(value)).toBe(false)
     })
 
+    // these formats check strings a client submits, so a long string that
+    // does not match must not make the check backtrack: a quadratic check
+    // takes about 40 seconds here, and a linear one under a millisecond
+    it.each(['decimal', 'bigint'])('refuses a long string that is not a %s in linear time', format => {
+      const validate = compile({ type: 'string', format })
+      const longRuns = ['1'.repeat(400_000) + 'x', '1.' + '0'.repeat(400_000) + 'x']
+
+      const startedAt = performance.now()
+      for (const value of longRuns) expect(validate(value)).toBe(false)
+      expect(performance.now() - startedAt).toBeLessThan(2000)
+    })
+
     it('checks the ajv-formats formats', () => {
       const cases: [string, string, string][] = [
         ['date', '2023-01-01', '2023-13-01'],

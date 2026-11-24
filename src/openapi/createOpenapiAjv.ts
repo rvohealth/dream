@@ -71,5 +71,8 @@ export default function createOpenapiAjv(options: OpenapiAjvOptions = {}): Opena
   return ajv
 }
 
-const DECIMAL_REGEX = /^-?(\d+\.?\d*|\.\d+)$/
+// Both run on strings a client submits, so each must match in linear time:
+// no digit may be matchable by two adjacent quantifiers (as in `\d+\.?\d*`,
+// which backtracks quadratically on a long run of digits that does not match)
+const DECIMAL_REGEX = /^-?(\d+(\.\d*)?|\.\d+)$/
 const BIGINT_REGEX = /^-?\d+(\.0*)?$/
