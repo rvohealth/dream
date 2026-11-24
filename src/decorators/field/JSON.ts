@@ -86,7 +86,8 @@ export default function JSONDecorator(shape: JSONColumnShape): any {
 /**
  * Refuses each `@deco.JSON` on `dreamClass` whose property is not a json/jsonb
  * column, whose shape declares null for a column that is not an array, or
- * whose shape admits a string (for a json[]/jsonb[] column, as an element).
+ * whose shape admits a string (for a json[]/jsonb[] column, as an element, or
+ * inside an element that is an array).
  *
  * A string is refused because Dream stores a string given for a json/jsonb
  * value as already-encoded JSON text, so a string value cannot round-trip:
@@ -122,8 +123,10 @@ export function validateJsonColumnShapes(dreamClass: typeof Dream) {
       throw new JSONDecoratorShapeAllowsNull(dreamClass, column)
 
     // on a json[]/jsonb[] column the shape describes each element, which is
-    // stored the same way, so it is refused there too
-    if (shapeAdmitsString(openapi))
+    // stored the same way, so it is refused there too, at any depth of arrays
+    // (see schemaAdmitsStringElement)
+    const schema = expandOpenapiShorthand(openapi)
+    if (columnMetadata.isArray ? schemaAdmitsStringElement(schema) : schemaAdmitsString(schema))
       throw new JSONDecoratorShapeAdmitsString(dreamClass, column, columnMetadata.isArray)
   }
 }
@@ -137,10 +140,6 @@ export function validateJsonColumnShapes(dreamClass: typeof Dream) {
  * `shapeAllowsNull`, `properties` and `items` are never read: a string inside
  * the shape is not a string value of the column.
  */
-function shapeAdmitsString(shape: JSONColumnShape): boolean {
-  return schemaAdmitsString(expandOpenapiShorthand(shape))
-}
-
 function schemaAdmitsString(schema: unknown): boolean {
   if (!schema || typeof schema !== 'object') return false
 
@@ -164,6 +163,33 @@ function schemaAdmitsString(schema: unknown): boolean {
   if (Array.isArray(allOf) && !allOf.every(schemaAdmitsString)) return false
 
   return [anyOf, oneOf].every(branches => !Array.isArray(branches) || branches.some(schemaAdmitsString))
+}
+
+/**
+ * Whether the schema of a json[]/jsonb[] column's element admits a string as
+ * an element of the column: itself, or inside an element that is an array, at
+ * any depth. The driver sends an array inside the column's array as a further
+ * dimension of it, not as a JSON array, so a string in one is stored as
+ * already-encoded JSON text too. Where a shape may be an array is not worked
+ * out: any `items`, and any `allOf`, `anyOf` or `oneOf` branch, is searched.
+ */
+function schemaAdmitsStringElement(schema: unknown): boolean {
+  if (!schema || typeof schema !== 'object') return false
+  if (schemaAdmitsString(schema)) return true
+
+  const { items, allOf, anyOf, oneOf } = schema as {
+    items?: unknown
+    allOf?: unknown
+    anyOf?: unknown
+    oneOf?: unknown
+  }
+
+  return (
+    schemaAdmitsStringElement(items) ||
+    [allOf, anyOf, oneOf].some(
+      branches => Array.isArray(branches) && branches.some(schemaAdmitsStringElement)
+    )
+  )
 }
 
 /**

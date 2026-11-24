@@ -348,8 +348,11 @@ export default class Decorators<TD extends typeof Dream, T extends Dream = Insta
    * The shape may not admit a string, on any column, including through an
    * `anyOf` or `oneOf` branch: Dream stores a string given for a json/jsonb
    * value as already-encoded JSON text, so a string value cannot be saved and
-   * read back as that string. Declare an object, array, number, integer or
-   * boolean shape, or wrap the string in an object. A shape whose own type is
+   * read back as that string. On a json[] or jsonb[] column, a string inside
+   * an element that is an array is refused too, at any depth: such an array
+   * is sent to the database as a further dimension of the column's array.
+   * Declare an object, array, number, integer or boolean shape, or wrap the
+   * string in an object. A shape whose own type is
    * a string (`'string'`, `'date'`, `'date-time'`, `{ type: 'string' }`) is a
    * compile error, and every shape that admits a string is an error when the
    * app boots.

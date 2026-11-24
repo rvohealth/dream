@@ -404,6 +404,30 @@ describe('@deco.JSON', () => {
       )
     })
 
+    // the driver sends an array inside the column's array as a further
+    // dimension of it, so a string in one is stored as JSON text as well
+    it('throws when the app boots on a json[]/jsonb[] column whose elements may be arrays that hold strings', async () => {
+      const deco = new Decorators<typeof StringInArrayElementModel>()
+
+      class StringInArrayElementModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        @deco.JSON({
+          anyOf: [
+            { type: 'integer' },
+            { type: 'array', items: { type: 'array', items: { type: 'string' } } },
+          ],
+        })
+        public favoriteJsonbs: DreamColumn<StringInArrayElementModel, 'favoriteJsonbs'>
+      }
+
+      await expect(bootWith(StringInArrayElementModel)).rejects.toThrow(
+        /StringInArrayElementModel#favoriteJsonbs, a json\[\]\/jsonb\[\] column, admits a string as an element/
+      )
+    })
+
     it('throws when the app boots on a `type` cast beside an anyOf with a string branch, since the expanded shape that is enforced keeps only the anyOf', async () => {
       const deco = new Decorators<typeof CastTypeBesideStringAnyOfModel>()
 
@@ -475,6 +499,10 @@ describe('@deco.JSON', () => {
 
         @deco.JSON({ anyOf: [{ type: 'boolean' }, { type: 'object', properties: { label: 'string' } }] })
         public favoriteJsonbs: DreamColumn<NonStringShapesModel, 'favoriteJsonbs'>
+
+        // an element that is an array of objects, whose strings are inside the objects
+        @deco.JSON({ type: 'array', items: { type: 'object', properties: { label: 'string' } } })
+        public favoriteJsons: DreamColumn<NonStringShapesModel, 'favoriteJsons'>
       }
 
       await expect(bootWith(NonStringShapesModel)).resolves.toBeInstanceOf(DreamApp)
