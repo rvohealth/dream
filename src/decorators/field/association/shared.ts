@@ -12,6 +12,7 @@ import {
   DependentOptions,
   PartialAssociationStatement,
 } from '../../../types/associations/shared.js'
+import { declarationNamesFromMetadata, markDeclarationInMetadata } from '../../helpers/declarationMetadata.js'
 import freezeBaseClassArrayMap from '../../helpers/freezeBaseClassArrayMap.js'
 import { DecoratorContext } from '../../DecoratorContextType.js'
 import associationToGetterSetterProp from './associationToGetterSetterProp.js'
@@ -19,27 +20,11 @@ import associationToGetterSetterProp from './associationToGetterSetterProp.js'
 export const ASSOCIATION_DECLARATION_METADATA_KEY = Symbol('dream:associationDeclarationNames')
 
 export function markAssociationDeclaration(context: DecoratorContext) {
-  const metadata = context.metadata as Record<PropertyKey, string[]> | undefined
-  if (!metadata) return
-
-  const existingDeclarationNames =
-    Object.getOwnPropertyDescriptor(metadata, ASSOCIATION_DECLARATION_METADATA_KEY)?.value || []
-
-  Object.defineProperty(metadata, ASSOCIATION_DECLARATION_METADATA_KEY, {
-    configurable: true,
-    value: [...existingDeclarationNames, context.name],
-  })
+  markDeclarationInMetadata(context, ASSOCIATION_DECLARATION_METADATA_KEY)
 }
 
 export function associationDeclarationNamesFromMetadata(metadata: unknown) {
-  if (!metadata) return []
-
-  return (
-    Object.getOwnPropertyDescriptor(
-      metadata as Record<PropertyKey, string[]>,
-      ASSOCIATION_DECLARATION_METADATA_KEY
-    )?.value || []
-  )
+  return declarationNamesFromMetadata(metadata, ASSOCIATION_DECLARATION_METADATA_KEY)
 }
 
 export function blankAssociationsFactory(
