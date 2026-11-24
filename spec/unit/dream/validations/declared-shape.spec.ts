@@ -235,6 +235,70 @@ describe('a @deco.JSON shape checked at save', () => {
     })
   })
 
+  // JSON text is Unicode-normalized on its way to the database, so the value
+  // stored is the one the normalized text encodes, and that is the one checked
+  context('with a value that Unicode normalization changes', () => {
+    function normalizedJsonShapeModel() {
+      const deco = new Decorators<typeof NormalizedJsonShapeModel>()
+
+      class NormalizedJsonShapeModel extends ApplicationModel {
+        public override get table() {
+          return 'model_for_openapi_type_specs' as const
+        }
+
+        public id: DreamColumn<NormalizedJsonShapeModel, 'id'>
+
+        @deco.JSON({
+          type: 'object',
+          properties: {
+            apiKeyScope: { type: 'string', enum: ['readonly', 'readwrite'] },
+            note: { type: 'string', maxLength: 4 },
+          },
+        })
+        public jsonbData: DreamColumn<NormalizedJsonShapeModel, 'jsonbData'>
+      }
+
+      NormalizedJsonShapeModel['defineAttributeAccessors']()
+      processDynamicallyDefinedModels(NormalizedJsonShapeModel)
+      return NormalizedJsonShapeModel
+    }
+
+    it('checks a key that normalizes into a declared property as that property', async () => {
+      const NormalizedJsonShapeModel = normalizedJsonShapeModel()
+
+      // the Kelvin sign (U+212A) normalizes to `K`, so the text stored has
+      // `apiKeyScope` twice, and the database keeps the last, 'admin'
+      const error = await saveError(() =>
+        NormalizedJsonShapeModel.create({
+          ...requiredAttributes,
+          jsonbData: { apiKeyScope: 'readonly', apiKeyScope: 'admin' },
+        } as any)
+      )
+      expect(error.errors).toEqual({ jsonbData: ['declaredShape'] })
+    })
+
+    it('checks a string at the length it is stored with', async () => {
+      const NormalizedJsonShapeModel = normalizedJsonShapeModel()
+
+      // U+FB2C normalizes to three characters, so four of them are stored as twelve
+      const error = await saveError(() =>
+        NormalizedJsonShapeModel.create({
+          ...requiredAttributes,
+          jsonbData: { note: 'שּׁ'.repeat(4) },
+        } as any)
+      )
+      expect(error.errors).toEqual({ jsonbData: ['declaredShape'] })
+
+      // an `e` and a combining acute accent normalize to one character, so
+      // four pairs are stored as four characters
+      const model = await NormalizedJsonShapeModel.create({
+        ...requiredAttributes,
+        jsonbData: { note: 'é'.repeat(4) },
+      } as any)
+      expect((await NormalizedJsonShapeModel.findOrFail(model.id)).jsonbData).toEqual({ note: 'é'.repeat(4) })
+    })
+  })
+
   context('with the attribute unset', () => {
     it('does not check it, so the column default is stored', async () => {
       const user = await User.create({ email: 'fred@frewd', password: 'howyadoin' })

@@ -5,6 +5,7 @@ import DecryptionError from '../../errors/encrypt/DecryptionError.js'
 import DecryptionParseError from '../../errors/encrypt/DecryptionParseError.js'
 import DecryptionRotationError from '../../errors/encrypt/DecryptionRotationError.js'
 import UnexpectedUndefined from '../../errors/UnexpectedUndefined.js'
+import { normalizeDataForDb } from '../../helpers/db/normalizeDataForDb.js'
 import isJsonColumn from '../../helpers/db/types/isJsonColumn.js'
 import { validateDeclaredShape } from '../../openapi/declaredShape.js'
 import { AssociationMetadataMap, AssociationStatement } from '../../types/associations/shared.js'
@@ -140,11 +141,19 @@ function checkDeclaredShape(dream: Dream, property: string): boolean {
  * column keeps JSON text (a string given for it is taken as already-encoded
  * JSON), and any other column, a json[]/jsonb[] one included, keeps the value
  * as assigned, whose elements the database stores as their JSON.
+ *
+ * The attribute is read as `normalizeDataForDb` sends it to the database.
+ * That Unicode-normalizes JSON text, which can change a string's length and
+ * turn two of an object's keys into one (the Kelvin sign U+212A becomes `K`),
+ * so the value the text encodes before it is normalized is not the value
+ * stored.
  */
 function storedJsonColumnValue(dreamClass: typeof Dream, column: string, stored: unknown): unknown {
   if (stored === null) return null
-  if (typeof stored === 'string' && isJsonColumn(dreamClass, column as any)) return JSON.parse(stored)
-  return JSON.parse(JSON.stringify(stored))
+
+  const sent = normalizeDataForDb({ val: stored, dreamClass, column })
+  if (typeof sent === 'string' && isJsonColumn(dreamClass, column as any)) return JSON.parse(sent)
+  return JSON.parse(JSON.stringify(sent))
 }
 
 function isBlank(value: any) {
