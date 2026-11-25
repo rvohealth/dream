@@ -905,8 +905,8 @@ export default class Dream {
    *
    * @internal
    *
-   * Not part of the public API. Psychic reaches it through the bracketed
-   * back-door (`dreamClass['paramSafeColumnsOrFallback']()`).
+   * Not part of the public API; Psychic reads a model's param-safe columns
+   * through `DreamApp.system.paramSafeColumnNames`.
    *
    * @returns A subset of columns for the given dream class
    */
