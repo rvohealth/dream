@@ -21,7 +21,37 @@ export default class Composition extends ApplicationModel {
 
   public id: DreamColumn<Composition, 'id'>
   public content: DreamColumn<Composition, 'content'>
+
+  @deco.JSON({
+    type: 'object',
+    properties: {
+      version: 'integer',
+      contributors: 'string[]',
+    },
+  })
   public metadata: DreamColumn<Composition, 'metadata'>
+
+  // a json column left without @deco.JSON, so a serializer must declare its shape
+  public metadata2: DreamColumn<Composition, 'metadata2'>
+
+  // a nullable jsonb column whose declared shape is an array of closed
+  // objects, with date and date-time strings
+  @deco.JSON({
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['draft', 'published'] },
+        publishedOn: 'date',
+        reviewedOn: { type: 'date' },
+        reviewedAt: 'date-time',
+      },
+      required: ['status'],
+      additionalProperties: false,
+    },
+  })
+  public metadata3: DreamColumn<Composition, 'metadata3'>
+
   public createdAt: DreamColumn<Composition, 'createdAt'>
   public updatedAt: DreamColumn<Composition, 'updatedAt'>
 

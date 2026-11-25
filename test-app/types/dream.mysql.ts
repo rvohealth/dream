@@ -109,6 +109,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {
       pet: {
         type: 'BelongsTo',
@@ -176,6 +178,8 @@ export const schema = {
       },
     },
     virtualColumns: [],
+    jsonDecoratedColumns: [],
+    encryptedAttributes: {},
     associations: {},
   },
 } as const

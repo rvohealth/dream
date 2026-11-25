@@ -2,6 +2,8 @@
 // we can simply examine the types/dream.ts file to ensure that it is properly
 // written
 
+import { CliFileWriter } from '../../../../src/cli/CliFileWriter.js'
+import ASTSchemaBuilder from '../../../../src/helpers/cli/ASTSchemaBuilder.js'
 import AlternateDbConnectionUser from '../../../../test-app/app/models/AlternateDbConnectionUser.js'
 import User from '../../../../test-app/app/models/User.js'
 import { BalloonColorsEnumValues } from '../../../../test-app/types/db.js'
@@ -42,6 +44,65 @@ describe('ASTSchemaBuilder', () => {
           'randoVirtual',
           'secret',
         ])
+      })
+    })
+
+    context('json decorated columns', () => {
+      it('renders jsonDecoratedColumns, listing the columns declared with @deco.JSON', () => {
+        expect(User.prototype.schema.compositions.jsonDecoratedColumns).toEqual(['metadata', 'metadata3'])
+      })
+
+      it('renders an empty jsonDecoratedColumns for a table whose json columns are undeclared', () => {
+        expect(User.prototype.schema.model_for_openapi_type_specs.jsonDecoratedColumns).toEqual([])
+      })
+
+      it('does not list a @deco.JSON column among the virtualColumns', () => {
+        expect(User.prototype.schema.compositions.virtualColumns).toEqual([])
+      })
+    })
+
+    context('encrypted attributes', () => {
+      it('renders encryptedAttributes, keyed by each @deco.Encrypted property, outside the columns', () => {
+        expect(Object.keys(User.prototype.schema.users.encryptedAttributes)).toEqual([
+          'otherSecret',
+          'secret',
+        ])
+        expect(Object.keys(User.prototype.schema.users.encryptedAttributes.secret)).toEqual([
+          'coercedType',
+          'writeType',
+        ])
+        expect(Object.keys(User.prototype.schema.users.columns)).not.toContain('secret')
+        expect(User.columns()).not.toContain('secret')
+      })
+
+      it('renders an empty encryptedAttributes for a table whose models declare none', () => {
+        expect(User.prototype.schema.compositions.encryptedAttributes).toEqual({})
+      })
+    })
+
+    context('the types written for declared shapes', () => {
+      let written: string
+
+      beforeAll(async () => {
+        const writeSpy = vi.spyOn(CliFileWriter, 'write').mockResolvedValue(undefined)
+        try {
+          await new ASTSchemaBuilder('default').build()
+          written = writeSpy.mock.calls[0]![1].replace(/\s+/g, ' ')
+        } finally {
+          writeSpy.mockRestore()
+        }
+      })
+
+      it("types a @deco.JSON column's values by its declared shape", () => {
+        expect(written).toContain(
+          'metadata: { coercedType: {} as { version?: number contributors?: string[] [key: string]: unknown },'
+        )
+      })
+
+      it("types each @deco.Encrypted property's value read and written by its declared shape", () => {
+        expect(written).toContain(
+          'encryptedAttributes: { otherSecret: { coercedType: {} as { token: string issuedOn?: string [key: string]: unknown } | null, writeType: {} as { token: string issuedOn?: string | CalendarDate [key: string]: unknown } | null, }, secret: { coercedType: {} as string | null, writeType: {} as string | null, }, },'
+        )
       })
     })
 

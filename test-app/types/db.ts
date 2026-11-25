@@ -382,9 +382,35 @@ export interface Compositions {
   content: string | null
   createdAt: Timestamp
   id: Generated<Int8>
-  metadata: Generated<Json>
+  metadata: Generated<{
+    version?: number
+    contributors?: string[]
+    [key: string]: unknown
+  }>
   metadata2: Json | null
-  metadata3: Json | null
+  metadata3: ColumnType<
+    | {
+        status: 'draft' | 'published'
+        publishedOn?: string
+        reviewedOn?: string
+        reviewedAt?: string
+      }[]
+    | null,
+    | {
+        status: 'draft' | 'published'
+        publishedOn?: string | CalendarDate
+        reviewedOn?: string | CalendarDate
+        reviewedAt?: string | DateTime
+      }[]
+    | null,
+    | {
+        status: 'draft' | 'published'
+        publishedOn?: string | CalendarDate
+        reviewedOn?: string | CalendarDate
+        reviewedAt?: string | DateTime
+      }[]
+    | null
+  >
   primary: Generated<boolean | null>
   updatedAt: Timestamp
   userId: Int8

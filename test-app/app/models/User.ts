@@ -55,13 +55,17 @@ export default class User extends ApplicationModel {
   public updatedAt: DreamColumn<User, 'updatedAt'>
 
   @deco.Encrypted()
-  public secret: DreamColumn<User, 'encryptedSecret'>
+  public secret: DreamColumn<User, 'secret'>
 
   @deco.Encrypted({
     column: 'myOtherEncryptedSecret',
-    openapi: { type: ['object', 'null'], properties: { token: 'string' }, required: ['token'] },
+    openapi: {
+      type: ['object', 'null'],
+      properties: { token: 'string', issuedOn: 'date' },
+      required: ['token'],
+    },
   })
-  public otherSecret: { token: string } | null
+  public otherSecret: DreamColumn<User, 'otherSecret'>
 
   @deco.Virtual('string')
   public password: string | undefined

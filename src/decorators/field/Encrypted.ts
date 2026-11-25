@@ -3,11 +3,13 @@ import DreamApp from '../../dream-app/index.js'
 import defaultEncryptedColumnName from '../../encrypt/defaultEncryptedColumnName.js'
 import InternalEncrypt from '../../encrypt/InternalEncrypt.js'
 import DoNotSetEncryptedFieldsDirectly from '../../errors/DoNotSetEncryptedFieldsDirectly.js'
+import ModelDeclaredShapeContainsReference from '../../errors/ModelDeclaredShapeContainsReference.js'
 import columnAllowsNull from '../../helpers/db/columnAllowsNull.js'
-import { OpenapiSchemaBodyShorthand, OpenapiShorthandPrimitiveTypes } from '../../types/openapi.js'
 import { DecoratorContext } from '../DecoratorContextType.js'
-import { VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
+import { VirtualAttributeShape, VirtualAttributeStatement } from '../field-or-getter/Virtual.js'
+import findOpenapiShapeReference from '../helpers/findOpenapiShapeReference.js'
 import registerOnce from '../helpers/registerOnce.js'
+import { validatesImplementation } from './validation/Validates.js'
 
 export default function Encrypted(columnOrOptions?: string | EncryptedOptions): any {
   const { column, openapi }: EncryptedOptions =
@@ -37,6 +39,16 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
         return
       }
 
+      const reference = findOpenapiShapeReference(openapi)
+      if (reference)
+        throw new ModelDeclaredShapeContainsReference(
+          dreamClass,
+          '@deco.Encrypted',
+          key,
+          reference.key,
+          reference.path
+        )
+
       registerOnce(dreamClass, 'virtualAttributes', {
         property: key,
         type: openapi ?? (columnAllowsNull(dreamClass, encryptedKey) ? ['string', 'null'] : 'string'),
@@ -47,7 +59,13 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
       registerOnce(dreamClass, 'encryptedAttributes', {
         property: key,
         encryptedColumnName: encryptedKey,
+        shapeDeclared: openapi !== undefined,
       } satisfies EncryptedAttributeStatement)
+
+      // checks the decrypted value against the property's shape, declared or
+      // the inferred string, on every save; registered on every class that
+      // initializes this, an STI child included
+      validatesImplementation(this, key, 'declaredShape')
 
       const dreamPrototype = Object.getPrototypeOf(this)
 
@@ -121,10 +139,18 @@ export default function Encrypted(columnOrOptions?: string | EncryptedOptions): 
 
 export interface EncryptedOptions<ColumnName extends string = string> {
   column?: ColumnName
-  openapi?: OpenapiShorthandPrimitiveTypes | OpenapiSchemaBodyShorthand
+  openapi?: VirtualAttributeShape
 }
 
 export interface EncryptedAttributeStatement {
   property: string
   encryptedColumnName: string
+  /**
+   * Whether the decorator declared the value's shape (`openapi`). A bare
+   * `@deco.Encrypted()` registers `'string'`, `null` added when the backing
+   * column allows it, as read from the schema the app booted with; sync reads
+   * the backing column's nullability fresh instead, so it types a bare one
+   * from `'string'` rather than from that registration.
+   */
+  shapeDeclared: boolean
 }

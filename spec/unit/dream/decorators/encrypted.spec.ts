@@ -2,10 +2,13 @@ import STI from '../../../../src/decorators/class/STI.js'
 import Decorators from '../../../../src/decorators/Decorators.js'
 import DreamApp, { EncryptionLegacyKeyUsedEvent } from '../../../../src/dream-app/index.js'
 import Encrypt from '../../../../src/encrypt/index.js'
+import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
+import { declaredShapeSchema, validateDeclaredShape } from '../../../../src/openapi/declaredShape.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
 import { DateTime } from '../../../../src/utils/datetime/DateTime.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 
 describe('@Encrypted', () => {
@@ -39,7 +42,11 @@ describe('@Encrypted', () => {
       expect.arrayContaining([
         {
           property: 'otherSecret',
-          type: { type: ['object', 'null'], properties: { token: 'string' }, required: ['token'] },
+          type: {
+            type: ['object', 'null'],
+            properties: { token: 'string', issuedOn: 'date' },
+            required: ['token'],
+          },
         },
       ])
     )
@@ -48,8 +55,8 @@ describe('@Encrypted', () => {
   it("adds each backing column to the Dream class's encryptedAttributes", () => {
     expect(User['encryptedAttributes']).toEqual(
       expect.arrayContaining([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
-        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
+        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret', shapeDeclared: true },
       ])
     )
   })
@@ -404,7 +411,16 @@ describe('@Encrypted', () => {
           return 'users' as const
         }
 
-        @deco.Encrypted({ openapi: 'json' })
+        // the shape admits each value the spec stores, since every save checks
+        // the value against it
+        @deco.Encrypted({
+          openapi: {
+            anyOf: [
+              { type: 'array', items: { anyOf: [{ type: 'integer' }, { type: 'boolean' }] } },
+              { type: 'string' },
+            ],
+          },
+        })
         public secret: unknown
       }
       UserWithJsonSecret['defineAttributeAccessors']()
@@ -417,7 +433,9 @@ describe('@Encrypted', () => {
         ['Howdy world', 'Howdy moon'],
       ]) {
         const userWithJsonSecret = await UserWithJsonSecret.findOrFail(user.id)
-        await userWithJsonSecret.update({ secret: original })
+        // the generated schema types the users table's `secret` by User's
+        // declaration (a string), not by this model's
+        await userWithJsonSecret.update({ secret: original as any })
 
         const reloadedUser = await UserWithJsonSecret.findOrFail(user.id)
         reloadedUser.secret = changed
@@ -464,7 +482,7 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(UserWithColumnNameString)
 
       expect(UserWithColumnNameString['encryptedAttributes']).toEqual([
-        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret' },
+        { property: 'otherSecret', encryptedColumnName: 'myOtherEncryptedSecret', shapeDeclared: false },
       ])
       expect(UserWithColumnNameString['virtualAttributes']).toEqual([
         { property: 'otherSecret', type: ['string', 'null'] },
@@ -479,22 +497,29 @@ describe('@Encrypted', () => {
   })
 
   context('with an openapi shape and no column', () => {
-    it('uses the word "encrypted" in front of the pascalized method name and registers the shape without adding null from the backing column', () => {
+    it('uses the word "encrypted" in front of the pascalized method name, and checks and renders the shape with null added from the nullable backing column', () => {
       const deco = new Decorators<typeof UserWithJsonSecret>()
       class UserWithJsonSecret extends ApplicationModel {
         public override get table() {
           return 'users' as const
         }
 
+        // on the nullable `encrypted_secret` column
         @deco.Encrypted({ openapi: 'json' })
         public secret: unknown
       }
       processDynamicallyDefinedModels(UserWithJsonSecret)
 
       expect(UserWithJsonSecret['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: true },
       ])
       expect(UserWithJsonSecret['virtualAttributes']).toEqual([{ property: 'secret', type: 'json' }])
+
+      // the schema a save checks the value against, and Psychic renders
+      expect(declaredShapeSchema(UserWithJsonSecret, 'secret')).toEqual({ type: ['object', 'null'] })
+      expect(validateDeclaredShape(UserWithJsonSecret, 'secret', null)).toEqual({ isValid: true })
+      expect(validateDeclaredShape(UserWithJsonSecret, 'secret', {})).toEqual({ isValid: true })
+      expect(validateDeclaredShape(UserWithJsonSecret, 'secret', [0]).isValid).toBe(false)
     })
   })
 
@@ -519,7 +544,7 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(SecretiveBase, SecretiveChild)
 
       expect(SecretiveChild['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
       ])
       expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
       expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])
@@ -550,10 +575,113 @@ describe('@Encrypted', () => {
       processDynamicallyDefinedModels(SecretiveChild, SecretiveBase)
 
       expect(SecretiveChild['encryptedAttributes']).toEqual([
-        { property: 'secret', encryptedColumnName: 'encryptedSecret' },
+        { property: 'secret', encryptedColumnName: 'encryptedSecret', shapeDeclared: false },
       ])
       expect(SecretiveChild['virtualAttributes']).toEqual([{ property: 'secret', type: ['string', 'null'] }])
       expect(SecretiveChild['explicitUnsafeParamColumns']).toEqual(['encryptedSecret'])
+    })
+  })
+
+  context('with an openapi shape that contains a reference', () => {
+    it('is a compile error, and throws when the models load, for a reference at the top level', () => {
+      const deco = new Decorators<typeof TopLevelRefModel>()
+
+      class TopLevelRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        // @ts-expect-error a @deco.Encrypted shape may not contain a reference
+        @deco.Encrypted({ openapi: { $serializer: UserSerializer } })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        /@deco\.Encrypted on TopLevelRefModel#secret[\s\S]*`\$serializer` at the top level of the shape[\s\S]*without a reference[\s\S]*\{ openapi \}[\s\S]*`combining`/
+      )
+    })
+
+    it('is a compile error, and throws when the models load, for a reference nested in the shape', () => {
+      const deco = new Decorators<typeof NestedRefModel>()
+
+      class NestedRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({
+          openapi: {
+            type: ['object', 'null'],
+            // @ts-expect-error a @deco.Encrypted shape may not contain a reference
+            properties: { token: { allOf: [{ $ref: '#/components/schemas/Token' }] } },
+          },
+        })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(NestedRefModel)).toThrow(
+        /@deco\.Encrypted on NestedRefModel#secret[\s\S]*`\$ref` at `properties\.token\.allOf\[0\]`/
+      )
+    })
+
+    it('throws when the models load for a reference smuggled past the types with a cast', () => {
+      const deco = new Decorators<typeof CastRefModel>()
+
+      class CastRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: { type: 'array', items: { $serializable: User } } as any })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(CastRefModel)).toThrow(/`\$serializable` at `items`/)
+    })
+
+    it('throws when the models load for a `for:` sentinel smuggled past the types with a cast', () => {
+      const deco = new Decorators<typeof ForSentinelModel>()
+
+      class ForSentinelModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: { for: User, combining: { note: 'string' } } as any })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        /@deco\.Encrypted on ForSentinelModel#secret[\s\S]*`for:` sentinel at the top level of the shape/
+      )
+    })
+
+    it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
+      const shapeWithRef = {
+        type: 'object',
+        properties: { token: { type: 'string', $schema: 'Token' } },
+      } as const
+
+      const deco = new Decorators<typeof ConstRefModel>()
+
+      class ConstRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Encrypted({ openapi: shapeWithRef })
+        public secret: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ConstRefModel)).toThrow(
+        /`\$schema` at `properties\.token`/
+      )
     })
   })
 })

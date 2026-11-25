@@ -15,5 +15,5 @@ export default class StiA extends StiBase {
   }
 
   @deco.Encrypted()
-  public secret: DreamColumn<StiA, 'encryptedSecret'>
+  public secret: DreamColumn<StiA, 'secret'>
 }

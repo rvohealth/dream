@@ -31,6 +31,18 @@ describe('DreamSerializer#delegatedAttribute', () => {
     })
   })
 
+  it('accepts a reference in an OpenAPI shape overriding a delegated virtual attribute, which the model declaration may not contain', () => {
+    const user = User.new({ randoVirtual: 'abc' })
+    const pet = Pet.new({ user, name: 'Snoopy' })
+
+    const MySerializer = (data: Pet) =>
+      DreamSerializer(Pet, data).delegatedAttribute('user', 'randoVirtual', {
+        openapi: { anyOf: [{ type: 'null' }, { $schema: 'RandoVirtual' }] },
+      })
+
+    expect(MySerializer(pet).render()).toEqual({ randoVirtual: 'abc' })
+  })
+
   it('supports specifying a default value', () => {
     const user = User.new({})
     const pet = Pet.new({ user, name: 'Snoopy' })
@@ -234,14 +246,37 @@ describe('DreamSerializer#delegatedAttribute', () => {
       DreamSerializer(Pet, pet).delegatedAttribute('user', 'email', { openapi: { type: 'string' } })
     })
 
-    it.skip('a json column requires a full OpenAPI shape', () => {
+    it.skip('a json column without @deco.JSON requires a full OpenAPI shape', () => {
       const asset = CompositionAsset.new()
-      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata', {
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata2', {
         openapi: { type: 'object', properties: { theme: 'string' } },
       })
 
-      // @ts-expect-error a json column has no shape to infer
+      // @ts-expect-error a json column without @deco.JSON has no shape to infer
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata2')
+    })
+
+    it.skip('a json column declared with @deco.JSON takes only a description as its OpenAPI override', () => {
+      const asset = CompositionAsset.new()
       DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata')
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata', {
+        optional: true,
+        default: {},
+        required: false,
+      })
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata', {
+        openapi: { description: 'the composition’s metadata' },
+      })
+
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata', {
+        // @ts-expect-error a @deco.JSON column's shape comes from the model's declaration
+        openapi: { type: 'object', properties: { theme: 'string' } },
+      })
+
+      DreamSerializer(CompositionAsset, asset).delegatedAttribute('composition', 'metadata', {
+        // @ts-expect-error a @deco.JSON column's shape comes from the model's declaration
+        openapi: 'json',
+      })
     })
   })
 })

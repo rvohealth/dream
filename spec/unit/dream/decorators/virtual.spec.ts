@@ -1,8 +1,10 @@
 import STI from '../../../../src/decorators/class/STI.js'
 import Decorators from '../../../../src/decorators/Decorators.js'
+import ModelDeclaredShapeContainsReference from '../../../../src/errors/ModelDeclaredShapeContainsReference.js'
 import { DreamColumn } from '../../../../src/types/dream.js'
 import ApplicationModel from '../../../../test-app/app/models/ApplicationModel.js'
 import User from '../../../../test-app/app/models/User.js'
+import UserSerializer from '../../../../test-app/app/serializers/UserSerializer.js'
 import processDynamicallyDefinedModels from '../../../helpers/processDynamicallyDefinedModels.js'
 
 describe('@deco.Virtual', () => {
@@ -106,6 +108,110 @@ describe('@deco.Virtual', () => {
       processDynamicallyDefinedModels(NicknamedChild)
 
       expect(NicknamedChild['virtualAttributes']).toEqual([{ property: 'nickname', type: 'string' }])
+    })
+  })
+
+  context('with a shape that contains a reference', () => {
+    it('is a compile error, and throws when the models load, for a reference at the top level', () => {
+      const deco = new Decorators<typeof TopLevelRefModel>()
+
+      class TopLevelRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        // @ts-expect-error a @deco.Virtual shape may not contain a reference
+        @deco.Virtual({ $serializer: UserSerializer })
+        public owner: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(TopLevelRefModel)).toThrow(
+        /@deco\.Virtual on TopLevelRefModel#owner[\s\S]*`\$serializer` at the top level of the shape[\s\S]*without a reference[\s\S]*\{ openapi \}[\s\S]*`combining`/
+      )
+    })
+
+    it('is a compile error, and throws when the models load, for a reference nested in the shape of a getter', () => {
+      const deco = new Decorators<typeof NestedRefModel>()
+
+      class NestedRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Virtual({
+          type: 'object',
+          // @ts-expect-error a @deco.Virtual shape may not contain a reference
+          properties: { owners: { type: 'array', items: { $serializable: User } } },
+        })
+        public get owners() {
+          return []
+        }
+      }
+
+      expect(() => processDynamicallyDefinedModels(NestedRefModel)).toThrow(
+        /@deco\.Virtual on NestedRefModel#owners[\s\S]*`\$serializable` at `properties\.owners\.items`/
+      )
+    })
+
+    it('throws when the models load for a reference smuggled past the types with a cast', () => {
+      const deco = new Decorators<typeof CastRefModel>()
+
+      class CastRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Virtual({ anyOf: [{ type: 'null' }, { $ref: '#/components/schemas/Owner' }] } as any)
+        public owner: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(CastRefModel)).toThrow(/`\$ref` at `anyOf\[1\]`/)
+    })
+
+    it('is a compile error, and throws when the models load, for a `for:` sentinel', () => {
+      const deco = new Decorators<typeof ForSentinelModel>()
+
+      class ForSentinelModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Virtual({
+          type: 'object',
+          // @ts-expect-error a @deco.Virtual shape may not contain a `for:` sentinel
+          properties: { owner: { for: User, only: ['email'] } },
+        })
+        public owner: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        ModelDeclaredShapeContainsReference
+      )
+      expect(() => processDynamicallyDefinedModels(ForSentinelModel)).toThrow(
+        /@deco\.Virtual on ForSentinelModel#owner[\s\S]*`for:` sentinel at `properties\.owner`/
+      )
+    })
+
+    it('throws when the models load for a reference in an `as const` constant, which the types do not catch', () => {
+      const shapeWithRef = { type: 'object', properties: {}, $schema: 'Owner' } as const
+
+      const deco = new Decorators<typeof ConstRefModel>()
+
+      class ConstRefModel extends ApplicationModel {
+        public override get table() {
+          return 'users' as const
+        }
+
+        @deco.Virtual(shapeWithRef)
+        public owner: unknown
+      }
+
+      expect(() => processDynamicallyDefinedModels(ConstRefModel)).toThrow(
+        /`\$schema` at the top level of the shape/
+      )
     })
   })
 })
