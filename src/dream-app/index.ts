@@ -29,6 +29,7 @@ import absoluteDreamPath from '../helpers/path/absoluteDreamPath.js'
 import dreamPath from '../helpers/path/dreamPath.js'
 import standardizeFullyQualifiedModelName from '../helpers/standardizeFullyQualifiedModelName.js'
 import expandStiClasses from '../helpers/sti/expandStiClasses.js'
+import virtualAttributeNames from '../helpers/virtualAttributeNames.js'
 import inferSerializerFromDreamOrViewModel, {
   inferSerializersFromDreamClassOrViewModelClass,
 } from '../serializer/helpers/inferSerializerFromDreamOrViewModel.js'
@@ -57,6 +58,7 @@ import createOpenapiAjv from '../openapi/createOpenapiAjv.js'
 import {
   compileDeclaredShapeValidators,
   declaredShapeSchema,
+  modelDeclaredShape,
   openapiColumnShape,
   validateDeclaredShape,
 } from '../openapi/declaredShape.js'
@@ -169,6 +171,8 @@ export default class DreamApp {
       openapiSchemaWithNull,
       openapiSchemaAcceptsNull,
       openapiColumnShape,
+      virtualAttributeNames,
+      modelDeclaredShape,
       declaredShapeSchema,
       createOpenapiAjv,
       validateDeclaredShape,

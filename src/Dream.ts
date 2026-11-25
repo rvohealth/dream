@@ -394,8 +394,8 @@ export default class Dream {
    *
    * Kept apart from `virtualAttributes` because a decorated column is a real
    * column: `isVirtualColumn` stays false for it. Not part of the public API;
-   * Psychic reaches it through the bracketed back-door
-   * (`dreamClass['jsonColumnShapes']`), as it does `virtualAttributes`.
+   * Psychic reads a model's declared shapes through
+   * `DreamApp.system.modelDeclaredShape`.
    */
   private static jsonColumnShapes: readonly JSONColumnShapeStatement[] | JSONColumnShapeStatement[] =
     Object.freeze([])
@@ -906,8 +906,7 @@ export default class Dream {
    * @internal
    *
    * Not part of the public API. Psychic reaches it through the bracketed
-   * back-door (`dreamClass['paramSafeColumnsOrFallback']()`), the same escape
-   * hatch used for other Dream internals such as `virtualAttributes`.
+   * back-door (`dreamClass['paramSafeColumnsOrFallback']()`).
    *
    * @returns A subset of columns for the given dream class
    */

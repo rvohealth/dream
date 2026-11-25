@@ -92,6 +92,7 @@ function oneOfNullEncryptedShapeModel() {
 describe('declared shapes', () => {
   it('are reachable through DreamApp.system', () => {
     expect(DreamApp.system.openapiColumnShape).toBe(openapiColumnShape)
+    expect(DreamApp.system.modelDeclaredShape).toBe(modelDeclaredShape)
     expect(DreamApp.system.declaredShapeSchema).toBe(declaredShapeSchema)
     expect(DreamApp.system.validateDeclaredShape).toBe(validateDeclaredShape)
     expect(DreamApp.system.openapiSchemaWithNull).toBe(openapiSchemaWithNull)
